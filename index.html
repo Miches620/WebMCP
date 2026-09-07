@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebMCP Orchestrator - MicheLab</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Customizing Tailwind for the requested dark/metal theme */
+      :root {
+        --dark-bg: #1f2937; /* Gray 800 equivalent, darker console feel */
+        --medium-bg: #374151; /* Gray 700 equivalent */
+        --text-color: #d1d5db; /* Light gray for text */
+        --accent-color: #6366f4; /* Indigo 500 - a good "metal" accent */
+      }
+
+      body {
+        background-color: var(--dark-bg);
+        color: var(--text-color);
+        font-family: "Consolas", monospace;
+      }
+
+      /* Custom scrollbar for the console/panels */
+      .custom-scroll::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      .custom-scroll::-webkit-scrollbar-track {
+        background: var(--medium-bg);
+      }
+      .custom-scroll::-webkit-scrollbar-thumb {
+        background-color: #4b5563; /* Gray 600 */
+        border-radius: 3px;
+      }
+
+      /* Panel specific styling */
+      .panel-box {
+        background-color: var(--medium-bg);
+        border: 1px solid #4b5563;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        min-height: 200px; /* Ensure visibility before content loads */
+      }
+
+      #taskListContainer,
+      #llmReasoningOutput {
+        max-height: 65vh;
+        overflow-y: auto;
+        padding-right: 8px;
+      }
+
+      /* Bonus: que el scroll se vea lindo */
+      #taskListContainer::-webkit-scrollbar {
+        width: 8px;
+      }
+      #taskListContainer::-webkit-scrollbar-thumb {
+        background: #4b5563;
+        border-radius: 4px;
+      }
+
+      .scroll-panel {
+        max-height: 403px; /* Altura fija, no se estira */
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mx-auto p-8 max-w-7xl">
+      <!-- INITIAL LAYOUT (Phase 1) -->
+      <section
+        id="initial-view"
+        class="mb-10 bg-[#111827] p-6 rounded-lg border-gray-700 shadow-xl"
+      >
+        <h1 class="text-3xl font-bold mb-4 text-indigo-400">
+          MicheLab v0.2 - Orquestador
+        </h1>
+        <p class="mb-6 text-sm text-gray-400">
+          Define las metas del proyecto. El sistema automaticamente lo
+          descompondra en tareas atomicas y ejecutables.
+        </p>
+
+        <!-- 1. Prompt Textarea -->
+        <div>
+          <label for="projectPrompt" class="block mb-2 text-lg font-medium"
+            >Prompt del Proyecto:</label
+          >
+          <textarea
+            id="projectPrompt"
+            rows="6"
+            class="w-full p-3 bg-gray-800 border-indigo-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 text-sm placeholder-gray-500"
+            placeholder="Ejemplo: Crear un sitio web para monitorear el clima de mi ciudad."
+          ></textarea>
+        </div>
+
+        <!-- 2. BOTONES -->
+        <div class="flex flex-wrap gap-3 mt-6">
+          <!-- BOTON PRINCIPAL -->
+          <button
+            id="generateButton"
+            class="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition duration-150 shadow-lg"
+          >
+            ⚛️ Generar Plan de Tareas Atómicas
+          </button>
+
+          <!-- BOTON CONTINUAR - NUEVO -->
+          <button
+            id="resumeButton"
+            class="hidden px-8 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg transition duration-150 shadow-lg"
+          >
+            ▶️ Continuar desde donde quedé
+          </button>
+
+          <!-- BOTON NUEVO PROYECTO - NUEVO -->
+          <button
+            id="newProjectButton"
+            class="hidden px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition duration-150 shadow-lg"
+          >
+            🗑️ Nuevo Proyecto
+          </button>
+        </div>
+        <p id="resumeHint" class="text-xs text-gray-500 mt-2 hidden">
+          Se encontró un plan guardado. Puedes continuar o empezar uno nuevo.
+        </p>
+      </section>
+
+      <!-- ACTIVE ORCHESTRATION LAYOUT (Phase 2) -->
+      <section id="orchestration-view" class="hidden mt-8">
+        <h2 class="text-3xl font-bold mb-6 text-indigo-400">
+          Flujo de Orquestación Activo
+        </h2>
+        <!-- Top Row: Panel 1 & Panel 2 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <!-- PANEL 1: RAZONAMIENTO DEL LLM (Top Left) -->
+          <div class="panel-box col-span-full lg:col-span-1 flex-col">
+            <h3
+              class="text-xl font-semibold mb-3 text-indigo-300 border-b border-gray-600 pb-2"
+            >
+              Razonamiento del LLM / Ejecución
+            </h3>
+            <!-- Scrollable Div for Thought/Logs -->
+            <div
+              id="llmReasoningOutput"
+              class="flex-grow h-80 overflow-y-auto scroll-panel custom-scroll bg-[#1e293b] p-4 text-sm rounded"
+            >
+              <p class="text-gray-500 italic">
+                [Esperando que se genere un plan...]
+              </p>
+            </div>
+          </div>
+
+          <!-- PANEL 2: INPUT CONTINUO (Top Right) -->
+          <div class="panel-box col-span-full lg:col-span-1 flex-col">
+            <h3
+              class="text-xl font-semibold mb-3 text-indigo-300 border-b border-gray-600 pb-2"
+            >
+              Chat (Contacto con equipo de MicheLab)
+            </h3>
+            <!-- Textarea for refinement -->
+            <div>
+              <textarea
+                id="refinementPrompt"
+                rows="4"
+                class="w-full p-3 mb-3 bg-gray-800 border-gray-600 rounded-md focus:outline-none text-sm placeholder-gray-500 resize-none"
+                placeholder="Añade
+ instrucciones para refinar el plan o añadir funcionalidad (Ej: 'Asegúrate de incluir un pie de página con copyright
+ 2024')."
+              ></textarea>
+              <button
+                id="addInstructionBtn"
+                class="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition duration-150"
+              >
+                Enviar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Row: Panel 3 & Panel 4 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- PANEL 3: LISTA DE TAREAS ATÓMICAS (Bottom Left) -->
+          <div class="panel-box flex flex-col">
+            <h3
+              class="text-xl font-semibold mb-4 text-indigo-300 border-b border-gray-600 pb-2"
+            >
+              Lista de Tareas Atómicas
+            </h3>
+            <!-- Task list container -->
+            <div
+              id="taskListContainer"
+              class="flex-grow h-80 overflow-y-auto scroll-panel custom-scroll space-y-3 pr-1"
+            >
+              <!-- Tasks will be rendered here by script.js -->
+              <p class="text-gray-400 text-center pt-10">
+                Generando tareas atomizadas. Por favor espere...
+              </p>
+            </div>
+          </div>
+
+          <!-- PANEL 4: PREVIEW LIVE (Bottom Right) -->
+          <div class="panel-box flex-col">
+            <h3
+              class="text-xl font-semibold mb-3 text-indigo-300 border-b border-gray-600 pb-2"
+            >
+              Vista previa
+            </h3>
+            <!-- Iframe for live preview -->
+            <div
+              class="flex-grow bg-[#000] rounded-md overflow-hidden shadow-inner"
+              style="min-height: 400px"
+            >
+              <iframe
+                id="livePreviewIframe"
+                title="Vista previa en vivo del proyecto WebMCP"
+                class="w-full h-full border-none bg-white"
+                srcdoc="<h1>WebMCP Preview</h1><p>El contenido renderizado de las tareas completadas aparecerá aquí. Refrescando cada minuto...</p>"
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Link the JavaScript logic -->
+    <script type="module" src="script.js"></script>
+  </body>
+</html>

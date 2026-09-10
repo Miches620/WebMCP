@@ -1,5 +1,5 @@
+import { validateRoleDependencies } from "./validation_profile_role_dependencies.mjs";
 import { runAtomicGraph, resolveDependencies } from "./atomic_engine_v5.js";
-//import { resolveDependencies } from "./dependency_resolver.js";
 
 const STORAGE_KEY = "webmcp_state";
 
@@ -509,9 +509,34 @@ async function runGraph(plan) {
 
     const dependencyResult = resolveDependencies(result.allTasks, plan.fases);
 
+    const validation = validateRoleDependencies(dependencyResult.nodes);
+
+    webmcpState.validation = validation;
     webmcpState.dependencyGraph = dependencyResult;
     webmcpState.atomicTasks = dependencyResult.nodes;
     webmcpState.unresolvedTasks = dependencyResult.unresolved;
+
+    /* =====================================================
+   VALIDATION OBSERVABILITY
+   ===================================================== */
+
+    appendToReasoning(
+      `<div class="text-cyan-400 font-bold mt-2">
+    🔎 VALIDATION → Role Dependencies
+  </div>`,
+    );
+
+    appendToReasoning(
+      `<div class="${
+        validation.status === "FAIL"
+          ? "text-red-400"
+          : validation.status === "PASS_WITH_WARNINGS"
+            ? "text-yellow-400"
+            : "text-green-400"
+      } font-bold">
+    ${validation.status}
+  </div>`,
+    );
 
     const totalMs = Date.now() - startTime;
     const minutes = Math.floor(totalMs / 60000);

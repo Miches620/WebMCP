@@ -178,7 +178,7 @@ Si la fase completa puede convertirse directamente en una
   "subtasks": [
     {
       "id": "F1.1",
-      "task": "...",
+"task": "...",
       "role": "${rolePadre}",
       "description": "...",
       "depends_on": []
@@ -357,7 +357,6 @@ ROL:
 ${role}
 
 CRITERIOS:
-
 1. Tiene un único objetivo.
 2. Tiene un resultado identificable.
 3. Tiene alcance acotado.
@@ -427,6 +426,7 @@ const REATOMIZE_PROMPT = (
   originalAT,
   checkerReason,
   role,
+  externalDependencyContext = [],
 ) => `Eres un especialista Senior en el rol "${role}".
 
 Una Atomic Task propuesta por ti fue RECHAZADA por un Checker.
@@ -473,15 +473,14 @@ Cada nueva Atomic Task debe:
 - no requerir nuevas decisiones de diseño;
 - no mezclar objetivos diferentes.
 
-DEPENDENCIAS:
+DEPENDENCIAS INTERNAS DE ESTA RE-ATOMIZACIÓN:
 
 IMPORTANTE: el motor asignará automáticamente el ID final de cada
 nueva Atomic Task. Por lo tanto, NO generes IDs para las subtasks.
 
 Si una nueva Atomic Task depende de otra nueva Atomic Task
 generada en ESTA MISMA respuesta, expresa la dependencia mediante
-"depends_on_index", usando el número de posición de la subtask
-objetivo (1-based).
+"depends_on_index", usando índices 0-based.
 
 Ejemplo válido:
 
@@ -497,9 +496,51 @@ ni referencias como ".R1", ".R2" o ".R3" dentro de esta respuesta.
 
 NO utilices objetos en "depends_on_index".
 
-Las dependencias hacia Atomic Tasks FUERA de esta re-atomización
-no se declaran aquí. El motor las reconciliará posteriormente a
-partir del contexto conocido.
+DEPENDENCIAS EXTERNAS DE LA AT ORIGINAL:
+
+La Atomic Task original ya tenía las siguientes dependencias externas:
+
+${JSON.stringify(externalDependencyContext, null, 2)}
+
+Estas dependencias EXISTEN y forman parte del contexto que debe
+preservarse durante la re-atomización.
+
+Para cada nueva subtask, indica qué dependencias externas de esta
+lista necesita realmente mediante "depends_on_external".
+
+REGLAS PARA depends_on_external:
+
+- Solo puedes utilizar IDs que aparezcan en la lista anterior.
+- NO inventes IDs.
+- NO uses IDs de fase como "F1", "F2", etc.
+- NO uses IDs de la Atomic Task original como dependencia.
+- NO copies automáticamente todas las dependencias a todas las subtasks.
+- Asigna cada dependencia externa solamente a las subtasks que
+  realmente necesiten su resultado.
+- Si una subtask no necesita ninguna dependencia externa, usa [].
+- Si todas las subtasks necesitan una misma dependencia externa,
+  puedes declararla en todas.
+- El motor combinará depends_on_index y depends_on_external en
+  el depends_on final.
+
+Ejemplo:
+
+{
+  "subtasks": [
+    {
+      "task": "API de Usuarios",
+      "depends_on_index": [],
+      "depends_on_external": ["F1.3"]
+    },
+    {
+      "task": "API de Roles",
+      "depends_on_index": [],
+      "depends_on_external": []
+    }
+]
+}
+
+NO introduzcas dependencias externas que no estén en el contexto.
 
 RESPONDE ÚNICAMENTE JSON:
 
@@ -510,7 +551,8 @@ RESPONDE ÚNICAMENTE JSON:
       "task": "...",
       "role": "${role}",
       "description": "...",
-      "depends_on_index": []
+      "depends_on_index": [],
+      "depends_on_external": []
     }
   ]
 }
@@ -540,7 +582,12 @@ export async function reatomizeAtomicTask(
       const raw = await callLLM([
         {
           role: "user",
-          content: REATOMIZE_PROMPT(originalAT, checkerReason, role),
+          content: REATOMIZE_PROMPT(
+            originalAT,
+            checkerReason,
+            role,
+            normalizeDependsOn(originalAT.depends_on, originalAT.id),
+          ),
         },
       ]);
 
@@ -670,7 +717,6 @@ export async function resolveAtomicTask(
 ) {
   let currentTask = at;
   let currentAttempt = at.attempt || 1;
-
   while (currentAttempt <= MAX_AT_ATTEMPTS) {
     logCallback(
       `   CHECK → ${currentTask.id} | intento ${currentAttempt}/${MAX_AT_ATTEMPTS}`,
@@ -808,12 +854,45 @@ export async function resolveAtomicTask(
         return `${currentTask.id}.R${nextAttempt}.${dependencyIndex + 1}`;
       });
 
+      // Dependencias externas: el Re-Atomizer solo puede redistribuir
+      // dependencias que ya existían en la AT original. Nunca puede
+      // inventar una dependencia nueva.
+      const allowedExternalDependencies = normalizeDependsOn(
+        currentTask.depends_on,
+        currentTask.id,
+      );
+
+      const externalDependencies = normalizeDependsOn(
+        rawTask.depends_on_external,
+        generatedId,
+      );
+
+      for (const dependencyId of externalDependencies) {
+        if (!allowedExternalDependencies.includes(dependencyId)) {
+          throw new Error(
+            `INVALID_REATOM_EXTERNAL_DEPENDENCY: ${generatedId} ` +
+              `declara ${dependencyId}, pero esa dependencia no existía ` +
+              `en la Atomic Task original ${currentTask.id}.`,
+          );
+        }
+
+        if (dependencyId === generatedId) {
+          throw new Error(
+            `SELF_DEPENDENCY: ${generatedId} depende de sí misma mediante depends_on_external`,
+          );
+        }
+      }
+
+      const finalDependencies = [
+        ...new Set([...localDependencies, ...externalDependencies]),
+      ];
+
       return normalizeAtomicTask(
         {
           ...rawTask,
           id: generatedId,
           role,
-          depends_on: [...new Set(localDependencies)],
+          depends_on: finalDependencies,
         },
         phase,
         phaseIndex,
@@ -1075,6 +1154,8 @@ function expandReplacementId(id, replacementMap, trail = []) {
  * - Si una dependencia apunta a una AT que el sistema sabe que fue
  *   reemplazada, se expande a sus reemplazos finales.
  * - Si la referencia NO está en replacementMap, se conserva intacta.
+ * - Las dependencias externas de una re-atomización ya fueron
+ *   redistribuidas por el Re-Atomizer antes de llegar aquí.
  * - Nunca se adivina ni se corrige una referencia desconocida.
  */
 export function reconcileDependencies(tasks = [], replacementMap = {}) {

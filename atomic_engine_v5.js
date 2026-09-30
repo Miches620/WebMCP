@@ -198,11 +198,15 @@ const DECOMPOSE_CONTEXT_ADDENDUM = (previousTasks = []) => {
 No hay tareas previas, esta es la primera fase.
 
 REGLA ESTRICTA DE DEPENDENCIAS:
-- depends_on SOLO puede contener IDs de Atomic Tasks.
-- Una Atomic Task tiene un ID generado por el sistema, por ejemplo:
-  F1.1
-  F2.3
-  F3.7.R2.1
+- depends_on SOLO puede contener IDs de Atomic Tasks que existan de verdad.
+- No hay ninguna Atomic Task previa en este caso (lista vacía arriba), así
+  que acá depends_on debe ser [] salvo que dependa de otra tarea de esta
+  misma fase que vos mismo estés generando ahora.
+- Formato de un ID real: FASE.NUMERO (ej. F1.1) o, si es una subtarea
+  producto de una re-atomización, FASE.NUMERO.R{intento}.{indice} (ej.
+  F2.4.R2.1). Esto es el FORMATO, no un ID para copiar: nunca escribas
+  F2.4.R2.1 literal salvo que esa tarea exista de verdad en la lista de
+  arriba.
 - NUNCA uses IDs de fase solos como "F1", "F2", "F3", etc.
 - NUNCA uses el nombre de una fase como dependencia.
 - NUNCA uses una dependencia implícita como "todo F2".
@@ -226,11 +230,14 @@ REGLA ESTRICTA DE DEPENDENCIAS:
 
 Además de las dependencias intra-fase que ya te pidió el prompt original, DEBES considerar las dependencias inter-fase cuando sean necesarias.
 
-- depends_on SOLO puede contener IDs de Atomic Tasks.
-- Una Atomic Task tiene un ID generado por el sistema, por ejemplo:
-  F1.1
-  F2.3
-  F3.7.R2.1
+- depends_on SOLO puede contener IDs que aparezcan EXACTAMENTE, letra por
+  letra, en la lista de tareas previas de arriba. No generes un ID nuevo
+  vos mismo, ni siquiera si "parece" que debería existir.
+- Formato de un ID real: FASE.NUMERO (ej. F1.1) o, si es una subtarea
+  producto de una re-atomización, FASE.NUMERO.R{intento}.{indice} (ej.
+  F2.4.R2.1). Esto es el FORMATO, no un ID para copiar: usalo solo para
+  reconocer un ID real cuando lo veas en la lista de arriba, nunca para
+  inventar uno que no está ahí.
 
 - NUNCA uses IDs de fase solos como dependencia:
   F1
@@ -246,16 +253,17 @@ Además de las dependencias intra-fase que ya te pidió el prompt original, DEBE
 - Si no puedes identificar una Atomic Task concreta, NO inventes un ID y NO uses el ID de la fase.
 - Si realmente no necesita ninguna tarea previa, usa [].
 
-Ejemplos correctos:
+Ejemplos de la FORMA correcta (asumiendo que esos IDs existieran en la
+lista de tareas previas de arriba — si no están ahí, no los uses):
 - ["F2.1"]
 - ["F2.1", "F2.4"]
-- ["F3.7.R2.1"]
 
 Ejemplos INCORRECTOS:
 - ["F2"]
 - ["F3"]
 - ["Backend"]
 - ["todas las tareas de F2"]
+- cualquier ID que no aparezca literalmente en la lista de tareas previas
 
 REGLAS ESPECÍFICAS POR ROL:
 - Si tu fase es Backend y necesita esquema de DB, depende de las Atomic Tasks concretas de DBA que proporcionen ese esquema.
@@ -1147,6 +1155,43 @@ function expandReplacementId(id, replacementMap, trail = []) {
 }
 
 /**
+ * Validación incremental de existencia de dependencias, fase por fase.
+ *
+ * Antes, un id inventado (por ejemplo, copiado de un ejemplo del prompt
+ * en vez de un id real — ver DECOMPOSE_CONTEXT_ADDENDUM) recién se
+ * detectaba en resolveDependencies(), al final de TODAS las fases. Si el
+ * id inventado aparecía en la fase 2 de 5, las fases 3, 4 y 5 se
+ * generaban igual y se descartaban enteras al fallar el intento completo.
+ *
+ * Esta función corre apenas termina cada fase (dentro de runAtomicGraph)
+ * y valida SOLO las tareas de esa fase recién cerrada contra el conjunto
+ * de ids ya conocidos (de esta fase y de las anteriores). No reemplaza a
+ * resolveDependencies(): no detecta ciclos ni calcula READY/BLOCKED, eso
+ * sigue necesitando el grafo completo al final. Solo corta temprano el
+ * caso más barato y más común de cortar: una dependencia a un id que
+ * lisa y llanamente no existe.
+ */
+function validatePhaseDependencyExistence(phaseTasks, knownIds) {
+  for (const task of phaseTasks) {
+    const dependencies = normalizeDependsOn(task.depends_on, task.id);
+
+    for (const dependencyId of dependencies) {
+      if (dependencyId === task.id) {
+        throw new Error(`SELF_DEPENDENCY: ${task.id} depende de sí misma.`);
+      }
+
+      if (!knownIds.has(dependencyId)) {
+        throw new Error(
+          `MISSING_DEPENDENCY: ${task.id} depende de ${dependencyId}, ` +
+            `pero esa Atomic Task no existe (detectado apenas terminó la ` +
+            `fase ${task.phase}, no al final de todo el graph).`,
+        );
+      }
+    }
+  }
+}
+
+/**
  * Reconciliación determinística de dependencias afectadas por
  * re-atomizaciones.
  *
@@ -1452,6 +1497,23 @@ export async function runAtomicGraph(
             `${unresolvedTasks.length} unresolved`,
         );
       }
+
+      // Corte temprano: valida las dependencias de ESTA fase apenas
+      // termina, contra todo lo conocido hasta acá (esta fase incluida,
+      // para permitir que una tarea dependa de una hermana generada en
+      // el mismo llamado al Atomizer). Si hay un id inventado, falla acá
+      // y no se gastan las fases que faltan.
+      const knownIdsSoFar = new Set([
+        ...acceptedTasks.map((t) => t.id),
+        ...unresolvedTasks.map((t) => t.id),
+      ]);
+      const tasksFromThisPhase = [...acceptedTasks, ...unresolvedTasks].filter(
+        (t) => t.phase_index === phaseIndex,
+      );
+      validatePhaseDependencyExistence(tasksFromThisPhase, knownIdsSoFar);
+      logCallback(
+        `   ✓ DEPENDENCY CHECK (fase ${phase.id}) → ${tasksFromThisPhase.length} tareas verificadas`,
+      );
     }
   }
 

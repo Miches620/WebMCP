@@ -1,9 +1,551 @@
 import { validateRoleDependencies } from "./validation_profile_role_dependencies.mjs";
 import { runAtomicGraph, resolveDependencies } from "./atomic_engine_v5.js";
-import { runCompletenessReview } from "./completeness_reviewer.mjs";
 
 const STORAGE_KEY = "webmcp_state";
-const MAX_TECHLEADER_ATTEMPTS = 3; // Nuevo: Límite de reintentos del TechLeader
+const MAX_TECHLEADER_ATTEMPTS = 3;
+
+// === LOCK DE ORQUESTACION - FIX RACE CONDITION ===
+// Antes, esto Y requestHumanDecision() decidían por separado el texto del
+// botón — dos fuentes de verdad que podían pisarse. Ahora este objeto solo
+// guarda estado (locked/reason); syncChatUI() es la ÚNICA función que
+// escribe en el botón y el input, derivando el estado de acá.
+const OrchestrationLock = {
+  locked: false,
+  reason: null,
+  lock(reason) {
+    this.locked = true;
+    this.reason = reason;
+    webmcpState.isGenerating = true;
+    syncChatUI();
+    saveState();
+  },
+  unlock() {
+    this.locked = false;
+    this.reason = null;
+    webmcpState.isGenerating = false;
+    syncChatUI();
+    saveState();
+  },
+  canSend() {
+    if (this.locked) {
+      appendToReasoning(
+        `<div class="text-red-400 text-xs">[LOCK] Bloqueado por ${this.reason}, no podes mandar otro mensaje</div>`,
+      );
+      return false;
+    }
+    return true;
+  },
+};
+
+// === FASE DEL CHAT ÚNICO (reemplaza a los dos inputs/botones separados) ===
+// Deriva la fase actual a partir del estado que YA existe (OrchestrationLock,
+// awaitingDecision, intentForge.status) en vez de mantener una bandera nueva
+// que se pueda desincronizar de esas otras tres.
+function getChatPhase() {
+  if (webmcpState.awaitingDecision) return "HUMAN_DECISION";
+  if (OrchestrationLock.locked) {
+    return OrchestrationLock.reason?.startsWith("INTENT_FORGE")
+      ? "ASKING"
+      : "GENERATING";
+  }
+  if (
+    webmcpState.intentForge?.status === "COMPLETE" &&
+    !(webmcpState.atomicTasks?.length > 0)
+  ) {
+    return "AWAITING_CONFIRMATION";
+  }
+  if (!webmcpState.prompt) return "IDLE";
+  return "DEFAULT";
+}
+
+function syncChatUI() {
+  const btn = document.getElementById("chatActionBtn");
+  const input = document.getElementById("refinementPrompt");
+  if (!btn || !input) return;
+
+  btn.disabled = false;
+  input.disabled = false;
+  btn.classList.remove("opacity-50", "cursor-not-allowed");
+
+  const phase = getChatPhase();
+  switch (phase) {
+    case "IDLE":
+      btn.innerText = "Iniciar entrevista";
+      input.placeholder = "Contame qué querés construir...";
+      break;
+    case "ASKING":
+      btn.innerText = `⏳ Preguntando (iter ${webmcpState.intentForge?.iteration || 0}/${INTENT_FORGE_MAX_ITERATIONS})...`;
+      btn.disabled = true;
+      input.disabled = true;
+      btn.classList.add("opacity-50", "cursor-not-allowed");
+      input.placeholder = "Intent Forge está preguntando...";
+      break;
+    case "AWAITING_CONFIRMATION":
+      btn.innerText = "Esperando confirmación ↑";
+      btn.disabled = true;
+      input.disabled = true;
+      btn.classList.add("opacity-50", "cursor-not-allowed");
+      input.placeholder = "Usá los botones de arriba para confirmar o ajustar";
+      break;
+    case "GENERATING":
+      btn.innerText = "⏳ Creando graph...";
+      btn.disabled = true;
+      input.disabled = true;
+      btn.classList.add("opacity-50", "cursor-not-allowed");
+      input.placeholder = "Creando graph, esperá...";
+      break;
+    case "HUMAN_DECISION":
+      btn.innerText = "Responder al Orchestrator";
+      input.placeholder = "Respondé la consulta de arriba...";
+      break;
+    case "DEFAULT":
+    default:
+      btn.innerText = "Enviar";
+      input.placeholder = "Escribí acá si necesitás avisarle algo al equipo...";
+      break;
+  }
+}
+
+// === INTENT FORGE v0.2 — llama a /api/intent-forge (server.mjs). NO invoca
+// intent_forge_v02.ps1; ese script es una herramienta manual aparte, ver
+// la nota al principio de server.mjs. ===
+const INTENT_FORGE_MAX_ITERATIONS = 10;
+let INTENT_FORGE_ITERATION = 0;
+
+function appendToIntentForgeChat(role, text) {
+  const container = document.getElementById("intentForgeChatHistory");
+  if (!container) return;
+  const color = role === "user" ? "text-indigo-300" : "text-gray-300";
+  const label =
+    role === "user"
+      ? "Vos"
+      : role === "techleader"
+        ? "TECHLEADER"
+        : role === "orchestrator"
+          ? "ORCHESTRATOR"
+          : "Intent Forge";
+  container.innerHTML += `<div class="${color}"><b>${label}:</b> ${text}</div>`;
+  container.scrollTop = container.scrollHeight;
+}
+
+function updateIntentForgeStatus(status) {
+  const el = document.getElementById("intentForgeStatus");
+  if (el) {
+    el.innerText = status;
+    el.className =
+      status === "COMPLETE"
+        ? "text-xs px-2 py-1 bg-green-600 rounded-full"
+        : status.includes("RUNNING") || status.includes("ASKING")
+          ? "text-xs px-2 py-1 bg-yellow-600 rounded-full"
+          : "text-xs px-2 py-1 bg-gray-600 rounded-full";
+  }
+}
+
+async function sendToIntentForge(userMessage) {
+  if (!userMessage?.trim()) return;
+  if (webmcpState.isGenerating && !webmcpState.awaitingDecision) return;
+  if (webmcpState.awaitingDecision) {
+    handleHumanDecisionResponse(userMessage);
+    return;
+  }
+
+  // El primer mensaje que se manda (fase IDLE) ES el prompt crudo del
+  // proyecto. No se vuelve a tocar en mensajes siguientes, para no pisarlo
+  // con una respuesta parcial a una pregunta de Intent Forge.
+  if (!webmcpState.prompt) webmcpState.prompt = userMessage;
+
+  appendToIntentForgeChat("user", userMessage);
+  const input = document.getElementById("refinementPrompt");
+  if (input) input.value = "";
+
+  webmcpState.intentForge = webmcpState.intentForge || {
+    status: "IDLE",
+    history: [],
+    refined_prompt: null,
+    iteration: 0,
+  };
+  webmcpState.intentForge.status = "ASKING";
+  webmcpState.intentForge.history.push({ role: "user", content: userMessage });
+  INTENT_FORGE_ITERATION = (webmcpState.intentForge.iteration || 0) + 1;
+  webmcpState.intentForge.iteration = INTENT_FORGE_ITERATION;
+
+  OrchestrationLock.lock(
+    `INTENT_FORGE iter ${INTENT_FORGE_ITERATION}/${INTENT_FORGE_MAX_ITERATIONS}`,
+  );
+  updateIntentForgeStatus(
+    `ASKING (iter ${INTENT_FORGE_ITERATION}/${INTENT_FORGE_MAX_ITERATIONS})`,
+  );
+
+  let isCompleteFlag = false;
+  let hadError = false;
+
+  try {
+    const res = await fetch("/api/intent-forge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: userMessage,
+        conversation: webmcpState.intentForge.history,
+        iteration: INTENT_FORGE_ITERATION,
+      }),
+    });
+    if (!res.ok)
+      throw new Error(
+        `Backend ${res.status}: ${(await res.text()).slice(0, 800)}`,
+      );
+
+    const data = await res.json();
+    isCompleteFlag = !!data.isComplete;
+    const assistantMessage = data.assistantMessage || data.rawOutput || "";
+
+    webmcpState.intentForge.history.push({
+      role: "assistant",
+      content: assistantMessage,
+    });
+    appendToReasoning(
+      `<div class="text-cyan-400 text-xs">[INTENT_FORGE] iter=${data.iteration} COMPLETE=${data.isComplete}</div>`,
+    );
+
+    if (data.isComplete && data.refined_prompt) {
+      // OJO: acá NO se muestra assistantMessage en el chat — cuando está
+      // COMPLETE, ese texto es el ```json crudo (así lo pide el propio
+      // system prompt), no un resumen para leer. El resumen legible lo arma
+      // renderConfirmationPrompt() a partir de refined_prompt, estructurado.
+      webmcpState.intentForge.refined_prompt = data.refined_prompt;
+      webmcpState.intentForge.status = "COMPLETE";
+      updateIntentForgeStatus("COMPLETE");
+      updateRefinedPromptPin(data.refined_prompt);
+      renderConfirmationPrompt(data.refined_prompt);
+      appendToReasoning(
+        `<div class="text-green-400 font-bold">✅ Intent Forge COMPLETE (${(data.refined_prompt.features || []).length} features)</div>`,
+      );
+    } else {
+      appendToIntentForgeChat("assistant", assistantMessage);
+      updateIntentForgeStatus(`ASKING (iter ${INTENT_FORGE_ITERATION})`);
+    }
+    saveState();
+  } catch (err) {
+    // FIX (bug preexistente): el finally de más abajo pisaba este estado
+    // "ERROR" con "ASKING" apenas un instante después, así que el badge
+    // nunca llegaba a mostrar el error. hadError evita esa pisada.
+    hadError = true;
+    appendToIntentForgeChat("assistant", `ERROR: ${err.message}`);
+    updateIntentForgeStatus(`ERROR iter ${INTENT_FORGE_ITERATION}`);
+  } finally {
+    OrchestrationLock.unlock();
+    if (!hadError) {
+      updateIntentForgeStatus(
+        isCompleteFlag ? "COMPLETE" : `ASKING iter ${INTENT_FORGE_ITERATION}`,
+      );
+    }
+    syncChatUI();
+  }
+}
+
+// === TARJETA DE CONFIRMACIÓN (reemplaza a approveIntentForgeBtn) ===
+// En vez de un botón aparte lejos del chat, el resumen y la decisión viven
+// en la misma burbuja del chat — así el input nunca hace doble rol.
+function buildRefinedSummaryHTML(refined) {
+  const feats = (refined.features || [])
+    .map((f) => `<li>${f}</li>`)
+    .join("");
+  const criterios = (refined.criterios_holdout || [])
+    .map((c) => `<li>${c}</li>`)
+    .join("");
+  return `
+    <div class="text-indigo-300 font-bold mb-1">Ok, en base a lo que acordamos, voy a construir:</div>
+    <div class="text-white font-medium">${refined.project_name || ""}</div>
+    ${refined.objetivo ? `<div class="text-gray-300 mt-1">${refined.objetivo}</div>` : ""}
+    ${feats ? `<ul class="list-disc list-inside text-gray-300 mt-1">${feats}</ul>` : ""}
+    ${criterios ? `<div class="text-gray-500 text-[10px] mt-1">Criterios de éxito: <ul class="list-disc list-inside">${criterios}</ul></div>` : ""}
+  `;
+}
+
+function renderConfirmationPrompt(refined) {
+  const container = document.getElementById("intentForgeChatHistory");
+  if (!container) return;
+  const cardId = `confirm-${Date.now()}`;
+  container.innerHTML += `
+    <div class="bg-indigo-900/30 border border-indigo-600 p-3 rounded text-xs my-2" id="${cardId}">
+      ${buildRefinedSummaryHTML(refined)}
+      <div class="flex gap-2 mt-2">
+        <button type="button" class="flex-1 bg-green-600 rounded py-1 text-xs font-bold" data-action="confirm-refined">✅ Confirmar y generar</button>
+        <button type="button" class="flex-1 bg-gray-700 rounded py-1 text-xs font-bold" data-action="adjust-refined">✏️ Ajustar</button>
+      </div>
+    </div>`;
+  const card = document.getElementById(cardId);
+  card
+    ?.querySelector('[data-action="confirm-refined"]')
+    ?.addEventListener("click", () => confirmRefinedPrompt());
+  card
+    ?.querySelector('[data-action="adjust-refined"]')
+    ?.addEventListener("click", () => adjustRefinedPrompt());
+  container.scrollTop = container.scrollHeight;
+  syncChatUI();
+}
+
+// FIX (bug real, no solo de interfaz): antes esto mandaba a TechLeader
+// SOLO refined_prompt.objetivo, descartando la lista de features que Intent
+// Forge armó con tanto cuidado. TechLeader terminaba planificando a partir
+// de una sola oración, mientras el Completeness Reviewer sí recibía las
+// features completas vía answer_key_requirements.json — dos fuentes de
+// verdad desalineadas. Acá se reconstruye el prompt completo, y además en
+// el mismo formato de lista numerada que ya sabe leer
+// completeness_reviewer3.mjs (extractRequirements), para que TechLeader y
+// el Reviewer trabajen sobre el mismo texto.
+function buildTechLeaderInputFromRefinedPrompt(refined) {
+  const parts = [];
+  if (refined.project_name) parts.push(`Proyecto: ${refined.project_name}`);
+  if (refined.objetivo) parts.push(refined.objetivo);
+  if (Array.isArray(refined.features) && refined.features.length) {
+    parts.push("", "El prototipo debe permitir:", "");
+    refined.features.forEach((f, i) => parts.push(`${i + 1}. ${f}`));
+  }
+  if (Array.isArray(refined.criterios_holdout) && refined.criterios_holdout.length) {
+    parts.push("", "Criterios de éxito:");
+    refined.criterios_holdout.forEach((c) => parts.push(`- ${c}`));
+  }
+  return parts.join("\n");
+}
+
+async function confirmRefinedPrompt() {
+  const refined = webmcpState.intentForge?.refined_prompt;
+  if (!refined) return;
+  webmcpState.prompt = buildTechLeaderInputFromRefinedPrompt(refined);
+  appendToIntentForgeChat("user", "✅ Confirmado.");
+  appendToReasoning(
+    `<div class="text-green-400 text-xs">[FORGE→TECHLEADER] refined_prompt completo, ${(refined.features || []).length} features</div>`,
+  );
+  saveState();
+  await handleContinuePlan();
+}
+
+function adjustRefinedPrompt() {
+  // Vuelve a fase DEFAULT: el próximo mensaje sigue la conversación normal
+  // con Intent Forge, por el mismo input de siempre. syncChatUI() ya
+  // habilita el input solo con este cambio de status, no hace falta
+  // tocar el DOM acá directamente.
+  if (webmcpState.intentForge) webmcpState.intentForge.status = "ASKING";
+  updateIntentForgeStatus(`ASKING (iter ${webmcpState.intentForge?.iteration || 0})`);
+  saveState();
+  syncChatUI();
+  document.getElementById("refinementPrompt")?.focus();
+}
+
+function updateRefinedPromptPin(refined) {
+  const el = document.getElementById("refinedPromptPin");
+  if (!el || !refined) return;
+  const feats = (refined.features || []).map((f) => `<li>${f}</li>`).join("");
+  el.innerHTML = `
+    <div class="text-cyan-400 font-bold mb-1">📌 Refined prompt</div>
+    <div class="text-white">${refined.project_name || ""}</div>
+    ${refined.objetivo ? `<div class="text-gray-400 mt-1">${refined.objetivo}</div>` : ""}
+    ${feats ? `<ul class="list-disc list-inside text-gray-400 mt-1">${feats}</ul>` : ""}
+  `;
+  el.classList.remove("hidden");
+}
+
+// === CHAT GOBERNADO - SOLO APARECE EN 3/3 STRIKES ===
+function requestHumanDecision(type, payload) {
+  const chatHistory = document.getElementById("intentForgeChatHistory");
+  webmcpState.awaitingDecision = { type, payload, timestamp: Date.now() };
+
+  if (type === "TASK_FAIL_3_STRIKES") {
+    const taskId = payload.taskId;
+    chatHistory.innerHTML += `
+      <div class="bg-red-900/30 border border-red-600 p-3 rounded text-xs my-2">
+        <b class="text-red-400">TECHLEADER [Fase ${payload.phase || "?"}]:</b> La task <b>${taskId}</b> falló 3/3 strikes.<br>
+        <span class="text-gray-300">${payload.error || "Sin detalle"}</span><br><br>
+        ¿Qué hacemos?<br>
+        - Escribí <code>skip ${taskId}</code> para saltearla<br>
+        - Escribí <code>retry ${taskId} con [nueva instruccion]</code><br>
+        - Escribí <code>abort</code> para frenar todo
+      </div>`;
+    document.getElementById("refinementPrompt").placeholder =
+      `Ej: skip ${taskId} o retry ${taskId} con usar localStorage`;
+    appendToReasoning(
+      `<div class="text-red-400 font-bold">[HUMAN DECISION] TASK_FAIL_3_STRIKES ${taskId} - Chat habilitado</div>`,
+    );
+  }
+
+  if (type === "VALIDATION_FAIL_3_STRIKES") {
+    // FIX (mismo bug de forma que en runCompletenessReviewFromGraph_V3):
+    // .summary no existe en lo que devuelve completeness_reviewer3.mjs,
+    // así que esto siempre mostraba "GAP: 0 | EXCESS: 0" sin importar lo
+    // que hubiera encontrado de verdad.
+    const cFindings = Array.isArray(payload.completeness?.findings)
+      ? payload.completeness.findings
+      : [];
+    const gapN = cFindings.filter((f) => f.type === "GAP").length;
+    const excessN = cFindings.filter((f) => f.type === "EXCESS").length;
+    chatHistory.innerHTML += `
+      <div class="bg-yellow-900/30 border border-yellow-600 p-3 rounded text-xs my-2">
+        <b class="text-yellow-400">ORCHESTRATOR:</b> El graph falló ${MAX_TECHLEADER_ATTEMPTS}/3 intentos completos.<br>
+        Validation: <b>${payload.validationStatus}</b><br>
+        GAP: ${gapN} | EXCESS: ${excessN}<br><br>
+        ¿Seguimos?<br>
+        - Escribí <code>seguir con errores</code><br>
+        - Escribí <code>reiniciar 3 strikes</code><br>
+        - Escribí <code>nuevo prompt: [texto]</code>
+      </div>`;
+    document.getElementById("refinementPrompt").placeholder =
+      `Ej: seguir con errores / reiniciar 3 strikes`;
+    appendToReasoning(
+      `<div class="text-yellow-400 font-bold">[HUMAN DECISION] VALIDATION_FAIL_3_STRIKES - Chat habilitado</div>`,
+    );
+  }
+
+  chatHistory.scrollTop = chatHistory.scrollHeight;
+  syncChatUI();
+  document.getElementById("refinementPrompt")?.focus();
+  saveState();
+}
+
+function handleHumanDecisionResponse(userMessage) {
+  const decision = webmcpState.awaitingDecision;
+  if (!decision) return;
+
+  appendToIntentForgeChat("user", userMessage);
+  document.getElementById("refinementPrompt").value = "";
+  webmcpState.awaitingDecision = null;
+
+  if (decision.type === "VALIDATION_FAIL_3_STRIKES") {
+    const lower = userMessage.toLowerCase();
+    if (lower.includes("seguir con errores")) {
+      appendToReasoning(
+        `<div class="text-green-400 font-bold">✅ Usuario: seguir con errores - Finalizando con warnings</div>`,
+      );
+      appendToIntentForgeChat(
+        "orchestrator",
+        "Entendido, seguimos con los errores marcados como warnings.",
+      );
+      OrchestrationLock.unlock();
+      saveState();
+    } else if (lower.includes("reiniciar")) {
+      appendToReasoning(
+        `<div class="text-yellow-400 font-bold">🔄 Usuario: reiniciar 3 strikes - Mismo prompt</div>`,
+      );
+      appendToIntentForgeChat(
+        "orchestrator",
+        "Reiniciando tanda de 3 strikes con el mismo prompt...",
+      );
+      handleContinuePlan();
+    } else if (lower.includes("nuevo prompt:")) {
+      const newPrompt = userMessage.split("nuevo prompt:")[1]?.trim();
+      if (newPrompt) {
+        webmcpState.prompt = newPrompt;
+        appendToIntentForgeChat(
+          "orchestrator",
+          `Nuevo prompt recibido: ${newPrompt.substring(0, 100)}... Reiniciando.`,
+        );
+        handleGeneratePlan();
+      }
+    } else {
+      appendToIntentForgeChat(
+        "orchestrator",
+        `No entendí: "${userMessage}". Escribí "seguir con errores" o "reiniciar 3 strikes"`,
+      );
+      webmcpState.awaitingDecision = decision; // vuelve a esperar
+    }
+  }
+
+  if (decision.type === "TASK_FAIL_3_STRIKES") {
+    const taskId = decision.payload.taskId;
+    const lower = userMessage.toLowerCase();
+    if (lower.startsWith("skip")) {
+      appendToReasoning(
+        `<div class="text-green-400">⏭️ Skip ${taskId} por decisión humana</div>`,
+      );
+      webmcpState.atomicTasks = webmcpState.atomicTasks.filter(
+        (t) => t.id !== taskId,
+      );
+      webmcpState.rejectedTasks.push({
+        id: taskId,
+        reason: "Skipped by human decision",
+      });
+      renderTaskList();
+      saveState();
+      appendToIntentForgeChat(
+        "techleader",
+        `Task ${taskId} salteada. Continuando...`,
+      );
+    } else if (lower.startsWith("retry")) {
+      appendToReasoning(
+        `<div class="text-yellow-400">🔄 Retry ${taskId} con nueva instruccion: ${userMessage}</div>`,
+      );
+      appendToIntentForgeChat(
+        "techleader",
+        `Reintentando ${taskId} con tu nueva instrucción...`,
+      );
+      // Aquí podrías relanzar solo esa fase
+    } else if (lower.includes("abort")) {
+      appendToReasoning(
+        `<div class="text-red-400 font-bold">🛑 Abort por decisión humana</div>`,
+      );
+      clearState();
+      return; // clearState ya llama a saveState/syncChatUI por su cuenta
+    }
+  }
+  saveState();
+  syncChatUI();
+}
+
+// === COMPLETENESS V3 VIA BACKEND (NO IMPORT DIRECTO DE node:fs) ===
+// FIX (bug real): esto leía result.summary.gap_count y
+// result.findings.GAP/.EXCESS como si findings fuera un objeto con una
+// clave por lente. completeness_reviewer3.mjs devuelve findings como un
+// ARRAY PLANO, cada item con .type = "GAP"|"EXCESS"|"AMBIGUOUS", y no tiene
+// .summary. Como resultado, esos campos siempre daban undefined y
+// completenessFailed (más abajo) nunca era true — el reintento por
+// completitud estaba desconectado en silencio, pasara lo que pasara.
+async function runCompletenessReviewFromGraph_V3(atomicTasks, promptText) {
+  const appendToLog = (msg) => {
+    appendToReasoning(
+      `<div class="text-purple-400 text-xs">[COMPLETENESS_V3] ${msg}</div>`,
+    );
+    console.log(`[COMPLETENESS_V3] ${msg}`);
+  };
+  appendToLog(
+    `Llamando a /api/completeness-review con ${atomicTasks.length} tasks`,
+  );
+  try {
+    const res = await fetch("/api/completeness-review", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: promptText, atomicTasks }),
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Backend ${res.status}: ${errText.slice(0, 800)}`);
+    }
+    const result = await res.json();
+    const findings = Array.isArray(result.findings) ? result.findings : [];
+    const gaps = findings.filter((f) => f.type === "GAP");
+    const excess = findings.filter((f) => f.type === "EXCESS");
+    const ambiguous = findings.filter((f) => f.type === "AMBIGUOUS");
+    appendToLog(
+      `RESULT GAP=${gaps.length} EXCESS=${excess.length} AMBIGUOUS=${ambiguous.length} coverage=${result.coverage_score}`,
+    );
+    if (result.schema_complete === false) {
+      appendToLog(
+        `⚠️ schema_complete=false: ${JSON.stringify(result.schema_gaps)}`,
+      );
+    }
+    if (gaps.length > 0) {
+      appendToLog(
+        `GAPS: ${gaps.map((g) => g.reason).join(" | ").substring(0, 400)}`,
+      );
+    }
+    if (result.logs) result.logs.forEach((l) => appendToLog(l));
+    webmcpState.completenessReview = result;
+    saveState();
+    return result;
+  } catch (e) {
+    appendToLog(`FAIL: ${e.message}`);
+    appendToLog(`Stack: ${e.stack?.substring(0, 600)}`);
+    throw e;
+  }
+}
 
 let GLOBAL_ID = 1;
 
@@ -20,6 +562,15 @@ let webmcpState = {
   rejectedTasks: [],
   dependencyGraph: null,
   replacementMap: {},
+  intentForge: {
+    status: "IDLE",
+    history: [],
+    refined_prompt: null,
+    iteration: 0,
+  },
+  awaitingDecision: null,
+  validation: null,
+  completenessReview: null,
 };
 
 const techLeaderPrompt = `Eres un TechLeader Senior.
@@ -46,11 +597,8 @@ adáptala al objetivo, alcance y contexto del proyecto actual.
 REGLAS:
 
 1. Determina CUÁNTAS FASES sean realmente necesarias.
-
 NO existe un número fijo máximo o mínimo de fases.
-
 No agregues fases artificiales para alcanzar una cantidad determinada.
-
 No fusiones fases diferentes únicamente para reducir su cantidad.
 
 2. Cada fase debe representar una unidad coherente de trabajo del proyecto.
@@ -58,7 +606,6 @@ No fusiones fases diferentes únicamente para reducir su cantidad.
 3. Cada fase DEBE tener un "responsable_sugerido".
 
 4. "responsable_sugerido" DEBE ser EXACTAMENTE UNO de estos roles:
-
 "Backend"
 "Frontend"
 "DBA"
@@ -68,46 +615,20 @@ No fusiones fases diferentes únicamente para reducir su cantidad.
 5. El responsable debe ser el rol más adecuado para comprender y
 posteriormente atomizar esa fase.
 
-Ejemplos:
-
-Persistencia, tablas, índices, migraciones → DBA
-APIs, servicios, lógica de negocio → Backend
-UI, componentes, pantallas → Frontend
-Deploy, CI/CD, configuración de ejecución → DevOps
-Pruebas y automatización de pruebas → QA
-
 6. Una fase puede depender conceptualmente de otra.
-
 Si existe una dependencia necesaria, exprésala mediante "depends_on".
 
 7. NO conviertas una fase en una lista de Atomic Tasks.
-
-La atomización será realizada posteriormente por otro nodo especializado.
 
 8. NO agregues trabajo que no sea necesario para cumplir el objetivo solicitado.
 
 9. NO inventes requisitos.
 
-Si una decisión importante no puede determinarse con la información disponible,
-mantenla explícita en la fase en lugar de inventarla.
-
 10. El resultado debe permitir que cada fase sea enviada posteriormente,
 de manera independiente, a un Atomizer que asumirá temporalmente el rol
 indicado en "responsable_sugerido".
 
-11. La descripción debe explicar QUÉ debe lograrse en la fase y su alcance
-suficiente para que el Atomizer pueda trabajar sobre ella.
-
-NO describas todavía cómo implementarla paso a paso.
-
-12. Puedes utilizar Context7 antes de generar el resultado para contrastar
-el proyecto con implementaciones similares.
-
 RESPONDE ÚNICAMENTE CON JSON VÁLIDO.
-
-NO incluyas markdown.
-NO incluyas explicaciones fuera del JSON.
-
 FORMATO OBLIGATORIO:
 
 {
@@ -143,23 +664,37 @@ function loadState() {
       const savedState = JSON.parse(stored);
       webmcpState = { ...webmcpState, ...savedState };
       GLOBAL_ID = webmcpState.lastGlobalId || 1;
+      INTENT_FORGE_ITERATION = webmcpState.intentForge?.iteration || 0;
     } catch (e) {
       console.error("Error cargando state", e);
     }
   }
-  if (webmcpState.atomicTasks.length > 0) {
+  if (
+    webmcpState.atomicTasks.length > 0 ||
+    (webmcpState.intentForge && webmcpState.intentForge.history.length > 0)
+  ) {
     updateUIFromState();
   }
   toggleResumeButtons();
+  // Si quedó lockeado por crash anterior, desbloquear si no hay proceso real
+  if (webmcpState.isGenerating && !webmcpState.awaitingDecision) {
+    const lastUpdate = localStorage.getItem(STORAGE_KEY + "_timestamp");
+    if (!lastUpdate || Date.now() - parseInt(lastUpdate) > 120000) {
+      console.log("[LOCK] Desbloqueando por timeout de crash anterior");
+      OrchestrationLock.unlock();
+    }
+  }
 }
 
 function saveState() {
   webmcpState.lastGlobalId = GLOBAL_ID;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(webmcpState));
+  localStorage.setItem(STORAGE_KEY + "_timestamp", Date.now().toString());
 }
 
 function clearState() {
   localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(STORAGE_KEY + "_timestamp");
   webmcpState = {
     prompt: "",
     projectId: null,
@@ -173,31 +708,77 @@ function clearState() {
     rejectedTasks: [],
     dependencyGraph: null,
     replacementMap: {},
+    intentForge: {
+      status: "IDLE",
+      history: [],
+      refined_prompt: null,
+      iteration: 0,
+    },
+    awaitingDecision: null,
+    validation: null,
+    completenessReview: null,
   };
   GLOBAL_ID = 1;
+  INTENT_FORGE_ITERATION = 0;
+  document.getElementById("intentForgeChatHistory").innerHTML = "";
+  document.getElementById("llmReasoningOutput").innerHTML = "";
+  document.getElementById("refinedPromptPin")?.classList.add("hidden");
+  OrchestrationLock.unlock();
   updateUIFromState();
   toggleResumeButtons();
-  document.getElementById("initial-view").classList.remove("hidden");
-  document.getElementById("orchestration-view").classList.add("hidden");
 }
 
 function toggleResumeButtons() {
-  const hasProgress = webmcpState.atomicTasks.length > 0;
+  const hasProgress =
+    webmcpState.atomicTasks.length > 0 ||
+    (webmcpState.intentForge && webmcpState.intentForge.history.length > 0);
   document
     .getElementById("resumeButton")
-    .classList.toggle("hidden", !hasProgress);
+    ?.classList.toggle("hidden", !hasProgress);
   document
     .getElementById("newProjectButton")
-    .classList.toggle("hidden", !hasProgress);
+    ?.classList.toggle("hidden", !hasProgress);
 }
 
 function updateUIFromState() {
-  const promptInput = document.getElementById("projectPrompt");
-  if (promptInput) {
-    promptInput.value = webmcpState.prompt;
+  const hist = document.getElementById("intentForgeChatHistory");
+  if (
+    hist &&
+    webmcpState.intentForge &&
+    webmcpState.intentForge.history.length > 0
+  ) {
+    hist.innerHTML = "";
+    webmcpState.intentForge.history.forEach((m) => {
+      appendToIntentForgeChat(
+        m.role === "user" ? "user" : "assistant",
+        m.content,
+      );
+    });
+    updateIntentForgeStatus(webmcpState.intentForge.status || "IDLE");
   }
+
+  if (webmcpState.intentForge?.refined_prompt) {
+    updateRefinedPromptPin(webmcpState.intentForge.refined_prompt);
+    // Si quedó en COMPLETE sin graph generado (recarga de página a mitad de
+    // camino), reconstruye la tarjeta de confirmar/ajustar.
+    if (
+      webmcpState.intentForge.status === "COMPLETE" &&
+      !(webmcpState.atomicTasks?.length > 0)
+    ) {
+      renderConfirmationPrompt(webmcpState.intentForge.refined_prompt);
+    }
+  }
+
+  if (webmcpState.awaitingDecision) {
+    requestHumanDecision(
+      webmcpState.awaitingDecision.type,
+      webmcpState.awaitingDecision.payload,
+    );
+  }
+
   renderTaskList();
   updatePreview();
+  syncChatUI();
 }
 
 function renderTaskList() {
@@ -285,29 +866,17 @@ function updatePreview() {
   }
 }
 
-function showMainUI() {
-  document.getElementById("initial-view").classList.add("hidden");
-  document.getElementById("orchestration-view").classList.remove("hidden");
-}
-
-/**
- * ============================================================
- * TECHLEADER
- * ============================================================
- */
 async function generateTechLeaderPlan(promptText, previousFeedback = "") {
   appendToReasoning(
     `<div class="text-cyan-400 font-bold">🧠 TECHLEADER → Analizando proyecto...</div>`,
   );
-
   let finalPrompt = promptText;
   if (previousFeedback) {
     finalPrompt += `\n\n--- FEEDBACK DE REVISIÓN ANTERIOR ---\n${previousFeedback}\nPor favor, ajusta el plan de fases para corregir estos problemas. NO inventes requisitos, solo ajusta lo estrictamente necesario para resolver el feedback.`;
     appendToReasoning(
-      `<div class="text-yellow-400 text-xs">⚠️ Incluyendo feedback del Completeness Reviewer...</div>`,
+      `<div class="text-yellow-400 text-xs">⚠️ Incluyendo feedback del Completeness Reviewer V3...</div>`,
     );
   }
-
   const techRes = await fetch("http://127.0.0.1:1234/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -320,32 +889,20 @@ async function generateTechLeaderPlan(promptText, previousFeedback = "") {
       temperature: 0.0,
     }),
   });
-
-  if (!techRes.ok) {
-    throw new Error(`TechLeader Error: ${techRes.status}`);
-  }
-
+  if (!techRes.ok) throw new Error(`TechLeader Error: ${techRes.status}`);
   const techData = await techRes.json();
   const raw = techData?.choices?.[0]?.message?.content;
-  if (!raw) {
-    throw new Error("TechLeader no devolvió contenido.");
-  }
-
+  if (!raw) throw new Error("TechLeader no devolvió contenido.");
   let plan;
   try {
     plan = JSON.parse(raw);
   } catch {
     const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) {
-      throw new Error("TechLeader no devolvió JSON válido.");
-    }
+    if (!match) throw new Error("TechLeader no devolvió JSON válido.");
     plan = JSON.parse(match[0]);
   }
-
-  if (!plan || !Array.isArray(plan.fases)) {
+  if (!plan || !Array.isArray(plan.fases))
     throw new Error("TechLeader no devolvió un array 'fases'.");
-  }
-
   plan.fases = plan.fases.map((fase, index) => ({
     ...fase,
     id: fase.id || `F${index + 1}`,
@@ -354,7 +911,6 @@ async function generateTechLeaderPlan(promptText, previousFeedback = "") {
       : "Backend",
     depends_on: Array.isArray(fase.depends_on) ? fase.depends_on : [],
   }));
-
   appendToReasoning(
     `<div class="text-green-400 font-bold mt-2">🧠 TECHLEADER → ${plan.fases.length} fases detectadas</div>`,
   );
@@ -363,286 +919,167 @@ async function generateTechLeaderPlan(promptText, previousFeedback = "") {
       `<div class="text-gray-300 text-xs mt-1">${fase.id} | ${fase.name} | Role: ${fase.responsable_sugerido}</div>`,
     );
   });
-
   return plan;
 }
 
-/**
- * ============================================================
- * COMPLETENESS REVIEWER (Frontend LM Studio Call)
- * ============================================================
- */
-function getLensPrompt(lens) {
-  if (lens === "GAP") {
-    return `LENTE: GAP. Analizá el Graph completo junto al prompt original. Asumí que el Graph podría no representar algo que el prompt pide explícitamente, y buscalo activamente. Reportá SOLO omisiones que puedas sustentar citando la parte exacta del prompt que las exige. Si no encontrás ninguna con esa evidencia, devolvé un array vacío [].`;
-  }
-  if (lens === "EXCESS") {
-    return `LENTE: EXCESS. Analizá el Graph completo junto al prompt original. Asumí que el Graph podría contener elementos sin sustento explícito en el prompt, y buscalos activamente. NO evalúes si la decisión técnica es buena o mala. Evaluá únicamente si está sustentada por el prompt. Reportá SOLO elementos donde puedas señalar exactamente qué parte del Graph carece de sustento explícito. Si no encontrás ninguno, devolvé un array vacío [].`;
-  }
-  if (lens === "AMBIGUOUS") {
-    return `LENTE: AMBIGUOUS. Identificá fragmentos del prompt original cuya interpretación admite más de una lectura razonable y que puedan cambiar qué debería representar el Graph. NO inventes ambigüedades artificiales. Si no encontrás ninguna, devolvé un array vacío [].`;
-  }
-  return "";
-}
-
 async function persistProject(promptText) {
-  const response = await fetch("http://localhost:3000/api/projects", {
+  const response = await fetch("/api/projects", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt: promptText }),
   });
-  if (!response.ok) {
-    throw new Error(`Persistence Error: ${response.status}`);
-  }
+  if (!response.ok) throw new Error(`Persistence Error: ${response.status}`);
   const data = await response.json();
-  if (!data.id) {
-    throw new Error("Persistence no devolvió project_id.");
-  }
+  if (!data.id) throw new Error("Persistence no devolvió project_id.");
   return data.id;
 }
 
-/**
- * ============================================================
- * REVIEW FEEDBACK
- * ============================================================
- */
-
 function formatValidationFeedback(validation) {
   if (!validation) return "";
-
   let feedback = "\n\n=== FEEDBACK DE VALIDATION ===\n";
-
-  if (validation.status === "FAIL") {
+  if (validation.status === "FAIL")
     feedback += "La validación estructural/de dominio devolvió FAIL.\n\n";
-  }
-
   if (Array.isArray(validation.failures) && validation.failures.length > 0) {
     validation.failures.forEach((failure, index) => {
       const rule =
         failure.rule || failure.code || failure.id || "VALIDATION_FAILURE";
-
       const detail =
         failure.message ||
         failure.detail ||
         failure.description ||
         JSON.stringify(failure);
-
       feedback += `${index + 1}. [${rule}] ${detail}\n`;
     });
   }
-
-  if (Array.isArray(validation.warnings) && validation.warnings.length > 0) {
-    feedback += "\nAdvertencias detectadas:\n";
-    validation.warnings.forEach((warning, index) => {
-      const detail =
-        warning.message ||
-        warning.detail ||
-        warning.description ||
-        JSON.stringify(warning);
-
-      feedback += `${index + 1}. ${detail}\n`;
-    });
-  }
-
   feedback +=
     "\nRevisa el plan de fases y corrige únicamente lo necesario para resolver los FAILS. No inventes requisitos.\n";
-
   return feedback;
 }
 
 function formatReviewerFeedback(reviewResult) {
-  if (!reviewResult || !reviewResult.findings) return "";
+  if (!reviewResult || !Array.isArray(reviewResult.findings)) return "";
+  const gaps = reviewResult.findings.filter((f) => f.type === "GAP");
+  const excess = reviewResult.findings.filter((f) => f.type === "EXCESS");
+  const ambiguous = reviewResult.findings.filter((f) => f.type === "AMBIGUOUS");
+  if (!gaps.length && !excess.length && !ambiguous.length) return "";
 
-  let feedback = `\n\n=== FEEDBACK DEL COMPLETENESS REVIEWER ===\n`;
+  let feedback = `\n\n=== FEEDBACK DEL COMPLETENESS REVIEWER V3 ===\n`;
   feedback +=
     "El Graph anterior fue evaluado y se encontraron los siguientes problemas:\n\n";
-
-  if (reviewResult.findings.GAP?.length > 0) {
+  if (gaps.length > 0) {
     feedback += `## GAPS (Requisitos faltantes):\n`;
-    reviewResult.findings.GAP.forEach((gap, i) => {
-      feedback += `${i + 1}. ${gap.detail}\n`;
-      if (gap.prompt_evidence) {
-        feedback += `   Evidencia del prompt: ${gap.prompt_evidence}\n`;
-      }
+    gaps.forEach((gap, i) => {
+      feedback += `${i + 1}. ${gap.reference}: ${gap.reason}\n`;
     });
     feedback += `\n`;
   }
-
-  if (reviewResult.findings.EXCESS?.length > 0) {
+  if (excess.length > 0) {
     feedback += `## EXCESS (Trabajo sin sustento explícito):\n`;
-    reviewResult.findings.EXCESS.forEach((excess, i) => {
-      feedback += `${i + 1}. ${excess.detail}\n`;
-      if (excess.graph_evidence) {
-        feedback += `   Evidencia del Graph: ${excess.graph_evidence}\n`;
-      }
+    excess.forEach((exc, i) => {
+      feedback += `${i + 1}. ${exc.reference}: ${exc.reason}\n`;
     });
     feedback += `\n`;
   }
-
-  if (reviewResult.findings.AMBIGUOUS?.length > 0) {
+  if (ambiguous.length > 0) {
     feedback += `## AMBIGUOUS (Ambigüedades relevantes):\n`;
-    reviewResult.findings.AMBIGUOUS.forEach((amb, i) => {
-      feedback += `${i + 1}. ${amb.detail}\n`;
+    ambiguous.forEach((amb, i) => {
+      feedback += `${i + 1}. ${amb.reference}: ${amb.reason}\n`;
     });
     feedback += `\n`;
   }
-
   feedback +=
     "\nAjusta el nuevo plan de fases únicamente en respuesta a estos hallazgos. No inventes requisitos.\n";
-
   return feedback;
 }
-
-/**
- * ============================================================
- * COMPLETENESS REVIEWER
- * ============================================================
- */
-
-async function runCompletenessReviewFromGraph(atomicTasks, promptText) {
-  const appendToLog = (msg) =>
-    appendToReasoning(`<div class="text-purple-400 text-xs">${msg}</div>`);
-
-  const result = await runCompletenessReview(promptText, atomicTasks, {
-    model: "qwen2.5-7b-instruct",
-    logCallback: appendToLog,
-  });
-
-  const totalFindings = result?.summary?.total_findings ?? 0;
-
-  appendToLog(`REVIEW COMPLETO: ${totalFindings} hallazgos totales`);
-
-  appendToLog(
-    `GAP: ${result?.summary?.gap_count ?? 0} | EXCESS: ${
-      result?.summary?.excess_count ?? 0
-    } | AMBIGUOUS: ${result?.summary?.ambiguous_count ?? 0}`,
-  );
-
-  webmcpState.completenessReview = result;
-  saveState();
-
-  return result;
-}
-
-/**
- * ============================================================
- * GRAPH
- * ============================================================
- */
 
 async function runGraph(plan) {
   appendToReasoning(
     `<div class="text-cyan-400 font-bold">INICIANDO GRAPH [LIVE + RE-ATOMIZER OFICIAL]</div>`,
   );
-
   const startTime = Date.now();
-  const button = document.getElementById("generateButton");
-
-  if (button) {
-    button.disabled = true;
-  }
-
   webmcpState.atomicTasks = [];
   webmcpState.unresolvedTasks = [];
   webmcpState.rejectedTasks = [];
   webmcpState.dependencyGraph = null;
   webmcpState.replacementMap = {};
   webmcpState.validation = null;
-
   saveState();
   renderTaskList();
-
   const logCallback = (message) => {
     appendToReasoning(`<div class="text-gray-400 text-xs">${message}</div>`);
   };
-
   const onTaskResolved = (task) => {
     if (!task || !task.id) return;
-
     webmcpState.atomicTasks = webmcpState.atomicTasks.filter(
       (existing) => existing.id !== task.id,
     );
-
     webmcpState.atomicTasks.push({
       ...task,
       resolver_status: task.status === "UNRESOLVED" ? "UNRESOLVED" : "PENDING",
     });
-
     if (task.status === "UNRESOLVED") {
       webmcpState.unresolvedTasks = [
         ...webmcpState.unresolvedTasks.filter((t) => t.id !== task.id),
         task,
       ];
+      // Si una task falla 3/3, pedir decisión humana
+      if (task.attempts >= 3 || task.retries >= 3) {
+        appendToReasoning(
+          `<div class="text-red-400 font-bold">❌ TASK ${task.id} 3/3 STRIKES</div>`,
+        );
+        requestHumanDecision("TASK_FAIL_3_STRIKES", {
+          taskId: task.id,
+          error: task.error || task.reason,
+          phase: task.phase,
+        });
+      }
     }
-
     saveState();
     renderTaskList();
   };
-
   try {
     const result = await runAtomicGraph(
       plan.fases,
       logCallback,
       onTaskResolved,
     );
-
     webmcpState.replacementMap = result.replacementMap || {};
     webmcpState.rejectedTasks = result.rejectedTasks || [];
-
     appendToReasoning(
       `<div class="text-green-400 font-bold mt-2">✓ ACCEPTED: ${result.totalAccepted} | UNRESOLVED: ${result.totalUnresolved}</div>`,
     );
-
     appendToReasoning(
       `<div class="text-cyan-400 text-xs mt-2">↻ DEPENDENCY RECONCILIATION completada</div>`,
     );
-
     const dependencyResult = resolveDependencies(result.allTasks, plan.fases);
-
     const validation = validateRoleDependencies(dependencyResult.nodes);
-
     webmcpState.validation = validation;
     webmcpState.dependencyGraph = dependencyResult;
     webmcpState.atomicTasks = dependencyResult.nodes;
     webmcpState.unresolvedTasks = dependencyResult.unresolved;
-
     appendToReasoning(
       `<div class="text-cyan-400 font-bold mt-2">🔎 VALIDATION → Role Dependencies</div>`,
     );
-
     appendToReasoning(
-      `<div class="${
-        validation.status === "FAIL"
-          ? "text-red-400"
-          : validation.status === "PASS_WITH_WARNINGS"
-            ? "text-yellow-400"
-            : "text-green-400"
-      } font-bold">${validation.status}</div>`,
+      `<div class="${validation.status === "FAIL" ? "text-red-400" : validation.status === "PASS_WITH_WARNINGS" ? "text-yellow-400" : "text-green-400"} font-bold">${validation.status}</div>`,
     );
-
     const totalMs = Date.now() - startTime;
     const minutes = Math.floor(totalMs / 60000);
     const seconds = Math.floor((totalMs % 60000) / 1000);
-
     appendToReasoning(
       `<div class="text-gray-500 mt-2">========================================</div>`,
     );
-
     appendToReasoning(
       `<div class="text-green-400 font-bold">GRAPH COMPLETO EN: ${minutes}m ${seconds}s (${totalMs}ms)</div>`,
     );
-
     appendToReasoning(
       `<div class="text-green-400">✓ ACCEPTED: ${result.totalAccepted} | UNRESOLVED: ${result.totalUnresolved}</div>`,
     );
-
     appendToReasoning(
       `<div class="text-cyan-400">✓ READY: ${dependencyResult.ready.length} | BLOCKED: ${dependencyResult.blocked.length}</div>`,
     );
-
     saveState();
     renderTaskList();
-
     return {
       status: "OK",
       validation,
@@ -653,76 +1090,40 @@ async function runGraph(plan) {
     };
   } catch (error) {
     console.error(error);
-
     webmcpState.atomicTasks = (webmcpState.atomicTasks || []).map((task) => ({
       ...task,
       resolver_status: "ERROR",
       resolver_error: error.message,
     }));
-
-    webmcpState.dependencyGraph = {
-      valid: false,
-      error: error.message,
-    };
-
+    webmcpState.dependencyGraph = { valid: false, error: error.message };
     saveState();
     renderTaskList();
-
     appendToReasoning(
       `<div class="text-red-500 font-bold mt-2">✗ ERROR GRAPH: ${error.message}</div>`,
     );
-
     return {
       status: "FAIL",
       validation: {
         status: "FAIL",
-        failures: [
-          {
-            rule: "GRAPH_EXECUTION_ERROR",
-            message: error.message,
-          },
-        ],
+        failures: [{ rule: "GRAPH_EXECUTION_ERROR", message: error.message }],
       },
       dependencyResult: null,
       atomicTasks: webmcpState.atomicTasks,
       unresolvedTasks: webmcpState.unresolvedTasks,
       result: null,
     };
-  } finally {
-    if (button) {
-      button.disabled = false;
-      button.innerHTML = `🧠 Generar Atomic Tasks`;
-    }
   }
 }
 
-/**
- * ============================================================
- * UNA GENERACIÓN COMPLETA
- *
- * TechLeader → Graph → Validation → Completeness
- *
- * Cualquier FAIL vuelve al TechLeader.
- * ============================================================
- */
-
 async function runGenerationAttempt(promptText, previousFeedback = "") {
   const plan = await generateTechLeaderPlan(promptText, previousFeedback);
-
   webmcpState.fullPlan = plan;
   webmcpState.prompt = promptText;
   saveState();
-
   appendToReasoning(
-    `<div class="text-cyan-400 mt-2">Stack: ${
-      Array.isArray(plan.stack_sugerido)
-        ? plan.stack_sugerido.join(", ")
-        : plan.stack_sugerido || "N/D"
-    }</div>`,
+    `<div class="text-cyan-400 mt-2">Stack: ${Array.isArray(plan.stack_sugerido) ? plan.stack_sugerido.join(", ") : plan.stack_sugerido || "N/D"}</div>`,
   );
-
   const graphResult = await runGraph(plan);
-
   if (graphResult.status === "FAIL") {
     return {
       status: "FAIL",
@@ -733,27 +1134,23 @@ async function runGenerationAttempt(promptText, previousFeedback = "") {
       feedback: formatValidationFeedback(graphResult.validation),
     };
   }
-
-  const completeness = await runCompletenessReviewFromGraph(
+  const completeness = await runCompletenessReviewFromGraph_V3(
     graphResult.atomicTasks,
     promptText,
   );
-
   const validationFailed = graphResult.validation?.status === "FAIL";
-
-  const completenessFailed = (completeness?.summary?.total_findings ?? 0) > 0;
-
+  // FIX: GAP y EXCESS son defectos reales y bloquean el intento; AMBIGUOUS
+  // queda fuera del disparador (informativo, no bloqueante), igual que la
+  // intención original del código — solo que ahora el campo que lee sí
+  // existe en la forma real que devuelve completeness_reviewer3.mjs.
+  const completenessFailed = (completeness?.findings ?? []).some(
+    (f) => f.type === "GAP" || f.type === "EXCESS",
+  );
   if (validationFailed || completenessFailed) {
     let feedback = "";
-
-    if (validationFailed) {
+    if (validationFailed)
       feedback += formatValidationFeedback(graphResult.validation);
-    }
-
-    if (completenessFailed) {
-      feedback += formatReviewerFeedback(completeness);
-    }
-
+    if (completenessFailed) feedback += formatReviewerFeedback(completeness);
     return {
       status: "FAIL",
       plan,
@@ -763,7 +1160,6 @@ async function runGenerationAttempt(promptText, previousFeedback = "") {
       feedback,
     };
   }
-
   return {
     status: "PASS",
     plan,
@@ -774,18 +1170,14 @@ async function runGenerationAttempt(promptText, previousFeedback = "") {
   };
 }
 
-/**
- * ============================================================
- * NUEVO PROYECTO
- * ============================================================
- */
-
+// NOTA: nada llama a esta función hoy (no estaba conectada a ningún botón
+// ni antes ni ahora); queda como punto de entrada manual/de debug. El flujo
+// real arranca en sendToIntentForge -> confirmRefinedPrompt ->
+// handleContinuePlan.
 async function handleGeneratePlan() {
-  const promptText = document.getElementById("projectPrompt").value;
-
-  if (!promptText) {
-    return alert("Pega un prompt primero");
-  }
+  if (!OrchestrationLock.canSend()) return;
+  const promptText = webmcpState.prompt;
+  if (!promptText) return alert("No hay un prompt cargado todavía");
 
   webmcpState.prompt = promptText;
   webmcpState.fullPlan = null;
@@ -796,112 +1188,97 @@ async function handleGeneratePlan() {
   webmcpState.replacementMap = {};
   webmcpState.validation = null;
   webmcpState.completenessReview = null;
-
   GLOBAL_ID = 1;
   saveState();
-
   await handleContinuePlan();
 }
 
-/**
- * ============================================================
- * CONTINUAR
- * ============================================================
- */
-
 async function handleContinuePlan() {
-  const promptText =
-    document.getElementById("projectPrompt").value || webmcpState.prompt;
+  if (!OrchestrationLock.canSend() && !webmcpState.awaitingDecision) return;
+  const promptText = webmcpState.prompt;
+  if (!promptText) return alert("No hay un prompt cargado todavía");
 
-  if (!promptText) {
-    return alert("Pega un prompt primero");
-  }
-
-  const button = document.getElementById("generateButton");
-
-  if (button) {
-    button.disabled = true;
-  }
-
-  showMainUI();
+  OrchestrationLock.lock("GENERANDO PLAN");
 
   let previousFeedback = "";
   let finalAttempt = null;
-
   try {
     for (let attempt = 1; attempt <= MAX_TECHLEADER_ATTEMPTS; attempt++) {
       appendToReasoning(
         `<div class="text-cyan-400 font-bold">🔄 INTENTO COMPLETO ${attempt}/${MAX_TECHLEADER_ATTEMPTS}</div>`,
       );
-
       finalAttempt = await runGenerationAttempt(promptText, previousFeedback);
-
       if (finalAttempt.status === "PASS") {
         appendToReasoning(
           `<div class="text-green-400 font-bold mt-3">✅ GENERACIÓN APROBADA EN EL INTENTO ${attempt}</div>`,
         );
-
+        OrchestrationLock.unlock();
         saveState();
         return;
       }
-
       appendToReasoning(
         `<div class="text-red-400 font-bold mt-3">❌ FAIL EN INTENTO ${attempt}</div>`,
       );
-
       previousFeedback = finalAttempt.feedback || "";
-
       if (attempt < MAX_TECHLEADER_ATTEMPTS) {
         appendToReasoning(
-          `<div class="text-yellow-400 font-bold">↻ FAIL detectado. El TechLeader será reintentado automáticamente.</div>`,
+          `<div class="text-yellow-400 font-bold">↻ FAIL detectado. Reintentando...</div>`,
         );
       }
     }
 
+    // 3/3 FALLARON -> pedir decisión humana, no reintentar solo
     appendToReasoning(
-      `<div class="text-red-400 font-bold mt-3">🛑 MÁXIMO DE ${MAX_TECHLEADER_ATTEMPTS} INTENTOS ALCANZADO. El Graph NO se considera aprobado.</div>`,
+      `<div class="text-red-400 font-bold mt-3">🛑 3/3 STRIKES ALCANZADO. Esperando decisión humana.</div>`,
     );
-
+    OrchestrationLock.unlock();
+    requestHumanDecision("VALIDATION_FAIL_3_STRIKES", {
+      validationStatus: finalAttempt?.validation?.status || "FAIL",
+      completeness: finalAttempt?.completeness,
+    });
     webmcpState.fullPlan = finalAttempt?.plan || null;
     saveState();
   } catch (error) {
     console.error(error);
-
     appendToReasoning(
       `<div class="text-red-400 font-bold mt-3">❌ ERROR: ${error.message}</div>`,
     );
-
+    OrchestrationLock.unlock();
     alert(`Error durante la generación: ${error.message}`);
   } finally {
-    if (button) {
-      button.disabled = false;
-      button.innerHTML = `🧠 Generar Atomic Tasks`;
-    }
-
     toggleResumeButtons();
   }
 }
 
-/**
- * ============================================================
- * INIT
- * ============================================================
- */
-
 function initializeApp() {
   loadState();
+  renderTaskList(); // siempre renderiza
+  syncChatUI();
 
   document
-    .getElementById("generateButton")
-    .addEventListener("click", handleGeneratePlan);
+    .getElementById("clearBtn")
+    ?.addEventListener("click", () => clearState());
 
+  // Un solo input, un solo botón, para las 3 situaciones (arrancar,
+  // seguir la entrevista, responder una consulta puntual): la fase que
+  // corresponde en cada momento la decide getChatPhase()/syncChatUI(), acá
+  // solo se manda lo que el usuario escribió.
+  const sendCurrentInput = () => {
+    const input = document.getElementById("refinementPrompt");
+    const v = input?.value?.trim();
+    if (v) sendToIntentForge(v);
+  };
   document
-    .getElementById("resumeButton")
-    .addEventListener("click", handleContinuePlan);
-
+    .getElementById("chatActionBtn")
+    ?.addEventListener("click", sendCurrentInput);
   document
-    .getElementById("newProjectButton")
-    .addEventListener("click", clearState);
+    .getElementById("refinementPrompt")
+    ?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendCurrentInput();
+      }
+    });
 }
 
 window.onload = initializeApp;

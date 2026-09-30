@@ -1,5 +1,6 @@
 import { validateRoleDependencies } from "./validation_profile_role_dependencies.mjs";
 import { runAtomicGraph, resolveDependencies } from "./atomic_engine_v5.js";
+import { missingMentions } from "./intent_mention_check.mjs";
 
 const STORAGE_KEY = "webmcp_state";
 const MAX_TECHLEADER_ATTEMPTS = 3;
@@ -141,7 +142,7 @@ function updateIntentForgeStatus(status) {
   }
 }
 
-async function sendToIntentForge(userMessage) {
+async function sendToIntentForge(userMessage, { auto = false } = {}) {
   if (!userMessage?.trim()) return;
   if (webmcpState.isGenerating && !webmcpState.awaitingDecision) return;
   if (webmcpState.awaitingDecision) {
@@ -165,7 +166,14 @@ async function sendToIntentForge(userMessage) {
     iteration: 0,
   };
   webmcpState.intentForge.status = "ASKING";
-  webmcpState.intentForge.history.push({ role: "user", content: userMessage });
+  // auto=true: mensaje armado por el sistema (p.ej. "Agregá también...").
+  // Se manda a Intent Forge igual, pero el chequeo de menciones lo ignora
+  // para no avisar por sus propias palabras.
+  webmcpState.intentForge.history.push(
+    auto
+      ? { role: "user", content: userMessage, auto: true }
+      : { role: "user", content: userMessage },
+  );
   INTENT_FORGE_ITERATION = (webmcpState.intentForge.iteration || 0) + 1;
   webmcpState.intentForge.iteration = INTENT_FORGE_ITERATION;
 
@@ -213,6 +221,7 @@ async function sendToIntentForge(userMessage) {
       // renderConfirmationPrompt() a partir de refined_prompt, estructurado.
       webmcpState.intentForge.refined_prompt = data.refined_prompt;
       webmcpState.intentForge.status = "COMPLETE";
+      webmcpState.intentForge.mentionDecisions = {};
       updateIntentForgeStatus("COMPLETE");
       updateRefinedPromptPin(data.refined_prompt);
       renderConfirmationPrompt(data.refined_prompt);
@@ -261,27 +270,180 @@ function buildRefinedSummaryHTML(refined) {
   `;
 }
 
+// === "MENCIONASTE Y NO INCLUÍ" (paso 2 post-Project20) ===
+// Al llegar el COMPLETE, compara lo que dijo el usuario en la entrevista con
+// el refined_prompt (intent_mention_check.mjs, determinista) y muestra las
+// frases que quedaron afuera. "Confirmar y generar" queda bloqueado hasta
+// decidir cada aviso: Incluir (vuelve a Intent Forge) / Excluir a propósito
+// (va a TechLeader como fuera de alcance) / Falso aviso (no vuelve a salir).
+function escapeHTML(t) {
+  return String(t ?? "").replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+  );
+}
+
+function ensureIntentForgeListState() {
+  const f = webmcpState.intentForge;
+  f.exclusiones = f.exclusiones || [];
+  f.ignoredMentions = f.ignoredMentions || [];
+  f.mentionDecisions = f.mentionDecisions || {};
+  f.requestedMentions = f.requestedMentions || {};
+  return f;
+}
+
+function computeMentionNotices(refined) {
+  const f = ensureIntentForgeListState();
+  const userMsgs = (f.history || [])
+    .filter((m) => m.role === "user" && !m.auto)
+    .map((m) => m.content);
+  // Una frase ya pedida con "Incluir" se da por atendida si Intent Forge
+  // cubrió AL MENOS una de sus palabras faltantes (la frase entera rara vez
+  // aparece literal: "algo de panaderia (las cafeterias ... vender ...)" ->
+  // feature "Sección de panadería"). Si no cubrió ninguna, vuelve a salir:
+  // eso es evidencia de que el modelo ignoró el pedido.
+  return missingMentions(userMsgs, refined, {
+    exclusiones: f.exclusiones,
+    ignoradas: f.ignoredMentions,
+  }).filter((n) => {
+    const before = f.requestedMentions[n.phrase];
+    return !(before && n.missing.length < before.length);
+  });
+}
+
+const MENTION_CHOICES = [
+  ["incluir", "➕ Incluir"],
+  ["excluir", "🚫 Excluir a propósito"],
+  ["ignorar", "🙈 Falso aviso"],
+];
+
+function renderMentionControls(card) {
+  const f = ensureIntentForgeListState();
+  const notices = computeMentionNotices(f.refined_prompt);
+  const box = card.querySelector('[data-role="mentions"]');
+  const btn = card.querySelector('[data-action="confirm-refined"]');
+  const dec = f.mentionDecisions;
+  const pending = notices.filter((n) => !dec[n.phrase]).length;
+  const includes = notices.filter((n) => dec[n.phrase] === "incluir").length;
+
+  box.innerHTML = notices.length
+    ? `<div class="text-amber-300 font-bold mt-2">⚠️ Mencionaste y no quedó en la lista (${notices.length}):</div>` +
+      notices
+        .map(
+          (n) => `
+      <div class="border border-amber-700/60 rounded p-2 mt-1" data-phrase="${escapeHTML(n.phrase)}">
+        <div class="text-gray-200">"${escapeHTML(n.phrase)}"</div>
+        <div class="text-gray-500 text-[10px]">falta: ${n.missing.map(escapeHTML).join(", ")}</div>
+        <div class="flex gap-1 mt-1">
+          ${MENTION_CHOICES.map(
+            ([k, label]) =>
+              `<button type="button" data-action="mention" data-choice="${k}" class="flex-1 rounded py-0.5 text-[10px] ${
+                dec[n.phrase] === k ? "bg-amber-600 text-white font-bold" : "bg-gray-700 text-gray-300"
+              }">${label}</button>`,
+          ).join("")}
+        </div>
+      </div>`,
+        )
+        .join("")
+    : "";
+
+  if (pending > 0) {
+    btn.textContent = `Decidí los avisos (${pending} pendiente${pending > 1 ? "s" : ""})`;
+    btn.disabled = true;
+    btn.className = "flex-1 bg-gray-600 rounded py-1 text-xs font-bold opacity-50 cursor-not-allowed";
+  } else if (includes > 0) {
+    btn.textContent = `📨 Pedir a Intent Forge que agregue (${includes})`;
+    btn.disabled = false;
+    btn.className = "flex-1 bg-amber-600 rounded py-1 text-xs font-bold";
+  } else {
+    btn.textContent = "✅ Confirmar y generar";
+    btn.disabled = false;
+    btn.className = "flex-1 bg-green-600 rounded py-1 text-xs font-bold";
+  }
+  return { notices, pending, includes };
+}
+
+// Un solo listener delegado en el contenedor: appendToIntentForgeChat usa
+// innerHTML +=, que recrea los nodos y mata cualquier listener directo.
+let confirmDelegationReady = false;
+function ensureConfirmDelegation(container) {
+  if (confirmDelegationReady) return;
+  confirmDelegationReady = true;
+  container.addEventListener("click", (ev) => {
+    const el = ev.target.closest("button[data-action]");
+    const card = el?.closest("[data-confirm-card]");
+    if (!el || !card || card.dataset.stale === "1" || el.disabled) return;
+    const action = el.dataset.action;
+    if (action === "confirm-refined") confirmRefinedPrompt();
+    else if (action === "adjust-refined") adjustRefinedPrompt();
+    else if (action === "mention") {
+      const phrase = el.closest("[data-phrase]")?.dataset.phrase;
+      if (phrase == null) return;
+      const dec = ensureIntentForgeListState().mentionDecisions;
+      // Tocar la opción ya elegida la deselecciona.
+      dec[phrase] = dec[phrase] === el.dataset.choice ? undefined : el.dataset.choice;
+      if (!dec[phrase]) delete dec[phrase];
+      saveState();
+      renderMentionControls(card);
+    }
+  });
+}
+
+function markConfirmCardsStale(container) {
+  container.querySelectorAll("[data-confirm-card]").forEach((c) => {
+    c.dataset.stale = "1";
+    c.querySelectorAll("button").forEach((b) => {
+      b.disabled = true;
+      b.classList.add("opacity-40", "cursor-not-allowed");
+    });
+  });
+}
+
 function renderConfirmationPrompt(refined) {
   const container = document.getElementById("intentForgeChatHistory");
   if (!container) return;
+  ensureConfirmDelegation(container);
+  markConfirmCardsStale(container);
   const cardId = `confirm-${Date.now()}`;
   container.innerHTML += `
-    <div class="bg-indigo-900/30 border border-indigo-600 p-3 rounded text-xs my-2" id="${cardId}">
+    <div class="bg-indigo-900/30 border border-indigo-600 p-3 rounded text-xs my-2" id="${cardId}" data-confirm-card="1">
       ${buildRefinedSummaryHTML(refined)}
+      <div data-role="mentions"></div>
       <div class="flex gap-2 mt-2">
         <button type="button" class="flex-1 bg-green-600 rounded py-1 text-xs font-bold" data-action="confirm-refined">✅ Confirmar y generar</button>
         <button type="button" class="flex-1 bg-gray-700 rounded py-1 text-xs font-bold" data-action="adjust-refined">✏️ Ajustar</button>
       </div>
     </div>`;
   const card = document.getElementById(cardId);
-  card
-    ?.querySelector('[data-action="confirm-refined"]')
-    ?.addEventListener("click", () => confirmRefinedPrompt());
-  card
-    ?.querySelector('[data-action="adjust-refined"]')
-    ?.addEventListener("click", () => adjustRefinedPrompt());
+  if (card) {
+    const { notices } = renderMentionControls(card);
+    if (notices.length) {
+      appendToReasoning(
+        `<div class="text-amber-400 text-xs">[MENTION_CHECK] ${notices.length} frase(s) del usuario sin reflejo en refined_prompt</div>`,
+      );
+    }
+  }
   container.scrollTop = container.scrollHeight;
   syncChatUI();
+}
+
+// Pasa las decisiones Excluir / Falso aviso a las listas persistentes.
+// Devuelve las frases marcadas Incluir.
+// Ojo: lo que se excluye son las PALABRAS faltantes, no la frase entera.
+// 'seccion "carta" para ver productos y precios' excluida entera le diría a
+// TechLeader que no planifique la Carta, que sí es feature; se excluye "precios".
+function commitMentionDecisions(notices = []) {
+  const f = ensureIntentForgeListState();
+  const incluir = [];
+  const missingOf = Object.fromEntries(notices.map((n) => [n.phrase, n.missing]));
+  for (const [phrase, d] of Object.entries(f.mentionDecisions)) {
+    const excl = (missingOf[phrase] || [phrase]).join(", ");
+    if (d === "excluir" && !f.exclusiones.includes(excl)) f.exclusiones.push(excl);
+    else if (d === "ignorar" && !f.ignoredMentions.includes(phrase)) f.ignoredMentions.push(phrase);
+    else if (d === "incluir") incluir.push(phrase);
+  }
+  f.mentionDecisions = {};
+  return incluir;
 }
 
 // FIX (bug real, no solo de interfaz): antes esto mandaba a TechLeader
@@ -293,7 +455,7 @@ function renderConfirmationPrompt(refined) {
 // el mismo formato de lista numerada que ya sabe leer
 // completeness_reviewer3.mjs (extractRequirements), para que TechLeader y
 // el Reviewer trabajen sobre el mismo texto.
-function buildTechLeaderInputFromRefinedPrompt(refined) {
+function buildTechLeaderInputFromRefinedPrompt(refined, exclusiones = []) {
   const parts = [];
   if (refined.project_name) parts.push(`Proyecto: ${refined.project_name}`);
   if (refined.objetivo) parts.push(refined.objetivo);
@@ -305,16 +467,55 @@ function buildTechLeaderInputFromRefinedPrompt(refined) {
     parts.push("", "Criterios de éxito:");
     refined.criterios_holdout.forEach((c) => parts.push(`- ${c}`));
   }
+  // Va DESPUÉS de "Criterios de éxito" a propósito: extractRequirements del
+  // reviewer toma la lista numerada de features, y esto no debe contar como
+  // requisito. El reviewer además lee answer_key_requirements.json (solo features).
+  if (exclusiones.length) {
+    parts.push(
+      "",
+      "Fuera de alcance (el usuario lo descartó explícitamente; NO planificar):",
+    );
+    exclusiones.forEach((x) => parts.push(`- ${x}`));
+  }
   return parts.join("\n");
 }
 
 async function confirmRefinedPrompt() {
   const refined = webmcpState.intentForge?.refined_prompt;
   if (!refined) return;
-  webmcpState.prompt = buildTechLeaderInputFromRefinedPrompt(refined);
-  appendToIntentForgeChat("user", "✅ Confirmado.");
+  const f = ensureIntentForgeListState();
+  const notices = computeMentionNotices(refined);
+  if (notices.some((n) => !f.mentionDecisions[n.phrase])) return; // guardia: el botón ya está bloqueado
+  const incluir = commitMentionDecisions(notices);
+  for (const n of notices) {
+    if (incluir.includes(n.phrase)) f.requestedMentions[n.phrase] = n.missing;
+  }
+  saveState();
+
+  if (incluir.length) {
+    // Vuelve a Intent Forge: reescribe el refined_prompt y, en el próximo
+    // COMPLETE, el chequeo corre de nuevo sobre la versión nueva.
+    const container = document.getElementById("intentForgeChatHistory");
+    if (container) markConfirmCardsStale(container);
+    webmcpState.intentForge.status = "ASKING";
+    await sendToIntentForge(
+      "Agregá también al refined_prompt, como features atómicas:\n" +
+        incluir.map((p) => `- ${p}`).join("\n") +
+        "\nMantené todo lo demás igual y devolvé el refined_prompt completo.",
+      { auto: true },
+    );
+    return;
+  }
+
+  webmcpState.prompt = buildTechLeaderInputFromRefinedPrompt(refined, f.exclusiones);
+  appendToIntentForgeChat(
+    "user",
+    f.exclusiones.length
+      ? `✅ Confirmado (fuera de alcance: ${f.exclusiones.map(escapeHTML).join(" · ")}).`
+      : "✅ Confirmado.",
+  );
   appendToReasoning(
-    `<div class="text-green-400 text-xs">[FORGE→TECHLEADER] refined_prompt completo, ${(refined.features || []).length} features</div>`,
+    `<div class="text-green-400 text-xs">[FORGE→TECHLEADER] refined_prompt completo, ${(refined.features || []).length} features, ${f.exclusiones.length} exclusiones</div>`,
   );
   saveState();
   await handleContinuePlan();
@@ -325,7 +526,12 @@ function adjustRefinedPrompt() {
   // con Intent Forge, por el mismo input de siempre. syncChatUI() ya
   // habilita el input solo con este cambio de status, no hace falta
   // tocar el DOM acá directamente.
-  if (webmcpState.intentForge) webmcpState.intentForge.status = "ASKING";
+  if (webmcpState.intentForge) {
+    commitMentionDecisions(computeMentionNotices(webmcpState.intentForge.refined_prompt)); // Excluir / Falso aviso se conservan; Incluir se pide escribiendo
+    webmcpState.intentForge.status = "ASKING";
+    const container = document.getElementById("intentForgeChatHistory");
+    if (container) markConfirmCardsStale(container);
+  }
   updateIntentForgeStatus(`ASKING (iter ${webmcpState.intentForge?.iteration || 0})`);
   saveState();
   syncChatUI();
@@ -567,6 +773,10 @@ let webmcpState = {
     history: [],
     refined_prompt: null,
     iteration: 0,
+    exclusiones: [],
+    ignoredMentions: [],
+    mentionDecisions: {},
+    requestedMentions: {},
   },
   awaitingDecision: null,
   validation: null,
@@ -713,6 +923,10 @@ function clearState() {
       history: [],
       refined_prompt: null,
       iteration: 0,
+      exclusiones: [],
+      ignoredMentions: [],
+      mentionDecisions: {},
+      requestedMentions: {},
     },
     awaitingDecision: null,
     validation: null,

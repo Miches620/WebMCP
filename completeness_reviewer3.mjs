@@ -29,6 +29,7 @@
 // respuesta.
 
 import { loadStageBlock } from "./context/stage_loader.mjs";
+import { norm, terms, synKey } from "./intent_mention_check.mjs";
 
 const LM_STUDIO_URL = "http://localhost:1234/v1/chat/completions";
 // Default; se puede pisar por corrida con opts.model.
@@ -118,7 +119,7 @@ export function extractRequirements(promptText, opts = {}) {
   return scanList(promptText);
 }
 
-export function extractTasks(generatedGraph) {
+export function extractTasks(generatedGraph, { withDescriptions = false } = {}) {
   if (!Array.isArray(generatedGraph)) {
     throw new Error(
       "completeness_reviewer3: generatedGraph debe ser un array de tareas " +
@@ -131,11 +132,50 @@ export function extractTasks(generatedGraph) {
     if (!t.id) {
       throw new Error(`completeness_reviewer3: tarea sin 'id': ${JSON.stringify(t)}`);
     }
-    return { id: t.id, text: t.task ?? t.description ?? JSON.stringify(t) };
+    // v0.7: con withDescriptions el reviewer ve también la descripción. En
+    // Project20 el título de F4.1 no decía qué campos llevaba el formulario;
+    // la descripción sí ("nombre, email, mensaje").
+    const title = t.task ?? t.description ?? JSON.stringify(t);
+    const text = withDescriptions && t.task && t.description ? `${t.task} — ${t.description}` : title;
+    return { id: t.id, text };
   });
 }
 
-function buildSystemPrompt() {
+// v0.7 — Regla de cita. Evidencia (exp_split_reviewer, 30/09): con el
+// requisito ya partido, Qwen igual marcaba "cubierto" copiando el texto del
+// requisito en el reason ("F4.1... implementan un campo opcional para
+// preferencias") sin que ninguna tarea lo mencionara. La cobertura pasa a
+// exigir una cita que el harness verifica:
+//  1. la cita existe LITERAL (normalizada) en el texto de la tarea citada;
+//  2. la cita contiene al menos un término PROPIO del requisito, es decir,
+//     uno que no aparece en los demás requisitos. Sin esto, "formulario de
+//     contacto" validaría tanto "campos obligatorios" como "preferencias".
+export function distinctiveTerms(req, requirements) {
+  const others = new Set(
+    requirements.filter((r) => r.id !== req.id).flatMap((r) => terms(r.text).map(synKey)),
+  );
+  const own = terms(req.text).map(synKey).filter((k) => !others.has(k));
+  return own.length ? own : terms(req.text).map(synKey);
+}
+
+export function checkQuotes(verdict, req, requirements, tasks) {
+  const ev = Array.isArray(verdict.evidence) ? verdict.evidence : [];
+  if (!ev.length) return { ok: false, why: "no trae evidence" };
+  const distinct = new Set(distinctiveTerms(req, requirements));
+  const reasons = [];
+  for (const e of ev) {
+    const task = tasks.find((t) => t.id === e?.task_id);
+    const quote = norm(e?.quote || "").replace(/\s+/g, " ").trim();
+    if (!task) { reasons.push(`${e?.task_id}: tarea inexistente`); continue; }
+    if (quote.length < 4) { reasons.push(`${task.id}: cita vacía`); continue; }
+    if (!norm(task.text).replace(/\s+/g, " ").includes(quote)) { reasons.push(`${task.id}: la cita no está en la tarea`); continue; }
+    if (!terms(quote).some((w) => distinct.has(synKey(w)))) { reasons.push(`${task.id}: la cita no nombra nada propio del requisito`); continue; }
+    return { ok: true, why: `${task.id}: "${e.quote}"` };
+  }
+  return { ok: false, why: reasons.join("; ") };
+}
+
+function buildSystemPrompt({ requireQuotes = false } = {}) {
   return `Eres un motor de decisiones estructuradas. Tu trabajo es evaluar, requisito por requisito y tarea por tarea, si un Graph cumple un Prompt Original.
 
 REGLAS INQUEBRANTABLES:
@@ -148,7 +188,8 @@ Vas a recibir dos listas ya numeradas: REQUISITOS y TAREAS. Tu única tarea es e
 Para cada REQUISITO (Rn):
 - "covered": true si alguna tarea del Graph lo implementa (no hace falta texto idéntico, pero sí que la tarea cubra sustancialmente lo pedido); false si ninguna tarea lo cubre.
 - "covering_task_ids": ids de las tareas que lo cubren (array vacío si covered=false).
-- "reason": por qué está cubierto o por qué no, en una frase.
+- "reason": por qué está cubierto o por qué no, en una frase.${requireQuotes ? `
+- "evidence": si covered=true, lista de { "task_id": "...", "quote": "..." } donde "quote" es un fragmento COPIADO LITERAL del texto de esa tarea (tal como aparece en la lista de TAREAS) que muestra que cubre lo ESPECÍFICO de este requisito. No parafrasees. Si ninguna tarea tiene un fragmento así, el requisito NO está cubierto: covered=false.` : ""}
 
 Para cada TAREA (Fn):
 - "in_scope": true si está pedida explícitamente por el prompt, o si es una derivación técnica razonablemente necesaria para construir, ejecutar o probar algo que SÍ está pedido; false si no está respaldada por el prompt, no es necesaria, o contradice una restricción explícita del prompt.
@@ -159,7 +200,7 @@ Además, generá una lista aparte de AMBIGUOUS: expresiones del prompt que admit
 Devuelve EXACTAMENTE esta estructura JSON:
 {
   "requirement_verdicts": [
-    { "requirement_id": "R1", "covered": boolean, "covering_task_ids": ["F1.1"], "reason": "..." }
+    { "requirement_id": "R1", "covered": boolean, "covering_task_ids": ["F1.1"], "reason": "..."${requireQuotes ? ', "evidence": [{ "task_id": "F1.1", "quote": "fragmento literal" }]' : ""} }
   ],
   "task_verdicts": [
     { "task_id": "F1.1", "in_scope": boolean, "reason": "..." }
@@ -176,7 +217,7 @@ Devuelve EXACTAMENTE esta estructura JSON:
  * findings).
  * @param {string} originalPrompt
  * @param {Array<{id: string, task?: string, description?: string}>} generatedGraph
- * @param {{requirements?: Array<{id:string, text:string}>, sectionLabels?: string[], model?: string, logCallback?: (msg:string)=>void}} [opts]
+ * @param {{requirements?: Array<{id:string, text:string}>, sectionLabels?: string[], model?: string, logCallback?: (msg:string)=>void, requireQuotes?: boolean, withDescriptions?: boolean}} [opts]
  */
 export async function runCompletenessReview(originalPrompt, generatedGraph, opts = {}) {
   const log = typeof opts.logCallback === "function" ? opts.logCallback : () => {};
@@ -189,7 +230,8 @@ export async function runCompletenessReview(originalPrompt, generatedGraph, opts
         "ni con viñetas del prompt. Pasá opts.requirements = [{id, text}, ...] explícito.",
     );
   }
-  const tasks = extractTasks(generatedGraph);
+  const requireQuotes = !!opts.requireQuotes;
+  const tasks = extractTasks(generatedGraph, { withDescriptions: requireQuotes || !!opts.withDescriptions });
   log(`requisitos: ${requirements.length} | tareas: ${tasks.length}`);
 
   const stage =
@@ -208,13 +250,14 @@ export async function runCompletenessReview(originalPrompt, generatedGraph, opts
     `REQUISITOS A EVALUAR (emití EXACTAMENTE un veredicto por cada uno):\n${reqList}\n\n` +
     `TAREAS DEL GRAPH A EVALUAR (emití EXACTAMENTE un veredicto por cada una):\n${taskList}`;
 
-  const SYSTEM_PROMPT = buildSystemPrompt();
+  const SYSTEM_PROMPT = buildSystemPrompt({ requireQuotes });
 
   const runMetaBase = {
     model: modelId,
     temperature: 0.1,
     stage: stageMeta.stage_sha256,
-    reviewer_version: "v0.6-bounded",
+    reviewer_version: requireQuotes ? "v0.7-quotes" : "v0.6-bounded",
+    with_descriptions: requireQuotes || !!opts.withDescriptions,
     requirement_count: requirements.length,
     task_count: tasks.length,
   };
@@ -236,7 +279,8 @@ export async function runCompletenessReview(originalPrompt, generatedGraph, opts
         // (todo_trello, Project16) esto va a necesitar subir de nuevo o
         // partir la llamada — queda anotado como límite conocido, no
         // resuelto por esta versión.
-        max_tokens: 2048,
+        // v0.7: las citas agregan texto por requisito; 2048 quedaba justo.
+        max_tokens: requireQuotes ? 3072 : 2048,
       }),
     });
 
@@ -301,6 +345,23 @@ export async function runCompletenessReview(originalPrompt, generatedGraph, opts
           ...(corrected ? { corrected_by_harness: "covered=true sin covering_task_ids" } : {}),
         };
       });
+    if (requireQuotes) {
+      for (const v of decision.requirement_verdicts ?? []) {
+        if (v.covered !== true || !(v.covering_task_ids ?? []).length) continue; // ya es GAP
+        const req = requirements.find((r) => r.id === v.requirement_id);
+        if (!req) continue;
+        const check = checkQuotes(v, req, requirements, tasks);
+        if (!check.ok) {
+          gap_findings.push({
+            type: "GAP",
+            requirement_id: v.requirement_id,
+            reference: req.text,
+            reason: v.reason,
+            corrected_by_harness: `covered=true sin cita válida: ${check.why}`,
+          });
+        }
+      }
+    }
     const correctedCount = gap_findings.filter((f) => f.corrected_by_harness).length;
     if (correctedCount > 0) log(`correcciones del harness: ${correctedCount}`);
 

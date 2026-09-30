@@ -52,12 +52,12 @@ const SYN = [
   ["carrito", "cart"],
 ];
 
-function synKey(w) {
+export function synKey(w) {
   for (const g of SYN) if (g.some((s) => w.startsWith(s.slice(0, 5)))) return g[0];
   return w.slice(0, 5); // raíz de 5 letras: "catalogos" ~ "catalogo"
 }
 
-function terms(t) {
+export function terms(t) {
   return [
     ...new Set((norm(t).match(/[a-z0-9]{4,}/g) || []).filter((w) => !STOP.has(w))),
   ];

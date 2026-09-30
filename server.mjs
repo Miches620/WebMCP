@@ -1,5 +1,5 @@
 import { createServer } from "http";
-import { readFile, writeFile } from "fs/promises";
+import { readFile, writeFile, mkdir } from "fs/promises";
 import { existsSync } from "fs";
 import { join, extname } from "path";
 import { fileURLToPath } from "url";
@@ -248,6 +248,26 @@ Estilo: corto, directo, TechLead. Máximo 10 iteraciones.
     return;
   }
 
+  // === API TERM LABEL: Miche etiqueta un aviso de cobertura ===
+  if (req.method === "POST" && req.url === "/api/term-label") {
+    try {
+      const { review_id, requirement_id, label } = await getBody(req);
+      if (!/^[\w-]+$/.test(review_id || "")) throw new Error("review_id inválido");
+      if (!["hueco_real", "falso_aviso", null].includes(label ?? null)) throw new Error("label inválido");
+      const f = join(STATIC_DIR, "evidence", "term_coverage", `${review_id}.json`);
+      const data = JSON.parse(await readFile(f, "utf8"));
+      if (label) data.labels[requirement_id] = { label, at: new Date().toISOString() };
+      else delete data.labels[requirement_id];
+      await writeFile(f, JSON.stringify(data, null, 2));
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: true }));
+    } catch (e) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+    return;
+  }
+
   // === API COMPLETENESS V3 ===
   if (req.method === "POST" && req.url === "/api/completeness-review") {
     try {
@@ -279,8 +299,25 @@ Estilo: corto, directo, TechLead. Máximo 10 iteraciones.
         model: "qwen2.5-7b-instruct",
         logCallback: (m) => logs.push(m),
       });
+      // Aviso determinista de cobertura por palabras (no bloquea). Cada
+      // revisión se guarda en evidence/term_coverage/ para etiquetarla después.
+      let term_coverage = null;
+      try {
+        const { termCoverage, TERM_COVERAGE_VERSION } = await import("./term_coverage_check.mjs");
+        const items = termCoverage(requirements, atomicTasks);
+        const review_id = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+        const dir = join(STATIC_DIR, "evidence", "term_coverage");
+        await mkdir(dir, { recursive: true });
+        await writeFile(
+          join(dir, `${review_id}.json`),
+          JSON.stringify({ version: TERM_COVERAGE_VERSION, review_id, requirements, tasks: atomicTasks.map(({ id, task, description }) => ({ id, task, description })), items, labels: {} }, null, 2),
+        );
+        term_coverage = { review_id, version: TERM_COVERAGE_VERSION, items };
+      } catch (e) {
+        logs.push(`term_coverage: ERROR ${e.message}`);
+      }
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ ...result, logs }));
+      res.end(JSON.stringify({ ...result, logs, term_coverage }));
     } catch (e) {
       console.error(`[COMPLETENESS] ${e.message}`);
       res.writeHead(500, { "Content-Type": "application/json" });

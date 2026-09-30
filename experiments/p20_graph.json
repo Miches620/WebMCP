@@ -1,0 +1,190 @@
+{
+  "_comment": "Graph aprobado de Project20 (intento 3): prompt que recibió el reviewer y las 19 tareas, con título y descripción. Fuente: project20_snapshot.json.",
+  "prompt": "Proyecto: Landing Page de Café Especialidad\nCrear una landing page para una empresa de café especialidad con secciones para mostrar cafés, formulario de contacto, clientes, nosotros y carta.\n\nEl prototipo debe permitir:\n\n1. Catalogo de cafés en tarjetas con foto superior e información inferior (en carrousel)\n2. Formulario de contacto con campos obligatorios y opcionalmente un campo para preferencias\n3. Sección 'Nosotros' con historia de la empresa\n4. Sección 'Carta' con productos disponibles actualmente, obtenidos desde archivo de texto\n\nCriterios de éxito:\n- Las tarjetas de café deben incluir foto y descripción.\n- El carrousel debe permitir navegar entre las tarjetas de café.\n- El formulario de contacto debe tener campos obligatorios solo.\n- La sección 'Nosotros' debe presentar la historia de la empresa.\n- La sección 'Carta' debe mostrar productos actualmente disponibles y actualizarlos desde un archivo de texto.",
+  "features": [
+    "Catalogo de cafés en tarjetas con foto superior e información inferior (en carrousel)",
+    "Formulario de contacto con campos obligatorios y opcionalmente un campo para preferencias",
+    "Sección 'Nosotros' con historia de la empresa",
+    "Sección 'Carta' con productos disponibles actualmente, obtenidos desde archivo de texto"
+  ],
+  "reviewer_result_original": {
+    "GAP": 0,
+    "EXCESS": 0,
+    "AMBIGUOUS": 1,
+    "R2_covering": [
+      "F4.1",
+      "F4.2",
+      "F4.3"
+    ]
+  },
+  "tasks": [
+    {
+      "id": "F1.1",
+      "role": "Frontend",
+      "task": "Establecer el esqueleto HTML y CSS base de la Landing Page.",
+      "description": "Configurar el boilerplate básico (DOCTYPE, head, body) e implementar un reset CSS inicial para asegurar una estructura limpia.",
+      "depends_on": []
+    },
+    {
+      "id": "F1.2",
+      "role": "Frontend",
+      "task": "Implementar la estructura de layout global y contenedores principales.",
+      "description": "Crear el contenedor principal (main wrapper), e incluir los placeholders estructurales para el Header y el Footer en el HTML/CSS base.",
+      "depends_on": [
+        "F1.1"
+      ]
+    },
+    {
+      "id": "F1.3",
+      "role": "Frontend",
+      "task": "Crear el contenedor estructural de la sección 'Nosotros'.",
+      "description": "Añadir un div/sección con clase o ID específico para encapsular todo el contenido de la sección 'Nosotros', sin añadir contenido interno.",
+      "depends_on": [
+        "F1.2"
+      ]
+    },
+    {
+      "id": "F1.4",
+      "role": "Frontend",
+      "task": "Crear el contenedor estructural de la sección Catálogo.",
+      "description": "Añadir un div/sección con clase o ID específico para encapsular todo el contenido del catálogo, sin añadir contenido interno.",
+      "depends_on": [
+        "F1.2"
+      ]
+    },
+    {
+      "id": "F1.5",
+      "role": "Frontend",
+      "task": "Crear el contenedor estructural de la sección Carta.",
+      "description": "Añadir un div/sección con clase o ID específico para encapsular todo el contenido de la sección 'Carta', sin añadir contenido interno.",
+      "depends_on": [
+        "F1.2"
+      ]
+    },
+    {
+      "id": "F1.6",
+      "role": "Frontend",
+      "task": "Crear el contenedor estructural de la sección Contacto.",
+      "description": "Añadir un div/sección con clase o ID específico para encapsular todo el contenido del formulario y detalles de contacto, sin añadir contenido interno.",
+      "depends_on": [
+        "F1.2"
+      ]
+    },
+    {
+      "id": "F2.1",
+      "role": "Frontend",
+      "task": "Integrar contenido textual y multimedia estático de la sección 'Nosotros'",
+      "description": "Rellenar el contenedor estructural creado en F1.3 con el texto final, imágenes y elementos visuales para la sección 'Nosotros'.",
+      "depends_on": [
+        "F1.3"
+      ]
+    },
+    {
+      "id": "F2.2",
+      "role": "Frontend",
+      "task": "Crear la estructura base del carrusel de cafés en el Catálogo",
+      "description": "Implementar el contenedor visual y la disposición estructural (HTML/CSS) para albergar el componente de carrusel dentro del área de catálogo.",
+      "depends_on": [
+        "F1.4"
+      ]
+    },
+    {
+      "id": "F2.3",
+      "role": "Frontend",
+      "task": "Desarrollar el componente visual reutilizable de la tarjeta de café",
+      "description": "Crear el componente atómico (Card) que muestre la foto, nombre y descripción de un café utilizando datos estáticos simulados.",
+      "depends_on": []
+    },
+    {
+      "id": "F2.4",
+      "role": "Frontend",
+      "task": "Implementar la lógica de navegación del carrusel de cafés",
+      "description": "Añadir la funcionalidad interactiva (botones Next/Prev) y el manejo de estado para que las tarjetas creadas en F2.3 se muestren navegablemente dentro de la estructura definida en F2.2.",
+      "depends_on": [
+        "F2.2",
+        "F2.3"
+      ]
+    },
+    {
+      "id": "F3.1",
+      "role": "Backend",
+      "task": "Implementar la lectura del archivo de texto fuente de productos.",
+      "description": "Crear el módulo o servicio que lea y cargue el contenido completo del archivo de texto fuente (la 'Carta') en memoria, sin realizar aún ningún parseo estructurado.",
+      "depends_on": []
+    },
+    {
+      "id": "F3.2",
+      "role": "Backend",
+      "task": "Desarrollar la lógica de parseo y modelado de datos del menú.",
+      "description": "Implementar el motor que procesa el texto crudo cargado en F3.1, extrayendo y mapeando los campos requeridos (nombre, descripción, precio) a una estructura de datos programática (ej. lista de objetos JSON).",
+      "depends_on": [
+        "F3.1"
+      ]
+    },
+    {
+      "id": "F3.3",
+      "role": "Backend",
+      "task": "Crear el endpoint API para servir los datos estructurados del menú.",
+      "description": "Exponer un endpoint RESTful que consuma la estructura de datos generada en F3.2 y devuelva la información completa del menú (nombre, descripción, precio) en formato JSON listo para el consumo por el frontend.",
+      "depends_on": [
+        "F3.2"
+      ]
+    },
+    {
+      "id": "F4.1",
+      "role": "Frontend",
+      "task": "Implementar la estructura HTML del formulario de contacto.",
+      "description": "Crear los campos de input (nombre, email, mensaje) y el botón dentro del contenedor estructural existente para definir la forma del formulario.",
+      "depends_on": [
+        "F1.6"
+      ]
+    },
+    {
+      "id": "F4.2",
+      "role": "Frontend",
+      "task": "Estilizar el formulario de contacto con CSS.",
+      "description": "Aplicar estilos visuales (layout, colores, espaciado) al formulario para asegurar una experiencia de usuario fluida y coherente con la landing page.",
+      "depends_on": [
+        "F4.1"
+      ]
+    },
+    {
+      "id": "F4.3",
+      "role": "Frontend",
+      "task": "Implementar la validación del lado del cliente (JavaScript).",
+      "description": "Añadir lógica JavaScript para verificar que los campos obligatorios estén llenos y sean del formato correcto antes de intentar el envío, proporcionando mensajes de error al usuario.",
+      "depends_on": [
+        "F4.1"
+      ]
+    },
+    {
+      "id": "F5.1",
+      "role": "Frontend",
+      "task": "Implementación de la conexión dinámica de datos al carrusel de cafés.",
+      "description": "Conectar el componente del carrusel (usando las tarjetas definidas en F2.3) para que muestre contenido dinámico, consumiendo una fuente de datos simulada o real si se define posteriormente.",
+      "depends_on": [
+        "F2.3",
+        "F2.4"
+      ]
+    },
+    {
+      "id": "F5.2",
+      "role": "Frontend",
+      "task": "Consumo de datos del menú desde el endpoint API.",
+      "description": "Implementar la lógica JavaScript para consumir los datos estructurados del menú (la 'Carta') utilizando el endpoint creado en F3.3 y almacenar estos datos localmente para su renderizado.",
+      "depends_on": [
+        "F3.3"
+      ]
+    },
+    {
+      "id": "F5.3",
+      "role": "Frontend",
+      "task": "Renderización dinámica de la sección 'Carta'.",
+      "description": "Utilizar los datos consumidos en F5.2 para renderizar dinámicamente el contenido dentro del contenedor estructural de la sección 'Carta' (F1.5), asegurando que la sección sea funcional.",
+      "depends_on": [
+        "F1.5",
+        "F5.2"
+      ]
+    }
+  ]
+}

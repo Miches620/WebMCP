@@ -707,6 +707,66 @@ function handleHumanDecisionResponse(userMessage) {
 // .summary. Como resultado, esos campos siempre daban undefined y
 // completenessFailed (más abajo) nunca era true — el reintento por
 // completitud estaba desconectado en silencio, pasara lo que pasara.
+// === AVISO DE COBERTURA POR PALABRAS (term_coverage_check.mjs) ===
+// Informativo: no bloquea ni dispara reintentos. Cada aviso se puede
+// etiquetar "Hueco real" / "Falso aviso"; la etiqueta queda en
+// evidence/term_coverage/<review_id>.json para calibrar el chequeo.
+let termDelegationReady = false;
+function renderTermCoverageCard(tc) {
+  const container = document.getElementById("intentForgeChatHistory");
+  const warn = (tc.items || []).filter((i) => i.missing.length);
+  appendToReasoning(
+    `<div class="text-amber-400 text-xs">[TERM_COVERAGE] ${warn.length}/${(tc.items || []).length} requisito(s) con palabras propias ausentes en el graph (review ${tc.review_id})</div>`,
+  );
+  if (!container || !warn.length) return;
+  if (!termDelegationReady) {
+    termDelegationReady = true;
+    container.addEventListener("click", async (ev) => {
+      const b = ev.target.closest("button[data-term-label]");
+      const row = b?.closest("[data-term-row]");
+      if (!b || !row) return;
+      const was = row.dataset.label || "";
+      const label = was === b.dataset.termLabel ? null : b.dataset.termLabel;
+      try {
+        const res = await fetch("/api/term-label", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ review_id: row.dataset.review, requirement_id: row.dataset.req, label }),
+        });
+        if (!res.ok) throw new Error((await res.text()).slice(0, 200));
+      } catch (e) {
+        appendToReasoning(`<div class="text-red-400 text-xs">[TERM_COVERAGE] no se guardó la etiqueta: ${escapeHTML(e.message)}</div>`);
+        return;
+      }
+      row.dataset.label = label || "";
+      row.querySelectorAll("button[data-term-label]").forEach((x) => {
+        const on = x.dataset.termLabel === label;
+        x.setAttribute("class", `flex-1 rounded py-0.5 text-[10px] ${on ? "bg-amber-600 text-white font-bold" : "bg-gray-700 text-gray-300"}`);
+      });
+      webmcpState.termLabels = webmcpState.termLabels || {};
+      webmcpState.termLabels[`${row.dataset.review}/${row.dataset.req}`] = label;
+      saveState();
+    });
+  }
+  const btn = (k, t) => `<button type="button" data-term-label="${k}" class="flex-1 rounded py-0.5 text-[10px] bg-gray-700 text-gray-300">${t}</button>`;
+  container.innerHTML += `
+    <div class="bg-amber-900/20 border border-amber-700 p-3 rounded text-xs my-2" data-term-card="${escapeHTML(tc.review_id)}">
+      <div class="text-amber-300 font-bold">🔎 Cobertura por palabras (aviso, no bloquea)</div>
+      <div class="text-gray-500 text-[10px] mb-1">Palabras propias de cada requisito que no aparecen en ninguna tarea. Etiquetá para calibrar el chequeo.</div>
+      ${warn
+        .map(
+          (i) => `
+        <div class="border border-amber-800/60 rounded p-2 mt-1" data-term-row data-review="${escapeHTML(tc.review_id)}" data-req="${escapeHTML(i.id)}" data-label="">
+          <div class="text-gray-200">${escapeHTML(i.id)}: ${escapeHTML(i.text)}</div>
+          <div class="text-amber-200 text-[10px]">faltan (${i.total - i.present}/${i.total}): ${i.missing.map(escapeHTML).join(", ")}</div>
+          <div class="flex gap-1 mt-1">${btn("hueco_real", "🕳️ Hueco real")}${btn("falso_aviso", "🙈 Falso aviso")}</div>
+        </div>`,
+        )
+        .join("")}
+    </div>`;
+  container.scrollTop = container.scrollHeight;
+}
+
 async function runCompletenessReviewFromGraph_V3(atomicTasks, promptText) {
   const appendToLog = (msg) => {
     appendToReasoning(
@@ -746,6 +806,7 @@ async function runCompletenessReviewFromGraph_V3(atomicTasks, promptText) {
       );
     }
     if (result.logs) result.logs.forEach((l) => appendToLog(l));
+    if (result.term_coverage) renderTermCoverageCard(result.term_coverage);
     webmcpState.completenessReview = result;
     saveState();
     return result;

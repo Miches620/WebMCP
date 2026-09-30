@@ -1,0 +1,2052 @@
+{
+  "experiment": "exp_quote_reviewer v0.1",
+  "reviewer": "completeness_reviewer3 v0.7-quotes",
+  "reps": 5,
+  "summary": {
+    "A SPLIT+real": {
+      "reps": 5,
+      "exact": 0,
+      "expected_gap_hit": 5,
+      "false_gaps": 5,
+      "harness_corrections": 5,
+      "model_said_uncovered": 5,
+      "errors": 0,
+      "schema_incomplete": 0
+    },
+    "B SPLIT+contrafactual": {
+      "reps": 5,
+      "exact": 0,
+      "expected_gap_hit": 5,
+      "false_gaps": 11,
+      "harness_corrections": 6,
+      "model_said_uncovered": 5,
+      "errors": 0,
+      "schema_incomplete": 0
+    },
+    "C ORIG+real": {
+      "reps": 5,
+      "exact": 5,
+      "expected_gap_hit": 5,
+      "false_gaps": 0,
+      "harness_corrections": 0,
+      "model_said_uncovered": 0,
+      "errors": 0,
+      "schema_incomplete": 0
+    }
+  },
+  "runs": [
+    {
+      "cell": "A SPLIT+real",
+      "rep": 1,
+      "gaps": [
+        "R2b",
+        "R2a"
+      ],
+      "false_gaps": [
+        "R2a"
+      ],
+      "findings": [
+        {
+          "type": "GAP",
+          "requirement_id": "R2b",
+          "reference": "Formulario de contacto con un campo opcional para preferencias del cliente",
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente en el formulario de contacto."
+        },
+        {
+          "type": "GAP",
+          "requirement_id": "R2a",
+          "reference": "Formulario de contacto con campos obligatorios",
+          "reason": "Las tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "corrected_by_harness": "covered=true sin cita válida: F4.1: la cita no nombra nada propio del requisito; F4.3: la cita no nombra nada propio del requisito"
+        },
+        {
+          "type": "AMBIGUOUS",
+          "reference": "El prototipo debe permitir:",
+          "reason": "Esta frase puede interpretarse como un requisito explícito o una descripción de lo que el prototipo debe hacer, sin clarificar si es parte del brief o no."
+        }
+      ],
+      "requirement_verdicts": [
+        {
+          "requirement_id": "R1",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.2",
+            "F2.3",
+            "F2.4"
+          ],
+          "reason": "Las tareas F2.2, F2.3 y F2.4 implementan el carrusel de cafés con tarjetas.",
+          "evidence": [
+            {
+              "task_id": "F2.2",
+              "quote": "Crear la estructura base del carrusel de cafés en el Catálogo"
+            },
+            {
+              "task_id": "F2.3",
+              "quote": "Desarrollar el componente visual reutilizable de la tarjeta de café"
+            },
+            {
+              "task_id": "F2.4",
+              "quote": "Implementar la lógica de navegación del carrusel de cafés"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2a",
+          "covered": true,
+          "covering_task_ids": [
+            "F4.1",
+            "F4.3"
+          ],
+          "reason": "Las tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "evidence": [
+            {
+              "task_id": "F4.1",
+              "quote": "Implementar la estructura HTML del formulario de contacto."
+            },
+            {
+              "task_id": "F4.3",
+              "quote": "Implementar la validación del lado del cliente (JavaScript)."
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2b",
+          "covered": false,
+          "covering_task_ids": [],
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente en el formulario de contacto.",
+          "evidence": []
+        },
+        {
+          "requirement_id": "R3",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.1"
+          ],
+          "reason": "La tarea F2.1 implementa la sección 'Nosotros' con el contenido final.",
+          "evidence": [
+            {
+              "task_id": "F2.1",
+              "quote": "Integrar contenido textual y multimedia estático de la sección 'Nosotros'"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R4",
+          "covered": true,
+          "covering_task_ids": [
+            "F3.1",
+            "F3.2",
+            "F3.3",
+            "F5.2",
+            "F5.3"
+          ],
+          "reason": "Las tareas F3.1 a F3.3 y F5.2-F5.3 implementan la sección 'Carta' con productos disponibles actualmente, obtenidos desde archivo de texto.",
+          "evidence": [
+            {
+              "task_id": "F3.1",
+              "quote": "Implementar la lectura del archivo de texto fuente de productos."
+            },
+            {
+              "task_id": "F3.2",
+              "quote": "Desarrollar la lógica de parseo y modelado de datos del menú."
+            },
+            {
+              "task_id": "F3.3",
+              "quote": "Crear el endpoint API para servir los datos estructurados del menú."
+            },
+            {
+              "task_id": "F5.2",
+              "quote": "Consumo de datos del menú desde el endpoint API."
+            },
+            {
+              "task_id": "F5.3",
+              "quote": "Renderización dinámica de la sección 'Carta'."
+            }
+          ]
+        }
+      ],
+      "schema_complete": true,
+      "run_meta": {
+        "model": "qwen2.5-7b-instruct",
+        "temperature": 0.1,
+        "stage": "9c91818d4ef021e96321e234b574c587431082e29128ddddc85e7933e4570f5f",
+        "reviewer_version": "v0.7-quotes",
+        "with_descriptions": true,
+        "requirement_count": 5,
+        "task_count": 19
+      }
+    },
+    {
+      "cell": "A SPLIT+real",
+      "rep": 2,
+      "gaps": [
+        "R2b",
+        "R2a"
+      ],
+      "false_gaps": [
+        "R2a"
+      ],
+      "findings": [
+        {
+          "type": "GAP",
+          "requirement_id": "R2b",
+          "reference": "Formulario de contacto con un campo opcional para preferencias del cliente",
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente en el formulario de contacto."
+        },
+        {
+          "type": "GAP",
+          "requirement_id": "R2a",
+          "reference": "Formulario de contacto con campos obligatorios",
+          "reason": "Las tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "corrected_by_harness": "covered=true sin cita válida: F4.1: la cita no nombra nada propio del requisito; F4.3: la cita no nombra nada propio del requisito"
+        },
+        {
+          "type": "AMBIGUOUS",
+          "reference": "El prototipo debe permitir:",
+          "reason": "Esta frase puede interpretarse como que las tareas deben ser implementadas en el prototipo, lo cual podría llevar a confusiones sobre si ciertas tareas son necesarias para la etapa de prototype o se diferirían."
+        }
+      ],
+      "requirement_verdicts": [
+        {
+          "requirement_id": "R1",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.2",
+            "F2.3",
+            "F2.4"
+          ],
+          "reason": "Las tareas F2.2, F2.3 y F2.4 implementan el carrusel de cafés con tarjetas que incluyen foto y descripción.",
+          "evidence": [
+            {
+              "task_id": "F2.2",
+              "quote": "Crear la estructura base del carrusel de cafés en el Catálogo"
+            },
+            {
+              "task_id": "F2.3",
+              "quote": "Desarrollar el componente visual reutilizable de la tarjeta de café"
+            },
+            {
+              "task_id": "F2.4",
+              "quote": "Implementar la lógica de navegación del carrusel de cafés"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2a",
+          "covered": true,
+          "covering_task_ids": [
+            "F4.1",
+            "F4.3"
+          ],
+          "reason": "Las tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "evidence": [
+            {
+              "task_id": "F4.1",
+              "quote": "Implementar la estructura HTML del formulario de contacto."
+            },
+            {
+              "task_id": "F4.3",
+              "quote": "Implementar la validación del lado del cliente (JavaScript)."
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2b",
+          "covered": false,
+          "covering_task_ids": [],
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente en el formulario de contacto.",
+          "evidence": []
+        },
+        {
+          "requirement_id": "R3",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.1"
+          ],
+          "reason": "La tarea F2.1 implementa la sección 'Nosotros' con el contenido final.",
+          "evidence": [
+            {
+              "task_id": "F2.1",
+              "quote": "Integrar contenido textual y multimedia estático de la sección 'Nosotros'"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R4",
+          "covered": true,
+          "covering_task_ids": [
+            "F3.1",
+            "F3.2",
+            "F3.3",
+            "F5.2",
+            "F5.3"
+          ],
+          "reason": "Las tareas F3.1 a F3.3 y F5.2-F5.3 implementan la sección 'Carta' con productos disponibles actualmente, obtenidos desde archivo de texto.",
+          "evidence": [
+            {
+              "task_id": "F3.1",
+              "quote": "Implementar el módulo o servicio que lea y cargue el contenido completo del archivo de texto fuente (la 'Carta') en memoria"
+            },
+            {
+              "task_id": "F5.2",
+              "quote": "Consumo de datos del menú desde el endpoint API."
+            },
+            {
+              "task_id": "F5.3",
+              "quote": "Renderización dinámica de la sección 'Carta'"
+            }
+          ]
+        }
+      ],
+      "schema_complete": true,
+      "run_meta": {
+        "model": "qwen2.5-7b-instruct",
+        "temperature": 0.1,
+        "stage": "9c91818d4ef021e96321e234b574c587431082e29128ddddc85e7933e4570f5f",
+        "reviewer_version": "v0.7-quotes",
+        "with_descriptions": true,
+        "requirement_count": 5,
+        "task_count": 19
+      }
+    },
+    {
+      "cell": "A SPLIT+real",
+      "rep": 3,
+      "gaps": [
+        "R2b",
+        "R2a"
+      ],
+      "false_gaps": [
+        "R2a"
+      ],
+      "findings": [
+        {
+          "type": "GAP",
+          "requirement_id": "R2b",
+          "reference": "Formulario de contacto con un campo opcional para preferencias del cliente",
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente en el formulario de contacto."
+        },
+        {
+          "type": "GAP",
+          "requirement_id": "R2a",
+          "reference": "Formulario de contacto con campos obligatorios",
+          "reason": "Las tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "corrected_by_harness": "covered=true sin cita válida: F4.1: la cita no nombra nada propio del requisito; F4.3: la cita no nombra nada propio del requisito"
+        },
+        {
+          "type": "AMBIGUOUS",
+          "reference": "El prototipo debe permitir:",
+          "reason": "Esta frase es ambigua ya que no especifica claramente si las tareas deben estar en el prototipo o solo ser planificadas para una etapa posterior."
+        }
+      ],
+      "requirement_verdicts": [
+        {
+          "requirement_id": "R1",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.2",
+            "F2.3",
+            "F2.4"
+          ],
+          "reason": "Las tareas F2.2, F2.3 y F2.4 implementan el carrusel de cafés con tarjetas.",
+          "evidence": [
+            {
+              "task_id": "F2.2",
+              "quote": "Crear la estructura base del carrusel de cafés en el Catálogo"
+            },
+            {
+              "task_id": "F2.3",
+              "quote": "Desarrollar el componente visual reutilizable de la tarjeta de café"
+            },
+            {
+              "task_id": "F2.4",
+              "quote": "Implementar la lógica de navegación del carrusel de cafés"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2a",
+          "covered": true,
+          "covering_task_ids": [
+            "F4.1",
+            "F4.3"
+          ],
+          "reason": "Las tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "evidence": [
+            {
+              "task_id": "F4.1",
+              "quote": "Implementar la estructura HTML del formulario de contacto."
+            },
+            {
+              "task_id": "F4.3",
+              "quote": "Implementar la validación del lado del cliente (JavaScript)."
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2b",
+          "covered": false,
+          "covering_task_ids": [],
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente en el formulario de contacto.",
+          "evidence": []
+        },
+        {
+          "requirement_id": "R3",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.1"
+          ],
+          "reason": "La tarea F2.1 implementa la sección 'Nosotros' con el contenido final.",
+          "evidence": [
+            {
+              "task_id": "F2.1",
+              "quote": "Integrar contenido textual y multimedia estático de la sección 'Nosotros'"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R4",
+          "covered": true,
+          "covering_task_ids": [
+            "F3.1",
+            "F3.2",
+            "F3.3",
+            "F5.2",
+            "F5.3"
+          ],
+          "reason": "Las tareas F3.1 a F5.3 implementan la sección 'Carta' con productos disponibles actualmente, obtenidos desde archivo de texto.",
+          "evidence": [
+            {
+              "task_id": "F3.1",
+              "quote": "Implementar la lectura del archivo de texto fuente de productos."
+            },
+            {
+              "task_id": "F3.2",
+              "quote": "Desarrollar la lógica de parseo y modelado de datos del menú."
+            },
+            {
+              "task_id": "F3.3",
+              "quote": "Crear el endpoint API para servir los datos estructurados del menú."
+            },
+            {
+              "task_id": "F5.2",
+              "quote": "Consumo de datos del menú desde el endpoint API."
+            },
+            {
+              "task_id": "F5.3",
+              "quote": "Renderización dinámica de la sección 'Carta'."
+            }
+          ]
+        }
+      ],
+      "schema_complete": true,
+      "run_meta": {
+        "model": "qwen2.5-7b-instruct",
+        "temperature": 0.1,
+        "stage": "9c91818d4ef021e96321e234b574c587431082e29128ddddc85e7933e4570f5f",
+        "reviewer_version": "v0.7-quotes",
+        "with_descriptions": true,
+        "requirement_count": 5,
+        "task_count": 19
+      }
+    },
+    {
+      "cell": "A SPLIT+real",
+      "rep": 4,
+      "gaps": [
+        "R2b",
+        "R2a"
+      ],
+      "false_gaps": [
+        "R2a"
+      ],
+      "findings": [
+        {
+          "type": "GAP",
+          "requirement_id": "R2b",
+          "reference": "Formulario de contacto con un campo opcional para preferencias del cliente",
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente en el formulario de contacto."
+        },
+        {
+          "type": "GAP",
+          "requirement_id": "R2a",
+          "reference": "Formulario de contacto con campos obligatorios",
+          "reason": "Las tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "corrected_by_harness": "covered=true sin cita válida: F4.1: la cita no nombra nada propio del requisito; F4.3: la cita no nombra nada propio del requisito"
+        },
+        {
+          "type": "AMBIGUOUS",
+          "reference": "El prototipo debe permitir:",
+          "reason": "Esta frase es ambigua ya que no especifica claramente si las tareas deben estar en el prototipo o solo ser planificadas para una etapa posterior."
+        }
+      ],
+      "requirement_verdicts": [
+        {
+          "requirement_id": "R1",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.2",
+            "F2.3",
+            "F2.4"
+          ],
+          "reason": "Las tareas F2.2, F2.3 y F2.4 implementan el carrusel de cafés con tarjetas.",
+          "evidence": [
+            {
+              "task_id": "F2.2",
+              "quote": "Crear la estructura base del carrusel de cafés en el Catálogo"
+            },
+            {
+              "task_id": "F2.3",
+              "quote": "Desarrollar el componente visual reutilizable de la tarjeta de café"
+            },
+            {
+              "task_id": "F2.4",
+              "quote": "Implementar la lógica de navegación del carrusel de cafés"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2a",
+          "covered": true,
+          "covering_task_ids": [
+            "F4.1",
+            "F4.3"
+          ],
+          "reason": "Las tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "evidence": [
+            {
+              "task_id": "F4.1",
+              "quote": "Implementar la estructura HTML del formulario de contacto"
+            },
+            {
+              "task_id": "F4.3",
+              "quote": "Implementar la validación del lado del cliente (JavaScript)"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2b",
+          "covered": false,
+          "covering_task_ids": [],
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente en el formulario de contacto.",
+          "evidence": []
+        },
+        {
+          "requirement_id": "R3",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.1"
+          ],
+          "reason": "La tarea F2.1 implementa la sección 'Nosotros' con el contenido final.",
+          "evidence": [
+            {
+              "task_id": "F2.1",
+              "quote": "Integrar contenido textual y multimedia estático de la sección 'Nosotros'"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R4",
+          "covered": true,
+          "covering_task_ids": [
+            "F3.1",
+            "F3.2",
+            "F3.3",
+            "F5.2",
+            "F5.3"
+          ],
+          "reason": "Las tareas F3.1 a F3.3 y F5.2-F5.3 implementan la sección 'Carta' con productos actualmente disponibles.",
+          "evidence": [
+            {
+              "task_id": "F3.1",
+              "quote": "Implementar la lectura del archivo de texto fuente de productos"
+            },
+            {
+              "task_id": "F3.2",
+              "quote": "Desarrollar la lógica de parseo y modelado de datos del menú"
+            },
+            {
+              "task_id": "F3.3",
+              "quote": "Crear el endpoint API para servir los datos estructurados del menú"
+            },
+            {
+              "task_id": "F5.2",
+              "quote": "Consumo de datos del menú desde el endpoint API"
+            },
+            {
+              "task_id": "F5.3",
+              "quote": "Renderización dinámica de la sección 'Carta'"
+            }
+          ]
+        }
+      ],
+      "schema_complete": true,
+      "run_meta": {
+        "model": "qwen2.5-7b-instruct",
+        "temperature": 0.1,
+        "stage": "9c91818d4ef021e96321e234b574c587431082e29128ddddc85e7933e4570f5f",
+        "reviewer_version": "v0.7-quotes",
+        "with_descriptions": true,
+        "requirement_count": 5,
+        "task_count": 19
+      }
+    },
+    {
+      "cell": "A SPLIT+real",
+      "rep": 5,
+      "gaps": [
+        "R2b",
+        "R2a"
+      ],
+      "false_gaps": [
+        "R2a"
+      ],
+      "findings": [
+        {
+          "type": "GAP",
+          "requirement_id": "R2b",
+          "reference": "Formulario de contacto con un campo opcional para preferencias del cliente",
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente en el formulario de contacto."
+        },
+        {
+          "type": "GAP",
+          "requirement_id": "R2a",
+          "reference": "Formulario de contacto con campos obligatorios",
+          "reason": "Las tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "corrected_by_harness": "covered=true sin cita válida: F4.1: la cita no nombra nada propio del requisito; F4.3: la cita no nombra nada propio del requisito"
+        },
+        {
+          "type": "AMBIGUOUS",
+          "reference": "El prototipo debe permitir:",
+          "reason": "Esta frase puede interpretarse como un requisito explícito o una descripción de lo que el prototipo debe hacer, sin clarificar si es parte del brief o no."
+        }
+      ],
+      "requirement_verdicts": [
+        {
+          "requirement_id": "R1",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.2",
+            "F2.3",
+            "F2.4"
+          ],
+          "reason": "Las tareas F2.2, F2.3 y F2.4 implementan el carrusel de cafés con tarjetas.",
+          "evidence": [
+            {
+              "task_id": "F2.2",
+              "quote": "Crear la estructura base del carrusel de cafés en el Catálogo"
+            },
+            {
+              "task_id": "F2.3",
+              "quote": "Desarrollar el componente visual reutilizable de la tarjeta de café"
+            },
+            {
+              "task_id": "F2.4",
+              "quote": "Implementar la lógica de navegación del carrusel de cafés"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2a",
+          "covered": true,
+          "covering_task_ids": [
+            "F4.1",
+            "F4.3"
+          ],
+          "reason": "Las tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "evidence": [
+            {
+              "task_id": "F4.1",
+              "quote": "Implementar la estructura HTML del formulario de contacto."
+            },
+            {
+              "task_id": "F4.3",
+              "quote": "Implementar la validación del lado del cliente (JavaScript)."
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2b",
+          "covered": false,
+          "covering_task_ids": [],
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente en el formulario de contacto.",
+          "evidence": []
+        },
+        {
+          "requirement_id": "R3",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.1"
+          ],
+          "reason": "La tarea F2.1 implementa la sección 'Nosotros' con el contenido final.",
+          "evidence": [
+            {
+              "task_id": "F2.1",
+              "quote": "Integrar contenido textual y multimedia estático de la sección 'Nosotros'"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R4",
+          "covered": true,
+          "covering_task_ids": [
+            "F3.1",
+            "F3.2",
+            "F3.3",
+            "F5.2",
+            "F5.3"
+          ],
+          "reason": "Las tareas F3.1 a F3.3 y F5.2-F5.3 implementan la sección 'Carta' con productos disponibles actualmente, obtenidos desde archivo de texto.",
+          "evidence": [
+            {
+              "task_id": "F3.1",
+              "quote": "Implementar el módulo o servicio que lea y cargue el contenido completo del archivo de texto fuente"
+            },
+            {
+              "task_id": "F5.2",
+              "quote": "Consumo de datos del menú desde el endpoint API."
+            },
+            {
+              "task_id": "F5.3",
+              "quote": "Renderización dinámica de la sección 'Carta'"
+            }
+          ]
+        }
+      ],
+      "schema_complete": true,
+      "run_meta": {
+        "model": "qwen2.5-7b-instruct",
+        "temperature": 0.1,
+        "stage": "9c91818d4ef021e96321e234b574c587431082e29128ddddc85e7933e4570f5f",
+        "reviewer_version": "v0.7-quotes",
+        "with_descriptions": true,
+        "requirement_count": 5,
+        "task_count": 19
+      }
+    },
+    {
+      "cell": "B SPLIT+contrafactual",
+      "rep": 1,
+      "gaps": [
+        "R2b",
+        "R2a",
+        "R4"
+      ],
+      "false_gaps": [
+        "R2b",
+        "R2a",
+        "R4"
+      ],
+      "findings": [
+        {
+          "type": "GAP",
+          "requirement_id": "R2b",
+          "reference": "Formulario de contacto con un campo opcional para preferencias del cliente",
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente en el formulario de contacto."
+        },
+        {
+          "type": "GAP",
+          "requirement_id": "R2a",
+          "reference": "Formulario de contacto con campos obligatorios",
+          "reason": "Las tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "corrected_by_harness": "covered=true sin cita válida: F4.1: la cita no nombra nada propio del requisito"
+        },
+        {
+          "type": "GAP",
+          "requirement_id": "R4",
+          "reference": "Sección 'Carta' con productos disponibles actualmente, obtenidos desde archivo de texto",
+          "reason": "Las tareas F5.2 y F5.3 implementan la sección 'Carta' con productos disponibles actualmente.",
+          "corrected_by_harness": "covered=true sin cita válida: F5.2: la cita no está en la tarea"
+        },
+        {
+          "type": "EXCESS",
+          "task_id": "F3.1",
+          "reference": "Implementar la lectura del archivo de texto fuente de productos. — Crear el módulo o servicio que lea y cargue el contenido completo del archivo de texto fuente (la 'Carta') en memoria, sin realizar aún ningún parseo estructurado.",
+          "reason": "No es necesario para que la primera versión de la landing page exista y se pueda ejecutar."
+        },
+        {
+          "type": "EXCESS",
+          "task_id": "F3.2",
+          "reference": "Desarrollar la lógica de parseo y modelado de datos del menú. — Implementar el motor que procesa el texto crudo cargado en F3.1, extrayendo y mapeando los campos requeridos (nombre, descripción, precio) a una estructura de datos programática (ej. lista de objetos JSON).",
+          "reason": "No es necesario para que la primera versión de la landing page exista y se pueda ejecutar."
+        },
+        {
+          "type": "EXCESS",
+          "task_id": "F3.3",
+          "reference": "Crear el endpoint API para servir los datos estructurados del menú. — Exponer un endpoint RESTful que consuma la estructura de datos generada en F3.2 y devuelva la información completa del menú (nombre, descripción, precio) en formato JSON listo para el consumo por el frontend.",
+          "reason": "No es necesario para que la primera versión de la landing page exista y se pueda ejecutar."
+        },
+        {
+          "type": "EXCESS",
+          "task_id": "F5.1",
+          "reference": "Implementación de la conexión dinámica de datos al carrusel de cafés. — Conectar el componente del carrusel (usando las tarjetas definidas en F2.3) para que muestre contenido dinámico, consumiendo una fuente de datos simulada o real si se define posteriormente.",
+          "reason": "No es necesario para que la primera versión de la landing page exista y se pueda ejecutar."
+        },
+        {
+          "type": "AMBIGUOUS",
+          "reference": "El prototipo debe permitir: ... - Las tarjetas de café deben incluir foto y descripción. - El carrousel debe permitir navegar entre las tarjetas de café.",
+          "reason": "Estos criterios no especifican claramente si el carrusel debe ser interactivo o solo visual, lo que podría interpretarse como una funcionalidad diferida."
+        }
+      ],
+      "requirement_verdicts": [
+        {
+          "requirement_id": "R1",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.2",
+            "F2.3",
+            "F2.4"
+          ],
+          "reason": "Las tareas F2.2, F2.3 y F2.4 implementan el carrusel de cafés con tarjetas que incluyen foto y descripción.",
+          "evidence": [
+            {
+              "task_id": "F2.3",
+              "quote": "Crear el componente atómico (Card) que muestre la foto, nombre y descripción de un café utilizando datos estáticos simulados."
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2a",
+          "covered": true,
+          "covering_task_ids": [
+            "F4.1",
+            "F4.3"
+          ],
+          "reason": "Las tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "evidence": [
+            {
+              "task_id": "F4.1",
+              "quote": "Crear los campos de input (nombre, email, mensaje), un campo de preferencias del cliente que sea opcional, y el botón dentro del contenedor estructural existente para definir la forma del formulario."
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2b",
+          "covered": false,
+          "covering_task_ids": [],
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente en el formulario de contacto.",
+          "evidence": []
+        },
+        {
+          "requirement_id": "R3",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.1"
+          ],
+          "reason": "La tarea F2.1 implementa la sección 'Nosotros' con el contenido final.",
+          "evidence": [
+            {
+              "task_id": "F2.1",
+              "quote": "Rellenar el contenedor estructural creado en F1.3 con el texto final, imágenes y elementos visuales para la sección 'Nosotros'."
+            }
+          ]
+        },
+        {
+          "requirement_id": "R4",
+          "covered": true,
+          "covering_task_ids": [
+            "F5.2",
+            "F5.3"
+          ],
+          "reason": "Las tareas F5.2 y F5.3 implementan la sección 'Carta' con productos disponibles actualmente.",
+          "evidence": [
+            {
+              "task_id": "F5.2",
+              "quote": "Implementar la lógica JavaScript para consumir los datos estructurados del menú utilizando el endpoint creado en F3.3 y almacenar estos datos localmente."
+            }
+          ]
+        }
+      ],
+      "schema_complete": true,
+      "run_meta": {
+        "model": "qwen2.5-7b-instruct",
+        "temperature": 0.1,
+        "stage": "9c91818d4ef021e96321e234b574c587431082e29128ddddc85e7933e4570f5f",
+        "reviewer_version": "v0.7-quotes",
+        "with_descriptions": true,
+        "requirement_count": 5,
+        "task_count": 19
+      }
+    },
+    {
+      "cell": "B SPLIT+contrafactual",
+      "rep": 2,
+      "gaps": [
+        "R2b",
+        "R2a"
+      ],
+      "false_gaps": [
+        "R2b",
+        "R2a"
+      ],
+      "findings": [
+        {
+          "type": "GAP",
+          "requirement_id": "R2b",
+          "reference": "Formulario de contacto con un campo opcional para preferencias del cliente",
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente."
+        },
+        {
+          "type": "GAP",
+          "requirement_id": "R2a",
+          "reference": "Formulario de contacto con campos obligatorios",
+          "reason": "Tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "corrected_by_harness": "covered=true sin cita válida: F4.1: la cita no nombra nada propio del requisito; F4.3: la cita no nombra nada propio del requisito"
+        },
+        {
+          "type": "AMBIGUOUS",
+          "reference": "El prototipo debe permitir:",
+          "reason": "Esta frase puede interpretarse como un requisito explícito o una descripción de lo que el prototipo debe hacer, sin clarificar si es parte del brief o no."
+        }
+      ],
+      "requirement_verdicts": [
+        {
+          "requirement_id": "R1",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.2",
+            "F2.3",
+            "F2.4"
+          ],
+          "reason": "Tareas F2.2, F2.3 y F2.4 implementan el carrusel de cafés con tarjetas.",
+          "evidence": [
+            {
+              "task_id": "F2.2",
+              "quote": "Crear la estructura base del carrusel de cafés en el Catálogo"
+            },
+            {
+              "task_id": "F2.3",
+              "quote": "Desarrollar el componente visual reutilizable de la tarjeta de café"
+            },
+            {
+              "task_id": "F2.4",
+              "quote": "Implementar la lógica de navegación del carrusel de cafés"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2a",
+          "covered": true,
+          "covering_task_ids": [
+            "F4.1",
+            "F4.3"
+          ],
+          "reason": "Tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "evidence": [
+            {
+              "task_id": "F4.1",
+              "quote": "Implementar la estructura HTML del formulario de contacto."
+            },
+            {
+              "task_id": "F4.3",
+              "quote": "Implementar la validación del lado del cliente (JavaScript)."
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2b",
+          "covered": false,
+          "covering_task_ids": [],
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente.",
+          "evidence": []
+        },
+        {
+          "requirement_id": "R3",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.1"
+          ],
+          "reason": "Tarea F2.1 implementa la sección 'Nosotros' con historia de la empresa.",
+          "evidence": [
+            {
+              "task_id": "F2.1",
+              "quote": "Integrar contenido textual y multimedia estático de la sección 'Nosotros'"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R4",
+          "covered": true,
+          "covering_task_ids": [
+            "F3.1",
+            "F3.2",
+            "F3.3",
+            "F5.2",
+            "F5.3"
+          ],
+          "reason": "Tareas F3.1 a F3.3 y F5.2-F5.3 implementan la sección 'Carta' con productos disponibles actualmente, obtenidos desde archivo de texto.",
+          "evidence": [
+            {
+              "task_id": "F3.1",
+              "quote": "Implementar el módulo o servicio que lea y cargue el contenido completo del archivo de texto fuente"
+            },
+            {
+              "task_id": "F5.2",
+              "quote": "Consumo de datos del menú desde el endpoint API."
+            },
+            {
+              "task_id": "F5.3",
+              "quote": "Renderización dinámica de la sección 'Carta'"
+            }
+          ]
+        }
+      ],
+      "schema_complete": true,
+      "run_meta": {
+        "model": "qwen2.5-7b-instruct",
+        "temperature": 0.1,
+        "stage": "9c91818d4ef021e96321e234b574c587431082e29128ddddc85e7933e4570f5f",
+        "reviewer_version": "v0.7-quotes",
+        "with_descriptions": true,
+        "requirement_count": 5,
+        "task_count": 19
+      }
+    },
+    {
+      "cell": "B SPLIT+contrafactual",
+      "rep": 3,
+      "gaps": [
+        "R2b",
+        "R2a"
+      ],
+      "false_gaps": [
+        "R2b",
+        "R2a"
+      ],
+      "findings": [
+        {
+          "type": "GAP",
+          "requirement_id": "R2b",
+          "reference": "Formulario de contacto con un campo opcional para preferencias del cliente",
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente."
+        },
+        {
+          "type": "GAP",
+          "requirement_id": "R2a",
+          "reference": "Formulario de contacto con campos obligatorios",
+          "reason": "Tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "corrected_by_harness": "covered=true sin cita válida: F4.1: la cita no nombra nada propio del requisito; F4.3: la cita no nombra nada propio del requisito"
+        },
+        {
+          "type": "AMBIGUOUS",
+          "reference": "El prototipo debe permitir:",
+          "reason": "Esta frase puede interpretarse como un requisito explícito o una descripción de lo que el prototipo debe hacer, sin clarificar si es parte del brief o no."
+        }
+      ],
+      "requirement_verdicts": [
+        {
+          "requirement_id": "R1",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.2",
+            "F2.3",
+            "F2.4"
+          ],
+          "reason": "Tareas F2.2, F2.3 y F2.4 implementan el carrusel de cafés con tarjetas.",
+          "evidence": [
+            {
+              "task_id": "F2.2",
+              "quote": "Crear la estructura base del carrusel de cafés en el Catálogo"
+            },
+            {
+              "task_id": "F2.3",
+              "quote": "Desarrollar el componente visual reutilizable de la tarjeta de café"
+            },
+            {
+              "task_id": "F2.4",
+              "quote": "Implementar la lógica de navegación del carrusel de cafés"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2a",
+          "covered": true,
+          "covering_task_ids": [
+            "F4.1",
+            "F4.3"
+          ],
+          "reason": "Tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "evidence": [
+            {
+              "task_id": "F4.1",
+              "quote": "Implementar la estructura HTML del formulario de contacto."
+            },
+            {
+              "task_id": "F4.3",
+              "quote": "Implementar la validación del lado del cliente (JavaScript)."
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2b",
+          "covered": false,
+          "covering_task_ids": [],
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente.",
+          "evidence": []
+        },
+        {
+          "requirement_id": "R3",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.1"
+          ],
+          "reason": "Tarea F2.1 implementa la sección 'Nosotros' con el contenido final.",
+          "evidence": [
+            {
+              "task_id": "F2.1",
+              "quote": "Integrar contenido textual y multimedia estático de la sección 'Nosotros'"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R4",
+          "covered": true,
+          "covering_task_ids": [
+            "F3.1",
+            "F3.2",
+            "F3.3",
+            "F5.2",
+            "F5.3"
+          ],
+          "reason": "Tareas F3.1 a F5.3 implementan la sección 'Carta' con productos actualmente disponibles.",
+          "evidence": [
+            {
+              "task_id": "F3.1",
+              "quote": "Implementar la lectura del archivo de texto fuente de productos."
+            },
+            {
+              "task_id": "F3.2",
+              "quote": "Desarrollar la lógica de parseo y modelado de datos del menú."
+            },
+            {
+              "task_id": "F3.3",
+              "quote": "Crear el endpoint API para servir los datos estructurados del menú."
+            },
+            {
+              "task_id": "F5.2",
+              "quote": "Consumo de datos del menú desde el endpoint API."
+            },
+            {
+              "task_id": "F5.3",
+              "quote": "Renderización dinámica de la sección 'Carta'."
+            }
+          ]
+        }
+      ],
+      "schema_complete": true,
+      "run_meta": {
+        "model": "qwen2.5-7b-instruct",
+        "temperature": 0.1,
+        "stage": "9c91818d4ef021e96321e234b574c587431082e29128ddddc85e7933e4570f5f",
+        "reviewer_version": "v0.7-quotes",
+        "with_descriptions": true,
+        "requirement_count": 5,
+        "task_count": 19
+      }
+    },
+    {
+      "cell": "B SPLIT+contrafactual",
+      "rep": 4,
+      "gaps": [
+        "R2b",
+        "R2a"
+      ],
+      "false_gaps": [
+        "R2b",
+        "R2a"
+      ],
+      "findings": [
+        {
+          "type": "GAP",
+          "requirement_id": "R2b",
+          "reference": "Formulario de contacto con un campo opcional para preferencias del cliente",
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente."
+        },
+        {
+          "type": "GAP",
+          "requirement_id": "R2a",
+          "reference": "Formulario de contacto con campos obligatorios",
+          "reason": "Tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "corrected_by_harness": "covered=true sin cita válida: F4.1: la cita no nombra nada propio del requisito; F4.3: la cita no nombra nada propio del requisito"
+        },
+        {
+          "type": "AMBIGUOUS",
+          "reference": "El prototipo debe permitir:",
+          "reason": "Esta frase puede interpretarse como un requisito explícito o una descripción de lo que el prototipo debe hacer, sin clarificar si es parte del brief o no."
+        }
+      ],
+      "requirement_verdicts": [
+        {
+          "requirement_id": "R1",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.2",
+            "F2.3",
+            "F2.4"
+          ],
+          "reason": "Tareas F2.2, F2.3 y F2.4 implementan el carrusel de cafés con tarjetas.",
+          "evidence": [
+            {
+              "task_id": "F2.2",
+              "quote": "Crear la estructura base del carrusel de cafés en el Catálogo"
+            },
+            {
+              "task_id": "F2.3",
+              "quote": "Desarrollar el componente visual reutilizable de la tarjeta de café"
+            },
+            {
+              "task_id": "F2.4",
+              "quote": "Implementar la lógica de navegación del carrusel de cafés"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2a",
+          "covered": true,
+          "covering_task_ids": [
+            "F4.1",
+            "F4.3"
+          ],
+          "reason": "Tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "evidence": [
+            {
+              "task_id": "F4.1",
+              "quote": "Implementar la estructura HTML del formulario de contacto."
+            },
+            {
+              "task_id": "F4.3",
+              "quote": "Implementar la validación del lado del cliente (JavaScript)."
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2b",
+          "covered": false,
+          "covering_task_ids": [],
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente.",
+          "evidence": []
+        },
+        {
+          "requirement_id": "R3",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.1"
+          ],
+          "reason": "Tarea F2.1 implementa la sección 'Nosotros' con el contenido final.",
+          "evidence": [
+            {
+              "task_id": "F2.1",
+              "quote": "Integrar contenido textual y multimedia estático de la sección 'Nosotros'"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R4",
+          "covered": true,
+          "covering_task_ids": [
+            "F3.1",
+            "F3.2",
+            "F3.3",
+            "F5.2",
+            "F5.3"
+          ],
+          "reason": "Tareas F3.1 a F5.3 implementan la sección 'Carta' con productos actualmente disponibles.",
+          "evidence": [
+            {
+              "task_id": "F3.1",
+              "quote": "Implementar la lectura del archivo de texto fuente de productos."
+            },
+            {
+              "task_id": "F3.2",
+              "quote": "Desarrollar la lógica de parseo y modelado de datos del menú."
+            },
+            {
+              "task_id": "F3.3",
+              "quote": "Crear el endpoint API para servir los datos estructurados del menú."
+            },
+            {
+              "task_id": "F5.2",
+              "quote": "Consumo de datos del menú desde el endpoint API."
+            },
+            {
+              "task_id": "F5.3",
+              "quote": "Renderización dinámica de la sección 'Carta'."
+            }
+          ]
+        }
+      ],
+      "schema_complete": true,
+      "run_meta": {
+        "model": "qwen2.5-7b-instruct",
+        "temperature": 0.1,
+        "stage": "9c91818d4ef021e96321e234b574c587431082e29128ddddc85e7933e4570f5f",
+        "reviewer_version": "v0.7-quotes",
+        "with_descriptions": true,
+        "requirement_count": 5,
+        "task_count": 19
+      }
+    },
+    {
+      "cell": "B SPLIT+contrafactual",
+      "rep": 5,
+      "gaps": [
+        "R2b",
+        "R2a"
+      ],
+      "false_gaps": [
+        "R2b",
+        "R2a"
+      ],
+      "findings": [
+        {
+          "type": "GAP",
+          "requirement_id": "R2b",
+          "reference": "Formulario de contacto con un campo opcional para preferencias del cliente",
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente."
+        },
+        {
+          "type": "GAP",
+          "requirement_id": "R2a",
+          "reference": "Formulario de contacto con campos obligatorios",
+          "reason": "Tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "corrected_by_harness": "covered=true sin cita válida: F4.1: la cita no nombra nada propio del requisito; F4.3: la cita no nombra nada propio del requisito"
+        },
+        {
+          "type": "AMBIGUOUS",
+          "reference": "El prototipo debe permitir:",
+          "reason": "Esta frase puede interpretarse como un requisito explícito o una descripción de lo que el prototipo debe hacer, lo cual podría ser ambiguo sin más contexto."
+        }
+      ],
+      "requirement_verdicts": [
+        {
+          "requirement_id": "R1",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.2",
+            "F2.3",
+            "F2.4"
+          ],
+          "reason": "Tareas F2.2, F2.3 y F2.4 implementan el carrusel de cafés con tarjetas.",
+          "evidence": [
+            {
+              "task_id": "F2.2",
+              "quote": "Crear la estructura base del carrusel de cafés en el Catálogo"
+            },
+            {
+              "task_id": "F2.3",
+              "quote": "Desarrollar el componente visual reutilizable de la tarjeta de café"
+            },
+            {
+              "task_id": "F2.4",
+              "quote": "Implementar la lógica de navegación del carrusel de cafés"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2a",
+          "covered": true,
+          "covering_task_ids": [
+            "F4.1",
+            "F4.3"
+          ],
+          "reason": "Tareas F4.1 y F4.3 implementan el formulario de contacto con campos obligatorios.",
+          "evidence": [
+            {
+              "task_id": "F4.1",
+              "quote": "Implementar la estructura HTML del formulario de contacto."
+            },
+            {
+              "task_id": "F4.3",
+              "quote": "Implementar la validación del lado del cliente (JavaScript)."
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2b",
+          "covered": false,
+          "covering_task_ids": [],
+          "reason": "No hay tareas que implementen un campo opcional para preferencias del cliente.",
+          "evidence": []
+        },
+        {
+          "requirement_id": "R3",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.1"
+          ],
+          "reason": "Tarea F2.1 implementa la sección 'Nosotros' con historia de la empresa.",
+          "evidence": [
+            {
+              "task_id": "F2.1",
+              "quote": "Integrar contenido textual y multimedia estático de la sección 'Nosotros'"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R4",
+          "covered": true,
+          "covering_task_ids": [
+            "F3.1",
+            "F3.2",
+            "F3.3",
+            "F5.2",
+            "F5.3"
+          ],
+          "reason": "Tareas F3.1 a F5.3 implementan la sección 'Carta' con productos disponibles actualmente, obtenidos desde archivo de texto.",
+          "evidence": [
+            {
+              "task_id": "F3.1",
+              "quote": "Implementar la lectura del archivo de texto fuente de productos."
+            },
+            {
+              "task_id": "F3.2",
+              "quote": "Desarrollar la lógica de parseo y modelado de datos del menú."
+            },
+            {
+              "task_id": "F3.3",
+              "quote": "Crear el endpoint API para servir los datos estructurados del menú."
+            },
+            {
+              "task_id": "F5.2",
+              "quote": "Consumo de datos del menú desde el endpoint API."
+            },
+            {
+              "task_id": "F5.3",
+              "quote": "Renderización dinámica de la sección 'Carta'."
+            }
+          ]
+        }
+      ],
+      "schema_complete": true,
+      "run_meta": {
+        "model": "qwen2.5-7b-instruct",
+        "temperature": 0.1,
+        "stage": "9c91818d4ef021e96321e234b574c587431082e29128ddddc85e7933e4570f5f",
+        "reviewer_version": "v0.7-quotes",
+        "with_descriptions": true,
+        "requirement_count": 5,
+        "task_count": 19
+      }
+    },
+    {
+      "cell": "C ORIG+real",
+      "rep": 1,
+      "gaps": [],
+      "false_gaps": [],
+      "findings": [
+        {
+          "type": "AMBIGUOUS",
+          "reference": "El prototipo debe permitir: - Las tarjetas de café deben incluir foto y descripción. - El carrousel debe permitir navegar entre las tarjetas de café. - El formulario de contacto debe tener campos obligatorios solo. - La sección 'Nosotros' debe presentar la historia de la empresa. - La sección 'Carta' debe mostrar productos actualmente disponibles y actualizarlos desde un archivo de texto.",
+          "reason": "Estos criterios no especifican claramente si el prototipo debe permitir solo la existencia de los elementos o también su funcionalidad completa."
+        }
+      ],
+      "requirement_verdicts": [
+        {
+          "requirement_id": "R1",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.2",
+            "F2.3",
+            "F2.4"
+          ],
+          "reason": "Las tareas F2.2, F2.3 y F2.4 implementan el carrusel de cafés con tarjetas.",
+          "evidence": [
+            {
+              "task_id": "F2.2",
+              "quote": "Crear la estructura base del carrusel de cafés en el Catálogo"
+            },
+            {
+              "task_id": "F2.3",
+              "quote": "Desarrollar el componente visual reutilizable de la tarjeta de café"
+            },
+            {
+              "task_id": "F2.4",
+              "quote": "Implementar la lógica de navegación del carrusel de cafés"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2",
+          "covered": true,
+          "covering_task_ids": [
+            "F4.1",
+            "F4.2",
+            "F4.3"
+          ],
+          "reason": "Las tareas F4.1, F4.2 y F4.3 implementan el formulario de contacto con campos obligatorios y validación.",
+          "evidence": [
+            {
+              "task_id": "F4.1",
+              "quote": "Implementar la estructura HTML del formulario de contacto."
+            },
+            {
+              "task_id": "F4.2",
+              "quote": "Estilizar el formulario de contacto con CSS."
+            },
+            {
+              "task_id": "F4.3",
+              "quote": "Implementar la validación del lado del cliente (JavaScript)."
+            }
+          ]
+        },
+        {
+          "requirement_id": "R3",
+          "covered": true,
+          "covering_task_ids": [
+            "F1.3"
+          ],
+          "reason": "La tarea F1.3 crea el contenedor estructural de la sección 'Nosotros' que será rellenado con contenido posteriormente.",
+          "evidence": [
+            {
+              "task_id": "F1.3",
+              "quote": "Crear el contenedor estructural de la sección 'Nosotros'"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R4",
+          "covered": true,
+          "covering_task_ids": [
+            "F1.5",
+            "F3.1",
+            "F3.2",
+            "F3.3",
+            "F5.2",
+            "F5.3"
+          ],
+          "reason": "Las tareas F1.5, F3.1 a F3.3 y F5.2 a F5.3 implementan la sección 'Carta' con productos actualmente disponibles.",
+          "evidence": [
+            {
+              "task_id": "F1.5",
+              "quote": "Crear el contenedor estructural de la sección Carta"
+            },
+            {
+              "task_id": "F3.1",
+              "quote": "Implementar la lectura del archivo de texto fuente de productos."
+            },
+            {
+              "task_id": "F3.2",
+              "quote": "Desarrollar la lógica de parseo y modelado de datos del menú."
+            },
+            {
+              "task_id": "F3.3",
+              "quote": "Crear el endpoint API para servir los datos estructurados del menú."
+            },
+            {
+              "task_id": "F5.2",
+              "quote": "Consumo de datos del menú desde el endpoint API."
+            },
+            {
+              "task_id": "F5.3",
+              "quote": "Renderización dinámica de la sección 'Carta'."
+            }
+          ]
+        }
+      ],
+      "schema_complete": true,
+      "run_meta": {
+        "model": "qwen2.5-7b-instruct",
+        "temperature": 0.1,
+        "stage": "9c91818d4ef021e96321e234b574c587431082e29128ddddc85e7933e4570f5f",
+        "reviewer_version": "v0.7-quotes",
+        "with_descriptions": true,
+        "requirement_count": 4,
+        "task_count": 19
+      }
+    },
+    {
+      "cell": "C ORIG+real",
+      "rep": 2,
+      "gaps": [],
+      "false_gaps": [],
+      "findings": [
+        {
+          "type": "AMBIGUOUS",
+          "reference": "El prototipo debe permitir: - Las tarjetas de café deben incluir foto y descripción. - El carrousel debe permitir navegar entre las tarjetas de café.",
+          "reason": "Estos criterios no especifican claramente si la implementación del carrusel debe ser funcional o solo estructural, lo que podría interpretarse como requerido para el prototipo."
+        }
+      ],
+      "requirement_verdicts": [
+        {
+          "requirement_id": "R1",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.2",
+            "F2.3",
+            "F2.4"
+          ],
+          "reason": "Tareas F2.2, F2.3 y F2.4 implementan el carrusel de cafés con tarjetas.",
+          "evidence": [
+            {
+              "task_id": "F2.2",
+              "quote": "Crear la estructura base del carrusel de cafés en el Catálogo"
+            },
+            {
+              "task_id": "F2.3",
+              "quote": "Desarrollar el componente visual reutilizable de la tarjeta de café"
+            },
+            {
+              "task_id": "F2.4",
+              "quote": "Implementar la lógica de navegación del carrusel de cafés"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2",
+          "covered": true,
+          "covering_task_ids": [
+            "F4.1",
+            "F4.2",
+            "F4.3"
+          ],
+          "reason": "Tareas F4.1, F4.2 y F4.3 implementan el formulario de contacto con campos obligatorios y validación.",
+          "evidence": [
+            {
+              "task_id": "F4.1",
+              "quote": "Implementar la estructura HTML del formulario de contacto."
+            },
+            {
+              "task_id": "F4.2",
+              "quote": "Estilizar el formulario de contacto con CSS."
+            },
+            {
+              "task_id": "F4.3",
+              "quote": "Implementar la validación del lado del cliente (JavaScript)."
+            }
+          ]
+        },
+        {
+          "requirement_id": "R3",
+          "covered": true,
+          "covering_task_ids": [
+            "F1.3"
+          ],
+          "reason": "Tarea F1.3 crea el contenedor estructural de la sección 'Nosotros'.",
+          "evidence": [
+            {
+              "task_id": "F1.3",
+              "quote": "Crear el contenedor estructural de la sección 'Nosotros'."
+            }
+          ]
+        },
+        {
+          "requirement_id": "R4",
+          "covered": true,
+          "covering_task_ids": [
+            "F1.5",
+            "F3.1",
+            "F3.2",
+            "F3.3",
+            "F5.2",
+            "F5.3"
+          ],
+          "reason": "Tareas F1.5, F3.1 a F3.3 y F5.2-F5.3 implementan la sección 'Carta' con productos actualmente disponibles.",
+          "evidence": [
+            {
+              "task_id": "F1.5",
+              "quote": "Crear el contenedor estructural de la sección Carta."
+            },
+            {
+              "task_id": "F3.1",
+              "quote": "Implementar la lectura del archivo de texto fuente de productos."
+            },
+            {
+              "task_id": "F3.2",
+              "quote": "Desarrollar la lógica de parseo y modelado de datos del menú."
+            },
+            {
+              "task_id": "F3.3",
+              "quote": "Crear el endpoint API para servir los datos estructurados del menú."
+            },
+            {
+              "task_id": "F5.2",
+              "quote": "Consumo de datos del menú desde el endpoint API."
+            },
+            {
+              "task_id": "F5.3",
+              "quote": "Renderización dinámica de la sección 'Carta'."
+            }
+          ]
+        }
+      ],
+      "schema_complete": true,
+      "run_meta": {
+        "model": "qwen2.5-7b-instruct",
+        "temperature": 0.1,
+        "stage": "9c91818d4ef021e96321e234b574c587431082e29128ddddc85e7933e4570f5f",
+        "reviewer_version": "v0.7-quotes",
+        "with_descriptions": true,
+        "requirement_count": 4,
+        "task_count": 19
+      }
+    },
+    {
+      "cell": "C ORIG+real",
+      "rep": 3,
+      "gaps": [],
+      "false_gaps": [],
+      "findings": [
+        {
+          "type": "AMBIGUOUS",
+          "reference": "El prototipo debe permitir: ... - Las tarjetas de café deben incluir foto y descripción. - El carrousel debe permitir navegar entre las tarjetas de café.",
+          "reason": "Estos criterios no especifican claramente si el carrusel debe ser interactivo o solo visual."
+        }
+      ],
+      "requirement_verdicts": [
+        {
+          "requirement_id": "R1",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.2",
+            "F2.3",
+            "F2.4"
+          ],
+          "reason": "Las tareas F2.2, F2.3 y F2.4 implementan el carrusel de cafés con tarjetas.",
+          "evidence": [
+            {
+              "task_id": "F2.2",
+              "quote": "Crear la estructura base del carrusel de cafés en el Catálogo"
+            },
+            {
+              "task_id": "F2.3",
+              "quote": "Desarrollar el componente visual reutilizable de la tarjeta de café"
+            },
+            {
+              "task_id": "F2.4",
+              "quote": "Implementar la lógica de navegación del carrusel de cafés"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2",
+          "covered": true,
+          "covering_task_ids": [
+            "F4.1",
+            "F4.2",
+            "F4.3"
+          ],
+          "reason": "Las tareas F4.1, F4.2 y F4.3 implementan el formulario de contacto con campos obligatorios y validación.",
+          "evidence": [
+            {
+              "task_id": "F4.1",
+              "quote": "Implementar la estructura HTML del formulario de contacto"
+            },
+            {
+              "task_id": "F4.2",
+              "quote": "Estilizar el formulario de contacto con CSS"
+            },
+            {
+              "task_id": "F4.3",
+              "quote": "Implementar la validación del lado del cliente (JavaScript)"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R3",
+          "covered": true,
+          "covering_task_ids": [
+            "F1.3"
+          ],
+          "reason": "La tarea F1.3 crea el contenedor estructural para la sección 'Nosotros'.",
+          "evidence": [
+            {
+              "task_id": "F1.3",
+              "quote": "Crear el contenedor estructural de la sección 'Nosotros'"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R4",
+          "covered": true,
+          "covering_task_ids": [
+            "F3.1",
+            "F3.2",
+            "F3.3",
+            "F5.2",
+            "F5.3"
+          ],
+          "reason": "Las tareas F3.1 a F3.3 preparan y consumen los datos del menú, mientras que F5.2 y F5.3 renderizan la sección 'Carta'.",
+          "evidence": [
+            {
+              "task_id": "F3.1",
+              "quote": "Implementar el módulo o servicio que lea y cargue el contenido completo del archivo de texto fuente"
+            },
+            {
+              "task_id": "F3.2",
+              "quote": "Implementar el motor que procesa el texto crudo cargado en F3.1, extrayendo y mapeando los campos requeridos (nombre, descripción, precio) a una estructura de datos programática"
+            },
+            {
+              "task_id": "F3.3",
+              "quote": "Crear el endpoint API para servir los datos estructurados del menú"
+            },
+            {
+              "task_id": "F5.2",
+              "quote": "Implementar la lógica JavaScript para consumir los datos estructurados del menú (la 'Carta') utilizando el endpoint creado en F3.3 y almacenar estos datos localmente para su renderizado"
+            },
+            {
+              "task_id": "F5.3",
+              "quote": "Renderización dinámica de la sección 'Carta'"
+            }
+          ]
+        }
+      ],
+      "schema_complete": true,
+      "run_meta": {
+        "model": "qwen2.5-7b-instruct",
+        "temperature": 0.1,
+        "stage": "9c91818d4ef021e96321e234b574c587431082e29128ddddc85e7933e4570f5f",
+        "reviewer_version": "v0.7-quotes",
+        "with_descriptions": true,
+        "requirement_count": 4,
+        "task_count": 19
+      }
+    },
+    {
+      "cell": "C ORIG+real",
+      "rep": 4,
+      "gaps": [],
+      "false_gaps": [],
+      "findings": [
+        {
+          "type": "AMBIGUOUS",
+          "reference": "El prototipo debe permitir: ...",
+          "reason": "La frase 'El prototipo debe permitir:' es ambigua y puede interpretarse como un requisito o una directiva de diseño."
+        }
+      ],
+      "requirement_verdicts": [
+        {
+          "requirement_id": "R1",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.2",
+            "F2.3",
+            "F2.4"
+          ],
+          "reason": "Las tareas F2.2, F2.3 y F2.4 implementan el carrusel de cafés con tarjetas.",
+          "evidence": [
+            {
+              "task_id": "F2.2",
+              "quote": "Crear la estructura base del carrusel de cafés en el Catálogo"
+            },
+            {
+              "task_id": "F2.3",
+              "quote": "Desarrollar el componente visual reutilizable de la tarjeta de café"
+            },
+            {
+              "task_id": "F2.4",
+              "quote": "Implementar la lógica de navegación del carrusel de cafés"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2",
+          "covered": true,
+          "covering_task_ids": [
+            "F4.1",
+            "F4.2",
+            "F4.3"
+          ],
+          "reason": "Las tareas F4.1, F4.2 y F4.3 implementan el formulario de contacto con campos obligatorios y validación.",
+          "evidence": [
+            {
+              "task_id": "F4.1",
+              "quote": "Implementar la estructura HTML del formulario de contacto"
+            },
+            {
+              "task_id": "F4.2",
+              "quote": "Estilizar el formulario de contacto con CSS"
+            },
+            {
+              "task_id": "F4.3",
+              "quote": "Implementar la validación del lado del cliente (JavaScript)"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R3",
+          "covered": true,
+          "covering_task_ids": [
+            "F1.3"
+          ],
+          "reason": "La tarea F1.3 crea el contenedor estructural de la sección 'Nosotros'.",
+          "evidence": [
+            {
+              "task_id": "F1.3",
+              "quote": "Crear el contenedor estructural de la sección 'Nosotros'"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R4",
+          "covered": true,
+          "covering_task_ids": [
+            "F3.1",
+            "F3.2",
+            "F3.3",
+            "F5.2",
+            "F5.3"
+          ],
+          "reason": "Las tareas F3.1 a F3.3 preparan y consumen los datos del menú, mientras que F5.2 y F5.3 renderizan la sección 'Carta'.",
+          "evidence": [
+            {
+              "task_id": "F3.1",
+              "quote": "Implementar el módulo o servicio que lea y cargue el contenido completo del archivo de texto fuente (la 'Carta') en memoria"
+            },
+            {
+              "task_id": "F3.2",
+              "quote": "Implementar el motor que procesa el texto crudo cargado en F3.1, extrayendo y mapeando los campos requeridos (nombre, descripción, precio) a una estructura de datos programática"
+            },
+            {
+              "task_id": "F3.3",
+              "quote": "Crear el endpoint API para servir los datos estructurados del menú"
+            },
+            {
+              "task_id": "F5.2",
+              "quote": "Consumo de datos del menú desde el endpoint API."
+            },
+            {
+              "task_id": "F5.3",
+              "quote": "Renderización dinámica de la sección 'Carta'"
+            }
+          ]
+        }
+      ],
+      "schema_complete": true,
+      "run_meta": {
+        "model": "qwen2.5-7b-instruct",
+        "temperature": 0.1,
+        "stage": "9c91818d4ef021e96321e234b574c587431082e29128ddddc85e7933e4570f5f",
+        "reviewer_version": "v0.7-quotes",
+        "with_descriptions": true,
+        "requirement_count": 4,
+        "task_count": 19
+      }
+    },
+    {
+      "cell": "C ORIG+real",
+      "rep": 5,
+      "gaps": [],
+      "false_gaps": [],
+      "findings": [
+        {
+          "type": "AMBIGUOUS",
+          "reference": "El prototipo debe permitir: - Las tarjetas de café deben incluir foto y descripción. - El carrousel debe permitir navegar entre las tarjetas de café.",
+          "reason": "Estos criterios no especifican claramente si el carrusel debe ser interactivo o solo visual, lo que podría interpretarse como una ambigüedad."
+        }
+      ],
+      "requirement_verdicts": [
+        {
+          "requirement_id": "R1",
+          "covered": true,
+          "covering_task_ids": [
+            "F2.2",
+            "F2.3",
+            "F2.4"
+          ],
+          "reason": "Las tareas F2.2, F2.3 y F2.4 implementan el carrusel de cafés con tarjetas.",
+          "evidence": [
+            {
+              "task_id": "F2.2",
+              "quote": "Crear la estructura base del carrusel de cafés en el Catálogo"
+            },
+            {
+              "task_id": "F2.3",
+              "quote": "Desarrollar el componente visual reutilizable de la tarjeta de café"
+            },
+            {
+              "task_id": "F2.4",
+              "quote": "Implementar la lógica de navegación del carrusel de cafés"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R2",
+          "covered": true,
+          "covering_task_ids": [
+            "F4.1",
+            "F4.2",
+            "F4.3"
+          ],
+          "reason": "Las tareas F4.1, F4.2 y F4.3 implementan el formulario de contacto con campos obligatorios y validación.",
+          "evidence": [
+            {
+              "task_id": "F4.1",
+              "quote": "Implementar la estructura HTML del formulario de contacto."
+            },
+            {
+              "task_id": "F4.2",
+              "quote": "Estilizar el formulario de contacto con CSS."
+            },
+            {
+              "task_id": "F4.3",
+              "quote": "Implementar la validación del lado del cliente (JavaScript)."
+            }
+          ]
+        },
+        {
+          "requirement_id": "R3",
+          "covered": true,
+          "covering_task_ids": [
+            "F1.3"
+          ],
+          "reason": "La tarea F1.3 crea el contenedor estructural de la sección 'Nosotros' que será rellenado con contenido posteriormente.",
+          "evidence": [
+            {
+              "task_id": "F1.3",
+              "quote": "Crear el contenedor estructural de la sección 'Nosotros'"
+            }
+          ]
+        },
+        {
+          "requirement_id": "R4",
+          "covered": true,
+          "covering_task_ids": [
+            "F1.5",
+            "F3.1",
+            "F3.2",
+            "F3.3",
+            "F5.2",
+            "F5.3"
+          ],
+          "reason": "Las tareas F1.5, F3.1 a F3.3 y F5.2 a F5.3 implementan la sección 'Carta' con productos disponibles actualmente.",
+          "evidence": [
+            {
+              "task_id": "F1.5",
+              "quote": "Crear el contenedor estructural de la sección Carta"
+            },
+            {
+              "task_id": "F3.1",
+              "quote": "Implementar la lectura del archivo de texto fuente de productos."
+            },
+            {
+              "task_id": "F3.2",
+              "quote": "Desarrollar la lógica de parseo y modelado de datos del menú."
+            },
+            {
+              "task_id": "F3.3",
+              "quote": "Crear el endpoint API para servir los datos estructurados del menú."
+            },
+            {
+              "task_id": "F5.2",
+              "quote": "Consumo de datos del menú desde el endpoint API."
+            },
+            {
+              "task_id": "F5.3",
+              "quote": "Renderización dinámica de la sección 'Carta'."
+            }
+          ]
+        }
+      ],
+      "schema_complete": true,
+      "run_meta": {
+        "model": "qwen2.5-7b-instruct",
+        "temperature": 0.1,
+        "stage": "9c91818d4ef021e96321e234b574c587431082e29128ddddc85e7933e4570f5f",
+        "reviewer_version": "v0.7-quotes",
+        "with_descriptions": true,
+        "requirement_count": 4,
+        "task_count": 19
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>js</title></head><body>
+<form id="f" novalidate>
+<label>Nombre <input name="nombre"></label>
+<label>Email <input name="email"></label>
+<label>Preferencias del cliente <select name="preferencias"><option value="">--</option><option value="espresso">Espresso</option></select></label>
+<p id="msg"></p>
+<button>Enviar</button></form>
+<script>
+document.getElementById('f').addEventListener('submit', e => {
+  e.preventDefault();
+  const n = e.target.nombre.value.trim(), m = e.target.email.value.trim();
+  const msg = document.getElementById('msg');
+  if (!n || !m) { msg.textContent = 'Completá los campos obligatorios'; return; }
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)) { msg.textContent = 'Email inválido'; return; }
+  msg.textContent = '¡Gracias! Mensaje enviado';
+});
+</script></body></html>

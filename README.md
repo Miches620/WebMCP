@@ -59,6 +59,36 @@ node server.mjs
 | `test_mention_check.mjs` | 10 tests del chequeo anterior, con la conversación real de Project20: `node test_mention_check.mjs`. |
 | `test_phase_dependency_check.mjs` | Regresión del chequeo de dependencias por fase (caso Project20). Determinista: `node test_phase_dependency_check.mjs`. |
 
+### Piloto Specialist → Artifact → Validation (`pilot/`)
+
+| Archivo | Rol |
+|---|---|
+| `pilot/form_pilot.json` | Brief y las 6 tareas de la Feature "Formulario de contacto", copiadas textuales del graph aprobado de Project20. **Sin** criterios_holdout. |
+| `pilot/specialist_runner.mjs` | Specialist Frontend (Gemma, temperatura 0): una llamada por Atomic Task, en orden de dependencias, sobre un único `index.html`. Guarda el HTML y la respuesta cruda de cada paso. Corta si le llega texto del holdout. |
+| `pilot/holdout/form_holdout.mjs` | **Validation**: abre el artefacto en Chromium real (Playwright), sin red, y decide PASS/FAIL por código. "Obligatorio" se mide por comportamiento (se vacía un campo y se envía), no por el atributo `required`. El Specialist nunca lo ve. |
+| `pilot/test_form_holdout.mjs` + `pilot/fixtures/` | Calibración del validador: 8 artefactos de resultado conocido (HTML5, validación JS, alert, sin preferencias, todo opcional, error JS, sin form). |
+| `pilot/run_pilot.mjs` | Corre todo y escribe `pilot/runs/<fecha>/evidence.json`, con Validation sobre **cada paso** y sobre el final. `--validate DIR` revalida una corrida. |
+
+```bash
+npm install                      # instala playwright (una vez)
+npx playwright install chromium  # descarga el navegador (una vez)
+node pilot/test_form_holdout.mjs # 8/8 antes de confiar en la Evidence
+node pilot/run_pilot.mjs         # con LM Studio (gemma-4-e4b)
+```
+
+Criterios del holdout (aprobados 30/09): C1 carga sin errores de JS · C2 hay un form visible · C3 todos los campos son obligatorios salvo a lo sumo uno · C4 hay exactamente un campo opcional y es el de preferencias (si falta → FAIL) · C5 envío vacío bloqueado · C6 email mal formado bloqueado (N/A si no hay email) · C7 datos válidos → el envío pasa. Info sin FAIL: campos sin label.
+
+**Evidencia del piloto (30/09, `pilot/runs/`):**
+
+| Corrida | F4.1 | Resultado | Falla |
+|---|---|---|---|
+| `2026-09-30T15-57-28` (graph real de Project20) | "nombre, email, mensaje" | **FAIL** | C4: no hay campo de preferencias (aparece en F4.1 y ningún paso posterior lo corrige) |
+| `2026-09-30T20-59-26_form_pilot_f41_pref` (contrafactual) | + "un campo de preferencias del cliente que sea opcional" | **PASS** 7/7 | — |
+
+- Única variable cambiada: la descripción de F4.1. Los pasos F1.1, F1.2 y F1.6 dieron el **mismo sha256** en las dos corridas: Gemma a temperatura 0 fue determinista con el mismo input.
+- Conclusión: el Specialist cumple la tarea tal como está escrita (tenía la Feature completa en el brief y no agregó el campo por su cuenta). El defecto está **arriba**: la Feature 2 se perdió al traducirse a tareas (TechLeader/Atomizer), y el Completeness Reviewer v3 la dio por cubierta. Validation ejecutando el artefacto fue lo único que lo detectó.
+- Costo: ~10 min por corrida de 6 tareas en gemma-4-e4b (F4.2 y F4.3 ~2,5 min cada una).
+
 ### API (`server.mjs`)
 
 | Ruta | Qué hace |
@@ -122,7 +152,10 @@ node server.mjs
 ## Pendientes conocidos
 
 - **Persistencia en SQLite desconectada.** La ruta `/api/projects` (con `db.mjs`) existía en una versión anterior de `server.mjs` y se perdió; `persistProject()` sigue en `script.js` pero nada la llama. `db.mjs` y `test_db.mjs` quedan archivados hasta decidir si vuelve.
-- **Chequeo de etapa sin evidencia real todavía.** Correr `node bench_stage_check.mjs 5` con LM Studio y revisar recall/precision antes de confiar en él. Límite conocido: fases con nombre ambiguo ("Configuración del entorno") quedan como `ANY` en la matriz.
+- **Chequeo de etapa sin evidencia positiva todavía.** Bench 30/09 con v0.1: 30/30 corridas con veredicto **solo para F1** (JSON válido, `finish_reason=stop`, ~70 tokens): Qwen copiaba el ejemplo de un elemento del system prompt → 0 fases evaluadas más allá de F1. v0.2 cambia una sola variable: el pedido es un esqueleto con todas las fases precargadas (`"?"` a completar).
+  - **Bench v0.2 (30/09, 5 reps, `evidence/stage_check_2026-09-30T15-31-06.json`):** sin veredicto 0 (antes 21/25 por corrida). En los 4 casos **con descripción de fase**: 0 falsos OUT sobre 55 juicios IN (incluye "deploy pedido" 10/10 IN, regla 5 respetada) y 15/15 OUT detectados (hardening, admin no pedido). Todos los errores (14 falsos OUT, 5 OUT perdidos) caen en Project20 intentos 1-2, que **solo tienen nombre de fase**: marca "Formulario de contacto" como DEFERRED (4/5, es Feature explícita) y deja "Pruebas Funcionales, Optimización y Despliegue" IN_SCOPE (5/5, fase mixta leída por "Pruebas"). El admin no pedido sale DEFERRED en vez de EXCESS (para el reintento da igual). Límite conocido: fases con nombre ambiguo ("Configuración del entorno") quedan como `ANY` en la matriz.
+- **Los "criterios_holdout" no son holdout en el pipeline:** `buildTechLeaderInputFromRefinedPrompt` los manda a TechLeader como "Criterios de éxito". El piloto los mantiene fuera del Specialist; falta decidir si TechLeader debe verlos.
+- **Gap que el reviewer no ve:** en Project20, F4.1 pide "nombre, email, mensaje" y no el campo de preferencias de la Feature 2; el reviewer v3 la dio por cubierta. El piloto (C4) está armado para detectarlo.
 - `deferredWork` se guarda pero no se muestra en la UI ni se persiste fuera del navegador.
 - **Chequeo de menciones es heurístico** (palabras de 4+ letras, raíz de 5, lista corta de sinónimos): va a dar falsos avisos con redacciones distintas y no detecta pedidos parafraseados. Por eso no decide nada, solo pregunta. Las exclusiones todavía no llegan al Completeness Reviewer (lee solo features de `answer_key_requirements.json`, lo cual hoy alcanza).
 - `runDependencyResolverTests()` — **TEST 7 falla** desde antes de este cambio: el motor sí rechaza la dependencia-objeto, pero el test busca el texto `INVALID_DEPENDENCY` y el mensaje real es otro. Además los tests usan `console.assert` e imprimen "✓" aunque fallen.

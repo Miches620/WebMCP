@@ -50,6 +50,7 @@ node server.mjs
 | `context/stage_loader.mjs` | Extrae ese bloque (con hash SHA-256) y **falla fuerte** si falta. |
 | `intent_forge_v02.ps1` | **Herramienta manual de debug**, no forma parte del pipeline. Su system prompt es parecido pero distinto al de `server.mjs`: editar uno no cambia el otro. |
 | `test_completeness_bounded.mjs`, `test_completeness_bounded_2.mjs` | Casos de prueba del reviewer v3 (recetas / instrumentos). |
+| `test_phase_dependency_check.mjs` | Regresión del chequeo de dependencias por fase (caso Project20). Determinista: `node test_phase_dependency_check.mjs`. |
 
 ### API (`server.mjs`)
 
@@ -83,6 +84,10 @@ node server.mjs
 - Soporta `opts.model` y `opts.logCallback` (los logs llegan al panel de Razonamiento).
 - Inyecta el bloque de `context/ProjectStage.md` vía `stage_loader.mjs`.
 
+**Chequeo de dependencias por fase (fix Project20)**
+- El chequeo temprano que corre al terminar cada fase daba un **falso `MISSING_DEPENDENCY`** cuando una tarea dependía de otra que el Re-Atomizer había partido (Project20, intento 1: `F5.5 → F5.3`, con F5.3 reemplazada por `F5.3.R2.1..3`). Perdía un intento completo aunque la reconciliación final lo resolvía.
+- Ahora el chequeo expande los ids reemplazados igual que `reconcileDependencies()` y exige que existan todos los reemplazos terminales. Sigue detectando ids inventados y autodependencias. 7 tests en `test_phase_dependency_check.mjs`.
+
 **Limpieza**
 - Reviewers anteriores (`completeness_reviewer.mjs`, `2`, `4`, `v2_qwen`), sus tests (`test_completeness_artificial*.mjs`), la copia de respaldo `porlasdudas/` y `michelab_council.html` pasan a `_archivo/` (fuera de git). Siguen disponibles en el historial.
 
@@ -92,4 +97,6 @@ node server.mjs
 
 - **Persistencia en SQLite desconectada.** La ruta `/api/projects` (con `db.mjs`) existía en una versión anterior de `server.mjs` y se perdió; `persistProject()` sigue en `script.js` pero nada la llama. `db.mjs` y `test_db.mjs` quedan archivados hasta decidir si vuelve.
 - **TechLeader no conoce el PROJECT_STAGE.** Resultado del debate del 29/09 (sin ratificar): sacar la instrucción de Context7 del prompt, agregar `project_stage` al refined_prompt y un chequeo de etapa a nivel **plan** (antes de atomizar), construido sobre `stage_loader.mjs`, verificado con una matriz de briefs.
+- **Intent Forge pierde pedidos sin avisar** (Project20: panadería, reseñas y precios quedaron fuera del refined_prompt). Falta un chequeo que muestre "mencionaste y no incluí" antes de confirmar.
+- `runDependencyResolverTests()` — **TEST 7 falla** desde antes de este cambio: el motor sí rechaza la dependencia-objeto, pero el test busca el texto `INVALID_DEPENDENCY` y el mensaje real es otro. Además los tests usan `console.assert` e imprimen "✓" aunque fallen.
 - TechLeader y el Atomic Engine llaman a LM Studio desde el navegador (requiere CORS); pasarlos por `server.mjs` unificaría logs y errores.

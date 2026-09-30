@@ -1171,13 +1171,35 @@ function expandReplacementId(id, replacementMap, trail = []) {
  * caso más barato y más común de cortar: una dependencia a un id que
  * lisa y llanamente no existe.
  */
-function validatePhaseDependencyExistence(phaseTasks, knownIds) {
+export function validatePhaseDependencyExistence(
+  phaseTasks,
+  knownIds,
+  replacementMap = {},
+) {
   for (const task of phaseTasks) {
     const dependencies = normalizeDependsOn(task.depends_on, task.id);
 
     for (const dependencyId of dependencies) {
       if (dependencyId === task.id) {
         throw new Error(`SELF_DEPENDENCY: ${task.id} depende de sí misma.`);
+      }
+
+      // FIX (Project20, intento 1): si la dependencia apunta a una AT que
+      // el Re-Atomizer reemplazó (ej. F5.3 -> F5.3.R2.1..3), su id original
+      // ya no está entre los aceptados, pero NO es un id inventado:
+      // reconcileDependencies() la expande al final. Acá se expande igual
+      // que allá y se exige que TODOS los reemplazos terminales existan.
+      if (replacementMap[dependencyId]) {
+        const terminalIds = expandReplacementId(dependencyId, replacementMap);
+        const missing = terminalIds.filter((id) => !knownIds.has(id));
+        if (missing.length > 0) {
+          throw new Error(
+            `MISSING_DEPENDENCY: ${task.id} depende de ${dependencyId}, ` +
+              `que fue reemplazada por ${terminalIds.join(", ")}, pero ` +
+              `${missing.join(", ")} no existe (fase ${task.phase}).`,
+          );
+        }
+        continue;
       }
 
       if (!knownIds.has(dependencyId)) {
@@ -1510,7 +1532,11 @@ export async function runAtomicGraph(
       const tasksFromThisPhase = [...acceptedTasks, ...unresolvedTasks].filter(
         (t) => t.phase_index === phaseIndex,
       );
-      validatePhaseDependencyExistence(tasksFromThisPhase, knownIdsSoFar);
+      validatePhaseDependencyExistence(
+        tasksFromThisPhase,
+        knownIdsSoFar,
+        replacementMap,
+      );
       logCallback(
         `   ✓ DEPENDENCY CHECK (fase ${phase.id}) → ${tasksFromThisPhase.length} tareas verificadas`,
       );

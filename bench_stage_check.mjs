@@ -95,7 +95,8 @@ const CASES = [
 ];
 
 const runs = [];
-const tally = { tp: 0, fn: 0, fp: 0, tn: 0, any: 0, schema_incomplete: 0, errors: 0 };
+// "Sin veredicto" NO cuenta como acierto ni como error: va aparte.
+const tally = { tp: 0, fn: 0, fp: 0, tn: 0, any: 0, sin_veredicto: 0, schema_incomplete: 0, errors: 0 };
 
 for (const c of CASES) {
   const fases = c.phases.map((p) => p.fase);
@@ -114,14 +115,16 @@ for (const c of CASES) {
     for (const p of c.phases) {
       const v = r.verdicts.find((x) => x.phase_id === p.fase.id);
       const got = v ? (v.verdict === "IN_SCOPE" ? "IN" : "OUT") : "NONE";
-      if (p.exp === "ANY") tally.any++;
+      if (got === "NONE") tally.sin_veredicto++;
+      else if (p.exp === "ANY") tally.any++;
       else if (p.exp === "OUT") got === "OUT" ? tally.tp++ : tally.fn++;
       else got === "OUT" ? tally.fp++ : tally.tn++;
       const mark = p.exp === "ANY" ? "·" : (p.exp === got ? "✓" : "✗");
       row.push(`${p.fase.id}:${v ? v.verdict : "NONE"}${mark}`);
     }
     console.log(`${c.id} #${rep}  ${row.join("  ")}${r.schema_complete ? "" : "  [schema incompleto]"}`);
-    runs.push({ case: c.id, rep, expected: c.phases.map((p) => [p.fase.id, p.exp]), verdicts: r.verdicts, schema_gaps: r.schema_gaps, stage_sha256: r.stage_sha256 });
+    runs.push({ case: c.id, rep, expected: c.phases.map((p) => [p.fase.id, p.exp]), verdicts: r.verdicts, schema_gaps: r.schema_gaps, stage_sha256: r.stage_sha256, finish_reason: r.finish_reason, usage: r.usage, raw_content: r.raw_content });
+    if (!r.schema_complete) console.log(`   crudo (${r.finish_reason}, ${r.raw_content.length} chars): ${r.raw_content.replace(/\s+/g, " ").slice(0, 300)}`);
   }
 }
 
@@ -129,10 +132,10 @@ const recall = tally.tp + tally.fn ? tally.tp / (tally.tp + tally.fn) : null;
 const precision = tally.tp + tally.fp ? tally.tp / (tally.tp + tally.fp) : null;
 console.log(`\nOUT detectados: ${tally.tp}/${tally.tp + tally.fn}  (recall ${recall?.toFixed(2)})`);
 console.log(`Falsos OUT sobre fases IN: ${tally.fp}/${tally.fp + tally.tn}  (precision ${precision?.toFixed(2)})`);
-console.log(`schema incompleto: ${tally.schema_incomplete} | errores: ${tally.errors} | fases ANY (no puntúan): ${tally.any}`);
+console.log(`sin veredicto: ${tally.sin_veredicto} fases | schema incompleto: ${tally.schema_incomplete} corridas | errores: ${tally.errors} | fases ANY (no puntúan): ${tally.any}`);
 
 mkdirSync(new URL("./evidence/", import.meta.url), { recursive: true });
 const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 const out = new URL(`./evidence/stage_check_${stamp}.json`, import.meta.url);
-writeFileSync(out, JSON.stringify({ reps: REPS, tally, recall, precision, checker: "plan_stage_check v0.1-bounded", model: "qwen2.5-7b-instruct", runs }, null, 2));
+writeFileSync(out, JSON.stringify({ reps: REPS, tally, recall, precision, checker: "plan_stage_check v0.2-skeleton", model: "qwen2.5-7b-instruct", runs }, null, 2));
 console.log(`→ ${out.pathname}`);

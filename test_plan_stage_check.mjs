@@ -97,11 +97,21 @@ await check("runPlanStageCheck: manda bloque + brief + fases y devuelve feedback
     assert(user.includes("ETAPA DEL PROYECTO: PROTOTYPE"), "no mandó el bloque de etapa");
     assert(user.includes("Features:\n1. Carta"), "no mandó el brief");
     assert(user.includes("F7 [QA] Pruebas Funcionales"), "no mandó las fases");
+    for (const id of ["F1", "F2", "F3", "F4", "F5", "F6", "F7"])
+      assert(user.includes(`"phase_id": "${id}"`), `el esqueleto no trae ${id}`);
+    assert(!sent.messages[0].content.includes('"phase_id": "F1"'), "el system prompt no debe traer un ejemplo de una sola fase");
     assert(r.stage === "PROTOTYPE" && r.flagged.length === 1, JSON.stringify(r.flagged));
     assert(r.feedback.includes("CHEQUEO DE ETAPA (PROTOTYPE)"), r.feedback);
   } finally {
     globalThis.fetch = realFetch;
   }
+});
+
+await check('evaluateVerdicts: un "?" sin completar cuenta como inválido, no como en alcance', () => {
+  const r = evaluateVerdicts([{ id: "F1" }, { id: "F2" }], {
+    phase_verdicts: [inScope("F1"), { phase_id: "F2", verdict: "?", deferred_part: "?", reason: "?" }],
+  });
+  assert(!r.schema_complete && r.schema_gaps.invalid[0] === "F2", JSON.stringify(r.schema_gaps));
 });
 
 await check("runPlanStageCheck: falla fuerte si ProjectStage no tiene bloque", async () => {

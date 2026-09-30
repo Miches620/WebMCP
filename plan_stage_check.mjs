@@ -41,12 +41,27 @@ Reglas:
 3. Probar la primera versión es parte de la etapa. Automatizar, endurecer u optimizar para uso real sostenido, no.
 4. "deferred_part" va vacío ("") si el veredicto es IN_SCOPE.
 
-Devolvé EXCLUSIVAMENTE este JSON:
-{
-  "phase_verdicts": [
-    { "phase_id": "F1", "verdict": "IN_SCOPE", "deferred_part": "", "reason": "una frase" }
-  ]
-}`;
+Al final del mensaje recibís un JSON con UNA entrada por fase, ya armada.
+Devolvé ESE MISMO JSON completo, con todas sus entradas y en el mismo orden,
+reemplazando cada "?" por el valor que corresponde:
+- "verdict": "IN_SCOPE", "DEFERRED" o "EXCESS".
+- "deferred_part": la parte diferida o excedente ("" si es IN_SCOPE).
+- "reason": una frase.
+No agregues ni quites entradas. Respondé solo con el JSON.`;
+}
+
+// v0.2: bench 30/09 con v0.1 → 30/30 corridas con veredicto SOLO para F1
+// (JSON bien formado, finish_reason=stop, ~70 tokens): Qwen copiaba el
+// ejemplo de un solo elemento del system prompt. Única variable que cambia:
+// el formato pedido pasa a ser un esqueleto con TODAS las fases precargadas.
+export function buildSkeleton(fases) {
+  return JSON.stringify(
+    {
+      phase_verdicts: fases.map((f) => ({ phase_id: f.id, verdict: "?", deferred_part: "?", reason: "?" })),
+    },
+    null,
+    2,
+  );
 }
 
 function phaseLine(f) {
@@ -83,7 +98,8 @@ export function evaluateVerdicts(fases, decision) {
       byId.set(v.phase_id, {
         phase_id: v.phase_id,
         verdict,
-        deferred_part: verdict === "IN_SCOPE" ? "" : String(v.deferred_part || "").trim(),
+        deferred_part:
+          verdict === "IN_SCOPE" ? "" : String(v.deferred_part || "").replace(/^\?$/, "").trim(),
         reason: String(v.reason || "").trim(),
       });
     }
@@ -143,7 +159,9 @@ export async function runPlanStageCheck(brief, fases, opts = {}) {
     `CONTEXTO DEL LABORATORIO:\n${stage.block}\n\n` +
     `BRIEF:\n${brief}\n\n` +
     `FASES A EVALUAR (emití EXACTAMENTE un veredicto por cada una):\n` +
-    fases.map(phaseLine).join("\n");
+    fases.map(phaseLine).join("\n") +
+    `\n\nJSON A COMPLETAR (${fases.length} entradas):\n` +
+    buildSkeleton(fases);
 
   const response = await fetch(LM_STUDIO_URL, {
     method: "POST",
@@ -182,7 +200,13 @@ export async function runPlanStageCheck(brief, fases, opts = {}) {
     stage: stage.stage,
     stage_sha256: stage.sha256,
     feedback: formatStageFeedback(stage.stage, result.flagged),
-    run_meta: { model: modelId, temperature: 0.1, checker_version: "v0.1-bounded" },
+    run_meta: { model: modelId, temperature: 0.1, checker_version: "v0.2-skeleton" },
     raw_decision: decision,
+    // Texto crudo del modelo: sin esto no se distingue "el modelo devolvió
+    // una sola fase" de "el parseo se comió el resto" (bench 30/09: 30/30
+    // corridas con veredicto solo para F1).
+    raw_content: raw,
+    finish_reason: data?.choices?.[0]?.finish_reason ?? null,
+    usage: data?.usage ?? null,
   };
 }

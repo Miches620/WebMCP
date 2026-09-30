@@ -1,6 +1,6 @@
 import { validateRoleDependencies } from "./validation_profile_role_dependencies.mjs";
 import { runAtomicGraph, resolveDependencies } from "./atomic_engine_v5.js";
-import { missingMentions } from "./intent_mention_check.mjs";
+import { missingMentions, norm } from "./intent_mention_check.mjs";
 
 const STORAGE_KEY = "webmcp_state";
 const MAX_TECHLEADER_ATTEMPTS = 3;
@@ -263,7 +263,7 @@ function buildRefinedSummaryHTML(refined) {
     .join("");
   return `
     <div class="text-indigo-300 font-bold mb-1">Ok, en base a lo que acordamos, voy a construir:</div>
-    <div class="text-white font-medium">${refined.project_name || ""}</div>
+    <div class="text-white font-medium">${refined.project_name || ""}${refined.project_stage ? ` <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-800 text-cyan-200 align-middle">Etapa: ${refined.project_stage}</span>` : ""}</div>
     ${refined.objetivo ? `<div class="text-gray-300 mt-1">${refined.objetivo}</div>` : ""}
     ${feats ? `<ul class="list-disc list-inside text-gray-300 mt-1">${feats}</ul>` : ""}
     ${criterios ? `<div class="text-gray-500 text-[10px] mt-1">Criterios de éxito: <ul class="list-disc list-inside">${criterios}</ul></div>` : ""}
@@ -460,7 +460,10 @@ function buildTechLeaderInputFromRefinedPrompt(refined, exclusiones = []) {
   if (refined.project_name) parts.push(`Proyecto: ${refined.project_name}`);
   if (refined.objetivo) parts.push(refined.objetivo);
   if (Array.isArray(refined.features) && refined.features.length) {
-    parts.push("", "El prototipo debe permitir:", "");
+    // Antes decía "El prototipo debe permitir:": fijaba la etapa en el
+    // texto y el reviewer la marcó AMBIGUOUS en Project20. La etapa ahora
+    // viaja aparte (refined.project_stage + /api/stage).
+    parts.push("", "Features:", "");
     refined.features.forEach((f, i) => parts.push(`${i + 1}. ${f}`));
   }
   if (Array.isArray(refined.criterios_holdout) && refined.criterios_holdout.length) {
@@ -781,6 +784,9 @@ let webmcpState = {
   awaitingDecision: null,
   validation: null,
   completenessReview: null,
+  stage: null,
+  stageChecks: [],
+  deferredWork: [],
 };
 
 const techLeaderPrompt = `Eres un TechLeader Senior.
@@ -793,16 +799,13 @@ NO debes diseñar cada implementación en detalle.
 
 Tu salida debe representar únicamente las fases necesarias para organizar la ejecución del proyecto.
 
-INVESTIGACIÓN PREVIA:
+ETAPA DEL PROYECTO:
 
-Puedes utilizar Context7 para investigar proyectos, arquitecturas,
-patrones o implementaciones similares al proyecto solicitado.
-
-Utiliza esa investigación como referencia para determinar una
-estructura de fases razonable.
-
-No copies una estructura únicamente porque aparezca en un proyecto similar:
-adáptala al objetivo, alcance y contexto del proyecto actual.
+El PROYECTO trae su ETAPA y el criterio de pertenencia de esa etapa.
+Planifica SOLO el trabajo que pertenece a la etapa indicada.
+El trabajo profesional válido que pertenece a una etapa posterior NO se
+planifica como fase: se lista en "diferido" (se difiere, no se descarta).
+La etapa nunca quita una Feature pedida ni agrega requisitos nuevos.
 
 REGLAS:
 
@@ -852,7 +855,8 @@ FORMATO OBLIGATORIO:
       "depends_on": []
     }
   ],
-  "features_clave": ["..."]
+  "features_clave": ["..."],
+  "diferido": ["trabajo válido que corresponde a una etapa posterior"]
 }
 
 PROYECTO:
@@ -931,6 +935,9 @@ function clearState() {
     awaitingDecision: null,
     validation: null,
     completenessReview: null,
+    stage: null,
+    stageChecks: [],
+    deferredWork: [],
   };
   GLOBAL_ID = 1;
   INTENT_FORGE_ITERATION = 0;
@@ -1084,11 +1091,14 @@ async function generateTechLeaderPlan(promptText, previousFeedback = "") {
   appendToReasoning(
     `<div class="text-cyan-400 font-bold">🧠 TECHLEADER → Analizando proyecto...</div>`,
   );
-  let finalPrompt = promptText;
+  // La etapa se pide al server en cada llamada (si ProjectStage.md cambió,
+  // se usa la nueva). Falla fuerte: nunca TechLeader "sin etapa" en silencio.
+  const stage = await loadStage();
+  let finalPrompt = `${promptText}\n\n${stage.criterion}`;
   if (previousFeedback) {
     finalPrompt += `\n\n--- FEEDBACK DE REVISIÓN ANTERIOR ---\n${previousFeedback}\nPor favor, ajusta el plan de fases para corregir estos problemas. NO inventes requisitos, solo ajusta lo estrictamente necesario para resolver el feedback.`;
     appendToReasoning(
-      `<div class="text-yellow-400 text-xs">⚠️ Incluyendo feedback del Completeness Reviewer V3...</div>`,
+      `<div class="text-yellow-400 text-xs">⚠️ Incluyendo feedback de revisión anterior (etapa / validación / completitud)...</div>`,
     );
   }
   const techRes = await fetch("http://127.0.0.1:1234/v1/chat/completions", {
@@ -1125,6 +1135,9 @@ async function generateTechLeaderPlan(promptText, previousFeedback = "") {
       : "Backend",
     depends_on: Array.isArray(fase.depends_on) ? fase.depends_on : [],
   }));
+  plan.diferido = Array.isArray(plan.diferido)
+    ? plan.diferido.filter((d) => typeof d === "string" && d.trim())
+    : [];
   appendToReasoning(
     `<div class="text-green-400 font-bold mt-2">🧠 TECHLEADER → ${plan.fases.length} fases detectadas</div>`,
   );
@@ -1329,8 +1342,117 @@ async function runGraph(plan) {
   }
 }
 
+// === ETAPA DEL PROYECTO (paso 3 post-Project20) ===
+async function loadStage() {
+  const res = await fetch("/api/stage");
+  if (!res.ok)
+    throw new Error(`No se pudo cargar la etapa del proyecto (/api/stage ${res.status}): ${(await res.text()).slice(0, 300)}`);
+  const s = await res.json();
+  if (!s.stage || !s.criterion) throw new Error("/api/stage no devolvió etapa y criterio");
+  if (webmcpState.stage?.sha256 !== s.sha256) {
+    appendToReasoning(
+      `<div class="text-cyan-400 text-xs">[STAGE] ${s.stage} (${s.sha256.slice(0, 8)}) → TechLeader</div>`,
+    );
+  }
+  webmcpState.stage = s;
+  return s;
+}
+
+// Devuelve null si el chequeo no pudo correr: se avisa en rojo y se sigue
+// (es una red, no una compuerta; el Completeness Reviewer igual aplica la etapa).
+async function checkPlanStage(plan, promptText) {
+  appendToReasoning(`<div class="text-cyan-400 font-bold mt-2">🧭 STAGE CHECK → plan de ${plan.fases.length} fases</div>`);
+  try {
+    const res = await fetch("/api/stage-check", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ brief: promptText, fases: plan.fases }),
+    });
+    if (!res.ok) throw new Error(`${res.status}: ${(await res.text()).slice(0, 300)}`);
+    const r = await res.json();
+    (r.logs || []).forEach((m) =>
+      appendToReasoning(`<div class="text-gray-400 text-xs">[STAGE_CHECK] ${escapeHTML(m)}</div>`),
+    );
+    r.flagged.forEach((f) =>
+      appendToReasoning(
+        `<div class="text-yellow-400 text-xs">⚠️ ${f.phase_id} ${f.verdict}${f.deferred_part ? ` — ${escapeHTML(f.deferred_part)}` : ""}: ${escapeHTML(f.reason)}</div>`,
+      ),
+    );
+    // Sin veredicto no es "en alcance": se avisa aparte y no se da por bueno.
+    const gaps = r.schema_gaps || {};
+    const unchecked = [...(gaps.missing || []), ...(gaps.invalid || [])];
+    if (unchecked.length)
+      appendToReasoning(
+        `<div class="text-red-400 text-xs">⚠️ STAGE CHECK incompleto: sin veredicto válido para ${escapeHTML(unchecked.join(", "))}</div>`,
+      );
+    if (!r.flagged.length && r.schema_complete)
+      appendToReasoning(`<div class="text-green-400 text-xs">✓ todas las fases pertenecen a ${r.stage}</div>`);
+    return r;
+  } catch (err) {
+    appendToReasoning(
+      `<div class="text-red-400 font-bold text-xs">✗ STAGE CHECK no corrió (${escapeHTML(err.message)}). Se sigue sin chequeo de plan.</div>`,
+    );
+    return null;
+  }
+}
+
+function addDeferred(items) {
+  webmcpState.deferredWork = webmcpState.deferredWork || [];
+  for (const it of items) {
+    const key = norm(it.text);
+    if (!key || webmcpState.deferredWork.some((d) => norm(d.text) === key)) continue;
+    webmcpState.deferredWork.push(it);
+  }
+}
+
+// TechLeader + chequeo de etapa del plan, con hasta MAX_PLAN_STAGE_RETRIES
+// reintentos de SOLO el plan (segundos) antes de gastar el atomizado.
+const MAX_PLAN_STAGE_RETRIES = 2;
+async function generateStageCheckedPlan(promptText, previousFeedback = "") {
+  let plan = await generateTechLeaderPlan(promptText, previousFeedback);
+  for (let retry = 0; ; retry++) {
+    const check = await checkPlanStage(plan, promptText);
+    webmcpState.stageChecks = webmcpState.stageChecks || [];
+    webmcpState.stageChecks.push({
+      at: new Date().toISOString(),
+      plan_retry: retry,
+      stage_sha256: check?.stage_sha256 || null,
+      phases: plan.fases.length,
+      flagged: check ? check.flagged : null,
+      schema_complete: check ? check.schema_complete : null,
+    });
+    saveState();
+    if (!check || !check.flagged.length) break;
+    if (retry >= MAX_PLAN_STAGE_RETRIES) {
+      appendToReasoning(
+        `<div class="text-yellow-400 font-bold text-xs">⚠️ STAGE CHECK: ${check.flagged.length} fase(s) siguen marcadas tras ${MAX_PLAN_STAGE_RETRIES} reintentos de plan. Sigue al atomizado; el Completeness Reviewer decide.</div>`,
+      );
+      break;
+    }
+    // Lo marcado se registra como diferido ANTES de rehacer: si TechLeader lo
+    // saca, no se pierde (ProjectStage: "se difiere, no se descarta").
+    addDeferred(
+      check.flagged
+        .filter((f) => f.verdict === "DEFERRED")
+        .map((f) => ({ text: f.deferred_part || f.phase_name, source: "stage_check", phase: f.phase_id, reason: f.reason })),
+    );
+    appendToReasoning(
+      `<div class="text-yellow-400 font-bold">↻ Rehaciendo plan por etapa (${retry + 1}/${MAX_PLAN_STAGE_RETRIES})</div>`,
+    );
+    plan = await generateTechLeaderPlan(promptText, previousFeedback + check.feedback);
+  }
+  addDeferred(plan.diferido.map((t) => ({ text: t, source: "techleader" })));
+  if (webmcpState.deferredWork?.length) {
+    appendToReasoning(
+      `<div class="text-gray-400 text-xs">📦 Diferido (${webmcpState.deferredWork.length}): ${webmcpState.deferredWork.map((d) => escapeHTML(d.text)).join(" · ")}</div>`,
+    );
+  }
+  saveState();
+  return plan;
+}
+
 async function runGenerationAttempt(promptText, previousFeedback = "") {
-  const plan = await generateTechLeaderPlan(promptText, previousFeedback);
+  const plan = await generateStageCheckedPlan(promptText, previousFeedback);
   webmcpState.fullPlan = plan;
   webmcpState.prompt = promptText;
   saveState();

@@ -4,10 +4,22 @@ import { existsSync } from "fs";
 import { join, extname } from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { loadStageBlock } from "./context/stage_loader.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const STATIC_DIR = __dirname;
 const PORT = 3000;
+const STAGE_FILE = join(__dirname, "context", "ProjectStage.md");
+
+// Se lee en cada uso (no se cachea): si ProjectStage.md cambia, la corrida
+// siguiente usa la versión nueva y el sha256 del log lo deja registrado.
+// Falla fuerte si falta la etapa o el criterio.
+function currentStage() {
+  const s = loadStageBlock(STAGE_FILE);
+  if (!s.stage || !s.criterion)
+    throw new Error("ProjectStage: el bloque operativo no trae ETAPA o criterio de pertenencia");
+  return s;
+}
 
 const MIME = {
   ".html": "text/html",
@@ -120,6 +132,9 @@ Estilo: corto, directo, TechLead. Máximo 10 iteraciones.
           const parsed = JSON.parse(match[1]);
           if (parsed.refined_prompt) {
             refined_prompt = parsed.refined_prompt;
+            // La etapa la declara Miche (ProjectStage.md), nunca el modelo:
+            // si Intent Forge devolviera project_stage, se pisa.
+            refined_prompt.project_stage = currentStage().stage;
             isComplete = true;
             await writeFile(
               join(STATIC_DIR, "refined_prompt.json"),
@@ -189,6 +204,44 @@ Estilo: corto, directo, TechLead. Máximo 10 iteraciones.
       );
     } catch (e) {
       console.error(`[APPROVE] FAIL ${e.message}`);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+    return;
+  }
+
+  // === API STAGE: etapa vigente + criterio para TechLeader ===
+  if (req.method === "GET" && req.url === "/api/stage") {
+    try {
+      const s = currentStage();
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ stage: s.stage, criterion: s.criterion, sha256: s.sha256 }));
+    } catch (e) {
+      console.error(`[STAGE] ${e.message}`);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+    return;
+  }
+
+  // === API CHEQUEO DE ETAPA DEL PLAN (antes de atomizar) ===
+  if (req.method === "POST" && req.url === "/api/stage-check") {
+    try {
+      const { brief, fases } = await getBody(req);
+      const { runPlanStageCheck } = await import("./plan_stage_check.mjs");
+      const logs = [];
+      const result = await runPlanStageCheck(brief, fases, {
+        model: "qwen2.5-7b-instruct",
+        stageFile: STAGE_FILE,
+        logCallback: (m) => logs.push(m),
+      });
+      console.log(
+        `[STAGE_CHECK] ${result.stage} flagged=${result.flagged.length}/${fases.length} schema_complete=${result.schema_complete}`,
+      );
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ...result, logs }));
+    } catch (e) {
+      console.error(`[STAGE_CHECK] ${e.message}`);
       res.writeHead(500, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: e.message }));
     }

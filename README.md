@@ -8,7 +8,9 @@ Intención del usuario
    ↓  Intent Forge (entrevista, 1 pregunta por vez, hasta 10 iteraciones)
 refined_prompt + answer_key_requirements
    ↓  confirmación humana (Confirmar / Ajustar)
-TechLeader  → plan de fases
+TechLeader  → plan de fases   (recibe la ETAPA y su criterio desde context/ProjectStage.md)
+   ↓
+Stage Check del plan (Qwen, un veredicto por fase)  → si hay fases fuera de etapa, rehace el plan (máx. 2)
    ↓
 Atomic Graph (Atomizer → Checker → Re-Atomizer) + reconciliación de dependencias
    ↓
@@ -47,7 +49,10 @@ node server.mjs
 | `validation_profile_role_dependencies.mjs` | Validation Profile determinista (4 reglas: 2 FAIL, 2 WARN) con 8 tests propios (`node validation_profile_role_dependencies.mjs`). |
 | `completeness_reviewer3.mjs` | Completeness Reviewer v0.6-bounded: un veredicto por requisito y por tarea; el harness corrige `covered=true` sin tareas citadas. Acepta `opts.model` y `opts.logCallback`. |
 | `context/ProjectStage.md` | Definición de etapas (PROTOTYPE / MVP / FINAL). El bloque entre `BEGIN_STAGE_BLOCK` / `END_STAGE_BLOCK` se inyecta en el reviewer. |
-| `context/stage_loader.mjs` | Extrae ese bloque (con hash SHA-256) y **falla fuerte** si falta. |
+| `context/stage_loader.mjs` | Extrae ese bloque (con hash SHA-256) y **falla fuerte** si falta. También devuelve `stage` (p.ej. `PROTOTYPE`) y `criterion` (el bloque hasta "Cómo aplicarlo al revisar:", que es lo que recibe TechLeader). |
+| `plan_stage_check.mjs` | Chequeo de etapa **a nivel plan**, antes de atomizar: un veredicto por fase (IN_SCOPE / DEFERRED / EXCESS), validado por el harness como el reviewer v3. Arma el feedback para TechLeader. |
+| `test_plan_stage_check.mjs` | 7 tests deterministas (fetch simulado): `node test_plan_stage_check.mjs`. |
+| `bench_stage_check.mjs` | **Matriz de briefs contra LM Studio real** (6 casos: Project20 intentos 1-3, deploy pedido, operación/hardening, exceso no pedido). `node bench_stage_check.mjs 5` → `evidence/stage_check_<fecha>.json`. |
 | `intent_forge_v02.ps1` | **Herramienta manual de debug**, no forma parte del pipeline. Su system prompt es parecido pero distinto al de `server.mjs`: editar uno no cambia el otro. |
 | `test_completeness_bounded.mjs`, `test_completeness_bounded_2.mjs` | Casos de prueba del reviewer v3 (recetas / instrumentos). |
 | `intent_mention_check.mjs` | Chequeo determinista "mencionaste y no incluí": frases del usuario en la entrevista cuyas palabras de contenido no aparecen en el refined_prompt. Lo usa la tarjeta de confirmación. |
@@ -60,6 +65,8 @@ node server.mjs
 |---|---|
 | `POST /api/intent-forge` | Un paso de la entrevista. Al completar, escribe `refined_prompt.json` y `answer_key_requirements.json`. |
 | `POST /api/approve-intent` | Reescribe esos dos archivos con la versión aprobada. |
+| `GET /api/stage` | Etapa vigente + criterio + sha256 (leídos de `ProjectStage.md` en cada pedido). |
+| `POST /api/stage-check` | `{brief, fases}` → veredicto por fase, `flagged`, `schema_complete`, `feedback` y `logs`. |
 | `POST /api/completeness-review` | Corre el reviewer v3 sobre el grafo y devuelve `findings` (array plano con `.type`) + `logs`. |
 
 `refined_prompt.json` y `answer_key_requirements.json` son **salidas de cada corrida** y están en `.gitignore`.
@@ -98,6 +105,15 @@ node server.mjs
 - Los botones usan un listener delegado (el chat se reescribe con `innerHTML +=`), las tarjetas viejas quedan deshabilitadas y la tarjeta se reconstruye al recargar.
 - Probado en navegador con la conversación de Project20 y Intent Forge simulado: 5 avisos → 2 Incluir, 1 Excluir, 2 Falso aviso → reescritura → 0 avisos → prompt de TechLeader con 6 features y "Fuera de alcance: precios".
 
+**Etapa del proyecto en TechLeader + chequeo de etapa del plan (D12 / D14, Project20)**
+- *Evidencia de origen:* Project20 intento 2 armó "F7 Pruebas Funcionales, Optimización y Despliegue"; se atomizó 30 min y recién el reviewer marcó EXCESS=15. Además el reviewer marcó AMBIGUOUS la frase fija "El prototipo debe permitir:".
+- Sale la instrucción de **Context7** del prompt de TechLeader (no había herramienta; el modelo no podía usarla). Entra una sección ETAPA: planificar solo el trabajo de la etapa y listar lo posterior en un campo nuevo `"diferido"`.
+- El input de TechLeader dice `Features:` en vez de "El prototipo debe permitir:" y recibe al final el **criterio** de la etapa (`/api/stage`), sin las reglas para revisores. `webmcpState.prompt` (lo que ve el reviewer) queda sin el criterio: el reviewer ya lo recibe como CONTEXTO.
+- `refined_prompt.project_stage` lo pone **server.mjs** desde `ProjectStage.md` (si Intent Forge devolviera otra etapa, se pisa: la etapa la declara Miche). Se ve como chip en la tarjeta de confirmación.
+- Después de cada plan corre `/api/stage-check`. Si marca fases DEFERRED/EXCESS, TechLeader rehace **solo el plan** con feedback por fase (segundos, no el atomizado), hasta 2 veces; después sigue y el reviewer decide. Si el chequeo no puede correr, se avisa en rojo y se sigue (es red, no compuerta). Un veredicto faltante se reporta como "incompleto", nunca como "en alcance".
+- Lo diferido se conserva (`webmcpState.deferredWork`: lo que marcó el chequeo + el `diferido` de TechLeader) y cada chequeo queda en `webmcpState.stageChecks` con el sha256 de la etapa.
+- Probado: 7 tests del módulo; flujo completo en navegador con server real y LM Studio simulado (plan con despliegue → marcado → plan rehecho sin él → diferido registrado). **Falta la evidencia con Qwen real: correr `bench_stage_check.mjs`.**
+
 **Limpieza**
 - Reviewers anteriores (`completeness_reviewer.mjs`, `2`, `4`, `v2_qwen`), sus tests (`test_completeness_artificial*.mjs`), la copia de respaldo `porlasdudas/` y `michelab_council.html` pasan a `_archivo/` (fuera de git). Siguen disponibles en el historial.
 
@@ -106,7 +122,8 @@ node server.mjs
 ## Pendientes conocidos
 
 - **Persistencia en SQLite desconectada.** La ruta `/api/projects` (con `db.mjs`) existía en una versión anterior de `server.mjs` y se perdió; `persistProject()` sigue en `script.js` pero nada la llama. `db.mjs` y `test_db.mjs` quedan archivados hasta decidir si vuelve.
-- **TechLeader no conoce el PROJECT_STAGE.** Resultado del debate del 29/09 (sin ratificar): sacar la instrucción de Context7 del prompt, agregar `project_stage` al refined_prompt y un chequeo de etapa a nivel **plan** (antes de atomizar), construido sobre `stage_loader.mjs`, verificado con una matriz de briefs.
+- **Chequeo de etapa sin evidencia real todavía.** Correr `node bench_stage_check.mjs 5` con LM Studio y revisar recall/precision antes de confiar en él. Límite conocido: fases con nombre ambiguo ("Configuración del entorno") quedan como `ANY` en la matriz.
+- `deferredWork` se guarda pero no se muestra en la UI ni se persiste fuera del navegador.
 - **Chequeo de menciones es heurístico** (palabras de 4+ letras, raíz de 5, lista corta de sinónimos): va a dar falsos avisos con redacciones distintas y no detecta pedidos parafraseados. Por eso no decide nada, solo pregunta. Las exclusiones todavía no llegan al Completeness Reviewer (lee solo features de `answer_key_requirements.json`, lo cual hoy alcanza).
 - `runDependencyResolverTests()` — **TEST 7 falla** desde antes de este cambio: el motor sí rechaza la dependencia-objeto, pero el test busca el texto `INVALID_DEPENDENCY` y el mensaje real es otro. Además los tests usan `console.assert` e imprimen "✓" aunque fallen.
 - TechLeader y el Atomic Engine llaman a LM Studio desde el navegador (requiere CORS); pasarlos por `server.mjs` unificaría logs y errores.

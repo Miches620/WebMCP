@@ -1,0 +1,256 @@
+{
+  "version": "term_coverage v0.1",
+  "review_id": "2026-10-01T13-53-19",
+  "requirements": [
+    {
+      "id": "R1",
+      "text": "Ingresar a sección de configuración"
+    },
+    {
+      "id": "R2",
+      "text": "Dar de alta un dispositivo (NodeMCU) ingresando su IP, user y password"
+    },
+    {
+      "id": "R3",
+      "text": "Asignar nombre al nuevo dispositivo"
+    },
+    {
+      "id": "R4",
+      "text": "Seleccionar responsabilidades del dispositivo desde una lista (medir temperatura, abrir electrovalvula, relay, monitorear sensores)"
+    },
+    {
+      "id": "R5",
+      "text": "Permitir que un dispositivo realice múltiples tareas"
+    },
+    {
+      "id": "R6",
+      "text": "Configurar todo antes de iniciar una cocción"
+    },
+    {
+      "id": "R7",
+      "text": "Los NodeMCU ya tendrían cargados sus codigos y la SPA simplemente se encargaría de añadirlos a una etapa y monitorear los valores que este entrega"
+    },
+    {
+      "id": "R8",
+      "text": "Incorporar sensores de nivel de líquido"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "F1.1",
+      "task": "Diseñar y crear el esquema de la tabla de dispositivos NodeMCU.",
+      "description": "Definir el esquema DDL para almacenar metadatos de los dispositivos, incluyendo campos obligatorios como IP, credenciales de acceso, nombre único del dispositivo e información general de identificación."
+    },
+    {
+      "id": "F1.2",
+      "task": "Diseñar y crear el esquema para la asignación de responsabilidades por dispositivo.",
+      "description": "Definir el esquema DDL (posiblemente una tabla de mapeo) que relacione dispositivos específicos con las responsabilidades funcionales asignadas, tales como control de temperatura o activación de electroválvulas. Debe manejar la cardinalidad entre dispositivos y funciones."
+    },
+    {
+      "id": "F1.3",
+      "task": "Diseñar y crear el esquema para registros históricos y actuales de sensores de nivel.",
+      "description": "Definir el esquema DDL optimizado para almacenar datos de series temporales (time-series) provenientes de los sensores de nivel. Debe incluir campos para la marca de tiempo, el valor medido y la identificación del sensor asociado."
+    },
+    {
+      "id": "F2.1",
+      "task": "Implementar el endpoint RESTful para la creación de un nuevo dispositivo (Crear)",
+      "description": "Desarrollar la lógica y los endpoints necesarios para recibir, validar y almacenar la información básica inicial de un dispositivo en la base de datos."
+    },
+    {
+      "id": "F2.2",
+      "task": "Implementar el endpoint RESTful para listar y obtener detalles de dispositivos (Read)",
+      "description": "Desarrollar la funcionalidad para consultar, filtrar y recuperar los datos completos de un dispositivo específico o una lista de dispositivos."
+    },
+    {
+      "id": "F2.3",
+      "task": "Implementar el endpoint RESTful para actualizar la información general del dispositivo (Update)",
+      "description": "Desarrollar la lógica y los endpoints necesarios para modificar atributos generales de un dispositivo ya registrado."
+    },
+    {
+      "id": "F2.4",
+      "task": "Implementar el endpoint RESTful para la gestión de credenciales del dispositivo",
+      "description": "Desarrollar la funcionalidad segura para recibir, validar y almacenar las credenciales operacionales (IP, user, password) asociadas a un dispositivo."
+    },
+    {
+      "id": "F2.5",
+      "task": "Implementar la asignación de nombre y metadatos del dispositivo",
+      "description": "Desarrollar el endpoint dedicado para asignar o actualizar el nombre legible (naming) y otros metadatos descriptivos a un dispositivo."
+    },
+    {
+      "id": "F2.6",
+      "task": "Implementar la asignación de responsabilidades del dispositivo",
+      "description": "Desarrollar el endpoint RESTful que permite asociar múltiples responsabilidades a un dispositivo, utilizando el esquema definido para este propósito."
+    },
+    {
+      "id": "F3.1",
+      "task": "Implementar el receptor de datos persistente (MQTT/WebSockets)",
+      "description": "Establecer la infraestructura backend para recibir flujos continuos y en tiempo real de datos de sensores (temperatura, nivel) provenientes de los NodeMCU."
+    },
+    {
+      "id": "F3.2",
+      "task": "Desarrollar el servicio de procesamiento y validación de payloads de sensor",
+      "description": "Crear la lógica que recibe los datos crudos del flujo persistente, valida su formato (temperatura, nivel) y normaliza los valores antes de su almacenamiento."
+    },
+    {
+      "id": "F3.3",
+      "task": "Implementar la persistencia de datos históricos de sensores",
+      "description": "Integrar el servicio de procesamiento (F3.2) con la capa de acceso a datos para registrar los valores validados de temperatura y nivel en las tablas históricas."
+    },
+    {
+      "id": "F3.4",
+      "task": "Implementar el servicio de gestión del estado actual de cocción por dispositivo",
+      "description": "Crear la lógica central que mantiene y consulta el estado operativo (ej. 'Calentando', 'Mantenimiento') para cada dispositivo NodeMCU, utilizando los datos más recientes."
+    },
+    {
+      "id": "F3.5",
+      "task": "Desarrollar la lógica de transición de estados basada en umbrales y tiempo",
+      "description": "Implementar el motor de reglas que evalúa los datos persistidos (temperatura, nivel) contra las etapas definidas por el TechLeader para determinar cuándo debe cambiar el estado de cocción del dispositivo."
+    },
+    {
+      "id": "F4.1",
+      "task": "Diseñar y construir la estructura base de la SPA (Single Page Application)",
+      "description": "Crear el esqueleto principal de la aplicación, incluyendo navegación, layout general y componentes reutilizables para albergar tanto el formulario de configuración como el dashboard."
+    },
+    {
+      "id": "F4.2",
+      "task": "Implementar el formulario de creación e ingreso inicial de dispositivos",
+      "description": "Desarrollar la interfaz de usuario (UI) para capturar los datos básicos del dispositivo, consumiendo y validando contra el endpoint F2.1."
+    },
+    {
+      "id": "F4.3",
+      "task": "Integrar la funcionalidad de actualización general de datos del dispositivo",
+      "description": "Implementar el flujo de UI y lógica para que el usuario pueda modificar información general de un dispositivo existente, utilizando los endpoints F2.3."
+    },
+    {
+      "id": "F4.4",
+      "task": "Implementar la gestión de credenciales y detalles avanzados del dispositivo",
+      "description": "Construir el módulo UI para manejar la asignación y actualización de credenciales específicas del dispositivo, interactuando con F2.4."
+    },
+    {
+      "id": "F4.5",
+      "task": "Implementar la asignación de responsabilidades y metadatos del dispositivo",
+      "description": "Desarrollar el módulo UI para asignar roles, responsables y metadatos adicionales al dispositivo, utilizando los endpoints F2.5 y F2.6."
+    },
+    {
+      "id": "F4.6",
+      "task": "Desarrollar el componente de visualización del Dashboard principal",
+      "description": "Crear la estructura y los contenedores principales para mostrar el estado en tiempo real, incluyendo gráficos y tarjetas de resumen."
+    },
+    {
+      "id": "F4.7",
+      "task": "Implementar la visualización de datos de monitoreo en tiempo real (Dashboard)",
+      "description": "Conectar el dashboard a los flujos de datos persistentes y procesados, mostrando métricas de sensores en vivo mediante WebSockets/MQTT."
+    },
+    {
+      "id": "F4.8",
+      "task": "Mostrar y gestionar el estado actual de las etapas de cocción (Dashboard)",
+      "description": "Crear la interfaz que consume y presenta visualmente el estado de cocción calculado por el servicio F3.4, incluyendo indicadores de progreso."
+    },
+    {
+      "id": "F4.9",
+      "task": "Implementar la interacción básica con los controles del dispositivo (Dashboard)",
+      "description": "Desarrollar los botones y flujos de UI que permiten al usuario enviar comandos o interactuar con el estado operativo del dispositivo, basándose en la lógica F3.5."
+    }
+  ],
+  "items": [
+    {
+      "id": "R1",
+      "text": "Ingresar a sección de configuración",
+      "present": 2,
+      "total": 2,
+      "missing": []
+    },
+    {
+      "id": "R2",
+      "text": "Dar de alta un dispositivo (NodeMCU) ingresando su IP, user y password",
+      "present": 2,
+      "total": 3,
+      "missing": [
+        "alta"
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "Asignar nombre al nuevo dispositivo",
+      "present": 3,
+      "total": 3,
+      "missing": []
+    },
+    {
+      "id": "R4",
+      "text": "Seleccionar responsabilidades del dispositivo desde una lista (medir temperatura, abrir electrovalvula, relay, monitorear sensores)",
+      "present": 4,
+      "total": 8,
+      "missing": [
+        "seleccionar",
+        "medir",
+        "abrir",
+        "relay"
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "Permitir que un dispositivo realice múltiples tareas",
+      "present": 2,
+      "total": 4,
+      "missing": [
+        "realice",
+        "tareas"
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "Configurar todo antes de iniciar una cocción",
+      "present": 3,
+      "total": 3,
+      "missing": []
+    },
+    {
+      "id": "R7",
+      "text": "Los NodeMCU ya tendrían cargados sus codigos y la SPA simplemente se encargaría de añadirlos a una etapa y monitorear los valores que este entrega",
+      "present": 2,
+      "total": 9,
+      "missing": [
+        "tendrian",
+        "cargados",
+        "codigos",
+        "simplemente",
+        "encargaria",
+        "anadirlos",
+        "entrega"
+      ]
+    },
+    {
+      "id": "R8",
+      "text": "Incorporar sensores de nivel de líquido",
+      "present": 1,
+      "total": 3,
+      "missing": [
+        "incorporar",
+        "liquido"
+      ]
+    }
+  ],
+  "labels": {
+    "R2": {
+      "label": "falso_aviso",
+      "at": "2026-10-01T14:36:08.555Z"
+    },
+    "R4": {
+      "label": "falso_aviso",
+      "at": "2026-10-01T14:36:09.100Z"
+    },
+    "R5": {
+      "label": "falso_aviso",
+      "at": "2026-10-01T14:36:10.239Z"
+    },
+    "R7": {
+      "label": "falso_aviso",
+      "at": "2026-10-01T14:36:10.857Z"
+    },
+    "R8": {
+      "label": "falso_aviso",
+      "at": "2026-10-01T14:36:17.382Z"
+    }
+  }
+}

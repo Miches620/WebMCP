@@ -1,0 +1,256 @@
+/* Reset CSS básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f9f7f4; /* Color crema suave para el fondo */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Estilos de contenedores globales */
+header, footer {
+    width: 100%;
+    padding: 20px 5%;
+    text-align: center;
+}
+
+header {
+    background-color: #6f4e37; /* Marrón oscuro para el encabezado */
+    color: white;
+}
+
+footer {
+    background-color: #3a2d25; /* Marrón más oscuro para el pie de página */
+    color: white;
+    padding: 30px 5%;
+    margin-top: auto; /* Asegura que el footer se pegue al final si el contenido es corto */
+}
+
+/* Estilos generales de contenedores (se pueden refinar después) */
+section {
+    padding: 40px 5%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* --- Nosotros Section Styling --- */
+.nosotros-content {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    padding: 50px 0;
+}
+
+.texto-historia {
+    flex: 1;
+}
+
+.texto-historia h2 {
+    color: #6f4e37;
+    margin-bottom: 15px;
+}
+
+.contenido-principal {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+}
+
+.imagen-seccion {
+    flex: 1;
+}
+
+.imagen-seccion img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Catálogo y Carrusel --- */
+#catalogo h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #6f4e37;
+}
+
+.carousel-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative; /* Necesario para posicionar los botones */
+}
+
+.btn-nav {
+    background-color: #8b5a3c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 24px;
+    margin: 0 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s, opacity 0.3s;
+    z-index: 10; /* Asegura que los botones estén por encima del contenido */
+}
+
+.btn-nav:hover {
+    background-color: #7a4e32;
+}
+
+/* Deshabilitar botones cuando no hay movimiento posible */
+.btn-nav:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+.carousel-container {
+    display: flex;
+    overflow-x: scroll; /* Permite el desplazamiento horizontal */
+    gap: 25px;
+    padding: 10px 0; /* Ajuste de padding vertical para los botones */
+    /* Ocultar la barra de scroll en navegadores webkit (opcional) */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.carousel-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.product-card {
+    flex: 0 0 300px; /* Define el ancho fijo de cada tarjeta y no permite que se encoja */
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.product-card img {
+    width: 100%;
+    height: 220px; /* Altura fija para las imágenes */
+    object-fit: cover; /* Asegura que la imagen cubra el área sin distorsionarse */
+    display: block;
+}
+
+.card-info {
+    padding: 20px;
+}
+
+.card-info h3 {
+    color: #6f4e37;
+    margin-bottom: 10px;
+}
+
+.btn-ver-detalle {
+    background-color: #8b5a3c; /* Un tono más claro de marrón */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 15px;
+    transition: background-color 0.3s;
+}
+
+.btn-ver-detalle:hover {
+    background-color: #7a4e32;
+}
+
+
+/* ========================================= */
+/* --- Formulario de Contacto Styling (F4.2) --- */
+/* ========================================= */
+
+#contacto h2 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #6f4e37;
+}
+
+#contacto .subtitulo {
+    text-align: center;
+    margin-bottom: 30px !important; /* Asegura el espaciado */
+    font-size: 1.1em;
+    color: #555;
+}
+
+/* Estilos del contenedor principal del formulario */
+.contacto-form-content {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 30px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* Estilos del formulario */
+#contactForm {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Espacio entre grupos de campos */
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #6f4e37;
+    display: block; /* Asegura que la etiqueta ocupe su propia línea */
+}
+
+/* Estilos para inputs y textarea */
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group textarea {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* Efecto de foco para mejorar la UX */
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: #8b5a3c; /* Color primario al enfocar */
+    box-shadow: 0 0 0 2px rgba(139, 90, 60, 0.2);
+    outline: none;
+}
+
+/* Estilo del botón de envío */
+.btn-enviar {
+    background-color: #8b5a3c;
+    color: white;
+    border: none;
+    padding: 14px 25px;
+    font-size: 1.1em;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.1s;
+    margin-top: 10px; /* Espacio extra antes del botón */
+}
+
+.btn-enviar:hover {
+    background-color: #7a4e32;
+    transform: translateY(-1px);
+}

@@ -1,0 +1,85 @@
+### FILE: api.js
+```javascript
+// Capa de datos SIMULADA (backend mock). La UI usa solo window.api.
+window.api = window.api || {};
+
+/**
+ * Simula la obtención de una lista de productos de café.
+ * @returns {Promise<Array>} Lista de objetos de café.
+ */
+async function listarProductos() {
+    // Simulación de latencia de red
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    const productos = [
+        { id: 1, nombre: "Origen Etiopía Yirgacheffe", descripcion: "Notas florales de jazmín y limón. Cuerpo medio.", imagenUrl: "images/cafe_placeholder.jpg" },
+        { id: 2, nombre: "Colombia Huila Supremo", descripcion: "Perfil equilibrado con notas a chocolate y caramelo. Ideal para el día a día.", imagenUrl: "images/cafe_placeholder.jpg" },
+        { id: 3, nombre: "Guatemala Antigua", descripcion: "Intenso cuerpo con matices de cacao oscuro y especias. Perfecto para espresso.", imagenUrl: "images/cafe_placeholder.jpg" },
+        { id: 4, nombre: "Sumatra Mandheling", descripcion: "Terroso y profundo, con notas ahumadas y especiadas. Ideal para amantes del café robusto.", imagenUrl: "images/cafe_placeholder.jpg" }
+    ];
+
+    return productos;
+}
+
+window.api.listarProductos = listarProductos;
+```
+
+### FILE: app.js
+```javascript
+// Lógica de la UI.
+
+/**
+ * Renderiza el componente Card para un producto específico.
+ * @param {Object} producto - Objeto con datos del café.
+ * @returns {string} HTML completo de la tarjeta.
+ */
+const renderProductCard = (producto) => {
+    return `
+        <div class="product-card" data-id="${producto.id}">
+            <img src="${producto.imagenUrl}" alt="Imagen de ${producto.nombre}">
+            <div class="card-info">
+                <h3>${producto.nombre}</h3>
+                <p>${producto.descripcion}</p>
+                <button class="btn-ver-detalle" data-id="${producto.id}">Ver Detalles</button>
+            </div>
+        </div>
+    `;
+};
+
+/**
+ * Inicializa el catálogo de cafés al cargar la página.
+ */
+const initializeCatalogo = async () => {
+    const catalogoSection = document.getElementById('catalogo');
+    if (!catalogoSection) return;
+
+    // Limpiar contenido placeholder si existe
+    let htmlContent = '';
+
+    try {
+        // 1. Obtener datos simulados de la API
+        const productos = await window.api.listarProductos();
+
+        // 2. Generar el HTML para cada producto
+        productos.forEach(producto => {
+            htmlContent += renderProductCard(producto);
+        });
+
+        // 3. Insertar el contenido en el contenedor del carrusel
+        const carouselContainer = catalogoSection.querySelector('.carousel-container');
+        if (carouselContainer) {
+             // Limpiamos los placeholders y agregamos el contenido dinámico
+            carouselContainer.innerHTML = htmlContent;
+        }
+
+    } catch (error) {
+        console.error("Error al cargar el catálogo de productos:", error);
+        catalogoSection.querySelector('.carousel-container').innerHTML = '<p style="text-align: center;">Lo sentimos, no pudimos cargar nuestro catálogo en este momento.</p>';
+    }
+};
+
+// Ejecutar la inicialización cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    initializeCatalogo();
+});
+```

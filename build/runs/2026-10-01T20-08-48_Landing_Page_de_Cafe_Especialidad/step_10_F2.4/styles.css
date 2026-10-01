@@ -1,0 +1,131 @@
+/* Reset CSS */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f9f7f4; /* Fondo crema suave */
+    /* Asegura que el body ocupe toda la altura y maneje bien el flujo */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header y Navegación */
+#site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 5%;
+    background-color: #6f4e37; /* Marrón café oscuro */
+    color: white;
+    /* Asegura que el header se pegue arriba */
+    flex-shrink: 0; 
+}
+
+.logo {
+    font-size: 1.8em;
+    margin: 0;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+}
+
+nav li {
+    margin-left: 25px;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 5px 0;
+    transition: color 0.3s;
+}
+
+nav a:hover {
+    color: #d2b48c; /* Beige claro al pasar el ratón */
+}
+
+/* Contenido Principal y Secciones */
+main {
+    flex-grow: 1; /* Permite que main ocupe el espacio restante entre header y footer */
+    padding-bottom: 50px;
+}
+
+section {
+    padding: 60px 5%;
+    margin-bottom: 30px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+section h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #6f4e37;
+    font-size: 2em;
+}
+
+/* --- Estilos del Carrusel de Café (R1) --- */
+.catalogo-container {
+    overflow: hidden; /* Oculta lo que se sale del carrusel visible */
+    padding: 20px 0;
+}
+
+.carousel-wrapper {
+    display: flex;
+    /* Permite el desplazamiento horizontal y oculta los elementos fuera de vista */
+    overflow-x: scroll; 
+    scroll-behavior: smooth; /* Suaviza la transición al hacer scroll */
+    gap: 20px; /* Espacio entre tarjetas */
+    padding-bottom: 15px; /* Espacio para el scrollbar si se muestra */
+}
+
+.card-slider {
+    display: flex;
+    /* Asegura que los elementos fluyan horizontalmente */
+    width: fit-content; /* Permite que el contenedor crezca con sus hijos */
+    transition: transform 0.3s ease-in-out;
+}
+
+.cafe-card {
+    min-width: 300px; /* Ancho fijo para cada tarjeta de café */
+    background-color: #fff8e1;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Asegura que la imagen no se salga */
+    transition: transform 0.3s ease;
+}
+
+/* Estilo placeholder para visibilidad inicial */
+.cafe-card.placeholder {
+    height: 450px;
+    background-color: #e8e6df;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    color: #6f4e37;
+}
+
+/* --- Fin Estilos Carrusel --- */
+
+
+/* Footer */
+#site-footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+    margin-top: auto; /* Empuja el footer al final de la página */
+    flex-shrink: 0;
+}

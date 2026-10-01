@@ -40,106 +40,7 @@ export const CRITERIA = {
   C7: "Con datos válidos el envío pasa",
 };
 
-const ERROR_TEXT = /(obligatori|requerid|inv[aá]lid|invalid|error|complet[aá]|debe[s]? (ingresar|completar)|falta)/i;
-const SUCCESS_TEXT = /(gracias|enviad|[eé]xito|recibid|success)/i;
-const PREF = /prefer/i;
-
-// Script que se inyecta antes de que cargue la página: registra los submit
-// que llegan al final del burbujeo y frena la navegación real.
-const INIT = () => {
-  window.__submits = [];
-  window.addEventListener("submit", (e) => {
-    window.__submits.push({ prevented: e.defaultPrevented });
-    e.preventDefault();
-  });
-};
-
-async function fieldsInfo(page) {
-  return page.evaluate(() => {
-    const form = [...document.querySelectorAll("form")].find((f) => f.offsetParent !== null) || null;
-    if (!form) return null;
-    const skip = new Set(["submit", "button", "reset", "hidden", "image"]);
-    const els = [...form.querySelectorAll("input, textarea, select")].filter(
-      (el) => !skip.has((el.type || "").toLowerCase()) && el.offsetParent !== null,
-    );
-    const labelOf = (el) => {
-      const byFor = el.id ? document.querySelector(`label[for="${CSS.escape(el.id)}"]`) : null;
-      const wrap = el.closest("label");
-      return ((byFor || wrap)?.textContent || el.getAttribute("aria-label") || "").trim();
-    };
-    return els.map((el, i) => ({
-      index: i,
-      tag: el.tagName.toLowerCase(),
-      type: (el.type || "").toLowerCase(),
-      name: el.name || "",
-      id: el.id || "",
-      placeholder: el.getAttribute("placeholder") || "",
-      label: labelOf(el),
-      required_attr: el.required || el.getAttribute("aria-required") === "true",
-    }));
-  });
-}
-
-function validValue(f) {
-  if (f.type === "email" || /mail/i.test(f.name + f.id)) return "ana@example.com";
-  if (f.type === "tel" || /tel|phone/i.test(f.name + f.id)) return "1155551234";
-  if (f.type === "number") return "3";
-  if (f.type === "date") return "2026-10-01";
-  if (f.type === "url") return "https://example.com";
-  return "Texto de prueba válido";
-}
-
-// Completa todos los campos con datos válidos salvo los índices en `empty`;
-// `override` permite poner un valor puntual (p.ej. email inválido).
-async function fillForm(page, fields, { empty = [], override = {} } = {}) {
-  for (const f of fields) {
-    const loc = page.locator("form").filter({ visible: true }).first()
-      .locator("input:not([type=submit]):not([type=button]):not([type=reset]):not([type=hidden]):not([type=image]), textarea, select")
-      .filter({ visible: true })
-      .nth(f.index);
-    if (f.tag === "select") {
-      if (empty.includes(f.index)) continue;
-      const opts = await loc.locator("option").evaluateAll((os) => os.map((o) => o.value).filter((v) => v !== ""));
-      if (opts.length) await loc.selectOption(opts[0]);
-    } else if (f.type === "checkbox" || f.type === "radio") {
-      if (!empty.includes(f.index)) await loc.check({ force: true });
-    } else {
-      await loc.fill(empty.includes(f.index) ? "" : override[f.index] ?? validValue(f));
-    }
-  }
-}
-
-// Envía y decide si quedó BLOQUEADO o ACEPTADO.
-// Aceptado = llegó un submit (o hubo navegación) y no apareció ninguna señal
-// de error (texto nuevo de error, aria-invalid, alert con error).
-async function submitAndJudge(page, ctx) {
-  const before = await page.evaluate(() => document.body.innerText);
-  ctx.dialogs.length = 0;
-  let navigated = false;
-  const onNav = () => (navigated = true);
-  page.on("framenavigated", onNav);
-  const btn = page.locator("form").filter({ visible: true }).first()
-    .locator("button:not([type=button]):not([type=reset]), input[type=submit]").first();
-  if (await btn.count()) await btn.click({ timeout: 3000 }).catch(() => {});
-  else await page.locator("form").first().evaluate((f) => f.requestSubmit());
-  await page.waitForTimeout(400);
-  page.off("framenavigated", onNav);
-  if (navigated) return { accepted: true, why: "hubo navegación (envío real)" };
-  const state = await page.evaluate(() => ({
-    submits: window.__submits.length,
-    ariaInvalid: document.querySelectorAll('[aria-invalid="true"]').length,
-    text: document.body.innerText,
-  }));
-  const added = state.text.replace(before, "");
-  const newLines = state.text.split("\n").filter((l) => l.trim() && !before.includes(l.trim()));
-  const errorText = newLines.find((l) => ERROR_TEXT.test(l)) || (ERROR_TEXT.test(added) && !before.includes(added.trim()) ? added.trim() : null);
-  const dialogError = ctx.dialogs.find((m) => !SUCCESS_TEXT.test(m));
-  if (!state.submits) return { accepted: false, why: "el navegador no disparó submit (validación HTML5)" };
-  if (state.ariaInvalid) return { accepted: false, why: `aria-invalid en ${state.ariaInvalid} campo(s)` };
-  if (errorText) return { accepted: false, why: `mensaje de error: "${errorText.slice(0, 80)}"` };
-  if (dialogError) return { accepted: false, why: `alert: "${dialogError.slice(0, 80)}"` };
-  return { accepted: true, why: "submit disparado sin señales de error" };
-}
+import { PREF, INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle } from "../../validation/form_runtime.mjs";
 
 /**
  * @param {string} htmlPath archivo a validar
@@ -162,7 +63,7 @@ export async function validateForm(htmlPath) {
   await page.addInitScript(INIT);
   // Nada sale a la red: el artefacto es local y el envío se intercepta.
   await page.route(/^https?:/, (r) => r.abort());
-  const reload = async () => { await page.goto(url, { waitUntil: "load" }); await page.waitForTimeout(150); };
+  const reload = async () => { await page.goto(url, { waitUntil: "load" }); await waitForSettle(page); };
 
   let fields = null;
   try {

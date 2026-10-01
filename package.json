@@ -1,10 +1,13 @@
 {
   "name": "webmcp",
   "private": true,
-  "description": "MicheLab webmcp: Intent Forge → TechLeader → Atomic Graph → Validation",
+  "description": "MicheLab webmcp: Intent Forge → TechLeader → Atomic Graph → Specialist → Artifact → Validation",
   "scripts": {
     "pilot": "node pilot/run_pilot.mjs",
-    "test:pilot": "node pilot/test_form_holdout.mjs"
+    "test:pilot": "node pilot/test_form_holdout.mjs",
+    "build": "node build/run_build.mjs",
+    "test:catalog": "node validation/test_check_catalog.mjs",
+    "test": "node validation/test_check_catalog.mjs && node pilot/test_form_holdout.mjs && node test_plan_stage_check.mjs && node test_mention_check.mjs"
   },
   "devDependencies": {
     "playwright": "^1.56.0"

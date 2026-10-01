@@ -1,0 +1,139 @@
+// run_build.mjs — Pipeline de construcción y validación sobre un proyecto ya planificado.
+//
+//   graph aprobado (snapshot de webmcp)
+//     → Specialist (Gemma) construye la SPA completa con back simulado (tarea por tarea)
+//     → por cada requisito: traductor (Qwen) → chequeos del catálogo
+//     → Validation ejecuta los chequeos en Chromium → cobertura por requisito
+//
+//   node build/run_build.mjs ruta/al/snapshot.json            construye + valida
+//   node build/run_build.mjs --validate build/runs/<dir>       solo valida (usa build.json de esa carpeta)
+//   node build/run_build.mjs snapshot.json --resume build/runs/<dir>   retoma una construcción cortada (v0.3)
+//   ... --validate build/runs/<dir> --retranslate   vuelve a traducir (el checks.json anterior queda archivado)
+//
+// El snapshot es el estado de webmcp (localStorage "webmcp_state") exportado a JSON:
+// usa intentForge.refined_prompt (features = requisitos) y atomicTasks (graph).
+// Resultado en build/runs/<fecha>_<proyecto>/: HTML por paso, respuestas crudas,
+// checks.json y evidence.json.
+
+import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync } from "node:fs";
+import { join, basename } from "node:path";
+import { fileURLToPath } from "node:url";
+import { buildSpa, skeleton, FILES } from "./specialist_spa.mjs";
+import { translateRequirement } from "../validation/check_translator.mjs";
+import { runChecks, CATALOG_VERSION } from "../validation/check_catalog.mjs";
+
+const here = fileURLToPath(new URL(".", import.meta.url));
+const args = process.argv.slice(2);
+const log = (m) => console.log(m);
+
+let outDir, input, specialist = null;
+if (args[0] === "--validate") {
+  outDir = args[1];
+  const meta = JSON.parse(readFileSync(join(outDir, "build.json"), "utf8"));
+  input = meta.input;
+  specialist = meta.specialist;
+} else {
+  if (!args[0]) throw new Error("uso: node build/run_build.mjs snapshot.json [--resume DIR]");
+  const ri = args.indexOf("--resume");
+  const resumeDir = ri >= 0 ? args[ri + 1] : null;
+  const snap = JSON.parse(readFileSync(args[0], "utf8"));
+  const refined = { ...(snap.intentForge?.refined_prompt || {}), exclusiones: snap.intentForge?.exclusiones || [] };
+  if (!refined.features?.length) throw new Error("el snapshot no trae intentForge.refined_prompt.features");
+  const tasks = (snap.atomicTasks || []).map(({ id, role, responsable_sugerido, task, description, depends_on }) => ({
+    id, role: role || responsable_sugerido, task, description, depends_on,
+  }));
+  if (!tasks.length) throw new Error("el snapshot no trae atomicTasks");
+  input = { source: basename(args[0]), refined, tasks };
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const slug = String(refined.project_name || "proyecto").normalize("NFD").replace(/[^\w]+/g, "_").slice(0, 40);
+  outDir = resumeDir || join(here, "runs", `${stamp}_${slug}`);
+  mkdirSync(outDir, { recursive: true });
+  writeFileSync(join(outDir, "input.json"), JSON.stringify(input, null, 2));
+  log(`[BUILD] ${refined.project_name} — ${refined.features.length} requisitos, ${tasks.length} tareas → ${outDir}`);
+  specialist = await buildSpa(input, outDir, { log, forbidden: refined.criterios_holdout || [], resume: !!resumeDir });
+  writeFileSync(join(outDir, "build.json"), JSON.stringify({ input, specialist }, null, 2));
+}
+
+// v0.3: la app vive en outDir/app/ (index.html + styles.css + api.js + app.js).
+// Corridas v0.2 (un solo archivo) tienen outDir/index.html.
+const artifact = existsSync(join(outDir, "app", "index.html")) ? join(outDir, "app", "index.html") : join(outDir, "index.html");
+if (!existsSync(artifact)) throw new Error(`no existe ${artifact}`);
+
+// Requisito → chequeos (se guardan para poder re-ejecutarlos sin LLM).
+const checksPath = join(outDir, "checks.json");
+if (args.includes("--retranslate") && existsSync(checksPath)) {
+  const archived = join(outDir, `checks.prev-${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}.json`);
+  renameSync(checksPath, archived);
+  log(`[VALIDATION] checks.json anterior archivado en ${archived}`);
+}
+let reqChecks;
+if (existsSync(checksPath)) {
+  reqChecks = JSON.parse(readFileSync(checksPath, "utf8"));
+  log(`[VALIDATION] usando chequeos ya traducidos (${checksPath})`);
+} else {
+  const context = `Proyecto: ${input.refined.project_name}\n${input.refined.objetivo || ""}`;
+  reqChecks = [];
+  for (const [i, text] of input.refined.features.entries()) {
+    const id = `R${i + 1}`;
+    try {
+      const t = await translateRequirement(text, { context });
+      reqChecks.push({ id, text, checks: t.checks, dropped: t.dropped, sin_chequeo: t.sin_chequeo, versions: t.versions });
+      log(`[TRANSLATOR] ${id}: ${t.checks.map((c) => c.type).join(", ") || "SIN CHEQUEO"}`);
+    } catch (e) {
+      reqChecks.push({ id, text, checks: [], error: e.message });
+      log(`[TRANSLATOR] ${id}: ERROR ${e.message}`);
+    }
+  }
+  writeFileSync(checksPath, JSON.stringify(reqChecks, null, 2));
+}
+
+// Control (v0.4): los mismos chequeos sobre el ESQUELETO vacío que arma el
+// harness (header + nav + una sección por feature con su título). Un chequeo
+// que pasa ahí no discrimina: lo aprobaría cualquier artefacto, aunque no haga
+// nada. Ese PASS se marca TRIVIAL y no cuenta como evidencia.
+const baselineDir = join(outDir, "baseline");
+mkdirSync(baselineDir, { recursive: true });
+const base = skeleton(input.refined.project_name, input.refined.features || []);
+for (const f of FILES) writeFileSync(join(baselineDir, f), base[f], "utf8");
+const baseline = join(baselineDir, "index.html");
+
+// Validation: un veredicto por requisito.
+//   PASS          todos los chequeos pasan y al menos uno no es trivial
+//   FAIL          algún chequeo falla
+//   SIN_EVIDENCIA todos pasan, pero todos pasan también en el esqueleto
+const coverage = [];
+const smoke = await runChecks(artifact, [{ type: "no_js_errors", params: {} }]);
+for (const r of reqChecks) {
+  if (!r.checks.length) { coverage.push({ id: r.id, text: r.text, verdict: "SIN_CHEQUEO", reason: r.error || r.sin_chequeo || "el traductor no produjo chequeos válidos", checks: [] }); continue; }
+  const res = await runChecks(artifact, r.checks);
+  const ctl = await runChecks(baseline, r.checks);
+  res.forEach((x, k) => { x.baseline = ctl[k].result; if (x.result === "PASS" && ctl[k].result === "PASS") x.trivial = true; });
+  const verdict = res.some((x) => x.result !== "PASS") ? "FAIL"
+    : res.some((x) => !x.trivial) ? "PASS" : "SIN_EVIDENCIA";
+  coverage.push({ id: r.id, text: r.text, verdict, checks: res });
+}
+
+const count = (v) => coverage.filter((c) => c.verdict === v).length;
+const evidence = {
+  type: "EVIDENCE",
+  kind: "build_validation",
+  project: input.refined.project_name,
+  source: input.source,
+  catalog: CATALOG_VERSION,
+  artifact_loads_without_js_errors: smoke[0].result === "PASS",
+  summary: { requisitos: coverage.length, PASS: count("PASS"), FAIL: count("FAIL"), SIN_EVIDENCIA: count("SIN_EVIDENCIA"), SIN_CHEQUEO: count("SIN_CHEQUEO") },
+  control: "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  coverage,
+  specialist: specialist && { model: specialist.model, version: specialist.specialist_version, steps: specialist.steps.map(({ n, task_id, role, ms, finish_reason, chars, changed, rejected, error, no_change, contract_retry, contract }) => ({ n, task_id, role, ms, finish_reason, chars, changed, rejected, error, no_change, contract_retry, contract_missing: contract?.missing })) },
+};
+writeFileSync(join(outDir, "evidence.json"), JSON.stringify(evidence, null, 2));
+
+log("\n=== Cobertura por requisito (Validation) ===");
+log(`carga sin errores de JS: ${evidence.artifact_loads_without_js_errors ? "sí" : "NO — " + smoke[0].detail}`);
+for (const c of coverage) {
+  log(`${c.verdict.padEnd(11)} ${c.id} ${c.text.slice(0, 70)}`);
+  for (const x of c.checks.filter((x) => x.result !== "PASS")) log(`             ✗ ${x.type}: ${x.detail}`);
+  for (const x of c.checks.filter((x) => x.trivial)) log(`             ~ ${x.type}: también pasa en el esqueleto (no discrimina)`);
+  if (c.verdict === "SIN_CHEQUEO") log(`             (${c.reason})`);
+}
+log(`\nPASS ${evidence.summary.PASS} · FAIL ${evidence.summary.FAIL} · SIN_EVIDENCIA ${evidence.summary.SIN_EVIDENCIA} · SIN_CHEQUEO ${evidence.summary.SIN_CHEQUEO}  →  ${join(outDir, "evidence.json")}`);

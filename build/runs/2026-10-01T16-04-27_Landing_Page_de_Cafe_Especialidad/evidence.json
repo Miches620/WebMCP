@@ -1,0 +1,285 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Landing Page de Café Especialidad",
+  "source": "project20_snapshot.json",
+  "catalog": "check_catalog v0.2",
+  "artifact_loads_without_js_errors": true,
+  "summary": {
+    "requisitos": 4,
+    "PASS": 3,
+    "FAIL": 1,
+    "SIN_CHEQUEO": 0
+  },
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "Catalogo de cafés en tarjetas con foto superior e información inferior (en carrousel)",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "text_visible",
+          "params": {
+            "text": [
+              "cafés",
+              "tarjetas"
+            ]
+          },
+          "covers": "Mostrar sección de cafés en tarjetas",
+          "result": "PASS",
+          "detail": "visible: \"cafes\""
+        },
+        {
+          "type": "click_reveals",
+          "params": {
+            "click": [
+              "tarjetas",
+              "carrousel"
+            ],
+            "expect": [
+              "foto",
+              "información"
+            ]
+          },
+          "covers": "Al hacer clic en tarjetas, aparece carrousel con foto superior e información inferior",
+          "result": "FAIL",
+          "detail": "ningún control menciona: tarjetas / carrousel"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Formulario de contacto con campos obligatorios y opcionalmente un campo para preferencias",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "text_visible",
+          "params": {
+            "text": [
+              "contacto",
+              "enviar"
+            ]
+          },
+          "covers": "Mostrar sección de contacto",
+          "result": "PASS",
+          "detail": "visible: \"contacto\""
+        },
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "enviar",
+              "contacto"
+            ]
+          },
+          "covers": "Permitir hacer envío del formulario de contacto",
+          "result": "PASS",
+          "detail": "control: \"Contacto\""
+        },
+        {
+          "type": "field_required",
+          "params": {
+            "field": [
+              "nombre",
+              "email"
+            ]
+          },
+          "covers": "Campos nombre y email son obligatorios",
+          "result": "PASS",
+          "detail": "nombre: vacío → bloqueado; email: vacío → bloqueado"
+        },
+        {
+          "type": "field_optional",
+          "params": {
+            "field": [
+              "preferencias"
+            ]
+          },
+          "covers": "Campo preferencias es opcional",
+          "result": "PASS",
+          "detail": "preferencias: vacío → pasa"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "Sección 'Nosotros' con historia de la empresa",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "text_visible",
+          "params": {
+            "text": [
+              "nosotros",
+              "historia"
+            ]
+          },
+          "covers": "Mostrar sección 'Nosotros'",
+          "result": "PASS",
+          "detail": "visible: \"nosotros\""
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "Sección 'Carta' con productos disponibles actualmente, obtenidos desde archivo de texto",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "text_visible",
+          "params": {
+            "text": [
+              "carta",
+              "productos",
+              "disponibles"
+            ]
+          },
+          "covers": "Sección 'Carta' con productos disponibles actualmente",
+          "result": "PASS",
+          "detail": "visible: \"carta\""
+        }
+      ]
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "spa_specialist v0.2",
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "F1.1",
+        "role": "Frontend"
+      },
+      {
+        "n": 2,
+        "task_id": "F1.2",
+        "role": "Frontend"
+      },
+      {
+        "n": 3,
+        "task_id": "F1.3",
+        "role": "Frontend"
+      },
+      {
+        "n": 4,
+        "task_id": "F1.4",
+        "role": "Frontend"
+      },
+      {
+        "n": 5,
+        "task_id": "F1.5",
+        "role": "Frontend"
+      },
+      {
+        "n": 6,
+        "task_id": "F1.6",
+        "role": "Frontend"
+      },
+      {
+        "n": 7,
+        "task_id": "F2.1",
+        "role": "Frontend"
+      },
+      {
+        "n": 8,
+        "task_id": "F2.2",
+        "role": "Frontend"
+      },
+      {
+        "n": 9,
+        "task_id": "F2.3",
+        "role": "Frontend",
+        "ms": 378271,
+        "finish_reason": "stop",
+        "chars": 14272
+      },
+      {
+        "n": 10,
+        "task_id": "F2.4",
+        "role": "Frontend",
+        "ms": 405221,
+        "finish_reason": "stop",
+        "chars": 17303
+      },
+      {
+        "n": 11,
+        "task_id": "F3.1",
+        "role": "Backend",
+        "ms": 513002,
+        "finish_reason": "stop",
+        "chars": 20401
+      },
+      {
+        "n": 12,
+        "task_id": "F3.2",
+        "role": "Backend",
+        "ms": 613595,
+        "finish_reason": "length",
+        "chars": 0,
+        "error": "la respuesta no trae un bloque ```html"
+      },
+      {
+        "n": 13,
+        "task_id": "F3.3",
+        "role": "Backend",
+        "ms": 605905,
+        "finish_reason": "stop",
+        "chars": 22475
+      },
+      {
+        "n": 14,
+        "task_id": "F4.1",
+        "role": "Frontend",
+        "ms": 587046,
+        "finish_reason": "length",
+        "chars": 0,
+        "error": "la respuesta no trae un bloque ```html"
+      },
+      {
+        "n": 15,
+        "task_id": "F4.2",
+        "role": "Frontend",
+        "ms": 587660,
+        "finish_reason": "length",
+        "chars": 0,
+        "error": "la respuesta no trae un bloque ```html"
+      },
+      {
+        "n": 16,
+        "task_id": "F4.3",
+        "role": "Frontend",
+        "ms": 587496,
+        "finish_reason": "length",
+        "chars": 0,
+        "error": "la respuesta no trae un bloque ```html"
+      },
+      {
+        "n": 17,
+        "task_id": "F5.1",
+        "role": "Frontend",
+        "ms": 588788,
+        "finish_reason": "length",
+        "chars": 0,
+        "error": "la respuesta no trae un bloque ```html"
+      },
+      {
+        "n": 18,
+        "task_id": "F5.2",
+        "role": "Frontend",
+        "ms": 597371,
+        "finish_reason": "length",
+        "chars": 0,
+        "error": "la respuesta no trae un bloque ```html"
+      },
+      {
+        "n": 19,
+        "task_id": "F5.3",
+        "role": "Frontend",
+        "ms": 621595,
+        "finish_reason": "length",
+        "chars": 0,
+        "error": "la respuesta no trae un bloque ```html"
+      }
+    ]
+  }
+}

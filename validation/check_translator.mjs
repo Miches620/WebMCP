@@ -1,0 +1,86 @@
+// check_translator.mjs — traduce un requisito a chequeos del catálogo cerrado.
+//
+// Qwen NO escribe código ni selectores: elige tipos de check_catalog.mjs y
+// llena sus parámetros (listas de sinónimos en español). El harness descarta
+// todo lo que no esté en el catálogo o no cumpla el esquema; si no queda
+// ningún chequeo válido, el requisito queda SIN_CHEQUEO (se reporta, nunca
+// cuenta como PASS).
+//
+// Antes de usarlo en el pipeline se valida contra el piloto
+// (experiments/exp_translator.mjs): los chequeos que genere para la Feature
+// del formulario tienen que dar FAIL en el artefacto real y PASS en el
+// contrafactual, igual que el holdout escrito a mano.
+
+import { CATALOG, CATALOG_VERSION, normalizeCheck } from "./check_catalog.mjs";
+
+const LM_STUDIO_URL = "http://localhost:1234/v1/chat/completions";
+const MODEL_DEFAULT = "qwen2.5-7b-instruct";
+export const TRANSLATOR_VERSION = "check_translator v0.3";
+
+function catalogText() {
+  return Object.entries(CATALOG)
+    .map(([type, d]) => {
+      const p = Object.keys(d.params).length ? ` params: { ${Object.keys(d.params).map((k) => `"${k}": ["sinónimo", ...]`).join(", ")} }` : " params: {}";
+      return `- ${type}: ${d.describe}${p}`;
+    })
+    .join("\n");
+}
+
+export function buildSystemPrompt() {
+  return `Sos el traductor de requisitos a chequeos de Validation de MicheLab.
+
+Recibís UN requisito de una SPA (prototipo, backend simulado). Tu trabajo es elegir chequeos del CATÁLOGO que, si pasan, demuestran que el requisito está cumplido en la página. No escribís código ni selectores.
+
+CATÁLOGO (los únicos tipos permitidos):
+${catalogText()}
+
+Reglas:
+1. Usá SOLO tipos del catálogo. Si el requisito no se puede verificar con el catálogo, devolvé "checks": [] y explicá en "sin_chequeo".
+2. Cubrí CADA parte del requisito. Si dice "A y opcionalmente B", tiene que haber chequeos para A y para B.
+3. Los parámetros son listas cortas de palabras o raíces en español (2 a 4) que aparecerían ESCRITAS en la página (títulos, etiquetas, botones): incluí sinónimos y raíces ("preferencia", "gusto"). No uses adverbios ni palabras de la redacción del requisito que nadie escribiría en la UI ("actualmente", "disponibles", "opcionalmente").
+4. "Obligatorio" → field_required o submit_empty_blocked. "Opcional" → field_optional. "Permitir hacer X" → control_visible.
+5. La página ya trae un título y un link del menú por cada sección, así que text_visible con el nombre de la sección NO demuestra nada. Verificá el CONTENIDO:
+   - "Sección X con historia / descripción / información" → section_content con section = nombre de X.
+   - "Catálogo / lista / carta / menú de productos", "productos disponibles", "en tarjetas" → section_items con section = nombre de la sección.
+   - "en carrusel / carrousel / slider" → carousel con section = nombre de la sección.
+   En section ponés 2 a 4 palabras con las que se llamaría la sección (ej. ["carta", "menu"], ["catalogo", "cafes"]).
+6. No agregues chequeos de cosas que el requisito no pide. NO inventes interacciones: usá click_reveals solo si el requisito dice explícitamente que algo aparece al hacer clic, abrir o navegar. Un carrusel se verifica con carousel, nunca con click_reveals.
+
+Devolvé EXCLUSIVAMENTE este JSON:
+{ "checks": [ { "type": "...", "params": { ... }, "covers": "qué parte del requisito verifica" } ], "sin_chequeo": "" }`;
+}
+
+function parseJsonLoose(raw) {
+  const s = String(raw || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  try { return JSON.parse(s); } catch { const m = s.match(/\{[\s\S]*\}/); if (!m) throw new Error("sin JSON"); return JSON.parse(m[0]); }
+}
+
+/**
+ * @param {string} requirement
+ * @param {{model?:string, context?:string}} [opts]  context: brief del proyecto (opcional)
+ * @returns {Promise<{checks:object[], dropped:object[], sin_chequeo:string, raw:string}>}
+ */
+export async function translateRequirement(requirement, opts = {}) {
+  const user = `${opts.context ? `CONTEXTO DEL PROYECTO:\n${opts.context}\n\n` : ""}REQUISITO:\n${requirement}`;
+  const res = await fetch(LM_STUDIO_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: opts.model || MODEL_DEFAULT,
+      messages: [{ role: "system", content: buildSystemPrompt() }, { role: "user", content: user }],
+      temperature: 0.1,
+      max_tokens: 1024,
+    }),
+  });
+  if (!res.ok) throw new Error(`LM Studio ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  const data = await res.json();
+  const raw = data?.choices?.[0]?.message?.content || "";
+  const parsed = parseJsonLoose(raw);
+  const checks = [], dropped = [];
+  for (const c of parsed.checks || []) {
+    const n = normalizeCheck(c);
+    if (n) checks.push({ ...n, covers: String(c.covers || "") });
+    else dropped.push(c);
+  }
+  return { checks, dropped, sin_chequeo: String(parsed.sin_chequeo || ""), raw, versions: { translator: TRANSLATOR_VERSION, catalog: CATALOG_VERSION } };
+}

@@ -1,0 +1,65 @@
+// Capa de datos SIMULADA (backend mock). La UI usa solo window.api.
+window.api = window.api || {};
+
+/**
+ * Simula la obtención de una lista de productos de café.
+ * @returns {Promise<Array>} Lista de objetos de café.
+ */
+async function listarProductos() {
+    // Simulación de latencia de red
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    const productos = [
+        { id: 1, nombre: "Origen Etiopía Yirgacheffe", descripcion: "Notas florales de jazmín y limón. Cuerpo medio.", imagenUrl: "images/cafe_placeholder.jpg" },
+        { id: 2, nombre: "Colombia Huila Supremo", descripcion: "Perfil equilibrado con notas a chocolate y caramelo. Ideal para el día a día.", imagenUrl: "images/cafe_placeholder.jpg" },
+        { id: 3, nombre: "Guatemala Antigua", descripcion: "Intenso cuerpo con matices de cacao oscuro y especias. Perfecto para espresso.", imagenUrl: "images/cafe_placeholder.jpg" },
+        { id: 4, nombre: "Sumatra Mandheling", descripcion: "Terroso y profundo, con notas ahumadas y especiadas. Ideal para amantes del café robusto.", imagenUrl: "images/cafe_placeholder.jpg" }
+    ];
+
+    return productos;
+}
+
+/**
+ * Simula la lectura de un archivo de texto fuente que contiene el menú completo (La Carta).
+ * @returns {Promise<string>} El contenido completo del archivo como string.
+ */
+async function cargarCarta() {
+    // Simulación de latencia de red para leer archivos grandes
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const textoFuente = `
+        ========================================
+        LA CARTA DE CAFÉ ESPECIALIDAD - MENÚ ACTUAL
+        ========================================
+
+        1. Espresso (Dosis simple/doble): $3.50 / $4.50
+           Descripción: Shot concentrado de café, ideal para acompañar postres o en base a leche.
+
+        2. Americano: $4.00
+           Descripción: Espresso diluido con agua caliente. Perfecto para un sabor más suave y ligero.
+
+        3. Cappuccino: $6.50
+           Descripción: Mezcla de espresso, leche vaporizada y espuma abundante. Clásico e irresistible.
+
+        4. Latte Macchiato: $7.00
+           Descripción: Capas delicadas de leche, café y crema. Una experiencia visual y gustativa.
+
+        5. Cold Brew (250ml): $8.00
+           Descripción: Café infusionado en frío durante 12 horas. Suave, bajo en acidez y muy refrescante.
+
+        6. Filtrado Premium (Taza): $4.50
+           Descripción: Preparación por goteo lenta que resalta las notas más delicadas del grano.
+
+        ========================================
+        PRODUCTOS ADICIONALES
+        ========================================
+        - Pastelería Artesanal: Desde $2.00
+        - Granos de Café para llevar (Paquete 250g): A consultar en tienda.
+    `;
+
+    return textoFuente.trim();
+}
+
+
+window.api.listarProductos = listarProductos;
+window.api.cargarCarta = cargarCarta;

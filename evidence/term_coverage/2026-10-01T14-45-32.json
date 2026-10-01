@@ -1,0 +1,209 @@
+{
+  "version": "term_coverage v0.1",
+  "review_id": "2026-10-01T14-45-32",
+  "requirements": [
+    {
+      "id": "R1",
+      "text": "Ingresar a sección de configuración"
+    },
+    {
+      "id": "R2",
+      "text": "Dar de alta un dispositivo (NodeMCU) ingresando su IP, user y password"
+    },
+    {
+      "id": "R3",
+      "text": "Asignar nombre al nuevo dispositivo"
+    },
+    {
+      "id": "R4",
+      "text": "Seleccionar responsabilidades del dispositivo desde una lista (medir temperatura, abrir electrovalvula, relay, monitorear sensores)"
+    },
+    {
+      "id": "R5",
+      "text": "Permitir que un dispositivo realice múltiples tareas"
+    },
+    {
+      "id": "R6",
+      "text": "Configurar todo antes de iniciar una cocción"
+    },
+    {
+      "id": "R7",
+      "text": "Los NodeMCU ya tendrían cargados sus codigos y la SPA simplemente se encargaría de añadirlos a una etapa y monitorear los valores que este entrega"
+    },
+    {
+      "id": "R8",
+      "text": "Incorporar sensores de nivel de líquido"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "F1.1",
+      "task": "Diseñar e implementar el esquema de base de datos para la gestión de dispositivos.",
+      "description": "Crear las tablas y estructuras necesarias para almacenar metadatos de los dispositivos, incluyendo su identificación única, direcciones IP y credenciales asociadas."
+    },
+    {
+      "id": "F1.2.R2.1",
+      "task": "Definir el esquema lógico de la base de datos para responsabilidades asignadas.",
+      "description": "Crear y documentar el modelo conceptual/lógico (ERD) que define las tablas, relaciones y tipos de datos necesarios para modelar la conexión entre dispositivos/ubicaciones y las responsabilidades específicas monitoreadas. El resultado debe ser un documento aprobado del esquema lógico."
+    },
+    {
+      "id": "F1.2.R2.2",
+      "task": "Implementar el esquema físico de la base de datos para responsabilidades asignadas.",
+      "description": "Generar y ejecutar los scripts DDL necesarios para crear las tablas y estructuras físicas en la base de datos, basándose estrictamente en el modelo lógico aprobado (Subtask 0)."
+    },
+    {
+      "id": "F1.3",
+      "task": "Diseñar e implementar el esquema para la persistencia de lecturas de sensores en tiempo real.",
+      "description": "Crear las tablas y estructuras optimizadas (time-series) para recibir, almacenar y consultar grandes volúmenes de datos de lectura de sensores, incluyendo timestamps y niveles de líquido."
+    },
+    {
+      "id": "F2.1",
+      "task": "Implementar el endpoint API para el registro de nuevos dispositivos NodeMCU.",
+      "description": "Desarrollar la lógica y los endpoints REST necesarios para recibir, validar y persistir un nuevo dispositivo en la base de datos, utilizando el esquema definido para la gestión de dispositivos."
+    },
+    {
+      "id": "F2.2",
+      "task": "Implementar los endpoints API para consultar y actualizar detalles de un dispositivo.",
+      "description": "Desarrollar la lógica de negocio y los endpoints REST (GET, PUT) que permitan recuperar información detallada de un dispositivo existente y modificar sus metadatos generales."
+    },
+    {
+      "id": "F2.3",
+      "task": "Implementar el endpoint API para la asignación masiva de responsabilidades a un dispositivo.",
+      "description": "Desarrollar el endpoint principal que maneja la lógica de negocio para vincular múltiples responsabilidades (ej. medir temperatura, controlar electroválvula) a un único ID de dispositivo, asegurando la integridad referencial con los esquemas existentes."
+    },
+    {
+      "id": "F3.1",
+      "task": "Implementar el receptor de streaming de datos (Ingestion Endpoint)",
+      "description": "Configurar y desarrollar el endpoint o servicio backend que actúa como punto de entrada principal para recibir los flujos de datos en tiempo real desde múltiples NodeMCU."
+    },
+    {
+      "id": "F3.2",
+      "task": "Desarrollar la lógica de validación y procesamiento de payloads",
+      "description": "Implementar el servicio que recibe los datos crudos, valida su estructura (temperatura, estado de relés, niveles) y transforma los payloads para asegurar que cumplen con las reglas de negocio antes del almacenamiento."
+    },
+    {
+      "id": "F3.3",
+      "task": "Implementar la capa de persistencia de lecturas en tiempo real",
+      "description": "Integrar el servicio backend con la base de datos para almacenar las lecturas procesadas y validadas (temperatura, estado de relés, niveles), utilizando el esquema definido para sensores."
+    },
+    {
+      "id": "F4.1",
+      "task": "Desarrollar la estructura del formulario de configuración de dispositivos (UI/UX)",
+      "description": "Crear los componentes estáticos y el esqueleto de la interfaz para capturar los datos necesarios para configurar un nuevo dispositivo."
+    },
+    {
+      "id": "F4.2.R2.1",
+      "task": "Integrar la visualización de listado de dispositivos en el Dashboard",
+      "description": "Conectar los componentes del Dashboard para consumir la API que lista todos los dispositivos y mostrar esta información (ej. tabla o tarjetas) al usuario."
+    },
+    {
+      "id": "F4.2.R2.2",
+      "task": "Integrar la visualización de detalles de un dispositivo en el Dashboard",
+      "description": "Implementar la lógica para consultar y mostrar los detalles completos de un dispositivo específico, generalmente al seleccionar uno desde el listado o mediante una ruta dedicada."
+    },
+    {
+      "id": "F4.2.R2.3",
+      "task": "Implementar la funcionalidad de actualización de detalles de dispositivos en el Dashboard",
+      "description": "Conectar los componentes del formulario para enviar datos actualizados (PUT/PATCH) al backend, permitiendo modificar los detalles de un dispositivo existente y manejar el estado de éxito o error."
+    },
+    {
+      "id": "F4.3",
+      "task": "Implementar la visualización del estado en tiempo real (Dashboard principal)",
+      "description": "Establecer el componente de dashboard que consume y muestra los datos de streaming de sensores, incluyendo indicadores generales de estado."
+    },
+    {
+      "id": "F4.4",
+      "task": "Desarrollar el componente específico para la visualización de nivel de líquido",
+      "description": "Crear un widget reutilizable y especializado dentro del dashboard que consume los datos de streaming (F4.3) y muestra indicadores gráficos específicos para niveles de líquidos."
+    },
+    {
+      "id": "F4.5",
+      "task": "Crear la vista preliminar de simulación de secuencia de pasos (Pre-cocción)",
+      "description": "Construir el componente de UI/UX que permite al usuario visualizar o simular la secuencia lógica de pasos antes del inicio del proceso, sin requerir llamadas API en esta etapa."
+    }
+  ],
+  "items": [
+    {
+      "id": "R1",
+      "text": "Ingresar a sección de configuración",
+      "present": 1,
+      "total": 2,
+      "missing": [
+        "ingresar"
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Dar de alta un dispositivo (NodeMCU) ingresando su IP, user y password",
+      "present": 0,
+      "total": 3,
+      "missing": [
+        "alta",
+        "user",
+        "password"
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "Asignar nombre al nuevo dispositivo",
+      "present": 2,
+      "total": 3,
+      "missing": [
+        "nombre"
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "Seleccionar responsabilidades del dispositivo desde una lista (medir temperatura, abrir electrovalvula, relay, monitorear sensores)",
+      "present": 6,
+      "total": 8,
+      "missing": [
+        "abrir",
+        "relay"
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "Permitir que un dispositivo realice múltiples tareas",
+      "present": 2,
+      "total": 4,
+      "missing": [
+        "realice",
+        "tareas"
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "Configurar todo antes de iniciar una cocción",
+      "present": 3,
+      "total": 3,
+      "missing": []
+    },
+    {
+      "id": "R7",
+      "text": "Los NodeMCU ya tendrían cargados sus codigos y la SPA simplemente se encargaría de añadirlos a una etapa y monitorear los valores que este entrega",
+      "present": 1,
+      "total": 9,
+      "missing": [
+        "tendrian",
+        "cargados",
+        "codigos",
+        "simplemente",
+        "encargaria",
+        "anadirlos",
+        "valores",
+        "entrega"
+      ]
+    },
+    {
+      "id": "R8",
+      "text": "Incorporar sensores de nivel de líquido",
+      "present": 2,
+      "total": 3,
+      "missing": [
+        "incorporar"
+      ]
+    }
+  ],
+  "labels": {}
+}

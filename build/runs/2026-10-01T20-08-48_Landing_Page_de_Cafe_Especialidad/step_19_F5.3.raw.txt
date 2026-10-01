@@ -1,0 +1,382 @@
+### FILE: styles.css
+```css
+/* Reset CSS */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f9f7f4; /* Fondo crema suave */
+    /* Asegura que el body ocupe toda la altura y maneje bien el flujo */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header y Navegación */
+#site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 5%;
+    background-color: #6f4e37; /* Marrón café oscuro */
+    color: white;
+    /* Asegura que el header se pegue arriba */
+    flex-shrink: 0; 
+}
+
+.logo {
+    font-size: 1.8em;
+    margin: 0;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+}
+
+nav li {
+    margin-left: 25px;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 5px 0;
+    transition: color 0.3s;
+}
+
+nav a:hover {
+    color: #d2b48c; /* Beige claro al pasar el ratón */
+}
+
+/* Contenido Principal y Secciones */
+main {
+    flex-grow: 1; /* Permite que main ocupe el espacio restante entre header y footer */
+    padding-bottom: 50px;
+}
+
+section {
+    padding: 60px 5%;
+    margin-bottom: 30px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+section h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #6f4e37;
+    font-size: 2em;
+}
+
+/* --- Estilos del Carrusel de Café (R1) --- */
+.catalogo-container {
+    overflow: hidden; /* Oculta lo que se sale del carrusel visible */
+    padding: 20px 0;
+}
+
+.carousel-wrapper {
+    display: flex;
+    /* Permite el desplazamiento horizontal y oculta los elementos fuera de vista */
+    overflow-x: scroll; 
+    scroll-behavior: smooth; /* Suaviza la transición al hacer scroll */
+    gap: 20px; /* Espacio entre tarjetas */
+    padding-bottom: 15px; /* Espacio para el scrollbar si se muestra */
+}
+
+.card-slider {
+    display: flex;
+    /* Asegura que los elementos fluyan horizontalmente */
+    width: fit-content; /* Permite que el contenedor crezca con sus hijos */
+    transition: transform 0.3s ease-in-out;
+}
+
+.cafe-card {
+    min-width: 300px; /* Ancho fijo para cada tarjeta de café */
+    background-color: #fff8e1;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Asegura que la imagen no se salga */
+    transition: transform 0.3s ease;
+}
+
+/* Estilo placeholder para visibilidad inicial */
+.cafe-card.placeholder {
+    height: 450px;
+    background-color: #e8e6df;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    color: #6f4e37;
+}
+
+/* --- Fin Estilos Carrusel ---
+
+
+/* =========================================
+   Estilos del Formulario de Contacto (R2)
+   ========================================= */
+.contact-form-wrapper {
+    max-width: 600px;
+    margin: 0 auto; /* Centrar el formulario */
+}
+
+#contactForm {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 30px;
+    background-color: #fefbf8;
+    border: 1px solid #e0dcd4;
+    border-radius: 8px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #6f4e37;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group textarea {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* Estilo de foco para mejorar la UX */
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group textarea:focus {
+    border-color: #6f4e37;
+    box-shadow: 0 0 5px rgba(111, 78, 55, 0.2);
+    outline: none; /* Quitar el borde de foco por defecto del navegador */
+}
+
+/* Estilo para textarea (específico) */
+#preferencias, #mensaje {
+    resize: vertical; /* Permitir redimensionar solo verticalmente */
+}
+
+
+/* Botón de Envío */
+.btn-submit {
+    background-color: #6f4e37;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.btn-submit:hover {
+    background-color: #4a362c; /* Un tono más oscuro al pasar el ratón */
+}
+
+.btn-submit:active {
+    transform: translateY(1px);
+}
+
+
+/* =========================================
+   Estilos de la Carta (R4)
+   ========================================= */
+.carta-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.menu-item {
+    background-color: #fefbf8;
+    border: 1px solid #e0dcd4;
+    padding: 25px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.product-name {
+    color: #6f4e37;
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+.product-description {
+    flex-grow: 1; /* Permite que la descripción ocupe el espacio disponible */
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.product-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 1px dashed #ccc;
+}
+
+.product-price {
+    font-size: 1.4em;
+    color: #a0522d; /* Color café más claro para el precio */
+    font-weight: bold;
+}
+
+.btn-detalle {
+    background-color: #6f4e37;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-detalle:hover {
+    background-color: #4a362c;
+}
+
+
+/* =========================================
+   Footer
+   ========================================= */
+#site-footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+    margin-top: auto; /* Empuja el footer al final de la página */
+    flex-shrink: 0;
+}
+```
+
+### FILE: app.js
+```javascript
+document.addEventListener('DOMContentLoaded', () => {
+    // ==================================================
+    // R1: Lógica del Carrusel de Cafés (F2.4)
+    // ==================================================
+
+    const catalogoSection = document.getElementById('catalogo-de-cafes');
+    if (catalogoSection) {
+        const carouselWrapper = catalogoSection.querySelector('.carousel-wrapper');
+        const cardSlider = catalogoSection.querySelector('.card-slider');
+        const cards = Array.from(document.querySelectorAll('.cafe-card'));
+
+        // 1. Crear Controles de Navegación (Prev/Next) si no existen
+        let prevButton = document.getElementById('prev-carousel');
+        let nextButton = document.getElementById('next-carousel');
+
+        if (!prevButton) {
+            prevButton = document.createElement('button');
+            prevButton.id = 'prev-carousel';
+            prevButton.textContent = '← Anterior';
+            prevButton.className = 'carousel-control prev';
+            catalogoSection.querySelector('.catalogo-container').prepend(prevButton); // Añadir antes del wrapper
+        }
+
+        if (!nextButton) {
+            nextButton = document.createElement('button');
+            nextButton.id = 'next-carousel';
+            nextButton.textContent = 'Siguiente →';
+            nextButton.className = 'carousel-control next';
+            catalogoSection.querySelector('.catalogo-container').appendChild(nextButton); // Añadir después del wrapper
+        }
+
+        // 2. Estilos básicos para los controles (Mejora de la UI)
+        const styleSheet = document.createElement("style");
+        styleSheet.type = "text/css";
+        styleSheet.innerText = `
+            /* Estilos para Controles del Carrusel */
+            .catalogo-container {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+                padding: 10px 0;
+            }
+            .carousel-control {
+                background-color: #6f4e37;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                cursor: pointer;
+                font-size: 1em;
+                border-radius: 5px;
+                transition: background-color 0.3s;
+            }
+            .carousel-control:hover {
+                background-color: #4a362c;
+            }
+            /* Ajustar el wrapper para que contenga los controles y el slider */
+            .catalogo-container .carousel-wrapper {
+                flex-grow: 1; /* Permite que ocupe el espacio restante */
+                overflow: hidden; /* Asegura que solo se vea lo del slider */
+            }
+        `;
+        document.head.appendChild(styleSheet);
+
+
+        // 3. Lógica de Navegación
+        const cardWidth = cards[0].offsetWidth + 20; // Ancho de una tarjeta + gap (asumiendo que el gap es constante)
+        let currentIndex = 0;
+        const visibleCardsCount = Math.floor(catalogoSection.clientWidth / (cardWidth - 20));
+
+        // Función para actualizar la posición del carrusel
+        const updateCarouselPosition = () => {
+            // Calculamos el desplazamiento total basado en cuántas tarjetas visibles queremos mostrar
+            const offset = currentIndex * cardWidth;
+            cardSlider.style.transform = 'translateX(-' + offset + 'px)';
+
+            // Actualizar estado de los botones (deshabilitar al inicio/final)
+            prevButton.disabled = currentIndex === 0;
+            nextButton.disabled = currentIndex >= cards.length - visibleCardsCount || cards.length <= visibleCardsCount;
+        };
+
+        // Event Handlers
+        const goToNextSlide = () => {
+            if (currentIndex < cards.length - visibleCardsCount) {
+                currentIndex++;
+                updateCarouselPosition();
+            }
+        };
+
+        const goToPrevSlide = () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateCarouselPosition();
+            }
+        };
+
+        // Asignar listeners a los botones
+        prevButton.addEventListener('click', goToPrevSlide);
+        nextButton.addEventListener('click', goToNextSlide);
+
+        // Inicializar la posición del carrusel
+        updateCarouselPosition();
+    }
+
+
+    // ==================================================
+    // R2: Lógica de Formulario (Validación Cliente)
+    // =================

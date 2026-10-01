@@ -1,0 +1,893 @@
+{
+  "input": {
+    "source": "project20_snapshot.json",
+    "refined": {
+      "project_name": "Landing Page de Café Especialidad",
+      "objetivo": "Crear una landing page para una empresa de café especialidad con secciones para mostrar cafés, formulario de contacto, clientes, nosotros y carta.",
+      "features": [
+        "Catalogo de cafés en tarjetas con foto superior e información inferior (en carrousel)",
+        "Formulario de contacto con campos obligatorios y opcionalmente un campo para preferencias",
+        "Sección 'Nosotros' con historia de la empresa",
+        "Sección 'Carta' con productos disponibles actualmente, obtenidos desde archivo de texto"
+      ],
+      "criterios_holdout": [
+        "Las tarjetas de café deben incluir foto y descripción.",
+        "El carrousel debe permitir navegar entre las tarjetas de café.",
+        "El formulario de contacto debe tener campos obligatorios solo.",
+        "La sección 'Nosotros' debe presentar la historia de la empresa.",
+        "La sección 'Carta' debe mostrar productos actualmente disponibles y actualizarlos desde un archivo de texto."
+      ],
+      "exclusiones": []
+    },
+    "tasks": [
+      {
+        "id": "F1.1",
+        "role": "Frontend",
+        "task": "Establecer el esqueleto HTML y CSS base de la Landing Page.",
+        "description": "Configurar el boilerplate básico (DOCTYPE, head, body) e implementar un reset CSS inicial para asegurar una estructura limpia.",
+        "depends_on": []
+      },
+      {
+        "id": "F1.2",
+        "role": "Frontend",
+        "task": "Implementar la estructura de layout global y contenedores principales.",
+        "description": "Crear el contenedor principal (main wrapper), e incluir los placeholders estructurales para el Header y el Footer en el HTML/CSS base.",
+        "depends_on": [
+          "F1.1"
+        ]
+      },
+      {
+        "id": "F1.3",
+        "role": "Frontend",
+        "task": "Crear el contenedor estructural de la sección 'Nosotros'.",
+        "description": "Añadir un div/sección con clase o ID específico para encapsular todo el contenido de la sección 'Nosotros', sin añadir contenido interno.",
+        "depends_on": [
+          "F1.2"
+        ]
+      },
+      {
+        "id": "F1.4",
+        "role": "Frontend",
+        "task": "Crear el contenedor estructural de la sección Catálogo.",
+        "description": "Añadir un div/sección con clase o ID específico para encapsular todo el contenido del catálogo, sin añadir contenido interno.",
+        "depends_on": [
+          "F1.2"
+        ]
+      },
+      {
+        "id": "F1.5",
+        "role": "Frontend",
+        "task": "Crear el contenedor estructural de la sección Carta.",
+        "description": "Añadir un div/sección con clase o ID específico para encapsular todo el contenido de la sección 'Carta', sin añadir contenido interno.",
+        "depends_on": [
+          "F1.2"
+        ]
+      },
+      {
+        "id": "F1.6",
+        "role": "Frontend",
+        "task": "Crear el contenedor estructural de la sección Contacto.",
+        "description": "Añadir un div/sección con clase o ID específico para encapsular todo el contenido del formulario y detalles de contacto, sin añadir contenido interno.",
+        "depends_on": [
+          "F1.2"
+        ]
+      },
+      {
+        "id": "F2.1",
+        "role": "Frontend",
+        "task": "Integrar contenido textual y multimedia estático de la sección 'Nosotros'",
+        "description": "Rellenar el contenedor estructural creado en F1.3 con el texto final, imágenes y elementos visuales para la sección 'Nosotros'.",
+        "depends_on": [
+          "F1.3"
+        ]
+      },
+      {
+        "id": "F2.2",
+        "role": "Frontend",
+        "task": "Crear la estructura base del carrusel de cafés en el Catálogo",
+        "description": "Implementar el contenedor visual y la disposición estructural (HTML/CSS) para albergar el componente de carrusel dentro del área de catálogo.",
+        "depends_on": [
+          "F1.4"
+        ]
+      },
+      {
+        "id": "F2.3",
+        "role": "Frontend",
+        "task": "Desarrollar el componente visual reutilizable de la tarjeta de café",
+        "description": "Crear el componente atómico (Card) que muestre la foto, nombre y descripción de un café utilizando datos estáticos simulados.",
+        "depends_on": []
+      },
+      {
+        "id": "F2.4",
+        "role": "Frontend",
+        "task": "Implementar la lógica de navegación del carrusel de cafés",
+        "description": "Añadir la funcionalidad interactiva (botones Next/Prev) y el manejo de estado para que las tarjetas creadas en F2.3 se muestren navegablemente dentro de la estructura definida en F2.2.",
+        "depends_on": [
+          "F2.2",
+          "F2.3"
+        ]
+      },
+      {
+        "id": "F3.1",
+        "role": "Backend",
+        "task": "Implementar la lectura del archivo de texto fuente de productos.",
+        "description": "Crear el módulo o servicio que lea y cargue el contenido completo del archivo de texto fuente (la 'Carta') en memoria, sin realizar aún ningún parseo estructurado.",
+        "depends_on": []
+      },
+      {
+        "id": "F3.2",
+        "role": "Backend",
+        "task": "Desarrollar la lógica de parseo y modelado de datos del menú.",
+        "description": "Implementar el motor que procesa el texto crudo cargado en F3.1, extrayendo y mapeando los campos requeridos (nombre, descripción, precio) a una estructura de datos programática (ej. lista de objetos JSON).",
+        "depends_on": [
+          "F3.1"
+        ]
+      },
+      {
+        "id": "F3.3",
+        "role": "Backend",
+        "task": "Crear el endpoint API para servir los datos estructurados del menú.",
+        "description": "Exponer un endpoint RESTful que consuma la estructura de datos generada en F3.2 y devuelva la información completa del menú (nombre, descripción, precio) en formato JSON listo para el consumo por el frontend.",
+        "depends_on": [
+          "F3.2"
+        ]
+      },
+      {
+        "id": "F4.1",
+        "role": "Frontend",
+        "task": "Implementar la estructura HTML del formulario de contacto.",
+        "description": "Crear los campos de input (nombre, email, mensaje) y el botón dentro del contenedor estructural existente para definir la forma del formulario.",
+        "depends_on": [
+          "F1.6"
+        ]
+      },
+      {
+        "id": "F4.2",
+        "role": "Frontend",
+        "task": "Estilizar el formulario de contacto con CSS.",
+        "description": "Aplicar estilos visuales (layout, colores, espaciado) al formulario para asegurar una experiencia de usuario fluida y coherente con la landing page.",
+        "depends_on": [
+          "F4.1"
+        ]
+      },
+      {
+        "id": "F4.3",
+        "role": "Frontend",
+        "task": "Implementar la validación del lado del cliente (JavaScript).",
+        "description": "Añadir lógica JavaScript para verificar que los campos obligatorios estén llenos y sean del formato correcto antes de intentar el envío, proporcionando mensajes de error al usuario.",
+        "depends_on": [
+          "F4.1"
+        ]
+      },
+      {
+        "id": "F5.1",
+        "role": "Frontend",
+        "task": "Implementación de la conexión dinámica de datos al carrusel de cafés.",
+        "description": "Conectar el componente del carrusel (usando las tarjetas definidas en F2.3) para que muestre contenido dinámico, consumiendo una fuente de datos simulada o real si se define posteriormente.",
+        "depends_on": [
+          "F2.3",
+          "F2.4"
+        ]
+      },
+      {
+        "id": "F5.2",
+        "role": "Frontend",
+        "task": "Consumo de datos del menú desde el endpoint API.",
+        "description": "Implementar la lógica JavaScript para consumir los datos estructurados del menú (la 'Carta') utilizando el endpoint creado en F3.3 y almacenar estos datos localmente para su renderizado.",
+        "depends_on": [
+          "F3.3"
+        ]
+      },
+      {
+        "id": "F5.3",
+        "role": "Frontend",
+        "task": "Renderización dinámica de la sección 'Carta'.",
+        "description": "Utilizar los datos consumidos en F5.2 para renderizar dinámicamente el contenido dentro del contenedor estructural de la sección 'Carta' (F1.5), asegurando que la sección sea funcional.",
+        "depends_on": [
+          "F1.5",
+          "F5.2"
+        ]
+      }
+    ]
+  },
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "specialist_version": "spa_specialist v0.4-skeleton-contract",
+    "order": [
+      "F1.1",
+      "F1.2",
+      "F1.3",
+      "F1.4",
+      "F1.5",
+      "F1.6",
+      "F2.1",
+      "F2.2",
+      "F2.3",
+      "F2.4",
+      "F3.1",
+      "F3.2",
+      "F3.3",
+      "F4.1",
+      "F4.2",
+      "F4.3",
+      "F5.1",
+      "F5.2",
+      "F5.3"
+    ],
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "F1.1",
+        "role": "Frontend",
+        "ms": 104041,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 1413,
+          "completion_tokens": 1368,
+          "total_tokens": 2781,
+          "completion_tokens_details": {
+            "reasoning_tokens": 349
+          }
+        },
+        "changed": [
+          "index.html",
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [],
+          "called": [],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_01_F1.1",
+        "sha256": {
+          "index.html": "cb3aaa4a922a933c55c04c441fb47f77c97771e3911060dd20d2a67fb7326738",
+          "styles.css": "6292ba1b9e8008f01e110fc050f7b84b987b6a3ec8ed5695d764045a1bf81c2e",
+          "api.js": "4250ea40e8f845bc242b53f38e4b86a98edd050e1421fd83a6e6c4c58bab1596",
+          "app.js": "97e203ae40b1d31668d89c6b828a1840f7e09e139a4d1360ad3fcc154e277a3e"
+        }
+      },
+      {
+        "n": 2,
+        "task_id": "F1.2",
+        "role": "Frontend",
+        "ms": 81750,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 1938,
+          "completion_tokens": 1103,
+          "total_tokens": 3041,
+          "completion_tokens_details": {
+            "reasoning_tokens": 458
+          }
+        },
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [],
+          "called": [],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_02_F1.2",
+        "sha256": {
+          "index.html": "cb3aaa4a922a933c55c04c441fb47f77c97771e3911060dd20d2a67fb7326738",
+          "styles.css": "51ed13f05f41ab2c091df068a6c42d0f5c368a4d66b2c44557571ad16da4d9d4",
+          "api.js": "4250ea40e8f845bc242b53f38e4b86a98edd050e1421fd83a6e6c4c58bab1596",
+          "app.js": "97e203ae40b1d31668d89c6b828a1840f7e09e139a4d1360ad3fcc154e277a3e"
+        }
+      },
+      {
+        "n": 3,
+        "task_id": "F1.3",
+        "role": "Frontend",
+        "ms": 70527,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 2052,
+          "completion_tokens": 878,
+          "total_tokens": 2930,
+          "completion_tokens_details": {
+            "reasoning_tokens": 320
+          }
+        },
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [],
+          "called": [],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_03_F1.3",
+        "sha256": {
+          "index.html": "144c1d6ab7ec4a03026b06dfb260f60e550c2bf0b10fab4298a6abeab17a341f",
+          "styles.css": "51ed13f05f41ab2c091df068a6c42d0f5c368a4d66b2c44557571ad16da4d9d4",
+          "api.js": "4250ea40e8f845bc242b53f38e4b86a98edd050e1421fd83a6e6c4c58bab1596",
+          "app.js": "97e203ae40b1d31668d89c6b828a1840f7e09e139a4d1360ad3fcc154e277a3e"
+        }
+      },
+      {
+        "n": 4,
+        "task_id": "F1.4",
+        "role": "Frontend",
+        "ms": 71667,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 2065,
+          "completion_tokens": 860,
+          "total_tokens": 2925,
+          "completion_tokens_details": {
+            "reasoning_tokens": 284
+          }
+        },
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [],
+          "called": [],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_04_F1.4",
+        "sha256": {
+          "index.html": "d2adf0aabad4ce0a250cde9a2efe702953086f6cd90165e6ae822763faa28a6a",
+          "styles.css": "51ed13f05f41ab2c091df068a6c42d0f5c368a4d66b2c44557571ad16da4d9d4",
+          "api.js": "4250ea40e8f845bc242b53f38e4b86a98edd050e1421fd83a6e6c4c58bab1596",
+          "app.js": "97e203ae40b1d31668d89c6b828a1840f7e09e139a4d1360ad3fcc154e277a3e"
+        }
+      },
+      {
+        "n": 5,
+        "task_id": "F1.5",
+        "role": "Frontend",
+        "ms": 71905,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 2083,
+          "completion_tokens": 875,
+          "total_tokens": 2958,
+          "completion_tokens_details": {
+            "reasoning_tokens": 282
+          }
+        },
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [],
+          "called": [],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_05_F1.5",
+        "sha256": {
+          "index.html": "7c194de5697f1fe0269ebfeb050516451f47a8022cbfdd65b7d1778cd753f41d",
+          "styles.css": "51ed13f05f41ab2c091df068a6c42d0f5c368a4d66b2c44557571ad16da4d9d4",
+          "api.js": "4250ea40e8f845bc242b53f38e4b86a98edd050e1421fd83a6e6c4c58bab1596",
+          "app.js": "97e203ae40b1d31668d89c6b828a1840f7e09e139a4d1360ad3fcc154e277a3e"
+        }
+      },
+      {
+        "n": 6,
+        "task_id": "F1.6",
+        "role": "Frontend",
+        "ms": 76521,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 2100,
+          "completion_tokens": 939,
+          "total_tokens": 3039,
+          "completion_tokens_details": {
+            "reasoning_tokens": 329
+          }
+        },
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [],
+          "called": [],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_06_F1.6",
+        "sha256": {
+          "index.html": "72b2b2ee8dac7f697af5fd95cdedf45529146a2c5d0630708e7f893e3847f250",
+          "styles.css": "51ed13f05f41ab2c091df068a6c42d0f5c368a4d66b2c44557571ad16da4d9d4",
+          "api.js": "4250ea40e8f845bc242b53f38e4b86a98edd050e1421fd83a6e6c4c58bab1596",
+          "app.js": "97e203ae40b1d31668d89c6b828a1840f7e09e139a4d1360ad3fcc154e277a3e"
+        }
+      },
+      {
+        "n": 7,
+        "task_id": "F2.1",
+        "role": "Frontend",
+        "ms": 91509,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 2120,
+          "completion_tokens": 1182,
+          "total_tokens": 3302,
+          "completion_tokens_details": {
+            "reasoning_tokens": 304
+          }
+        },
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [],
+          "called": [],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_07_F2.1",
+        "sha256": {
+          "index.html": "a37de30100713a9d55f7533cc04ac42c18ee25f3475b0f38b71d59dcfb561ee6",
+          "styles.css": "51ed13f05f41ab2c091df068a6c42d0f5c368a4d66b2c44557571ad16da4d9d4",
+          "api.js": "4250ea40e8f845bc242b53f38e4b86a98edd050e1421fd83a6e6c4c58bab1596",
+          "app.js": "97e203ae40b1d31668d89c6b828a1840f7e09e139a4d1360ad3fcc154e277a3e"
+        }
+      },
+      {
+        "n": 8,
+        "task_id": "F2.2",
+        "role": "Frontend",
+        "ms": 189810,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 2401,
+          "completion_tokens": 2676,
+          "total_tokens": 5077,
+          "completion_tokens_details": {
+            "reasoning_tokens": 567
+          }
+        },
+        "changed": [
+          "index.html",
+          "styles.css",
+          "api.js",
+          "app.js"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [],
+          "called": [],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_08_F2.2",
+        "sha256": {
+          "index.html": "334c96612d16abf10f1f08d5cdb1e5bc696bd6f9f9569f19716e92caaf61a15c",
+          "styles.css": "630d3640b51d4287d9d5a1c3631db3cb180ed9a56625098330f0a2c4b9bfe9fe",
+          "api.js": "4250ea40e8f845bc242b53f38e4b86a98edd050e1421fd83a6e6c4c58bab1596",
+          "app.js": "97e203ae40b1d31668d89c6b828a1840f7e09e139a4d1360ad3fcc154e277a3e"
+        }
+      },
+      {
+        "n": 9,
+        "task_id": "F2.3",
+        "role": "Frontend",
+        "ms": 157421,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 2913,
+          "completion_tokens": 1968,
+          "total_tokens": 4881,
+          "completion_tokens_details": {
+            "reasoning_tokens": 563
+          }
+        },
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [],
+          "called": [],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_09_F2.3",
+        "sha256": {
+          "index.html": "41752dd541dba8180d63bbbac7a55744f29aa16e0d98e19fee0738012de1e80b",
+          "styles.css": "630d3640b51d4287d9d5a1c3631db3cb180ed9a56625098330f0a2c4b9bfe9fe",
+          "api.js": "4250ea40e8f845bc242b53f38e4b86a98edd050e1421fd83a6e6c4c58bab1596",
+          "app.js": "97e203ae40b1d31668d89c6b828a1840f7e09e139a4d1360ad3fcc154e277a3e"
+        }
+      },
+      {
+        "n": 10,
+        "task_id": "F2.4",
+        "role": "Frontend",
+        "ms": 182458,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 3391,
+          "completion_tokens": 2160,
+          "total_tokens": 5551,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1012
+          }
+        },
+        "changed": [
+          "app.js"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [],
+          "called": [],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_10_F2.4",
+        "sha256": {
+          "index.html": "41752dd541dba8180d63bbbac7a55744f29aa16e0d98e19fee0738012de1e80b",
+          "styles.css": "630d3640b51d4287d9d5a1c3631db3cb180ed9a56625098330f0a2c4b9bfe9fe",
+          "api.js": "4250ea40e8f845bc242b53f38e4b86a98edd050e1421fd83a6e6c4c58bab1596",
+          "app.js": "b5df4a80099391ecd983fbc3b0994228b2e46fefed356319fcea634bc5c000c2"
+        }
+      },
+      {
+        "n": 11,
+        "task_id": "F3.1",
+        "role": "Backend",
+        "ms": 118459,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 4500,
+          "completion_tokens": 675,
+          "total_tokens": 5175,
+          "completion_tokens_details": {
+            "reasoning_tokens": 214
+          }
+        },
+        "changed": [
+          "api.js"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [
+            "leerArchivoCarta"
+          ],
+          "called": [],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_11_F3.1",
+        "sha256": {
+          "index.html": "41752dd541dba8180d63bbbac7a55744f29aa16e0d98e19fee0738012de1e80b",
+          "styles.css": "630d3640b51d4287d9d5a1c3631db3cb180ed9a56625098330f0a2c4b9bfe9fe",
+          "api.js": "a06c703a94f973f174fb633b0a3e036823a9c0369fb722fa98b2daeb9602b6af",
+          "app.js": "b5df4a80099391ecd983fbc3b0994228b2e46fefed356319fcea634bc5c000c2"
+        }
+      },
+      {
+        "n": 12,
+        "task_id": "F3.2",
+        "role": "Backend",
+        "ms": 181346,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 4936,
+          "completion_tokens": 1408,
+          "total_tokens": 6344,
+          "completion_tokens_details": {
+            "reasoning_tokens": 529
+          }
+        },
+        "changed": [
+          "api.js"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [
+            "leerArchivoCarta",
+            "parseCartaData"
+          ],
+          "called": [],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_12_F3.2",
+        "sha256": {
+          "index.html": "41752dd541dba8180d63bbbac7a55744f29aa16e0d98e19fee0738012de1e80b",
+          "styles.css": "630d3640b51d4287d9d5a1c3631db3cb180ed9a56625098330f0a2c4b9bfe9fe",
+          "api.js": "4fdaed20642a22604b6b738da40265913a90af6088a7260b9da483b41f6cff6c",
+          "app.js": "b5df4a80099391ecd983fbc3b0994228b2e46fefed356319fcea634bc5c000c2"
+        }
+      },
+      {
+        "n": 13,
+        "task_id": "F3.3",
+        "role": "Backend",
+        "ms": 186960,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 5354,
+          "completion_tokens": 1342,
+          "total_tokens": 6696,
+          "completion_tokens_details": {
+            "reasoning_tokens": 232
+          }
+        },
+        "changed": [
+          "api.js"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [
+            "getMenuData",
+            "leerArchivoCarta",
+            "parseCartaData"
+          ],
+          "called": [],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_13_F3.3",
+        "sha256": {
+          "index.html": "41752dd541dba8180d63bbbac7a55744f29aa16e0d98e19fee0738012de1e80b",
+          "styles.css": "630d3640b51d4287d9d5a1c3631db3cb180ed9a56625098330f0a2c4b9bfe9fe",
+          "api.js": "8659b026c9e4a29123e18d334eddcf30231d30f3e400d3f03ac4cab3ebdc3f53",
+          "app.js": "b5df4a80099391ecd983fbc3b0994228b2e46fefed356319fcea634bc5c000c2"
+        }
+      },
+      {
+        "n": 14,
+        "task_id": "F4.1",
+        "role": "Frontend",
+        "ms": 262703,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 5572,
+          "completion_tokens": 2183,
+          "total_tokens": 7755,
+          "completion_tokens_details": {
+            "reasoning_tokens": 505
+          }
+        },
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [
+            "getMenuData",
+            "leerArchivoCarta",
+            "parseCartaData"
+          ],
+          "called": [],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_14_F4.1",
+        "sha256": {
+          "index.html": "33e9baa4fb66bd03c1cfaadb9a5b9639a75dd649b0d7d3111c57bfe3fadd3073",
+          "styles.css": "630d3640b51d4287d9d5a1c3631db3cb180ed9a56625098330f0a2c4b9bfe9fe",
+          "api.js": "8659b026c9e4a29123e18d334eddcf30231d30f3e400d3f03ac4cab3ebdc3f53",
+          "app.js": "b5df4a80099391ecd983fbc3b0994228b2e46fefed356319fcea634bc5c000c2"
+        }
+      },
+      {
+        "n": 15,
+        "task_id": "F4.2",
+        "role": "Frontend",
+        "ms": 250905,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 5827,
+          "completion_tokens": 1969,
+          "total_tokens": 7796,
+          "completion_tokens_details": {
+            "reasoning_tokens": 284
+          }
+        },
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [
+            "getMenuData",
+            "leerArchivoCarta",
+            "parseCartaData"
+          ],
+          "called": [],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_15_F4.2",
+        "sha256": {
+          "index.html": "33e9baa4fb66bd03c1cfaadb9a5b9639a75dd649b0d7d3111c57bfe3fadd3073",
+          "styles.css": "2caa5eaece80c51de122216b7975086d14045ce4ccc290aee737d29fd4ed7c8d",
+          "api.js": "8659b026c9e4a29123e18d334eddcf30231d30f3e400d3f03ac4cab3ebdc3f53",
+          "app.js": "b5df4a80099391ecd983fbc3b0994228b2e46fefed356319fcea634bc5c000c2"
+        }
+      },
+      {
+        "n": 16,
+        "task_id": "F4.3",
+        "role": "Frontend",
+        "ms": 287903,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 6449,
+          "completion_tokens": 2142,
+          "total_tokens": 8591,
+          "completion_tokens_details": {
+            "reasoning_tokens": 336
+          }
+        },
+        "changed": [
+          "app.js",
+          "api.js"
+        ],
+        "rejected": [],
+        "contract_retry": {
+          "problem": "app.js llama window.api.crearContacto(), que no existe en api.js (funciones definidas: window.api.getMenuData(), window.api.leerArchivoCarta(), window.api.parseCartaData())",
+          "ms": 462033,
+          "finish_reason": "stop",
+          "changed": [
+            "api.js",
+            "app.js"
+          ],
+          "resolved": true
+        },
+        "contract": {
+          "defined": [
+            "crearContacto",
+            "getMenuData",
+            "leerArchivoCarta",
+            "parseCartaData"
+          ],
+          "called": [
+            "crearContacto"
+          ],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_16_F4.3",
+        "sha256": {
+          "index.html": "33e9baa4fb66bd03c1cfaadb9a5b9639a75dd649b0d7d3111c57bfe3fadd3073",
+          "styles.css": "2caa5eaece80c51de122216b7975086d14045ce4ccc290aee737d29fd4ed7c8d",
+          "api.js": "9c4836fbdcbb82bc45a029ad869b5f94a55390051fb1aeccd7cc324b75d751ce",
+          "app.js": "ff5105882624f9037af982c5e987e26c131978685c05aaad8a4067889a8a9299"
+        }
+      },
+      {
+        "n": 17,
+        "task_id": "F5.1",
+        "role": "Frontend",
+        "ms": 582267,
+        "finish_reason": "length",
+        "usage": {
+          "prompt_tokens": 7404,
+          "completion_tokens": 4628,
+          "total_tokens": 12032,
+          "completion_tokens_details": {
+            "reasoning_tokens": 501
+          }
+        },
+        "changed": [
+          "api.js"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [
+            "crearContacto",
+            "getMenuData",
+            "leerArchivoCarta",
+            "listarCafeData",
+            "parseCartaData"
+          ],
+          "called": [
+            "crearContacto"
+          ],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_17_F5.1",
+        "sha256": {
+          "index.html": "33e9baa4fb66bd03c1cfaadb9a5b9639a75dd649b0d7d3111c57bfe3fadd3073",
+          "styles.css": "2caa5eaece80c51de122216b7975086d14045ce4ccc290aee737d29fd4ed7c8d",
+          "api.js": "8c99e1a6509aa75052032e150610f59aa07d032cdf87387e6fc1d9bb1211b245",
+          "app.js": "ff5105882624f9037af982c5e987e26c131978685c05aaad8a4067889a8a9299"
+        }
+      },
+      {
+        "n": 18,
+        "task_id": "F5.2",
+        "role": "Frontend",
+        "ms": 389652,
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 7781,
+          "completion_tokens": 2730,
+          "total_tokens": 10511,
+          "completion_tokens_details": {
+            "reasoning_tokens": 284
+          }
+        },
+        "changed": [
+          "app.js"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [
+            "crearContacto",
+            "getMenuData",
+            "leerArchivoCarta",
+            "listarCafeData",
+            "parseCartaData"
+          ],
+          "called": [
+            "crearContacto",
+            "getMenuData"
+          ],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_18_F5.2",
+        "sha256": {
+          "index.html": "33e9baa4fb66bd03c1cfaadb9a5b9639a75dd649b0d7d3111c57bfe3fadd3073",
+          "styles.css": "2caa5eaece80c51de122216b7975086d14045ce4ccc290aee737d29fd4ed7c8d",
+          "api.js": "8c99e1a6509aa75052032e150610f59aa07d032cdf87387e6fc1d9bb1211b245",
+          "app.js": "eaae01e3da846c210e676be3d4ac0c08e847f211f489bc8a1a884e0094eb09a7"
+        }
+      },
+      {
+        "n": 19,
+        "task_id": "F5.3",
+        "role": "Frontend",
+        "ms": 497394,
+        "finish_reason": "length",
+        "usage": {
+          "prompt_tokens": 8372,
+          "completion_tokens": 3660,
+          "total_tokens": 12032,
+          "completion_tokens_details": {
+            "reasoning_tokens": 504
+          }
+        },
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract": {
+          "defined": [
+            "crearContacto",
+            "getMenuData",
+            "leerArchivoCarta",
+            "listarCafeData",
+            "parseCartaData"
+          ],
+          "called": [
+            "crearContacto",
+            "getMenuData"
+          ],
+          "missing": [],
+          "loadError": null
+        },
+        "dir": "step_19_F5.3",
+        "sha256": {
+          "index.html": "33e9baa4fb66bd03c1cfaadb9a5b9639a75dd649b0d7d3111c57bfe3fadd3073",
+          "styles.css": "45a0d8b0e0e376ef829b6c37b624654f7f7f37645449513ee0e14e75c87edc65",
+          "api.js": "8c99e1a6509aa75052032e150610f59aa07d032cdf87387e6fc1d9bb1211b245",
+          "app.js": "eaae01e3da846c210e676be3d4ac0c08e847f211f489bc8a1a884e0094eb09a7"
+        }
+      }
+    ]
+  }
+}

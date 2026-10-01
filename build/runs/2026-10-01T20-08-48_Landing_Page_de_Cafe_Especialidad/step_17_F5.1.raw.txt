@@ -1,0 +1,400 @@
+### FILE: api.js
+```javascript
+// Capa de datos SIMULADA (backend mock). La UI usa solo window.api.
+window.api = window.api || {};
+
+/**
+ * Simula la lectura de un archivo de texto fuente que contiene los productos de la carta.
+ * @returns {Promise<string>} Una promesa que resuelve con el contenido del archivo como string.
+ */
+window.api.leerArchivoCarta = async () => {
+    console.log("Simulando lectura de archivo de Carta...");
+    // Simulación de latencia de red/lectura de disco
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    const contenidoTexto = `
+========================================
+CARTA DE PRODUCTOS - AROMA CAFÉ
+========================================
+
+1. Tostado Clásico (Grano Entero)
+   Descripción: Mezcla equilibrada de Colombia y Brasil. Ideal para el día a día.
+   Notas: Chocolate, caramelo, nuez.
+   Precio: $2500 CLP / 500g
+
+2. Espresso Premium (Molido)
+   Descripción: Blend intenso con cuerpo y notas achocolatadas. Perfecto para máquinas de espresso.
+   Notas: Cacao amargo, especias, tostado profundo.
+   Precio: $3200 CLP / 400g
+
+3. Filtro Floral (Grano Entero)
+   Descripción: Etiopía Yirgacheffe. Perfil delicado y aromático para métodos de filtrado.
+   Notas: Jazmín, floral, cítricos suaves.
+   Precio: $2800 CLP / 500g
+
+4. Blend Especial (Molido)
+   Descripción: Una mezcla única que resalta la acidez y el cuerpo en cada taza.
+   Notas: Frutal, caramelo, toque de vainilla.
+   Precio: $3000 CLP / 400g
+
+========================================
+Nota: Todos los precios son aproximados y están sujetos a cambios.
+`;
+    return contenidoTexto.trim();
+};
+
+
+/**
+ * Procesa el texto crudo de la carta, extrayendo y modelando los datos de cada producto.
+ * @param {string} rawText El contenido completo del archivo de la carta.
+ * @returns {Promise<Array<{nombre: string, descripcion: string, precio: string}>>} Una promesa que resuelve con el array de productos estructurados.
+ */
+window.api.parseCartaData = async (rawText) => {
+    console.log("Procesando y modelando datos de la carta...");
+    await new Promise(resolve => setTimeout(resolve, 300)); // Simular procesamiento
+
+    // Regex para capturar bloques de productos: busca un número seguido de punto y texto hasta el siguiente bloque o final del string.
+    const productRegex = /(\d+\.\s)(.*?)\n\s*Descripción:(.*?)\n\s*Notas:(.*?)\n\s*Precio:(.*?)(?=\n\d+\.|={2,}|$)/gs;
+
+    let match;
+    const products = [];
+
+    while ((match = productRegex.exec(rawText)) !== null) {
+        // match[1] es el número (ej: "1. ")
+        // match[2] es el nombre/tipo del producto (Ej: "Tostado Clásico (Grano Entero)")
+        const rawName = match[2].trim(); 
+        // match[3] es la descripción
+        const description = match[3].trim();
+        // match[4] son las notas (no se usan en el modelo final, pero se capturan)
+        // const notes = match[4].trim();
+        // match[5] es el precio
+        const price = match[5].trim();
+
+        products.push({
+            nombre: rawName,
+            descripcion: description,
+            precio: price
+        });
+    }
+
+    return products;
+};
+
+
+/**
+ * Endpoint principal para obtener todos los datos estructurados del menú de la carta.
+ * Orquesta la lectura y el parseo de los datos.
+ * @returns {Promise<Array<{nombre: string, descripcion: string, precio: string}>>} Una promesa que resuelve con el array completo de productos.
+ */
+window.api.getMenuData = async () => {
+    console.log("Obteniendo y estructurando datos completos del menú...");
+    try {
+        // 1. Leer el archivo crudo
+        const rawText = await window.api.leerArchivoCarta();
+        // 2. Procesar los datos crudos en estructura JSON
+        const menuData = await window.api.parseCartaData(rawText);
+        return menuData;
+    } catch (error) {
+        console.error("Error al obtener los datos del menú:", error);
+        // En un entorno real, se manejaría el error de forma más robusta. Aquí devolvemos un array vacío por seguridad.
+        return []; 
+    }
+};
+
+/**
+ * Obtiene la lista completa y estructurada de cafés disponibles en el catálogo.
+ * @returns {Promise<Array<{nombre: string, descripcion: string, notas: string, imagenSrc: string}>>} Una promesa que resuelve con los datos del café.
+ */
+window.api.listarCafeData = async () => {
+    console.log("Obteniendo datos dinámicos del catálogo de cafés...");
+    await new Promise(resolve => setTimeout(resolve, 300)); // Simular latencia
+
+    return [
+        { nombre: "Etiopía Yirgacheffe", descripcion: "Un perfil aromático vibrante que captura la esencia de Etiopía. Ideal para quienes buscan una experiencia delicada y compleja.", notas: "Floral, jazmín, cítricos y miel.", imagenSrc: "placeholder-yirgacheffe.jpg" },
+        { nombre: "Colombia Supremo", descripcion: "Nuestro clásico balanceado colombiano. Un perfil robusto con notas dulces que lo hacen perfecto para el día a día.", notas: "Chocolate, caramelo y nuez.", imagenSrc: "placeholder-colombia.jpg" },
+        { nombre: "Guatemala Antigua", descripcion: "Un grano con carácter profundo y notas terrosas. Su acidez equilibrada lo hace ideal para métodos de filtrado o espresso.", notas: "Especias, cacao y cuerpo medio.", imagenSrc: "placeholder-guatemala.jpg" },
+        { nombre: "Brasil Santos", descripcion: "Un perfil suave y reconfortante. Ideal para quienes prefieren un sabor más dulce y menos ácido en su taza de café.", notas: "Chocolate amargo, caramelo y almendra.", imagenSrc: "placeholder-brasil.jpg" }
+    ];
+};
+
+
+/**
+ * Simula el envío de datos de contacto a la base de datos.
+ * @param {Object} datos Los datos del formulario (nombre, email, mensaje, etc.).
+ * @returns {Promise<{success: boolean, message: string}>} Una promesa que resuelve con el estado del envío.
+ */
+window.api.crearContacto = async (datos) => {
+    console.log("Simulando envío de datos de contacto a la API...");
+    await new Promise(resolve => setTimeout(resolve, 300)); // Simular latencia
+
+    // Validación simulada de éxito
+    if (datos && datos.email && datos.nombre) {
+        return { success: true, message: "¡Gracias! Hemos recibido tu consulta y te contactaremos pronto." };
+    } else {
+        return { success: false, message: "Error al procesar los datos. Por favor, verifica que todos los campos estén correctos." };
+    }
+};
+```
+
+### FILE: app.js
+```javascript
+document.addEventListener('DOMContentLoaded', () => {
+    // ==================================================
+    // R1: Lógica del Carrusel de Cafés (F5.1)
+    // ==================================================
+
+    const catalogoSection = document.getElementById('catalogo-de-cafes');
+    if (catalogoSection) {
+        const carouselWrapper = catalogoSection.querySelector('.carousel-wrapper');
+        const cardSlider = catalogoSection.querySelector('.card-slider');
+        let cards = []; // Inicialmente vacío, se llenará dinámicamente
+
+        // Función para generar el HTML de una tarjeta de café
+        const createCafeCardHTML = (cafe) => `
+            <div class="cafe-card" data-name="${cafe.nombre}">
+                <img src="${cafe.imagenSrc}" alt="Grano de café ${cafe.nombre}">
+                <div class="cafe-info">
+                    <h3>${cafe.nombre}</h3>
+                    <p>Notas: ${cafe.notas}</p>
+                    <p>Descripción: ${cafe.descripcion}</p>
+                </div>
+            </div>
+        `;
+
+        // Función principal para cargar datos dinámicos y construir el carrusel
+        const loadCafeData = async () => {
+            try {
+                // 1. Obtener los datos del API simulado
+                const cafeData = await window.api.listarCafeData();
+                cards = cafeData; // Almacenar en la variable global de scope
+
+                // 2. Limpiar el contenido estático existente
+                cardSlider.innerHTML = '';
+
+                // 3. Generar y añadir las tarjetas dinámicamente
+                cafeData.forEach(cafe => {
+                    const cardElement = document.createElement('div');
+                    cardElement.className = 'cafe-card';
+                    cardElement.setAttribute('data-name', cafe.nombre);
+                    cardElement.innerHTML = `
+                        <img src="${cafe.imagenSrc}" alt="Grano de café ${cafe.nombre}">
+                        <div class="cafe-info">
+                            <h3>${cafe.nombre}</h3>
+                            <p>Notas: ${cafe.notas}</p>
+                            <p>Descripción: ${cafe.descripcion}</p>
+                        </div>
+                    `;
+                    cardSlider.appendChild(cardElement);
+                });
+
+                // 4. Inicializar la lógica del carrusel con los nuevos elementos
+                initializeCarousel();
+
+            } catch (error) {
+                console.error("Error al cargar el catálogo de cafés:", error);
+                cardSlider.innerHTML = '<p style="text-align: center; width: 100%;">Lo sentimos, no pudimos cargar nuestro catálogo en este momento.</p>';
+            }
+        };
+
+        // Función para inicializar la lógica del carrusel (se llama después de que el DOM está lleno)
+        const initializeCarousel = () => {
+            const cards = Array.from(document.querySelectorAll('.cafe-card'));
+            if (cards.length === 0) return; // Evitar errores si no hay tarjetas
+
+            // 1. Crear Controles de Navegación (Prev/Next) si no existen
+            let prevButton = document.getElementById('prev-carousel');
+            let nextButton = document.getElementById('next-carousel');
+
+            if (!prevButton) {
+                prevButton = document.createElement('button');
+                prevButton.id = 'prev-carousel';
+                prevButton.textContent = '← Anterior';
+                prevButton.className = 'carousel-control prev';
+                catalogoSection.querySelector('.catalogo-container').prepend(prevButton); // Añadir antes del wrapper
+            }
+
+            if (!nextButton) {
+                nextButton = document.createElement('button');
+                nextButton.id = 'next-carousel';
+                nextButton.textContent = 'Siguiente →';
+                nextButton.className = 'carousel-control next';
+                catalogoSection.querySelector('.catalogo-container').appendChild(nextButton); // Añadir después del wrapper
+            }
+
+            // 2. Estilos básicos para los controles (Mejora de la UI)
+            const styleSheet = document.createElement("style");
+            styleSheet.type = "text/css";
+            styleSheet.innerText = `
+                /* Estilos para Controles del Carrusel */
+                .catalogo-container {
+                    display: flex;
+                    align-items: center;
+                    gap: 20px;
+                    padding: 10px 0;
+                }
+                .carousel-control {
+                    background-color: #6f4e37;
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    cursor: pointer;
+                    font-size: 1em;
+                    border-radius: 5px;
+                    transition: background-color 0.3s;
+                }
+                .carousel-control:hover {
+                    background-color: #4a362c;
+                }
+                /* Ajustar el wrapper para que contenga los controles y el slider */
+                .catalogo-container .carousel-wrapper {
+                    flex-grow: 1; /* Permite que ocupe el espacio restante */
+                    overflow: hidden; /* Asegura que solo se vea lo del slider */
+                }
+            `;
+            document.head.appendChild(styleSheet);
+
+
+            // 3. Lógica de Navegación
+            const cardWidth = cards[0].offsetWidth + 20; // Ancho de una tarjeta + gap (asumiendo que el gap es constante)
+            let currentIndex = 0;
+            // Calcular cuántas tarjetas caben visiblemente en la sección del carrusel.
+            const containerWidth = catalogoSection.querySelector('.catalogo-container').clientWidth - 40; // Restar espacio de botones
+            const visibleCardsCount = Math.floor(containerWidth / (cardWidth));
+
+
+            // Función para actualizar la posición del carrusel
+            const updateCarouselPosition = () => {
+                // Calculamos el desplazamiento total basado en cuántas tarjetas visibles queremos mostrar
+                const offset = currentIndex * cardWidth;
+                cardSlider.style.transform = 'translateX(-' + offset + 'px)';
+
+                // Actualizar estado de los botones (deshabilitar al inicio/final)
+                prevButton.disabled = currentIndex === 0;
+                nextButton.disabled = currentIndex >= cards.length - visibleCardsCount || cards.length <= visibleCardsCount;
+            };
+
+            // Event Handlers
+            const goToNextSlide = () => {
+                if (currentIndex < cards.length - visibleCardsCount) {
+                    currentIndex++;
+                    updateCarouselPosition();
+                }
+            };
+
+            const goToPrevSlide = () => {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    updateCarouselPosition();
+                }
+            };
+
+            // Asignar listeners a los botones
+            prevButton.addEventListener('click', goToPrevSlide);
+            nextButton.addEventListener('click', goToNextSlide);
+
+            // Inicializar la posición del carrusel
+            updateCarouselPosition();
+        };
+
+        // Ejecutar la carga de datos al iniciar el script
+        loadCafeData();
+    }
+
+
+    // ==================================================
+    // R2: Lógica de Formulario (Validación Cliente)
+    // ==================================================
+    const contactSection = document.getElementById('formulario-de-contacto');
+    if (contactSection) {
+        const form = document.getElementById('contactForm');
+
+        // Función para mostrar mensajes de error
+        const displayError = (inputElement, message) => {
+            let errorContainer = inputElement.parentNode;
+            if (!errorContainer.querySelector('.error-message')) {
+                errorContainer.innerHTML += `<div class="error-message" style="color: red; font-size: 0.9em; margin-top: 5px;">${message}</div>`;
+            } else {
+                 const existingError = errorContainer.querySelector('.error-message');
+                 existingError.textContent = message;
+            }
+        };
+
+        // Función para limpiar mensajes de error
+        const clearErrors = () => {
+            document.querySelectorAll('.form-group').forEach(group => {
+                const errorElement = group.querySelector('.error-message');
+                if (errorElement) {
+                    errorElement.remove();
+                }
+            });
+        };
+
+        // Función de validación principal
+        const validateForm = () => {
+            clearErrors();
+            let isValid = true;
+
+            const nombreInput = document.getElementById('nombre');
+            const emailInput = document.getElementById('email');
+            const mensajeInput = document.getElementById('mensaje');
+
+            // 1. Validación de Nombre (Obligatorio)
+            if (!nombreInput.value.trim()) {
+                displayError(nombreInput, 'El nombre completo es un campo obligatorio.');
+                isValid = false;
+            }
+
+            // 2. Validación de Email (Obligatorio y Formato)
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailInput.value.trim()) {
+                displayError(emailInput, 'El correo electrónico es obligatorio.');
+                isValid = false;
+            } else if (!emailPattern.test(emailInput.value)) {
+                displayError(emailInput, 'Por favor, introduce un correo válido (ej: usuario@dominio.com).');
+                isValid = false;
+            }
+
+            // 3. Validación de Mensaje (Obligatorio)
+            if (!mensajeInput.value.trim()) {
+                displayError(mensajeInput, 'El mensaje es obligatorio.');
+                isValid = false;
+            }
+
+            return isValid;
+        };
+
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (validateForm()) {
+                // Simular envío de datos a la API
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                console.log("Datos a enviar:", data);
+
+                // Llamada al endpoint simulado window.api.crearContacto
+                try {
+                    const result = await window.api.crearContacto(data);
+
+                    if (result.success) {
+                        alert(result.message);
+                        form.reset(); 
+                    } else {
+                        alert("Error de envío: " + result.message);
+                    }
+                } catch (error) {
+                    console.error("Error al enviar el formulario:", error);
+                    alert("Hubo un error inesperado al intentar conectar con nuestro sistema.");
+                }
+
+            } else {
+                console.log("Formulario inválido, mostrando errores.");
+            }
+        });
+    }
+
+    // ==================================================
+    // R4: Lógica de Carta (Pendiente)
+    //

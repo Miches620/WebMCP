@@ -1,0 +1,137 @@
+/* Reset CSS básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f9f7f4; /* Color crema suave para el fondo */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Estilos de contenedores globales */
+header, footer {
+    width: 100%;
+    padding: 20px 5%;
+    text-align: center;
+}
+
+header {
+    background-color: #6f4e37; /* Marrón oscuro para el encabezado */
+    color: white;
+}
+
+footer {
+    background-color: #3a2d25; /* Marrón más oscuro para el pie de página */
+    color: white;
+    padding: 30px 5%;
+    margin-top: auto; /* Asegura que el footer se pegue al final si el contenido es corto */
+}
+
+/* Estilos generales de contenedores (se pueden refinar después) */
+section {
+    padding: 40px 5%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* --- Catálogo y Carrusel --- */
+#catalogo h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #6f4e37;
+}
+
+.carousel-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative; /* Necesario para posicionar los botones */
+}
+
+.btn-nav {
+    background-color: #8b5a3c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 24px;
+    margin: 0 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s, opacity 0.3s;
+    z-index: 10; /* Asegura que los botones estén por encima del contenido */
+}
+
+.btn-nav:hover {
+    background-color: #7a4e32;
+}
+
+/* Deshabilitar botones cuando no hay movimiento posible */
+.btn-nav:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+.carousel-container {
+    display: flex;
+    overflow-x: scroll; /* Permite el desplazamiento horizontal */
+    gap: 25px;
+    padding: 10px 0; /* Ajuste de padding vertical para los botones */
+    /* Ocultar la barra de scroll en navegadores webkit (opcional) */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.carousel-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.product-card {
+    flex: 0 0 300px; /* Define el ancho fijo de cada tarjeta y no permite que se encoja */
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.product-card img {
+    width: 100%;
+    height: 220px; /* Altura fija para las imágenes */
+    object-fit: cover; /* Asegura que la imagen cubra el área sin distorsionarse */
+    display: block;
+}
+
+.card-info {
+    padding: 20px;
+}
+
+.card-info h3 {
+    color: #6f4e37;
+    margin-bottom: 10px;
+}
+
+.btn-ver-detalle {
+    background-color: #8b5a3c; /* Un tono más claro de marrón */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 15px;
+    transition: background-color 0.3s;
+}
+
+.btn-ver-detalle:hover {
+    background-color: #7a4e32;
+}

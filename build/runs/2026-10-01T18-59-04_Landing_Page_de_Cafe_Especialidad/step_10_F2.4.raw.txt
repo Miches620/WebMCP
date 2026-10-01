@@ -1,0 +1,326 @@
+He realizado los cambios necesarios en `index.html` para añadir la estructura de navegación del carrusel y he actualizado `app.js` para implementar la lógica de desplazamiento (Next/Prev) al cargar el catálogo.
+
+### FILE: index.html
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Café Especialidad - Tu Experiencia Aromática</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body >
+  <header></header>
+  <main id="app">
+    <!-- Aquí irán las secciones: Catálogo, Nosotros, Contacto, etc. -->
+    <section id="nosotros">
+        <div class="container nosotros-content">
+            <h1>Nuestra Historia</h1>
+            <p class="subtitulo">Desde el primer grano hasta tu taza perfecta.</p>
+            <div class="contenido-principal">
+                <div class="texto-historia">
+                    <h2>El Viaje del Café</h2>
+                    <p>En [Nombre de la Empresa], no solo vendemos café; compartimos una experiencia. Nuestra pasión nació de un viaje por los mejores orígenes cafeteros del mundo, buscando granos que contaran historias únicas.</p>
+                    <p>Creemos firmemente en el comercio justo y en la calidad superior. Por eso, trabajamos directamente con pequeños productores, asegurando que cada taza que disfrutas no solo sea aromática e inolvidable, sino también éticamente responsable.</p>
+                    <p>Nuestro compromiso es simple: traerte a tu mesa la esencia pura de los mejores cafés especiales, tostados artesanalmente para realzar su perfil de sabor natural. ¡Bienvenido a nuestra comunidad cafetera!</p>
+                </div>
+                <div class="imagen-seccion">
+                    <!-- Placeholder para una imagen inspiradora del proceso o el origen -->
+                    <img src="images/origen_cafe.jpg" alt="Caficultores cosechando granos de café en su origen">
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="catalogo">
+        <h2>Nuestro Catálogo de Cafés</h2>
+        <!-- Carousel Wrapper -->
+        <div class="carousel-wrapper">
+            <button class="btn-nav prev" aria-label="Anterior">&lt;</button>
+            <div class="carousel-container">
+                <!-- Ejemplo de tarjeta de producto (se llenará con JS) -->
+                <div class="product-card" data-id="1">
+                    <img src="images/cafe_placeholder.jpg" alt="Café Origen A">
+                    <div class="card-info">
+                        <h3>Nombre del Café 1</h3>
+                        <p>Descripción corta y notas de cata.</p>
+                        <button class="btn-ver-detalle">Ver Detalles</button>
+                    </div>
+                </div>
+                 <div class="product-card" data-id="2">
+                    <img src="images/cafe_placeholder.jpg" alt="Café Origen B">
+                    <div class="card-info">
+                        <h3>Nombre del Café 2</h3>
+                        <p>Descripción corta y notas de cata.</p>
+                        <button class="btn-ver-detalle">Ver Detalles</button>
+                    </div>
+                </div>
+                 <div class="product-card" data-id="3">
+                    <img src="images/cafe_placeholder.jpg" alt="Café Origen C">
+                    <div class="card-info">
+                        <h3>Nombre del Café 3</h3>
+                        <p>Descripción corta y notas de cata.</p>
+                        <button class="btn-ver-detalle">Ver Detalles</button>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-nav next" aria-label="Siguiente">&gt;</button>
+        </div>
+    </section>
+    <section id="carta"></section>
+    <section id="contacto"></section>
+  </main>
+  <footer></footer >
+
+  <script src="api.js"></script>
+  <script src="app.js"></script>
+</body >
+</html>
+```
+
+### FILE: styles.css
+```css
+/* Reset CSS básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f9f7f4; /* Color crema suave para el fondo */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Estilos de contenedores globales */
+header, footer {
+    width: 100%;
+    padding: 20px 5%;
+    text-align: center;
+}
+
+header {
+    background-color: #6f4e37; /* Marrón oscuro para el encabezado */
+    color: white;
+}
+
+footer {
+    background-color: #3a2d25; /* Marrón más oscuro para el pie de página */
+    color: white;
+    padding: 30px 5%;
+    margin-top: auto; /* Asegura que el footer se pegue al final si el contenido es corto */
+}
+
+/* Estilos generales de contenedores (se pueden refinar después) */
+section {
+    padding: 40px 5%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* --- Catálogo y Carrusel --- */
+#catalogo h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #6f4e37;
+}
+
+.carousel-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative; /* Necesario para posicionar los botones */
+}
+
+.btn-nav {
+    background-color: #8b5a3c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 24px;
+    margin: 0 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s, opacity 0.3s;
+    z-index: 10; /* Asegura que los botones estén por encima del contenido */
+}
+
+.btn-nav:hover {
+    background-color: #7a4e32;
+}
+
+/* Deshabilitar botones cuando no hay movimiento posible */
+.btn-nav:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+.carousel-container {
+    display: flex;
+    overflow-x: scroll; /* Permite el desplazamiento horizontal */
+    gap: 25px;
+    padding: 10px 0; /* Ajuste de padding vertical para los botones */
+    /* Ocultar la barra de scroll en navegadores webkit (opcional) */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.carousel-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.product-card {
+    flex: 0 0 300px; /* Define el ancho fijo de cada tarjeta y no permite que se encoja */
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.product-card img {
+    width: 100%;
+    height: 220px; /* Altura fija para las imágenes */
+    object-fit: cover; /* Asegura que la imagen cubra el área sin distorsionarse */
+    display: block;
+}
+
+.card-info {
+    padding: 20px;
+}
+
+.card-info h3 {
+    color: #6f4e37;
+    margin-bottom: 10px;
+}
+
+.btn-ver-detalle {
+    background-color: #8b5a3c; /* Un tono más claro de marrón */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 15px;
+    transition: background-color 0.3s;
+}
+
+.btn-ver-detalle:hover {
+    background-color: #7a4e32;
+}
+```
+
+### FILE: app.js
+```javascript
+// Lógica de la UI.
+
+/**
+ * Renderiza el componente Card para un producto específico.
+ * @param {Object} producto - Objeto con datos del café.
+ * @returns {string} HTML completo de la tarjeta.
+ */
+const renderProductCard = (producto) => {
+    return `
+        <div class="product-card" data-id="${producto.id}">
+            <img src="${producto.imagenUrl}" alt="Imagen de ${producto.nombre}">
+            <div class="card-info">
+                <h3>${producto.nombre}</h3>
+                <p>${producto.descripcion}</p>
+                <button class="btn-ver-detalle" data-id="${producto.id}">Ver Detalles</button>
+            </div>
+        </div>
+    `;
+};
+
+/**
+ * Inicializa el catálogo de cafés al cargar la página, incluyendo la lógica del carrusel.
+ */
+const initializeCatalogo = async () => {
+    const catalogoSection = document.getElementById('catalogo');
+    if (!catalogoSection) return;
+
+    // 1. Obtener datos simulados de la API
+    let productos;
+    try {
+        productos = await window.api.listarProductos();
+    } catch (error) {
+        console.error("Error al cargar el catálogo de productos:", error);
+        catalogoSection.querySelector('.carousel-wrapper').innerHTML = '<p style="text-align: center;">Lo sentimos, no pudimos cargar nuestro catálogo en este momento.</p>';
+        return;
+    }
+
+    // 2. Generar y renderizar el HTML para cada producto
+    let htmlContent = '';
+    productos.forEach(producto => {
+        htmlContent += renderProductCard(producto);
+    });
+
+    const carouselContainer = catalogoSection.querySelector('.carousel-container');
+    if (carouselContainer) {
+         // Limpiamos los placeholders y agregamos el contenido dinámico
+        carouselContainer.innerHTML = htmlContent;
+    }
+
+
+    // 3. Implementar la lógica del carrusel
+    const carouselWrapper = catalogoSection.querySelector('.carousel-wrapper');
+    const prevButton = catalogoSection.querySelector('.btn-nav.prev');
+    const nextButton = catalogoSection.querySelector('.btn-nav.next');
+
+    if (prevButton && nextButton) {
+        // Función para actualizar el estado de los botones (habilitar/deshabilitar)
+        const updateCarouselState = () => {
+            const scrollLeft = carouselContainer.scrollLeft;
+            const maxScrollLeft = carouselContainer.scrollWidth - carouselContainer.clientWidth;
+
+            // Deshabilitar Prev si estamos al inicio
+            prevButton.disabled = scrollLeft <= 5; // Usamos un pequeño margen para evitar saltos bruscos
+            
+            // Deshabilitar Next si estamos al final (considerando el ancho visible)
+            nextButton.disabled = Math.abs(scrollLeft - maxScrollLeft) < 10;
+        };
+
+        const scrollCarousel = (direction) => {
+            const cardWidth = document.querySelector('.product-card').offsetWidth + 25; // Ancho de tarjeta + gap
+            const scrollAmount = cardWidth * 1.5; // Desplazamos un poco más que una tarjeta para efecto visual
+
+            carouselContainer.scrollBy({
+                left: direction === 'next' ? scrollAmount : -scrollAmount,
+                behavior: 'smooth'
+            });
+        };
+
+        // Event Listeners
+        prevButton.addEventListener('click', () => {
+            scrollCarousel('prev');
+            updateCarouselState();
+        });
+
+        nextButton.addEventListener('click', () => {
+            scrollCarousel('next');
+            updateCarouselState();
+        });
+
+        // Inicializar el estado de los botones y escuchar eventos de scroll manual del usuario
+        window.addEventListener('scroll', updateCarouselState);
+        document.querySelector('.carousel-container').addEventListener('scroll', updateCarouselState);
+        
+        // Llamar al estado inicial
+        updateCarouselState();
+    }
+};
+
+// Ejecutar la inicialización cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    initializeCatalogo();
+});
+```

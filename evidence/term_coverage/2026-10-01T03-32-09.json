@@ -1,0 +1,284 @@
+{
+  "version": "term_coverage v0.1",
+  "review_id": "2026-10-01T03-32-09",
+  "requirements": [
+    {
+      "id": "R1",
+      "text": "Configurar parámetros iniciales (temperatura, tiempo, etc.) a través de la SPA antes de iniciar una cocción"
+    },
+    {
+      "id": "R2",
+      "text": "Controlar electrovalvulas y relays desde la SPA"
+    },
+    {
+      "id": "R3",
+      "text": "Monitorear sensores de temperatura en tiempo real"
+    },
+    {
+      "id": "R4",
+      "text": "Monitorear sensores de nivel de líquido en tiempo real"
+    },
+    {
+      "id": "R5",
+      "text": "Enviar comandos POST a los NodeMCU para controlar dispositivos"
+    },
+    {
+      "id": "R6",
+      "text": "Mostrar estado actual de los dispositivos (encendidos/apagados, temperaturas actuales, niveles de líquido) en la SPA"
+    },
+    {
+      "id": "R7",
+      "text": "Generar alertas en caso de valores críticos (temperatura alta/baja, niveles bajos de líquido)"
+    },
+    {
+      "id": "R8",
+      "text": "Registrar y visualizar historial de cocciones"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "F1.1",
+      "task": "Definición del Modelo Conceptual de Datos (ERD)",
+      "description": "Crear el diagrama Entidad-Relación (ERD) general que mapee las interrelaciones entre los parámetros iniciales, los estados maestros de los dispositivos y los registros históricos de cocciones."
+    },
+    {
+      "id": "F1.2",
+      "task": "Diseño del Esquema para Parámetros Iniciales",
+      "description": "Definir las tablas, columnas y tipos de datos específicos (DDL) necesarios para almacenar los parámetros iniciales del sistema."
+    },
+    {
+      "id": "F1.3",
+      "task": "Diseño del Esquema de Estados Maestros de Dispositivos",
+      "description": "Definir las tablas, columnas y tipos de datos específicos (DDL) para gestionar los estados maestros y la información de identificación de los dispositivos."
+    },
+    {
+      "id": "F1.4",
+      "task": "Diseño del Esquema de Registros Históricos de Cocciones",
+      "description": "Definir la estructura (DDL) para almacenar los registros temporales y métricas históricas de cocción (temperatura, nivel, tiempo), asegurando índices adecuados para consultas de series de tiempo."
+    },
+    {
+      "id": "F2.1",
+      "task": "Implementar el endpoint de recepción de estado del dispositivo (REST/WebSocket)",
+      "description": "Crear la capa API para recibir los payloads de estado en tiempo real, incluyendo temperatura, nivel y estado ON/OFF."
+    },
+    {
+      "id": "F2.2",
+      "task": "Desarrollar la lógica de procesamiento del estado entrante",
+      "description": "Implementar la lógica de negocio que valida, transforma y prepara los datos recibidos en F2.1 para su almacenamiento o exposición."
+    },
+    {
+      "id": "F2.3",
+      "task": "Implementar la persistencia de datos del estado en la base de datos",
+      "description": "Crear el servicio que toma los datos procesados (F2.2) e implementa la lógica inicial para guardarlos en las tablas correspondientes (parámetros, estados y registros históricos)."
+    },
+    {
+      "id": "F2.4",
+      "task": "Crear el endpoint de exposición del estado actual del dispositivo",
+      "description": "Implementar un endpoint GET que consulta y expone el estado más reciente (temperatura, nivel, ON/OFF) almacenado en la base de datos."
+    },
+    {
+      "id": "F3.1",
+      "task": "Implementación de la lectura y normalización de datos de sensores en el firmware.",
+      "description": "Desarrollar la lógica del firmware para interactuar con los sensores, leer sus valores físicos y estandarizar estos datos en un formato JSON o estructura definida para su transmisión."
+    },
+    {
+      "id": "F3.2",
+      "task": "Implementación de la lógica de control de actuadores (electroválvulas/relays) en el firmware.",
+      "description": "Desarrollar la funcionalidad del firmware que permite recibir comandos y controlar el estado físico de las electroválvulas o relays, ejecutando acciones basadas en lógica predefinida."
+    },
+    {
+      "id": "F3.3",
+      "task": "Desarrollo del módulo de comunicación IoT para la transmisión periódica de datos al Backend API.",
+      "description": "Implementar el protocolo y el mecanismo en el firmware para enviar los datos recopilados (sensores, estado) de forma periódica al endpoint de recepción definido en F2.1."
+    },
+    {
+      "id": "F4.1",
+      "task": "Configurar la estructura base de la Single Page Application (SPA)",
+      "description": "Crear el esqueleto inicial y el routing básico para la aplicación, estableciendo los componentes principales que contendrán los formularios de configuración."
+    },
+    {
+      "id": "F4.2",
+      "task": "Implementar el formulario de captura de parámetros iniciales",
+      "description": "Desarrollar los componentes de interfaz para ingresar y visualizar los parámetros de configuración requeridos (temperatura objetivo, tiempo)."
+    },
+    {
+      "id": "F4.3.R2.1",
+      "task": "Manejo del Estado Local de Parámetros",
+      "description": "Desarrollar el manejo del estado local (state management) para capturar y mantener todos los parámetros ingresados en el formulario, sin incluir la lógica de validación o envío."
+    },
+    {
+      "id": "F4.3.R2.2",
+      "task": "Implementar Validación Cliente-Side del Formulario",
+      "description": "Desarrollar la lógica de negocio en el frontend para validar los datos ingresados por el usuario, asegurando que cumplan con las reglas definidas (ej. campos obligatorios, formatos). Esta validación debe operar sobre el estado local capturado."
+    },
+    {
+      "id": "F4.3.R2.3",
+      "task": "Integración y Envío de Parámetros al Backend (API Call)",
+      "description": "Implementar la función final que toma los parámetros validados del estado local y realiza la llamada HTTP POST/PUT al endpoint API configurado para enviar los datos al sistema."
+    },
+    {
+      "id": "F5.1",
+      "task": "Integrar la conexión WebSocket en la SPA para recibir el flujo de estado del dispositivo.",
+      "description": "Establecer y mantener la conexión WebSocket desde la Single Page Application (SPA) con el endpoint de streaming del Backend, manejando reconexiones y errores."
+    },
+    {
+      "id": "F5.2",
+      "task": "Desarrollar la lógica de procesamiento y visualización del estado en tiempo real.",
+      "description": "Implementar el manejo de los mensajes entrantes por WebSocket, parsear datos (temperaturas, niveles) y actualizar dinámicamente los componentes de la interfaz de usuario (UI)."
+    },
+    {
+      "id": "F5.3",
+      "task": "Implementar la interfaz de usuario para controles interactivos.",
+      "description": "Crear los componentes visuales (botones ON/OFF, selectores) en la SPA que representan los comandos de control del dispositivo."
+    },
+    {
+      "id": "F5.4",
+      "task": "Implementar el envío de comandos POST al Backend desde la SPA.",
+      "description": "Asociar la lógica de manejo de eventos (clics) a los controles implementados en F5.3, enviando payloads JSON con los comandos de control necesarios mediante llamadas HTTP POST al Backend API."
+    },
+    {
+      "id": "F6.1",
+      "task": "Implementar el interceptor de datos entrantes para la validación de estado.",
+      "description": "Modificar el flujo de procesamiento del estado (después de F2.2) para que se ejecute una capa de servicio dedicada a monitorear los valores antes de su persistencia o exposición, sin alterar la lógica principal de negocio."
+    },
+    {
+      "id": "F6.2",
+      "task": "Desarrollar y aplicar la lógica de detección de valores críticos (Temperatura/Nivel).",
+      "description": "Implementar las reglas de negocio que comparan los datos entrantes (temperatura, nivel) con los rangos seguros predefinidos para determinar si se ha producido una condición crítica o fuera de rango."
+    },
+    {
+      "id": "F6.3",
+      "task": "Implementar la persistencia de registros de alertas críticas en la base de datos.",
+      "description": "Crear el mecanismo para registrar, con marca de tiempo y detalle del fallo, cualquier evento crítico detectado por la lógica de negocio (F6.2) en una tabla dedicada de alertas."
+    },
+    {
+      "id": "F6.4",
+      "task": "Exponer el canal de notificación de alertas críticas al Frontend (WebSocket/API Push).",
+      "description": "Modificar el servicio Backend para que, tras la persistencia exitosa de una alerta crítica (F6.3), emita inmediatamente un mensaje de notificación a través del mismo canal en tiempo real utilizado por el Frontend."
+    },
+    {
+      "id": "F7.1",
+      "task": "Revisar y optimizar el esquema de registros históricos para asegurar la captura completa del ciclo de cocción.",
+      "description": "Analizar el esquema existente (F1.4) e identificar campos o estructuras necesarias para registrar cada evento, estado y parámetro crítico durante un ciclo completo de cocción."
+    },
+    {
+      "id": "F7.2",
+      "task": "Implementar la lógica transaccional para el logging completo del ciclo de cocción.",
+      "description": "Desarrollar y aplicar procedimientos almacenados o triggers en la base de datos que garanticen que cada cambio de estado, evento o medición durante un ciclo sea registrado de manera atómica e inmutable."
+    },
+    {
+      "id": "F7.3",
+      "task": "Crear vistas optimizadas para la consulta de grandes volúmenes de datos históricos.",
+      "description": "Diseñar y crear vistas (o Materialized Views) que pre-procesen y estructuren los datos del logging histórico, facilitando a los endpoints el acceso rápido a resúmenes o análisis complejos por periodos largos."
+    },
+    {
+      "id": "F7.4.R2.1",
+      "task": "Definir y Documentar Patrones Críticos de Consulta Histórica",
+      "description": "Analizar los requisitos funcionales de la visualización avanzada (filtros por tiempo, dispositivo o evento) para identificar y documentar formalmente los patrones de consulta más críticos que deben ser optimizados en las tablas de registros. El resultado debe ser un documento técnico con los patrones identificados."
+    },
+    {
+      "id": "F7.4.R2.2",
+      "task": "Aplicar Índices Compuestos de Alto Rendimiento en Registros Históricos",
+      "description": "Basándose en los patrones críticos de consulta documentados previamente, aplicar y validar la creación de índices compuestos avanzados (ej. CREATE INDEX) en las tablas de registros para garantizar el alto rendimiento al consultar grandes volúmenes de datos."
+    },
+    {
+      "id": "F8.1",
+      "task": "Validar el flujo completo de configuración inicial (SPA a Backend)",
+      "description": "Ejecutar pruebas para asegurar que los parámetros configurados en la SPA (incluyendo validaciones cliente-side y envío al backend) se persisten correctamente en la base de datos y son accesibles por el sistema."
+    },
+    {
+      "id": "F8.2",
+      "task": "Validar la sincronización del estado en tiempo real (NodeMCU a SPA)",
+      "description": "Simular el flujo de datos continuos desde el dispositivo vía WebSocket, validando que la lógica de procesamiento y visualización del estado en la SPA refleje los cambios físicos en tiempo real."
+    },
+    {
+      "id": "F8.3",
+      "task": "Validar el ciclo de comandos interactivos (SPA a NodeMCU)",
+      "description": "Probar la funcionalidad de envío de comandos desde la SPA, verificando que los datos sean recibidos por el backend y ejecutados correctamente en el control físico del dispositivo."
+    },
+    {
+      "id": "F8.4",
+      "task": "Validar la detección y notificación de alertas críticas (Backend a SPA)",
+      "description": "Simular condiciones operativas que generen valores críticos (ej. temperatura fuera de rango). Validar que el sistema detecte, registre la alerta en DB y notifique inmediatamente al frontend."
+    },
+    {
+      "id": "F8.5",
+      "task": "Validar el logging histórico completo del ciclo de cocción (E2E)",
+      "description": "Ejecutar un ciclo de prueba completo y verificar que todos los estados, comandos, alertas y parámetros sean registrados transaccionalmente en la base de datos, y que estos registros puedan ser consultados correctamente mediante las vistas optimizadas."
+    },
+    {
+      "id": "F8.6",
+      "task": "Ejecutar Pruebas End-to-End de Integración Final del Sistema",
+      "description": "Simular un escenario completo y complejo (ej. configuración -> cocción con alertas críticas -> consulta histórica) para validar la interacción fluida entre todos los módulos: SPA, Backend, NodeMCU, Alertas e Historial."
+    }
+  ],
+  "items": [
+    {
+      "id": "R1",
+      "text": "Configurar parámetros iniciales (temperatura, tiempo, etc.) a través de la SPA antes de iniciar una cocción",
+      "present": 5,
+      "total": 5,
+      "missing": []
+    },
+    {
+      "id": "R2",
+      "text": "Controlar electrovalvulas y relays desde la SPA",
+      "present": 2,
+      "total": 2,
+      "missing": []
+    },
+    {
+      "id": "R3",
+      "text": "Monitorear sensores de temperatura en tiempo real",
+      "present": 5,
+      "total": 5,
+      "missing": []
+    },
+    {
+      "id": "R4",
+      "text": "Monitorear sensores de nivel de líquido en tiempo real",
+      "present": 5,
+      "total": 6,
+      "missing": [
+        "liquido"
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "Enviar comandos POST a los NodeMCU para controlar dispositivos",
+      "present": 4,
+      "total": 4,
+      "missing": []
+    },
+    {
+      "id": "R6",
+      "text": "Mostrar estado actual de los dispositivos (encendidos/apagados, temperaturas actuales, niveles de líquido) en la SPA",
+      "present": 2,
+      "total": 4,
+      "missing": [
+        "encendidos",
+        "apagados"
+      ]
+    },
+    {
+      "id": "R7",
+      "text": "Generar alertas en caso de valores críticos (temperatura alta/baja, niveles bajos de líquido)",
+      "present": 4,
+      "total": 8,
+      "missing": [
+        "caso",
+        "alta",
+        "baja",
+        "bajos"
+      ]
+    },
+    {
+      "id": "R8",
+      "text": "Registrar y visualizar historial de cocciones",
+      "present": 3,
+      "total": 3,
+      "missing": []
+    }
+  ],
+  "labels": {}
+}

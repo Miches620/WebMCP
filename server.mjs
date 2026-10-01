@@ -210,6 +210,15 @@ Estilo: corto, directo, TechLead. Máximo 10 iteraciones.
     return;
   }
 
+  // === API VERSION: BUILD_ID de script.js tal como está en disco ===
+  if (req.method === "GET" && req.url === "/api/version") {
+    const src = await readFile(join(STATIC_DIR, "script.js"), "utf8").catch(() => "");
+    const build = (src.match(/const BUILD_ID = "([^"]+)"/) || [])[1] || null;
+    res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
+    res.end(JSON.stringify({ build }));
+    return;
+  }
+
   // === API STAGE: etapa vigente + criterio para TechLeader ===
   if (req.method === "GET" && req.url === "/api/stage") {
     try {
@@ -339,7 +348,9 @@ Estilo: corto, directo, TechLead. Máximo 10 iteraciones.
   const ext = extname(filePath);
   const mime = MIME[ext] || "text/plain";
   const data = await readFile(filePath);
-  res.writeHead(200, { "Content-Type": mime });
+  // no-store: que el navegador nunca use una copia vieja de script.js o
+  // de los módulos que importa.
+  res.writeHead(200, { "Content-Type": mime, "Cache-Control": "no-store" });
   res.end(data);
 });
 

@@ -1,0 +1,364 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Landing Page de Café Especialidad",
+  "source": "project20_snapshot.json",
+  "catalog": "check_catalog v0.2",
+  "artifact_loads_without_js_errors": true,
+  "summary": {
+    "requisitos": 4,
+    "PASS": 1,
+    "FAIL": 3,
+    "SIN_CHEQUEO": 0
+  },
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "Catalogo de cafés en tarjetas con foto superior e información inferior (en carrousel)",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "text_visible",
+          "params": {
+            "text": [
+              "cafés",
+              "tarjetas"
+            ]
+          },
+          "covers": "Mostrar sección de cafés en tarjetas",
+          "result": "PASS",
+          "detail": "visible: \"cafes\""
+        },
+        {
+          "type": "click_reveals",
+          "params": {
+            "click": [
+              "tarjetas",
+              "carrousel"
+            ],
+            "expect": [
+              "foto",
+              "información"
+            ]
+          },
+          "covers": "Al hacer clic en las tarjetas, aparece información detallada en carrousel",
+          "result": "FAIL",
+          "detail": "ningún control menciona: tarjetas / carrousel"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Formulario de contacto con campos obligatorios y opcionalmente un campo para preferencias",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "text_visible",
+          "params": {
+            "text": [
+              "contacto",
+              "enviar"
+            ]
+          },
+          "covers": "Mostrar sección de contacto",
+          "result": "PASS",
+          "detail": "visible: \"enviar\""
+        },
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "enviar",
+              "contacto"
+            ]
+          },
+          "covers": "Permitir hacer envío del formulario de contacto",
+          "result": "PASS",
+          "detail": "control: \"Enviar Mensaje\""
+        },
+        {
+          "type": "field_required",
+          "params": {
+            "field": [
+              "nombre",
+              "email"
+            ]
+          },
+          "covers": "Campos nombre y email son obligatorios",
+          "result": "FAIL",
+          "detail": "un envío completo no pasa (alert: \"Hubo un error al enviar tu mensaje. Por favor, inténtalo más tarde o llámanos di\"); no se puede medir"
+        },
+        {
+          "type": "field_optional",
+          "params": {
+            "field": [
+              "preferencias"
+            ]
+          },
+          "covers": "Campo preferencias es opcional",
+          "result": "FAIL",
+          "detail": "un envío completo no pasa (alert: \"Hubo un error al enviar tu mensaje. Por favor, inténtalo más tarde o llámanos di\"); no se puede medir"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "Sección 'Nosotros' con historia de la empresa",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "text_visible",
+          "params": {
+            "text": [
+              "nosotros",
+              "historia"
+            ]
+          },
+          "covers": "Verifica que existe una sección llamada 'Nosotros' en la página.",
+          "result": "PASS",
+          "detail": "visible: \"historia\""
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "Sección 'Carta' con productos disponibles actualmente, obtenidos desde archivo de texto",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "text_visible",
+          "params": {
+            "text": [
+              "carta",
+              "productos",
+              "disponibles"
+            ]
+          },
+          "covers": "Sección 'Carta' con productos disponibles actualmente",
+          "result": "FAIL",
+          "detail": "no aparece: carta / productos / disponibles"
+        }
+      ]
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "spa_specialist v0.3-multifile",
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "F1.1",
+        "role": "Frontend",
+        "ms": 45906,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html",
+          "styles.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 2,
+        "task_id": "F1.2",
+        "role": "Frontend",
+        "ms": 50637,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html",
+          "styles.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 3,
+        "task_id": "F1.3",
+        "role": "Frontend",
+        "ms": 29959,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 4,
+        "task_id": "F1.4",
+        "role": "Frontend",
+        "ms": 32757,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 5,
+        "task_id": "F1.5",
+        "role": "Frontend",
+        "ms": 27545,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 6,
+        "task_id": "F1.6",
+        "role": "Frontend",
+        "ms": 34715,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 7,
+        "task_id": "F2.1",
+        "role": "Frontend",
+        "ms": 46204,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 8,
+        "task_id": "F2.2",
+        "role": "Frontend",
+        "ms": 133394,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html",
+          "styles.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 9,
+        "task_id": "F2.3",
+        "role": "Frontend",
+        "ms": 101005,
+        "finish_reason": "stop",
+        "changed": [
+          "api.js",
+          "app.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 10,
+        "task_id": "F2.4",
+        "role": "Frontend",
+        "ms": 301393,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html",
+          "styles.css",
+          "app.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 11,
+        "task_id": "F3.1",
+        "role": "Backend",
+        "ms": 135277,
+        "finish_reason": "stop",
+        "changed": [
+          "api.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 12,
+        "task_id": "F3.2",
+        "role": "Backend",
+        "ms": 185900,
+        "finish_reason": "stop",
+        "changed": [
+          "api.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 13,
+        "task_id": "F3.3",
+        "role": "Backend",
+        "ms": 211403,
+        "finish_reason": "stop",
+        "changed": [
+          "api.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 14,
+        "task_id": "F4.1",
+        "role": "Frontend",
+        "ms": 183369,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 15,
+        "task_id": "F4.2",
+        "role": "Frontend",
+        "ms": 249670,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 16,
+        "task_id": "F4.3",
+        "role": "Frontend",
+        "ms": 279061,
+        "finish_reason": "stop",
+        "changed": [
+          "app.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 17,
+        "task_id": "F5.1",
+        "role": "Frontend",
+        "ms": 218161,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [],
+        "error": "la respuesta no trae bloques ### FILE"
+      },
+      {
+        "n": 18,
+        "task_id": "F5.2",
+        "role": "Frontend",
+        "ms": 358180,
+        "finish_reason": "stop",
+        "changed": [
+          "app.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 19,
+        "task_id": "F5.3",
+        "role": "Frontend",
+        "ms": 423396,
+        "finish_reason": "stop",
+        "changed": [
+          "app.js"
+        ],
+        "rejected": []
+      }
+    ]
+  }
+}

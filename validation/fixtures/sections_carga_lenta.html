@@ -1,0 +1,7 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>lenta</title></head><body>
+<section id="carta"><h2>Carta</h2><div class="lista"></div></section>
+<script>
+const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
+window.api={leer:async()=>{await wait(400);return "Espresso;Cortado;Latte"},parse:async(t)=>{await wait(600);return t.split(";")}};
+(async()=>{const items=await window.api.parse(await window.api.leer());document.querySelector('.lista').innerHTML=items.map(x=>`<div class="item">${x} — $4</div>`).join("")})();
+</script></body></html>

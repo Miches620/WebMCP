@@ -1,0 +1,2072 @@
+{
+  "experiment": "exp_translator_sections v0.1",
+  "translator": "check_translator v0.3",
+  "reps": 5,
+  "tally": {
+    "R1": 0,
+    "R3": 5,
+    "R4": 5
+  },
+  "results": [
+    {
+      "req": "R1",
+      "rep": 1,
+      "checks": [
+        {
+          "type": "section_items",
+          "params": {
+            "section": [
+              "cafés",
+              "tarjetas"
+            ]
+          },
+          "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas."
+        },
+        {
+          "type": "carousel",
+          "params": {
+            "section": [
+              "cafés",
+              "tarjetas"
+            ]
+          },
+          "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación."
+        }
+      ],
+      "dropped": [],
+      "raw": "{\n  \"checks\": [\n    {\n      \"type\": \"section_items\",\n      \"params\": { \"section\": [\"cafés\", \"tarjetas\"] },\n      \"covers\": \"Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.\"\n    },\n    {\n      \"type\": \"carousel\",\n      \"params\": { \"section\": [\"cafés\", \"tarjetas\"] },\n      \"covers\": \"Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.\"\n    }\n  ],\n  \"sin_chequeo\": \"\"\n}",
+      "targets": [
+        {
+          "name": "esqueleto",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.",
+              "result": "FAIL",
+              "detail": "#catalogo-de-cafes: 0 ítems"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.",
+              "result": "FAIL",
+              "detail": "#catalogo-de-cafes: 0 ítems, no hay carrusel | a 480 px: 0 ítems, no hay carrusel"
+            }
+          ]
+        },
+        {
+          "name": "v0.3",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.",
+              "result": "PASS",
+              "detail": "#catalogo: 4 ítems (Origen Etiopía Yirgacheffe · Colombia Huila Supremo · Guatemala Antigua)"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.",
+              "result": "PASS",
+              "detail": "#catalogo: 4 ítems; clic en \"> Siguiente btn-nav\" los desplaza"
+            }
+          ]
+        },
+        {
+          "name": "v0.4",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.",
+              "result": "PASS",
+              "detail": "#catalogo-de-cafes: 4 ítems (Etiopía Yirgacheffe · Colombia Supremo · Guatemala Antigua)"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.",
+              "result": "PASS",
+              "detail": "#catalogo-de-cafes: 4 ítems; clic en \"Siguiente → carousel-control\" los desplaza (a 480 px)"
+            }
+          ]
+        },
+        {
+          "name": "sections_ok",
+          "expect": "PASS",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.",
+              "result": "FAIL",
+              "detail": "no hay sección: cafés / tarjetas"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.",
+              "result": "FAIL",
+              "detail": "no hay sección: cafés / tarjetas | a 480 px: no hay sección: cafés / tarjetas"
+            }
+          ]
+        },
+        {
+          "name": "sections_vacio",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.",
+              "result": "FAIL",
+              "detail": "#catalogo: 0 ítems"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.",
+              "result": "FAIL",
+              "detail": "#catalogo: 0 ítems, no hay carrusel | a 480 px: 0 ítems, no hay carrusel"
+            }
+          ]
+        }
+      ],
+      "discriminates": false
+    },
+    {
+      "req": "R1",
+      "rep": 2,
+      "checks": [
+        {
+          "type": "section_items",
+          "params": {
+            "section": [
+              "cafes",
+              "tarjetas"
+            ]
+          },
+          "covers": "Verifica que la sección de cafés esté mostrada en tarjetas con foto superior e información inferior."
+        },
+        {
+          "type": "carousel",
+          "params": {
+            "section": [
+              "cafes",
+              "tarjetas"
+            ]
+          },
+          "covers": "Verifica que los elementos de la sección de cafés se muestran en un carrusel, permitiendo desplazamiento horizontal."
+        }
+      ],
+      "dropped": [],
+      "raw": "{\n  \"checks\": [\n    {\n      \"type\": \"section_items\",\n      \"params\": { \"section\": [\"cafes\", \"tarjetas\"] },\n      \"covers\": \"Verifica que la sección de cafés esté mostrada en tarjetas con foto superior e información inferior.\"\n    },\n    {\n      \"type\": \"carousel\",\n      \"params\": { \"section\": [\"cafes\", \"tarjetas\"] },\n      \"covers\": \"Verifica que los elementos de la sección de cafés se muestran en un carrusel, permitiendo desplazamiento horizontal.\"\n    }\n  ],\n  \"sin_chequeo\": \"\"\n}",
+      "targets": [
+        {
+          "name": "esqueleto",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés esté mostrada en tarjetas con foto superior e información inferior.",
+              "result": "FAIL",
+              "detail": "#catalogo-de-cafes: 0 ítems"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés se muestran en un carrusel, permitiendo desplazamiento horizontal.",
+              "result": "FAIL",
+              "detail": "#catalogo-de-cafes: 0 ítems, no hay carrusel | a 480 px: 0 ítems, no hay carrusel"
+            }
+          ]
+        },
+        {
+          "name": "v0.3",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés esté mostrada en tarjetas con foto superior e información inferior.",
+              "result": "PASS",
+              "detail": "#catalogo: 4 ítems (Origen Etiopía Yirgacheffe · Colombia Huila Supremo · Guatemala Antigua)"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés se muestran en un carrusel, permitiendo desplazamiento horizontal.",
+              "result": "PASS",
+              "detail": "#catalogo: 4 ítems; clic en \"> Siguiente btn-nav\" los desplaza"
+            }
+          ]
+        },
+        {
+          "name": "v0.4",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés esté mostrada en tarjetas con foto superior e información inferior.",
+              "result": "PASS",
+              "detail": "#catalogo-de-cafes: 4 ítems (Etiopía Yirgacheffe · Colombia Supremo · Guatemala Antigua)"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés se muestran en un carrusel, permitiendo desplazamiento horizontal.",
+              "result": "PASS",
+              "detail": "#catalogo-de-cafes: 4 ítems; clic en \"Siguiente → carousel-control\" los desplaza (a 480 px)"
+            }
+          ]
+        },
+        {
+          "name": "sections_ok",
+          "expect": "PASS",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés esté mostrada en tarjetas con foto superior e información inferior.",
+              "result": "FAIL",
+              "detail": "no hay sección: cafes / tarjetas"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés se muestran en un carrusel, permitiendo desplazamiento horizontal.",
+              "result": "FAIL",
+              "detail": "no hay sección: cafes / tarjetas | a 480 px: no hay sección: cafes / tarjetas"
+            }
+          ]
+        },
+        {
+          "name": "sections_vacio",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés esté mostrada en tarjetas con foto superior e información inferior.",
+              "result": "FAIL",
+              "detail": "#catalogo: 0 ítems"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés se muestran en un carrusel, permitiendo desplazamiento horizontal.",
+              "result": "FAIL",
+              "detail": "#catalogo: 0 ítems, no hay carrusel | a 480 px: 0 ítems, no hay carrusel"
+            }
+          ]
+        }
+      ],
+      "discriminates": false
+    },
+    {
+      "req": "R1",
+      "rep": 3,
+      "checks": [
+        {
+          "type": "section_items",
+          "params": {
+            "section": [
+              "cafés",
+              "tarjetas"
+            ]
+          },
+          "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas."
+        },
+        {
+          "type": "carousel",
+          "params": {
+            "section": [
+              "cafés",
+              "tarjetas"
+            ]
+          },
+          "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación."
+        }
+      ],
+      "dropped": [],
+      "raw": "{\n  \"checks\": [\n    {\n      \"type\": \"section_items\",\n      \"params\": { \"section\": [\"cafés\", \"tarjetas\"] },\n      \"covers\": \"Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.\"\n    },\n    {\n      \"type\": \"carousel\",\n      \"params\": { \"section\": [\"cafés\", \"tarjetas\"] },\n      \"covers\": \"Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.\"\n    }\n  ],\n  \"sin_chequeo\": \"\"\n}",
+      "targets": [
+        {
+          "name": "esqueleto",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.",
+              "result": "FAIL",
+              "detail": "#catalogo-de-cafes: 0 ítems"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.",
+              "result": "FAIL",
+              "detail": "#catalogo-de-cafes: 0 ítems, no hay carrusel | a 480 px: 0 ítems, no hay carrusel"
+            }
+          ]
+        },
+        {
+          "name": "v0.3",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.",
+              "result": "PASS",
+              "detail": "#catalogo: 4 ítems (Origen Etiopía Yirgacheffe · Colombia Huila Supremo · Guatemala Antigua)"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.",
+              "result": "PASS",
+              "detail": "#catalogo: 4 ítems; clic en \"> Siguiente btn-nav\" los desplaza"
+            }
+          ]
+        },
+        {
+          "name": "v0.4",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.",
+              "result": "PASS",
+              "detail": "#catalogo-de-cafes: 4 ítems (Etiopía Yirgacheffe · Colombia Supremo · Guatemala Antigua)"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.",
+              "result": "PASS",
+              "detail": "#catalogo-de-cafes: 4 ítems; clic en \"Siguiente → carousel-control\" los desplaza (a 480 px)"
+            }
+          ]
+        },
+        {
+          "name": "sections_ok",
+          "expect": "PASS",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.",
+              "result": "FAIL",
+              "detail": "no hay sección: cafés / tarjetas"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.",
+              "result": "FAIL",
+              "detail": "no hay sección: cafés / tarjetas | a 480 px: no hay sección: cafés / tarjetas"
+            }
+          ]
+        },
+        {
+          "name": "sections_vacio",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.",
+              "result": "FAIL",
+              "detail": "#catalogo: 0 ítems"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.",
+              "result": "FAIL",
+              "detail": "#catalogo: 0 ítems, no hay carrusel | a 480 px: 0 ítems, no hay carrusel"
+            }
+          ]
+        }
+      ],
+      "discriminates": false
+    },
+    {
+      "req": "R1",
+      "rep": 4,
+      "checks": [
+        {
+          "type": "section_items",
+          "params": {
+            "section": [
+              "cafés",
+              "tarjetas"
+            ]
+          },
+          "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas."
+        },
+        {
+          "type": "carousel",
+          "params": {
+            "section": [
+              "cafés",
+              "tarjetas"
+            ]
+          },
+          "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación."
+        }
+      ],
+      "dropped": [],
+      "raw": "{\n  \"checks\": [\n    {\n      \"type\": \"section_items\",\n      \"params\": { \"section\": [\"cafés\", \"tarjetas\"] },\n      \"covers\": \"Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.\"\n    },\n    {\n      \"type\": \"carousel\",\n      \"params\": { \"section\": [\"cafés\", \"tarjetas\"] },\n      \"covers\": \"Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.\"\n    }\n  ],\n  \"sin_chequeo\": \"\"\n}",
+      "targets": [
+        {
+          "name": "esqueleto",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.",
+              "result": "FAIL",
+              "detail": "#catalogo-de-cafes: 0 ítems"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.",
+              "result": "FAIL",
+              "detail": "#catalogo-de-cafes: 0 ítems, no hay carrusel | a 480 px: 0 ítems, no hay carrusel"
+            }
+          ]
+        },
+        {
+          "name": "v0.3",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.",
+              "result": "PASS",
+              "detail": "#catalogo: 4 ítems (Origen Etiopía Yirgacheffe · Colombia Huila Supremo · Guatemala Antigua)"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.",
+              "result": "PASS",
+              "detail": "#catalogo: 4 ítems; clic en \"> Siguiente btn-nav\" los desplaza"
+            }
+          ]
+        },
+        {
+          "name": "v0.4",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.",
+              "result": "PASS",
+              "detail": "#catalogo-de-cafes: 4 ítems (Etiopía Yirgacheffe · Colombia Supremo · Guatemala Antigua)"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.",
+              "result": "PASS",
+              "detail": "#catalogo-de-cafes: 4 ítems; clic en \"Siguiente → carousel-control\" los desplaza (a 480 px)"
+            }
+          ]
+        },
+        {
+          "name": "sections_ok",
+          "expect": "PASS",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.",
+              "result": "FAIL",
+              "detail": "no hay sección: cafés / tarjetas"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.",
+              "result": "FAIL",
+              "detail": "no hay sección: cafés / tarjetas | a 480 px: no hay sección: cafés / tarjetas"
+            }
+          ]
+        },
+        {
+          "name": "sections_vacio",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.",
+              "result": "FAIL",
+              "detail": "#catalogo: 0 ítems"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafés",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.",
+              "result": "FAIL",
+              "detail": "#catalogo: 0 ítems, no hay carrusel | a 480 px: 0 ítems, no hay carrusel"
+            }
+          ]
+        }
+      ],
+      "discriminates": false
+    },
+    {
+      "req": "R1",
+      "rep": 5,
+      "checks": [
+        {
+          "type": "section_items",
+          "params": {
+            "section": [
+              "cafes",
+              "tarjetas"
+            ]
+          },
+          "covers": "Verifica que la sección de cafés esté mostrada en tarjetas con foto superior e información inferior."
+        },
+        {
+          "type": "carousel",
+          "params": {
+            "section": [
+              "cafes",
+              "tarjetas"
+            ]
+          },
+          "covers": "Verifica que los elementos de la sección de cafés se muestran en un carrusel, con controles de navegación o desplazamiento horizontal."
+        }
+      ],
+      "dropped": [],
+      "raw": "{\n  \"checks\": [\n    {\n      \"type\": \"section_items\",\n      \"params\": { \"section\": [\"cafes\", \"tarjetas\"] },\n      \"covers\": \"Verifica que la sección de cafés esté mostrada en tarjetas con foto superior e información inferior.\"\n    },\n    {\n      \"type\": \"carousel\",\n      \"params\": { \"section\": [\"cafes\", \"tarjetas\"] },\n      \"covers\": \"Verifica que los elementos de la sección de cafés se muestran en un carrusel, con controles de navegación o desplazamiento horizontal.\"\n    }\n  ],\n  \"sin_chequeo\": \"\"\n}",
+      "targets": [
+        {
+          "name": "esqueleto",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés esté mostrada en tarjetas con foto superior e información inferior.",
+              "result": "FAIL",
+              "detail": "#catalogo-de-cafes: 0 ítems"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés se muestran en un carrusel, con controles de navegación o desplazamiento horizontal.",
+              "result": "FAIL",
+              "detail": "#catalogo-de-cafes: 0 ítems, no hay carrusel | a 480 px: 0 ítems, no hay carrusel"
+            }
+          ]
+        },
+        {
+          "name": "v0.3",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés esté mostrada en tarjetas con foto superior e información inferior.",
+              "result": "PASS",
+              "detail": "#catalogo: 4 ítems (Origen Etiopía Yirgacheffe · Colombia Huila Supremo · Guatemala Antigua)"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés se muestran en un carrusel, con controles de navegación o desplazamiento horizontal.",
+              "result": "PASS",
+              "detail": "#catalogo: 4 ítems; clic en \"> Siguiente btn-nav\" los desplaza"
+            }
+          ]
+        },
+        {
+          "name": "v0.4",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés esté mostrada en tarjetas con foto superior e información inferior.",
+              "result": "PASS",
+              "detail": "#catalogo-de-cafes: 4 ítems (Etiopía Yirgacheffe · Colombia Supremo · Guatemala Antigua)"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés se muestran en un carrusel, con controles de navegación o desplazamiento horizontal.",
+              "result": "PASS",
+              "detail": "#catalogo-de-cafes: 4 ítems; clic en \"Siguiente → carousel-control\" los desplaza (a 480 px)"
+            }
+          ]
+        },
+        {
+          "name": "sections_ok",
+          "expect": "PASS",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés esté mostrada en tarjetas con foto superior e información inferior.",
+              "result": "FAIL",
+              "detail": "no hay sección: cafes / tarjetas"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés se muestran en un carrusel, con controles de navegación o desplazamiento horizontal.",
+              "result": "FAIL",
+              "detail": "no hay sección: cafes / tarjetas | a 480 px: no hay sección: cafes / tarjetas"
+            }
+          ]
+        },
+        {
+          "name": "sections_vacio",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que la sección de cafés esté mostrada en tarjetas con foto superior e información inferior.",
+              "result": "FAIL",
+              "detail": "#catalogo: 0 ítems"
+            },
+            {
+              "type": "carousel",
+              "params": {
+                "section": [
+                  "cafes",
+                  "tarjetas"
+                ]
+              },
+              "covers": "Verifica que los elementos de la sección de cafés se muestran en un carrusel, con controles de navegación o desplazamiento horizontal.",
+              "result": "FAIL",
+              "detail": "#catalogo: 0 ítems, no hay carrusel | a 480 px: 0 ítems, no hay carrusel"
+            }
+          ]
+        }
+      ],
+      "discriminates": false
+    },
+    {
+      "req": "R3",
+      "rep": 1,
+      "checks": [
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "nosotros"
+            ]
+          },
+          "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos)."
+        }
+      ],
+      "dropped": [],
+      "raw": "{\n  \"checks\": [\n    {\n      \"type\": \"section_content\",\n      \"params\": { \"section\": [\"nosotros\"] },\n      \"covers\": \"La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).\"\n    }\n  ],\n  \"sin_chequeo\": \"\"\n}",
+      "targets": [
+        {
+          "name": "esqueleto",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "FAIL",
+              "detail": "#nosotros: 0 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "v0.3",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "PASS",
+              "detail": "#nosotros: 99 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "v0.4",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "PASS",
+              "detail": "#nosotros: 76 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "sections_ok",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "PASS",
+              "detail": "#nosotros: 26 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "sections_vacio",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "FAIL",
+              "detail": "#nosotros: 0 palabras propias (mín. 20)"
+            }
+          ]
+        }
+      ],
+      "discriminates": true
+    },
+    {
+      "req": "R3",
+      "rep": 2,
+      "checks": [
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "nosotros"
+            ]
+          },
+          "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos)."
+        }
+      ],
+      "dropped": [],
+      "raw": "{\n  \"checks\": [\n    {\n      \"type\": \"section_content\",\n      \"params\": { \"section\": [\"nosotros\"] },\n      \"covers\": \"La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).\"\n    }\n  ],\n  \"sin_chequeo\": \"\"\n}",
+      "targets": [
+        {
+          "name": "esqueleto",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "FAIL",
+              "detail": "#nosotros: 0 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "v0.3",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "PASS",
+              "detail": "#nosotros: 99 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "v0.4",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "PASS",
+              "detail": "#nosotros: 76 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "sections_ok",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "PASS",
+              "detail": "#nosotros: 26 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "sections_vacio",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "FAIL",
+              "detail": "#nosotros: 0 palabras propias (mín. 20)"
+            }
+          ]
+        }
+      ],
+      "discriminates": true
+    },
+    {
+      "req": "R3",
+      "rep": 3,
+      "checks": [
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "nosotros"
+            ]
+          },
+          "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos)."
+        }
+      ],
+      "dropped": [],
+      "raw": "{\n  \"checks\": [\n    {\n      \"type\": \"section_content\",\n      \"params\": { \"section\": [\"nosotros\"] },\n      \"covers\": \"La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).\"\n    }\n  ],\n  \"sin_chequeo\": \"\"\n}",
+      "targets": [
+        {
+          "name": "esqueleto",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "FAIL",
+              "detail": "#nosotros: 0 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "v0.3",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "PASS",
+              "detail": "#nosotros: 99 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "v0.4",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "PASS",
+              "detail": "#nosotros: 76 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "sections_ok",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "PASS",
+              "detail": "#nosotros: 26 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "sections_vacio",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "FAIL",
+              "detail": "#nosotros: 0 palabras propias (mín. 20)"
+            }
+          ]
+        }
+      ],
+      "discriminates": true
+    },
+    {
+      "req": "R3",
+      "rep": 4,
+      "checks": [
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "nosotros"
+            ]
+          },
+          "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos)."
+        }
+      ],
+      "dropped": [],
+      "raw": "{\n  \"checks\": [\n    {\n      \"type\": \"section_content\",\n      \"params\": { \"section\": [\"nosotros\"] },\n      \"covers\": \"La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).\"\n    }\n  ],\n  \"sin_chequeo\": \"\"\n}",
+      "targets": [
+        {
+          "name": "esqueleto",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "FAIL",
+              "detail": "#nosotros: 0 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "v0.3",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "PASS",
+              "detail": "#nosotros: 99 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "v0.4",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "PASS",
+              "detail": "#nosotros: 76 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "sections_ok",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "PASS",
+              "detail": "#nosotros: 26 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "sections_vacio",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "FAIL",
+              "detail": "#nosotros: 0 palabras propias (mín. 20)"
+            }
+          ]
+        }
+      ],
+      "discriminates": true
+    },
+    {
+      "req": "R3",
+      "rep": 5,
+      "checks": [
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "nosotros"
+            ]
+          },
+          "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos)."
+        }
+      ],
+      "dropped": [],
+      "raw": "{\n  \"checks\": [\n    {\n      \"type\": \"section_content\",\n      \"params\": { \"section\": [\"nosotros\"] },\n      \"covers\": \"La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).\"\n    }\n  ],\n  \"sin_chequeo\": \"\"\n}",
+      "targets": [
+        {
+          "name": "esqueleto",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "FAIL",
+              "detail": "#nosotros: 0 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "v0.3",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "PASS",
+              "detail": "#nosotros: 99 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "v0.4",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "PASS",
+              "detail": "#nosotros: 76 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "sections_ok",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "PASS",
+              "detail": "#nosotros: 26 palabras propias (mín. 20)"
+            }
+          ]
+        },
+        {
+          "name": "sections_vacio",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_content",
+              "params": {
+                "section": [
+                  "nosotros"
+                ]
+              },
+              "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+              "result": "FAIL",
+              "detail": "#nosotros: 0 palabras propias (mín. 20)"
+            }
+          ]
+        }
+      ],
+      "discriminates": true
+    },
+    {
+      "req": "R4",
+      "rep": 1,
+      "checks": [
+        {
+          "type": "section_items",
+          "params": {
+            "section": [
+              "carta",
+              "productos"
+            ]
+          },
+          "covers": "La sección 'Carta' muestra una lista de varios productos disponibles actualmente."
+        }
+      ],
+      "dropped": [],
+      "raw": "{\n  \"checks\": [\n    {\n      \"type\": \"section_items\",\n      \"params\": { \"section\": [\"carta\", \"productos\"] },\n      \"covers\": \"La sección 'Carta' muestra una lista de varios productos disponibles actualmente.\"\n    }\n  ],\n  \"sin_chequeo\": \"\"\n}",
+      "targets": [
+        {
+          "name": "esqueleto",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios productos disponibles actualmente.",
+              "result": "FAIL",
+              "detail": "#carta: 0 ítems"
+            }
+          ]
+        },
+        {
+          "name": "v0.3",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios productos disponibles actualmente.",
+              "result": "FAIL",
+              "detail": "#carta: 1 ítems (Descubre la variedad de bebidas y produc)"
+            }
+          ]
+        },
+        {
+          "name": "v0.4",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios productos disponibles actualmente.",
+              "result": "PASS",
+              "detail": "#carta: 4 ítems (Tostado Clásico (Grano Entero) · Espresso Premium (Molido) · Filtro Floral (Grano Entero))"
+            }
+          ]
+        },
+        {
+          "name": "sections_ok",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios productos disponibles actualmente.",
+              "result": "PASS",
+              "detail": "#carta: 3 ítems (Espresso $3 · Cortado $4 · Latte $5)"
+            }
+          ]
+        },
+        {
+          "name": "sections_vacio",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios productos disponibles actualmente.",
+              "result": "FAIL",
+              "detail": "#carta: 0 ítems"
+            }
+          ]
+        }
+      ],
+      "discriminates": true
+    },
+    {
+      "req": "R4",
+      "rep": 2,
+      "checks": [
+        {
+          "type": "section_items",
+          "params": {
+            "section": [
+              "carta",
+              "productos"
+            ]
+          },
+          "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto, correspondientes a productos disponibles actualmente."
+        }
+      ],
+      "dropped": [],
+      "raw": "{\n  \"checks\": [\n    {\n      \"type\": \"section_items\",\n      \"params\": { \"section\": [\"carta\", \"productos\"] },\n      \"covers\": \"La sección 'Carta' muestra una lista de varios elementos repetidos con texto, correspondientes a productos disponibles actualmente.\"\n    }\n  ],\n  \"sin_chequeo\": \"\"\n}",
+      "targets": [
+        {
+          "name": "esqueleto",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto, correspondientes a productos disponibles actualmente.",
+              "result": "FAIL",
+              "detail": "#carta: 0 ítems"
+            }
+          ]
+        },
+        {
+          "name": "v0.3",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto, correspondientes a productos disponibles actualmente.",
+              "result": "FAIL",
+              "detail": "#carta: 1 ítems (Descubre la variedad de bebidas y produc)"
+            }
+          ]
+        },
+        {
+          "name": "v0.4",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto, correspondientes a productos disponibles actualmente.",
+              "result": "PASS",
+              "detail": "#carta: 4 ítems (Tostado Clásico (Grano Entero) · Espresso Premium (Molido) · Filtro Floral (Grano Entero))"
+            }
+          ]
+        },
+        {
+          "name": "sections_ok",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto, correspondientes a productos disponibles actualmente.",
+              "result": "PASS",
+              "detail": "#carta: 3 ítems (Espresso $3 · Cortado $4 · Latte $5)"
+            }
+          ]
+        },
+        {
+          "name": "sections_vacio",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto, correspondientes a productos disponibles actualmente.",
+              "result": "FAIL",
+              "detail": "#carta: 0 ítems"
+            }
+          ]
+        }
+      ],
+      "discriminates": true
+    },
+    {
+      "req": "R4",
+      "rep": 3,
+      "checks": [
+        {
+          "type": "section_items",
+          "params": {
+            "section": [
+              "carta",
+              "productos"
+            ]
+          },
+          "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto (productos disponibles)."
+        }
+      ],
+      "dropped": [],
+      "raw": "{\n  \"checks\": [\n    {\n      \"type\": \"section_items\",\n      \"params\": { \"section\": [\"carta\", \"productos\"] },\n      \"covers\": \"La sección 'Carta' muestra una lista de varios elementos repetidos con texto (productos disponibles).\"\n    }\n  ],\n  \"sin_chequeo\": \"\"\n}",
+      "targets": [
+        {
+          "name": "esqueleto",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto (productos disponibles).",
+              "result": "FAIL",
+              "detail": "#carta: 0 ítems"
+            }
+          ]
+        },
+        {
+          "name": "v0.3",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto (productos disponibles).",
+              "result": "FAIL",
+              "detail": "#carta: 1 ítems (Descubre la variedad de bebidas y produc)"
+            }
+          ]
+        },
+        {
+          "name": "v0.4",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto (productos disponibles).",
+              "result": "PASS",
+              "detail": "#carta: 4 ítems (Tostado Clásico (Grano Entero) · Espresso Premium (Molido) · Filtro Floral (Grano Entero))"
+            }
+          ]
+        },
+        {
+          "name": "sections_ok",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto (productos disponibles).",
+              "result": "PASS",
+              "detail": "#carta: 3 ítems (Espresso $3 · Cortado $4 · Latte $5)"
+            }
+          ]
+        },
+        {
+          "name": "sections_vacio",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto (productos disponibles).",
+              "result": "FAIL",
+              "detail": "#carta: 0 ítems"
+            }
+          ]
+        }
+      ],
+      "discriminates": true
+    },
+    {
+      "req": "R4",
+      "rep": 4,
+      "checks": [
+        {
+          "type": "section_items",
+          "params": {
+            "section": [
+              "carta",
+              "productos"
+            ]
+          },
+          "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto, que corresponden a productos disponibles actualmente."
+        }
+      ],
+      "dropped": [],
+      "raw": "{\n  \"checks\": [\n    {\n      \"type\": \"section_items\",\n      \"params\": { \"section\": [\"carta\", \"productos\"] },\n      \"covers\": \"La sección 'Carta' muestra una lista de varios elementos repetidos con texto, que corresponden a productos disponibles actualmente.\"\n    }\n  ],\n  \"sin_chequeo\": \"\"\n}",
+      "targets": [
+        {
+          "name": "esqueleto",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto, que corresponden a productos disponibles actualmente.",
+              "result": "FAIL",
+              "detail": "#carta: 0 ítems"
+            }
+          ]
+        },
+        {
+          "name": "v0.3",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto, que corresponden a productos disponibles actualmente.",
+              "result": "FAIL",
+              "detail": "#carta: 1 ítems (Descubre la variedad de bebidas y produc)"
+            }
+          ]
+        },
+        {
+          "name": "v0.4",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto, que corresponden a productos disponibles actualmente.",
+              "result": "PASS",
+              "detail": "#carta: 4 ítems (Tostado Clásico (Grano Entero) · Espresso Premium (Molido) · Filtro Floral (Grano Entero))"
+            }
+          ]
+        },
+        {
+          "name": "sections_ok",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto, que corresponden a productos disponibles actualmente.",
+              "result": "PASS",
+              "detail": "#carta: 3 ítems (Espresso $3 · Cortado $4 · Latte $5)"
+            }
+          ]
+        },
+        {
+          "name": "sections_vacio",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto, que corresponden a productos disponibles actualmente.",
+              "result": "FAIL",
+              "detail": "#carta: 0 ítems"
+            }
+          ]
+        }
+      ],
+      "discriminates": true
+    },
+    {
+      "req": "R4",
+      "rep": 5,
+      "checks": [
+        {
+          "type": "section_items",
+          "params": {
+            "section": [
+              "carta",
+              "productos"
+            ]
+          },
+          "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto (productos disponibles)."
+        }
+      ],
+      "dropped": [],
+      "raw": "{\n  \"checks\": [\n    {\n      \"type\": \"section_items\",\n      \"params\": { \"section\": [\"carta\", \"productos\"] },\n      \"covers\": \"La sección 'Carta' muestra una lista de varios elementos repetidos con texto (productos disponibles).\"\n    }\n  ],\n  \"sin_chequeo\": \"\"\n}",
+      "targets": [
+        {
+          "name": "esqueleto",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto (productos disponibles).",
+              "result": "FAIL",
+              "detail": "#carta: 0 ítems"
+            }
+          ]
+        },
+        {
+          "name": "v0.3",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto (productos disponibles).",
+              "result": "FAIL",
+              "detail": "#carta: 1 ítems (Descubre la variedad de bebidas y produc)"
+            }
+          ]
+        },
+        {
+          "name": "v0.4",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto (productos disponibles).",
+              "result": "PASS",
+              "detail": "#carta: 4 ítems (Tostado Clásico (Grano Entero) · Espresso Premium (Molido) · Filtro Floral (Grano Entero))"
+            }
+          ]
+        },
+        {
+          "name": "sections_ok",
+          "expect": "PASS",
+          "verdict": "PASS",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto (productos disponibles).",
+              "result": "PASS",
+              "detail": "#carta: 3 ítems (Espresso $3 · Cortado $4 · Latte $5)"
+            }
+          ]
+        },
+        {
+          "name": "sections_vacio",
+          "expect": "FAIL",
+          "verdict": "FAIL",
+          "checks": [
+            {
+              "type": "section_items",
+              "params": {
+                "section": [
+                  "carta",
+                  "productos"
+                ]
+              },
+              "covers": "La sección 'Carta' muestra una lista de varios elementos repetidos con texto (productos disponibles).",
+              "result": "FAIL",
+              "detail": "#carta: 0 ítems"
+            }
+          ]
+        }
+      ],
+      "discriminates": true
+    }
+  ]
+}

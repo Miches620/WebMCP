@@ -19,6 +19,14 @@ Validation Profile: role_dependencies  (determinista, sin LLM)
 Completeness Reviewer v3 (schema acotado + reglas del harness)
    ↓
 APPROVED  ·  o reintento de TechLeader con feedback (máx. 3)  ·  o decisión humana
+   ↓  snapshot del estado (localStorage "webmcp_state" → JSON)
+Specialist (Gemma)  → construye la SPA tarea por tarea, back simulado      [build/]
+   ↓   esqueleto del harness + contrato api.js↔app.js
+Artefacto: app/index.html + styles.css + api.js (mock) + app.js
+   ↓
+Validation: requisito → chequeos del catálogo (Qwen elige, el código ejecuta en Chromium)   [validation/]
+   ↓   control: los mismos chequeos sobre el esqueleto vacío
+Evidence por requisito: PASS / FAIL / SIN_EVIDENCIA / SIN_CHEQUEO   (build/runs/<fecha>/evidence.json)
 ```
 
 ---
@@ -36,6 +44,8 @@ node server.mjs
 # → http://localhost:3000
 ```
 
+Para el build y Validation (una vez): `npm install` y `npx playwright install chromium`.
+
 ---
 
 ## Archivos
@@ -51,7 +61,7 @@ node server.mjs
 | `context/ProjectStage.md` | Definición de etapas (PROTOTYPE / MVP / FINAL). El bloque entre `BEGIN_STAGE_BLOCK` / `END_STAGE_BLOCK` se inyecta en el reviewer. |
 | `context/stage_loader.mjs` | Extrae ese bloque (con hash SHA-256) y **falla fuerte** si falta. También devuelve `stage` (p.ej. `PROTOTYPE`) y `criterion` (el bloque hasta "Cómo aplicarlo al revisar:", que es lo que recibe TechLeader). |
 | `plan_stage_check.mjs` | Chequeo de etapa **a nivel plan**, antes de atomizar: un veredicto por fase (IN_SCOPE / DEFERRED / EXCESS), validado por el harness como el reviewer v3. Arma el feedback para TechLeader. |
-| `test_plan_stage_check.mjs` | 7 tests deterministas (fetch simulado): `node test_plan_stage_check.mjs`. |
+| `test_plan_stage_check.mjs` | 8 tests deterministas (fetch simulado): `node test_plan_stage_check.mjs`. |
 | `bench_stage_check.mjs` | **Matriz de briefs contra LM Studio real** (6 casos: Project20 intentos 1-3, deploy pedido, operación/hardening, exceso no pedido). `node bench_stage_check.mjs 5` → `evidence/stage_check_<fecha>.json`. |
 | `intent_forge_v02.ps1` | **Herramienta manual de debug**, no forma parte del pipeline. Su system prompt es parecido pero distinto al de `server.mjs`: editar uno no cambia el otro. |
 | `test_completeness_bounded.mjs`, `test_completeness_bounded_2.mjs` | Casos de prueba del reviewer v3 (recetas / instrumentos). |
@@ -124,6 +134,29 @@ Cuando dice "cubierto", el reason copia el texto del requisito sin respaldo en l
 **4. `term_coverage.mjs` sobre los 3 casos con verdad conocida (P20, recetas, instrumentos):** los 9 requisitos no cubiertos tienen ≥1 palabra propia faltante (9/9); pero 8 de 13 cubiertos también (buscar/búsqueda, guardar/marcar favorita, ejemplos enumerados, superior/inferior). Con umbral <50%: 7/9 y 1 falso aviso, umbral elegido mirando los mismos datos → **no se usa umbral**.
 - **Decisión (30/09):** entra al pipeline como **aviso informativo** con la lista de palabras faltantes, y Miche etiqueta cada aviso (🕳️ hueco real / 🙈 falso aviso) en una tarjeta del chat. Las etiquetas quedan en `evidence/term_coverage/` y son los casos para calibrarlo.
 
+### Build: graph → SPA completa (`build/`)
+
+| Archivo | Rol |
+|---|---|
+| `build/run_build.mjs` | `node build/run_build.mjs snapshot.json` construye y valida. `--resume DIR` retoma una construcción cortada. `--validate DIR` solo valida (reusa `checks.json`); con `--retranslate` vuelve a traducir y archiva el `checks.json` anterior. Escribe `build/runs/<fecha>_<proyecto>/`: un directorio por paso, respuestas crudas, `steps.json`, `checks.json`, `baseline/` y `evidence.json`. |
+| `build/specialist_spa.mjs` | Specialist v0.4 (gemma-4-e4b, temp 0). Cuatro archivos (`index.html`, `styles.css`, `api.js` = back simulado en `window.api`, `app.js`); Gemma devuelve solo los que cambia (`### FILE:`). El harness arma el esqueleto (header + nav, una `<section data-feature="Rn">` por feature, footer). Después de cada paso, chequeo de contrato sin LLM (ejecuta `api.js` en un sandbox y compara con las llamadas de `app.js`) y un reintento si falta algo. "SIN CAMBIOS" no es error. |
+| `build/lm_stream.mjs` | Llamadas a LM Studio en streaming (evita el corte de 300 s de undici en tareas largas). |
+
+**Evidencia (01/10, Landing de Café, 19 tareas):** v0.2 (un solo HTML) se cortó por `length` desde la tarea 12 · v0.3 (multi-archivo) terminó 19/19 pero sin header/footer y con `api.crearContacto()` inexistente · **v0.4: PASS 4/4, ningún PASS trivial** (`build/runs/2026-10-01T20-08-48_*`). Detalle en el doc del proyecto `claude/evidencia_build_landing_2026-10-01.md`.
+
+### Validation como juez de cobertura (`validation/`)
+
+| Archivo | Rol |
+|---|---|
+| `validation/check_catalog.mjs` | Catálogo **cerrado** de chequeos que ejecuta Chromium (Playwright) y decide por código: `no_js_errors`, `text_visible`, `control_visible`, `field_exists`, `field_required`, `field_optional`, `submit_empty_blocked`, `valid_submit_passes`, `click_reveals`, y desde v0.3 `section_content`, `section_items`, `carousel` (miden el contenido de la sección, sin contar títulos). |
+| `validation/check_translator.mjs` | Traductor v0.3 (Qwen): requisito → chequeos del catálogo. No escribe código; el harness descarta lo que no cumple el esquema. `anchorSections` (determinista) agrega a los chequeos de sección las palabras de la etiqueta de la feature y el ancla `data-feature`. |
+| `validation/form_runtime.mjs` | Utilidades compartidas con el holdout del piloto: llenar y enviar formularios, juzgar envío bloqueado/aceptado, y `waitForSettle` (espera a que el DOM quede quieto, sin timers cortos pendientes ni "Cargando…"). |
+| `validation/test_check_catalog.mjs` + `validation/fixtures/` | 13 casos de resultado conocido (formularios del piloto + secciones: ok, grilla sin carrusel, vacía, carga lenta). `node validation/test_check_catalog.mjs` |
+
+Veredicto por requisito: **PASS** (todo pasa y al menos un chequeo falla en el esqueleto vacío) · **FAIL** · **SIN_EVIDENCIA** (todo pasa, pero también en el esqueleto: no discrimina) · **SIN_CHEQUEO** (el traductor no encontró chequeos).
+
+Experimentos del traductor (con control): `experiments/exp_translator.mjs` (formulario del piloto, 4/5 traducciones discriminan) y `experiments/exp_translator_sections.mjs` (R1/R3/R4 de la landing sobre esqueleto, v0.3, v0.4 y fixtures; v0.1 dio R1 0/5 → `anchorSections`).
+
 ### API (`server.mjs`)
 
 | Ruta | Qué hace |
@@ -133,43 +166,22 @@ Cuando dice "cubierto", el reason copia el texto del requisito sin respaldo en l
 | `GET /api/stage` | Etapa vigente + criterio + sha256 (leídos de `ProjectStage.md` en cada pedido). |
 | `POST /api/stage-check` | `{brief, fases}` → veredicto por fase, `flagged`, `schema_complete`, `feedback` y `logs`. |
 | `POST /api/completeness-review` | Corre el reviewer v3 sobre el grafo y devuelve `findings` (array plano con `.type`) + `logs` + `term_coverage` (aviso por palabras). Guarda cada revisión en `evidence/term_coverage/<review_id>.json`. |
+| `GET /api/version` | `BUILD_ID` de `script.js` tal como está en disco. Si la pestaña abierta tiene otro, la UI avisa y bloquea "Confirmar" (evita correr JS viejo). Los estáticos se sirven con `Cache-Control: no-store`. |
 | `POST /api/term-label` | `{review_id, requirement_id, label: "hueco_real" \| "falso_aviso" \| null}` → guarda la etiqueta de Miche en ese archivo. |
 
 `refined_prompt.json` y `answer_key_requirements.json` son **salidas de cada corrida** y están en `.gitignore`.
 
 ---
 
-## Cambios desde el último commit (`feat: integrar completeness review y ciclo de validación`)
+## Cambios desde el último commit (`feat: aviso 'mencionaste y no incluí'…`)
 
-**Intent Forge integrado como chat**
-- Un solo input y un solo botón; su texto y estado salen de una única función de fase
-  (`IDLE / ASKING / AWAITING_CONFIRMATION / GENERATING / HUMAN_DECISION / DEFAULT`).
-- Confirmar / Ajustar como botones dentro de la burbuja del chat; el refined_prompt queda fijo arriba del panel de razonamiento.
-- System prompt reforzado: nunca `COMPLETE` en la primera respuesta, no inventar features cuando el usuario da solo una cantidad, features atómicas (sin "CRUD completo"), `criterios_holdout`.
+**Build + Validation de punta a punta (01/10)** — ver secciones `build/` y `validation/` arriba.
 
-**Bugs corregidos**
-1. Aprobar mandaba a TechLeader solo `refined_prompt.objetivo`; ahora va el refined_prompt completo en el mismo formato de lista numerada que lee el reviewer.
-2. El mensaje del usuario llegaba **duplicado** a Intent Forge (script.js y server.mjs lo agregaban los dos).
-3. La UI leía `summary.gap_count` / `findings.GAP` como objeto por lente: el reintento por completitud **nunca se disparaba**. Ahora usa el array plano `findings[].type`.
-4. En Intent Forge, un estado `ERROR` se pisaba con `ASKING` en el `finally`.
+**Piloto, experimentos del reviewer y aviso por palabras (30/09)** — ver `pilot/` y `experiments/` arriba. `term_coverage` quedó **solo en el log** (la tarjeta de etiquetado se desactivó: pedirle a Miche que juzgue cada requisito no escala; el juez de cobertura pasa a ser Validation ejecutando el artefacto).
 
-**Completeness Reviewer v3**
-- Reemplaza a `completeness_reviewer.mjs` en el pipeline (`/api/completeness-review`).
-- `extractRequirements` reconoce secciones (Features / Restricciones / Criterios de éxito) en vez de tomar la primera lista del texto.
-- Soporta `opts.model` y `opts.logCallback` (los logs llegan al panel de Razonamiento).
-- Inyecta el bloque de `context/ProjectStage.md` vía `stage_loader.mjs`.
+**Intent Forge:** una exclusión guarda las palabras faltantes **y** la frase original como contexto (`palabras (lo que dijiste: "...")`); TechLeader recibe "NO planificar lo que nombran estas palabras; el resto de la frase es solo contexto".
 
-**Chequeo de dependencias por fase (fix Project20)**
-- El chequeo temprano que corre al terminar cada fase daba un **falso `MISSING_DEPENDENCY`** cuando una tarea dependía de otra que el Re-Atomizer había partido (Project20, intento 1: `F5.5 → F5.3`, con F5.3 reemplazada por `F5.3.R2.1..3`). Perdía un intento completo aunque la reconciliación final lo resolvía.
-- Ahora el chequeo expande los ids reemplazados igual que `reconcileDependencies()` y exige que existan todos los reemplazos terminales. Sigue detectando ids inventados y autodependencias. 7 tests en `test_phase_dependency_check.mjs`.
-
-**"Mencionaste y no incluí" en la confirmación de Intent Forge (Project20)**
-- Al llegar el `COMPLETE`, la tarjeta de confirmación compara los mensajes del usuario con el refined_prompt (`intent_mention_check.mjs`, sin LLM) y lista las frases que quedaron afuera, con las palabras faltantes.
-- Cada aviso se decide: **Incluir** · **Excluir a propósito** · **Falso aviso**. "Confirmar y generar" queda bloqueado hasta decidir todos.
-- Con algún *Incluir*, el botón pasa a "Pedir a Intent Forge que agregue (N)": se manda un mensaje automático (marcado `auto`, no cuenta para el chequeo), Intent Forge reescribe el refined_prompt y el chequeo corre de nuevo. Una frase pedida se da por atendida si se cubrió al menos una de sus palabras faltantes; si no se cubrió ninguna, vuelve a aparecer.
-- *Excluir* guarda las **palabras faltantes** (no la frase entera, que puede contener features válidas) y TechLeader las recibe en una sección final "Fuera de alcance … NO planificar". *Falso aviso* no vuelve a salir. Ambas persisten en `intentForge.exclusiones` / `ignoredMentions`.
-- Los botones usan un listener delegado (el chat se reescribe con `innerHTML +=`), las tarjetas viejas quedan deshabilitadas y la tarjeta se reconstruye al recargar.
-- Probado en navegador con la conversación de Project20 y Intent Forge simulado: 5 avisos → 2 Incluir, 1 Excluir, 2 Falso aviso → reescritura → 0 avisos → prompt de TechLeader con 6 features y "Fuera de alcance: precios".
+**UI:** `BUILD_ID` + `/api/version` + `no-store` (Project21 corrió JS viejo en una pestaña abierta).
 
 **Etapa del proyecto en TechLeader + chequeo de etapa del plan (D12 / D14, Project20)**
 - *Evidencia de origen:* Project20 intento 2 armó "F7 Pruebas Funcionales, Optimización y Despliegue"; se atomizó 30 min y recién el reviewer marcó EXCESS=15. Además el reviewer marcó AMBIGUOUS la frase fija "El prototipo debe permitir:".
@@ -188,10 +200,14 @@ Cuando dice "cubierto", el reason copia el texto del requisito sin respaldo en l
 ## Pendientes conocidos
 
 - **Persistencia en SQLite desconectada.** La ruta `/api/projects` (con `db.mjs`) existía en una versión anterior de `server.mjs` y se perdió; `persistProject()` sigue en `script.js` pero nada la llama. `db.mjs` y `test_db.mjs` quedan archivados hasta decidir si vuelve.
-- **Chequeo de etapa sin evidencia positiva todavía.** Bench 30/09 con v0.1: 30/30 corridas con veredicto **solo para F1** (JSON válido, `finish_reason=stop`, ~70 tokens): Qwen copiaba el ejemplo de un elemento del system prompt → 0 fases evaluadas más allá de F1. v0.2 cambia una sola variable: el pedido es un esqueleto con todas las fases precargadas (`"?"` a completar).
+- **Chequeo de etapa: evidencia parcial.** Bench 30/09 con v0.1: 30/30 corridas con veredicto **solo para F1** (JSON válido, `finish_reason=stop`, ~70 tokens): Qwen copiaba el ejemplo de un elemento del system prompt → 0 fases evaluadas más allá de F1. v0.2 cambia una sola variable: el pedido es un esqueleto con todas las fases precargadas (`"?"` a completar).
   - **Bench v0.2 (30/09, 5 reps, `evidence/stage_check_2026-09-30T15-31-06.json`):** sin veredicto 0 (antes 21/25 por corrida). En los 4 casos **con descripción de fase**: 0 falsos OUT sobre 55 juicios IN (incluye "deploy pedido" 10/10 IN, regla 5 respetada) y 15/15 OUT detectados (hardening, admin no pedido). Todos los errores (14 falsos OUT, 5 OUT perdidos) caen en Project20 intentos 1-2, que **solo tienen nombre de fase**: marca "Formulario de contacto" como DEFERRED (4/5, es Feature explícita) y deja "Pruebas Funcionales, Optimización y Despliegue" IN_SCOPE (5/5, fase mixta leída por "Pruebas"). El admin no pedido sale DEFERRED en vez de EXCESS (para el reintento da igual). Límite conocido: fases con nombre ambiguo ("Configuración del entorno") quedan como `ANY` en la matriz.
 - **Los "criterios_holdout" no son holdout en el pipeline:** `buildTechLeaderInputFromRefinedPrompt` los manda a TechLeader como "Criterios de éxito". El piloto los mantiene fuera del Specialist; falta decidir si TechLeader debe verlos.
-- **Gap que el reviewer no ve:** en Project20, F4.1 pide "nombre, email, mensaje" y no el campo de preferencias de la Feature 2; el reviewer v3 la dio por cubierta. El piloto (C4) está armado para detectarlo.
+- **Gap que el reviewer no ve:** en Project20, F4.1 pide "nombre, email, mensaje" y no el campo de preferencias de la Feature 2; el reviewer v3 la dio por cubierta. El piloto (C4) lo detectó; el reviewer LLM no discrimina (experimentos 30/09).
+- **Build: un solo proyecto validado (n=1).** Falta correr el pipeline completo en un segundo proyecto de otro tipo.
+- **Build: cortes por `length`** en las últimas tareas (F5.1, F5.3) cuando los archivos crecen; se acepta lo que vino completo y se pierde el resto.
+- **El build se corre por consola** desde un snapshot exportado; todavía no está integrado a la UI ni a `server.mjs`.
+- **Intent Forge "Incluir":** el mensaje automático hace que Qwen pegue la frase literal como feature.
 - `deferredWork` se guarda pero no se muestra en la UI ni se persiste fuera del navegador.
 - **Chequeo de menciones es heurístico** (palabras de 4+ letras, raíz de 5, lista corta de sinónimos): va a dar falsos avisos con redacciones distintas y no detecta pedidos parafraseados. Por eso no decide nada, solo pregunta. Las exclusiones todavía no llegan al Completeness Reviewer (lee solo features de `answer_key_requirements.json`, lo cual hoy alcanza).
 - `runDependencyResolverTests()` — **TEST 7 falla** desde antes de este cambio: el motor sí rechaza la dependencia-objeto, pero el test busca el texto `INVALID_DEPENDENCY` y el mensaje real es otro. Además los tests usan `console.assert` e imprimen "✓" aunque fallen.

@@ -2,6 +2,12 @@ import { validateRoleDependencies } from "./validation_profile_role_dependencies
 import { runAtomicGraph, resolveDependencies } from "./atomic_engine_v5.js";
 import { missingMentions, norm } from "./intent_mention_check.mjs";
 
+// BUILD_ID: subirlo en cada cambio de script.js. server.mjs lo lee del disco
+// (/api/version) y, si no coincide con el de la pestaña abierta, la UI avisa
+// que hay que recargar. Origen: Project21 corrió con el JS viejo en una
+// pestaña abierta desde antes del cambio (reiniciar el server no alcanza).
+const BUILD_ID = "2026-10-01.3";
+
 const STORAGE_KEY = "webmcp_state";
 const MAX_TECHLEADER_ATTEMPTS = 3;
 
@@ -437,7 +443,11 @@ function commitMentionDecisions(notices = []) {
   const incluir = [];
   const missingOf = Object.fromEntries(notices.map((n) => [n.phrase, n.missing]));
   for (const [phrase, d] of Object.entries(f.mentionDecisions)) {
-    const excl = (missingOf[phrase] || [phrase]).join(", ");
+    // Palabras faltantes + la frase como contexto. Solo palabras perdía el
+    // sentido (Project21: "enviarle" sola no le dice nada a TechLeader); solo
+    // la frase podía arrastrar features válidas (Project20: "carta ... precios").
+    const words = (missingOf[phrase] || []).join(", ");
+    const excl = words ? `${words} (lo que dijiste: "${phrase}")` : phrase;
     if (d === "excluir" && !f.exclusiones.includes(excl)) f.exclusiones.push(excl);
     else if (d === "ignorar" && !f.ignoredMentions.includes(phrase)) f.ignoredMentions.push(phrase);
     else if (d === "incluir") incluir.push(phrase);
@@ -476,7 +486,7 @@ function buildTechLeaderInputFromRefinedPrompt(refined, exclusiones = []) {
   if (exclusiones.length) {
     parts.push(
       "",
-      "Fuera de alcance (el usuario lo descartó explícitamente; NO planificar):",
+      "Fuera de alcance (el usuario lo descartó explícitamente; NO planificar lo que nombran estas palabras; el resto de la frase es solo contexto):",
     );
     exclusiones.forEach((x) => parts.push(`- ${x}`));
   }
@@ -486,6 +496,7 @@ function buildTechLeaderInputFromRefinedPrompt(refined, exclusiones = []) {
 async function confirmRefinedPrompt() {
   const refined = webmcpState.intentForge?.refined_prompt;
   if (!refined) return;
+  if (!(await checkBuild())) return; // no generar con JS viejo
   const f = ensureIntentForgeListState();
   const notices = computeMentionNotices(refined);
   if (notices.some((n) => !f.mentionDecisions[n.phrase])) return; // guardia: el botón ya está bloqueado
@@ -707,15 +718,28 @@ function handleHumanDecisionResponse(userMessage) {
 // .summary. Como resultado, esos campos siempre daban undefined y
 // completenessFailed (más abajo) nunca era true — el reintento por
 // completitud estaba desconectado en silencio, pasara lo que pasara.
+function logTermCoverage(tc) {
+  const warn = (tc.items || []).filter((i) => i.missing.length);
+  appendToReasoning(
+    `<div class="text-gray-500 text-xs">[TERM_COVERAGE] ${warn.length}/${(tc.items || []).length} requisito(s) con palabras propias ausentes (solo registro, review ${escapeHTML(tc.review_id)})${warn.length ? ": " + warn.map((i) => `${escapeHTML(i.id)} → ${i.missing.map(escapeHTML).join(", ")}`).join(" · ") : ""}</div>`,
+  );
+}
+
 // === AVISO DE COBERTURA POR PALABRAS (term_coverage_check.mjs) ===
+// (Tarjeta con etiquetado manual: desactivada el 01/10, ver logTermCoverage.
+// Se conserva por si se retoma la calibración.)
 // Informativo: no bloquea ni dispara reintentos. Cada aviso se puede
 // etiquetar "Hueco real" / "Falso aviso"; la etiqueta queda en
 // evidence/term_coverage/<review_id>.json para calibrar el chequeo.
 let termDelegationReady = false;
-function renderTermCoverageCard(tc) {
+function renderTermCoverageCard(tc, { fromReload = false } = {}) {
   const container = document.getElementById("intentForgeChatHistory");
+  if (!fromReload) {
+    // Se guarda para volver a dibujar la tarjeta si se recarga la página.
+    webmcpState.termCoverageCards = [...(webmcpState.termCoverageCards || []), tc].slice(-10);
+  }
   const warn = (tc.items || []).filter((i) => i.missing.length);
-  appendToReasoning(
+  if (!fromReload) appendToReasoning(
     `<div class="text-amber-400 text-xs">[TERM_COVERAGE] ${warn.length}/${(tc.items || []).length} requisito(s) con palabras propias ausentes en el graph (review ${tc.review_id})</div>`,
   );
   if (!container || !warn.length) return;
@@ -748,7 +772,8 @@ function renderTermCoverageCard(tc) {
       saveState();
     });
   }
-  const btn = (k, t) => `<button type="button" data-term-label="${k}" class="flex-1 rounded py-0.5 text-[10px] bg-gray-700 text-gray-300">${t}</button>`;
+  const btn = (k, t, cur) =>
+    `<button type="button" data-term-label="${k}" class="flex-1 rounded py-0.5 text-[10px] ${cur === k ? "bg-amber-600 text-white font-bold" : "bg-gray-700 text-gray-300"}">${t}</button>`;
   container.innerHTML += `
     <div class="bg-amber-900/20 border border-amber-700 p-3 rounded text-xs my-2" data-term-card="${escapeHTML(tc.review_id)}">
       <div class="text-amber-300 font-bold">🔎 Cobertura por palabras (aviso, no bloquea)</div>
@@ -756,10 +781,10 @@ function renderTermCoverageCard(tc) {
       ${warn
         .map(
           (i) => `
-        <div class="border border-amber-800/60 rounded p-2 mt-1" data-term-row data-review="${escapeHTML(tc.review_id)}" data-req="${escapeHTML(i.id)}" data-label="">
+        <div class="border border-amber-800/60 rounded p-2 mt-1" data-term-row data-review="${escapeHTML(tc.review_id)}" data-req="${escapeHTML(i.id)}" data-label="${escapeHTML(webmcpState.termLabels?.[`${tc.review_id}/${i.id}`] || "")}">
           <div class="text-gray-200">${escapeHTML(i.id)}: ${escapeHTML(i.text)}</div>
           <div class="text-amber-200 text-[10px]">faltan (${i.total - i.present}/${i.total}): ${i.missing.map(escapeHTML).join(", ")}</div>
-          <div class="flex gap-1 mt-1">${btn("hueco_real", "🕳️ Hueco real")}${btn("falso_aviso", "🙈 Falso aviso")}</div>
+          <div class="flex gap-1 mt-1">${btn("hueco_real", "🕳️ Hueco real", webmcpState.termLabels?.[`${tc.review_id}/${i.id}`])}${btn("falso_aviso", "🙈 Falso aviso", webmcpState.termLabels?.[`${tc.review_id}/${i.id}`])}</div>
         </div>`,
         )
         .join("")}
@@ -806,7 +831,11 @@ async function runCompletenessReviewFromGraph_V3(atomicTasks, promptText) {
       );
     }
     if (result.logs) result.logs.forEach((l) => appendToLog(l));
-    if (result.term_coverage) renderTermCoverageCard(result.term_coverage);
+    // Decisión 01/10 (Miche): el aviso por palabras no pide nada al usuario.
+    // Hace demasiado ruido para ser criterio (Project21: 5 avisos, ninguno
+    // real) y etiquetar a mano no escala. Queda solo en el log y en
+    // evidence/term_coverage/. El juez de cobertura pasa a ser Validation.
+    if (result.term_coverage) logTermCoverage(result.term_coverage);
     webmcpState.completenessReview = result;
     saveState();
     return result;
@@ -1050,6 +1079,8 @@ function updateUIFromState() {
       renderConfirmationPrompt(webmcpState.intentForge.refined_prompt);
     }
   }
+
+  // Tarjetas de cobertura: desactivadas (01/10). Ver logTermCoverage.
 
   if (webmcpState.awaitingDecision) {
     requestHumanDecision(
@@ -1647,8 +1678,26 @@ async function handleContinuePlan() {
   }
 }
 
+async function checkBuild() {
+  try {
+    const res = await fetch("/api/version", { cache: "no-store" });
+    const { build } = await res.json();
+    if (build && build !== BUILD_ID) {
+      appendToReasoning(
+        `<div class="bg-red-900/60 border border-red-500 text-red-200 font-bold text-xs p-2 rounded my-1">⚠️ Esta pestaña corre script.js ${BUILD_ID} y en disco está ${build}. Recargá la página (Ctrl+F5) antes de generar: si no, corre el código viejo.</div>`,
+      );
+      return false;
+    }
+    return true;
+  } catch {
+    return true; // server viejo sin /api/version: no bloquear
+  }
+}
+
 function initializeApp() {
   loadState();
+  appendToReasoning(`<div class="text-gray-500 text-[10px]">[BUILD] script.js ${BUILD_ID}</div>`);
+  checkBuild();
   renderTaskList(); // siempre renderiza
   syncChatUI();
 

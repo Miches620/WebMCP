@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Café Especialidad - Tu Experiencia Aromática</title>
+    <style>
+        /* Reset CSS Básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: sans-serif; /* Fuente genérica por defecto */
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f7f4; /* Fondo crema suave */
+        }
+
+        /* Estilos generales para las secciones principales */
+        section {
+            padding: 60px 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header, footer {
+            background-color: #4a372e; /* Color café oscuro para encabezado/pie */
+            color: white;
+            padding: 20px 5%;
+        }
+
+        /* Contenedor principal de contenido (Main Wrapper) */
+        main {
+            max-width: 1200px;
+            margin: 0 auto; /* Asegura que el main wrapper esté centrado y limitado */
+        }
+
+        /* Estilos de navegación (placeholder) */
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 0 15px;
+            transition: color 0.3s;
+        }
+
+        nav ul li a:hover {
+            color: #c2b280; /* Tono dorado/beige al pasar el ratón */
+        }
+
+        /* Estilos específicos para la sección de contacto (nuevo) */
+        #contacto .contact-grid {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+            margin-top: 30px;
+        }
+
+        .form-container, .info-container {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            #contacto .contact-grid {
+                flex-direction: column;
+            }
+        }
+
+        /* Estilos específicos para la sección Nosotros */
+        .nosotros-contenido {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            margin-top: 30px;
+        }
+        .nosotros-texto, .nosotros-imagen {
+            flex: 1;
+        }
+        .nosotros-imagen img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 900px) {
+             .nosotros-contenido {
+                flex-direction: column;
+            }
+            .nosotros-texto, .nosotros-imagen {
+                flex: none;
+                width: 100%;
+            }
+        }
+
+        /* Estilos del Carrousel de Café */
+        #catalogo-wrapper {
+            position: relative;
+            overflow: hidden; /* Oculta los elementos que se salen del carrusel */
+            padding: 20px 0;
+        }
+
+        #catalogo-track {
+            display: flex;
+            gap: 30px;
+            transition: transform 0.5s ease-in-out; /* Transición para el movimiento */
+            overflow-x: scroll; /* Permite el scroll horizontal */
+            scroll-snap-type: x mandatory; /* Mejora la experiencia de carrusel */
+            padding-bottom: 20px; /* Espacio extra para que no se pegue al borde */
+            /* Deshabilitar scrollbar visualmente pero manteniendo funcionalidad */
+            scrollbar-width: none; /* Firefox */
+        }
+
+        #catalogo-track::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
+
+        .card {
+            min-width: 300px; /* Ancho fijo para cada tarjeta */
+            max-width: 350px;
+            flex-shrink: 0; /* Evita que las tarjetas se encojan */
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s;
+            scroll-snap-align: start; /* Alineación al inicio del scroll */
+        }
+
+        .card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-image {
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Asegura que la imagen cubra el área sin distorsionarse */
+            display: block;
+        }
+
+        .card-info {
+            padding: 20px;
+        }
+
+        .card-info h4 {
+            color: #4a372e;
+            margin-bottom: 5px;
+        }
+
+        .card-info p {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        /* Estilos de botones (general) */
+        button, .btn {
+            background-color: #4a372e;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover, .btn:hover {
+            background-color: #6b5a4e; /* Tono más claro al pasar el ratón */
+        }
+
+        /* Estilos de navegación del carrusel */
+        .carousel-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding: 0 20px; /* Añadir padding para que no se peguen a los bordes */
+        }
+
+        .carousel-controls button {
+            width: 50px;
+            height: 40px;
+            font-size: 1.5em;
+            padding: 0;
+            background-color: #6b5a4e; /* Color ligeramente diferente para botones de control */
+        }
+
+        .carousel-controls button:hover {
+             background-color: #4a372e;
+        }
+
+
+        @media (max-width: 768px) {
+             /* Ajustes para dispositivos móviles */
+            .card {
+                min-width: 90%; /* Ocupar casi todo el ancho disponible */
+                max-width: 90%;
+            }
+            .carousel-controls {
+                padding: 0 10px;
+            }
+        }
+
+    </style>
+</head>
+<body >
+
+    <header>
+        <h1>Café Aroma</h1>
+        <nav>
+            <ul>
+                <li><a href="#catalogo">Catálogo</a></li>
+                <li><a href="#nosotros">Nosotros</a></li>
+                <li><a href="#carta">Carta</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Sección Hero/Introducción -->
+        <section id="hero" style="text-align: center; padding: 100px 5%;">
+            <h2 style="font-size: 3em;">El sabor de lo auténtico.</h2>
+            <p class="subtitle" style="font-size: 1.2em;">Descubre la pasión en cada grano, cultivado con dedicación y tostado para ti.</p>
+        </section>
+
+        <!-- Sección Catálogo -->
+        <section id="catalogo">
+            <h3 style="text-align: center; margin-bottom: 40px;">Nuestro Catálogo de Cafés</h3>
+            
+            <!-- Estructura del Carrusel -->
+            <div id="catalogo-wrapper">
+                <div id="catalogo-track">
+                    <!-- Tarjeta 1 (Componente Atómico) -->
+                    <div class="card" data-index="0">
+                        <div class="card-image">
+                            <img src="placeholder_cafe1.jpg" alt="Café Etiopía Yirgacheffe">
+                        </div>
+                        <div class="card-info">
+                            <h4>Etiopía Yirgacheffe</h4>
+                            <p>Notas: Floral, cítrico, jazmín.</p>
+                            <p>Origen: África Oriental. Tueste medio.</p>
+                            <button class="btn">Ver Detalles</button>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta 2 (Componente Atómico) -->
+                    <div class="card" data-index="1">
+                        <div class="card-image">
+                            <img src="placeholder_cafe2.jpg" alt="Café Colombia Supremo">
+                        </div>
+                        <div class="card-info">
+                            <h4>Colombia Supremo</h4>
+                            <p>Notas: Chocolate, caramelo, nuez.</p>
+                            <p>Origen: América del Sur. Tueste medio-oscuro.</p>
+                            <button class="btn">Ver Detalles</button>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta 3 (Componente Atómico) -->
+                    <div class="card" data-index="2">
+                        <div class="card-image">
+                            <img src="placeholder_cafe3.jpg" alt="Café Guatemala Antigua">
+                        </div>
+                        <div class="card-info">
+                            <h4>Guatemala Antigua</h4>
+                            <p>Notas: Especiado, cacao, tierra húmeda.</p>
+                            <p>Origen: Centroamérica. Tueste medio.</p>
+                            <button class="btn">Ver Detalles</button>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta 4 (Componente Atómico) -->
+                    <div class="card" data-index="3">
+                        <div class="card-image">
+                            <img src="placeholder_cafe4.jpg" alt="Café Brasil Santos">
+                        </div>
+                        <div class="card-info">
+                            <h4>Brasil Santos</h4>
+                            <p>Notas: Chocolate, caramelo, cuerpo redondo.</p>
+                            <p>Origen: Sudamérica. Tueste medio-oscuro.</p>
+                            <button class="btn">Ver Detalles</button>
+                        </div>
+                    </div>
+
+                     <!-- Tarjeta 5 (Componente Atómico) -->
+                    <div class="card" data-index="4">
+                        <div class="card-image">
+                            <img src="placeholder_cafe5.jpg" alt="Café Panamá Geisha">
+                        </div>
+                        <div class="card-info">
+                            <h4>Panamá Geisha</h4>
+                            <p>Notas: Floral, bergamota, delicado.</p>
+                            <p>Origen: Centroamérica. Tueste ligero.</p>
+                            <button class="btn">Ver Detalles</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <!-- Controles del Carrusel -->
+            <div class="carousel-controls">
+                <button id="prevBtn" aria-label="Anterior">&lt;</button>
+                <button id="nextBtn" aria-label="Siguiente">&gt;</button>
+            </div >
+        </section>
+
+        <!-- Sección Nosotros -->
+        <section id="nosotros" style="background-color: #e9e6df;">
+            <div class="container-contenido">
+                <div class="nosotros-texto">
+                    <h3 style="font-size: 2em; color: #4a372e; margin-bottom: 15px;">Nuestra Historia: Un Viaje de Pasión y Sabor</h3>
+                    <p style="margin-bottom: 20px;">En Café Aroma, nuestra historia comienza con un simple amor por el café. No somos solo tostadores; somos narradores de sabores, guardianes de tradiciones y apasionados por la excelencia del grano.</p>
+                    <p style="margin-bottom: 20px;">Desde nuestras primeras catas en fincas remotas hasta el tueste perfecto que llega a tu taza, cada paso está guiado por un compromiso inquebrantable con la calidad. Creemos que el café es más que una bebida; es un ritual, un momento de conexión.</p>
+                    <p>Nuestro origen se basa en el comercio justo y la sostenibilidad. Trabajamos directamente con pequeños productores que comparten nuestra visión: cultivar granos excepcionales que cuenten historias de tierra, clima y dedicación humana.</p>
+                </div>
+                <div class="nosotros-imagen">
+                    <!-- Placeholder para una imagen representativa del proceso o la finca -->
+                    <img src="placeholder_finca.jpg" alt="Café Aroma en su origen">
+                </div>
+            </div >
+        </section>
+
+        <!-- Sección Carta (Placeholder) -->
+        <section id="carta">
+            <h3 style="text-align: center; margin-bottom: 20px;">Nuestra Carta</h3>
+            <div class="carta-contenido" style="background-color: #fff; padding: 40px; border-radius: 8px;">
+                <!-- Aquí se cargará el contenido de la carta -->
+            </div>
+        </section>
+
+        <!-- Sección Contacto (Placeholder) -->
+        <section id="contacto" style="background-color: #e9e6df;">
+            <div class="contact-container">
+                <h3 style="text-align: center; margin-bottom: 40px;">Contáctanos</h3>
+                <div class="contact-grid">
+                    <!-- Formulario de Contacto -->
+                    <div class="form-container">
+                        <form action="#" method="POST">
+                            <div style="margin-bottom: 15px;">
+                                <label for="nombre" style="display: block; margin-bottom: 5px;">Nombre:</label>
+                                <input type="text" id="nombre" name="nombre" required style="padding: 8px; width: 300px; border: 1px solid #ccc; border-radius: 4px;">
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label for="email" style="display: block; margin-bottom: 5px;">Email:</label>
+                                <input type="email" id="email" name="email" required style="padding: 8px; width: 300px; border: 1px solid #ccc; border-radius: 4px;">
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label for="mensaje" style="display: block; margin-bottom: 5px;">Mensaje:</label>
+                                <textarea id="mensaje" name="mensaje" rows="4" required style="padding: 8px; width: 300px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label for="preferencias" style="display: block; margin-bottom: 5px;">Preferencias (Opcional):</label>
+                                <input type="text" id="preferencias" name="preferencias" style="padding: 8px; width: 300px; border: 1px solid #ccc; border-radius: 4px;">
+                            </div>
+                            <button type="submit">Enviar Mensaje</button>
+                        </form>
+                    </div>
+
+                    <!-- Detalles de Contacto (Placeholder) -->
+                    <div class="info-container">
+                        <h4 style="margin-bottom: 15px;">Detalles de Contacto</h4>
+                        <p style="margin-bottom: 10px;"><strong>Dirección:</strong> Calle del Aroma, 123, Ciudad Café</p>
+                        <p style="margin-bottom: 10px;"><strong>Teléfono:</strong> (555) 123-4567</p>
+                        <p><strong>Email:</strong> contacto@cafearoma.com</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer style="text-align: center;">
+        <p>&copy; 2024 Café Aroma. Todos los derechos reservados.</p>
+    </footer>
+
+    <script>
+        // ==================================================
+        // SIMULACIÓN DE BACKEND/API LAYER (window.api)
+        // ==================================================
+        if (!window.api) {
+            window.api = {};
+        }
+
+        /**
+         * TAREA F3.1: Implementa la lectura del archivo de texto fuente de productos (Carta).
+         */
+        window.api.getRawCartaContent = async () => {
+            // Simulación de la carga de un archivo externo grande y complejo.
+            await new Promise(resolve => setTimeout(resolve, 300)); // Simula latencia de red
+
+            const rawTextData = `
+                --- CARDANOS Y BEBIDAS ---
+                1. Espresso: Shot concentrado de café. Ideal para acompañar postres. Precio: $4.50.
+                2. Americano: Espresso diluido con agua caliente. Sabor intenso y limpio. Precio: $3.50.
+                3. Cappuccino: Espresso, leche vaporizada y capa gruesa de espuma. Clásico reconfortante. Precio: $6.00.
+                4. Latte: Base de espresso con abundante leche vaporizada. Suave y cremoso. Precio: $5.50.
+
+                --- FILTROS Y INFUSIONES ---
+                5. V60 (Single Origin): Café filtrado, resaltando notas complejas del origen. Porción: 250ml. Precio: $7.00.
+                6. Chemex: Infusión lenta y delicada. Ideal para perfiles florales. Porción: 300ml. Precio: $8.00.
+                7. Té Verde Japonés: Mezcla de té verde premium, servido caliente o frío. Precio: $5.00.
+
+                --- POSTRES Y ACOMPAÑAMIENTOS ---
+                8. Croissant de Almendras: Crujiente y dulce. Ideal con un café ligero. Precio: $4.00.
+                9. Brownie de Chocolate Oscuro: Intenso sabor a cacao puro. Perfecto para el post-café. Precio: $3.50.
+            `;
+
+            return rawTextData;
+        };
+
+
+        // ==================================================
+        // LÓGICA DE FRONTEND (DOM MANIPULATION)
+        // ==================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            const track = document.getElementById('catalogo-track');
+            const nextBtn = document.getElementById('nextBtn');
+            const prevBtn = document.getElementById('prevBtn');
+            const cards = Array.from(document.querySelectorAll('.card'));
+
+            // 1. Lógica del Carrusel (Se mantiene igual)
+            function getVisibleWidth() {
+                return document.getElementById('catalogo-wrapper').clientWidth;
+            }
+
+            const moveCarousel = (scrollAmount) => {
+                track.scrollBy({
+                    left: scrollAmount,
+                    behavior: 'smooth'
+                });
+            };
+
+            nextBtn.addEventListener('click', () => {
+                const step = getVisibleWidth(); 
+                moveCarousel(step);
+            });
+
+            prevBtn.addEventListener('click', () => {
+                const step = getVisibleWidth();
+                moveCarousel(-step);
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') {
+                    nextBtn.click();
+                } else if (e.key === 'ArrowLeft') {
+                    prevBtn.click();
+                }
+            });
+
+
+            // 2. Lógica de Carga de la Carta (Nueva implementación)
+            const cartaContainer = document.querySelector('.carta-contenido');
+
+            async function loadCarta() {
+                try {
+                    console.log("Intentando cargar contenido crudo de la Carta desde window.api...");
+                    const rawContent = await window.api.getRawCartaContent();
+                    
+                    // Simulación de parseo básico para mostrar el texto sin estructura aún
+                    let htmlOutput = '<h4 style="border-bottom: 2px solid #c2b280; padding-bottom: 10px; margin-top: 30px;">Detalle del Menú (Raw Data)</h4>';
+                    htmlOutput += '<p><em>Nota: Este contenido ha sido cargado directamente desde la fuente de texto simulada. El parseo estructurado se realizará en una tarea posterior.</em></p>';
+                    htmlOutput += '<div style="white-space: pre-wrap; background-color: #f4f1ea; padding: 20px; border-radius: 6px; font-family: monospace; font-size: 0.9em;">';
+                    htmlOutput += rawContent.trim();
+                    htmlOutput += '</div>';
+
+                    cartaContainer.innerHTML = htmlOutput;
+                } catch (error) {
+                    console.error("Error al cargar la carta:", error);
+                    cartaContainer.innerHTML = '<p style="color: red;">Lo sentimos, no pudimos cargar el menú en este momento.</p>';
+                }
+            }
+
+            loadCarta();
+
+
+        });
+    </script>
+</body>
+</html>

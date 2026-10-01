@@ -1,0 +1,221 @@
+{
+  "version": "term_coverage v0.1",
+  "review_id": "2026-10-01T14-18-19",
+  "requirements": [
+    {
+      "id": "R1",
+      "text": "Ingresar a sección de configuración"
+    },
+    {
+      "id": "R2",
+      "text": "Dar de alta un dispositivo (NodeMCU) ingresando su IP, user y password"
+    },
+    {
+      "id": "R3",
+      "text": "Asignar nombre al nuevo dispositivo"
+    },
+    {
+      "id": "R4",
+      "text": "Seleccionar responsabilidades del dispositivo desde una lista (medir temperatura, abrir electrovalvula, relay, monitorear sensores)"
+    },
+    {
+      "id": "R5",
+      "text": "Permitir que un dispositivo realice múltiples tareas"
+    },
+    {
+      "id": "R6",
+      "text": "Configurar todo antes de iniciar una cocción"
+    },
+    {
+      "id": "R7",
+      "text": "Los NodeMCU ya tendrían cargados sus codigos y la SPA simplemente se encargaría de añadirlos a una etapa y monitorear los valores que este entrega"
+    },
+    {
+      "id": "R8",
+      "text": "Incorporar sensores de nivel de líquido"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "F1.1",
+      "task": "Diseñar y crear el esquema de la tabla principal de dispositivos NodeMCU",
+      "description": "Crear la estructura de la tabla que almacenará los metadatos esenciales de cada dispositivo, incluyendo campos para IP (VARCHAR), nombre asignado (VARCHAR), credenciales de usuario (VARCHAR) y contraseña (VARCHAR). Esta tarea establece el registro maestro de dispositivos."
+    },
+    {
+      "id": "F1.2",
+      "task": "Diseñar y crear el esquema para la gestión de capacidades del dispositivo",
+      "description": "Crear las tablas necesarias (ej. 'capabilities' y una tabla de unión) para modelar y almacenar la lista de responsabilidades o capacidades que puede ejecutar un dispositivo, permitiendo vincular múltiples capacidades a un único dispositivo."
+    },
+    {
+      "id": "F1.3",
+      "task": "Diseñar y crear el esquema para la ingesta de datos de sensores en tiempo real",
+      "description": "Crear la estructura de la tabla optimizada para almacenar lecturas de sensores (datos de series temporales). Debe incluir campos obligatorios como timestamp, identificador del sensor/dispositivo y el valor medido."
+    },
+    {
+      "id": "F2.1",
+      "task": "Implementar el endpoint RESTful para dar de alta un nuevo dispositivo NodeMCU",
+      "description": "Crear la lógica backend y el endpoint que recibe, valida y persiste los datos iniciales del dispositivo (IP, user y password) en la base de datos."
+    },
+    {
+      "id": "F2.2.R2.1",
+      "task": "Implementar endpoints y lógica para la asignación de nombre único al dispositivo",
+      "description": "Desarrollar los endpoints necesarios para que la SPA pueda asignar un nombre único y validar su unicidad para el dispositivo. Esta tarea se enfoca exclusivamente en la nomenclatura del dispositivo."
+    },
+    {
+      "id": "F2.2.R2.2",
+      "task": "Implementar endpoints y lógica para vincular responsabilidades operacionales al dispositivo",
+      "description": "Desarrollar los endpoints necesarios para que la SPA pueda gestionar (vincular, desvincular) múltiples responsabilidades operacionales a un dispositivo existente. Esta tarea se enfoca exclusivamente en la gestión de las relaciones entre dispositivos y responsabilidades."
+    },
+    {
+      "id": "F2.3",
+      "task": "Desarrollar el mecanismo backend para recibir y procesar streaming de datos de sensores",
+      "description": "Implementar la infraestructura (ej. WebSocket o endpoint dedicado) que recibirá los datos en tiempo real (temperatura y nivel) provenientes de los NodeMCU, y procesará su persistencia según el esquema definido."
+    },
+    {
+      "id": "F3.1",
+      "task": "Implementar la interfaz de usuario (SPA) para el alta inicial de un nuevo dispositivo NodeMCU.",
+      "description": "Crear el formulario y la lógica de validación en el frontend para capturar las credenciales del dispositivo, consumiendo el endpoint de registro."
+    },
+    {
+      "id": "F3.2",
+      "task": "Implementar el flujo de asignación de nombre único al dispositivo en la SPA.",
+      "description": "Desarrollar la interfaz y la lógica para que el administrador pueda asignar un nombre único al dispositivo, interactuando con el endpoint correspondiente."
+    },
+    {
+      "id": "F3.3",
+      "task": "Implementar la interfaz para seleccionar y vincular responsabilidades operacionales al dispositivo.",
+      "description": "Desarrollar el componente de selección de responsabilidades, permitiendo al administrador asignar roles predefinidos al dispositivo mediante la interacción con los endpoints de vinculación."
+    },
+    {
+      "id": "F3.4",
+      "task": "Desarrollar la vista general de configuración inicial del dispositivo en el SPA.",
+      "description": "Construir el dashboard principal que consolida la información y permite visualizar/configurar todos los parámetros del dispositivo antes de iniciar el proceso, consumiendo datos de las configuraciones realizadas en F2.1, F2.2.R2.1 y F2.2.R2.2."
+    },
+    {
+      "id": "F4.1",
+      "task": "Implementar la estructura base del Dashboard de Monitoreo en tiempo real.",
+      "description": "Crear el esqueleto principal de la página, incluyendo la disposición general (layout) para mostrar múltiples dispositivos y sus indicadores de estado."
+    },
+    {
+      "id": "F4.2",
+      "task": "Establecer la conexión WebSocket y el manejo del flujo de datos en tiempo real.",
+      "description": "Implementar la lógica cliente para conectarse al endpoint de streaming (WebSockets) y recibir los mensajes de datos de sensores entrantes."
+    },
+    {
+      "id": "F4.3",
+      "task": "Desarrollar el estado global para la gestión de lecturas en tiempo real.",
+      "description": "Implementar la lógica que procesa los datos recibidos vía WebSocket (F4.2) y actualiza el estado interno del sistema con las últimas mediciones por dispositivo y sensor."
+    },
+    {
+      "id": "F4.4",
+      "task": "Crear el componente de visualización para un único indicador de sensor (ej. Temperatura o Nivel).",
+      "description": "Desarrollar un componente reutilizable que recibe datos en tiempo real y los muestra gráficamente con unidades adecuadas, incluyendo lógica básica de coloración por estado (ej. alerta roja si supera el umbral)."
+    },
+    {
+      "id": "F4.5",
+      "task": "Integrar la lista de dispositivos y renderizar los componentes de monitoreo.",
+      "description": "Utilizar el listado de dispositivos configurados (metadata) para iterar sobre ellos y montar dinámicamente múltiples instancias del componente de sensor (F4.4), mostrando el estado actual en la vista principal."
+    }
+  ],
+  "items": [
+    {
+      "id": "R1",
+      "text": "Ingresar a sección de configuración",
+      "present": 1,
+      "total": 2,
+      "missing": [
+        "ingresar"
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Dar de alta un dispositivo (NodeMCU) ingresando su IP, user y password",
+      "present": 3,
+      "total": 3,
+      "missing": []
+    },
+    {
+      "id": "R3",
+      "text": "Asignar nombre al nuevo dispositivo",
+      "present": 3,
+      "total": 3,
+      "missing": []
+    },
+    {
+      "id": "R4",
+      "text": "Seleccionar responsabilidades del dispositivo desde una lista (medir temperatura, abrir electrovalvula, relay, monitorear sensores)",
+      "present": 4,
+      "total": 8,
+      "missing": [
+        "medir",
+        "abrir",
+        "electrovalvula",
+        "relay"
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "Permitir que un dispositivo realice múltiples tareas",
+      "present": 4,
+      "total": 4,
+      "missing": []
+    },
+    {
+      "id": "R6",
+      "text": "Configurar todo antes de iniciar una cocción",
+      "present": 2,
+      "total": 3,
+      "missing": [
+        "coccion"
+      ]
+    },
+    {
+      "id": "R7",
+      "text": "Los NodeMCU ya tendrían cargados sus codigos y la SPA simplemente se encargaría de añadirlos a una etapa y monitorear los valores que este entrega",
+      "present": 1,
+      "total": 9,
+      "missing": [
+        "tendrian",
+        "cargados",
+        "codigos",
+        "simplemente",
+        "encargaria",
+        "anadirlos",
+        "etapa",
+        "entrega"
+      ]
+    },
+    {
+      "id": "R8",
+      "text": "Incorporar sensores de nivel de líquido",
+      "present": 1,
+      "total": 3,
+      "missing": [
+        "incorporar",
+        "liquido"
+      ]
+    }
+  ],
+  "labels": {
+    "R1": {
+      "label": "falso_aviso",
+      "at": "2026-10-01T14:36:21.638Z"
+    },
+    "R4": {
+      "label": "falso_aviso",
+      "at": "2026-10-01T14:36:23.515Z"
+    },
+    "R6": {
+      "label": "falso_aviso",
+      "at": "2026-10-01T14:36:24.501Z"
+    },
+    "R7": {
+      "label": "falso_aviso",
+      "at": "2026-10-01T14:36:27.432Z"
+    },
+    "R8": {
+      "label": "falso_aviso",
+      "at": "2026-10-01T14:36:29.773Z"
+    }
+  }
+}

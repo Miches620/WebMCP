@@ -1,0 +1,387 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Landing Page de Café Especialidad",
+  "source": "project20_snapshot.json",
+  "catalog": "check_catalog v0.3",
+  "artifact_loads_without_js_errors": true,
+  "summary": {
+    "requisitos": 4,
+    "PASS": 4,
+    "FAIL": 0,
+    "SIN_EVIDENCIA": 0,
+    "SIN_CHEQUEO": 0
+  },
+  "control": "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "Catalogo de cafés en tarjetas con foto superior e información inferior (en carrousel)",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "section_items",
+          "params": {
+            "section": [
+              "cafés",
+              "tarjetas"
+            ]
+          },
+          "covers": "Verifica que la sección de cafés muestre una lista de varios elementos en tarjetas.",
+          "result": "PASS",
+          "detail": "#catalogo-de-cafes: 4 ítems (Etiopía Yirgacheffe · Colombia Supremo · Guatemala Antigua)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "carousel",
+          "params": {
+            "section": [
+              "cafés",
+              "tarjetas"
+            ]
+          },
+          "covers": "Verifica que los elementos de la sección de cafés estén mostrados en un carrusel con controles de navegación.",
+          "result": "PASS",
+          "detail": "#catalogo-de-cafes: 4 ítems; clic en \"Siguiente → carousel-control\" los desplaza (a 480 px)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Formulario de contacto con campos obligatorios y opcionalmente un campo para preferencias",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "field_required",
+          "params": {
+            "field": [
+              "nombre",
+              "email"
+            ]
+          },
+          "covers": "campos nombre y email son obligatorios",
+          "result": "PASS",
+          "detail": "nombre: vacío → bloqueado; email: vacío → bloqueado",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "field_optional",
+          "params": {
+            "field": [
+              "preferencia"
+            ]
+          },
+          "covers": "campo preferencia es opcional",
+          "result": "PASS",
+          "detail": "preferencias: vacío → pasa",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "valid_submit_passes",
+          "params": {},
+          "covers": "envío del formulario con todos los campos completos pasa",
+          "result": "PASS",
+          "detail": "submit disparado sin señales de error",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "submit_empty_blocked",
+          "params": {},
+          "covers": "envío del formulario vacío queda bloqueado",
+          "result": "PASS",
+          "detail": "el navegador no disparó submit (validación HTML5)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "Sección 'Nosotros' con historia de la empresa",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "nosotros"
+            ]
+          },
+          "covers": "La sección 'Nosotros' tiene contenido propio visible (al menos 20 palabras además de sus títulos).",
+          "result": "PASS",
+          "detail": "#nosotros: 76 palabras propias (mín. 20)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "Sección 'Carta' con productos disponibles actualmente, obtenidos desde archivo de texto",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "section_items",
+          "params": {
+            "section": [
+              "carta",
+              "productos"
+            ]
+          },
+          "covers": "La sección 'Carta' muestra una lista de varios elementos con productos disponibles.",
+          "result": "PASS",
+          "detail": "#carta: 4 ítems (Tostado Clásico (Grano Entero) · Espresso Premium (Molido) · Filtro Floral (Grano Entero))",
+          "baseline": "FAIL"
+        }
+      ]
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "spa_specialist v0.4-skeleton-contract",
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "F1.1",
+        "role": "Frontend",
+        "ms": 104041,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html",
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 2,
+        "task_id": "F1.2",
+        "role": "Frontend",
+        "ms": 81750,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 3,
+        "task_id": "F1.3",
+        "role": "Frontend",
+        "ms": 70527,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 4,
+        "task_id": "F1.4",
+        "role": "Frontend",
+        "ms": 71667,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 5,
+        "task_id": "F1.5",
+        "role": "Frontend",
+        "ms": 71905,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 6,
+        "task_id": "F1.6",
+        "role": "Frontend",
+        "ms": 76521,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 7,
+        "task_id": "F2.1",
+        "role": "Frontend",
+        "ms": 91509,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 8,
+        "task_id": "F2.2",
+        "role": "Frontend",
+        "ms": 189810,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html",
+          "styles.css",
+          "api.js",
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 9,
+        "task_id": "F2.3",
+        "role": "Frontend",
+        "ms": 157421,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 10,
+        "task_id": "F2.4",
+        "role": "Frontend",
+        "ms": 182458,
+        "finish_reason": "stop",
+        "changed": [
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 11,
+        "task_id": "F3.1",
+        "role": "Backend",
+        "ms": 118459,
+        "finish_reason": "stop",
+        "changed": [
+          "api.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 12,
+        "task_id": "F3.2",
+        "role": "Backend",
+        "ms": 181346,
+        "finish_reason": "stop",
+        "changed": [
+          "api.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 13,
+        "task_id": "F3.3",
+        "role": "Backend",
+        "ms": 186960,
+        "finish_reason": "stop",
+        "changed": [
+          "api.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 14,
+        "task_id": "F4.1",
+        "role": "Frontend",
+        "ms": 262703,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 15,
+        "task_id": "F4.2",
+        "role": "Frontend",
+        "ms": 250905,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 16,
+        "task_id": "F4.3",
+        "role": "Frontend",
+        "ms": 287903,
+        "finish_reason": "stop",
+        "changed": [
+          "app.js",
+          "api.js"
+        ],
+        "rejected": [],
+        "contract_retry": {
+          "problem": "app.js llama window.api.crearContacto(), que no existe en api.js (funciones definidas: window.api.getMenuData(), window.api.leerArchivoCarta(), window.api.parseCartaData())",
+          "ms": 462033,
+          "finish_reason": "stop",
+          "changed": [
+            "api.js",
+            "app.js"
+          ],
+          "resolved": true
+        },
+        "contract_missing": []
+      },
+      {
+        "n": 17,
+        "task_id": "F5.1",
+        "role": "Frontend",
+        "ms": 582267,
+        "finish_reason": "length",
+        "changed": [
+          "api.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 18,
+        "task_id": "F5.2",
+        "role": "Frontend",
+        "ms": 389652,
+        "finish_reason": "stop",
+        "changed": [
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 19,
+        "task_id": "F5.3",
+        "role": "Frontend",
+        "ms": 497394,
+        "finish_reason": "length",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      }
+    ]
+  }
+}

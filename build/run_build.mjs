@@ -18,9 +18,10 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync } from "node:fs";
 import { join, basename } from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildSpa, skeleton, FILES } from "./specialist_spa.mjs";
-import { translateRequirement } from "../validation/check_translator.mjs";
-import { runChecks, CATALOG_VERSION } from "../validation/check_catalog.mjs";
+import { buildSpa, skeleton, FILES, featureLabel } from "./specialist_spa.mjs";
+import { planPage, planText, PAGE_PLAN_VERSION } from "./page_plan.mjs";
+import { translateRequirement, anchorSections } from "../validation/check_translator.mjs";
+import { runChecks, normalizeCheck, CATALOG_VERSION } from "../validation/check_catalog.mjs";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const args = process.argv.slice(2);
@@ -50,7 +51,32 @@ if (args[0] === "--validate") {
   mkdirSync(outDir, { recursive: true });
   writeFileSync(join(outDir, "input.json"), JSON.stringify(input, null, 2));
   log(`[BUILD] ${refined.project_name} — ${refined.features.length} requisitos, ${tasks.length} tareas → ${outDir}`);
-  specialist = await buildSpa(input, outDir, { log, forbidden: refined.criterios_holdout || [], resume: !!resumeDir });
+  // Guardia de holdout: el Specialist no puede ver criterios_holdout. Pero si un
+  // criterio repite una feature (que el Specialist SÍ ve en el brief), no es
+  // holdout y la guardia no puede dispararse por eso. Evidencia 02/10, Project22:
+  // criterio "Código limpio, ordenado y comentado" ⊂ feature 9 → corte falso en F1.1.
+  const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
+  const visible = nrm([refined.objetivo, ...(refined.features || [])].join("\n"));
+  const criteria = (refined.criterios_holdout || []).filter(Boolean);
+  const overlap = criteria.filter((c) => visible.includes(nrm(c)));
+  const forbidden = criteria.filter((c) => !overlap.includes(c));
+  input.holdout = { forbidden, repeated_in_features: overlap };
+  writeFileSync(join(outDir, "input.json"), JSON.stringify(input, null, 2));
+  for (const c of overlap) log(`[BUILD] criterio holdout que repite una feature (el Specialist ya lo ve; no se vigila): "${c}"`);
+  // Plan de página (v0.5): qué secciones tiene la SPA y qué features cubre cada una.
+  const planPath = join(outDir, "page_plan.json");
+  let pagePlan;
+  if (existsSync(planPath)) {
+    pagePlan = JSON.parse(readFileSync(planPath, "utf8")).plan;
+    log(`[PLAN] usando ${planPath}`);
+  } else {
+    const pp = await planPage(refined.features);
+    writeFileSync(planPath, JSON.stringify(pp, null, 2));
+    pagePlan = pp.plan;
+    if (pagePlan) log(`[PLAN] ${PAGE_PLAN_VERSION}${pp.attempts.length > 1 ? " (con reintento)" : ""}\n${planText(pagePlan)}`);
+    else log(`[PLAN] ✗ plan inválido (${pp.errors.join("; ")}) → esqueleto mínimo sin secciones`);
+  }
+  specialist = await buildSpa(input, outDir, { log, forbidden, resume: !!resumeDir, pagePlan });
   writeFileSync(join(outDir, "build.json"), JSON.stringify({ input, specialist }, null, 2));
 }
 
@@ -93,7 +119,11 @@ if (existsSync(checksPath)) {
 // nada. Ese PASS se marca TRIVIAL y no cuenta como evidencia.
 const baselineDir = join(outDir, "baseline");
 mkdirSync(baselineDir, { recursive: true });
-const base = skeleton(input.refined.project_name, input.refined.features || []);
+// Mismo esqueleto que recibió el Specialist: con plan de página si la corrida lo tiene
+// (v0.5; null = plan inválido → mínimo), una sección por feature si es una corrida vieja.
+const planFile = join(outDir, "page_plan.json");
+const basePlan = existsSync(planFile) ? JSON.parse(readFileSync(planFile, "utf8")).plan : undefined;
+const base = skeleton(input.refined.project_name, input.refined.features || [], basePlan);
 for (const f of FILES) writeFileSync(join(baselineDir, f), base[f], "utf8");
 const baseline = join(baselineDir, "index.html");
 
@@ -105,8 +135,9 @@ const coverage = [];
 const smoke = await runChecks(artifact, [{ type: "no_js_errors", params: {} }]);
 for (const r of reqChecks) {
   if (!r.checks.length) { coverage.push({ id: r.id, text: r.text, verdict: "SIN_CHEQUEO", reason: r.error || r.sin_chequeo || "el traductor no produjo chequeos válidos", checks: [] }); continue; }
-  const res = await runChecks(artifact, r.checks);
-  const ctl = await runChecks(baseline, r.checks);
+  const checks = anchorSections(r.checks, r.id, r.text, featureLabel(r.text)).map(normalizeCheck);
+  const res = await runChecks(artifact, checks);
+  const ctl = await runChecks(baseline, checks);
   res.forEach((x, k) => { x.baseline = ctl[k].result; if (x.result === "PASS" && ctl[k].result === "PASS") x.trivial = true; });
   const verdict = res.some((x) => x.result !== "PASS") ? "FAIL"
     : res.some((x) => !x.trivial) ? "PASS" : "SIN_EVIDENCIA";

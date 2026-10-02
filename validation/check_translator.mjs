@@ -17,6 +17,27 @@ const LM_STUDIO_URL = "http://localhost:1234/v1/chat/completions";
 const MODEL_DEFAULT = "qwen2.5-7b-instruct";
 export const TRANSLATOR_VERSION = "check_translator v0.3";
 
+// Anclaje de sección (determinista, lo hace el harness, no Qwen).
+// Evidencia 01/10 (exp_translator_sections): para R1 "Catalogo de cafés en
+// tarjetas…" Qwen dio section = ["cafés","tarjetas"] en 5/5 y nunca
+// "catalogo": una sección titulada "Catálogo" no se encontraba (0/5).
+//   1) se agregan las palabras de la etiqueta de la feature (la misma que usa
+//      el esqueleto para el título y el id de su sección);
+//   2) se agrega feature = "Rn": si la página tiene <section data-feature="Rn">
+//      (esqueleto v0.4) el chequeo usa ESA sección, sin adivinar por palabras.
+const STOP = new Set(["de", "del", "la", "las", "el", "los", "y", "en", "con", "para", "seccion"]);
+export function anchorSections(checks, rid, requirementText, label) {
+  const lbl = label || String(requirementText || "").match(/['"“‘«]([^'"”’»]{2,40})['"”’»]/)?.[1]
+    || String(requirementText || "").split(/\s+(?:con|en|para|que|donde|desde)\s+|[(,:;.]/i)[0];
+  const extra = String(lbl || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+    .split(/[^a-z0-9ñ]+/).filter((w) => w.length >= 3 && !STOP.has(w));
+  return checks.map((c) => {
+    if (!c.params?.section) return c;
+    const section = [...new Set([...c.params.section, ...extra])];
+    return { ...c, params: { ...c.params, section, ...(rid ? { feature: [rid] } : {}) } };
+  });
+}
+
 function catalogText() {
   return Object.entries(CATALOG)
     .map(([type, d]) => {

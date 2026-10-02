@@ -93,6 +93,8 @@ export function normalizeCheck(c) {
     if (t === "string[]" && !words(list).length) return null;
     params[k] = list;
   }
+  // feature (opcional, lo agrega el harness con anchorSections): id de requisito "Rn"
+  if (c.params?.section && Array.isArray(c.params.feature) && /^R\d+$/.test(c.params.feature[0] || "")) params.feature = [c.params.feature[0]];
   return { type: c.type, params };
 }
 
@@ -100,7 +102,7 @@ export function normalizeCheck(c) {
 // ---- helpers de sección (corren en la página) ----
 // Marca con data-vc-section la sección que matchea y con data-vc-item los
 // elementos del grupo repetido más grande dentro de ella. Devuelve un resumen.
-const MARK_SECTION = ([ws]) => {
+const MARK_SECTION = ([ws, feature]) => {
   const norm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
   const vis = (e) => !!(e.offsetParent !== null || e.getClientRects().length) && getComputedStyle(e).visibility !== "hidden";
   document.querySelectorAll("[data-vc-section],[data-vc-item]").forEach((e) => { e.removeAttribute("data-vc-section"); e.removeAttribute("data-vc-item"); });
@@ -114,7 +116,14 @@ const MARK_SECTION = ([ws]) => {
   };
   const scored = cands.map((e) => ({ e, s: score(e), sec: e.tagName === "SECTION" || e.tagName === "ARTICLE" ? 1 : 0 })).filter((x) => x.s > 0);
   scored.sort((a, b) => (b.sec - a.sec) || (b.s - a.s));
-  const sec = scored[0]?.e;
+  // Anclaje por feature: si la página trae data-feature="Rn" (esqueleto v0.4), manda esa.
+  // v0.5: data-feature puede listar varios ("R3 R5") y una feature puede estar en
+  // varias secciones (R3 = Características, Testimonios…): entre las ancladas
+  // gana la que matchea las palabras; si ninguna, la primera anclada.
+  const anchoredAll = feature ? [...document.querySelectorAll(`[data-feature~="${feature}"]`)] : [];
+  const anchored = anchoredAll.length <= 1 ? anchoredAll[0] || null
+    : (scored.find((x) => anchoredAll.includes(x.e))?.e || anchoredAll.find((e) => score(e) > 0) || anchoredAll[0]);
+  const sec = anchored || scored[0]?.e;
   if (!sec) return null;
   sec.setAttribute("data-vc-section", "1");
   const heads = [...sec.querySelectorAll("h1, h2, h3, h4")].filter((h) => !h.closest("[data-vc-item]"));
@@ -136,7 +145,7 @@ const MARK_SECTION = ([ws]) => {
     for (const g of Object.values(groups)) if (g.length > best.length && !g[0].matches(".form-group, [class*=form-group]") && !g[0].querySelector("input, textarea, select")) best = g;
   }
   best.forEach((e) => e.setAttribute("data-vc-item", "1"));
-  return { id: sec.id || sec.tagName.toLowerCase(), words: wordsN, items: best.length, sample: best.slice(0, 3).map((e) => e.innerText.trim().split("\n")[0].slice(0, 40)) };
+  return { id: (sec.id || sec.tagName.toLowerCase()) + (anchored ? ` [${feature}]` : ""), words: wordsN, items: best.length, sample: best.slice(0, 3).map((e) => e.innerText.trim().split("\n")[0].slice(0, 40)) };
 };
 const ITEM_LEFTS = () => [...document.querySelectorAll("[data-vc-item]")].map((e) => Math.round(e.getBoundingClientRect().left));
 const NAV_RE = /(anterior|siguiente|previo|prev|next|‹|›|←|→|«|»|^\s*<\s*$|^\s*>\s*$)/i;
@@ -239,14 +248,14 @@ export async function runChecks(htmlPath, checks) {
             break;
           }
           case "section_content": {
-            const info = await page.evaluate(MARK_SECTION, [words(c.params.section)]);
+            const info = await page.evaluate(MARK_SECTION, [words(c.params.section), c.params.feature?.[0] || null]);
             if (!info) { r.detail = `no hay sección: ${c.params.section.join(" / ")}`; break; }
             r.result = info.words >= 20 ? "PASS" : "FAIL";
             r.detail = `#${info.id}: ${info.words} palabras propias (mín. 20)`;
             break;
           }
           case "section_items": {
-            const info = await page.evaluate(MARK_SECTION, [words(c.params.section)]);
+            const info = await page.evaluate(MARK_SECTION, [words(c.params.section), c.params.feature?.[0] || null]);
             if (!info) { r.detail = `no hay sección: ${c.params.section.join(" / ")}`; break; }
             r.result = info.items >= 2 ? "PASS" : "FAIL";
             r.detail = `#${info.id}: ${info.items} ítems${info.items ? ` (${info.sample.join(" · ")})` : ""}`;
@@ -255,7 +264,7 @@ export async function runChecks(htmlPath, checks) {
           case "carousel": {
             const vp = page.viewportSize();
             const tryOnce = async () => {
-              const info = await page.evaluate(MARK_SECTION, [words(c.params.section)]);
+              const info = await page.evaluate(MARK_SECTION, [words(c.params.section), c.params.feature?.[0] || null]);
               if (!info) return { detail: `no hay sección: ${c.params.section.join(" / ")}` };
               if (info.items < 2) return { detail: `#${info.id}: ${info.items} ítems, no hay carrusel` };
               const before = await page.evaluate(ITEM_LEFTS);

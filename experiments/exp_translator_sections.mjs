@@ -10,13 +10,18 @@
 // Los esperados salen de chequeos escritos a mano sobre esos mismos artefactos
 // (test_check_catalog.mjs + control del 01/10). "Discrimina" = acierta en todos.
 //
+// v0.2: los chequeos pasan por anchorSections (igual que en run_build): se
+// suman las palabras de la etiqueta de la feature y el ancla data-feature.
+// Corrida v0.1 (21-43-35): R1 0/5 — Qwen nunca puso "catalogo" en section.
+//
 //   node experiments/exp_translator_sections.mjs [reps]
 
 import { readdirSync, mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
-import { translateRequirement, TRANSLATOR_VERSION } from "../validation/check_translator.mjs";
-import { runChecks } from "../validation/check_catalog.mjs";
+import { translateRequirement, anchorSections, TRANSLATOR_VERSION } from "../validation/check_translator.mjs";
+import { featureLabel } from "../build/specialist_spa.mjs";
+import { runChecks, normalizeCheck } from "../validation/check_catalog.mjs";
 
 const REPS = Number(process.argv[2] || 5);
 const here = (p) => fileURLToPath(new URL(p, import.meta.url));
@@ -48,6 +53,7 @@ for (const req of REQS) {
   tally[req.id] = 0;
   for (let rep = 1; rep <= REPS; rep++) {
     const t = await translateRequirement(req.text, { context: CONTEXT });
+    t.checks = anchorSections(t.checks, req.id, req.text, featureLabel(req.text)).map((c) => ({ ...normalizeCheck(c), covers: c.covers }));
     console.log(`\n${req.id} #${rep}: ${t.checks.map((c) => `${c.type}(${Object.values(c.params).map((v) => v.join("/")).join(" → ")})`).join(", ") || "NINGUNO"}${t.dropped.length ? `  | descartados: ${t.dropped.length}` : ""}`);
     const row = { req: req.id, rep, checks: t.checks, dropped: t.dropped, raw: t.raw, targets: [] };
     let ok = t.checks.length > 0;
@@ -68,5 +74,5 @@ console.log(`\nDiscrimina: ${Object.entries(tally).map(([k, v]) => `${k} ${v}/${
 mkdirSync(here("../evidence/"), { recursive: true });
 const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 const out = here(`../evidence/translator_sections_${stamp}.json`);
-writeFileSync(out, JSON.stringify({ experiment: "exp_translator_sections v0.1", translator: TRANSLATOR_VERSION, reps: REPS, tally, results }, null, 2));
+writeFileSync(out, JSON.stringify({ experiment: "exp_translator_sections v0.2 (con anchorSections)", translator: TRANSLATOR_VERSION, reps: REPS, tally, results }, null, 2));
 console.log(`→ ${out}`);

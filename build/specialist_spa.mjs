@@ -39,7 +39,7 @@ import { chatStream } from "./lm_stream.mjs";
 
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 export const SPECIALIST_MODEL = "google/gemma-4-e4b";
-export const SPECIALIST_VERSION = "spa_specialist v0.4-skeleton-contract";
+export const SPECIALIST_VERSION = "spa_specialist v0.5-pageplan";
 
 export const FILES = ["index.html", "styles.css", "api.js", "app.js"];
 const LANG = { "index.html": "html", "styles.css": "css", "api.js": "javascript", "app.js": "javascript" };
@@ -73,14 +73,29 @@ export function sectionsFor(features = []) {
   });
 }
 
-// Esqueleto determinista (v0.4): header con nav, una sección por feature, footer.
-// Gemma rellena dentro; no inventa la estructura de la página.
-export function skeleton(title = "Prototipo", features = []) {
-  const secs = sectionsFor(features);
-  const nav = secs.map((s) => `        <li><a href="#${s.id}">${esc(s.label)}</a></li>`).join("\n");
-  const body = secs.map((s) => `    <section id="${s.id}" data-feature="${s.rid}">
-      <h2>${esc(s.label)}</h2>
-      <!-- ${s.rid}: ${esc(s.text)} -->
+// Esqueleto determinista. Gemma rellena dentro; no inventa la estructura.
+//   plan (page_plan.mjs, v0.5): header + una <section> por parte del plan, con
+//        data-feature = lista de requisitos que cubre ("R3 R5"); las features
+//        transversales no generan sección.
+//   plan === null (el plan falló): header + nav vacío + main + footer.
+//   plan === undefined (v0.4, corridas viejas): una sección por feature.
+export function skeleton(title = "Prototipo", features = [], plan) {
+  const df = (ids) => (ids?.length ? ` data-feature="${ids.join(" ")}"` : "");
+  const comment = (ids) => ids.map((r) => `      <!-- ${r}: ${esc(features[Number(r.slice(1)) - 1] || "")} -->`).join("\n");
+  let secs, headerF = [], footerF = [];
+  if (plan === undefined) {
+    secs = sectionsFor(features).map((x) => ({ id: x.id, titulo: x.label, features: [x.rid] }));
+  } else if (plan === null) {
+    secs = [];
+  } else {
+    secs = plan.sections;
+    headerF = plan.header.features;
+    footerF = plan.footer.features;
+  }
+  const nav = secs.map((x) => `        <li><a href="#${x.id}">${esc(x.titulo)}</a></li>`).join("\n");
+  const body = secs.map((x) => `    <section id="${x.id}"${df(x.features)}>
+      <h2>${esc(x.titulo)}</h2>
+${comment(x.features)}
     </section>`).join("\n\n");
   return {
     "index.html": `<!DOCTYPE html>
@@ -92,9 +107,9 @@ export function skeleton(title = "Prototipo", features = []) {
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header id="site-header">
+  <header id="site-header"${df(headerF)}>
     <h1>${esc(title)}</h1>
-    <nav>
+${headerF.length ? comment(headerF) + "\n" : ""}    <nav>
       <ul>
 ${nav}
       </ul>
@@ -103,8 +118,8 @@ ${nav}
   <main id="app">
 ${body}
   </main>
-  <footer id="site-footer">
-    <p>${esc(title)}</p>
+  <footer id="site-footer"${df(footerF)}>
+${footerF.length ? comment(footerF) + "\n" : ""}    <p>${esc(title)}</p>
   </footer>
   <script src="api.js"></script>
   <script src="app.js"></script>
@@ -149,13 +164,13 @@ El proyecto tiene 4 archivos:
 - api.js: capa de datos SIMULADA. Objeto global window.api con datos en memoria y funciones async que imitan endpoints (ej. api.listarProductos(), api.crearContacto(datos)). No hay servidor, base de datos ni dispositivos reales.
 - app.js: lógica de la UI. Obtiene y guarda datos SOLO a través de window.api.
 
-La página ya tiene su estructura: un <header> con el nombre y un <nav>, una <section> por feature (con id y data-feature="R1", "R2"...) en el orden del brief, y un <footer>.
+La página ya tiene su estructura: un <header> con el nombre y un <nav>, las <section> del cuerpo en orden (cada una con id y data-feature con los requisitos que muestra, ej. data-feature="R3") y un <footer>. Las features que no tienen sección (diseño, responsive, hover, calidad del código) aplican a toda la página.
 
 Ejecutás UNA tarea atómica por vez. Recibís el BRIEF (contexto), la TAREA, el CONTRATO de window.api y los ARCHIVOS ACTUALES.
 
 Reglas:
 1. Hacé lo que pide la TAREA. No adelantes trabajo de otras tareas.
-2. Poné el contenido dentro de la <section> de la feature que corresponde. No crees otra sección para una feature que ya tiene la suya. No borres ni vacíes el header, el nav ni el footer; podés mejorarlos.
+2. Poné el contenido dentro de la <section> que corresponde. No crees otra sección para algo que ya tiene la suya ni cambies los id o data-feature. No borres ni vacíes el header, el nav ni el footer; podés mejorarlos.
 3. Tareas de Backend o DBA (endpoints, esquemas, tablas, servicios): implementalas en api.js como datos y funciones simuladas. Valores que vendrían de sensores, archivos o dispositivos: también simulados en api.js (por ejemplo, el contenido de un archivo como texto dentro de api.js). No uses fetch ni XMLHttpRequest.
 4. Las funciones simuladas de window.api SIEMPRE resuelven con éxito (no lanzan errores) y simulan una latencia corta (300 ms como máximo).
 5. app.js solo puede llamar funciones que existan en window.api. Si necesitás una nueva, agregala en api.js en la MISMA respuesta.
@@ -172,10 +187,10 @@ Los archivos que no cambiaste NO los devuelvas. Si la tarea ya está hecha y no 
 export function briefText(refined) {
   const parts = [`Proyecto: ${refined.project_name || ""}`, refined.objetivo || "", "", "Features:"];
   (refined.features || []).forEach((f, i) => parts.push(`${i + 1}. ${f}`));
-  if (refined.exclusiones?.length) {
-    parts.push("", "Fuera de alcance (NO implementar):");
-    refined.exclusiones.forEach((x) => parts.push(`- ${x}`));
-  }
+  // Las exclusiones NO van al Specialist (02/10, decisión de Miche): sirven para
+  // que TechLeader no planifique algo, y eso ya pasó. En Project22 eran
+  // restricciones mal marcadas ("crea, archivo, html…") y le decían a Gemma
+  // "NO implementar html". El Specialist solo ejecuta su tarea (regla 1).
   return parts.join("\n");
 }
 
@@ -201,14 +216,14 @@ const writeApp = (dir, files) => { mkdirSync(dir, { recursive: true }); for (con
 /**
  * @param {{refined:object, tasks:object[]}} input
  * @param {string} outDir  la app final queda en outDir/app/ (abrir outDir/app/index.html)
- * @param {{log?:(m:string)=>void, model?:string, forbidden?:string[], resume?:boolean}} [opts]
+ * @param {{log?:(m:string)=>void, model?:string, forbidden?:string[], resume?:boolean, pagePlan?:object|null}} [opts]
  */
 export async function buildSpa({ refined, tasks }, outDir, opts = {}) {
   const log = opts.log || console.log;
   mkdirSync(outDir, { recursive: true });
   const brief = briefText(refined);
   const order = topoOrder(tasks.map((t) => ({ ...t, depends_on: (t.depends_on || []).filter((d) => tasks.some((x) => x.id === d)) })));
-  let files = skeleton(refined.project_name, refined.features || []);
+  let files = skeleton(refined.project_name, refined.features || [], opts.pagePlan);
   let steps = [];
   const sj = join(outDir, "steps.json");
   if (opts.resume && existsSync(sj)) {

@@ -1,0 +1,458 @@
+### FILE: styles.css
+```css
+/* ========================================= */
+/* 🎨 Variables y Reset Globales (F2.1)     */
+/* ========================================= */
+
+/* Paleta de Colores: Profesional, tecnológico, confiable */
+:root {
+    --color-primary: #007bff; /* Azul vibrante para CTAs */
+    --color-secondary: #6c757d; /* Gris neutro para texto secundario */
+    --color-accent: #28a745; /* Verde de éxito/destacado */
+    --color-dark: #343a40; /* Negro suave para títulos y fondo oscuro */
+    --color-light: #f8f9fa; /* Fondo claro general */
+    --color-white: #ffffff;
+
+    /* Tipografía */
+    --font-family-primary: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --max-width: 1200px;
+}
+
+/* Reset Básico y Estilos Base */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth; /* Para el scroll suave de la navegación */
+}
+
+body {
+    font-family: var(--font-family-primary);
+    line-height: 1.6;
+    color: var(--color-dark);
+    background-color: var(--color-white);
+    /* Aplicar transiciones suaves a elementos interactivos */
+    transition: background-color 0.3s ease;
+}
+
+/* Estilos de Enlaces (Links) */
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.3s ease, opacity 0.3s ease;
+}
+
+a:hover {
+    color: var(--color-dark); /* Oscurecer al pasar el ratón */
+    opacity: 0.9;
+}
+
+/* Estilos de Títulos (Headings) */
+h1, h2, h3, h4 {
+    margin-bottom: 0.5em;
+    line-height: 1.2;
+    color: var(--color-dark);
+}
+
+h1 { font-size: 2.8rem; } /* Ajuste para Hero */
+h2 { font-size: 2.2rem; margin-bottom: 0.75em; }
+h3 { font-size: 1.6rem; }
+h4 { font-size: 1.4rem; }
+
+/* Estilos de Contenedores Generales */
+.container {
+    width: 90%;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+/* ========================================= */
+/* 🚀 Componentes Globales (Botones, Secciones)*/
+/* ========================================= */
+
+/* Botón CTA (Call to Action) */
+.cta-button {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    padding: 12px 30px;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Efecto Hover en Botones */
+.cta-button:hover {
+    background-color: #0056b3; /* Azul más oscuro */
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Estilos de Secciones (General) */
+section {
+    padding: 80px 0;
+    opacity: 0; /* Inicialmente oculto para animación al scroll */
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+/* Clase que se añadirá por JS cuando el elemento esté visible */
+section.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ========================================= */
+/* ✨ Hero Section (R1) - Estilizado Específico */
+/* ========================================= */
+.hero-section {
+    background-color: var(--color-light); /* Fondo suave para destacar el hero */
+    padding: 100px 0; /* Más padding vertical que otras secciones */
+    text-align: center;
+}
+
+.hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Estilo específico para el título principal del Hero */
+.hero-section h1 {
+    font-size: 3.5rem; /* Más grande que el H1 general */
+    color: var(--color-dark);
+    margin-bottom: 15px;
+    line-height: 1.1;
+}
+
+/* Estilo para el subtítulo del Hero */
+.hero-section .subtitle {
+    font-size: 1.3rem;
+    color: var(--color-secondary);
+    margin-bottom: 40px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ========================================= */
+/* 🌐 Navegación y Header (R2)             */
+/* ========================================= */
+
+#site-header {
+    background-color: var(--color-white);
+    padding: 15px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: sticky; /* Barra fija */
+    top: 0;
+    z-index: 1000;
+    /* Usamos flexbox para alinear logo y nav horizontalmente */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#site-header .logo {
+    flex-basis: 30%; /* Ajuste de espacio para el logo */
+}
+
+#site-header .logo-text {
+    font-size: 1.5rem;
+    color: var(--color-dark);
+}
+
+/* Estilos de la Navegación (Desktop) */
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+}
+
+nav a {
+    font-weight: 500;
+    padding: 5px 10px;
+    color: var(--color-dark);
+    /* Aseguramos que los enlaces se vean como botones/píldoras */
+    display: block; 
+}
+
+nav a:hover {
+    color: var(--color-primary); /* Cambiar color al hacer hover en la nav */
+    background-color: rgba(0, 123, 255, 0.05);
+    border-radius: 4px;
+}
+
+/* Estilos del Botón Hamburguesa (Visible solo en móvil) */
+.menu-toggle {
+    display: none; /* Oculto por defecto en escritorio */
+    cursor: pointer;
+    font-size: 1.8rem;
+    background: none;
+    border: none;
+    padding: 10px;
+}
+
+/* ========================================= */
+/* ✨ Testimonios (R3) - Estilizado Específico */
+/* ========================================= */
+#testimonios {
+    background-color: var(--color-light);
+    text-align: center;
+}
+
+.testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.testimonial-card {
+    background-color: var(--color-white);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    text-align: left;
+    border-left: 5px solid var(--color-accent); /* Acento de confianza */
+}
+
+blockquote {
+    font-style: italic;
+    margin-bottom: 20px;
+    color: #555;
+}
+
+.testimonial-card p {
+    font-size: 1rem;
+}
+
+.author {
+    display: block;
+    text-align: right;
+    margin-top: 10px;
+    font-weight: bold;
+    color: var(--color-dark);
+}
+
+/* ========================================= */
+/* ✨ Estadísticas (R3) - Estilizado Específico */
+/* ========================================= */
+#estadisticas-animadas {
+    background-color: var(--color-white);
+    text-align: center;
+}
+
+.stats-container {
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+    margin-top: 40px;
+    flex-wrap: wrap; /* Permite que se adapte en móvil */
+}
+
+.stat-card {
+    background-color: var(--color-light);
+    padding: 30px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    flex-basis: calc(33% - 40px); /* Tres columnas en escritorio */
+    min-width: 200px;
+}
+
+/* Ajuste para el contador numérico */
+.stat-card .counter {
+    display: block;
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--color-primary);
+    margin-bottom: 10px;
+}
+
+.stat-card .label {
+    font-size: 1.1rem;
+    color: var(--color-secondary);
+}
+
+
+/* ========================================= */
+/* ✨ Contacto (R3) - Estilizado Específico */
+/* ========================================= */
+#contacto {
+    background-color: var(--color-light);
+    text-align: center;
+}
+
+.contact-form {
+    max-width: 600px;
+    margin: 20px auto 0;
+    padding: 30px;
+    background: var(--color-white);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    text-align: left;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: var(--color-dark);
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.2);
+    outline: none;
+}
+
+/* ========================================= */
+/* 🦶 Footer (R4) - Estilizado Específico   */
+/* ========================================= */
+#site-footer {
+    background-color: var(--color-dark);
+    color: #ccc;
+    padding: 60px 0 20px;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap; /* Permite que las columnas se apilen en móvil */
+    gap: 40px;
+}
+
+.footer-col {
+    min-width: 250px;
+    flex: 1;
+}
+
+.footer-col h3, .footer-col h4 {
+    color: var(--color-white);
+    margin-bottom: 20px;
+}
+
+.footer-col p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.social-links a {
+    display: inline-block;
+    color: #ccc;
+    margin-right: 15px;
+    font-size: 1.2rem;
+    transition: color 0.3s ease;
+}
+
+.social-links a:hover {
+    color: var(--color-primary);
+}
+
+/* Estilos de la navegación secundaria del footer */
+.footer-col nav ul {
+    list-style: none;
+}
+
+.footer-col nav li {
+    margin-bottom: 10px;
+}
+
+.footer-col nav a {
+    color: #ccc;
+    text-decoration: none;
+    display: block;
+    padding: 5px 0;
+}
+
+.footer-col nav a:hover {
+    color: var(--color-primary);
+}
+
+
+/* ========================================= */
+/* ✨ Responsive Design (Media Queries)      */
+/* ========================================= */
+
+@media (max-width: 1199px) {
+    /* Ajuste de las tarjetas en pantallas medianas */
+    .stat-card {
+        flex-basis: calc(50% - 20px); /* Dos columnas */
+    }
+}
+
+@media (max-width: 992px) {
+    h1 { font-size: 2.5rem; }
+    h2 { font-size: 2rem; }
+
+    /* Ajuste del Header para móvil - Implementación de Hamburguesa */
+    #site-header {
+        flex-direction: row; /* Mantener en fila, pero con espacio para el botón */
+        justify-content: space-between;
+        padding: 10px 20px; /* Añadir padding lateral */
+    }
+
+    /* Mostrar el botón de menú hamburguesa y ocultar la lista por defecto */
+    .menu-toggle {
+        display: block;
+        z-index: 1010; /* Asegurar que esté encima del contenido */
+    }
+
+    nav ul {
+        /* Inicialmente colapsado/oculto en móvil */
+        flex-direction: column;
+        position: absolute;
+        top: 100%; /* Debajo del header */
+        left: 0;
+        width: 100%;
+        background-color: var(--color-white);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        /* Transición para el efecto de apertura */
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+    }
+
+    /* Clase activa que JS añadirá para mostrar el menú */
+    nav ul.active {
+        max-height: 400px; /* Valor suficientemente grande para contener todos los enlaces */
+        padding: 15px 20px;
+    }
+
+    nav li {
+        text-align: center;
+        width: 100%;
+        border-bottom: 1px solid #eee;
+    }
+    
+    nav li:last-child {
+        border-bottom: none;
+    }
+
+    /* Ajuste de logo */
+    #site-header .logo {
+        flex-basis: auto; /* Permitir que el logo ocupe solo lo necesario */
+    }
+    
+    /*

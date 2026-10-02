@@ -1,0 +1,608 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Landing Page Ficticia",
+  "source": "project22_snapshot.json",
+  "catalog": "check_catalog v0.4",
+  "artifact_loads_without_js_errors": true,
+  "summary": {
+    "requisitos": 9,
+    "PASS": 4,
+    "FAIL": 3,
+    "SIN_EVIDENCIA": 0,
+    "SIN_CHEQUEO": 2
+  },
+  "control": "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "Hero con título, subtítulo, botón de llamada a la acción y animación de entrada",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "hero",
+              "portada"
+            ],
+            "feature": [
+              "R1"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#inicio [R1]: 14 palabras propias (mín. 8)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "llamada a la acción",
+              "botón"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "ningún control menciona: llamada a la acción / botón",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "entrance_animation",
+          "params": {
+            "section": [
+              "hero",
+              "portada"
+            ],
+            "feature": [
+              "R1"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#inicio [R1]: 1 elementos animados al cargar",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Barra de navegación fija con enlaces que hacen scroll suave a cada sección",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "nav_scroll",
+          "params": {},
+          "result": "PASS",
+          "detail": "clic en #contacto: llegó a la sección; nav sigue visible arriba",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "Secciones: Características (tarjetas con iconos), Testimonios, Estadísticas animadas y Contacto",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "section_items",
+          "params": {
+            "section": [
+              "características",
+              "secciones"
+            ],
+            "feature": [
+              "R3"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#caracteristicas [R3]: 3 ítems (💡 · ⚙️ · 🛡️)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "testimonios",
+              "secciones"
+            ],
+            "feature": [
+              "R3"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#testimonios [R3]: 74 palabras propias (mín. 8)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "numbers_animate",
+          "params": {
+            "section": [
+              "estadísticas",
+              "secciones"
+            ],
+            "feature": [
+              "R3"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "#estadisticas-animadas [R3]: los números no cambian (\"0 | 0 | 0+\")",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "contacto",
+              "secciones"
+            ],
+            "feature": [
+              "R3"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#contacto [R3]: 16 palabras propias (mín. 8)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "Pie de página completo",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "pie",
+              "footer",
+              "pagina",
+              "completo"
+            ],
+            "feature": [
+              "R4"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#site-footer [R4]: 28 palabras propias (mín. 8)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "Animaciones al hacer scroll (elementos que aparecen suavemente)",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "reveal_on_scroll",
+          "params": {},
+          "result": "PASS",
+          "detail": "3 elementos ocultos abajo; 3 aparecieron al bajar",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "Efectos hover en botones y tarjetas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "hover_changes",
+          "params": {
+            "elementos": [
+              "boton",
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "botón: cambia al pasar el mouse; tarjeta: cambia al pasar el mouse",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "text": "Visualmente atractivo: diseño moderno, paleta de colores coherente, tipografía elegante (usando fuentes del sistema), animaciones suaves",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El requisito 'Visualmente atractivo: diseño moderno, paleta de colores coherente, tipografía elegante (usando fuentes del sistema), animaciones suaves' no puede ser verificado mediante chequeos automatizados. Estas son características estéticas y de interacción que no se pueden demostrar con la ejecución de la página.",
+      "checks": []
+    },
+    {
+      "id": "R8",
+      "text": "Totalmente interactivo y responsive (escritorio y móvil)",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "no_horizontal_scroll",
+          "params": {},
+          "result": "FAIL",
+          "detail": "390px: desborda 74px; 1280px: ok",
+          "baseline": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "text": "Código limpio, ordenado y comentado donde haga falta",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El requisito 'código limpio, ordenado y comentado' no puede ser verificado ejecutando la página. Se trata de una práctica de codificación que no se puede demostrar con chequeos UI.",
+      "checks": []
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "spa_specialist v0.5-pageplan",
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "F1.1",
+        "role": "Frontend",
+        "ms": 129498,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 2,
+        "task_id": "F1.2",
+        "role": "Frontend",
+        "ms": 80530,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 3,
+        "task_id": "F1.3",
+        "role": "Frontend",
+        "ms": 62952,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 4,
+        "task_id": "F1.4",
+        "role": "Frontend",
+        "ms": 77324,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 5,
+        "task_id": "F1.5",
+        "role": "Frontend",
+        "ms": 98978,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 6,
+        "task_id": "F1.6",
+        "role": "Frontend",
+        "ms": 114392,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 7,
+        "task_id": "F1.7",
+        "role": "Frontend",
+        "ms": 119321,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 8,
+        "task_id": "F1.8",
+        "role": "Frontend",
+        "ms": 151228,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 9,
+        "task_id": "F2.1",
+        "role": "Frontend",
+        "ms": 129575,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 10,
+        "task_id": "F2.2",
+        "role": "Frontend",
+        "ms": 205328,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 11,
+        "task_id": "F2.3",
+        "role": "Frontend",
+        "ms": 212084,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 12,
+        "task_id": "F2.4",
+        "role": "Frontend",
+        "ms": 393736,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 13,
+        "task_id": "F2.5",
+        "role": "Frontend",
+        "ms": 521958,
+        "finish_reason": "length",
+        "changed": [],
+        "rejected": [],
+        "error": "la respuesta no trae bloques ### FILE",
+        "contract_missing": []
+      },
+      {
+        "n": 14,
+        "task_id": "F2.6",
+        "role": "Frontend",
+        "ms": 525447,
+        "finish_reason": "length",
+        "changed": [],
+        "rejected": [],
+        "error": "la respuesta no trae bloques ### FILE",
+        "contract_missing": []
+      },
+      {
+        "n": 15,
+        "task_id": "F2.7",
+        "role": "Frontend",
+        "ms": 211676,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [],
+        "no_change": "El archivo styles.css ya contiene una implementación completa y profesional del estilo para la sección de Contacto (`#contacto`), incluyendo estilos semánticos, manejo de formularios (inputs, textarea) y estados de foco, cumpliendo con los ",
+        "contract_missing": []
+      },
+      {
+        "n": 16,
+        "task_id": "F2.8",
+        "role": "Frontend",
+        "ms": 202167,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [],
+        "no_change": "Los estilos para el pie de página (`#site-footer`) ya están completamente implementados en `styles.css`, incluyendo la estructura, colores, tipografía y ajustes responsivos necesarios para cumplir con la tarea F2.8.",
+        "contract_missing": []
+      },
+      {
+        "n": 17,
+        "task_id": "F2.9.R2.1",
+        "role": "Frontend",
+        "ms": 527546,
+        "finish_reason": "length",
+        "changed": [],
+        "rejected": [],
+        "error": "la respuesta no trae bloques ### FILE",
+        "contract_missing": []
+      },
+      {
+        "n": 18,
+        "task_id": "F2.9.R2.2",
+        "role": "Frontend",
+        "ms": 521717,
+        "finish_reason": "length",
+        "changed": [],
+        "rejected": [],
+        "error": "la respuesta no trae bloques ### FILE",
+        "contract_missing": []
+      },
+      {
+        "n": 19,
+        "task_id": "F2.9.R2.3",
+        "role": "Frontend",
+        "ms": 201969,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [],
+        "no_change": "La adaptación de la cuadrícula para dispositivos móviles ya está implementada en `styles.css` dentro del media query `@media (max-width: 768px)`, donde se fuerza a `.features-grid` a usar una sola columna (`grid-template-columns: 1fr;`), lo",
+        "contract_missing": []
+      },
+      {
+        "n": 20,
+        "task_id": "F3.1",
+        "role": "Frontend",
+        "ms": 250706,
+        "finish_reason": "stop",
+        "changed": [
+          "app.js",
+          "api.js"
+        ],
+        "rejected": [],
+        "contract_retry": {
+          "problem": "app.js llama window.api.crearContacto(), que no existe en api.js (funciones definidas: (todavía ninguna))",
+          "ms": 292150,
+          "finish_reason": "stop",
+          "changed": [
+            "api.js",
+            "app.js"
+          ],
+          "resolved": true
+        },
+        "contract_missing": []
+      },
+      {
+        "n": 21,
+        "task_id": "F3.2",
+        "role": "Frontend",
+        "ms": 477882,
+        "finish_reason": "length",
+        "changed": [],
+        "rejected": [],
+        "error": "la respuesta no trae bloques ### FILE",
+        "contract_missing": []
+      },
+      {
+        "n": 22,
+        "task_id": "F3.3",
+        "role": "Frontend",
+        "ms": 474990,
+        "finish_reason": "length",
+        "changed": [],
+        "rejected": [],
+        "error": "la respuesta no trae bloques ### FILE",
+        "contract_missing": []
+      },
+      {
+        "n": 23,
+        "task_id": "F3.4",
+        "role": "Frontend",
+        "ms": 310422,
+        "finish_reason": "stop",
+        "changed": [
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 24,
+        "task_id": "F3.5",
+        "role": "Frontend",
+        "ms": 310611,
+        "finish_reason": "stop",
+        "changed": [
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 25,
+        "task_id": "F3.6",
+        "role": "Frontend",
+        "ms": 321704,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [],
+        "no_change": "La lógica de manejo del formulario, incluyendo la prevención del evento por defecto, la simulación de llamada a `window.api.crearContacto()`, y el manejo de feedback (éxito/error) mediante alertas y reset del formulario, ya están implementa",
+        "contract_missing": []
+      },
+      {
+        "n": 26,
+        "task_id": "F4.1",
+        "role": "QA",
+        "ms": 462712,
+        "finish_reason": "length",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 27,
+        "task_id": "F4.2",
+        "role": "QA",
+        "ms": 274156,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [],
+        "no_change": "Los archivos ya contienen una implementación de diseño responsive y pruebas de compatibilidad robustas mediante Media Queries en `styles.css`, cubriendo los breakpoints para móvil, tablet y escritorio en todos los componentes principales (H",
+        "contract_missing": []
+      },
+      {
+        "n": 28,
+        "task_id": "F4.3.R2.1",
+        "role": "QA",
+        "ms": 426973,
+        "finish_reason": "length",
+        "changed": [],
+        "rejected": [],
+        "error": "la respuesta no trae bloques ### FILE",
+        "contract_missing": []
+      },
+      {
+        "n": 29,
+        "task_id": "F4.3.R2.2.R3.1",
+        "role": "QA",
+        "ms": 432734,
+        "finish_reason": "length",
+        "changed": [],
+        "rejected": [],
+        "error": "la respuesta no trae bloques ### FILE",
+        "contract_missing": []
+      },
+      {
+        "n": 30,
+        "task_id": "F4.3.R2.2.R3.2",
+        "role": "QA",
+        "ms": 468314,
+        "finish_reason": "length",
+        "changed": [],
+        "rejected": [],
+        "error": "la respuesta no trae bloques ### FILE",
+        "contract_missing": []
+      },
+      {
+        "n": 31,
+        "task_id": "F4.4",
+        "role": "QA",
+        "ms": 398037,
+        "finish_reason": "stop",
+        "changed": [
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      }
+    ]
+  }
+}

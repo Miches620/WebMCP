@@ -40,6 +40,23 @@ for (const [name, exp] of Object.entries(SEC_CASES)) {
   else { fail++; console.log(`✗ ${name} esperado ${exp} dio ${got}\n    ${r.map((x) => `${x.type}: ${x.detail}`).join("\n    ")}`); }
 }
 
+// v0.4: chequeos transversales / de interacción
+const TV = [
+  { type: "no_horizontal_scroll", params: {} },
+  { type: "hover_changes", params: { elementos: ["boton", "tarjeta"] } },
+  { type: "nav_scroll", params: {} },
+  { type: "reveal_on_scroll", params: {} },
+  { type: "entrance_animation", params: { section: ["inicio"] } },
+  { type: "numbers_animate", params: { section: ["datos"] } },
+  { type: "section_control", params: { section: ["inicio"] } },
+].map(normalizeCheck);
+for (const [name, exp] of Object.entries({ transversal_ok: "PPPPPPP", transversal_mal: "FFFFFFF" })) {
+  const r = await runChecks(S(name), TV);
+  const got = r.map((x) => x.result[0]).join("");
+  if (got === exp) { ok++; console.log(`✓ ${name} ${got}`); }
+  else { fail++; console.log(`✗ ${name} esperado ${exp} dio ${got}\n    ${r.map((x) => `${x.type}: ${x.detail}`).join("\n    ")}`); }
+}
+
 const bad = [normalizeCheck({ type: "inventado" }), normalizeCheck({ type: "field_exists", params: {} }), normalizeCheck({ type: "click_reveals", params: { click: ["x"] } })];
 if (bad.every((b) => b === null)) { ok++; console.log("✓ normalizeCheck rechaza tipos y params inválidos"); } else { fail++; console.log("✗ normalizeCheck", bad); }
 console.log(`\n${ok}/${ok + fail} OK`);

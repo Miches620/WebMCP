@@ -3,7 +3,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { validatePlan } from "./page_plan.mjs";
+import { validatePlan, validateVerdicts, verdictSkeleton, parseJsonLoose } from "./page_plan.mjs";
 import { skeleton, FILES } from "./specialist_spa.mjs";
 import { runChecks, normalizeCheck } from "../validation/check_catalog.mjs";
 
@@ -42,6 +42,33 @@ r = validatePlan({ header: {}, sections: [], footer: {}, transversales: ["R1"] }
 t("sin secciones → error", r.errors.some((e) => e.includes("ninguna sección")), JSON.stringify(r.errors));
 r = validatePlan({ ...plan22, sections: plan22.sections.map((s) => ({ ...s, id: s.titulo })) }, 9);
 t("ids se normalizan (Características → caracteristicas)", r.plan.sections[1].id === "caracteristicas", r.plan.sections[1].id);
+
+
+// v0.2: veredictos por feature → plan
+const v22 = {
+  R1: { lugar: "seccion", secciones: ["Inicio"] },
+  R2: { lugar: "header", secciones: [] },
+  R3: { lugar: "seccion", secciones: ["Características", "Testimonios", "Estadísticas", "Contacto"] },
+  R4: { lugar: "footer", secciones: [] },
+  R5: { lugar: "transversal" }, R6: { lugar: "transversal" }, R7: { lugar: "transversal" }, R8: { lugar: "Transversal" }, R9: { lugar: "transversal" },
+};
+let vr = validateVerdicts(v22, P22);
+t("v0.2 P22: 5 secciones en orden, R3 en 4", vr.errors.length === 0 && vr.plan.sections.map((x) => x.id).join(",") === "inicio,caracteristicas,testimonios,estadisticas,contacto" && vr.plan.sections.filter((x) => x.features.includes("R3")).length === 4, JSON.stringify(vr));
+const P20 = ["Catalogo de cafés en tarjetas con foto superior e información inferior (en carrousel)", "Formulario de contacto con campos obligatorios y opcionalmente un campo para preferencias", "Sección 'Nosotros' con historia de la empresa", "Sección 'Carta' con productos disponibles actualmente, obtenidos desde archivo de texto"];
+vr = validateVerdicts({ R1: { lugar: "seccion", secciones: ["Catálogo"] }, R2: { lugar: "header" }, R3: { lugar: "seccion", secciones: ["Nosotros"] }, R4: { lugar: "seccion", secciones: ["Carta"] } }, P20);
+t("v0.2 P20: formulario en header → error (caso real de v0.1)", vr.plan === null && vr.errors.some((e) => e.startsWith("R2")), JSON.stringify(vr.errors));
+vr = validateVerdicts({ R1: { lugar: "seccion", secciones: ["Catálogo"] }, R2: { lugar: "footer" }, R3: { lugar: "seccion", secciones: ["Nosotros"] }, R4: { lugar: "seccion", secciones: ["Carta"] } }, P20);
+t("v0.2 P20: formulario en footer → error", vr.plan === null && vr.errors.some((e) => e.startsWith("R2")), JSON.stringify(vr.errors));
+vr = validateVerdicts({ ...verdictSkeleton(P20), R1: { lugar: "seccion", secciones: ["Catálogo"] } }, P20);
+t("v0.2: '?' sin completar → error por feature", vr.plan === null && vr.errors.filter((e) => e.includes('"?"')).length === 3, JSON.stringify(vr.errors));
+vr = validateVerdicts({ R1: { lugar: "seccion", secciones: [] }, R2: { lugar: "seccion", secciones: ["Contacto"] }, R3: { lugar: "seccion", secciones: ["Nosotros"] }, R4: { lugar: "seccion", secciones: ["Carta"] } }, P20);
+t("v0.2: sección sin nombre → error", vr.plan === null && vr.errors.some((e) => e.startsWith("R1")), JSON.stringify(vr.errors));
+vr = validateVerdicts({ R1: { lugar: "seccion", secciones: ["Catálogo"] }, R2: { lugar: "seccion", secciones: ["Contacto"] }, R3: { lugar: "seccion", secciones: ["Nosotros"] }, R4: { lugar: "sección", secciones: ["Carta"] } }, P20);
+t("v0.2 P20 correcto: 4 secciones", vr.errors.length === 0 && vr.plan.sections.length === 4, JSON.stringify(vr.errors));
+
+let pj = null; try { pj = parseJsonLoose('Claro, vamos a corregir:\n```json\n{ "a": ["R6"] }, // Corregido para incluir R6\n```'.replace('}, //', '} //')); } catch {}
+let pj2 = null; try { pj2 = parseJsonLoose('```json\n{\n "s": [ { "f": ["R6"] }, // Agregamos R6\n { "f": ["R3"] } ],\n "u": "http://x.com/a" }\n```\nEn esta versión...'); } catch (e) { console.log(e.message); }
+t("parseJsonLoose: tolera comentarios // y texto alrededor (caso real v0.1)", pj?.a?.[0] === "R6" && pj2?.s?.length === 2 && pj2.u === "http://x.com/a", JSON.stringify([pj, pj2]));
 
 // Esqueleto
 const plan = validatePlan(plan22, 9).plan;

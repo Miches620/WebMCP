@@ -136,6 +136,8 @@ const smoke = await runChecks(artifact, [{ type: "no_js_errors", params: {} }]);
 for (const r of reqChecks) {
   if (!r.checks.length) { coverage.push({ id: r.id, text: r.text, verdict: "SIN_CHEQUEO", reason: r.error || r.sin_chequeo || "el traductor no produjo chequeos válidos", checks: [] }); continue; }
   const checks = anchorSections(r.checks, r.id, r.text, featureLabel(r.text)).map(normalizeCheck);
+  const before = r.checks.map((c) => c.type).join(","), after = checks.map((c) => c.type).join(",");
+  if (before !== after) log(`[VALIDATION] ${r.id}: el harness ajustó chequeos ${before} → ${after} (palabras que describen la pieza)`);
   const res = await runChecks(artifact, checks);
   const ctl = await runChecks(baseline, checks);
   res.forEach((x, k) => { x.baseline = ctl[k].result; if (x.result === "PASS" && ctl[k].result === "PASS") x.trivial = true; });

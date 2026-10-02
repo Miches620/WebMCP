@@ -1,0 +1,184 @@
+### FILE: app.js
+```javascript
+/**
+ * @fileoverview Lógica de la UI para la Landing Page Ficticia.
+ * Maneja interacciones, animaciones y llamadas a la capa de datos simulada (window.api).
+ */
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("App JS inicializado: Cargando lógica de la interfaz.");
+
+    // ==============================================================
+    // TAREA F3.1: Scroll Suave en Navegación (Navbar)
+    // ==============================================================
+    const navLinks = document.querySelectorAll('#site-header a[href^="#"]');
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', e => {
+            e.preventDefault(); // Prevenir el salto brusco por defecto del navegador
+
+            const targetId = link.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+
+            if (targetElement) {
+                // Usamos scrollIntoView con comportamiento 'smooth' para garantizar la animación,
+                // incluso si el CSS no estuviera configurado o por robustez.
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+
+    // ==============================================================
+    // TAREA F3.4 & QA Check: Animación de Aparición al Scroll (Reveal) y Contadores
+    // ==============================================================
+    const sections = document.querySelectorAll('section');
+    const counters = document.querySelectorAll('.counter');
+
+    /**
+     * Función para animar un contador numérico.
+     * @param {HTMLElement} element - El elemento span con el contador.
+     * @param {number} targetNumber - El número final al que debe llegar.
+     */
+    const animateCounter = (element, targetNumber) => {
+        let startTimestamp = null;
+
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const elapsed = timestamp - startTimestamp;
+            // Calcula el valor actual usando una función de easing simple (ej. ease-out)
+            const progress = Math.min(elapsed / 1500, 1); // Animación dura 1.5 segundos
+            const currentValue = Math.floor(progress * targetNumber);
+
+            element.textContent = currentValue.toLocaleString('es-ES');
+
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            } else {
+                // Asegurar que el valor final sea exacto
+                element.textContent = targetNumber.toLocaleString('es-ES');
+            }
+        };
+
+        window.requestAnimationFrame(step);
+    };
+
+
+    // 1. Observer para Secciones (Reveal)
+    const sectionObserverOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.15 // Se activa cuando el 15% del elemento está visible
+    };
+
+    const sectionObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
+                // Añadir la clase 'visible' para que CSS active la transición de aparición
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target); 
+            }
+        });
+    }, sectionObserverOptions);
+
+    sections.forEach(section => {
+        sectionObserver.observe(section);
+    });
+
+
+    // 2. Observer para Contadores (Animación de Estadísticas)
+    const counterObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !entry.target.dataset.animated) {
+                const element = entry.target;
+                const metric = element.dataset.metric;
+                let targetValue = 0;
+
+                // Mapeo de métricas a valores numéricos reales para la animación
+                switch (metric) {
+                    case 'usuarios':
+                        targetValue = 12500; // Ejemplo: 12,500 usuarios
+                        break;
+                    case 'proyectos':
+                        targetValue = 870; // Ejemplo: 870 proyectos
+                        break;
+                    case 'años':
+                        targetValue = 10; // Ejemplo: 10 años
+                        break;
+                }
+
+                // Inicializar el contador con 0 antes de animar
+                element.textContent = '0'; 
+                animateCounter(element, targetValue);
+                entry.target.dataset.animated = 'true'; // Marcar como animado para no volver a ejecutar
+            }
+        });
+    }, { threshold: 0.5 }); // Se activa cuando el 50% del contador es visible
+
+    counters.forEach(counter => {
+        counterObserver.observe(counter);
+    });
+
+
+    // ==============================================================
+    // Manejo del Formulario de Contacto (Sección R3)
+    // ==============================================================
+    const contactForm = document.querySelector('.contact-form');
+    if (contactForm) {
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            // --- TAREA F3.5: Validación Client-Side ---
+            let isValid = true;
+            const nameInput = document.getElementById('nombre');
+            const emailInput = document.getElementById('email');
+            
+            // 1. Validar Nombre (Obligatorio)
+            if (!data.nombre || data.nombre.trim() === '') {
+                alert("Por favor, ingresa tu nombre completo.");
+                nameInput.focus();
+                isValid = false;
+            }
+
+            // 2. Validar Email (Obligatorio y Formato)
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!data.email || data.email.trim() === '') {
+                alert("Por favor, ingresa tu correo electrónico.");
+                emailInput.focus();
+                isValid = false;
+            } else if (!emailPattern.test(data.email)) {
+                alert("El formato del correo electrónico no es válido. Debe incluir @ y un dominio.");
+                emailInput.focus();
+                isValid = false;
+            }
+
+            if (!isValid) {
+                // Si la validación falla, detenemos el proceso de envío
+                return; 
+            }
+            // --- Fin TAREA F3.5 ---
+
+
+            // Deshabilitar botón y mostrar carga (Solo si es válido)
+            const submitButton = e.target.querySelector('.submit-form');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Enviando...';
+
+            try {
+                console.log("Intentando enviar datos de contacto...");
+                // Llamada a la API simulada (window.api.crearContacto)
+                const result = await window.api.crearContacto(data);
+
+                if (result.success) {
+                    alert('¡Mensaje enviado con éxito! Nos pondremos en contacto contigo pronto.');
+                    contactForm.reset(); // Limpiar formulario
+                } else {
+                    // Esto captura errores de validación que podrían venir del backend mock
+                    alert(`Error al enviar: ${result.message}`);
+                }
+            } catch (error) {
+                console.error("Error de API:", error);
+                alert('Hubo un problema al conectar con el servidor. Por favor, inténtalo más tarde.');
+            }

@@ -1,0 +1,175 @@
+### FILE: styles.css
+```css
+/* ========================================= */
+/* 🎨 Variables y Reset Globales (F2.1)     */
+/* ========================================= */
+
+/* Paleta de Colores: Profesional, tecnológico, confiable */
+:root {
+    --color-primary: #007bff; /* Azul vibrante para CTAs */
+    --color-secondary: #6c757d; /* Gris neutro para texto secundario */
+    --color-accent: #28a745; /* Verde de éxito/destacado */
+    --color-dark: #343a40; /* Negro suave para títulos y fondo oscuro */
+    --color-light: #f8f9fa; /* Fondo claro general */
+    --color-white: #ffffff;
+
+    /* Tipografía */
+    --font-family-primary: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --max-width: 1200px;
+}
+
+/* Reset Básico y Estilos Base */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth; /* Para el scroll suave de la navegación */
+}
+
+body {
+    font-family: var(--font-family-primary);
+    line-height: 1.6;
+    color: var(--color-dark);
+    background-color: var(--color-white);
+    /* Aplicar transiciones suaves a elementos interactivos */
+    transition: background-color 0.3s ease;
+}
+
+/* Estilos de Enlaces (Links) */
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.3s ease, opacity 0.3s ease;
+}
+
+a:hover {
+    color: var(--color-dark); /* Oscurecer al pasar el ratón */
+    opacity: 0.9;
+}
+
+/* Estilos de Títulos (Headings) */
+h1, h2, h3, h4 {
+    margin-bottom: 0.5em;
+    line-height: 1.2;
+    color: var(--color-dark);
+}
+
+h1 { font-size: 2.8rem; } /* Ajuste para Hero */
+h2 { font-size: 2.2rem; margin-bottom: 0.75em; }
+h3 { font-size: 1.6rem; }
+h4 { font-size: 1.4rem; }
+
+/* Estilos de Contenedores Generales */
+.container {
+    width: 90%;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+/* ========================================= */
+/* 🚀 Componentes Globales (Botones, Secciones)*/
+/* ========================================= */
+
+/* Botón CTA (Call to Action) */
+.cta-button {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    padding: 12px 30px;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Efecto Hover en Botones */
+.cta-button:hover {
+    background-color: #0056b3; /* Azul más oscuro */
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Estilos de Secciones (General) */
+section {
+    padding: 80px 0;
+    opacity: 0; /* Inicialmente oculto para animación al scroll */
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+/* Clase que se añadirá por JS cuando el elemento esté visible */
+section.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ========================================= */
+/* 🌐 Navegación y Header (R2)             */
+/* ========================================= */
+
+#site-header {
+    background-color: var(--color-white);
+    padding: 15px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: sticky; /* Barra fija */
+    top: 0;
+    z-index: 1000;
+}
+
+#site-header .logo {
+    flex-basis: 30%;
+}
+
+#site-header .logo-text {
+    font-size: 1.5rem;
+    color: var(--color-dark);
+}
+
+/* Estilos de la Navegación */
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+}
+
+nav a {
+    font-weight: 500;
+    padding: 5px 10px;
+    color: var(--color-dark);
+}
+
+/* ========================================= */
+/* ✨ Responsive Design (Media Queries)      */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    h1 { font-size: 2.2rem; }
+    h2 { font-size: 1.8rem; }
+
+    /* Ajuste del Header para móvil */
+    #site-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 10px 0;
+    }
+    #site-header .logo {
+        margin-bottom: 15px;
+        flex-basis: auto;
+    }
+    nav ul {
+        justify-content: center;
+        gap: 15px;
+    }
+
+    /* Ajuste de secciones */
+    section {
+        padding: 40px 0;
+    }
+}
+```

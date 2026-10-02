@@ -15,7 +15,7 @@ import { CATALOG, CATALOG_VERSION, normalizeCheck } from "./check_catalog.mjs";
 
 const LM_STUDIO_URL = "http://localhost:1234/v1/chat/completions";
 const MODEL_DEFAULT = "qwen2.5-7b-instruct";
-export const TRANSLATOR_VERSION = "check_translator v0.3";
+export const TRANSLATOR_VERSION = "check_translator v0.4";
 
 // Anclaje de sección (determinista, lo hace el harness, no Qwen).
 // Evidencia 01/10 (exp_translator_sections): para R1 "Catalogo de cafés en
@@ -26,12 +26,33 @@ export const TRANSLATOR_VERSION = "check_translator v0.3";
 //   2) se agrega feature = "Rn": si la página tiene <section data-feature="Rn">
 //      (esqueleto v0.4) el chequeo usa ESA sección, sin adivinar por palabras.
 const STOP = new Set(["de", "del", "la", "las", "el", "los", "y", "en", "con", "para", "seccion"]);
+// Palabras que DESCRIBEN la pieza y nadie escribe en la página (02/10, Project22
+// --retranslate: aun con la regla en el prompt, Qwen pidió control_visible con
+// "llamada a la acción" / "botón" para el CTA del hero → FAIL falso). El harness
+// las saca de text_visible/control_visible; si no queda nada, un control_visible
+// pasa a section_control de la sección que el mismo requisito ya chequea, y un
+// text_visible se descarta (la sección ya la cubre su chequeo de contenido).
+const DESCRIPTOR = /^(titulo|subtitulo|boton|botones|llamada a la accion|llamada|accion|cta|call to action|pie|pie de pagina|footer|seccion|secciones|enlace|enlaces|link|links|encabezado|header|formulario)$/;
+const nrmw = (w) => String(w || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+export function dropDescriptorWords(checks) {
+  const sectionOf = checks.find((c) => Array.isArray(c.params?.section) && c.params.section.length)?.params.section;
+  const out = [];
+  for (const c of checks) {
+    if (c.type !== "text_visible" && c.type !== "control_visible") { out.push(c); continue; }
+    const text = (c.params?.text || []).filter((w) => !DESCRIPTOR.test(nrmw(w)));
+    if (text.length) { out.push(text.length === c.params.text.length ? c : { ...c, params: { ...c.params, text } }); continue; }
+    if (c.type === "control_visible" && sectionOf) out.push({ type: "section_control", params: { section: sectionOf }, covers: c.covers });
+    // text_visible solo con palabras descriptivas: se descarta
+  }
+  return out;
+}
+
 export function anchorSections(checks, rid, requirementText, label) {
   const lbl = label || String(requirementText || "").match(/['"“‘«]([^'"”’»]{2,40})['"”’»]/)?.[1]
     || String(requirementText || "").split(/\s+(?:con|en|para|que|donde|desde)\s+|[(,:;.]/i)[0];
   const extra = String(lbl || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
     .split(/[^a-z0-9ñ]+/).filter((w) => w.length >= 3 && !STOP.has(w));
-  return checks.map((c) => {
+  return dropDescriptorWords(checks).map((c) => {
     if (!c.params?.section) return c;
     const section = [...new Set([...c.params.section, ...extra])];
     return { ...c, params: { ...c.params, section, ...(rid ? { feature: [rid] } : {}) } };
@@ -65,7 +86,17 @@ Reglas:
    - "Catálogo / lista / carta / menú de productos", "productos disponibles", "en tarjetas" → section_items con section = nombre de la sección.
    - "en carrusel / carrousel / slider" → carousel con section = nombre de la sección.
    En section ponés 2 a 4 palabras con las que se llamaría la sección (ej. ["carta", "menu"], ["catalogo", "cafes"]).
-6. No agregues chequeos de cosas que el requisito no pide. NO inventes interacciones: usá click_reveals solo si el requisito dice explícitamente que algo aparece al hacer clic, abrir o navegar. Un carrusel se verifica con carousel, nunca con click_reveals.
+6. Requisitos de cualidad o interacción (catálogo v0.4):
+   - "Hero / portada con título, subtítulo y botón" → section_content y section_control de esa sección. "animación de entrada" → entrance_animation de esa sección.
+   - "Pie de página / footer completo" → section_content con section = ["pie", "footer"].
+   - "Barra de navegación / menú fijo", "scroll suave a cada sección" → nav_scroll.
+   - "Responsive", "escritorio y móvil" → no_horizontal_scroll.
+   - "Efectos hover en botones y tarjetas" → hover_changes con elementos = ["boton", "tarjeta"] (solo los que nombre).
+   - "Animaciones al hacer scroll", "elementos que aparecen" → reveal_on_scroll.
+   - "Estadísticas / contadores animados" → numbers_animate de esa sección (además de section_items si pide varias).
+   - "Visualmente atractivo", "diseño moderno", "código limpio/comentado" no se pueden medir ejecutando la página: devolvé "checks": [] y explicalo en "sin_chequeo".
+   Nunca uses como texto a buscar las palabras que describen la pieza ("título", "subtítulo", "botón", "llamada a la acción", "pie", "footer", "sección"): nadie las escribe en la página.
+7. No agregues chequeos de cosas que el requisito no pide. NO inventes interacciones: usá click_reveals solo si el requisito dice explícitamente que algo aparece al hacer clic, abrir o navegar. Un carrusel se verifica con carousel, nunca con click_reveals.
 
 Devolvé EXCLUSIVAMENTE este JSON:
 { "checks": [ { "type": "...", "params": { ... }, "covers": "qué parte del requisito verifica" } ], "sin_chequeo": "" }`;

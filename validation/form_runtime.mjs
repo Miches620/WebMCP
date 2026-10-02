@@ -24,6 +24,22 @@ export const INIT = () => {
     return id;
   };
   window.clearTimeout = function (id) { if (live.delete(id)) window.__pendingTimers--; return _ct.call(window, id); };
+  // Animaciones de entrada (catálogo v0.4): durante los primeros 1,5 s después de
+  // cargar se anotan los elementos que tienen animaciones/transiciones corriendo.
+  window.__entrance = [];
+  const t0 = performance.now();
+  const sample = () => {
+    try {
+      for (const a of document.getAnimations()) {
+        const el = a.effect && a.effect.target;
+        if (el && el.nodeType === 1) {
+          if (!el.hasAttribute("data-vc-anim")) { el.setAttribute("data-vc-anim", "1"); window.__entrance.push(el); }
+        }
+      }
+    } catch {}
+    if (performance.now() - t0 < 1500) requestAnimationFrame(sample);
+  };
+  requestAnimationFrame(sample);
   window.addEventListener("submit", (e) => {
     window.__submits.push({ prevented: e.defaultPrevented });
     e.preventDefault();

@@ -17,7 +17,15 @@
 //
 // Módulo puro (sin fs ni fetch): lo usan server.mjs y script.js (navegador).
 
-export const BRIEF_VERSION = "intent_brief v0.1";
+export const BRIEF_VERSION = "intent_brief v0.2";
+
+// v0.2 (03/10, pedido de Miche): entrevista de completitud. Después de la
+// plantilla, Qwen puede hacer hasta 10 preguntas (no obligatorias) sobre lo
+// que una app así suele necesitar y el usuario no mencionó; dice LISTO cuando
+// alcanza. Preguntar de más cuesta un "no" (que queda como restricción y
+// evita que TechLeader o el Specialist lo inventen); no preguntar deja huecos
+// en silencio. La clasificación pasa a ser una llamada aparte, al final.
+export const MAX_QUESTIONS = 10;
 
 // Campos de la plantilla. `tipo` = pista del tipo de ítem que suele salir de
 // ese campo (Qwen puede moverlo si la línea claramente es de otro tipo).
@@ -124,6 +132,11 @@ export function parseBrief(text) {
 
 export const isCompleteMessage = (content) => /"status"\s*:\s*"COMPLETE"/.test(String(content || ""));
 
+// Respuesta que corta la entrevista ("listo", "nada más"): no es una línea.
+// Ojo: "no" NO es control, es una respuesta (queda como restricción).
+const CONTROL = /^(listo|ya esta|nada mas|eso es todo|segui|seguir|basta|termina|terminar|ninguna|ninguno|no,? nada mas|no tengo mas)[.! ]*$/;
+export const isControlReply = (t) => CONTROL.test(norm(t));
+
 /**
  * Numera TODAS las líneas que escribió el usuario en la conversación.
  * El primer mensaje se parte con la plantilla; los siguientes son
@@ -136,10 +149,11 @@ export function numberLines(conversation = []) {
   let last = null;
   let first = true;
   let parsedFirst = null;
+  let skip = false; // el usuario cortó la entrevista con "listo"
   for (const m of conversation) {
     if (m.role !== "user") {
       last = m.content;
-      if (!isCompleteMessage(m.content) && String(m.content || "").trim()) preguntas.push(String(m.content).trim());
+      if (!isCompleteMessage(m.content) && String(m.content || "").trim()) preguntas.push(String(m.content).replace(QUESTION_HINT, "").trim());
       continue;
     }
     if (m.auto) continue;
@@ -149,14 +163,21 @@ export function numberLines(conversation = []) {
       for (const l of parsedFirst.lines) lines.push({ id: `L${lines.length + 1}`, ...l });
       continue;
     }
+    if (isControlReply(m.content)) { skip = true; continue; }
     const field = last && isCompleteMessage(last) ? "ajuste" : "respuesta";
-    const pregunta = field === "respuesta" && last ? String(last).trim().slice(0, 200) : undefined;
+    const pregunta = field === "respuesta" && last ? String(last).replace(QUESTION_HINT, "").trim().slice(0, 200) : undefined;
     for (const raw of String(m.content || "").split(/\r?\n/)) {
       const t = stripBullet(raw);
       if (t) lines.push({ id: `L${lines.length + 1}`, field, text: t, ...(pregunta ? { pregunta } : {}) });
     }
   }
-  return { lines, preguntas, hasTemplate: !!parsedFirst?.hasTemplate, empty: parsedFirst?.empty || [] };
+  const lastMsg = conversation.at(-1);
+  const afterComplete = conversation.some((m) => m.role !== "user" && isCompleteMessage(m.content));
+  return {
+    lines, preguntas, skip, afterComplete,
+    lastIsAnswer: lastMsg?.role === "user" && !isControlReply(lastMsg.content),
+    hasTemplate: !!parsedFirst?.hasTemplate, empty: parsedFirst?.empty || [],
+  };
 }
 
 export const INTENT_SYSTEM = `Sos Intent Forge v0.3 del equipo MicheLab.
@@ -178,11 +199,10 @@ REGLAS:
 4. No agregues ítems que no salgan de una línea.
 5. El campo entre corchetes es una pista. Cambiá el tipo solo si la línea claramente es de otro tipo (por ejemplo "drag & drop" escrito en [cómo se tiene que ver] es una feature).
 6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.
-7. Preguntá SOLO si no hay ninguna feature, o si una línea es tan vaga que no se puede convertir en ítem. Una sola pregunta, corta. Nunca repitas una pregunta ya hecha.
+7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo "¿Se pueden crear columnas?" + "sí" → feature "Crear columnas"). Si es negativa, es una restriccion con "Sin ..." (por ejemplo "¿Buscar tarjetas?" + "no" → restriccion "Sin búsqueda de tarjetas").
+8. No hagas preguntas: devolvé siempre el JSON.
 
-SALIDA:
-- Si preguntás: respondé solo con la pregunta, en una línea.
-- Si no: respondé EXCLUSIVAMENTE con este JSON:
+SALIDA: EXCLUSIVAMENTE este JSON:
 \`\`\`json
 {"status":"COMPLETE","project_name":"...","items":[{"de":["L1"],"tipo":"contexto","texto":"..."}],"criterios_holdout":["cómo se verifica cada feature"]}
 \`\`\`
@@ -202,6 +222,37 @@ L4 [qué no debe hacer] sin usuarios ni login
 {"de":["L4"],"tipo":"restriccion","texto":"Sin usuarios ni login"}],
 "criterios_holdout":["Se puede cargar una receta con ingredientes y pasos","Se puede marcar una receta como favorita"]}
 \`\`\``;
+
+export const QUESTION_SYSTEM = `Sos el entrevistador de Intent Forge (equipo MicheLab).
+
+Leés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir.
+Hacé UNA pregunta corta, cerrada (sí/no, o elegir entre opciones), sobre UNA de estas cosas, en este orden de prioridad:
+1. Una línea vaga que no se pueda construir tal cual (por ejemplo "que sea completa": ¿qué tiene que tener?).
+2. Algo que una app de este tipo suele necesitar y el usuario no mencionó (por ejemplo, en un listado: ¿se puede buscar?, ¿ordenar?; en un formulario: ¿qué campos son obligatorios?).
+3. Un detalle que falta en una feature ya pedida (cantidades, nombres, qué pasa al terminar).
+
+REGLAS:
+- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.
+- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.
+- No preguntes por tecnología, lenguajes ni frameworks.
+- Si no falta nada importante, respondé exactamente: LISTO
+- Respondé SOLO con la pregunta (una línea) o con LISTO.`;
+
+export function formatForQuestion({ lines, preguntas = [] }) {
+  const out = ["LO QUE ESCRIBIÓ EL USUARIO:"];
+  for (const l of lines) {
+    const tag = l.field === "respuesta" && l.pregunta ? `respuesta a "${l.pregunta}"` : fieldLabel(l.field);
+    out.push(`- [${tag}] ${l.text}`);
+  }
+  if (preguntas.length) {
+    out.push("", `PREGUNTAS QUE YA HICISTE (${preguntas.length}/${MAX_QUESTIONS}, no las repitas):`);
+    preguntas.forEach((p) => out.push(`- ${p}`));
+  }
+  out.push("", "¿Qué le preguntás? (o LISTO)");
+  return out.join("\n");
+}
+
+export const isDone = (t) => /^\W*listo\W*$/i.test(String(t || "").trim()) || /^\W*LISTO\b/.test(String(t || "").trim());
 
 export function formatLinesForModel({ lines, preguntas = [] }, { forceComplete = false } = {}) {
   const out = ["LÍNEAS DEL USUARIO:"];
@@ -291,7 +342,9 @@ export function fillUncovered(items, lines, uncovered) {
     ...items,
     ...uncovered.map((id) => {
       const l = byId.get(id);
-      return { de: [id], tipo: FIELDS[l.field]?.tipo || "contexto", texto: l.text, auto: true };
+      // Una respuesta suelta ("no") no dice nada sin su pregunta.
+      const texto = l.field === "respuesta" && l.pregunta ? `${l.pregunta} → ${l.text}` : l.field === "ajuste" ? `Ajuste: ${l.text}` : l.text;
+      return { de: [id], tipo: FIELDS[l.field]?.tipo || "contexto", texto, auto: true };
     }),
   ];
 }
@@ -316,13 +369,17 @@ export function buildRefined({ project_name, items, criterios_holdout = [], line
   const sorted = [...items].sort((a, b) => firstLine(a) - firstLine(b));
   const of = (t) => uniq(sorted.filter((i) => i.tipo === t).map((i) => i.texto));
   const contexto = of("contexto");
+  // El objetivo sale solo de contexto que ubicó el modelo; lo que agregó el
+  // harness (auto) queda en `contexto` y resaltado en la tarjeta, pero no
+  // ensucia el objetivo que lee TechLeader.
+  const objetivoParts = uniq(sorted.filter((i) => i.tipo === "contexto" && !i.auto).map((i) => i.texto));
   const feature = of("feature");
   const estilo = of("estilo");
   const restricciones = of("restriccion");
   const name = String(project_name || "").trim() || contexto[0] || "Proyecto";
   return {
     project_name: name,
-    objetivo: contexto.join(". ") || name,
+    objetivo: objetivoParts.join(". ") || name,
     features: uniq([...feature, ...estilo]),
     criterios_holdout: (Array.isArray(criterios_holdout) ? criterios_holdout : []).map(String).filter((c) => c.trim()),
     restricciones,
@@ -365,45 +422,59 @@ export const HARNESS_QUESTIONS = {
   vacio: "Completá la plantilla: qué querés construir, qué tiene que hacer, cómo se tiene que ver y qué no debe hacer.",
   sin_feature: "¿Qué tiene que poder hacer el usuario con la app? Escribí una acción por línea.",
 };
+// Se agrega a cada pregunta del modelo para que el usuario sepa cómo cortar.
+export const QUESTION_HINT = "(Respondé, o escribí \"listo\" para seguir sin más preguntas.)";
+const stripHint = (q) => String(q || "").replace(QUESTION_HINT, "").trim();
 
 /**
  * Un turno de Intent Forge.
+ *  1. Sin líneas → pregunta del harness (completar la plantilla).
+ *  2. Entrevista de completitud: mientras no haya COMPLETE previo, el usuario
+ *     no haya dicho "listo" y queden preguntas (máx. 10), Qwen propone UNA
+ *     pregunta o dice LISTO.
+ *  3. Clasificación acotada con reintentos de cobertura → COMPLETE.
  * @param {object[]} conversation  historial {role, content}
  * @param {object} opts
  * @param {(messages:object[]) => Promise<string>} opts.callModel
- * @param {number} [opts.maxQuestions=3]  preguntas del modelo antes de forzar COMPLETE
+ * @param {number} [opts.maxQuestions=10]
  * @param {number} [opts.maxRepairs=2]    reintentos de cobertura/JSON
  */
-export async function runIntentForge(conversation, { callModel, maxQuestions = 3, maxRepairs = 2 } = {}) {
+export async function runIntentForge(conversation, { callModel, maxQuestions = MAX_QUESTIONS, maxRepairs = 2 } = {}) {
   const numbered = numberLines(conversation);
-  const { lines, preguntas } = numbered;
+  const { lines } = numbered;
+  const preguntas = numbered.preguntas.map(stripHint);
   if (!lines.length) return { status: "ASKING", question: HARNESS_QUESTIONS.vacio, by: "harness", lines };
 
-  const forceComplete = preguntas.length >= maxQuestions;
+  const attempts = [];
+  const noMoreQuestions = numbered.skip || numbered.afterComplete || preguntas.length >= maxQuestions;
+
+  // 2. Entrevista de completitud.
+  if (!noMoreQuestions) {
+    const qMessages = [
+      { role: "system", content: QUESTION_SYSTEM },
+      { role: "user", content: formatForQuestion({ lines, preguntas }) },
+    ];
+    const raw = await callModel(qMessages);
+    const q = String(raw || "").trim().split(/\r?\n/).find((l) => l.trim())?.trim() || "";
+    const repeated = preguntas.some((p) => norm(p) === norm(q));
+    attempts.push({ raw, kind: isDone(q) ? "listo" : repeated ? "pregunta_repetida" : "pregunta" });
+    if (q && !isDone(q) && !repeated && !q.includes("{")) {
+      return { status: "ASKING", question: `${q} ${QUESTION_HINT}`, by: "model", lines, attempts };
+    }
+  }
+
+  // 3. Clasificación.
   const messages = [
     { role: "system", content: INTENT_SYSTEM },
-    { role: "user", content: formatLinesForModel(numbered, { forceComplete }) },
+    { role: "user", content: formatLinesForModel({ lines, preguntas }) },
   ];
-  const attempts = [];
   let last = null;
   for (let i = 0; i <= maxRepairs; i++) {
     const raw = await callModel(messages);
     const parsed = parseModelOutput(raw);
-    if (!parsed.complete && !parsed.parseError) {
-      const repeated = preguntas.some((p) => norm(p) === norm(parsed.question));
-      attempts.push({ raw, kind: repeated ? "pregunta_repetida" : "pregunta" });
-      if (!forceComplete && !repeated && parsed.question) {
-        return { status: "ASKING", question: parsed.question, by: "model", lines, attempts };
-      }
-      messages.push({ role: "assistant", content: raw }, {
-        role: "user",
-        content: repeated ? "Esa pregunta ya la hiciste. Devolvé el JSON COMPLETE con lo que hay." : "Ya no podés preguntar más: devolvé el JSON COMPLETE con lo que hay.",
-      });
-      continue;
-    }
-    if (parsed.parseError) {
-      attempts.push({ raw, kind: "json_ilegible" });
-      messages.push({ role: "assistant", content: raw }, { role: "user", content: "Tu JSON no se pudo leer. Devolvé solo el JSON COMPLETE, válido, dentro de ```json." });
+    if (!parsed.complete) {
+      attempts.push({ raw, kind: parsed.parseError ? "json_ilegible" : "no_json" });
+      messages.push({ role: "assistant", content: raw }, { role: "user", content: "No preguntes. Devolvé solo el JSON COMPLETE, válido, dentro de ```json." });
       continue;
     }
     const v = validateItems(parsed.data.items, lines);
@@ -418,7 +489,7 @@ export async function runIntentForge(conversation, { callModel, maxQuestions = 3
     last = { raw: attempts.at(-1)?.raw || "", data: {}, items: [], invalid: [], uncovered: lines.map((l) => l.id) };
   }
   const items = fillUncovered(last.items, lines, last.uncovered);
-  if (!items.some((i) => i.tipo === "feature") && !forceComplete) {
+  if (!items.some((i) => i.tipo === "feature") && preguntas.length < maxQuestions) {
     return { status: "ASKING", question: HARNESS_QUESTIONS.sin_feature, by: "harness", lines, attempts };
   }
   const refined = buildRefined({
@@ -426,7 +497,8 @@ export async function runIntentForge(conversation, { callModel, maxQuestions = 3
     items,
     criterios_holdout: last.data.criterios_holdout,
     lines,
-    attempts,
+    attempts: attempts.filter((a) => a.kind !== "pregunta" && a.kind !== "listo" && a.kind !== "pregunta_repetida"),
   });
+  refined.brief.preguntas = preguntas;
   return { status: "COMPLETE", refined, raw: last.raw, lines, attempts, auto_added: last.uncovered };
 }

@@ -5,7 +5,7 @@ validado, pensado para correr con modelos chicos en una GPU de 8 GB (LM Studio).
 
 ```
 Intención del usuario
-   ↓  Intent Forge v0.3 (plantilla de 4 campos → Qwen clasifica cada línea; pregunta solo si falta algo)
+   ↓  Intent Forge v0.4 (plantilla de 4 campos → entrevista de completitud, hasta 10 preguntas → Qwen clasifica cada línea)
 refined_prompt + answer_key_requirements
    ↓  confirmación humana (Confirmar / Ajustar)
 TechLeader  → plan de fases   (recibe la ETAPA y su criterio desde context/ProjectStage.md)
@@ -63,9 +63,9 @@ Para el build y Validation (una vez): `npm install` y `npx playwright install ch
 | `plan_stage_check.mjs` | Chequeo de etapa **a nivel plan**, antes de atomizar: un veredicto por fase (IN_SCOPE / DEFERRED / EXCESS), validado por el harness como el reviewer v3. Arma el feedback para TechLeader. |
 | `test_plan_stage_check.mjs` | 8 tests deterministas (fetch simulado): `node test_plan_stage_check.mjs`. |
 | `bench_stage_check.mjs` | **Matriz de briefs contra LM Studio real** (6 casos: Project20 intentos 1-3, deploy pedido, operación/hardening, exceso no pedido). `node bench_stage_check.mjs 5` → `evidence/stage_check_<fecha>.json`. |
-| `intent_brief.mjs` | **Intent Forge v0.3** (módulo puro, lo usan `server.mjs` y `script.js`): plantilla fija (qué querés construir / qué tiene que hacer / cómo se tiene que ver / qué no debe hacer), numera cada línea del usuario (L1, L2…), Qwen devuelve un ítem tipado por línea (contexto / feature / estilo / restriccion / descartado), el harness exige que **cada línea termine en al menos un ítem** (hasta 2 reintentos con feedback; lo que quede sin ubicar lo agrega el harness marcado `auto`). Arma el refined_prompt y el texto para TechLeader. Cada turno deja evidencia en `evidence/intent_forge/`. |
-| `test_intent_brief.mjs` | 22 tests deterministas (modelo simulado), con Project23 reescrito en la plantilla: `node test_intent_brief.mjs`. |
-| `intent_forge_v02.ps1` | **Desactualizado (v0.2)**, herramienta manual de debug, no forma parte del pipeline. |
+| `intent_brief.mjs` | **Intent Forge v0.4** (módulo puro, lo usan `server.mjs`, `script.js` e `intent_cli.mjs`): plantilla fija (qué querés construir / qué tiene que hacer / cómo se tiene que ver / qué no debe hacer), numera cada línea del usuario (L1, L2…), entrevista de completitud (Qwen propone UNA pregunta cerrada por turno sobre lo que falta, o dice LISTO; hasta 10; el usuario corta con "listo"; un "no" queda como restricción "Sin …"), después Qwen devuelve un ítem tipado por línea (contexto / feature / estilo / restriccion / descartado), el harness exige que **cada línea termine en al menos un ítem** (hasta 2 reintentos con feedback; lo que quede sin ubicar lo agrega el harness marcado `auto`). Arma el refined_prompt y el texto para TechLeader. Cada turno deja evidencia en `evidence/intent_forge/`. |
+| `test_intent_brief.mjs` | 27 tests deterministas (modelo simulado), con Project23 reescrito en la plantilla: `node test_intent_brief.mjs`. |
+| `intent_cli.mjs` | Intent Forge por consola (debug), con el mismo `intent_brief.mjs`: `node intent_cli.mjs [plantilla.txt]`. Deja la corrida en `evidence/intent_forge/cli_<fecha>.json`. Reemplaza a `intent_forge_v02.ps1` (va a `_archivo/`: tenía su propio prompt y divergía del server). |
 | `test_completeness_bounded.mjs`, `test_completeness_bounded_2.mjs` | Casos de prueba del reviewer v3 (recetas / instrumentos). |
 | `intent_mention_check.mjs`, `test_mention_check.mjs` | **Reemplazados por `intent_brief.mjs` (03/10)**, nada los usa. Van a `_archivo/`. |
 | `term_coverage_check.mjs` | Aviso determinista (sin LLM) de cobertura por palabras: por requisito, las palabras **propias** que no aparecen en ninguna tarea (título + descripción). Corre dentro de `/api/completeness-review`; **no bloquea** ni dispara reintentos. |
@@ -188,7 +188,8 @@ Experimentos del traductor (con control): `experiments/exp_translator.mjs` (form
 - *Cambio (decisión de Miche):* el input arranca con una plantilla de 4 campos (Ctrl+Enter para mandar) y un ejemplo en el chat. Qwen **no resume**: clasifica cada línea numerada en ítems tipados, con la regla de cobertura del harness (misma lección que el reviewer v0.6-bounded). El campo es una pista del tipo; si Qwen lo cambia, la tarjeta lo muestra como "↪ movido".
 - La tarjeta de confirmación muestra "dijiste → quedó como" línea por línea. No hay avisos ni botones Incluir/Excluir: se corrige con ✏️ Ajustar (el mensaje entra como línea `[ajuste]`; para sacar algo Qwen usa `descartado`).
 - refined_prompt: `features` = feature + estilo (para que reviewer, page plan, traductor y Specialist lean lo mismo que antes); además `restricciones`, `estilo`, `contexto` y `brief` (líneas + ítems). TechLeader recibe las restricciones después de los criterios; desaparece "Fuera de alcance".
-- Probado: 22 tests del módulo; flujo en navegador con server real y LM Studio simulado (falta una línea → reintento → tarjeta; Ajustar → descartado; prompt de TechLeader; recarga sin JSON crudo). **Falta la evidencia con Qwen real.**
+- **v0.4 (mismo día, pedido de Miche):** entrevista de completitud antes de clasificar, hasta 10 preguntas no obligatorias (Qwen dice LISTO cuando alcanza). Preguntar de más cuesta un "no", que queda como restricción y evita que TechLeader o el Specialist lo inventen. Respuestas "listo/nada más" cortan la entrevista y no son líneas. Después de un COMPLETE, Ajustar reclasifica sin volver a entrevistar.
+- Probado: 27 tests del módulo; `intent_cli.mjs` y flujo en navegador con server real y LM Studio simulado (falta una línea → reintento → tarjeta; Ajustar → descartado; prompt de TechLeader; recarga sin JSON crudo). **Falta la evidencia con Qwen real.**
 
 **UI:** `BUILD_ID` + `/api/version` + `no-store` (Project21 corrió JS viejo en una pestaña abierta).
 

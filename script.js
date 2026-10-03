@@ -15,7 +15,7 @@ import {
 // (/api/version) y, si no coincide con el de la pestaña abierta, la UI avisa
 // que hay que recargar. Origen: Project21 corrió con el JS viejo en una
 // pestaña abierta desde antes del cambio (reiniciar el server no alcanza).
-const BUILD_ID = "2026-10-03.1";
+const BUILD_ID = "2026-10-03.2";
 
 const STORAGE_KEY = "webmcp_state";
 const MAX_TECHLEADER_ATTEMPTS = 3;
@@ -414,7 +414,7 @@ function showTemplateIntro() {
   const container = document.getElementById("intentForgeChatHistory");
   if (!container || container.childElementCount) return;
   container.innerHTML = `
-    <div class="text-gray-300"><b>Intent Forge:</b> Completá la plantilla de abajo, una idea por línea. No hace falta que esté perfecta: si falta algo, te pregunto.
+    <div class="text-gray-300"><b>Intent Forge:</b> Completá la plantilla de abajo, una idea por línea. No hace falta que esté perfecta: después te hago algunas preguntas (hasta 10) por si se te pasó algo. Si ya está, escribí <b>listo</b>.
       <div class="mt-1 text-gray-400">Ejemplo:</div>
       <pre class="whitespace-pre-wrap text-gray-400 bg-black/20 rounded p-2 mt-1 text-[11px]">${escapeHTML(TEMPLATE_EXAMPLE)}</pre>
     </div>`;

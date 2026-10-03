@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pendientes webmcp — Kanban v1</title>
+  <style>
+/* ===== tokens.css (global) ===== */
+:root {
+  
+  --color-bg-primary: #12141a; 
+  --color-surface-card: #1e2027; 
+  --color-text-default: #e0e6f0; 
+  --color-text-secondary: #a0aec0; 
+  --color-accent-primary: #4a90e2; 
+  --color-accent-hover: #6fa8ff; 
+  --color-border: #3f4451; 
+  --color-success: #48bb78;
+  --color-error: #f56565;
+
+  
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+
+  
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --shadow-base: 0 4px 12px rgba(0, 0, 0, 0.3); 
+  --transition-speed: 0.2s ease-in-out;
+}
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-default);
+  font-family: var(--font);
+  line-height: 1.6;
+}
+.container {
+  width: 100%;
+  max-width: 1400px; 
+  margin: 0 auto;
+  padding: var(--spacing-md);
+}
+h1, h2, h3 {
+  color: var(--color-text-default);
+  margin-top: 0;
+  line-height: 1.2;
+}
+h1 {
+  font-size: 2.5rem;
+  border-bottom: 2px solid var(--color-accent-primary);
+  padding-bottom: var(--spacing-sm);
+  display: inline-block;
+}
+h2 {
+  font-size: 1.8rem;
+  margin-top: var(--spacing-lg);
+  color: var(--color-text-default);
+}
+h3 {
+  font-size: 1.4rem;
+  margin-bottom: var(--spacing-sm);
+}
+p {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-default);
+}
+a {
+  color: var(--color-accent-primary);
+  text-decoration: none;
+  transition: color var(--transition-speed), opacity var(--transition-speed);
+}
+a:hover {
+  color: var(--color-accent-hover);
+  opacity: 0.9;
+}
+.btn {
+  display: inline-block;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-speed);
+  background-color: var(--color-accent-primary);
+  color: white;
+}
+.btn:hover {
+  background-color: var(--color-accent-hover);
+  box-shadow: 0 6px 15px rgba(74, 144, 226, 0.4); 
+  transform: translateY(-2px);
+}
+.btn-secondary {
+    background-color: var(--color-border);
+    color: var(--color-text-default);
+}
+.btn-secondary:hover {
+    background-color: #5a6070;
+    box-shadow: none;
+}
+
+/* ===== componente #site-header ===== */
+#site-header {
+    background-color: var(--color-surface-card);
+    padding: var(--spacing-md) 0;
+    box-shadow: var(--shadow-base);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+#site-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; 
+}
+#site-header .brand {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--color-accent-primary);
+    letter-spacing: 1px;
+}
+#site-header nav {
+    flex-grow: 1; 
+    margin: 0 auto;
+}
+#site-header .nav-list {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    gap: var(--spacing-lg);
+}
+#site-header .nav-list li a {
+    color: var(--color-text-default);
+    padding: var(--spacing-sm) 0;
+    display: block;
+    font-weight: 500;
+    transition: color var(--transition-speed), border-bottom var(--transition-speed);
+}
+#site-header .nav-list li a:hover {
+    color: var(--color-accent-primary);
+    border-bottom: 2px solid var(--color-accent-primary);
+}
+@media (max-width: 768px) {
+#site-header .container {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+#site-header .nav-list {
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: var(--spacing-md);
+        gap: 10px; 
+    }
+#site-header .nav-list li a {
+        padding: 8px 12px;
+        border-bottom: none !important; 
+    }
+}
+
+/* ===== componente #inicio ===== */
+#inicio {
+    padding-bottom: var(--spacing-lg);
+}
+#inicio h1 {
+    margin-bottom: var(--spacing-md);
+    border-bottom: none; 
+}
+#inicio .controls {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+#inicio .kanban-columns-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-md);
+}
+#inicio .kanban-column {
+    background-color: var(--color-surface-card);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm);
+    display: flex;
+    flex-direction: column;
+}
+#inicio .column-header {
+    font-size: 1.3rem;
+    margin-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: var(--spacing-xs);
+    display: flex;
+    align-items: center;
+}
+#inicio .card-list {
+    flex-grow: 1;
+    min-height: 50px; 
+    padding-bottom: var(--spacing-sm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+#inicio .kanban-card {
+    background-color: #252a34; 
+    padding: var(--spacing-md);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); 
+    cursor: grab;
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed), background-color var(--transition-speed);
+}
+#inicio .kanban-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3); 
+}
+#inicio .card-content h3 {
+    margin: 0 0 5px var(--spacing-xs);
+    font-size: 1.1rem;
+}
+#inicio .card-content p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+}
+#inicio .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--spacing-sm);
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+}
+#inicio .label {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+#inicio .label-urgente { background-color: #f56565; color: #fff; }
+#inicio .label-medio { background-color: #ffc1074d; color: #ffc107; }
+#inicio .label-bajo { background-color: #48bb784d; color: var(--color-success); }
+#inicio .btn-small {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+}
+#inicio .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+#inicio .modal-content {
+    background-color: var(--color-surface-card);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    max-width: 700px;
+    width: 90%;
+    box-shadow: var(--shadow-base);
+    position: relative;
+}
+#inicio .hidden {
+    display: none !important;
+}
+#inicio .detail-section {
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--color-border);
+}
+#inicio #edit-content, #inicio #comment-text {
+    width: 100%;
+    background-color: #2d313a;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-default);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-sm);
+}
+#inicio .comment-list {
+    margin-bottom: var(--spacing-md);
+}
+#inicio .comment-item {
+    background-color: #2d313a;
+    padding: var(--spacing-sm) 0;
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-xs);
+    display: flex;
+    gap: var(--spacing-sm);
+}
+#inicio .comment-item strong {
+    color: var(--color-accent-primary);
+}
+#inicio .label-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: var(--spacing-md);
+}
+#inicio .label-tag {
+    background-color: #3f4451;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+}
+@media (max-width: 768px) {
+#inicio .kanban-columns-container {
+        grid-template-columns: 1fr; 
+    }
+#inicio .controls {
+        flex-direction: column;
+    }
+#inicio .modal-content {
+        padding: var(--spacing-md);
+    }
+}
+
+/* ===== componente #site-footer ===== */
+#site-footer {
+    background-color: var(--color-bg-primary); 
+    padding: calc(var(--spacing-lg) * 2) 0;
+    border-top: 1px solid var(--color-border);
+}
+#site-footer .footer-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start; 
+    gap: var(--spacing-lg);
+}
+#site-footer .footer-section {
+    min-width: 150px; 
+    flex: 1 1 calc(25% - var(--spacing-md)); 
+}
+#site-footer .copyright-info {
+    flex: 1 1 100%; 
+    text-align: right;
+    margin-bottom: var(--spacing-md);
+}
+#site-footer .footer-section h4, #site-footer .links-group h4 {
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+}
+#site-footer .footer-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+#site-footer .footer-section li {
+    margin-bottom: var(--spacing-xs);
+}
+#site-footer .footer-section a {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    transition: color var(--transition-speed);
+}
+#site-footer .footer-section a:hover {
+    color: var(--color-accent-primary); 
+    opacity: 1;
+}
+#site-footer .social-icons a {
+    display: inline-block;
+    margin-right: var(--spacing-sm);
+    font-size: 1.5rem; 
+    color: var(--color-text-secondary);
+}
+#site-footer .social-icons a:hover {
+    transform: scale(1.1);
+    opacity: 0.8;
+}
+@media (max-width: 600px) {
+#site-footer .footer-content {
+        flex-direction: column; 
+        align-items: center;
+        text-align: center;
+    }
+#site-footer .footer-section {
+        min-width: 100%; 
+        margin-bottom: var(--spacing-md);
+        padding: var(--spacing-sm) 0;
+        border-bottom: 1px dashed var(--color-border);
+    }
+#site-footer .footer-section:last-child {
+        border-bottom: none; 
+    }
+#site-footer .copyright-info {
+        text-align: center !important;
+        margin-top: var(--spacing-md);
+        border-bottom: none;
+    }
+}
+
+  </style>
+</head>
+<body>
+  <header id="site-header">
+    <div class="brand">Kanban WebApp</div>
+    <nav>
+      <ul class="nav-list">
+        <li><a href="#inicio">Inicio</a></li>
+        <li><a href="#kanban-board">Tablero Kanban</a></li>
+        <li><a href="#tarjetas-crear">Crear Tarjeta</a></li>
+        <li><a href="#comentarios">Actividad</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main id="app">
+  <section data-feature="R1 R2 R3 R4 R5 R6 R8 R9" id="inicio" class="kanban-board">
+      <h1>Pendientes webmcp</h1>
+      <div class="controls">
+          <button id="btn-add-card" class="btn">+ Crear Nueva Tarjeta</button>
+          <button id="btn-add-column" class="btn btn-secondary">+ Añadir Columna</button>
+      </div>
+  
+      <div class="kanban-columns-container">
+          <!-- Columna 1: Pendiente -->
+          <div class="kanban-column" data-status="pendiente" id="col-pendiente">
+              <h2 class="column-header">📋 Pendiente</h2>
+              <div class="card-list" data-status="pendiente">
+                  <!-- Tarjeta de ejemplo 1 -->
+                  <div class="kanban-card" draggable="true" data-id="c001" data-status="pendiente">
+                      <div class="card-content">
+                          <h3>Diseñar arquitectura API</h3>
+                          <p>Definir endpoints y modelos de datos para el backend.</p>
+                      </div>
+                      <div class="card-footer">
+                          <span class="label label-urgente">Urgente</span>
+                          <button class="btn btn-small btn-secondary edit-btn" data-id="c001">✏️ Editar</button>
+                          <button class="btn btn-small btn-danger delete-btn" data-id="c001">🗑️ Borrar</button>
+                      </div>
+                  </div>
+                  <!-- Tarjeta de ejemplo 2 -->
+                  <div class="kanban-card" draggable="true" data-id="c002" data-status="pendiente">
+                      <div class="card-content">
+                          <h3>Revisar UX/UI del Dashboard</h3>
+                          <p>Asegurar la coherencia visual en todos los componentes.</p>
+                      </div>
+                      <div class="card-footer">
+                          <span class="label label-bajo">Bajo</span>
+                          <button class="btn btn-small btn-secondary edit-btn" data-id="c002">✏️ Editar</button>
+                          <button class="btn btn-small btn-danger delete-btn" data-id="c002">🗑️ Borrar</button>
+                      </div>
+                  </div>
+              </div>
+          </div>
+  
+          <!-- Columna 2: En Progreso -->
+          <div class="kanban-column" data-status="en_progreso" id="col-en-progreso">
+              <h2 class="column-header">⚙️ En Progreso</h2>
+              <div class="card-list" data-status="en_progreso">
+                  <!-- Tarjeta de ejemplo 3 -->
+                  <div class="kanban-card" draggable="true" data-id="c003" data-status="en_progreso">
+                      <div class="card-content">
+                          <h3>Implementar lógica de drag & drop</h3>
+                          <p>Conectar la funcionalidad de movimiento entre columnas.</p>
+                      </div>
+                      <div class="card-footer">
+                          <span class="label label-medio">Medio</span>
+                          <button class="btn btn-small btn-secondary edit-btn" data-id="c003">✏️ Editar</button>
+                          <button class="btn btn-small btn-danger delete-btn" data-id="c003">🗑️ Borrar</button>
+                      </div>
+                  </div>
+              </div>
+          </div>
+  
+          <!-- Columna 3: Completado -->
+          <div class="kanban-column" data-status="completado" id="col-completado">
+              <h2 class="column-header">✅ Completado</h2>
+              <div class="card-list" data-status="completado">
+                  <!-- Tarjeta de ejemplo 4 -->
+                  <div class="kanban-card" draggable="true" data-id="c004" data-status="completado">
+                      <div class="card-content">
+                          <h3>Diseño inicial del layout</h3>
+                          <p>Definición de la estructura base y paleta de colores.</p>
+                      </div>
+                      <div class="card-footer">
+                          <span class="label label-bajo">Bajo</span>
+                          <button class="btn btn-small btn-secondary edit-btn" data-id="c004">✏️ Editar</button>
+                          <button class="btn btn-small btn-danger delete-btn" data-id="c004">🗑️ Borrar</button>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  
+      <!-- Modal/Panel de Detalles y Comentarios (R3, R5) -->
+      <div id="card-detail-modal" class="modal hidden">
+          <div class="modal-content">
+              <h3 id="modal-title">Detalles de la Tarjeta <span id="modal-card-id"></span></h3>
+              <p><strong>Descripción:</strong> <span id="modal-description"></span></p>
+  
+              <!-- Sección de Edición (R5) -->
+              <div class="detail-section edit-section">
+                  <h4>Editar Contenido</h4>
+                  <textarea id="edit-content" placeholder="Modifica la descripción o el contenido principal..." rows="3"></textarea>
+                  <button id="save-card-btn" class="btn btn-success">Guardar Cambios</button>
+              </div>
+  
+              <!-- Sección de Etiquetas (R4) -->
+              <div class="detail-section labels-section">
+                  <h4>Etiquetas</h4>
+                  <div id="current-labels" class="label-container">
+                      <!-- Labels se insertarán aquí -->
+                  </div>
+                  <input type="text" id="new-label-input" placeholder="Añadir etiqueta (ej: Backend)">
+                  <button id="add-label-btn" class="btn btn-secondary">Agregar Etiqueta</button>
+              </div>
+  
+              <!-- Sección de Comentarios (R3) -->
+              <div class="detail-section comments-section">
+                  <h4>Comentarios</h4>
+                  <div id="comments-list" class="comment-list">
+                      <!-- Comentarios se insertarán aquí -->
+                  </div>
+                  <form id="comment-form" class="comment-form">
+                      <label for="comment-text">Tu comentario:</label>
+                      <textarea id="comment-text" required placeholder="Escribe tu aporte..."></textarea>
+                      <button type="submit" class="btn btn-primary">Enviar Comentario</button>
+                  </form>
+              </div>
+  
+              <!-- Botón de cierre -->
+              <button id="close-modal-btn" class="btn btn-secondary" style="margin-top: 20px;">Cerrar Detalles</button>
+          </div>
+      </div>
+  </section>
+  </main>
+  <footer id="site-footer">
+    <div class="container footer-content">
+      <div class="footer-section copyright-info">
+        <p>&copy; 2024 Kanban WebApp | Desarrollado por MicheLab.</p>
+      </div>
+      <div class="footer-section links-group">
+        <h4>Navegación</h4>
+        <ul>
+          <li><a href="#inicio">Inicio</a></li>
+          <li><a href="#columnas">Columnas</a></li>
+          <li><a href="#tarjetas">Tarjetas</a></li>
+          <li><a href="#">Documentación</a></li>
+        </ul>
+      </div>
+      <div class="footer-section links-group">
+        <h4>Recursos</h4>
+        <ul>
+          <li><a href="#">Acerca de</a></li>
+          <li><a href="#">Contacto</a></li>
+          <li><a href="#">Privacidad</a></li>
+          <li><a href="#">Términos de Uso</a></li>
+        </ul>
+      </div>
+      <div class="footer-section social-media">
+        <h4>Síguenos</h4>
+        <div class="social-icons">
+          <!-- Usando emojis como placeholders para redes sociales -->
+          <a href="#" aria-label="GitHub"><span role="img" aria-label="github">🐙</span></a>
+          <a href="#" aria-label="Twitter/X"><span role="img" aria-label="twitter">🐦</span></a>
+          <a href="#" aria-label="LinkedIn"><span role="img" aria-label="linkedin">🔗</span></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+<script data-file="api.js">
+// Capa de datos SIMULADA (backend mock). Los componentes usan solo window.api.
+window.api = window.api || {};
+
+// No se requiere ninguna función API adicional para el encabezado.
+
+// No se requiere window.api para este componente ya que todas las interacciones son simuladas en el estado local (kanbanState).
+
+// No se requieren nuevas llamadas a la API para este componente.
+
+
+</script>
+<script data-component="site-header">
+(function (root) {
+  if (!root) return;
+// No JavaScript necesario para este componente estático de cabecera y navegación.
+
+})(document.getElementById("site-header"));
+</script>
+<script data-component="inicio">
+(function (root) {
+  if (!root) return;
+// --- Estado Global Simulado del Tablero ---
+let kanbanState = {
+ "cards": {
+  "p01": {
+   "id": "p01",
+   "status": "pendiente",
+   "content": "URGENTE · Probar Intent Forge v0.4 con Qwen real",
+   "description": "Mover intent_mention_check.mjs, test_mention_check.mjs e intent_forge_v02.ps1 a _archivo/, commit, reiniciar server + Ctrl+F5. Cargar el Kanban en la plantilla y contestar la entrevista. Mirar: ¿pregunta cosas útiles?, ¿dice LISTO?, ¿una cosa por ítem?, ¿mantiene los nombres de columnas? Evidencia en evidence/intent_forge/.",
+   "labels": [
+    "urgente",
+    "IntentForge"
+   ],
+   "comments": []
+  },
+  "p02": {
+   "id": "p02",
+   "status": "pendiente",
+   "content": "Correr el pipeline completo con el refined de v0.4",
+   "description": "TechLeader → graph → build con el Kanban nuevo. Comparar contra Project23 (drag & drop no diferido, 4 columnas, restricciones en el prompt de TechLeader).",
+   "labels": [
+    "IntentForge"
+   ],
+   "comments": []
+  },
+  "p03": {
+   "id": "p03",
+   "status": "pendiente",
+   "content": "Gate: SYSTEM_ERROR del reviewer no aprueba",
+   "description": "script.js ~1574: hoy solo frenan GAP/EXCESS; un 'fetch failed' pasa como aprobado (Project23). Debe quedar 'REVISIÓN NO EJECUTADA' y pedir decisión.",
+   "labels": [
+    "Gate"
+   ],
+   "comments": []
+  },
+  "p04": {
+   "id": "p04",
+   "status": "pendiente",
+   "content": "Estilo fuera de features",
+   "description": "Después de un run con estilo dentro de features: pasarlo al campo estilo (reviewer, page plan, traductor y Specialist lo leen aparte).",
+   "labels": [
+    "Transversales"
+   ],
+   "comments": []
+  },
+  "p05": {
+   "id": "p05",
+   "status": "pendiente",
+   "content": "Specialist lee estilo + restricciones en cada componente",
+   "description": "Idea de Miche (02/10): requisitos transversales en un campo aparte que no entra al paso a paso de TechLeader pero que el Specialist respeta en cada paso, como criterios de éxito propios.",
+   "labels": [
+    "Transversales"
+   ],
+   "comments": []
+  },
+  "p06": {
+   "id": "p06",
+   "status": "pendiente",
+   "content": "Page plan para apps (no landing)",
+   "description": "Project23: una sola sección con 8/9 features → 30 min y 7981/8000 tokens. Componentes de app: tablero, columna, tarjeta, modal. Sin header/footer de landing (links muertos, Privacidad, redes).",
+   "labels": [
+    "Specialist"
+   ],
+   "comments": []
+  },
+  "p07": {
+   "id": "p07",
+   "status": "pendiente",
+   "content": "tasksFor: el Specialist recibió 4 de 16 tareas",
+   "description": "Project23: Gemma construyó desde las features, no desde el graph de TechLeader. Revisar el mapeo tarea → componente.",
+   "labels": [
+    "Specialist"
+   ],
+   "comments": []
+  },
+  "p08": {
+   "id": "p08",
+   "status": "pendiente",
+   "content": "Chequeos de flujo en el catálogo de Validation",
+   "description": "crear → +1 tarjeta, arrastrar → cambia de columna, editar → el valor queda, borrar → −1. Project23: R2 PASS falso, R4 FAIL falso, R1/R5/R6 solo verifican que el botón existe.",
+   "labels": [
+    "Validation"
+   ],
+   "comments": []
+  },
+  "p09": {
+   "id": "p09",
+   "status": "pendiente",
+   "content": "Traductor: params malos",
+   "description": "R4 pidió un campo 'tarjeta/tarea' para etiquetas; el campo existía dentro del modal.",
+   "labels": [
+    "Validation"
+   ],
+   "comments": []
+  },
+  "p10": {
+   "id": "p10",
+   "status": "pendiente",
+   "content": "Kanban v1: 7 bugs como casos de prueba",
+   "description": "Editar borra etiquetas · '[object HTMLDivElement]' en cada tarjeta · modal de 860px sin scroll · doble confirm al borrar · título no editable · '+ Añadir Columna' muerto · 3 columnas en vez de 4. Los chequeos de flujo tienen que detectarlos.",
+   "labels": [
+    "Validation"
+   ],
+   "comments": []
+  },
+  "p11": {
+   "id": "p11",
+   "status": "pendiente",
+   "content": "Reconectar SQLite",
+   "description": "/api/projects se perdió; persistProject() no lo llama nadie. Requisito de 'Proyectos'.",
+   "labels": [
+    "Infra"
+   ],
+   "comments": []
+  },
+  "p12": {
+   "id": "p12",
+   "status": "pendiente",
+   "content": "TechLeader y Atomic Engine por server.mjs",
+   "description": "Hoy llaman a LM Studio desde el navegador (CORS); pasarlos por el server unifica logs y errores.",
+   "labels": [
+    "Infra"
+   ],
+   "comments": []
+  },
+  "p13": {
+   "id": "p13",
+   "status": "pendiente",
+   "content": "FUTURO · Botón Proyectos (Continuar / + Feature)",
+   "description": "Solo cuando el Specialist esté pulido. Lista de proyectos con su estado; 'Continuar' si quedó a mitad, '+ Feature' si está terminado.",
+   "labels": [
+    "Futuro"
+   ],
+   "comments": []
+  },
+  "p14": {
+   "id": "p14",
+   "status": "pendiente",
+   "content": "FUTURO · Estado del proyecto desde datos",
+   "description": "Nombre, qué hace, features actuales = las que tienen PASS en Validation (no las pedidas). Lo arma el código, no un LLM.",
+   "labels": [
+    "Futuro"
+   ],
+   "comments": []
+  },
+  "p15": {
+   "id": "p15",
+   "status": "pendiente",
+   "content": "FUTURO · + Feature con regresión",
+   "description": "Intent Forge delta + TechLeader delta + volver a correr la Validation de TODAS las features anteriores.",
+   "labels": [
+    "Futuro"
+   ],
+   "comments": []
+  },
+  "p16": {
+   "id": "p16",
+   "status": "completado",
+   "content": "Intent Forge v0.3: plantilla + clasificación acotada",
+   "description": "Reemplaza 'mencionaste y no incluí'. Cada línea del usuario termina en un ítem (reintentos + red del harness).",
+   "labels": [
+    "IntentForge"
+   ],
+   "comments": []
+  },
+  "p17": {
+   "id": "p17",
+   "status": "completado",
+   "content": "Intent Forge v0.4: entrevista de completitud",
+   "description": "Hasta 10 preguntas no obligatorias; 'listo' corta; un 'no' queda como restricción. intent_cli.mjs reemplaza al .ps1.",
+   "labels": [
+    "IntentForge"
+   ],
+   "comments": []
+  },
+  "p18": {
+   "id": "p18",
+   "status": "completado",
+   "content": "Evidencia Project23",
+   "description": "claude/evidencia_project23_2026-10-03.md en el proyecto.",
+   "labels": [
+    "Evidencia"
+   ],
+   "comments": []
+  }
+ },
+ "columns": {
+  "pendiente": {
+   "title": "Pendiente",
+   "cards": [
+    "p01",
+    "p02",
+    "p03",
+    "p04",
+    "p05",
+    "p06",
+    "p07",
+    "p08",
+    "p09",
+    "p10",
+    "p11",
+    "p12",
+    "p13",
+    "p14",
+    "p15"
+   ]
+  },
+  "en_progreso": {
+   "title": "En Progreso",
+   "cards": []
+  },
+  "completado": {
+   "title": "Completado",
+   "cards": [
+    "p16",
+    "p17",
+    "p18"
+   ]
+  }
+ }
+};
+
+// --- Elementos DOM ---
+const kanbanBoard = root.querySelector('.kanban-board');
+const cardListContainers = root.querySelectorAll('.card-list');
+const modal = root.querySelector('#card-detail-modal');
+const btnAddCard = root.querySelector('#btn-add-card');
+const btnAddColumn = root.querySelector('#btn-add-column');
+
+// --- Funciones de Renderizado y Actualización ---
+
+/**
+ * Crea el HTML para una etiqueta (label).
+ * @param {string} labelText - El texto de la etiqueta.
+ * @returns {HTMLElement} Elemento span con clase 'label'.
+ */
+function createLabelElement(labelText) {
+    const label = document.createElement('span');
+    label.className = `label label-${labelText.toLowerCase().replace(/[^a-z]/g, '')}`;
+    label.textContent = labelText;
+    return label;
+}
+
+/**
+ * Renderiza una tarjeta completa en el DOM.
+ * @param {Object} cardData - Datos de la tarjeta del estado global.
+ * @param {HTMLElement} targetList - El contenedor donde se debe añadir la tarjeta.
+ */
+function renderCard(cardData, targetList) {
+    const card = document.createElement('div');
+    card.className = 'kanban-card';
+    card.setAttribute('draggable', 'true');
+    card.dataset.id = cardData.id;
+    card.dataset.status = cardData.status;
+
+    // Contenido de la tarjeta
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'card-content';
+    contentDiv.innerHTML = `<h3>${cardData.content}</h3><p>${cardData.description}</p>`;
+    
+    // Etiquetas en el resumen (solo muestra las primeras 2)
+    const labelContainerSummary = document.createElement('div');
+    cardData.labels.slice(0, 2).forEach(label => {
+        labelContainerSummary.appendChild(createLabelElement(label));
+    });
+
+    // Footer y botones de acción
+    const footerDiv = document.createElement('div');
+    footerDiv.className = 'card-footer';
+    
+    // Mostrar etiquetas en el resumen (si hay)
+    if (labelContainerSummary.children.length > 0) {
+        footerDiv.appendChild(document.createRange().createContextualFragment(labelContainerSummary));
+    }
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-small btn-secondary edit-btn';
+    editBtn.textContent = '✏️ Editar';
+    editBtn.dataset.id = cardData.id;
+    editBtn.addEventListener('click', () => openCardDetails(cardData.id));
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn btn-small btn-danger delete-btn';
+    deleteBtn.textContent = '🗑️ Borrar';
+    deleteBtn.dataset.id = cardData.id;
+    deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Evita que se dispare el evento de la tarjeta
+        if(confirm("¿Estás seguro de que quieres eliminar esta tarea?")) {
+            handleDeleteCard(cardData.id);
+        }
+    });
+
+    footerDiv.appendChild(editBtn);
+    footerDiv.appendChild(deleteBtn);
+
+    // Ensamblar la tarjeta
+    card.appendChild(contentDiv);
+    card.appendChild(labelContainerSummary); // Añadimos las etiquetas aquí también para el resumen visual
+    card.appendChild(footerDiv);
+
+    targetList.appendChild(card);
+}
+
+/**
+ * Refresca todo el tablero, eliminando y volviendo a renderizar todas las tarjetas.
+ */
+function refreshBoard() {
+    // 1. Limpiar todos los contenedores de tarjetas
+    document.querySelectorAll('.card-list').forEach(list => list.innerHTML = '');
+
+    // 2. Iterar sobre el estado y re-renderizar
+    for (const status in kanbanState.columns) {
+        const columnList = document.querySelector(`.kanban-column[data-status="${status}"] .card-list`);
+        if (columnList) {
+            kanbanState.columns[status].cards.forEach(cardId => {
+                const cardData = kanbanState.cards[cardId];
+                if (cardData) {
+                    renderCard(cardData, columnList);
+                }
+            });
+        }
+    }
+    // Re-adjuntar listeners de drag and drop después del renderizado completo
+    setupDragAndDropListeners();
+}
+
+/**
+ * Inicializa los listeners de arrastrar y soltar.
+ */
+function setupDragAndDropListeners() {
+    let draggedCard = null;
+
+    document.querySelectorAll('.kanban-card').forEach(card => {
+        card.addEventListener('dragstart', (e) => {
+            draggedCard = card;
+            e.dataTransfer.setData('text/plain', card.dataset.id);
+            setTimeout(() => card.style.opacity = '0.5', 0); // Efecto visual de arrastre
+        });
+
+        card.addEventListener('dragend', () => {
+            card.style.opacity = '1';
+            draggedCard = null;
+        });
+    });
+
+    document.querySelectorAll('.card-list').forEach(list => {
+        // Drag Over: Permite soltar la tarjeta en esta lista
+        list.addEventListener('dragover', (e) => {
+            e.preventDefault(); 
+            const targetColumn = list.closest('.kanban-column');
+            targetColumn.querySelector('.column-header').style.backgroundColor = 'rgba(74, 144, 226, 0.1)'; // Feedback visual
+        });
+
+        // Drag Leave: Quita el feedback visual
+        list.addEventListener('dragleave', (e) => {
+            const targetColumn = list.closest('.kanban-column');
+            targetColumn.querySelector('.column-header').style.backgroundColor = 'transparent';
+        });
+
+        // Drop: Maneja la caída de la tarjeta
+        list.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const targetList = list;
+            const newStatus = targetList.dataset.status;
+            const cardId = e.dataTransfer.getData('text/plain');
+
+            // 1. Actualizar el estado global
+            if (kanbanState.cards[cardId]) {
+                const oldStatus = kanbanState.cards[cardId].status;
+                kanbanState.cards[cardId].status = newStatus;
+                
+                // 2. Mover la tarjeta en el DOM
+                const cardElement = document.querySelector(`.kanban-card[data-id="${cardId}"]`);
+                if (cardElement) {
+                    targetList.appendChild(cardElement);
+                }
+
+                // 3. Actualizar los índices de las columnas (simulación simple)
+                updateColumnCardLists();
+            }
+            
+            // Resetear el feedback visual
+            const targetColumn = list.closest('.kanban-column');
+            targetColumn.querySelector('.column-header').style.backgroundColor = 'transparent';
+        });
+    });
+}
+
+/**
+ * Actualiza los arrays de IDs en kanbanState.columns después de un movimiento.
+ */
+function updateColumnCardLists() {
+    // Limpiar todos los índices primero
+    for (const status in kanbanState.columns) {
+        kanbanState.columns[status].cards = [];
+    }
+
+    // Recorrer el estado de las tarjetas y reconstruir la lista de IDs por columna
+    for (const cardId in kanbanState.cards) {
+        const status = kanbanState.cards[cardId].status;
+        if (kanbanState.columns[status]) {
+            kanbanState.columns[status].cards.push(cardId);
+        }
+    }
+}
+
+
+// --- Funcionalidades CRUD y Interacción ---
+
+/**
+ * Maneja la creación de una nueva tarjeta.
+ */
+function handleCreateCard() {
+    const title = prompt("Ingresa el título de la nueva tarea:");
+    if (!title) return;
+    const description = prompt("Describe brevemente la tarea:");
+    if (description === null) return;
+
+    // Generar ID único simulado
+    const newId = 'c' + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const defaultStatus = 'pendiente';
+
+    const newCardData = {
+        id: newId,
+        status: defaultStatus,
+        content: title,
+        description: description,
+        labels: ['Nuevo'],
+        comments: [{ author: 'Sistema', text: `Tarea creada por el usuario.` }]
+    };
+
+    // 1. Actualizar estado global
+    kanbanState.cards[newId] = newCardData;
+    if (!kanbanState.columns[defaultStatus].cards.includes(newId)) {
+        kanbanState.columns[defaultStatus].cards.push(newId);
+    }
+
+    // 2. Renderizar el cambio
+    refreshBoard();
+    alert(`Tarjeta "${title}" creada con éxito en la columna Pendiente.`);
+}
+
+/**
+ * Maneja la eliminación de una tarjeta (R6).
+ * @param {string} cardId - ID de la tarjeta a eliminar.
+ */
+function handleDeleteCard(cardId) {
+    if (!confirm("¿Estás seguro de que deseas borrar esta tarea? Esta acción es irreversible.")) return;
+
+    // 1. Eliminar del estado global
+    delete kanbanState.cards[cardId];
+
+    // 2. Actualizar la lista de IDs en la columna correspondiente
+    let statusToDelete = null;
+    for (const status in kanbanState.columns) {
+        const index = kanbanState.columns[status].cards.indexOf(cardId);
+        if (index > -1) {
+            kanbanState.columns[status].cards.splice(index, 1);
+            statusToDelete = status;
+            break;
+        }
+    }
+
+    // 3. Renderizar el cambio
+    refreshBoard();
+    alert(`Tarjeta ${cardId} eliminada del tablero.`);
+}
+
+
+// --- Funcionalidades de Detalles (Modal) ---
+
+/**
+ * Abre el modal de detalles para una tarjeta específica, cargando su estado actual.
+ * @param {string} cardId - ID de la tarjeta a mostrar.
+ */
+function openCardDetails(cardId) {
+    const cardData = kanbanState.cards[cardId];
+    if (!cardData) return;
+
+    // 1. Llenar datos básicos del modal
+    document.getElementById('modal-card-id').textContent = `(${cardId})`;
+    document.getElementById('modal-title').innerHTML = `${cardData.content} <span id="modal-card-id">${cardId}</span>`;
+    document.getElementById('modal-description').textContent = cardData.description;
+    document.getElementById('edit-content').value = cardData.description;
+
+    // 2. Renderizar etiquetas (R4)
+    const labelContainer = document.getElementById('current-labels');
+    labelContainer.innerHTML = '';
+    cardData.labels.forEach(label => {
+        labelContainer.appendChild(createLabelElement(label));
+    });
+
+    // 3. Renderizar comentarios (R3)
+    renderComments(cardId);
+
+    // 4. Mostrar el modal
+    modal.classList.remove('hidden');
+}
+
+/**
+ * Cierra el modal de detalles.
+ */
+function closeCardDetails() {
+    modal.classList.add('hidden');
+}
+
+/**
+ * Renderiza la lista de comentarios en el modal.
+ * @param {string} cardId - ID de la tarjeta asociada a los comentarios.
+ */
+function renderComments(cardId) {
+    const cardData = kanbanState.cards[cardId];
+    const commentsList = document.getElementById('comments-list');
+    commentsList.innerHTML = '';
+
+    if (!cardData || !cardData.comments || cardData.comments.length === 0) {
+        commentsList.innerHTML = '<p style="color: var(--color-text-secondary);">Aún no hay comentarios en esta tarea.</p>';
+        return;
+    }
+
+    cardData.comments.forEach(comment => {
+        const item = document.createElement('div');
+        item.className = 'comment-item';
+        item.innerHTML = `<strong>${comment.author}:</strong> ${comment.text}`;
+        commentsList.appendChild(item);
+    });
+}
+
+/**
+ * Maneja el envío de un nuevo comentario (R3).
+ * @param {Event} e - Evento del formulario.
+ */
+function handleCommentSubmit(e) {
+    e.preventDefault();
+    const cardId = document.getElementById('modal-card-id').textContent.trim().replace(/[()]/g, '');
+    const commentText = document.getElementById('comment-text').value;
+
+    if (!commentText || !kanbanState.cards[cardId]) return;
+
+    // Simular autor (puede ser mejor usar un usuario logueado)
+    const simulatedAuthor = "Usuario Visitante"; 
+
+    // Actualizar estado global
+    kanbanState.cards[cardId].comments.push({ author: simulatedAuthor, text: commentText });
+
+    // Re-renderizar comentarios en el modal
+    renderComments(cardId);
+
+    // Limpiar formulario y dar feedback
+    e.target.reset();
+}
+
+
+/**
+ * Maneja la edición de contenido y etiquetas (R5, R4).
+ */
+function handleSaveCardChanges() {
+    const cardId = document.getElementById('modal-card-id').textContent.trim().replace(/[()]/g, '');
+    if (!kanbanState.cards[cardId]) return;
+
+    // 1. Actualizar Contenido (R5)
+    const newDescription = document.getElementById('edit-content').value;
+    kanbanState.cards[cardId].description = newDescription;
+    
+    // Nota: El contenido principal (título) no se edita aquí, solo la descripción.
+
+    // 2. Actualizar Etiquetas (R4) - Lógica simplificada para el prototipo
+    const labelContainer = document.getElementById('current-labels');
+    const newLabelsArray = Array.from(labelContainer.querySelectorAll('.label-tag')).map(el => el.textContent);
+    kanbanState.cards[cardId].labels = newLabelsArray;
+
+    // 3. Refrescar la vista (tanto en el modal como en el tablero)
+    refreshBoard();
+    openCardDetails(cardId); // Re-abrir para ver los cambios reflejados
+    alert("¡Cambios guardados con éxito!");
+}
+
+/**
+ * Añade una etiqueta nueva a la tarjeta.
+ */
+function handleAddLabel() {
+    const cardId = document.getElementById('modal-card-id').textContent.trim().replace(/[()]/g, '');
+    const inputElement = document.getElementById('new-label-input');
+    let newLabelText = inputElement.value.trim();
+
+    if (!newLabelText || !kanbanState.cards[cardId]) return;
+
+    // Verificar si ya existe la etiqueta
+    if (kanbanState.cards[cardId].labels.includes(newLabelText)) {
+        alert("Esta etiqueta ya está presente.");
+        return;
+    }
+
+    // 1. Actualizar estado global
+    kanbanState.cards[cardId].labels.push(newLabelText);
+
+    // 2. Renderizar la nueva etiqueta en el modal
+    const labelContainer = document.getElementById('current-labels');
+    const newTag = document.createElement('span');
+    newTag.className = 'label-tag';
+    newTag.textContent = newLabelText;
+    labelContainer.appendChild(newTag);
+
+    // 3. Limpiar input
+    inputElement.value = '';
+}
+
+
+// --- Inicialización y Event Listeners ---
+
+function initialize() {
+    // 1. Renderizar el tablero al cargar
+    refreshBoard();
+
+    // 2. Setup de listeners globales
+    btnAddCard.addEventListener('click', handleCreateCard);
+    document.getElementById('close-modal-btn').addEventListener('click', closeCardDetails);
+    
+    // Listeners del formulario de comentarios (R3)
+    const commentForm = document.getElementById('comment-form');
+    if(commentForm) {
+        commentForm.addEventListener('submit', handleCommentSubmit);
+    }
+
+    // Listener para guardar cambios en el modal (R5, R4)
+    document.getElementById('save-card-btn').addEventListener('click', handleSaveCardChanges);
+
+    // Listener para añadir etiquetas (R4)
+    document.getElementById('add-label-btn').addEventListener('click', handleAddLabel);
+
+    // 3. Setup de Drag and Drop listeners (se llama al final porque refreshBoard ya lo hace, pero es buena práctica tenerlo aquí también)
+    setupDragAndDropListeners();
+}
+
+
+initialize();
+
+})(document.getElementById("inicio"));
+</script>
+<script data-component="site-footer">
+(function (root) {
+  if (!root) return;
+// No requiere lógica de JavaScript, es un componente estático.
+
+})(document.getElementById("site-footer"));
+</script>
+</body>
+</html>

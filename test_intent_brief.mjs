@@ -3,7 +3,8 @@
 import {
   parseBrief, numberLines, validateItems, fillUncovered, buildRefined,
   buildTechLeaderInput, parseModelOutput, runIntentForge, formatLinesForModel,
-  TEMPLATE_TEXT, TEMPLATE_EXAMPLE, HARNESS_QUESTIONS,
+  TEMPLATE_TEXT, TEMPLATE_EXAMPLE, HARNESS_QUESTIONS, QUESTION_SYSTEM, QUESTION_HINT,
+  isControlReply,
 } from "./intent_brief.mjs";
 
 let ok = 0, fail = 0;
@@ -50,10 +51,19 @@ const P23_ITEMS = [
 ];
 const complete = (items, extra = {}) =>
   "```json\n" + JSON.stringify({ status: "COMPLETE", project_name: "Kanban WebApp", items, criterios_holdout: ["Se puede crear una tarjeta"], ...extra }) + "\n```";
-const fakeModel = (outputs) => {
-  const calls = [];
-  const fn = async (messages) => { calls.push(messages.map((m) => ({ ...m }))); return outputs[Math.min(calls.length - 1, outputs.length - 1)]; };
+// Modelo simulado con dos colas: preguntas (QUESTION_SYSTEM) y clasificación.
+const fakeModel = (classify, questions = ["LISTO"]) => {
+  const calls = [], qcalls = [];
+  const fn = async (messages) => {
+    if (messages[0].content === QUESTION_SYSTEM) {
+      qcalls.push(messages.map((m) => ({ ...m })));
+      return questions[Math.min(qcalls.length - 1, questions.length - 1)];
+    }
+    calls.push(messages.map((m) => ({ ...m })));
+    return classify[Math.min(calls.length - 1, classify.length - 1)];
+  };
   fn.calls = calls;
+  fn.qcalls = qcalls;
   return fn;
 };
 
@@ -123,6 +133,18 @@ await check("fillUncovered: usa la pista del campo y marca auto", () => {
   const r = fillUncovered([], lines, ["L1", "L2"]);
   eq(r.map((i) => `${i.tipo}:${i.auto}`), ["feature:true", "contexto:true"]);
 });
+await check("red del harness: respuesta suelta lleva su pregunta y no entra al objetivo", () => {
+  const lines = [
+    { id: "L1", field: "construir", text: "Un kanban" },
+    { id: "L2", field: "hacer", text: "crear tarjetas" },
+    { id: "L3", field: "respuesta", text: "no", pregunta: "¿Buscar tarjetas?" },
+  ];
+  const items = fillUncovered([{ de: ["L1"], tipo: "contexto", texto: "Un kanban" }, { de: ["L2"], tipo: "feature", texto: "Crear tarjetas" }], lines, ["L3"]);
+  eq(items.at(-1).texto, "¿Buscar tarjetas? → no");
+  const r = buildRefined({ items, lines });
+  eq(r.objetivo, "Un kanban");
+  assert(r.contexto.includes("¿Buscar tarjetas? → no"));
+});
 await check("buildRefined P23: features = feature + estilo; restricciones y contexto aparte", () => {
   const lines = numberLines([{ role: "user", content: P23 }]).lines;
   const r = buildRefined({ project_name: "Kanban WebApp", items: validateItems(P23_ITEMS, lines).items, lines });
@@ -144,11 +166,11 @@ await check("parseModelOutput: JSON con comentarios y coma colgante; pregunta en
   eq(parseModelOutput("¿Las columnas tienen nombre?\n").question, "¿Las columnas tienen nombre?");
   assert(parseModelOutput('```json\n{"status":"COMPLETE", "items": [\n```').parseError);
 });
-await check("runIntentForge P23: el modelo pierde L3 (drag & drop) → reintento con feedback → completo", async () => {
+await check("runIntentForge P23: LISTO de entrada → clasifica; pierde L3 → reintento → completo", async () => {
   const model = fakeModel([complete(P23_ITEMS.filter((i) => !i.de.includes("L3"))), complete(P23_ITEMS)]);
   const r = await runIntentForge([{ role: "user", content: P23 }], { callModel: model });
   eq(r.status, "COMPLETE");
-  eq(model.calls.length, 2);
+  eq([model.qcalls.length, model.calls.length], [1, 2]);
   assert(model.calls[1].at(-1).content.includes("L3"), "el feedback no nombra L3");
   assert(r.refined.features.includes("Drag & Drop funcional"), "falta drag & drop");
   eq(r.auto_added, []);
@@ -161,50 +183,100 @@ await check("runIntentForge: si el modelo nunca la ubica, la agrega el harness (
   eq(r.auto_added, ["L3"]);
   const auto = r.refined.brief.items.find((i) => i.auto);
   eq([auto.tipo, auto.texto], ["feature", "Drag & Drop funcional"]);
-  assert(r.refined.features.includes("Drag & Drop funcional"));
 });
-await check("runIntentForge: el prompt al modelo trae las 10 líneas numeradas con su campo", async () => {
+await check("runIntentForge: el prompt de clasificación trae las líneas numeradas con su campo", async () => {
   const model = fakeModel([complete(P23_ITEMS)]);
   await runIntentForge([{ role: "user", content: P23 }], { callModel: model });
   const u = model.calls[0][1].content;
   assert(u.includes("L3 [qué tiene que hacer] Drag & Drop funcional") && u.includes("L10 [qué no debe hacer] Solo frontend"), u);
 });
-await check("runIntentForge: pregunta del modelo → ASKING", async () => {
-  const r = await runIntentForge([{ role: "user", content: "Quiero un kanban" }], { callModel: fakeModel(["¿Qué tiene que poder hacer?"]) });
-  eq([r.status, r.question, r.by], ["ASKING", "¿Qué tiene que poder hacer?", "model"]);
+await check("entrevista: pregunta del modelo → ASKING con la ayuda de 'listo', sin clasificar", async () => {
+  const model = fakeModel([complete(P23_ITEMS)], ["¿Se pueden crear columnas nuevas?"]);
+  const r = await runIntentForge([{ role: "user", content: P23 }], { callModel: model });
+  eq([r.status, r.by, model.calls.length], ["ASKING", "model", 0]);
+  eq(r.question, `¿Se pueden crear columnas nuevas? ${QUESTION_HINT}`);
 });
-await check("runIntentForge: pregunta repetida → se le pide COMPLETE", async () => {
+await check("entrevista: la respuesta entra como línea con su pregunta (sin la ayuda) y se vuelve a preguntar", async () => {
   const conv = [
-    { role: "user", content: "Qué tiene que hacer:\n- crear tarjetas" },
-    { role: "assistant", content: "¿Columnas fijas?" },
-    { role: "user", content: "sí" },
+    { role: "user", content: P23 },
+    { role: "assistant", content: `¿Se pueden crear columnas nuevas? ${QUESTION_HINT}` },
+    { role: "user", content: "no" },
   ];
-  const model = fakeModel(["¿Columnas fijas?", complete([{ de: ["L1"], tipo: "feature", texto: "Crear tarjetas" }, { de: ["L2"], tipo: "contexto", texto: "Columnas fijas" }])]);
+  const model = fakeModel([complete(P23_ITEMS)], ["¿Se pueden buscar tarjetas?"]);
+  const r = await runIntentForge(conv, { callModel: model });
+  eq(r.status, "ASKING");
+  const q = model.qcalls[0][1].content;
+  assert(q.includes('[respuesta a "¿Se pueden crear columnas nuevas?"] no'), q);
+  assert(q.includes("PREGUNTAS QUE YA HICISTE (1/10") && !q.includes("listo\\\""), q);
+});
+await check("entrevista: LISTO → clasifica con las respuestas; un 'no' llega como línea", async () => {
+  const conv = [
+    { role: "user", content: P23 },
+    { role: "assistant", content: `¿Se pueden crear columnas nuevas? ${QUESTION_HINT}` },
+    { role: "user", content: "no" },
+  ];
+  const items = [...P23_ITEMS, { de: ["L11"], tipo: "restriccion", texto: "Sin crear columnas nuevas" }];
+  const model = fakeModel([complete(items)], ["LISTO"]);
   const r = await runIntentForge(conv, { callModel: model });
   eq(r.status, "COMPLETE");
-  assert(model.calls[1].at(-1).content.includes("ya la hiciste"));
+  assert(model.calls[0][1].content.includes('L11 [respuesta a "¿Se pueden crear columnas nuevas?"] no'));
+  assert(r.refined.restricciones.includes("Sin crear columnas nuevas"));
+  eq(r.refined.brief.preguntas, ["¿Se pueden crear columnas nuevas?"]);
 });
-await check("runIntentForge: tope de preguntas → el prompt fuerza COMPLETE", async () => {
-  const conv = [{ role: "user", content: "Qué tiene que hacer:\n- a" }];
-  for (const q of ["¿1?", "¿2?", "¿3?"]) conv.push({ role: "assistant", content: q }, { role: "user", content: "x" });
-  const model = fakeModel([complete([{ de: ["L1", "L2", "L3", "L4"], tipo: "feature", texto: "a" }])]);
-  await runIntentForge(conv, { callModel: model });
-  assert(model.calls[0][1].content.includes("Ya no podés preguntar más"));
+await check("entrevista: 'listo' del usuario corta sin llamar al entrevistador y no es una línea", async () => {
+  const conv = [
+    { role: "user", content: P23 },
+    { role: "assistant", content: `¿Buscar tarjetas? ${QUESTION_HINT}` },
+    { role: "user", content: "Listo!" },
+  ];
+  const model = fakeModel([complete(P23_ITEMS)], ["¿Otra?"]);
+  const r = await runIntentForge(conv, { callModel: model });
+  eq([r.status, model.qcalls.length, r.lines.length], ["COMPLETE", 0, 10]);
+  assert(isControlReply("nada más") && !isControlReply("no") && !isControlReply("no, sin búsqueda"));
 });
-await check("runIntentForge: sin ninguna feature → pregunta el harness", async () => {
+await check("entrevista: tope de 10 preguntas → clasifica sin preguntar", async () => {
+  const conv = [{ role: "user", content: P23 }];
+  for (let i = 1; i <= 10; i++) conv.push({ role: "assistant", content: `¿P${i}?` }, { role: "user", content: "sí" });
+  const items = [...P23_ITEMS, ...Array.from({ length: 10 }, (_, i) => ({ de: [`L${11 + i}`], tipo: "contexto", texto: `r${i}` }))];
+  const model = fakeModel([complete(items)], ["¿P11?"]);
+  const r = await runIntentForge(conv, { callModel: model });
+  eq([r.status, model.qcalls.length], ["COMPLETE", 0]);
+});
+await check("entrevista: pregunta repetida → no se repite, se clasifica", async () => {
+  const conv = [
+    { role: "user", content: P23 },
+    { role: "assistant", content: `¿Columnas fijas? ${QUESTION_HINT}` },
+    { role: "user", content: "sí" },
+  ];
+  const model = fakeModel([complete([...P23_ITEMS, { de: ["L11"], tipo: "contexto", texto: "Columnas fijas" }])], ["¿Columnas fijas?"]);
+  const r = await runIntentForge(conv, { callModel: model });
+  eq(r.status, "COMPLETE");
+});
+await check("ajuste después de COMPLETE → no vuelve a entrevistar, reclasifica", async () => {
+  const conv = [
+    { role: "user", content: P23 },
+    { role: "assistant", content: JSON.stringify({ status: "COMPLETE" }) },
+    { role: "user", content: "sacá las etiquetas" },
+  ];
+  const model = fakeModel([complete([...P23_ITEMS.filter((i) => i.texto !== "Etiquetar tarjetas"), { de: ["L4", "L11"], tipo: "descartado", texto: "Etiquetar tarjetas" }])], ["¿Otra?"]);
+  const r = await runIntentForge(conv, { callModel: model });
+  eq([r.status, model.qcalls.length], ["COMPLETE", 0]);
+  assert(!r.refined.features.includes("Etiquetar tarjetas"));
+});
+await check("sin ninguna feature → pregunta el harness", async () => {
   const r = await runIntentForge([{ role: "user", content: "Qué querés construir:\n- un kanban" }],
     { callModel: fakeModel([complete([{ de: ["L1"], tipo: "contexto", texto: "Kanban" }])]) });
   eq([r.status, r.question], ["ASKING", HARNESS_QUESTIONS.sin_feature]);
 });
-await check("runIntentForge: plantilla vacía → pregunta el harness sin llamar al modelo", async () => {
+await check("plantilla vacía → pregunta el harness sin llamar al modelo", async () => {
   const model = fakeModel(["x"]);
   const r = await runIntentForge([{ role: "user", content: TEMPLATE_TEXT }], { callModel: model });
-  eq([r.status, model.calls.length], ["ASKING", 0]);
+  eq([r.status, model.calls.length + model.qcalls.length], ["ASKING", 0]);
 });
-await check("runIntentForge: JSON ilegible → reintento", async () => {
-  const model = fakeModel(['```json\n{"status":"COMPLETE","items":[\n```', complete(P23_ITEMS)]);
+await check("clasificación: JSON ilegible o pregunta en vez de JSON → reintento", async () => {
+  const model = fakeModel(['```json\n{"status":"COMPLETE","items":[\n```', "¿Querés algo más?", complete(P23_ITEMS)]);
   const r = await runIntentForge([{ role: "user", content: P23 }], { callModel: model });
-  eq([r.status, model.calls.length], ["COMPLETE", 2]);
+  eq([r.status, model.calls.length], ["COMPLETE", 3]);
 });
 
 console.log(`\n${ok}/${ok + fail} tests OK`);

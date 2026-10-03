@@ -1,0 +1,162 @@
+### FILE: componente.html
+```html
+<section data-feature="R1" id="inicio" class="hero-section">
+    <div class="container hero-content">
+        <!-- Área de Texto -->
+        <div class="text-area">
+            <h1 data-animate>Transforma tu negocio con la inteligencia artificial de vanguardia.</h1>
+            <p class="subtitle" data-animate>Nuestra plataforma unificada te permite automatizar procesos, analizar datos complejos y tomar decisiones estratégicas en tiempo real.</p>
+            <div class="cta-group" data-animate>
+                <a href="#contacto" class="btn btn--primary cta-button">Solicitar Demo Gratuita 🚀</a>
+                <a href="#caracteristicas" class="btn btn--secondary cta-button secondary-link">Ver Casos de Éxito →</a>
+            </div>
+        </div>
+        <!-- Área de Imagen/Ilustración -->
+        <div class="image-area" data-animate>
+            <!-- Placeholder para una ilustración principal que simula un dashboard IA -->
+            <svg width="100%" height="350" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
+                <!-- Fondo degradado suave -->
+                <rect width="100%" height="100%" fill="#e6f7ff" rx="15"/>
+                <!-- Forma abstracta de datos o conexión -->
+                <path d="M0 200 C 200 100, 800 300, 1200 200 L 1200 400 L 0 400 Z" fill="#cceeff"/>
+                <!-- Elemento de IA central -->
+                <circle cx="600" cy="250" r="80" fill="#4a90e2" opacity="0.7"/>
+                <text x="50%" y="230" font-family="var(--font-family-base)" font-size="3rem" text-anchor="middle" fill="#4a90e2">🧠 IA Inteligente</text>
+            </svg>
+        </div>
+    </div>
+</section>
+```
+
+### FILE: componente.css
+```css
+/* Estilos base de la sección */
+#inicio {
+    padding: var(--space-xl) 0;
+    background-color: var(--color-bg-light);
+    text-align: center;
+}
+
+/* Contenedor principal del contenido (Flexbox para layout) */
+#inicio .hero-content {
+    display: flex;
+    flex-direction: column; /* Por defecto en móvil */
+    gap: var(--space-md);
+    align-items: center;
+    padding: 0 var(--space-md);
+}
+
+/* Estilos de Títulos y Subtítulo */
+#inicio h1 {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    margin-bottom: var(--space-sm);
+    color: var(--color-dark-bg);
+}
+
+#inicio .subtitle {
+    max-width: 800px;
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--space-md);
+}
+
+/* Grupo de botones CTA */
+#inicio .cta-group {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: center;
+    margin-bottom: var(--space-lg);
+}
+
+/* Estilos para el área de imagen/ilustración */
+#inicio .image-area {
+    width: 100%;
+    max-width: 900px;
+    opacity: 0; /* Inicialmente oculto */
+    transform: translateY(30px); /* Desplazado hacia abajo */
+}
+
+/* =========================================
+   ANIMACIONES DE ENTRADA (R5)
+   ========================================= */
+
+/* Estado inicial de los elementos animados */
+#inicio [data-animate] {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity var(--transition-speed) ease-out, transform var(--transition-speed) ease-out;
+}
+
+/* Clase activadora (aplicada al root #inicio por JS) */
+#inicio.data-visible [data-animate] {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+/* =========================================
+   RESPONSIVE DESIGN (Desktop/Tablet)
+   ========================================= */
+
+@media (min-width: 768px) {
+    #inicio .hero-content {
+        flex-direction: row; /* Cambia a fila en pantallas grandes */
+        text-align: left;
+        gap: var(--space-lg);
+        padding: 0 var(--space-md);
+        align-items: center;
+    }
+
+    #inicio .text-area {
+        flex: 1; /* Ocupa el espacio disponible */
+        max-width: 55%; 
+    }
+
+    #inicio .image-area {
+        flex: 1; /* Ocupa el espacio disponible */
+        max-width: 45%;
+    }
+
+    /* Ajuste de tamaño de fuente en escritorio */
+    #inicio h1 {
+        font-size: clamp(3rem, 5vw, 4.5rem);
+    }
+}
+```
+
+### FILE: componente.js
+```javascript
+/**
+ * @param {HTMLElement} root - El elemento raíz del componente (#inicio).
+ */
+function initializeInicio(root) {
+    // Función para manejar la animación de entrada al hacer scroll (R5)
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.2 // Se activa cuando el 20% del elemento es visible
+    };
+
+    /**
+     * IntersectionObserver que detecta cuándo la sección Hero entra en vista.
+     */
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Al detectar que el elemento está visible, añadimos una clase al root.
+                // Esta clase activa los estilos CSS de animación para todos los elementos con data-animate.
+                root.classList.add('data-visible'); 
+                observer.unobserve(entry.target); // Dejar de observar una vez activado
+            }
+        });
+    }, observerOptions);
+
+    // Observar el contenedor principal de la sección Hero (el root)
+    observer.observe(root);
+}
+```
+
+### APPEND: api.js
+```javascript
+// No se requieren nuevas funciones API para este componente.
+```

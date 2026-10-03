@@ -1,0 +1,147 @@
+### FILE: componente.html
+```html
+<section id="inicio" class="hero-section">
+    <div class="container hero-content">
+        <div class="text-area">
+            <h1 data-animate>Transforma tu negocio con la inteligencia artificial de vanguardia.</h1>
+            <p class="subtitle" data-animate>Nuestra plataforma unificada te permite automatizar procesos, analizar datos complejos y tomar decisiones estratégicas en tiempo real.</p>
+            <div class="cta-group" data-animate>
+                <a href="#contacto" class="btn btn--primary cta-button">Solicitar Demo Gratuita 🚀</a>
+                <a href="#caracteristicas" class="btn btn--secondary cta-button secondary-link">Ver Casos de Éxito →</a>
+            </div>
+        </div>
+        <div class="image-area" data-animate>
+            <!-- Placeholder para una imagen o ilustración principal -->
+            <svg width="100%" height="350" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
+                <rect width="100%" height="100%" fill="#e6f7ff" rx="15"/>
+                <path d="M0 200 C 200 100, 800 300, 1200 200 L 1200 400 L 0 400 Z" fill="#cceeff"/>
+                <text x="50%" y="220" font-family="var(--font-family-base)" font-size="3rem" text-anchor="middle" fill="#4a90e2">🧠 IA Inteligente</text>
+            </svg>
+        </div>
+    </div>
+</section>
+```
+
+### FILE: componente.css
+```css
+/* Estilos específicos para la sección #inicio */
+#inicio {
+    padding: var(--space-xl) 0;
+    background-color: var(--color-bg-light);
+    text-align: center;
+}
+
+.hero-content {
+    display: flex;
+    flex-direction: column; /* Default para móvil */
+    gap: var(--space-md);
+    align-items: center;
+}
+
+/* Estilos del texto y títulos */
+#inicio h1 {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    margin-bottom: var(--space-sm);
+    color: var(--color-dark-bg);
+}
+
+.subtitle {
+    max-width: 800px;
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--space-md);
+}
+
+/* Estilos del grupo de botones CTA */
+.cta-group {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: center;
+    margin-bottom: var(--space-lg);
+}
+
+.cta-button {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Estilos del área de la imagen (SVG placeholder) */
+.image-area {
+    width: 100%;
+    max-width: 900px;
+    opacity: 0; /* Inicialmente oculto para animación */
+    transform: translateY(20px);
+}
+
+/* Animaciones de entrada (Iniciales) */
+[data-animate] {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity var(--transition-speed) ease-out, transform var(--transition-speed) ease-out;
+}
+
+/* Estado visible tras la animación */
+.hero-content[data-visible] [data-animate] {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Ajustes para escritorio (Tablet y Desktop) */
+@media (min-width: 768px) {
+    .hero-content {
+        flex-direction: row; /* Cambia a horizontal en pantallas grandes */
+        text-align: left;
+        gap: var(--space-lg);
+        padding: 0 var(--space-md);
+        align-items: center;
+    }
+
+    .text-area {
+        flex: 1;
+        max-width: 55%; /* Ocupa menos espacio que la imagen */
+    }
+
+    .image-area {
+        flex: 1;
+        max-width: 45%;
+    }
+
+    /* Ajuste de títulos en escritorio */
+    #inicio h1 {
+        font-size: clamp(3rem, 5vw, 4.5rem);
+    }
+}
+```
+
+### FILE: componente.js
+```javascript
+/**
+ * @param {HTMLElement} root - El elemento raíz del componente (#inicio).
+ */
+function initializeInicio(root) {
+    // Función para manejar la animación de entrada al hacer scroll (R5)
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.2 // Se activa cuando el 20% del elemento es visible
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Marcar que la sección ha sido vista para activar las animaciones CSS
+                root.classList.add('data-visible'); 
+                observer.unobserve(entry.target); // Dejar de observar una vez activado
+            }
+        });
+    }, observerOptions);
+
+    // Observar el contenedor principal de la sección Hero
+    observer.observe(root);
+}
+```
+
+### APPEND: api.js
+```javascript
+// No se requiere ninguna función API para este componente (solo visualización estática)
+```

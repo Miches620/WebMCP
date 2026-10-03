@@ -1,0 +1,432 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Landing Page Ficticia",
+  "source": "project22_snapshot.json",
+  "catalog": "check_catalog v0.5",
+  "artifact_loads_without_js_errors": true,
+  "sections_visible": {
+    "result": "FAIL",
+    "features": {
+      "R2": "PASS",
+      "R1": "FAIL",
+      "R3": "PASS",
+      "R4": "PASS"
+    },
+    "anchors": [
+      {
+        "id": "site-header",
+        "features": [
+          "R2"
+        ],
+        "seen": 8,
+        "total": 8,
+        "ok": true
+      },
+      {
+        "id": "inicio",
+        "features": [
+          "R1"
+        ],
+        "seen": 0,
+        "total": 34,
+        "ok": false
+      },
+      {
+        "id": "caracteristicas",
+        "features": [
+          "R3"
+        ],
+        "seen": 104,
+        "total": 104,
+        "ok": true
+      },
+      {
+        "id": "testimonios",
+        "features": [
+          "R3"
+        ],
+        "seen": 130,
+        "total": 130,
+        "ok": true
+      },
+      {
+        "id": "estadisticas-animadas",
+        "features": [
+          "R3"
+        ],
+        "seen": 34,
+        "total": 34,
+        "ok": true
+      },
+      {
+        "id": "contacto",
+        "features": [
+          "R3"
+        ],
+        "seen": 60,
+        "total": 73,
+        "ok": true
+      },
+      {
+        "id": "site-footer",
+        "features": [
+          "R4"
+        ],
+        "seen": 50,
+        "total": 50,
+        "ok": true
+      }
+    ],
+    "detail": "#site-header: 8/8 palabras visibles; #inicio: 0/34 palabras visibles ✗; #caracteristicas: 104/104 palabras visibles; #testimonios: 130/130 palabras visibles; #estadisticas-animadas: 34/34 palabras visibles; #contacto: 60/73 palabras visibles; #site-footer: 50/50 palabras visibles"
+  },
+  "summary": {
+    "requisitos": 9,
+    "PASS": 4,
+    "FAIL": 2,
+    "SIN_EVIDENCIA": 1,
+    "SIN_CHEQUEO": 2
+  },
+  "control": "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "Hero con título, subtítulo, botón de llamada a la acción y animación de entrada",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "hero",
+              "portada"
+            ],
+            "feature": [
+              "R1"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#inicio [R1]: 25 palabras propias (mín. 8)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "section_control",
+          "params": {
+            "section": [
+              "hero",
+              "portada"
+            ],
+            "feature": [
+              "R1"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#inicio [R1]: control \"Solicitar Demo Gratuita 🚀\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "entrance_animation",
+          "params": {
+            "section": [
+              "hero",
+              "portada"
+            ],
+            "feature": [
+              "R1"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "#inicio [R1]: nada se animó al cargar",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "sections_visible",
+          "gate": true,
+          "result": "FAIL",
+          "detail": "#inicio: se ven 0/34 palabras al llegar con el scroll"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Barra de navegación fija con enlaces que hacen scroll suave a cada sección",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "nav_scroll",
+          "params": {},
+          "result": "FAIL",
+          "detail": "clic en #contacto: no llegó (scrollY 0, sección a 3479px); nav sigue visible arriba",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "Secciones: Características (tarjetas con iconos), Testimonios, Estadísticas animadas y Contacto",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "section_items",
+          "params": {
+            "section": [
+              "características",
+              "secciones"
+            ],
+            "feature": [
+              "R3"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#caracteristicas [R3]: 4 ítems (🚀 · 🎨 · 🛡️)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "testimonios",
+              "secciones"
+            ],
+            "feature": [
+              "R3"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#testimonios [R3]: 125 palabras propias (mín. 8)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "numbers_animate",
+          "params": {
+            "section": [
+              "estadísticas",
+              "secciones"
+            ],
+            "feature": [
+              "R3"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#estadisticas-animadas [R3]: \"0 | 0 | 0 | 0\" → \"350,000 | 150 | 9,850 | 210\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "section_control",
+          "params": {
+            "section": [
+              "contacto",
+              "secciones"
+            ],
+            "feature": [
+              "R3"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#contacto [R3]: control \"Enviar Consulta\"",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "Pie de página completo",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "pie",
+              "footer",
+              "pagina",
+              "completo"
+            ],
+            "feature": [
+              "R4"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#site-footer [R4]: 44 palabras propias (mín. 8)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "Animaciones al hacer scroll (elementos que aparecen suavemente)",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "reveal_on_scroll",
+          "params": {},
+          "result": "PASS",
+          "detail": "4 elementos ocultos abajo; 4 aparecieron al bajar",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "Efectos hover en botones y tarjetas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "hover_changes",
+          "params": {
+            "elementos": [
+              "boton",
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "botón: cambia al pasar el mouse; tarjeta: cambia al pasar el mouse",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "text": "Visualmente atractivo: diseño moderno, paleta de colores coherente, tipografía elegante (usando fuentes del sistema), animaciones suaves",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El requisito 'Visualmente atractivo: diseño moderno, paleta de colores coherente, tipografía elegante (usando fuentes del sistema), animaciones suaves' no puede ser verificado mediante chequeos funcionales. Estas son características estéticas y sensoriales que no pueden ser comprobadas ejecutando la página.",
+      "checks": []
+    },
+    {
+      "id": "R8",
+      "text": "Totalmente interactivo y responsive (escritorio y móvil)",
+      "verdict": "SIN_EVIDENCIA",
+      "checks": [
+        {
+          "type": "no_horizontal_scroll",
+          "params": {},
+          "result": "PASS",
+          "detail": "390px: ok; 1280px: ok",
+          "baseline": "PASS",
+          "trivial": true
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "text": "Código limpio, ordenado y comentado donde haga falta",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El requisito 'código limpio, ordenado y comentado' no puede ser verificado ejecutando la página. Se trata de una cuestión de calidad del código fuente que no se puede comprobar mediante chequeos en la interfaz de usuario.",
+      "checks": []
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "spa_specialist v0.7-componentes",
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "tokens",
+        "ms": 133781,
+        "finish_reason": "stop",
+        "changed": [
+          "tokens.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 2,
+        "task_id": "site-header",
+        "role": "header",
+        "ms": 172567,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 3,
+        "task_id": "inicio",
+        "role": "section",
+        "ms": 118024,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 4,
+        "task_id": "caracteristicas",
+        "role": "section",
+        "ms": 138756,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 5,
+        "task_id": "testimonios",
+        "role": "section",
+        "ms": 161029,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 6,
+        "task_id": "estadisticas-animadas",
+        "role": "section",
+        "ms": 151583,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 7,
+        "task_id": "contacto",
+        "role": "section",
+        "ms": 227196,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 8,
+        "task_id": "site-footer",
+        "role": "footer",
+        "ms": 136711,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      }
+    ]
+  }
+}

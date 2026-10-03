@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Landing Page Ficticia</title>
+  <style>
+/* ===== tokens.css (global) ===== */
+:root {
+    
+    --font-family-base: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+    
+    
+    --color-primary: #4a90e2; 
+    
+    --color-secondary: #50e3c2; 
+    
+    --color-white: #ffffff;
+    --color-bg-light: #f8f9fa; 
+    --color-dark-bg: #1a202c;  
+    
+    --color-text-dark: #333333; 
+    --color-text-light: #6c757d;
+
+    
+    --space-xs: 0.5rem;
+    --space-sm: 1rem;
+    --space-md: 2rem;
+    --space-lg: 4rem;
+    --space-xl: 6rem;
+
+    
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 12px 32px rgba(74, 144, 226, 0.2);
+
+    
+    --transition-speed: 0.3s;
+}
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family-base);
+    line-height: 1.6;
+    color: var(--color-text-dark);
+    background-color: var(--color-white);
+    
+    scroll-behavior: smooth; 
+}
+img {
+    max-width: 100%;
+    height: auto;
+    display: block; 
+}
+h1, h2, h3 {
+    color: var(--color-text-dark);
+    line-height: 1.2;
+    margin-top: 0;
+}
+h1 {
+    font-size: clamp(2.5rem, 5vw, 4rem); 
+    margin-bottom: var(--space-sm);
+}
+h2 {
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    margin-bottom: var(--space-md);
+    color: var(--color-primary); 
+}
+h3 {
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
+    margin-bottom: var(--space-sm);
+}
+p {
+    margin-bottom: var(--space-md);
+    font-size: 1rem;
+}
+a {
+    color: var(--color-primary);
+    text-decoration: none; 
+    transition: color var(--transition-speed);
+    cursor: pointer;
+}
+a:hover {
+    color: var(--color-secondary); 
+    text-decoration: underline;
+}
+.btn {
+    display: inline-block;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-speed) cubic-bezier(0.25, 0.8, 0.25, 1); 
+    border: none;
+}
+.btn--primary {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
+}
+.btn--primary:hover {
+    background-color: #3a7bd5; 
+    transform: translateY(-2px) scale(1.02); 
+    box-shadow: var(--shadow-hover);
+}
+.btn--secondary {
+    background-color: transparent;
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+}
+.btn--secondary:hover {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+.container {
+    width: 100%;
+    max-width: 1200px; 
+    margin: 0 auto; 
+    padding: 0 var(--space-md); 
+}
+.card {
+    background-color: var(--color-white);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+.card:hover {
+    transform: translateY(-5px); 
+    box-shadow: var(--shadow-hover);
+}
+
+/* ===== componente #site-header ===== */
+#site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; 
+    background-color: var(--color-white);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 0.8rem 0; 
+}
+#site-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md); 
+}
+#site-header .brand a {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text-dark);
+    text-decoration: none;
+}
+#site-header #main-nav {
+    display: flex;
+}
+#site-header .nav-list {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+#site-header .nav-list li {
+    margin-left: var(--space-lg);
+}
+#site-header .nav-list a {
+    color: var(--color-text-dark);
+    font-weight: 500;
+    padding: 0.5rem 0;
+    display: block;
+    transition: color var(--transition-speed), border-bottom var(--transition-speed);
+}
+#site-header .nav-list a:hover {
+    color: var(--color-primary);
+    border-bottom: 3px solid var(--color-secondary);
+    text-decoration: none; 
+}
+#site-header .menu-toggle {
+    display: none; 
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    z-index: 1010;
+}
+#site-header .menu-toggle span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--color-text-dark);
+    margin: 5px auto;
+    transition: all 0.3s ease;
+}
+#site-header #main-nav {
+    
+    position: absolute;
+    top: 100%; 
+    left: 0;
+    width: 100%;
+    background-color: var(--color-white);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    max-height: 0; 
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out;
+}
+#site-header #main-nav.active {
+    max-height: 300px; 
+    padding: var(--space-md) 0;
+}
+#site-header #main-nav .nav-list {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+#site-header #main-nav .nav-list li {
+    margin: var(--space-xs) 0;
+    text-align: center;
+}
+@media (max-width: 992px) {
+#site-header .menu-toggle {
+        display: block;
+    }
+#site-header .container {
+        padding: var(--space-sm);
+    }
+#site-header .nav-list li {
+        margin-left: 1rem;
+    }
+}
+@media (max-width: 600px) {
+#site-header .container {
+        padding: var(--space-sm);
+    }
+#site-header .brand a {
+        font-size: 1.3rem;
+    }
+#site-header #main-nav .nav-list li {
+        width: 100%;
+        padding: 0.5rem var(--space-md);
+    }
+}
+
+  </style>
+</head>
+<body>
+  <header data-feature="R2" id="site-header">
+    <div class="container header-content">
+      <!-- Logo / Brand -->
+      <a href="#inicio" class="brand">TechSolutions <span style="color: var(--color-secondary);">Pro</span></a>
+  
+      <!-- Mobile Menu Toggle Button (Hamburger) -->
+      <button class="menu-toggle" aria-label="Toggle navigation menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+  
+      <!-- Navigation Bar -->
+      <nav id="main-nav">
+        <ul class="nav-list">
+          <li><a href="#inicio">Inicio</a></li>
+          <li><a href="#caracteristicas">Características</a></li>
+          <li><a href="#testimonios">Testimonios</a></li>
+          <li><a href="#estadisticas-animadas">Estadísticas animadas</a></li>
+          <li><a href="#contacto">Contacto</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main id="app">
+  <section id="inicio" data-feature="R1">
+    <h2>Inicio</h2>
+  </section>
+
+  <section id="caracteristicas" data-feature="R3">
+    <h2>Características</h2>
+  </section>
+
+  <section id="testimonios" data-feature="R3">
+    <h2>Testimonios</h2>
+  </section>
+
+  <section id="estadisticas-animadas" data-feature="R3">
+    <h2>Estadísticas animadas</h2>
+  </section>
+
+  <section id="contacto" data-feature="R3">
+    <h2>Contacto</h2>
+  </section>
+  </main>
+  <footer id="site-footer" data-feature="R4">
+    <p>Landing Page Ficticia</p>
+  </footer>
+<script data-file="api.js">
+// Capa de datos SIMULADA (backend mock). Los componentes usan solo window.api.
+window.api = window.api || {};
+
+// No se requiere ninguna función de API para este componente, solo manipulación del DOM y scroll.
+
+
+</script>
+<script data-component="site-header">
+(function (root) {
+  if (!root) return;
+/**
+ * @param {HTMLElement} root - El elemento raíz del componente (#site-header).
+ */
+function initializeSiteHeader(root) {
+    const menuToggle = root.querySelector('.menu-toggle');
+    const mainNav = root.querySelector('#main-nav');
+
+    if (!menuToggle || !mainNav) return;
+
+    // 1. Funcionalidad de Toggle del Menú Móvil (Hamburger)
+    menuToggle.addEventListener('click', () => {
+        const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true' ? 'false' : 'true';
+        menuToggle.setAttribute('aria-expanded', isExpanded);
+
+        if (isExpanded === 'true') {
+            mainNav.classList.add('active');
+        } else {
+            mainNav.classList.remove('active');
+        }
+    });
+
+    // 2. Funcionalidad de Scroll Suave para Enlaces Internos
+    const navLinks = root.querySelectorAll('.nav-list a[href^="#"]');
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const targetId = e.currentTarget.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+
+            if (targetElement) {
+                // Si estamos en móvil y el menú está abierto, cerramos el menú después del click
+                if (window.innerWidth <= 992 && mainNav.classList.contains('active')) {
+                    mainNav.classList.remove('active');
+                    menuToggle.setAttribute('aria-expanded', 'false');
+                }
+
+                // Usamos scrollIntoView con comportamiento suave, aunque body ya lo tiene configurado
+                e.preventDefault(); 
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+}
+
+})(document.getElementById("site-header"));
+</script>
+</body>
+</html>

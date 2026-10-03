@@ -1,0 +1,233 @@
+### FILE: componente.html
+```html
+<header id="site-header" data-feature="R2">
+  <div class="container header-content">
+    <!-- Logo / Brand -->
+    <a href="#inicio" class="brand">TechSolutions <span style="color: var(--color-secondary);">Pro</span></a>
+
+    <!-- Mobile Menu Toggle Button (Hamburger) -->
+    <button class="menu-toggle" aria-label="Toggle navigation menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <!-- Navigation Bar -->
+    <nav id="main-nav">
+      <ul class="nav-list">
+        <li><a href="#inicio">Inicio</a></li>
+        <li><a href="#caracteristicas">Características</a></li>
+        <li><a href="#testimonios">Testimonios</a></li>
+        <li><a href="#estadisticas-animadas">Estadísticas animadas</a></li>
+        <li><a href="#contacto">Contacto</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+```
+
+### FILE: componente.css
+```css
+/* Estilos generales del Header */
+#site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; /* Asegura que esté por encima de otros contenidos */
+    background-color: var(--color-white);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 0.8rem 0; /* Padding vertical para el contenido interno */
+}
+
+/* Contenedor principal del header (Flexbox) */
+#site-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md); /* Padding horizontal para el contenido interno */
+}
+
+/* Estilo de la Marca/Logo */
+.brand a {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text-dark);
+    text-decoration: none;
+}
+
+/* Navegación principal (Desktop) */
+#main-nav {
+    display: flex;
+}
+
+.nav-list {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-list li {
+    margin-left: var(--space-lg);
+}
+
+.nav-list a {
+    color: var(--color-text-dark);
+    font-weight: 500;
+    padding: 0.5rem 0;
+    display: block;
+    transition: color var(--transition-speed), border-bottom var(--transition-speed);
+}
+
+/* Efecto hover en enlaces de navegación */
+.nav-list a:hover {
+    color: var(--color-primary);
+    border-bottom: 3px solid var(--color-secondary);
+    text-decoration: none; /* Sobrescribe el underline por defecto */
+}
+
+
+/* Botón Hamburguesa (Mobile) */
+.menu-toggle {
+    display: none; /* Oculto por defecto en escritorio */
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    z-index: 1010;
+}
+
+/* Estilo de las tres líneas del menú hamburguesa */
+.menu-toggle span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--color-text-dark);
+    margin: 5px auto;
+    transition: all 0.3s ease;
+}
+
+/* Estilos para el menú móvil (se mostrará con JS) */
+#main-nav {
+    /* Inicialmente oculto o fuera de vista en mobile, se gestionará con JS/CSS */
+    position: absolute;
+    top: 100%; /* Justo debajo del header */
+    left: 0;
+    width: 100%;
+    background-color: var(--color-white);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    max-height: 0; /* Oculto por defecto */
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out;
+}
+
+/* Clase activa para mostrar el menú móvil */
+#main-nav.active {
+    max-height: 300px; /* Debe ser un valor suficiente para contener todos los enlaces */
+    padding: var(--space-md) 0;
+}
+
+/* Ajuste de la lista en modo móvil (columna vertical) */
+#main-nav .nav-list {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+#main-nav .nav-list li {
+    margin: var(--space-xs) 0;
+    text-align: center;
+}
+
+
+/* ========================================= */
+/* MEDIA QUERIES PARA RESPONSIVIDAD (Móvil/Tablet) */
+/* ========================================= */
+
+@media (max-width: 992px) {
+    /* Mostrar el botón de menú hamburguesa */
+    .menu-toggle {
+        display: block;
+    }
+
+    /* Ajustar padding del header en pantallas más pequeñas */
+    #site-header .container {
+        padding: var(--space-sm);
+    }
+
+    /* Reducir margen entre elementos de navegación en escritorio (aunque el menú esté colapsado) */
+    .nav-list li {
+        margin-left: 1rem;
+    }
+}
+
+@media (max-width: 600px) {
+    /* Ajustes específicos para móvil */
+    #site-header .container {
+        padding: var(--space-sm);
+    }
+    
+    .brand a {
+        font-size: 1.3rem;
+    }
+
+    /* Asegurar que el menú colapsado se vea bien */
+    #main-nav .nav-list li {
+        width: 100%;
+        padding: 0.5rem var(--space-md);
+    }
+}
+```
+
+### FILE: componente.js
+```javascript
+/**
+ * @param {HTMLElement} root - El elemento raíz del componente (#site-header).
+ */
+function initializeSiteHeader(root) {
+    const menuToggle = root.querySelector('.menu-toggle');
+    const mainNav = root.querySelector('#main-nav');
+
+    if (!menuToggle || !mainNav) return;
+
+    // 1. Funcionalidad de Toggle del Menú Móvil (Hamburger)
+    menuToggle.addEventListener('click', () => {
+        const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true' ? 'false' : 'true';
+        menuToggle.setAttribute('aria-expanded', isExpanded);
+
+        if (isExpanded === 'true') {
+            mainNav.classList.add('active');
+        } else {
+            mainNav.classList.remove('active');
+        }
+    });
+
+    // 2. Funcionalidad de Scroll Suave para Enlaces Internos
+    const navLinks = root.querySelectorAll('.nav-list a[href^="#"]');
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const targetId = e.currentTarget.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+
+            if (targetElement) {
+                // Si estamos en móvil y el menú está abierto, cerramos el menú después del click
+                if (window.innerWidth <= 992 && mainNav.classList.contains('active')) {
+                    mainNav.classList.remove('active');
+                    menuToggle.setAttribute('aria-expanded', 'false');
+                }
+
+                // Usamos scrollIntoView con comportamiento suave, aunque body ya lo tiene configurado
+                e.preventDefault(); 
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+}
+```
+
+### APPEND: api.js
+```javascript
+// No se requiere ninguna función de API para este componente, solo manipulación del DOM y scroll.
+```

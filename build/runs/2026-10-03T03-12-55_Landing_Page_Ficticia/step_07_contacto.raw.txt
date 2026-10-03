@@ -1,0 +1,278 @@
+### FILE: componente.html
+```html
+<section id="contacto" class="py-xl">
+    <div class="container">
+        <h2 class="text-center mb-md">¿Listo para transformar tu negocio?</h2>
+        <p class="text-center max-w-3xl mb-lg text-xl">Estamos aquí para ayudarte a alcanzar tus metas. Contáctanos y cuéntanos cómo podemos impulsar tu crecimiento.</p>
+
+        <div class="flex flex-wrap justify-center gap-md mt-space-xl" style="align-items: flex-start;">
+            <!-- Columna de Formulario -->
+            <div class="w-full lg:w-1/2">
+                <h3 class="mb-sm">Envíanos un mensaje</h3>
+                <form id="contactForm" class="space-y-md card p-lg">
+                    
+                    <!-- Mensaje de Feedback -->
+                    <div id="formMessage" role="alert" style="display: none;" class="p-3 rounded text-center mb-md transition duration-300 ease-in-out"></div>
+
+                    <!-- Campo Nombre -->
+                    <div>
+                        <label for="nombre" class="block mb-2 font-semibold">Nombre Completo</label>
+                        <input type="text" id="nombre" name="nombre" required placeholder="Ej: Ana García" class="w-full p-3 border rounded focus:ring-primary focus:border-primary transition duration-150">
+                    </div>
+
+                    <!-- Campo Email -->
+                    <div>
+                        <label for="email" class="block mb-2 font-semibold">Correo Electrónico</label>
+                        <input type="email" id="email" name="email" required placeholder="ejemplo@dominio.com" class="w-full p-3 border rounded focus:ring-primary focus:border-primary transition duration-150">
+                    </div>
+
+                    <!-- Campo Asunto/Tema -->
+                    <div>
+                        <label for="asunto" class="block mb-2 font-semibold">Interés / Tema</label>
+                        <select id="asunto" name="asunto" required class="w-full p-3 border rounded focus:ring-primary focus:border-primary transition duration-150 bg-white">
+                            <option value="" disabled selected>Selecciona el motivo de tu consulta</option>
+                            <option value="consultoria">Consultoría General</option>
+                            <option value="soporte">Soporte Técnico</option>
+                            <option value="ventas">Información de Precios/Ventas</option>
+                        </select>
+                    </div>
+
+                    <!-- Campo Mensaje -->
+                    <div>
+                        <label for="mensaje" class="block mb-2 font-semibold">Mensaje</label>
+                        <textarea id="mensaje" name="mensaje" rows="5" required placeholder="Cuéntanos en detalle qué necesitas..." class="w-full p-3 border rounded focus:ring-primary focus:border-primary transition duration-150"></textarea>
+                    </div>
+
+                    <!-- Botón de Envío -->
+                    <button type="submit" id="submitBtn" class="btn btn--primary w-full mt-md">Enviar Consulta</button>
+                </form>
+            </div>
+
+            <!-- Columna de Información de Contacto -->
+            <div class="w-full lg:w-1/2 pt-space-lg">
+                <h3 class="mb-sm">Contáctanos Directamente</h3>
+                <p class="text-lg mb-md text-gray-600">Estamos disponibles para atenderte por múltiples canales. ¡No dudes en escribirnos!</p>
+
+                <!-- Icono Teléfono -->
+                <div class="flex items-center gap-sm mb-md flex-wrap">
+                    <span role="img" aria-label="Teléfono">📞</span>
+                    <div>
+                        <p class="font-semibold m-0">Teléfono:</p>
+                        <a href="tel:+34600123456" class="text-xl hover:underline">+34 600 123 456</a>
+                    </div>
+                </div>
+
+                <!-- Icono Email -->
+                <div class="flex items-center gap-sm mb-md flex-wrap">
+                    <span role="img" aria-label="Email">📧</span>
+                    <div>
+                        <p class="font-semibold m-0">Correo Electrónico:</p>
+                        <a href="mailto:contacto@michelab.com" class="text-xl hover:underline">contacto@michelab.com</a>
+                    </div>
+                </div>
+
+                <!-- Icono Dirección -->
+                <div class="flex items-center gap-sm flex-wrap">
+                    <span role="img" aria-label="Ubicación">📍</span>
+                    <div>
+                        <p class="font-semibold m-0">Oficina Central:</p>
+                        <address class="not-italic text-base hover:underline">Calle Innovación 45, Ciudad Tecnológica, 28001</address>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+```
+
+### FILE: componente.css
+```css
+/* Estilos específicos para la sección de contacto */
+#contacto {
+    padding-top: var(--space-xl);
+    padding-bottom: var(--space-xl);
+}
+
+/* Contenedor principal dentro del componente */
+#contacto .container {
+    padding: 0 var(--space-md);
+}
+
+/* Estilos para el encabezado de la sección */
+#contacto h2 {
+    margin-bottom: var(--space-sm);
+}
+
+/* Estilo general del formulario y tarjetas */
+.card {
+    background-color: var(--color-bg-light); /* Usando un fondo ligeramente diferente para destacar el formulario */
+    border: 1px solid #e0e0e0;
+}
+
+/* Estilos de los campos de input/textarea */
+#contacto input[type="text"],
+#contacto input[type="email"],
+#contacto select,
+#contacto textarea {
+    width: 100%;
+    padding: var(--space-sm) calc(var(--space-md) * 0.5); /* Ajuste de padding para inputs */
+    border: 1px solid #ccc;
+    border-radius: var(--radius-sm);
+    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+#contacto input:focus,
+#contacto select:focus,
+#contacto textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2); /* Simula el focus ring */
+}
+
+/* Estilos para la información de contacto (divs con iconos) */
+#contacto .flex > div {
+    margin-top: 0.25rem;
+}
+
+#contacto a {
+    font-size: 1.1em;
+    color: var(--color-text-dark); /* Aseguramos que el enlace sea visible y no solo azul */
+}
+
+/* Media Query para dispositivos móviles (Responsive) */
+@media (max-width: 768px) {
+    #contacto .flex-wrap > div {
+        margin-bottom: var(--space-md); /* Espacio extra entre bloques en móvil */
+    }
+    
+    /* Asegura que el formulario y la info de contacto ocupen todo el ancho en móvil */
+    .w-full.lg\:w-1\/2 {
+        width: 100%;
+    }
+
+    #contacto .card {
+        padding: var(--space-md); /* Reducir padding del card en móvil */
+    }
+}
+```
+
+### FILE: componente.js
+```javascript
+/**
+ * @param {HTMLElement} root - El elemento raíz de este componente (#contacto).
+ */
+function initializeContacto(root) {
+    const form = root.querySelector('#contactForm');
+    const messageDiv = root.querySelector('#formMessage');
+    const submitBtn = root.querySelector('#submitBtn');
+
+    if (!form || !messageDiv) return;
+
+    // 1. Animación al hacer scroll (Intersection Observer)
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.2 // Se activa cuando el 20% del elemento es visible
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Añadir una clase para animar la aparición de los elementos al entrar en vista
+                root.classList.add('animate-visible'); 
+                observer.unobserve(entry.target); // Dejar de observar una vez visible
+            }
+        });
+    }, observerOptions);
+
+    // Observamos el contenedor principal del formulario para activar la animación
+    observer.observe(root);
+
+
+    // 2. Manejo del envío del formulario
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Limpiar mensajes anteriores y deshabilitar botón
+        messageDiv.style.display = 'none';
+        messageDiv.textContent = '';
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="flex items-center justify-center"><svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12h12a4 4 0 01-8 0z"></path></svg> Enviando...</span>';
+        submitBtn.classList.add('cursor-not-allowed');
+
+        // Validación client-side
+        if (!validateForm(form)) {
+            messageDiv.textContent = 'Por favor, revisa todos los campos del formulario.';
+            messageDiv.className = 'p-3 rounded text-center mb-md bg-red-100 text-red-700';
+            messageDiv.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Enviar Consulta';
+            submitBtn.classList.remove('cursor-not-allowed');
+            return;
+        }
+
+        // Recolectar datos
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            // Simular envío API (usando la lógica de window.api si existiera, o simulándolo)
+            messageDiv.textContent = 'Enviando tu consulta... Por favor, espera.';
+            messageDiv.className = 'p-3 rounded text-center mb-md bg-yellow-100 text-yellow-700';
+            messageDiv.style.display = 'block';
+
+            // Simulación de latencia y envío exitoso
+            await new Promise(resolve => setTimeout(resolve, 1500)); 
+
+            // Mostrar éxito
+            messageDiv.textContent = '✅ ¡Mensaje enviado con éxito! Nos pondremos en contacto contigo lo antes posible.';
+            messageDiv.className = 'p-3 rounded text-center mb-md bg-green-100 text-green-700';
+            submitBtn.innerHTML = 'Consulta Enviada';
+            form.reset();
+
+        } catch (error) {
+            // Manejo de error simulado
+            messageDiv.textContent = `❌ Error al enviar: ${error.message}. Intenta más tarde o llámanos directamente.`;
+            messageDiv.className = 'p-3 rounded text-center mb-md bg-red-100 text-red-700';
+        } finally {
+            // Restaurar estado del botón después de la operación
+            setTimeout(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Enviar Consulta';
+                submitBtn.classList.remove('cursor-not-allowed');
+            }, 1000);
+        }
+    });
+}
+
+/**
+ * Valida los campos del formulario de contacto.
+ * @param {HTMLFormElement} form - El formulario a validar.
+ * @returns {boolean} True si el formulario es válido, False en caso contrario.
+ */
+function validateForm(form) {
+    const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+    let isValid = true;
+
+    inputs.forEach(input => {
+        // Validación básica de requerido (ya lo hace el navegador, pero es bueno tenerlo explícito)
+        if (!input.value.trim()) {
+            isValid = false;
+        } 
+        // Validación específica de email
+        else if (input.id === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value)) {
+            alert('Por favor, introduce un correo electrónico válido.');
+            isValid = false;
+        }
+    });
+
+    return isValid;
+}
+```
+
+### APPEND: api.js
+```javascript
+// No se requiere la definición de window.api ya que el envío es simulado localmente 
+// para cumplir con los requisitos de feedback y validación sin depender de un endpoint real.
+```

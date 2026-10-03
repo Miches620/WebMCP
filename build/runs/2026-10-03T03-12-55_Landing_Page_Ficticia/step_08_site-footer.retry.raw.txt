@@ -1,0 +1,186 @@
+### FILE: componente.html
+```html
+<footer data-feature="R4" id="site-footer">
+    <div class="container footer-content">
+        <div class="footer-col company-info">
+            <h3 class="logo-text">TechNova Solutions</h3>
+            <p class="description">Innovando el futuro digital con soluciones robustas y escalables para tu negocio.</p>
+            <div class="social-links">
+                <!-- Usamos emojis como placeholders de iconos -->
+                <a href="#" aria-label="LinkedIn"><span role="img" aria-label="linkedin">🔗</span></a>
+                <a href="#" aria-label="Twitter"><span role="img" aria-label="twitter">🐦</span></a>
+                <a href="#" aria-label="Instagram"><span role="img" aria-label="instagram">📸</span></a>
+            </div>
+        </div>
+
+        <div class="footer-col links-group">
+            <h4>Enlaces Rápidos</h4>
+            <ul class="link-list">
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#caracteristicas">Características</a></li>
+                <li><a href="#testimonios">Testimonios</a></li>
+                <li><a href="#estadisticas-animadas">Estadísticas</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-col links-group">
+            <h4>Servicios</h4>
+            <ul class="link-list">
+                <li><a href="#">Desarrollo Web</a></li>
+                <li><a href="#">Consultoría Digital</a></li>
+                <li><a href="#">Soporte 24/7</a></li>
+                <li><a href="#">Estrategia de Datos</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-col contact-info">
+            <h4>Contáctanos</h4>
+            <p>Email: contacto@technova.com</p>
+            <p>Teléfono: +34 912 345 678</p>
+            <div class="legal-text">
+                <p>&copy; 2024 TechNova Solutions. Todos los derechos reservados.</p>
+                <p><a href="#">Política de Privacidad</a> | <a href="#">Términos de Uso</a></p>
+            </div>
+        </div>
+    </div>
+</footer >
+```
+
+### FILE: componente.css
+```css
+#site-footer {
+    background-color: var(--color-dark-bg);
+    color: var(--color-text-light);
+    padding: var(--space-xl) 0; 
+    border-top: 4px solid var(--color-primary); 
+}
+#site-footer .footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+    gap: var(--space-md);
+}
+/* Estilos base para las columnas */
+#site-footer .footer-col {
+    padding: var(--space-sm) 0;
+    min-width: 0; 
+    /* Inicialmente oculto y desplazado para la animación de scroll (R5) */
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity var(--transition-speed) ease-out, transform var(--transition-speed) ease-out;
+}
+
+/* Estado visible al hacer scroll */
+#site-footer .footer-col.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+#site-footer .footer-col h4, #site-footer .company-info h3 {
+    color: var(--color-white);
+    margin-bottom: var(--space-sm);
+    font-size: 1.25rem;
+}
+#site-footer .description {
+    max-width: 90%;
+    line-height: 1.5;
+    margin-top: var(--space-xs);
+}
+#site-footer .link-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+#site-footer .link-list li {
+    margin-bottom: 0.5rem;
+}
+#site-footer .link-list a {
+    color: var(--color-text-light);
+    text-decoration: none;
+    transition: color var(--transition-speed), transform var(--transition-speed);
+    display: block; 
+}
+#site-footer .link-list a:hover {
+    color: var(--color-secondary); 
+    text-decoration: none; 
+    transform: translateX(3px);
+}
+#site-footer .contact-info p, #site-footer .legal-text p {
+    margin-bottom: 0.5rem;
+}
+#site-footer .legal-text a {
+    color: var(--color-secondary);
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+#site-footer .social-links a {
+    display: inline-block;
+    margin-right: 1rem;
+    font-size: 1.5rem;
+    color: var(--color-text-light);
+    transition: transform var(--transition-speed), color var(--transition-speed);
+}
+#site-footer .social-links a:hover {
+    color: var(--color-primary);
+    transform: scale(1.2) translateY(-3px);
+}
+
+/* Media Query para Responsividad */
+@media (max-width: 768px) {
+    #site-footer .footer-content {
+        grid-template-columns: 1fr; 
+        text-align: center;
+    }
+    #site-footer .company-info {
+        text-align: center;
+    }
+    #site-footer .social-links {
+        padding: 10px 0;
+    }
+    #site-footer .footer-col h4, #site-footer .company-info h3 {
+        text-align: center;
+    }
+}
+```
+
+### FILE: componente.js
+```javascript
+/**
+ * Inicializa las animaciones de aparición al hacer scroll (R5).
+ * Utiliza IntersectionObserver para detectar cuándo el footer es visible y anima sus columnas.
+ */
+function animateFooterElements() {
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1 // Dispara cuando el 10% del elemento es visible
+    };
+
+    // Selecciona todas las columnas de información que deben animarse
+    const elementsToObserve = document.querySelectorAll('#site-footer .footer-col');
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Añadir la clase 'visible' para activar la transición CSS
+                entry.target.classList.add('visible');
+                // Dejar de observar el elemento después de animarlo
+                observer.unobserve(entry.target); 
+            }
+        });
+    }, observerOptions);
+
+    elementsToObserve.forEach(element => {
+        // Observar cada columna para que se active la animación al hacer scroll
+        observer.observe(element);
+    });
+}
+
+// Ejecutar la función cuando el DOM esté completamente cargado
+document.addEventListener('DOMContentLoaded', animateFooterElements);
+```
+
+### APPEND: api.js
+```javascript
+// No se requieren nuevas funciones de API para este componente.
+```

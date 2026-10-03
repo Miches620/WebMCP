@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Landing Page Ficticia</title>
+  <style>
+/* ===== tokens.css (global) ===== */
+:root {
+    
+    --font-family-base: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+    
+    
+    --color-primary: #4a90e2; 
+    
+    --color-secondary: #50e3c2; 
+    
+    --color-white: #ffffff;
+    --color-bg-light: #f8f9fa; 
+    --color-dark-bg: #1a202c;  
+    
+    --color-text-dark: #333333; 
+    --color-text-light: #6c757d;
+
+    
+    --space-xs: 0.5rem;
+    --space-sm: 1rem;
+    --space-md: 2rem;
+    --space-lg: 4rem;
+    --space-xl: 6rem;
+
+    
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 12px 32px rgba(74, 144, 226, 0.2);
+
+    
+    --transition-speed: 0.3s;
+}
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family-base);
+    line-height: 1.6;
+    color: var(--color-text-dark);
+    background-color: var(--color-white);
+    
+    scroll-behavior: smooth; 
+}
+img {
+    max-width: 100%;
+    height: auto;
+    display: block; 
+}
+h1, h2, h3 {
+    color: var(--color-text-dark);
+    line-height: 1.2;
+    margin-top: 0;
+}
+h1 {
+    font-size: clamp(2.5rem, 5vw, 4rem); 
+    margin-bottom: var(--space-sm);
+}
+h2 {
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    margin-bottom: var(--space-md);
+    color: var(--color-primary); 
+}
+h3 {
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
+    margin-bottom: var(--space-sm);
+}
+p {
+    margin-bottom: var(--space-md);
+    font-size: 1rem;
+}
+a {
+    color: var(--color-primary);
+    text-decoration: none; 
+    transition: color var(--transition-speed);
+    cursor: pointer;
+}
+a:hover {
+    color: var(--color-secondary); 
+    text-decoration: underline;
+}
+.btn {
+    display: inline-block;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-speed) cubic-bezier(0.25, 0.8, 0.25, 1); 
+    border: none;
+}
+.btn--primary {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
+}
+.btn--primary:hover {
+    background-color: #3a7bd5; 
+    transform: translateY(-2px) scale(1.02); 
+    box-shadow: var(--shadow-hover);
+}
+.btn--secondary {
+    background-color: transparent;
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+}
+.btn--secondary:hover {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+.container {
+    width: 100%;
+    max-width: 1200px; 
+    margin: 0 auto; 
+    padding: 0 var(--space-md); 
+}
+.card {
+    background-color: var(--color-white);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+.card:hover {
+    transform: translateY(-5px); 
+    box-shadow: var(--shadow-hover);
+}
+
+/* ===== componente #site-header ===== */
+#site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; 
+    background-color: var(--color-white);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 0.8rem 0; 
+}
+#site-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md); 
+}
+#site-header .brand a {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text-dark);
+    text-decoration: none;
+}
+#site-header #main-nav {
+    display: flex;
+}
+#site-header .nav-list {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+#site-header .nav-list li {
+    margin-left: var(--space-lg);
+}
+#site-header .nav-list a {
+    color: var(--color-text-dark);
+    font-weight: 500;
+    padding: 0.5rem 0;
+    display: block;
+    transition: color var(--transition-speed), border-bottom var(--transition-speed);
+}
+#site-header .nav-list a:hover {
+    color: var(--color-primary);
+    border-bottom: 3px solid var(--color-secondary);
+    text-decoration: none; 
+}
+#site-header .menu-toggle {
+    display: none; 
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    z-index: 1010;
+}
+#site-header .menu-toggle span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--color-text-dark);
+    margin: 5px auto;
+    transition: all 0.3s ease;
+}
+#site-header #main-nav {
+    
+    position: absolute;
+    top: 100%; 
+    left: 0;
+    width: 100%;
+    background-color: var(--color-white);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    max-height: 0; 
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out;
+}
+#site-header #main-nav.active {
+    max-height: 300px; 
+    padding: var(--space-md) 0;
+}
+#site-header #main-nav .nav-list {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+#site-header #main-nav .nav-list li {
+    margin: var(--space-xs) 0;
+    text-align: center;
+}
+@media (max-width: 992px) {
+#site-header .menu-toggle {
+        display: block;
+    }
+#site-header .container {
+        padding: var(--space-sm);
+    }
+#site-header .nav-list li {
+        margin-left: 1rem;
+    }
+}
+@media (max-width: 600px) {
+#site-header .container {
+        padding: var(--space-sm);
+    }
+#site-header .brand a {
+        font-size: 1.3rem;
+    }
+#site-header #main-nav .nav-list li {
+        width: 100%;
+        padding: 0.5rem var(--space-md);
+    }
+}
+
+/* ===== componente #inicio ===== */
+#inicio {
+    padding: var(--space-xl) 0;
+    background-color: var(--color-bg-light);
+    text-align: center;
+}
+#inicio .hero-content {
+    display: flex;
+    flex-direction: column; 
+    gap: var(--space-md);
+    align-items: center;
+    padding: 0 var(--space-md);
+}
+#inicio h1 {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    margin-bottom: var(--space-sm);
+    color: var(--color-dark-bg);
+}
+#inicio .subtitle {
+    max-width: 800px;
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--space-md);
+}
+#inicio .cta-group {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: center;
+    margin-bottom: var(--space-lg);
+}
+#inicio .image-area {
+    width: 100%;
+    max-width: 900px;
+    opacity: 0; 
+    transform: translateY(30px); 
+}
+#inicio [data-animate] {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity var(--transition-speed) ease-out, transform var(--transition-speed) ease-out;
+}
+#inicio.data-visible [data-animate] {
+    opacity: 1;
+    transform: translateY(0);
+}
+@media (min-width: 768px) {
+#inicio .hero-content {
+        flex-direction: row; 
+        text-align: left;
+        gap: var(--space-lg);
+        padding: 0 var(--space-md);
+        align-items: center;
+    }
+#inicio .text-area {
+        flex: 1; 
+        max-width: 55%; 
+    }
+#inicio .image-area {
+        flex: 1; 
+        max-width: 45%;
+    }
+#inicio h1 {
+        font-size: clamp(3rem, 5vw, 4.5rem);
+    }
+}
+
+/* ===== componente #caracteristicas ===== */
+#caracteristicas {
+    padding: var(--space-xl) 0;
+    background-color: var(--color-bg-light);
+}
+#caracteristicas .container {
+    max-width: 1200px;
+}
+#caracteristicas .section-header {
+    margin-bottom: var(--space-lg);
+}
+#caracteristicas .section-header h2 {
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    color: var(--color-text-dark); 
+    margin-bottom: var(--space-sm);
+}
+#caracteristicas .subtitle {
+    font-size: 1.1rem;
+    color: var(--color-text-light);
+    max-width: 700px;
+    margin: 0 auto;
+}
+#caracteristicas .features-grid {
+    display: grid;
+    gap: var(--space-md);
+    
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+#caracteristicas .feature-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--space-md);
+    border: 1px solid #e0e0e0; 
+}
+#caracteristicas .icon-container {
+    font-size: 3rem;
+    margin-bottom: var(--space-sm);
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#caracteristicas .feature-card h3 {
+    color: var(--color-primary);
+    margin-top: 0;
+    margin-bottom: var(--space-sm);
+}
+#caracteristicas .feature-card:hover {
+    transform: translateY(-8px) scale(1.02); 
+    box-shadow: var(--shadow-hover);
+    border-color: var(--color-primary);
+}
+#caracteristicas .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease-out, transform 0.8s cubic-bezier(0.215, 0.610, 0.355, 1), box-shadow 0.3s;
+}
+#caracteristicas .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+@media (max-width: 768px) {
+#caracteristicas .features-grid {
+        grid-template-columns: repeat(auto-fit, minmax(45%, 1fr));
+    }
+#caracteristicas .section-header h2 {
+        font-size: clamp(1.8rem, 6vw, 2.5rem);
+    }
+}
+@media (max-width: 480px) {
+#caracteristicas .features-grid {
+        grid-template-columns: 1fr;
+    }
+#caracteristicas .feature-card {
+        padding: var(--space-sm);
+    }
+}
+
+/* ===== componente #testimonios ===== */
+#testimonios {
+    padding: var(--space-xl) 0;
+    background-color: var(--color-bg-light); 
+}
+#testimonios .container {
+    text-align: center;
+}
+#testimonios h2 {
+    margin-bottom: 0.5rem;
+}
+#testimonios .lead {
+    color: var(--color-text-light);
+    max-width: 700px;
+    margin: 1rem auto 3rem auto !important; 
+}
+#testimonios .testimonial-grid {
+    display: grid;
+    gap: var(--space-md);
+    
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+#testimonios .testimonial-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: left;
+    padding: var(--space-md);
+}
+#testimonios .quote-text {
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--color-text-dark);
+    margin: 0 0 var(--space-md) 0;
+    line-height: 1.5;
+}
+#testimonios figcaption {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-top: auto; 
+}
+#testimonios .avatar-wrapper svg {
+    
+    display: block; 
+}
+#testimonios figcaption div strong {
+    display: block;
+    font-size: 1.1rem;
+    color: var(--color-primary);
+}
+#testimonios figcaption small.company-name {
+    display: block;
+    font-size: 0.95rem;
+    color: var(--color-text-light);
+    margin-top: 0.2rem;
+}
+@media (max-width: 768px) {
+#testimonios .container {
+        padding: 0 var(--space-sm);
+    }
+#testimonios .testimonial-card {
+        padding: var(--space-sm);
+    }
+}
+
+/* ===== componente #estadisticas-animadas ===== */
+#estadisticas-animadas {
+    padding: var(--space-xl) 0;
+    background-color: var(--color-bg-light);
+}
+#estadisticas-animadas .container {
+    text-align: center;
+}
+#estadisticas-animadas .stats-header h2 {
+    margin-bottom: 0.5rem;
+}
+#estadisticas-animadas .stats-header p {
+    color: var(--color-text-light);
+    max-width: 700px;
+    margin: 0 auto;
+}
+#estadisticas-animadas .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); 
+    gap: var(--space-md);
+    padding: 0 var(--space-md);
+}
+#estadisticas-animadas .stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--space-md) calc(var(--space-sm) * 1.5);
+}
+#estadisticas-animadas .stat-card .icon {
+    font-size: 3rem; 
+    margin-bottom: var(--space-sm);
+    display: block;
+}
+#estadisticas-animadas .stat-card h3.counter {
+    font-size: clamp(2.5rem, 6vw, 4rem); 
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+    transition: color var(--transition-speed);
+}
+#estadisticas-animadas .stat-card .label {
+    font-size: 1.1rem;
+    color: var(--color-text-dark);
+    margin: 0;
+    font-weight: 500;
+}
+#estadisticas-animadas .stat-card.card {
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+#estadisticas-animadas .stat-card.card:hover {
+    transform: translateY(-8px); 
+    box-shadow: var(--shadow-hover);
+}
+@media (max-width: 1024px) {
+#estadisticas-animadas .stats-grid {
+        grid-template-columns: repeat(2, 1fr); 
+    }
+}
+@media (max-width: 600px) {
+#estadisticas-animadas .stats-grid {
+        grid-template-columns: 1fr; 
+        gap: var(--space-sm);
+        padding: 0 var(--space-md);
+    }
+#estadisticas-animadas .stat-card h3.counter {
+        font-size: clamp(2rem, 8vw, 3rem);
+    }
+}
+
+  </style>
+</head>
+<body>
+  <header data-feature="R2" id="site-header">
+    <div class="container header-content">
+      <!-- Logo / Brand -->
+      <a href="#inicio" class="brand">TechSolutions <span style="color: var(--color-secondary);">Pro</span></a>
+  
+      <!-- Mobile Menu Toggle Button (Hamburger) -->
+      <button class="menu-toggle" aria-label="Toggle navigation menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+  
+      <!-- Navigation Bar -->
+      <nav id="main-nav">
+        <ul class="nav-list">
+          <li><a href="#inicio">Inicio</a></li>
+          <li><a href="#caracteristicas">Características</a></li>
+          <li><a href="#testimonios">Testimonios</a></li>
+          <li><a href="#estadisticas-animadas">Estadísticas animadas</a></li>
+          <li><a href="#contacto">Contacto</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main id="app">
+  <section data-feature="R1" id="inicio" class="hero-section">
+      <div class="container hero-content">
+          <!-- Área de Texto -->
+          <div class="text-area">
+              <h1 data-animate>Transforma tu negocio con la inteligencia artificial de vanguardia.</h1>
+              <p class="subtitle" data-animate>Nuestra plataforma unificada te permite automatizar procesos, analizar datos complejos y tomar decisiones estratégicas en tiempo real.</p>
+              <div class="cta-group" data-animate>
+                  <a href="#contacto" class="btn btn--primary cta-button">Solicitar Demo Gratuita 🚀</a>
+                  <a href="#caracteristicas" class="btn btn--secondary cta-button secondary-link">Ver Casos de Éxito →</a>
+              </div>
+          </div>
+          <!-- Área de Imagen/Ilustración -->
+          <div class="image-area" data-animate>
+              <!-- Placeholder para una ilustración principal que simula un dashboard IA -->
+              <svg width="100%" height="350" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Fondo degradado suave -->
+                  <rect width="100%" height="100%" fill="#e6f7ff" rx="15"/>
+                  <!-- Forma abstracta de datos o conexión -->
+                  <path d="M0 200 C 200 100, 800 300, 1200 200 L 1200 400 L 0 400 Z" fill="#cceeff"/>
+                  <!-- Elemento de IA central -->
+                  <circle cx="600" cy="250" r="80" fill="#4a90e2" opacity="0.7"/>
+                  <text x="50%" y="230" font-family="var(--font-family-base)" font-size="3rem" text-anchor="middle" fill="#4a90e2">🧠 IA Inteligente</text>
+              </svg>
+          </div>
+      </div>
+  </section>
+
+  <section data-feature="R3" id="caracteristicas">
+      <div class="container">
+          <header class="section-header text-center mb-lg">
+              <h2>Potencia y Diseño en Cada Detalle</h2>
+              <p class="subtitle">Descubre las funcionalidades que transformarán tu experiencia digital, diseñadas para la eficiencia y la belleza.</p>
+          </header>
+  
+          <div class="features-grid">
+              <!-- Feature Card 1 -->
+              <article class="card feature-card reveal" data-reveal-target>
+                  <div class="icon-container">🚀</div>
+                  <h3>Rendimiento Optimizado</h3>
+                  <p>Nuestro motor de procesamiento garantiza la máxima velocidad, sin importar el volumen de datos que manejes. Di adiós a los cuellos de botella.</p>
+              </article>
+  
+              <!-- Feature Card 2 -->
+              <article class="card feature-card reveal" data-reveal-target>
+                  <div class="icon-container">🎨</div>
+                  <h3>Interfaz Intuitiva</h3>
+                  <p>Diseñamos pensando en el usuario. Una navegación limpia y lógica te permite alcanzar tus objetivos con el mínimo esfuerzo.</p>
+              </article>
+  
+              <!-- Feature Card 3 -->
+              <article class="card feature-card reveal" data-reveal-target>
+                  <div class="icon-container">🛡️</div>
+                  <h3>Seguridad de Nivel Premium</h3>
+                  <p>Protegemos tu información con encriptación avanzada y protocolos de seguridad actualizados constantemente. Tu privacidad es nuestra prioridad.</p>
+              </article>
+  
+              <!-- Feature Card 4 -->
+              <article class="card feature-card reveal" data-reveal-target>
+                  <div class="icon-container">🌐</div>
+                  <h3>Compatibilidad Total</h3>
+                  <p>Funciona perfectamente en cualquier dispositivo, desde el escritorio más potente hasta el smartphone más compacto. Siempre listo para ti.</p>
+              </article>
+          </div>
+      </div>
+  </section>
+
+  <section data-feature="R3" id="testimonios">
+      <div class="container">
+          <header class="text-center mb-xl">
+              <h2>Lo que dicen nuestros clientes</h2>
+              <p class="lead text-lg">Descubre por qué líderes de la industria confían en nuestra solución para transformar sus negocios.</p>
+          </header>
+  
+          <div class="testimonial-grid mt-space-md" id="testimonios-container">
+              <!-- Testimonial Card 1 -->
+              <figure class="card testimonial-card fade-in-element">
+                  <blockquote class="quote-text">
+                      "Implementar esta plataforma fue la decisión más acertada de nuestro año. La curva de aprendizaje es mínima y el retorno de inversión fue visible en los primeros meses."
+                  </blockquote>
+                  <figcaption>
+                      <div class="avatar-wrapper">
+                          <!-- Placeholder for avatar -->
+                          <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 100 100" fill="none" stroke="#4a90e2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" class="avatar-icon">
+                              <circle cx="50" cy="50" r="45"></circle>
+                          </svg>
+                      </div>
+                      <div>
+                          <strong>Sofía Ramírez</strong>
+                          <small class="company-name">CEO, InnovaTech Solutions</small>
+                      </div>
+                  </figcaption>
+              </figure>
+  
+              <!-- Testimonial Card 2 -->
+              <figure class="card testimonial-card fade-in-element">
+                  <blockquote class="quote-text">
+                      "La interfaz es intuitiva y el soporte técnico excepcional. Nos permitió automatizar procesos que antes consumían horas de trabajo manual."
+                  </blockquote>
+                  <figcaption>
+                      <div class="avatar-wrapper">
+                          <!-- Placeholder for avatar -->
+                          <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 100 100" fill="none" stroke="#50e3c2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" class="avatar-icon">
+                              <circle cx="50" cy="50" r="45"></circle>
+                          </svg>
+                      </div>
+                      <div>
+                          <strong>Javier Montes</strong>
+                          <small class="company-name">Director de Operaciones, Global Logistics</small>
+                      </div>
+                  </figcaption>
+              </figure>
+  
+              <!-- Testimonial Card 3 -->
+              <figure class="card testimonial-card fade-in-element">
+                  <blockquote class="quote-text">
+                      "Estamos impresionados con la escalabilidad y el rendimiento. Desde que lo usamos, hemos podido manejar un volumen de transacciones mucho mayor sin fallos."
+                  </blockquote>
+                  <figcaption>
+                      <div class="avatar-wrapper">
+                          <!-- Placeholder for avatar -->
+                          <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 100 100" fill="none" stroke="#4a90e2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" class="avatar-icon">
+                              <circle cx="50" cy="50" r="45"></circle>
+                          </svg>
+                      </div>
+                      <div>
+                          <strong>Elena Vargas</strong>
+                          <small class="company-name">Gerente de Producto, Nexus Digital</small>
+                      </div>
+                  </figcaption>
+              </figure>
+  
+               <!-- Testimonial Card 4 (Optional extra for visual balance) -->
+              <figure class="card testimonial-card fade-in-element">
+                  <blockquote class="quote-text">
+                      "Un equipo de soporte increíble y una herramienta que realmente entiende las necesidades del mercado moderno. Recomendado al 100%."
+                  </blockquote>
+                  <figcaption>
+                      <div class="avatar-wrapper">
+                          <!-- Placeholder for avatar -->
+                          <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 100 100" fill="none" stroke="#50e3c2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" class="avatar-icon">
+                              <circle cx="50" cy="50" r="45"></circle>
+                          </svg>
+                      </div>
+                      <div>
+                          <strong>Ricardo Gómez</strong>
+                          <small class="company-name">Fundador, StartUp Futuro</small>
+                      </div>
+                  </figcaption>
+              </figure>
+  
+          </div>
+      </div>
+  </section>
+
+  <section data-feature="R3" id="estadisticas-animadas">
+      <div class="container">
+          <header class="stats-header text-center mb-lg">
+              <h2>Nuestros Resultados en Cifras</h2>
+              <p>Más de un año transformando negocios con tecnología punta y resultados comprobables.</p>
+          </header>
+  
+          <div class="stats-grid">
+              <!-- Estadística 1: Usuarios -->
+              <div class="stat-card card" data-metric="350000">
+                  <span class="icon">👥</span>
+                  <h3 class="counter" data-target="">0</h3>
+                  <p class="label">Usuarios Activos Globales</p>
+              </div>
+  
+              <!-- Estadística 2: Proyectos -->
+              <div class="stat-card card" data-metric="150">
+                  <span class="icon">🚀</span>
+                  <h3 class="counter" data-target="">0</h3>
+                  <p class="label">Proyectos Implementados</p>
+              </div>
+  
+              <!-- Estadística 3: Satisfacción -->
+              <div class="stat-card card" data-metric="98.5">
+                  <span class="icon">⭐</span>
+                  <h3 class="counter" data-target="">0</h3>
+                  <p class="label">Tasa de Satisfacción Promedio</p>
+              </div>
+  
+              <!-- Estadística 4: Ahorro -->
+              <div class="stat-card card" data-metric="2.1">
+                  <span class="icon">💰</span>
+                  <h3 class="counter" data-target="">0</h3>
+                  <p class="label">Años de Retorno de Inversión (ROI)</p>
+              </div>
+          </div>
+      </div>
+  </section>
+
+  <section id="contacto" data-feature="R3">
+    <h2>Contacto</h2>
+  </section>
+  </main>
+  <footer id="site-footer" data-feature="R4">
+    <p>Landing Page Ficticia</p>
+  </footer>
+<script data-file="api.js">
+// Capa de datos SIMULADA (backend mock). Los componentes usan solo window.api.
+window.api = window.api || {};
+
+// No se requiere ninguna función de API para este componente, solo manipulación del DOM y scroll.
+
+// No se requiere ninguna función API para este componente (solo visualización estática)
+
+// No se requieren nuevas funciones API para este componente.
+
+// No se requiere ninguna nueva funcionalidad de API para este componente.
+
+// No se requiere ninguna nueva funcionalidad o envío simulado para este componente.
+
+// No se requiere ninguna función de API simulada para este componente, 
+// ya que solo maneja datos estáticos y animaciones locales.
+
+
+</script>
+<script data-component="site-header">
+(function (root) {
+  if (!root) return;
+/**
+ * @param {HTMLElement} root - El elemento raíz del componente (#site-header).
+ */
+function initializeSiteHeader(root) {
+    const menuToggle = root.querySelector('.menu-toggle');
+    const mainNav = root.querySelector('#main-nav');
+
+    if (!menuToggle || !mainNav) return;
+
+    // 1. Funcionalidad de Toggle del Menú Móvil (Hamburger)
+    menuToggle.addEventListener('click', () => {
+        const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true' ? 'false' : 'true';
+        menuToggle.setAttribute('aria-expanded', isExpanded);
+
+        if (isExpanded === 'true') {
+            mainNav.classList.add('active');
+        } else {
+            mainNav.classList.remove('active');
+        }
+    });
+
+    // 2. Funcionalidad de Scroll Suave para Enlaces Internos
+    const navLinks = root.querySelectorAll('.nav-list a[href^="#"]');
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const targetId = e.currentTarget.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+
+            if (targetElement) {
+                // Si estamos en móvil y el menú está abierto, cerramos el menú después del click
+                if (window.innerWidth <= 992 && mainNav.classList.contains('active')) {
+                    mainNav.classList.remove('active');
+                    menuToggle.setAttribute('aria-expanded', 'false');
+                }
+
+                // Usamos scrollIntoView con comportamiento suave, aunque body ya lo tiene configurado
+                e.preventDefault(); 
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+}
+
+})(document.getElementById("site-header"));
+</script>
+<script data-component="inicio">
+(function (root) {
+  if (!root) return;
+/**
+ * @param {HTMLElement} root - El elemento raíz del componente (#inicio).
+ */
+function initializeInicio(root) {
+    // Función para manejar la animación de entrada al hacer scroll (R5)
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.2 // Se activa cuando el 20% del elemento es visible
+    };
+
+    /**
+     * IntersectionObserver que detecta cuándo la sección Hero entra en vista.
+     */
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Al detectar que el elemento está visible, añadimos una clase al root.
+                // Esta clase activa los estilos CSS de animación para todos los elementos con data-animate.
+                root.classList.add('data-visible'); 
+                observer.unobserve(entry.target); // Dejar de observar una vez activado
+            }
+        });
+    }, observerOptions);
+
+    // Observar el contenedor principal de la sección Hero (el root)
+    observer.observe(root);
+}
+
+})(document.getElementById("inicio"));
+</script>
+<script data-component="caracteristicas">
+(function (root) {
+  if (!root) return;
+/**
+ * Inicializa el Intersection Observer para animar las tarjetas de características
+ * cuando entran en la vista (Scroll Animation - R5).
+ */
+function initializeFeatureAnimations() {
+    const revealElements = document.querySelectorAll('.reveal');
+
+    if (!revealElements.length) return;
+
+    // Opción del observador: disparar cuando el elemento esté visible al 10% de su área
+    const options = {
+        root: null, 
+        rootMargin: '0px', 
+        threshold: 0.1 
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Si el elemento está visible, añade la clase para activar la animación CSS
+                entry.target.classList.add('is-visible');
+                // Deja de observar una vez que se ha animado
+                observer.unobserve(entry.target); 
+            }
+        });
+    }, options);
+
+    revealElements.forEach(element => {
+        observer.observe(element);
+    });
+}
+
+// Ejecutar la función al cargar el componente
+initializeFeatureAnimations();
+
+})(document.getElementById("caracteristicas"));
+</script>
+<script data-component="testimonios">
+(function (root) {
+  if (!root) return;
+/**
+ * Inicializa la animación de aparición al hacer scroll (Intersection Observer).
+ * Esto hace que los testimonios aparezcan suavemente cuando el usuario se desplaza hasta ellos.
+ */
+function initializeTestimonialAnimations() {
+    const elements = document.querySelectorAll('.fade-in-element');
+
+    if ('IntersectionObserver' in window) {
+        const observerOptions = {
+            root: null, // Observa respecto al viewport
+            rootMargin: '0px',
+            threshold: 0.1 // Se activa cuando el 10% del elemento es visible
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Cuando el elemento entra en vista, lo mostramos y detenemos la observación
+                    entry.target.style.opacity = 1;
+                    entry.target.style.transform = 'translateY(0)';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        elements.forEach(element => {
+            // Inicialmente, los elementos están ocultos y ligeramente desplazados (esto se maneja en CSS)
+            observer.observe(element);
+        });
+    } else {
+        // Fallback para navegadores antiguos: simplemente los mostramos
+        document.querySelectorAll('.fade-in-element').forEach(el => {
+             el.style.opacity = 1;
+        });
+    }
+}
+
+// Ejecutar la función de inicialización cuando el componente está listo
+initializeTestimonialAnimations();
+
+})(document.getElementById("testimonios"));
+</script>
+<script data-component="estadisticas-animadas">
+(function (root) {
+  if (!root) return;
+/**
+ * Función para animar el contador de un elemento dado su valor objetivo.
+ * @param {HTMLElement} element - El elemento H3 que debe contar.
+ * @param {number} targetValue - El valor final al que debe llegar (ej: 350000).
+ */
+const animateCounter = (element, targetValue) => {
+    let startTimestamp = null;
+
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const elapsed = timestamp - startTimestamp;
+        
+        // Calcular el valor actual basado en el tiempo transcurrido y la duración deseada.
+        // Usamos un factor de aceleración para que parezca más natural.
+        let progress = Math.min(1, elapsed / 2000); // Animación dura 2 segundos
+        let currentValue = Math.floor(progress * targetValue);
+
+        // Aplicar el valor al elemento
+        element.innerText = currentValue.toLocaleString('en-US');
+
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            // Asegurar que el valor final sea exacto
+            element.innerText = targetValue.toLocaleString('en-US');
+        }
+    };
+
+    window.requestAnimationFrame(step);
+};
+
+
+/**
+ * Inicializa la observación de elementos para animar las estadísticas al hacer scroll.
+ */
+const initializeStatsAnimation = () => {
+    // 1. Seleccionar todos los contenedores de tarjetas de estadística
+    const statCards = document.querySelectorAll('.stat-card');
+
+    // 2. Configurar el Intersection Observer
+    const observerOptions = {
+        root: null, // Observar respecto al viewport
+        rootMargin: '0px',
+        threshold: 0.3 // Se dispara cuando el 30% del elemento es visible
+    };
+
+    const observerCallback = (entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !entry.target.dataset.animated) {
+                const card = entry.target;
+                const counterElement = card.querySelector('.counter');
+                const metricValue = parseFloat(card.dataset.metric);
+
+                // Marcar la tarjeta como animada para evitar re-ejecuciones
+                card.dataset.animated = 'true'; 
+
+                if (isNaN(metricValue)) {
+                    console.error("Valor de métrica no encontrado en el atributo data-metric.");
+                    return;
+                }
+
+                // Determinar si es un número entero o decimal para formatear correctamente
+                let targetNumber;
+                if (card.dataset.metric.includes('.')) {
+                     targetNumber = metricValue * 100; // Multiplicamos por 100 y lo redondearemos después
+                } else {
+                    targetNumber = metricValue;
+                }
+
+                // Ejecutar la animación del contador
+                animateCounter(counterElement, targetNumber);
+            }
+        });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+    // 3. Observar cada tarjeta de estadística
+    statCards.forEach(card => {
+        observer.observe(card);
+    });
+};
+
+// Ejecutar la inicialización cuando el DOM esté completamente cargado
+document.addEventListener('DOMContentLoaded', initializeStatsAnimation);
+
+})(document.getElementById("estadisticas-animadas"));
+</script>
+</body>
+</html>

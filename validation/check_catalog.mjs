@@ -15,7 +15,7 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle } from "./form_runtime.mjs";
 
-export const CATALOG_VERSION = "check_catalog v0.5";
+export const CATALOG_VERSION = "check_catalog v0.5.1";
 
 // v0.5 (03/10): sections_visible — chequeo de BASE (lo corre el harness, no el
 // traductor). Evidencia: en Project22 v0.6.1 el hero y el contacto quedaron con
@@ -207,6 +207,12 @@ const SEEN_WORDS = (el) => {
       const c = getComputedStyle(a);
       if (c.display === "none" || c.visibility === "hidden" || c.visibility === "collapse") return false;
       op *= Number(c.opacity);
+      // v0.5.1: recortado por un ancestro con overflow (ej. nav con max-height:0 y overflow:hidden)
+      if (a !== e && c.overflow !== "visible" && (c.overflowX !== "visible" || c.overflowY !== "visible")) {
+        const q = a.getBoundingClientRect();
+        const w = Math.min(r.right, q.right) - Math.max(r.left, q.left), h = Math.min(r.bottom, q.bottom) - Math.max(r.top, q.top);
+        if (w < 1 || h < 1) return false;
+      }
     }
     return op >= 0.5;
   };

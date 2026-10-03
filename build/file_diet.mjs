@@ -131,7 +131,7 @@ export function planPrompt({ task, files, head, system, context = CONTEXT_TOKENS
 }
 
 // ---------- aplicar la respuesta ----------
-function findElementById(html, id) {
+export function findElementById(html, id) {
   const esc = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const open = new RegExp(`<([a-zA-Z][\\w-]*)\\b[^>]*\\bid="${esc}"[^>]*>`).exec(html);
   if (!open) return null;
@@ -147,7 +147,7 @@ function findElementById(html, id) {
 }
 
 // Elementos de primer nivel de un bloque HTML (saltea comentarios y espacios).
-function topLevelElements(block) {
+export function topLevelElements(block) {
   const out = [];
   let rest = block;
   for (;;) {

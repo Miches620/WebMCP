@@ -8,6 +8,7 @@
 //   node build/run_build.mjs ruta/al/snapshot.json            construye + valida
 //   node build/run_build.mjs --validate build/runs/<dir>       solo valida (usa build.json de esa carpeta)
 //   node build/run_build.mjs snapshot.json --resume build/runs/<dir>   retoma una construcción cortada (v0.3)
+//   node build/run_build.mjs snapshot.json --legacy    Specialist v0.6.1 (tareas del graph); por defecto v0.7 por componentes
 //   ... --validate build/runs/<dir> --retranslate   vuelve a traducir (el checks.json anterior queda archivado)
 //
 // El snapshot es el estado de webmcp (localStorage "webmcp_state") exportado a JSON:
@@ -19,6 +20,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync } from "
 import { join, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildSpa, skeleton, FILES, featureLabel } from "./specialist_spa.mjs";
+import { buildComponents, baselineHtml } from "./specialist_components.mjs";
 import { planPage, planText, PAGE_PLAN_VERSION } from "./page_plan.mjs";
 import { translateRequirement, anchorSections } from "../validation/check_translator.mjs";
 import { runChecks, normalizeCheck, CATALOG_VERSION } from "../validation/check_catalog.mjs";
@@ -76,7 +78,11 @@ if (args[0] === "--validate") {
     if (pagePlan) log(`[PLAN] ${PAGE_PLAN_VERSION}${pp.attempts.length > 1 ? " (con reintento)" : ""}\n${planText(pagePlan)}`);
     else log(`[PLAN] ✗ plan inválido (${pp.errors.join("; ")}) → esqueleto mínimo sin secciones`);
   }
-  specialist = await buildSpa(input, outDir, { log, forbidden, resume: !!resumeDir, pagePlan });
+  // v0.7 (03/10, decisión de Miche): Specialist por COMPONENTES desde el page plan.
+  // --legacy usa el Specialist v0.6.1 (tareas del graph sobre 4 archivos compartidos).
+  specialist = args.includes("--legacy") || !pagePlan
+    ? await buildSpa(input, outDir, { log, forbidden, resume: !!resumeDir, pagePlan })
+    : await buildComponents(input, outDir, { log, forbidden, resume: !!resumeDir, pagePlan });
   writeFileSync(join(outDir, "build.json"), JSON.stringify({ input, specialist }, null, 2));
 }
 
@@ -123,8 +129,12 @@ mkdirSync(baselineDir, { recursive: true });
 // (v0.5; null = plan inválido → mínimo), una sección por feature si es una corrida vieja.
 const planFile = join(outDir, "page_plan.json");
 const basePlan = existsSync(planFile) ? JSON.parse(readFileSync(planFile, "utf8")).plan : undefined;
-const base = skeleton(input.refined.project_name, input.refined.features || [], basePlan);
-for (const f of FILES) writeFileSync(join(baselineDir, f), base[f], "utf8");
+if (String(specialist?.specialist_version || "").includes("componentes")) {
+  writeFileSync(join(baselineDir, "index.html"), baselineHtml(input.refined, basePlan), "utf8");
+} else {
+  const base = skeleton(input.refined.project_name, input.refined.features || [], basePlan);
+  for (const f of FILES) writeFileSync(join(baselineDir, f), base[f], "utf8");
+}
 const baseline = join(baselineDir, "index.html");
 
 // Validation: un veredicto por requisito.

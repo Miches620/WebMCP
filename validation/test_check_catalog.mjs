@@ -64,6 +64,8 @@ const VIS_CASES = {
   visible_mal: ["FAIL", { R1: "FAIL", R2: "PASS", R3: "FAIL", R4: "FAIL" }],
   "real_p22_v05/index": ["PASS", { R1: "PASS", R2: "PASS", R3: "PASS", R4: "PASS" }],
   "real_p22_v061/index": ["FAIL", { R1: "FAIL", R2: "PASS", R3: "FAIL", R4: "PASS" }],
+  // v0.5.1: v0.7 real — hero sin llamar a su init (opacity:0) y nav recortado (max-height:0 + overflow:hidden en escritorio)
+  "real_p22_v07/index": ["FAIL", { R1: "FAIL", R2: "FAIL", R3: "PASS", R4: "PASS" }],
 };
 for (const [name, [exp, feats]] of Object.entries(VIS_CASES)) {
   const [r] = await runChecks(S(name), VIS);

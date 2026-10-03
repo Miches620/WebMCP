@@ -1,0 +1,101 @@
+#inicio {
+    padding: var(--space-xl) 0;
+    background-color: var(--color-bg-light);
+    overflow: hidden; 
+}
+#inicio .hero-content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: 0 var(--space-md);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+#inicio .text-area {
+    flex: 1;
+    min-width: 0; 
+    padding-right: var(--space-md);
+}
+#inicio .image-area {
+    flex: 1;
+    max-width: 50%;
+}
+#inicio h1 {
+    font-size: clamp(2.8rem, 6vw, 4.5rem); 
+    margin-bottom: var(--space-sm);
+    color: var(--color-dark-bg);
+}
+#inicio .subtitle {
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    max-width: 600px;
+    margin-bottom: var(--space-md);
+}
+#inicio .cta-group {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    margin-bottom: var(--space-lg);
+}
+#inicio .cta-button {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+@media (max-width: 992px) {
+#inicio .hero-content {
+        flex-direction: column; 
+        text-align: center;
+        padding: var(--space-md);
+    }
+#inicio .text-area {
+        padding-right: 0;
+        order: 1; 
+    }
+#inicio .image-area {
+        max-width: 100%;
+        order: 2;
+        margin-top: var(--space-md);
+    }
+#inicio h1 {
+        font-size: clamp(2rem, 8vw, 3rem);
+    }
+#inicio .subtitle {
+        max-width: none;
+        text-align: center;
+    }
+#inicio .cta-group {
+        justify-content: center; 
+    }
+}
+@media (max-width: 480px) {
+#inicio h1 {
+        font-size: clamp(2rem, 10vw, 2.5rem);
+    }
+#inicio .subtitle {
+        font-size: 1rem;
+    }
+#inicio .cta-group {
+        flex-direction: column; 
+        gap: var(--space-xs);
+    }
+#inicio .btn {
+        width: 100%; 
+        max-width: 300px;
+    }
+}
+#inicio [data-animate] {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity var(--transition-speed) ease-out, transform var(--transition-speed) ease-out;
+}
+#inicio .is-visible[data-animate] {
+    opacity: 1;
+    transform: translateY(0);
+}
+#inicio .text-area h1[data-animate], #inicio .subtitle[data-animate], #inicio .cta-group[data-animate], #inicio .image-area[data-animate] {
+    transition-delay: 0s; 
+}
+#inicio .text-area h1[data-animate] { transition-delay: 0ms; }
+#inicio .subtitle[data-animate] { transition-delay: 200ms; }
+#inicio .cta-group[data-animate] { transition-delay: 400ms; }
+#inicio .image-area[data-animate] { transition-delay: 600ms; }

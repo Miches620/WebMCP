@@ -1,0 +1,395 @@
+### FILE: componente.html
+```html
+<section id="contacto" class="py-xl bg-bg-light">
+    <div class="container">
+        <header class="text-center mb-md">
+            <h2>¿Listo para empezar? Hablemos de tu proyecto 🚀</h2>
+            <p class="lead text-lg">Estamos aquí para ayudarte a llevar tus ideas al siguiente nivel. Rellena el formulario y un experto se pondrá en contacto contigo.</p>
+        </header>
+
+        <div class="row mt-md justify-content-center">
+            <!-- Columna de Formulario -->
+            <div class="col-lg-6 contact-form-wrapper card p-md-space-md" data-animation-target>
+                <h3>Contáctanos Directamente</h3>
+                <form id="contactForm" novalidate>
+                    
+                    <!-- Mensaje de Feedback -->
+                    <div id="formFeedback" class="mb-md p-3 rounded text-center hidden"></div>
+
+                    <!-- Campo Nombre -->
+                    <div class="mb-space-sm form-group">
+                        <label for="name" class="block mb-2">Nombre Completo <span class="required">*</span></label>
+                        <input type="text" class="form-control" id="name" placeholder="Ej: Ana García" required aria-describedby="nameHelp">
+                    </div>
+
+                    <!-- Campo Email -->
+                    <div class="mb-space-sm form-group">
+                        <label for="email" class="block mb-2">Correo Electrónico <span class="required">*</span></label>
+                        <input type="email" class="form-control" id="email" placeholder="ejemplo@dominio.com" required aria-describedby="emailHelp">
+                    </div>
+
+                    <!-- Campo Interés/Asunto -->
+                    <div class="mb-space-sm form-group">
+                        <label for="subject" class="block mb-2">Área de Interés / Asunto <span class="required">*</span></label>
+                        <select class="form-control" id="subject" required aria-describedby="subjectHelp">
+                            <option value="" disabled selected>Selecciona el motivo del contacto</option>
+                            <option value="desarrollo_web">Desarrollo Web y Apps</option>
+                            <option value="consultoria_negocio">Consultoría de Negocios</option>
+                            <option value="soporte_tecnico">Soporte Técnico o Mantenimiento</option>
+                            <option value="otro">Otro tema</option>
+                        </select>
+                    </div>
+
+                    <!-- Campo Mensaje -->
+                    <div class="mb-space-md form-group">
+                        <label for="message" class="block mb-2">Mensaje / Detalles del Proyecto <span class="required">*</span></label>
+                        <textarea class="form-control" id="message" rows="5" placeholder="Cuéntanos más sobre lo que necesitas..." required></textarea>
+                    </div>
+
+                    <!-- Botón de Envío -->
+                    <button type="submit" class="btn btn--primary w-100 mt-md">Enviar Solicitud</button>
+                </form>
+            </div>
+
+            <!-- Columna de Información Adicional (Contacto Directo) -->
+            <div class="col-lg-6 contact-info-wrapper card p-md-space-md" data-animation-target>
+                <h3>¿Prefieres llamarnos?</h3>
+                <p class="mb-space-md">Nuestro equipo está listo para atenderte en el horario de oficina. ¡No dudes en escribirnos!</p>
+
+                <div class="contact-detail mb-space-sm p-md-space-xs border-bottom pb-space-sm">
+                    <span role="img" aria-label="Teléfono">📞</span>
+                    <h4 class="mt-xs">Teléfono</h4>
+                    <p class="text-xl font-semibold">+(34) 912 345 678</p>
+                </div>
+
+                <div class="contact-detail mb-space-sm p-md-space-xs border-bottom pb-space-sm">
+                    <span role="img" aria-label="Email">📧</span>
+                    <h4 class="mt-xs">Correo Electrónico</h4>
+                    <p class="text-xl font-semibold">contacto@michelab.com</p>
+                </div>
+
+                <div class="contact-detail p-md-space-xs">
+                    <span role="img" aria-label="Dirección">📍</span>
+                    <h4 class="mt-xs">Oficina Central</h4>
+                    <p class="text-xl font-semibold">Calle Innovación, 123, Madrid</p>
+                </div>
+
+                <!-- Botón de CTA secundario -->
+                <button type="button" class="btn btn--secondary w-full mt-md" onclick="document.getElementById('contactForm').reset()">Reiniciar Formulario</button>
+            </div>
+        </div>
+    </div>
+</section>
+```
+
+### FILE: componente.css
+```css
+/* Estilos generales de la sección */
+#contacto {
+    padding-top: var(--space-xl);
+    padding-bottom: var(--space-xl);
+}
+
+/* Contenedor principal para el layout (Grid/Flex) */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    justify-content: center; /* Centra los elementos en escritorio */
+}
+
+/* Estilos de la cabecera del contacto */
+#contacto h2 {
+    color: var(--color-text-dark);
+    margin-bottom: 0.5rem;
+}
+#contacto .lead {
+    font-size: 1.125rem; /* text-lg equivalent */
+    color: var(--color-text-light);
+    max-width: 800px;
+    margin: 0 auto var(--space-md);
+}
+
+/* Estilos del formulario y la información de contacto */
+.contact-form-wrapper, .contact-info-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Formulario Group Styling */
+.form-group {
+    margin-bottom: var(--space-sm);
+}
+
+label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.3rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: var(--space-xs) var(--space-sm);
+    border: 1px solid #ccc;
+    border-radius: var(--radius-sm);
+    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+/* Estilos de los detalles de contacto */
+.contact-detail {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.contact-detail h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--color-text-light);
+    font-weight: normal;
+}
+
+.contact-detail p {
+    margin: 0;
+    font-size: 1.25rem; /* text-xl equivalent */
+    font-weight: 600;
+}
+
+/* Feedback Message Styling */
+#formFeedback {
+    border: none;
+    padding: var(--space-sm) 0;
+    margin-bottom: var(--space-md);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Media Queries para Responsividad */
+@media (max-width: 768px) {
+    /* En móvil, las columnas deben ocupar el 100% del ancho */
+    .col-lg-6 {
+        flex: 1 1 100%; /* Hace que ambos wrappers ocupen todo el ancho */
+        max-width: 100%;
+    }
+
+    /* Ajustes de espaciado en móvil */
+    #contacto .container {
+        padding: 0 var(--space-sm);
+    }
+    
+    .contact-detail {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .contact-detail h4 {
+        margin-top: 0.3rem;
+    }
+}
+```
+
+### FILE: componente.js
+```javascript
+/**
+ * Maneja la lógica de animación al hacer scroll (Intersection Observer).
+ */
+function setupScrollAnimation() {
+    const targets = document.querySelectorAll('[data-animation-target]');
+
+    if (!targets.length) return;
+
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.15 // Se activa cuando el 15% del elemento es visible
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Mostrar el elemento al entrar en vista
+                entry.target.style.opacity = 1;
+                entry.target.style.transform = 'translateY(0)';
+                observer.unobserve(entry.target); // Detener la observación después de mostrarlo
+            }
+        });
+    }, observerOptions);
+
+    targets.forEach(target => {
+        // Inicialmente, ocultar y desplazar los elementos para el efecto de aparición
+        target.style.opacity = 0;
+        target.style.transform = 'translateY(20px)';
+        target.style.transition = 'all var(--transition-speed) ease-out';
+        observer.observe(target);
+    });
+}
+
+/**
+ * Valida el formulario de contacto antes del envío.
+ * @param {Event} e - El evento de submit.
+ * @returns {boolean} True si la validación es exitosa, False en caso contrario.
+ */
+function validateForm(e) {
+    const form = document.getElementById('contactForm');
+    const feedbackDiv = document.getElementById('formFeedback');
+    let isValid = true;
+
+    // Limpiar mensajes previos
+    feedbackDiv.innerHTML = '';
+    feedbackDiv.classList.add('hidden', 'bg-white', 'text-center');
+
+    // Obtener elementos del formulario
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const subjectSelect = document.getElementById('subject');
+    const messageTextarea = document.getElementById('message');
+
+    // Función de validación individual
+    const validateField = (input, requiredMessage) => {
+        if (!input.value.trim()) {
+            return false;
+        }
+        return true;
+    };
+
+    // 1. Validación de Nombre
+    if (!validateField(nameInput)) {
+        showFeedback('Por favor, ingresa tu nombre completo.', 'error');
+        isValid = false;
+    } else {
+        nameInput.classList.remove('is-invalid');
+    }
+
+    // 2. Validación de Email (Formato)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!validateField(emailInput) || !emailRegex.test(emailInput.value)) {
+        showFeedback('Por favor, ingresa un correo electrónico válido.', 'error');
+        isValid = false;
+    } else {
+        emailInput.classList.remove('is-invalid');
+    }
+
+    // 3. Validación de Asunto (Select)
+    if (!validateField(subjectSelect)) {
+        showFeedback('Por favor, selecciona un área de interés.', 'error');
+        isValid = false;
+    } else {
+        subjectSelect.classList.remove('is-invalid');
+    }
+
+    // 4. Validación de Mensaje
+    if (!validateField(messageTextarea)) {
+        showFeedback('Por favor, describe tu proyecto o consulta.', 'error');
+        isValid = false;
+    } else {
+        messageTextarea.classList.remove('is-invalid');
+    }
+
+    return isValid;
+}
+
+/**
+ * Muestra el mensaje de feedback en la sección de contacto.
+ * @param {string} message - El texto del mensaje a mostrar.
+ * @param {'success'|'error'} type - Tipo de mensaje para estilizarlo.
+ */
+function showFeedback(message, type) {
+    const feedbackDiv = document.getElementById('formFeedback');
+    feedbackDiv.innerHTML = `<p class="mb-0">${message}</p>`;
+    feedbackDiv.classList.remove('hidden', 'bg-error', 'text-red-700', 'bg-success', 'text-green-700');
+
+    if (type === 'success') {
+        feedbackDiv.classList.add('bg-success', 'text-green-700');
+    } else if (type === 'error') {
+        feedbackDiv.classList.add('bg-error', 'text-red-700');
+    }
+}
+
+
+// Event Listener principal para el formulario
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('contactForm');
+
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!validateForm(e)) {
+                // Si la validación falla, no hacemos nada más que mostrar el error
+                return;
+            }
+
+            const submitButton = form.querySelector('.btn--primary');
+            const originalText = submitButton.textContent;
+
+            // 1. Mostrar estado de carga y deshabilitar botón
+            showFeedback('Enviando tu solicitud...', 'loading');
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enviando...';
+
+            // 2. Recolectar datos
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                subject: document.getElementById('subject').value,
+                message: document.getElementById('message').value
+            };
+
+            try {
+                // 3. Simular envío API
+                const result = await window.api.submitContactForm(formData);
+
+                if (result.success) {
+                    showFeedback('✅ ¡Mensaje enviado con éxito! Nos pondremos en contacto contigo pronto.', 'success');
+                    form.reset(); // Limpiar el formulario visiblemente
+                } else {
+                    // Manejo de errores específicos del backend simulado
+                    showFeedback(`❌ Error al enviar: ${result.message || 'Intenta más tarde.'}`, 'error');
+                }
+
+            } catch (error) {
+                console.error("Error durante la simulación API:", error);
+                showFeedback('⚠️ Hubo un problema de conexión. Por favor, inténtalo de nuevo.', 'error');
+            } finally {
+                // 4. Restaurar estado del botón
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+            }
+        });
+    }
+
+    // Inicializar animaciones al cargar la página
+    setupScrollAnimation();
+});
+```
+
+### APPEND: api.js
+```javascript
+/**
+ * Simula el envío de un formulario de contacto a un backend.
+ * @param {object} data - Los datos del formulario (name, email, subject, message).
+ * @returns {Promise<{success: boolean, message?: string}>} Resultado de la operación.
+ */
+window.api.submitContactForm = async (data) => {
+    console.log("Simulando envío de datos:", data);
+
+    // Simulación de latencia de red
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    // Lógica de simulación: Asumimos éxito siempre para este ejercicio
+    if (data.email && data.message) {
+        return { success: true };
+    } else {
+        return { success: false, message: "Datos incompletos o inválidos." };
+    }
+};
+```

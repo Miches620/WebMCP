@@ -1,0 +1,176 @@
+### FILE: componente.html
+```html
+<section id="caracteristicas" data-feature="R3">
+    <div class="container">
+        <header class="section-header text-center mb-lg">
+            <h2>Potencia y Diseño en Cada Detalle</h2>
+            <p>Descubre las funcionalidades que harán de tu experiencia algo único e inolvidable.</p>
+        </header>
+
+        <div class="features-grid">
+            <!-- Feature Card 1 -->
+            <article class="card feature-card fade-in" data-animation-delay="0">
+                <div class="icon-wrapper">⚡</div>
+                <h3>Rendimiento Optimizado</h3>
+                <p>Disfruta de una velocidad sin precedentes. Nuestro motor avanzado garantiza que cada interacción sea fluida y rápida, sin latencia.</p>
+            </article>
+
+            <!-- Feature Card 2 -->
+            <article class="card feature-card fade-in" data-animation-delay="100">
+                <div class="icon-wrapper">🎨</div>
+                <h3>Interfaz Intuitiva</h3>
+                <p>Diseñado pensando en ti. Nuestra interfaz minimalista y elegante reduce la curva de aprendizaje, permitiéndote empezar a usarlo al instante.</p>
+            </article>
+
+            <!-- Feature Card 3 -->
+            <article class="card feature-card fade-in" data-animation-delay="200">
+                <div class="icon-wrapper">🛡️</div>
+                <h3>Seguridad de Nivel Premium</h3>
+                <p>Tus datos están protegidos con encriptación avanzada y protocolos de seguridad de última generación. Tranquilidad garantizada.</p>
+            </article>
+
+             <!-- Feature Card 4 (Extra for visual balance) -->
+            <article class="card feature-card fade-in" data-animation-delay="300">
+                <div class="icon-wrapper">🌍</div>
+                <h3>Compatibilidad Total</h3>
+                <p>Funciona perfectamente en cualquier dispositivo, desde tu smartphone hasta la estación de trabajo más potente. Siempre conectado.</p>
+            </article>
+
+        </div>
+    </div>
+</section>
+```
+
+### FILE: componente.css
+```css
+/* Estilos generales para el contenedor */
+#caracteristicas {
+    padding: var(--space-xl) 0;
+    background-color: var(--color-bg-light);
+}
+
+#caracteristicas .container {
+    max-width: 1200px;
+}
+
+/* Estilos del encabezado de la sección */
+.section-header {
+    margin-bottom: var(--space-lg);
+}
+
+.section-header h2 {
+    color: var(--color-text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.section-header p {
+    font-size: 1.1rem;
+    color: var(--color-text-light);
+}
+
+/* Grid de Características */
+.features-grid {
+    display: grid;
+    /* Configuración para escritorio (3 columnas) */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-md);
+}
+
+/* Estilos de la tarjeta individual */
+.feature-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    /* Usamos la clase .card que ya tiene el shadow y transition */
+}
+
+.feature-card h3 {
+    color: var(--color-primary);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.icon-wrapper {
+    font-size: 2.5rem; /* Tamaño del emoji/icono */
+    padding: var(--space-sm) 0;
+    background-color: rgba(74, 144, 226, 0.1);
+    border-radius: 50%;
+}
+
+/* Efecto Hover (R6) - Ya cubierto por .card:hover, pero reforzamos el contenido */
+.feature-card:hover h3 {
+    color: var(--color-secondary); /* Cambiar color al hacer hover */
+}
+
+/* Animación de entrada inicial (para JS) */
+.fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity var(--transition-speed) ease-out, transform var(--transition-speed) ease-out;
+}
+
+/* Clase activa que pondrá el JS */
+.visible {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: var(--animation-delay); /* Usamos el data attribute para retrasar la animación */
+}
+
+
+/* Media Query para dispositivos móviles (R8) */
+@media (max-width: 768px) {
+    .features-grid {
+        /* En móvil, forzamos una sola columna apilada */
+        grid-template-columns: 1fr;
+    }
+
+    .section-header h2 {
+        font-size: clamp(1.8rem, 6vw, 2.5rem);
+    }
+}
+```
+
+### FILE: componente.js
+```javascript
+/**
+ * Inicializa la observación de las características al hacer scroll (R5).
+ */
+function initializeFeaturesAnimation() {
+    const featureCards = document.querySelectorAll('.feature-card');
+
+    if (!featureCards.length) return;
+
+    // Usamos IntersectionObserver para detectar cuándo el componente entra en vista
+    const observerOptions = {
+        root: null, // Observa respecto al viewport
+        rootMargin: '0px',
+        threshold: 0.2 // Se activa cuando el 20% del elemento es visible
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // El componente está en vista, lo hacemos visible
+                entry.target.classList.add('visible');
+                // Dejamos de observar una vez que se ha animado
+                observer.unobserve(entry.target); 
+            }
+        });
+    }, observerOptions);
+
+    featureCards.forEach(card => {
+        // Observar cada tarjeta individualmente
+        observer.observe(card);
+    });
+}
+
+initializeFeaturesAnimation();
+```
+
+### APPEND: api.js
+```javascript
+// No se requieren nuevas llamadas a la API para este componente.
+```

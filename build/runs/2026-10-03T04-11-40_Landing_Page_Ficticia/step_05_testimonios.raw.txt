@@ -1,0 +1,229 @@
+### FILE: componente.html
+```html
+<section id="testimonios" data-feature="R3">
+  <div class="container">
+    <h2>Lo que dicen nuestros clientes</h2>
+    <p class="subtitle">Confía en la experiencia de quienes ya están transformando su negocio con nosotros.</p>
+
+    <div class="testimonial-grid">
+      <!-- Testimonio 1 -->
+      <figure class="testimonial-card fade-in-element" data-animation-delay="0.1s">
+        <blockquote>
+          <p>"Desde que implementamos la solución de MicheLab, hemos visto un aumento del 35% en nuestra eficiencia operativa. La interfaz es intuitiva y el soporte técnico es excepcional."</p>
+        </blockquote>
+        <figcaption class="author-info">
+          <div class="avatar">👩‍💼</div>
+          <span class="name">Laura Gómez</span>
+          <span class="title">Directora de Operaciones, TechCorp</span>
+        </figcaption>
+      </figure>
+
+      <!-- Testimonio 2 -->
+      <figure class="testimonial-card fade-in-element" data-animation-delay="0.2s">
+        <blockquote>
+          <p>"El proceso fue sorprendentemente sencillo. El equipo de MicheLab nos guio paso a paso y el resultado superó nuestras expectativas iniciales en calidad y funcionalidad."</p>
+        </blockquote>
+        <figcaption class="author-info">
+          <div class="avatar">👨‍💻</div>
+          <span class="name">Javier Ríos</span>
+          <span class="title">Gerente de Desarrollo, InnovaSoft</span>
+        </figcaption>
+      </figure>
+
+      <!-- Testimonio 3 -->
+      <figure class="testimonial-card fade-in-element" data-animation-delay="0.3s">
+        <blockquote>
+          <p>"La integración con nuestros sistemas heredados fue fluida y sin problemas. Es la herramienta que necesitábamos para modernizar nuestra infraestructura digital."</p>
+        </blockquote>
+        <figcaption class="author-info">
+          <div class="avatar">👩‍🔬</div>
+          <span class="name">Sofía Méndez</span>
+          <span class="title">Jefa de Tecnología, BioGen Corp</span>
+        </figcaption>
+      </figure>
+
+      <!-- Testimonio 4 -->
+      <figure class="testimonial-card fade-in-element" data-animation-delay="0.4s">
+        <blockquote>
+          <p>"Un servicio premium en cada detalle. El soporte es proactivo y nos hacen sentir que somos socios estratégicos, no solo clientes."</p>
+        </blockquote>
+        <figcaption class="author-info">
+          <div class="avatar">👨‍💼</div>
+          <span class="name">Ricardo Peña</span>
+          <span class="title">CEO, Global Solutions</span>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+```
+
+### FILE: componente.css
+```css
+#testimonios {
+    padding: var(--space-xl) 0;
+    background-color: var(--color-bg-light);
+}
+
+#testimonios .container {
+    text-align: center;
+}
+
+#testimonios h2 {
+    margin-bottom: 0.5rem;
+}
+
+#testimonios .subtitle {
+    font-size: 1.2rem;
+    color: var(--color-text-light);
+    max-width: 700px;
+    margin: 0 auto var(--space-md) auto;
+}
+
+/* Grid Layout */
+.testimonial-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-md);
+    margin-top: var(--space-lg);
+}
+
+/* Testimonial Card Styling */
+.testimonial-card {
+    background-color: var(--color-white);
+    padding: var(--space-md) calc(var(--space-md) * 1.5);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    transition: all var(--transition-speed) ease;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Hover Effect (R6) */
+.testimonial-card:hover {
+    transform: translateY(-8px); 
+    box-shadow: var(--shadow-hover);
+}
+
+/* Blockquote Styling */
+blockquote {
+    margin: 0 0 var(--space-md) 0;
+    padding-left: 1.5rem;
+    border-left: 4px solid var(--color-secondary);
+    font-style: italic;
+    color: #555;
+}
+
+blockquote p {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+/* Author Info Styling */
+.author-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-top: auto; /* Push author info to the bottom */
+}
+
+.avatar {
+    font-size: 2rem;
+}
+
+.name {
+    font-weight: 700;
+    color: var(--color-primary);
+    display: block;
+}
+
+.title {
+    font-size: 0.95rem;
+    color: var(--color-text-light);
+}
+
+
+/* Animation States (R5) */
+/* Initial state: hidden and slightly moved down */
+.fade-in-element {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+/* Visible state (triggered by JS) */
+.visible {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: var(--animation-delay); /* Use data attribute delay */
+}
+
+
+/* Responsive Design (R8) */
+@media (max-width: 768px) {
+    #testimonios {
+        padding: var(--space-xl) 0;
+    }
+
+    .testimonial-grid {
+        gap: var(--space-sm);
+        grid-template-columns: 1fr; /* Single column on mobile */
+    }
+
+    .testimonial-card {
+        padding: var(--space-md) calc(var(--space-md) * 1.2);
+    }
+}
+```
+
+### FILE: componente.js
+```javascript
+/**
+ * Inicializa el Intersection Observer para animar los testimonios al hacer scroll (R5).
+ */
+function initializeTestimonialsAnimation() {
+    const root = document.getElementById('testimonios');
+    if (!root) return;
+
+    // Selecciona todos los elementos que deben animarse
+    const elementsToObserve = root.querySelectorAll('.fade-in-element');
+
+    /**
+     * Callback ejecutado cuando el elemento entra en la vista.
+     * @param {IntersectionObserverEntry[]} entries - Array de entradas observadas.
+     */
+    const observerCallback = (entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Añadir la clase 'visible' para activar las transiciones CSS
+                entry.target.classList.add('visible');
+                
+                // Detener la observación una vez que se ha animado
+                observer.unobserve(entry.target);
+            }
+        });
+    };
+
+    // Configuración del observador: dispara cuando el elemento está visible (0.1)
+    const observerOptions = {
+        root: null, 
+        rootMargin: '0px', 
+        threshold: 0.2 // Se considera visible si el 20% está en la vista
+    };
+
+    // Crear y ejecutar el observador
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+    elementsToObserve.forEach(element => {
+        observer.observe(element);
+    });
+}
+
+initializeTestimonialsAnimation();
+```
+
+### APPEND: api.js
+```javascript
+// No se requiere ninguna función de API para este componente.
+```

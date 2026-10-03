@@ -1,0 +1,194 @@
+### FILE: tokens.css
+```css
+/* ========================================= */
+/* 🎨 COLOR PALETTE & VARIABLES (:root)      */
+/* Define global variables for consistency   */
+/* ========================================= */
+:root {
+    /* Typography */
+    --font-family-base: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+    /* Colors */
+    /* Primary Brand Color (Action/Highlight) */
+    --color-primary: #4a90e2; 
+    /* Secondary Accent Color (Subtle highlights) */
+    --color-secondary: #50e3c2; 
+    /* Backgrounds */
+    --color-white: #ffffff;
+    --color-bg-light: #f8f9fa; /* Light gray for section separation */
+    --color-dark-bg: #1a202c;  /* Dark background (e.g., footer) */
+    /* Text Colors */
+    --color-text-dark: #333333; 
+    --color-text-light: #6c757d;
+
+    /* Spacing & Sizing (Using an 8px grid system) */
+    --space-xs: 0.5rem;
+    --space-sm: 1rem;
+    --space-md: 2rem;
+    --space-lg: 4rem;
+    --space-xl: 6rem;
+
+    /* Borders, Radii & Shadows */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 12px 32px rgba(74, 144, 226, 0.2);
+
+    /* Transitions */
+    --transition-speed: 0.3s;
+}
+
+/* ========================================= */
+/* 📐 RESET & BASE STYLES                    */
+/* Global resets and base element styling     */
+/* ========================================= */
+
+/* Box Model Reset */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* Body Styling */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family-base);
+    line-height: 1.6;
+    color: var(--color-text-dark);
+    background-color: var(--color-white);
+    /* Enables smooth scrolling for internal links */
+    scroll-behavior: smooth; 
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block; /* Ensures images behave well in layouts */
+}
+
+/* ========================================= */
+/* 📝 TYPOGRAPHY STYLES                      */
+/* Headings, Paragraphs, Links               */
+/* ========================================= */
+
+/* Títulos (H1 - H3) */
+h1, h2, h3 {
+    color: var(--color-text-dark);
+    line-height: 1.2;
+    margin-top: 0;
+}
+
+h1 {
+    font-size: clamp(2.5rem, 5vw, 4rem); /* Responsive sizing */
+    margin-bottom: var(--space-sm);
+}
+
+h2 {
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    margin-bottom: var(--space-md);
+    color: var(--color-primary); /* Use primary color for section titles */
+}
+
+h3 {
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
+    margin-bottom: var(--space-sm);
+}
+
+/* Párrafos */
+p {
+    margin-bottom: var(--space-md);
+    font-size: 1rem;
+}
+
+/* Enlaces (Links) */
+a {
+    color: var(--color-primary);
+    text-decoration: none; /* Remove default underline */
+    transition: color var(--transition-speed);
+    cursor: pointer;
+}
+
+a:hover {
+    color: var(--color-secondary); /* Change color on hover for feedback */
+    text-decoration: underline;
+}
+
+
+/* ========================================= */
+/* 🚀 INTERACTIVE COMPONENTS                 */
+/* Buttons and Containers                   */
+/* ========================================= */
+
+/**
+ * Botón de Llamada a la Acción (.btn)
+ * Estilo base, hover y transición.
+ */
+.btn {
+    display: inline-block;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-speed) cubic-bezier(0.25, 0.8, 0.25, 1); /* Smooth transition */
+    border: none;
+}
+
+/* Estilo por defecto del botón principal */
+.btn--primary {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
+}
+
+/* Estado Hover del botón principal */
+.btn--primary:hover {
+    background-color: #3a7bd5; /* Slightly darker primary color */
+    transform: translateY(-2px) scale(1.02); /* Lift and slight enlargement */
+    box-shadow: var(--shadow-hover);
+}
+
+/* Estilo para botones secundarios (ej. enlaces dentro de tarjetas) */
+.btn--secondary {
+    background-color: transparent;
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+}
+
+.btn--secondary:hover {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+
+/**
+ * Contenedor Principal (.container)
+ * Limita el ancho máximo y centra el contenido.
+ */
+.container {
+    width: 100%;
+    max-width: 1200px; /* Max width for desktop readability */
+    margin: 0 auto; /* Centers the container horizontally */
+    padding: 0 var(--space-md); /* Padding on sides for mobile responsiveness */
+}
+
+/* ========================================= */
+/* ✨ UTILITY CLASSES (For Cards/Layouts)   */
+/* Used to give structure to components.     */
+/* ========================================= */
+
+/* Clase para tarjetas de contenido (ej. características, testimonios) */
+.card {
+    background-color: var(--color-white);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+/* Efecto hover para tarjetas */
+.card:hover {
+    transform: translateY(-5px); /* Subtle lift effect */
+    box-shadow: var(--shadow-hover);
+}
+```

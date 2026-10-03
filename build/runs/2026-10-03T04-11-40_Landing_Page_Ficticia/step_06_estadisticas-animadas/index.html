@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Landing Page Ficticia</title>
+  <style>
+/* ===== tokens.css (global) ===== */
+:root {
+    
+    --font-family-base: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+    
+    
+    --color-primary: #4a90e2; 
+    
+    --color-secondary: #50e3c2; 
+    
+    --color-white: #ffffff;
+    --color-bg-light: #f8f9fa; 
+    --color-dark-bg: #1a202c;  
+    
+    --color-text-dark: #333333; 
+    --color-text-light: #6c757d;
+
+    
+    --space-xs: 0.5rem;
+    --space-sm: 1rem;
+    --space-md: 2rem;
+    --space-lg: 4rem;
+    --space-xl: 6rem;
+
+    
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 12px 32px rgba(74, 144, 226, 0.2);
+
+    
+    --transition-speed: 0.3s;
+}
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family-base);
+    line-height: 1.6;
+    color: var(--color-text-dark);
+    background-color: var(--color-white);
+    
+    scroll-behavior: smooth; 
+}
+img {
+    max-width: 100%;
+    height: auto;
+    display: block; 
+}
+h1, h2, h3 {
+    color: var(--color-text-dark);
+    line-height: 1.2;
+    margin-top: 0;
+}
+h1 {
+    font-size: clamp(2.5rem, 5vw, 4rem); 
+    margin-bottom: var(--space-sm);
+}
+h2 {
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    margin-bottom: var(--space-md);
+    color: var(--color-primary); 
+}
+h3 {
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
+    margin-bottom: var(--space-sm);
+}
+p {
+    margin-bottom: var(--space-md);
+    font-size: 1rem;
+}
+a {
+    color: var(--color-primary);
+    text-decoration: none; 
+    transition: color var(--transition-speed);
+    cursor: pointer;
+}
+a:hover {
+    color: var(--color-secondary); 
+    text-decoration: underline;
+}
+.btn {
+    display: inline-block;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-speed) cubic-bezier(0.25, 0.8, 0.25, 1); 
+    border: none;
+}
+.btn--primary {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
+}
+.btn--primary:hover {
+    background-color: #3a7bd5; 
+    transform: translateY(-2px) scale(1.02); 
+    box-shadow: var(--shadow-hover);
+}
+.btn--secondary {
+    background-color: transparent;
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+}
+.btn--secondary:hover {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+.container {
+    width: 100%;
+    max-width: 1200px; 
+    margin: 0 auto; 
+    padding: 0 var(--space-md); 
+}
+.card {
+    background-color: var(--color-white);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+.card:hover {
+    transform: translateY(-5px); 
+    box-shadow: var(--shadow-hover);
+}
+
+/* ===== componente #site-header ===== */
+#site-header {
+    position: sticky; 
+    top: 0;
+    z-index: 1000; 
+    background-color: var(--color-white);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: var(--space-sm) 0;
+}
+#site-header .header-content {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    padding: 0 var(--space-md);
+}
+#site-header .brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-dark-bg);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+#site-header .main-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex; 
+    gap: var(--space-md);
+}
+#site-header .main-nav li a {
+    color: var(--color-text-dark);
+    padding: 0.5rem 0;
+    display: block;
+    font-weight: 500;
+    transition: color var(--transition-speed), transform var(--transition-speed);
+}
+#site-header .main-nav li a:hover {
+    color: var(--color-primary); 
+    text-decoration: none;
+    transform: translateY(-2px);
+}
+#site-header .menu-toggle {
+    display: none; 
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    z-index: 1010;
+}
+#site-header .menu-toggle span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--color-text-dark);
+    margin: 5px auto;
+    transition: all 0.3s ease-in-out;
+}
+@media (max-width: 992px) {
+#site-header .menu-toggle {
+        display: block;
+    }
+#site-header .main-nav {
+        position: absolute;
+        top: 100%; 
+        left: 0;
+        width: 100%;
+        background-color: var(--color-white);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-in-out;
+    }
+#site-header .main-nav.active {
+        max-height: 300px; 
+        padding: var(--space-md) 0;
+    }
+#site-header .main-nav ul {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem; 
+        padding: 0 var(--space-md);
+    }
+#site-header .header-content {
+        padding: 0 var(--space-sm);
+    }
+}
+
+/* ===== componente #inicio ===== */
+#inicio {
+    padding: var(--space-xl) 0;
+    background-color: var(--color-bg-light);
+    overflow: hidden; 
+}
+#inicio .hero-content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: 0 var(--space-md);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+#inicio .text-area {
+    flex: 1;
+    min-width: 0; 
+    padding-right: var(--space-md);
+}
+#inicio .image-area {
+    flex: 1;
+    max-width: 50%;
+}
+#inicio h1 {
+    font-size: clamp(2.8rem, 6vw, 4.5rem); 
+    margin-bottom: var(--space-sm);
+    color: var(--color-dark-bg);
+}
+#inicio .subtitle {
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    max-width: 600px;
+    margin-bottom: var(--space-md);
+}
+#inicio .cta-group {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    margin-bottom: var(--space-lg);
+}
+#inicio .cta-button {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+@media (max-width: 992px) {
+#inicio .hero-content {
+        flex-direction: column; 
+        text-align: center;
+        padding: var(--space-md);
+    }
+#inicio .text-area {
+        padding-right: 0;
+        order: 1; 
+    }
+#inicio .image-area {
+        max-width: 100%;
+        order: 2;
+        margin-top: var(--space-md);
+    }
+#inicio h1 {
+        font-size: clamp(2rem, 8vw, 3rem);
+    }
+#inicio .subtitle {
+        max-width: none;
+        text-align: center;
+    }
+#inicio .cta-group {
+        justify-content: center; 
+    }
+}
+@media (max-width: 480px) {
+#inicio h1 {
+        font-size: clamp(2rem, 10vw, 2.5rem);
+    }
+#inicio .subtitle {
+        font-size: 1rem;
+    }
+#inicio .cta-group {
+        flex-direction: column; 
+        gap: var(--space-xs);
+    }
+#inicio .btn {
+        width: 100%; 
+        max-width: 300px;
+    }
+}
+#inicio [data-animate] {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity var(--transition-speed) ease-out, transform var(--transition-speed) ease-out;
+}
+#inicio .is-visible[data-animate] {
+    opacity: 1;
+    transform: translateY(0);
+}
+#inicio .text-area h1[data-animate], #inicio .subtitle[data-animate], #inicio .cta-group[data-animate], #inicio .image-area[data-animate] {
+    transition-delay: 0s; 
+}
+#inicio .text-area h1[data-animate] { transition-delay: 0ms; }
+#inicio .subtitle[data-animate] { transition-delay: 200ms; }
+#inicio .cta-group[data-animate] { transition-delay: 400ms; }
+#inicio .image-area[data-animate] { transition-delay: 600ms; }
+
+/* ===== componente #caracteristicas ===== */
+#caracteristicas {
+    padding: var(--space-xl) 0;
+    background-color: var(--color-bg-light);
+}
+#caracteristicas .container {
+    max-width: 1200px;
+}
+#caracteristicas .section-header {
+    margin-bottom: var(--space-lg);
+}
+#caracteristicas .section-header h2 {
+    color: var(--color-text-dark);
+    margin-bottom: 0.5rem;
+}
+#caracteristicas .section-header p {
+    font-size: 1.1rem;
+    color: var(--color-text-light);
+}
+#caracteristicas .features-grid {
+    display: grid;
+    
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-md);
+}
+#caracteristicas .feature-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    
+}
+#caracteristicas .feature-card h3 {
+    color: var(--color-primary);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+#caracteristicas .icon-wrapper {
+    font-size: 2.5rem; 
+    padding: var(--space-sm) 0;
+    background-color: rgba(74, 144, 226, 0.1);
+    border-radius: 50%;
+}
+#caracteristicas .feature-card:hover h3 {
+    color: var(--color-secondary); 
+}
+#caracteristicas .fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity var(--transition-speed) ease-out, transform var(--transition-speed) ease-out;
+}
+#caracteristicas .visible {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: var(--animation-delay); 
+}
+@media (max-width: 768px) {
+#caracteristicas .features-grid {
+        
+        grid-template-columns: 1fr;
+    }
+#caracteristicas .section-header h2 {
+        font-size: clamp(1.8rem, 6vw, 2.5rem);
+    }
+}
+
+/* ===== componente #testimonios ===== */
+#testimonios {
+    padding: var(--space-xl) 0;
+    background-color: var(--color-bg-light);
+}
+#testimonios .container {
+    text-align: center;
+}
+#testimonios h2 {
+    margin-bottom: 0.5rem;
+}
+#testimonios .subtitle {
+    font-size: 1.2rem;
+    color: var(--color-text-light);
+    max-width: 700px;
+    margin: 0 auto var(--space-md) auto;
+}
+#testimonios .testimonial-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-md);
+    margin-top: var(--space-lg);
+}
+#testimonios .testimonial-card {
+    background-color: var(--color-white);
+    padding: var(--space-md) calc(var(--space-md) * 1.5);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    transition: all var(--transition-speed) ease;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+}
+#testimonios .testimonial-card:hover {
+    transform: translateY(-8px); 
+    box-shadow: var(--shadow-hover);
+}
+#testimonios blockquote {
+    margin: 0 0 var(--space-md) 0;
+    padding-left: 1.5rem;
+    border-left: 4px solid var(--color-secondary);
+    font-style: italic;
+    color: #555;
+}
+#testimonios blockquote p {
+    margin: 0;
+    font-size: 1.1rem;
+}
+#testimonios .author-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-top: auto; 
+}
+#testimonios .avatar {
+    font-size: 2rem;
+}
+#testimonios .name {
+    font-weight: 700;
+    color: var(--color-primary);
+    display: block;
+}
+#testimonios .title {
+    font-size: 0.95rem;
+    color: var(--color-text-light);
+}
+#testimonios .fade-in-element {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+#testimonios .visible {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: var(--animation-delay); 
+}
+@media (max-width: 768px) {
+#testimonios {
+        padding: var(--space-xl) 0;
+    }
+#testimonios .testimonial-grid {
+        gap: var(--space-sm);
+        grid-template-columns: 1fr; 
+    }
+#testimonios .testimonial-card {
+        padding: var(--space-md) calc(var(--space-md) * 1.2);
+    }
+}
+
+/* ===== componente #estadisticas-animadas ===== */
+#estadisticas-animadas {
+    padding: var(--space-xl) 0;
+    background-color: var(--color-bg-light);
+}
+#estadisticas-animadas .container {
+    text-align: center;
+}
+#estadisticas-animadas header h2 {
+    margin-bottom: 0.5rem;
+    color: var(--color-dark-bg); 
+}
+#estadisticas-animadas header .subtitle {
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--space-md);
+}
+#estadisticas-animadas .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-lg);
+    margin-top: var(--space-md);
+}
+#estadisticas-animadas .stat-card {
+    background-color: var(--color-white);
+    padding: var(--space-md) calc(var(--space-sm) * 1.5);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    transition: all var(--transition-speed) ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#estadisticas-animadas .reveal-item {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease;
+}
+#estadisticas-animadas .reveal-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+#estadisticas-animadas .stat-card .icon {
+    font-size: 3rem;
+    margin-bottom: var(--space-sm);
+    display: block;
+}
+#estadisticas-animadas .stat-card .number {
+    font-size: clamp(2.5rem, 6vw, 4rem); 
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: var(--space-sm);
+}
+#estadisticas-animadas .stat-card .label {
+    font-size: 1.1rem;
+    color: var(--color-text-light);
+    margin: 0;
+    padding-top: var(--space-xs);
+}
+@media (max-width: 768px) {
+#estadisticas-animadas .stats-grid {
+        gap: var(--space-md);
+    }
+#estadisticas-animadas .stat-card {
+        padding: var(--space-sm) calc(var(--space-xs) * 1.5);
+    }
+#estadisticas-animadas .stat-card .number {
+        font-size: clamp(2rem, 8vw, 3rem);
+    }
+}
+
+  </style>
+</head>
+<body>
+  <header data-feature="R2" id="site-header">
+      <div class="container header-content">
+          <!-- Logo/Brand -->
+          <a href="#inicio" class="brand">TechSolutions Pro</a>
+          
+          <!-- Botón de menú hamburguesa para móvil -->
+          <button class="menu-toggle" aria-label="Abrir menú de navegación">
+              <span></span>
+              <span></span>
+              <span></span>
+          </button>
+  
+          <!-- Navegación principal (visible en escritorio) -->
+          <nav class="main-nav" id="main-nav">
+              <ul>
+                  <li><a href="#inicio">Inicio</a></li>
+                  <li><a href="#caracteristicas">Características</a></li>
+                  <li><a href="#testimonios">Testimonios</a></li>
+                  <li><a href="#estadisticas-animadas">Estadísticas</a></li>
+                  <li><a href="#contacto">Contacto</a></li>
+              </ul>
+          </nav>
+      </div>
+  </header>
+  <main id="app">
+  <section data-feature="R1" id="inicio" class="hero-section">
+      <div class="container hero-content">
+          <div class="text-area">
+              <h1 data-animate>Potencia tu productividad con NexusFlow</h1>
+              <p class="subtitle" data-animate>La suite de inteligencia artificial que optimiza tus flujos de trabajo, automatiza tareas repetitivas y te devuelve tiempo para lo que realmente importa.</p>
+              <div class="cta-group" data-animate>
+                  <a href="#caracteristicas" class="btn btn--primary cta-button">Empezar Prueba Gratuita 🚀</a>
+                  <a href="#contacto" class="btn btn--secondary cta-button secondary-link">Ver Demo Completa ✨</a>
+              </div>
+          </div>
+          <div class="image-area" data-animate>
+              <!-- Placeholder para una imagen de producto o interfaz -->
+              <svg width="100%" height="350px" viewBox="0 0 1200 350" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="100%" height="100%" fill="#e6f7ff" rx="15"/>
+                  <path d="M0 0 L1200 0 L1200 350 L0 350 Z" />
+                  <!-- Simulación de interfaz con elementos flotantes -->
+                  <circle cx="200" cy="150" r="40" fill="#a8d6ff" opacity="0.7"/>
+                  <rect x="400" y="80" width="300" height="150" rx="10" fill="#cceeff" opacity="0.8"/>
+                  <path d="M20 300 C 150 250, 350 280, 400 300 L400 350 L0 350 Z" fill="#b3e0ff" opacity="0.6"/>
+                  <text x="700" y="190" font-family="var(--font-family-base)" font-size="24px" fill="#4a90e2">Inteligencia Artificial en Acción</text>
+              </svg>
+          </div>
+      </div>
+  </section>
+
+  <section data-feature="R3" id="caracteristicas">
+      <div class="container">
+          <header class="section-header text-center mb-lg">
+              <h2>Potencia y Diseño en Cada Detalle</h2>
+              <p>Descubre las funcionalidades que harán de tu experiencia algo único e inolvidable.</p>
+          </header>
+  
+          <div class="features-grid">
+              <!-- Feature Card 1 -->
+              <article class="card feature-card fade-in" data-animation-delay="0">
+                  <div class="icon-wrapper">⚡</div>
+                  <h3>Rendimiento Optimizado</h3>
+                  <p>Disfruta de una velocidad sin precedentes. Nuestro motor avanzado garantiza que cada interacción sea fluida y rápida, sin latencia.</p>
+              </article>
+  
+              <!-- Feature Card 2 -->
+              <article class="card feature-card fade-in" data-animation-delay="100">
+                  <div class="icon-wrapper">🎨</div>
+                  <h3>Interfaz Intuitiva</h3>
+                  <p>Diseñado pensando en ti. Nuestra interfaz minimalista y elegante reduce la curva de aprendizaje, permitiéndote empezar a usarlo al instante.</p>
+              </article>
+  
+              <!-- Feature Card 3 -->
+              <article class="card feature-card fade-in" data-animation-delay="200">
+                  <div class="icon-wrapper">🛡️</div>
+                  <h3>Seguridad de Nivel Premium</h3>
+                  <p>Tus datos están protegidos con encriptación avanzada y protocolos de seguridad de última generación. Tranquilidad garantizada.</p>
+              </article>
+  
+               <!-- Feature Card 4 (Extra for visual balance) -->
+              <article class="card feature-card fade-in" data-animation-delay="300">
+                  <div class="icon-wrapper">🌍</div>
+                  <h3>Compatibilidad Total</h3>
+                  <p>Funciona perfectamente en cualquier dispositivo, desde tu smartphone hasta la estación de trabajo más potente. Siempre conectado.</p>
+              </article>
+  
+          </div>
+      </div>
+  </section>
+
+  <section data-feature="R3" id="testimonios">
+    <div class="container">
+      <h2>Lo que dicen nuestros clientes</h2>
+      <p class="subtitle">Confía en la experiencia de quienes ya están transformando su negocio con nosotros.</p>
+  
+      <div class="testimonial-grid">
+        <!-- Testimonio 1 -->
+        <figure class="testimonial-card fade-in-element" data-animation-delay="0.1s">
+          <blockquote>
+            <p>"Desde que implementamos la solución de MicheLab, hemos visto un aumento del 35% en nuestra eficiencia operativa. La interfaz es intuitiva y el soporte técnico es excepcional."</p>
+          </blockquote>
+          <figcaption class="author-info">
+            <div class="avatar">👩‍💼</div>
+            <span class="name">Laura Gómez</span>
+            <span class="title">Directora de Operaciones, TechCorp</span>
+          </figcaption>
+        </figure>
+  
+        <!-- Testimonio 2 -->
+        <figure class="testimonial-card fade-in-element" data-animation-delay="0.2s">
+          <blockquote>
+            <p>"El proceso fue sorprendentemente sencillo. El equipo de MicheLab nos guio paso a paso y el resultado superó nuestras expectativas iniciales en calidad y funcionalidad."</p>
+          </blockquote>
+          <figcaption class="author-info">
+            <div class="avatar">👨‍💻</div>
+            <span class="name">Javier Ríos</span>
+            <span class="title">Gerente de Desarrollo, InnovaSoft</span>
+          </figcaption>
+        </figure>
+  
+        <!-- Testimonio 3 -->
+        <figure class="testimonial-card fade-in-element" data-animation-delay="0.3s">
+          <blockquote>
+            <p>"La integración con nuestros sistemas heredados fue fluida y sin problemas. Es la herramienta que necesitábamos para modernizar nuestra infraestructura digital."</p>
+          </blockquote>
+          <figcaption class="author-info">
+            <div class="avatar">👩‍🔬</div>
+            <span class="name">Sofía Méndez</span>
+            <span class="title">Jefa de Tecnología, BioGen Corp</span>
+          </figcaption>
+        </figure>
+  
+        <!-- Testimonio 4 -->
+        <figure class="testimonial-card fade-in-element" data-animation-delay="0.4s">
+          <blockquote>
+            <p>"Un servicio premium en cada detalle. El soporte es proactivo y nos hacen sentir que somos socios estratégicos, no solo clientes."</p>
+          </blockquote>
+          <figcaption class="author-info">
+            <div class="avatar">👨‍💼</div>
+            <span class="name">Ricardo Peña</span>
+            <span class="title">CEO, Global Solutions</span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section data-feature="R3" id="estadisticas-animadas">
+      <div class="container">
+          <header>
+              <h2>Nuestro Impacto Global</h2>
+              <p class="subtitle">Con números que hablan por sí mismos y un compromiso con la excelencia.</p>
+          </header>
+  
+          <div class="stats-grid">
+              <!-- Estadística 1: Usuarios -->
+              <div class="stat-card reveal-item" data-metric="350000">
+                  <span class="icon">👥</span>
+                  <div class="number" data-target>0</div>
+                  <p class="label">Usuarios Activos</p>
+              </div>
+  
+              <!-- Estadística 2: Proyectos -->
+              <div class="stat-card reveal-item" data-metric="120">
+                  <span class="icon">🏗️</span>
+                  <div class="number" data-target>0</div>
+                  <p class="label">Proyectos Completados</p>
+              </div>
+  
+              <!-- Estadística 3: Años de Experiencia -->
+              <div class="stat-card reveal-item" data-metric="8">
+                  <span class="icon">🗓️</span>
+                  <div class="number" data-target>0</div>
+                  <p class="label">Años en el Mercado</p>
+              </div>
+  
+              <!-- Estadística 4: Satisfacción -->
+              <div class="stat-card reveal-item" data-metric="98.5">
+                  <span class="icon">⭐</span>
+                  <div class="number" data-target>0</div>
+                  <p class="label">Tasa de Satisfacción</p>
+              </div>
+          </div>
+      </div>
+  </section>
+
+  <section id="contacto" data-feature="R3">
+    <h2>Contacto</h2>
+  </section>
+  </main>
+  <footer id="site-footer" data-feature="R4">
+    <p>Landing Page Ficticia</p>
+  </footer>
+<script data-file="api.js">
+// Capa de datos SIMULADA (backend mock). Los componentes usan solo window.api.
+window.api = window.api || {};
+
+// No se requieren nuevas funciones de API para este componente.
+
+// No se requieren nuevas funciones API para este componente.
+
+// No se requieren nuevas llamadas a la API para este componente.
+
+// No se requiere ninguna función de API para este componente.
+
+// No se requiere ninguna función API simulada para este componente, ya que solo maneja animaciones locales y cálculos de contador.
+
+
+</script>
+<script data-component="site-header">
+(function (root) {
+  if (!root) return;
+/**
+ * Maneja la funcionalidad de navegación y menú hamburguesa.
+ * @param {HTMLElement} root - El elemento raíz del componente (#site-header).
+ */
+function initializeSiteHeader(root) {
+    const menuToggle = root.querySelector('.menu-toggle');
+    const mainNav = root.querySelector('.main-nav');
+    const navLinks = root.querySelectorAll('.main-nav a[href^="#"]');
+
+    // 1. Toggle del menú hamburguesa para móvil
+    if (menuToggle && mainNav) {
+        menuToggle.addEventListener('click', () => {
+            mainNav.classList.toggle('active');
+        });
+    }
+
+    // 2. Manejo de scroll suave y cierre del menú en enlaces internos
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const href = e.currentTarget.getAttribute('href');
+            
+            // Si el enlace es interno, hacemos scroll
+            if (href && href !== '#') {
+                // Intentamos hacer scroll suavemente a la sección objetivo
+                document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+
+                // Y si estamos en móvil, cerramos el menú después del clic
+                if (window.innerWidth <= 992) {
+                    mainNav.classList.remove('active');
+                }
+            }
+        });
+    });
+}
+
+initializeSiteHeader(root);
+
+})(document.getElementById("site-header"));
+</script>
+<script data-component="inicio">
+(function (root) {
+  if (!root) return;
+/**
+ * Inicializa la animación de entrada (Entrance Animation) para el Hero Section.
+ * Utiliza IntersectionObserver para detectar cuándo la sección es visible en el viewport.
+ */
+function initializeHeroAnimation() {
+    const heroSection = root; // 'root' is the <section id="inicio">
+
+    if (!heroSection) return;
+
+    // 1. Configurar el observador de intersección
+    const observerOptions = {
+        root: null, // Observa respecto al viewport
+        rootMargin: '0px',
+        threshold: 0.2 // Se dispara cuando el 20% del elemento es visible
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Si la sección está visible, añade la clase 'is-visible' al contenedor principal
+                heroSection.classList.add('is-visible');
+
+                // 2. Animación de secuencia: Añadir clases a los elementos internos con delay
+                const elementsToAnimate = [
+                    root.querySelector('[data-animate]:nth-child(1)'), // H1
+                    root.querySelector('[data-animate]:nth-child(2)'), // Subtitle
+                    root.querySelector('[data-animate]:nth-child(3)'), // CTA Group
+                    root.querySelector('[data-animate]:nth-child(4)')  // Image Area
+                ];
+
+                elementsToAnimate.forEach((el, index) => {
+                    if (el) {
+                        // Usamos un pequeño timeout para asegurar que la transición se aplique secuencialmente
+                        setTimeout(() => {
+                            el.classList.add('is-visible');
+                        }, 100 + (index * 200)); // Retraso creciente: 100ms, 300ms, 500ms...
+                    }
+                });
+
+                // Detener la observación una vez que se ha animado
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    // Observar el contenedor principal de la sección
+    observer.observe(heroSection);
+}
+
+initializeHeroAnimation();
+
+})(document.getElementById("inicio"));
+</script>
+<script data-component="caracteristicas">
+(function (root) {
+  if (!root) return;
+/**
+ * Inicializa la observación de las características al hacer scroll (R5).
+ */
+function initializeFeaturesAnimation() {
+    const featureCards = document.querySelectorAll('.feature-card');
+
+    if (!featureCards.length) return;
+
+    // Usamos IntersectionObserver para detectar cuándo el componente entra en vista
+    const observerOptions = {
+        root: null, // Observa respecto al viewport
+        rootMargin: '0px',
+        threshold: 0.2 // Se activa cuando el 20% del elemento es visible
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // El componente está en vista, lo hacemos visible
+                entry.target.classList.add('visible');
+                // Dejamos de observar una vez que se ha animado
+                observer.unobserve(entry.target); 
+            }
+        });
+    }, observerOptions);
+
+    featureCards.forEach(card => {
+        // Observar cada tarjeta individualmente
+        observer.observe(card);
+    });
+}
+
+initializeFeaturesAnimation();
+
+})(document.getElementById("caracteristicas"));
+</script>
+<script data-component="testimonios">
+(function (root) {
+  if (!root) return;
+/**
+ * Inicializa el Intersection Observer para animar los testimonios al hacer scroll (R5).
+ */
+function initializeTestimonialsAnimation() {
+    const root = document.getElementById('testimonios');
+    if (!root) return;
+
+    // Selecciona todos los elementos que deben animarse
+    const elementsToObserve = root.querySelectorAll('.fade-in-element');
+
+    /**
+     * Callback ejecutado cuando el elemento entra en la vista.
+     * @param {IntersectionObserverEntry[]} entries - Array de entradas observadas.
+     */
+    const observerCallback = (entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Añadir la clase 'visible' para activar las transiciones CSS
+                entry.target.classList.add('visible');
+                
+                // Detener la observación una vez que se ha animado
+                observer.unobserve(entry.target);
+            }
+        });
+    };
+
+    // Configuración del observador: dispara cuando el elemento está visible (0.1)
+    const observerOptions = {
+        root: null, 
+        rootMargin: '0px', 
+        threshold: 0.2 // Se considera visible si el 20% está en la vista
+    };
+
+    // Crear y ejecutar el observador
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+    elementsToObserve.forEach(element => {
+        observer.observe(element);
+    });
+}
+
+initializeTestimonialsAnimation();
+
+})(document.getElementById("testimonios"));
+</script>
+<script data-component="estadisticas-animadas">
+(function (root) {
+  if (!root) return;
+/**
+ * Función para animar un número de forma ascendente (counting up).
+ * @param {HTMLElement} element - El elemento que contiene el número a animar.
+ * @param {number} targetValue - El valor final al que debe llegar el contador.
+ */
+const animateCounter = (element, targetValue) => {
+    let startTimestamp = null;
+
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const elapsed = timestamp - startTimestamp;
+        // Calcula el valor actual basado en el tiempo transcurrido y un factor de aceleración.
+        const value = Math.min(targetValue, Math.floor((elapsed / 1000) * targetValue / 2));
+
+        element.textContent = value.toLocaleString('es-ES');
+
+        if (value < targetValue) {
+            window.requestAnimationFrame(step);
+        }
+    };
+
+    // Usamos requestAnimationFrame para una animación suave y nativa del navegador
+    window.requestAnimationFrame(step);
+};
+
+
+/**
+ * Inicializa la funcionalidad de las estadísticas: 
+ * 1. Animación al hacer scroll (Intersection Observer).
+ * 2. Contador animado al entrar en vista.
+ */
+const initializeStats = () => {
+    const statCards = document.querySelectorAll('.stat-card');
+
+    // 1. Intersection Observer para detectar cuándo la sección es visible
+    const observerOptions = {
+        root: null, // Observa respecto a la ventana de visualización
+        rootMargin: '0px',
+        threshold: 0.3 // Se activa cuando el 30% del elemento es visible
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Si la sección está visible, añadimos la clase 'visible' para la animación CSS
+                entry.target.querySelectorAll('.reveal-item').forEach(el => {
+                    el.classList.add('visible');
+                });
+
+                // 2. Ejecutar el contador en cada tarjeta al entrar en vista
+                const statCards = entry.target.querySelectorAll('.stat-card');
+                statCards.forEach((card, index) => {
+                    const targetElement = card.querySelector('.number');
+                    const metricValue = parseFloat(card.dataset.metric);
+
+                    // Pequeño retraso para que los contadores no salten todos a la vez
+                    setTimeout(() => {
+                        animateCounter(targetElement, metricValue);
+                    }, index * 150); // Retraso de 150ms entre cada contador
+                });
+
+                // Detener la observación una vez activado para evitar re-ejecuciones innecesarias
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    // Observar el contenedor principal de estadísticas
+    const statsSection = document.getElementById('estadisticas-animadas');
+    if (statsSection) {
+        observer.observe(statsSection);
+    }
+};
+
+initializeStats();
+
+})(document.getElementById("estadisticas-animadas"));
+</script>
+</body>
+</html>

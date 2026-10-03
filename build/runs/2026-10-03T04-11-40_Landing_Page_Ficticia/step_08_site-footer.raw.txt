@@ -1,0 +1,239 @@
+### FILE: componente.html
+```html
+<footer id="site-footer" class="container">
+    <div class="footer-grid">
+        <!-- Columna 1: Logo y Descripción -->
+        <div class="footer-col footer-brand">
+            <h3 class="logo-text">MicheLab Digital</h3>
+            <p class="description">Innovando soluciones web de vanguardia para tu negocio. Creamos experiencias digitales que conectan y convierten.</p>
+            <div class="social-links">
+                <!-- Usamos emojis como placeholders de iconos -->
+                <a href="#" aria-label="LinkedIn"><span role="img" aria-label="linkedin">🔗</span></a>
+                <a href="#" aria-label="Twitter"><span role="img" aria-label="twitter">🐦</span></a>
+                <a href="#" aria-label="Instagram"><span role="img" aria-label="instagram">📸</span></a>
+            </div>
+        </div>
+
+        <!-- Columna 2: Navegación Rápida -->
+        <div class="footer-col footer-links">
+            <h4>Navegación</h4>
+            <nav>
+                <ul>
+                    <li><a href="#inicio">Inicio</a></li>
+                    <li><a href="#caracteristicas">Características</a></li>
+                    <li><a href="#testimonios">Testimonios</a></li>
+                    <li><a href="#estadisticas-animadas">Estadísticas</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Columna 3: Servicios -->
+        <div class="footer-col footer-links">
+            <h4>Servicios</h4>
+            <ul>
+                <li>Diseño Web UX/UI</li>
+                <li>Desarrollo de Apps Móviles</li>
+                <li>Estrategia Digital SEO</li>
+                <li>Consultoría Tecnológica</li>
+            </ul>
+        </div>
+
+        <!-- Columna 4: Información Legal y Contacto -->
+        <div class="footer-col footer-info">
+            <h4>Contacto</h4>
+            <p>Calle Ficticia, 123, Ciudad Digital</p>
+            <p>Email: contacto@michelab.com</p>
+            <p>Teléfono: +54 9 11 5555-6666</p>
+        </div>
+    </div>
+
+    <!-- Copyright y Aviso Legal -->
+    <div class="footer-bottom">
+        <p>&copy; <span id="current-year"></span> MicheLab Digital. Todos los derechos reservados.</p>
+        <div class="legal-links">
+            <a href="#">Política de Privacidad</a> | 
+            <a href="#">Términos y Condiciones</a>
+        </div>
+    </div>
+</footer>
+```
+
+### FILE: componente.css
+```css
+/* Estilos específicos para el Footer */
+#site-footer {
+    background-color: var(--color-dark-bg);
+    color: var(--color-text-light);
+    padding-top: var(--space-xl);
+    padding-bottom: var(--space-md);
+}
+
+/* Grid principal de columnas */
+.footer-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 columnas en escritorio */
+    gap: var(--space-lg);
+    padding-bottom: var(--space-md);
+}
+
+/* Estilos generales de las columnas */
+.footer-col {
+    min-width: 0; /* Permite que los elementos se ajusten bien en el grid */
+}
+
+/* Títulos de sección dentro del footer */
+.footer-col h4, .footer-brand h3 {
+    color: var(--color-white);
+    margin-bottom: var(--space-md);
+    font-size: 1.25rem;
+    border-bottom: 2px solid var(--color-primary);
+    display: inline-block;
+    padding-bottom: 0.3rem;
+}
+
+/* Estilo del logo/marca */
+.footer-brand .logo-text {
+    font-size: 1.8rem;
+    margin-bottom: var(--space-sm);
+    color: var(--color-secondary); /* Usamos el color secundario para destacar la marca */
+}
+
+/* Descripción de la marca */
+.footer-brand .description {
+    max-width: 300px;
+    margin-bottom: var(--space-md);
+    font-size: 0.95rem;
+}
+
+/* Listas de enlaces y servicios */
+.footer-col ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-col li a, .footer-col p a {
+    display: block;
+    color: var(--color-text-light);
+    padding: 0.3rem 0;
+    transition: color var(--transition-speed);
+    cursor: pointer;
+}
+
+/* Efecto hover en enlaces del footer */
+.footer-col li a:hover, .footer-col p a:hover {
+    color: var(--color-secondary);
+    text-decoration: none; /* Quitamos el underline por defecto para mantener la elegancia */
+}
+
+/* Estilos de información de contacto */
+.footer-info p {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+/* Redes Sociales */
+.social-links a {
+    display: inline-block;
+    margin-right: var(--space-sm);
+    color: var(--color-text-light);
+    font-size: 1.5rem; /* Tamaño de emoji/icono */
+    transition: transform var(--transition-speed), color var(--transition-speed);
+}
+
+/* Efecto hover en redes sociales */
+.social-links a:hover {
+    color: var(--color-primary);
+    transform: translateY(-3px) scale(1.1);
+}
+
+
+/* Sección inferior (Copyright y legales) */
+.footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--space-md);
+    border-top: 1px solid rgba(255, 255, 255, 0.1); /* Separador sutil */
+    flex-wrap: wrap; /* Permite que los elementos se envuelvan en móvil */
+}
+
+.footer-bottom p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.legal-links a {
+    color: var(--color-text-light);
+    padding: 0 0.5rem;
+}
+
+/* ========================================= */
+/* RESPONSIVE DESIGN (Móvil) */
+/* ========================================= */
+@media (max-width: 768px) {
+    /* Cambiar el grid a dos columnas en tabletas y móviles grandes */
+    .footer-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-md);
+    }
+
+    /* Asegurar que la columna de branding ocupe más espacio si es necesario */
+    .footer-brand {
+        grid-column: span 2; /* Ocupa las dos columnas en móvil */
+    }
+
+    /* Ajustar el grid para que los enlaces y info se vean bien */
+    .footer-links, .footer-info {
+        grid-column: span 1;
+    }
+    
+    /* Asegurar que la navegación rápida ocupe las dos columnas si es necesario */
+    .footer-col:nth-child(2) {
+         grid-column: span 2;
+    }
+
+    /* Ajuste general de padding en móvil */
+    #site-footer {
+        padding: var(--space-md) var(--space-sm);
+    }
+}
+
+@media (max-width: 480px) {
+     .footer-grid {
+        grid-template-columns: 1fr; /* Una sola columna en móviles pequeños */
+        gap: var(--space-md);
+    }
+    
+    /* Todos los elementos ocupan el ancho completo */
+    .footer-col {
+        grid-column: span 1 !important;
+    }
+
+    .footer-brand .description {
+        max-width: 100%;
+    }
+}
+```
+
+### FILE: componente.js
+```javascript
+/**
+ * Inicializa el pie de página, actualizando el año del copyright.
+ */
+function initializeFooter() {
+    // Actualizar el año en la sección de derechos de autor
+    const yearElement = root.querySelector('#current-year');
+    if (yearElement) {
+        yearElement.textContent = new Date().getFullYear();
+    }
+}
+
+initializeFooter();
+```
+
+### APPEND: api.js
+```javascript
+// No se requiere ninguna función nueva en window.api para este componente estático.
+```

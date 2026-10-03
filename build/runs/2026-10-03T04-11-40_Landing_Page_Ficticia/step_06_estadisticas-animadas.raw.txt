@@ -1,0 +1,222 @@
+### FILE: componente.html
+```html
+<section id="estadisticas-animadas" data-feature="R3">
+    <div class="container">
+        <header>
+            <h2>Nuestro Impacto Global</h2>
+            <p class="subtitle">Con números que hablan por sí mismos y un compromiso con la excelencia.</p>
+        </header>
+
+        <div class="stats-grid">
+            <!-- Estadística 1: Usuarios -->
+            <div class="stat-card reveal-item" data-metric="350000">
+                <span class="icon">👥</span>
+                <div class="number" data-target>0</div>
+                <p class="label">Usuarios Activos</p>
+            </div>
+
+            <!-- Estadística 2: Proyectos -->
+            <div class="stat-card reveal-item" data-metric="120">
+                <span class="icon">🏗️</span>
+                <div class="number" data-target>0</div>
+                <p class="label">Proyectos Completados</p>
+            </div>
+
+            <!-- Estadística 3: Años de Experiencia -->
+            <div class="stat-card reveal-item" data-metric="8">
+                <span class="icon">🗓️</span>
+                <div class="number" data-target>0</div>
+                <p class="label">Años en el Mercado</p>
+            </div>
+
+            <!-- Estadística 4: Satisfacción -->
+            <div class="stat-card reveal-item" data-metric="98.5">
+                <span class="icon">⭐</span>
+                <div class="number" data-target>0</div>
+                <p class="label">Tasa de Satisfacción</p>
+            </div>
+        </div>
+    </div>
+</section>
+```
+
+### FILE: componente.css
+```css
+#estadisticas-animadas {
+    padding: var(--space-xl) 0;
+    background-color: var(--color-bg-light);
+}
+
+#estadisticas-animadas .container {
+    text-align: center;
+}
+
+/* Header Styling */
+#estadisticas-animadas header h2 {
+    margin-bottom: 0.5rem;
+    color: var(--color-dark-bg); /* Override primary color for main title impact */
+}
+
+#estadisticas-animadas header .subtitle {
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    margin-bottom: var(--space-md);
+}
+
+/* Grid Layout */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-lg);
+    margin-top: var(--space-md);
+}
+
+/* Individual Stat Card Styling */
+.stat-card {
+    background-color: var(--color-white);
+    padding: var(--space-md) calc(var(--space-sm) * 1.5);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    transition: all var(--transition-speed) ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Animation/Reveal State (Initial hidden state for JS to reveal) */
+.reveal-item {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease;
+}
+
+/* Active/Visible State (Applied by JS) */
+.reveal-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+/* Icon Styling */
+.stat-card .icon {
+    font-size: 3rem;
+    margin-bottom: var(--space-sm);
+    display: block;
+}
+
+/* Number Display (The animated element) */
+.stat-card .number {
+    font-size: clamp(2.5rem, 6vw, 4rem); /* Large and responsive number */
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: var(--space-sm);
+}
+
+/* Label Styling */
+.stat-card .label {
+    font-size: 1.1rem;
+    color: var(--color-text-light);
+    margin: 0;
+    padding-top: var(--space-xs);
+}
+
+
+/* Responsive Adjustments for Mobile (390px) */
+@media (max-width: 768px) {
+    .stats-grid {
+        gap: var(--space-md);
+    }
+
+    .stat-card {
+        padding: var(--space-sm) calc(var(--space-xs) * 1.5);
+    }
+
+    .stat-card .number {
+        font-size: clamp(2rem, 8vw, 3rem);
+    }
+}
+```
+
+### FILE: componente.js
+```javascript
+/**
+ * Función para animar un número de forma ascendente (counting up).
+ * @param {HTMLElement} element - El elemento que contiene el número a animar.
+ * @param {number} targetValue - El valor final al que debe llegar el contador.
+ */
+const animateCounter = (element, targetValue) => {
+    let startTimestamp = null;
+
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const elapsed = timestamp - startTimestamp;
+        // Calcula el valor actual basado en el tiempo transcurrido y un factor de aceleración.
+        const value = Math.min(targetValue, Math.floor((elapsed / 1000) * targetValue / 2));
+
+        element.textContent = value.toLocaleString('es-ES');
+
+        if (value < targetValue) {
+            window.requestAnimationFrame(step);
+        }
+    };
+
+    // Usamos requestAnimationFrame para una animación suave y nativa del navegador
+    window.requestAnimationFrame(step);
+};
+
+
+/**
+ * Inicializa la funcionalidad de las estadísticas: 
+ * 1. Animación al hacer scroll (Intersection Observer).
+ * 2. Contador animado al entrar en vista.
+ */
+const initializeStats = () => {
+    const statCards = document.querySelectorAll('.stat-card');
+
+    // 1. Intersection Observer para detectar cuándo la sección es visible
+    const observerOptions = {
+        root: null, // Observa respecto a la ventana de visualización
+        rootMargin: '0px',
+        threshold: 0.3 // Se activa cuando el 30% del elemento es visible
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Si la sección está visible, añadimos la clase 'visible' para la animación CSS
+                entry.target.querySelectorAll('.reveal-item').forEach(el => {
+                    el.classList.add('visible');
+                });
+
+                // 2. Ejecutar el contador en cada tarjeta al entrar en vista
+                const statCards = entry.target.querySelectorAll('.stat-card');
+                statCards.forEach((card, index) => {
+                    const targetElement = card.querySelector('.number');
+                    const metricValue = parseFloat(card.dataset.metric);
+
+                    // Pequeño retraso para que los contadores no salten todos a la vez
+                    setTimeout(() => {
+                        animateCounter(targetElement, metricValue);
+                    }, index * 150); // Retraso de 150ms entre cada contador
+                });
+
+                // Detener la observación una vez activado para evitar re-ejecuciones innecesarias
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    // Observar el contenedor principal de estadísticas
+    const statsSection = document.getElementById('estadisticas-animadas');
+    if (statsSection) {
+        observer.observe(statsSection);
+    }
+};
+
+initializeStats();
+```
+
+### APPEND: api.js
+```javascript
+// No se requiere ninguna función API simulada para este componente, ya que solo maneja animaciones locales y cálculos de contador.
+```

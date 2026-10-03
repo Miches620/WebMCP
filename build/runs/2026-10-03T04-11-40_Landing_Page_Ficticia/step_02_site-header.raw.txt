@@ -1,0 +1,192 @@
+### FILE: componente.html
+```html
+<header id="site-header">
+    <div class="container header-content">
+        <!-- Logo/Brand -->
+        <a href="#inicio" class="brand">TechSolutions Pro</a>
+        
+        <!-- Botón de menú hamburguesa para móvil -->
+        <button class="menu-toggle" aria-label="Abrir menú de navegación">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <!-- Navegación principal (visible en escritorio) -->
+        <nav class="main-nav" id="main-nav">
+            <ul>
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#caracteristicas">Características</a></li>
+                <li><a href="#testimonios">Testimonios</a></li>
+                <li><a href="#estadisticas-animadas">Estadísticas</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+```
+
+### FILE: componente.css
+```css
+/* Estilos generales del Header */
+#site-header {
+    position: sticky; /* Hace que la barra se quede fija al hacer scroll */
+    top: 0;
+    z-index: 1000; /* Asegura que esté por encima de otros contenidos */
+    background-color: var(--color-white);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: var(--space-sm) 0;
+}
+
+/* Contenedor interno para el layout (Brand + Nav + Toggle) */
+#site-header .header-content {
+    display: flex;
+    justify-content: space-between; /* Separa logo de nav/toggle */
+    align-items: center;
+    padding: 0 var(--space-md);
+}
+
+/* Marca / Logo */
+.brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-dark-bg);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+/* Navegación principal */
+.main-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex; /* Usa flexbox para alinear los ítems en escritorio */
+    gap: var(--space-md);
+}
+
+.main-nav li a {
+    color: var(--color-text-dark);
+    padding: 0.5rem 0;
+    display: block;
+    font-weight: 500;
+    transition: color var(--transition-speed), transform var(--transition-speed);
+}
+
+/* Efecto hover en enlaces de navegación */
+.main-nav li a:hover {
+    color: var(--color-primary); /* Usamos el color primario al pasar el ratón */
+    text-decoration: none;
+    transform: translateY(-2px);
+}
+
+
+/* Botón Hamburguesa (Visible solo en móvil) */
+.menu-toggle {
+    display: none; /* Oculto por defecto en escritorio */
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    z-index: 1010;
+}
+
+/* Estilos de las tres líneas del menú hamburguesa */
+.menu-toggle span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--color-text-dark);
+    margin: 5px auto;
+    transition: all 0.3s ease-in-out;
+}
+
+/* ========================================= */
+/* RESPONSIVE DESIGN (Móvil y Tablet) */
+/* ========================================= */
+
+@media (max-width: 992px) {
+    /* Mostrar el botón de menú hamburguesa */
+    .menu-toggle {
+        display: block;
+    }
+
+    /* Ocultar la navegación principal en escritorio */
+    .main-nav {
+        position: absolute;
+        top: 100%; /* Coloca el nav justo debajo del header */
+        left: 0;
+        width: 100%;
+        background-color: var(--color-white);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        /* Inicialmente oculto */
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-in-out;
+    }
+
+    /* Clase activa para mostrar el menú en móvil */
+    .main-nav.active {
+        max-height: 300px; /* Debe ser un valor suficiente para contener todos los enlaces */
+        padding: var(--space-md) 0;
+    }
+
+    /* Ajustar la lista de navegación cuando está activa (vertical) */
+    .main-nav ul {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem; /* Espacio entre enlaces en móvil */
+        padding: 0 var(--space-md);
+    }
+
+    /* Ajuste de padding para el contenido del header en móvil */
+    #site-header .header-content {
+        padding: 0 var(--space-sm);
+    }
+}
+```
+
+### FILE: componente.js
+```javascript
+/**
+ * Maneja la funcionalidad de navegación y menú hamburguesa.
+ * @param {HTMLElement} root - El elemento raíz del componente (#site-header).
+ */
+function initializeSiteHeader(root) {
+    const menuToggle = root.querySelector('.menu-toggle');
+    const mainNav = root.querySelector('.main-nav');
+    const navLinks = root.querySelectorAll('.main-nav a[href^="#"]');
+
+    // 1. Toggle del menú hamburguesa para móvil
+    if (menuToggle && mainNav) {
+        menuToggle.addEventListener('click', () => {
+            mainNav.classList.toggle('active');
+        });
+    }
+
+    // 2. Manejo de scroll suave y cierre del menú en enlaces internos
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const href = e.currentTarget.getAttribute('href');
+            
+            // Si el enlace es interno, hacemos scroll
+            if (href && href !== '#') {
+                // Intentamos hacer scroll suavemente a la sección objetivo
+                document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+
+                // Y si estamos en móvil, cerramos el menú después del clic
+                if (window.innerWidth <= 992) {
+                    mainNav.classList.remove('active');
+                }
+            }
+        });
+    });
+}
+
+initializeSiteHeader(root);
+```
+
+### APPEND: api.js
+```javascript
+// No se requieren nuevas funciones de API para este componente.
+```

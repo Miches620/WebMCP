@@ -1,0 +1,218 @@
+### FILE: componente.html
+```html
+<section id="inicio" class="hero-section">
+    <div class="container hero-content">
+        <div class="text-area">
+            <h1 data-animate>Potencia tu productividad con NexusFlow</h1>
+            <p class="subtitle" data-animate>La suite de inteligencia artificial que optimiza tus flujos de trabajo, automatiza tareas repetitivas y te devuelve tiempo para lo que realmente importa.</p>
+            <div class="cta-group" data-animate>
+                <a href="#caracteristicas" class="btn btn--primary cta-button">Empezar Prueba Gratuita 🚀</a>
+                <a href="#contacto" class="btn btn--secondary cta-button secondary-link">Ver Demo Completa ✨</a>
+            </div>
+        </div>
+        <div class="image-area" data-animate>
+            <!-- Placeholder para una imagen de producto o interfaz -->
+            <svg width="100%" height="350px" viewBox="0 0 1200 350" xmlns="http://www.w3.org/2000/svg">
+                <rect width="100%" height="100%" fill="#e6f7ff" rx="15"/>
+                <path d="M0 0 L1200 0 L1200 350 L0 350 Z" />
+                <!-- Simulación de interfaz con elementos flotantes -->
+                <circle cx="200" cy="150" r="40" fill="#a8d6ff" opacity="0.7"/>
+                <rect x="400" y="80" width="300" height="150" rx="10" fill="#cceeff" opacity="0.8"/>
+                <path d="M20 300 C 150 250, 350 280, 400 300 L400 350 L0 350 Z" fill="#b3e0ff" opacity="0.6"/>
+                <text x="700" y="190" font-family="var(--font-family-base)" font-size="24px" fill="#4a90e2">Inteligencia Artificial en Acción</text>
+            </svg>
+        </div>
+    </div>
+</section>
+```
+
+### FILE: componente.css
+```css
+/* Estilos específicos para la sección Hero */
+#inicio {
+    padding: var(--space-xl) 0;
+    background-color: var(--color-bg-light);
+    overflow: hidden; /* Para contener las animaciones */
+}
+
+.hero-content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: 0 var(--space-md);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.text-area {
+    flex: 1;
+    min-width: 0; /* Permite que el texto se encoja correctamente */
+    padding-right: var(--space-md);
+}
+
+.image-area {
+    flex: 1;
+    max-width: 50%;
+}
+
+/* Títulos y subtítulos dentro del Hero */
+#inicio h1 {
+    font-size: clamp(2.8rem, 6vw, 4.5rem); /* Ajuste más grande para impacto */
+    margin-bottom: var(--space-sm);
+    color: var(--color-dark-bg);
+}
+
+.subtitle {
+    font-size: 1.25rem;
+    color: var(--color-text-light);
+    max-width: 600px;
+    margin-bottom: var(--space-md);
+}
+
+/* Botones CTA */
+.cta-group {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    margin-bottom: var(--space-lg);
+}
+
+.cta-button {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Media Queries para Responsividad */
+@media (max-width: 992px) {
+    .hero-content {
+        flex-direction: column; /* Apilar elementos en pantallas medianas/pequeñas */
+        text-align: center;
+        padding: var(--space-md);
+    }
+
+    .text-area {
+        padding-right: 0;
+        order: 1; /* Asegura que el texto vaya primero */
+    }
+
+    .image-area {
+        max-width: 100%;
+        order: 2;
+        margin-top: var(--space-md);
+    }
+
+    #inicio h1 {
+        font-size: clamp(2rem, 8vw, 3rem);
+    }
+
+    .subtitle {
+        max-width: none;
+        text-align: center;
+    }
+
+    .cta-group {
+        justify-content: center; /* Centrar botones en móvil */
+    }
+}
+
+@media (max-width: 480px) {
+    /* Ajustes extra para móviles muy pequeños */
+    #inicio h1 {
+        font-size: clamp(2rem, 10vw, 2.5rem);
+    }
+    .subtitle {
+        font-size: 1rem;
+    }
+    .cta-group {
+        flex-direction: column; /* Apilar botones si es necesario */
+        gap: var(--space-xs);
+    }
+    .btn {
+        width: 100%; /* Hacer que los botones ocupen todo el ancho en móvil */
+        max-width: 300px;
+    }
+}
+
+/* Clases de animación (inicialmente ocultos) */
+[data-animate] {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity var(--transition-speed) ease-out, transform var(--transition-speed) ease-out;
+}
+
+/* Clase activa para mostrar el elemento animado */
+.is-visible[data-animate] {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Ajuste de animación específico para la secuencia (opcional, pero mejora UX) */
+.text-area h1[data-animate], .subtitle[data-animate], .cta-group[data-animate], .image-area[data-animate] {
+    transition-delay: 0s; /* Resetear delay base */
+}
+
+/* Asegurar que el H1 se muestre primero, luego subtítulo y CTA */
+.text-area h1[data-animate] { transition-delay: 0ms; }
+.subtitle[data-animate] { transition-delay: 200ms; }
+.cta-group[data-animate] { transition-delay: 400ms; }
+.image-area[data-animate] { transition-delay: 600ms; }
+```
+
+### FILE: componente.js
+```javascript
+/**
+ * Inicializa la animación de entrada (Entrance Animation) para el Hero Section.
+ * Utiliza IntersectionObserver para detectar cuándo la sección es visible en el viewport.
+ */
+function initializeHeroAnimation() {
+    const heroSection = root; // 'root' is the <section id="inicio">
+
+    if (!heroSection) return;
+
+    // 1. Configurar el observador de intersección
+    const observerOptions = {
+        root: null, // Observa respecto al viewport
+        rootMargin: '0px',
+        threshold: 0.2 // Se dispara cuando el 20% del elemento es visible
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Si la sección está visible, añade la clase 'is-visible' al contenedor principal
+                heroSection.classList.add('is-visible');
+
+                // 2. Animación de secuencia: Añadir clases a los elementos internos con delay
+                const elementsToAnimate = [
+                    root.querySelector('[data-animate]:nth-child(1)'), // H1
+                    root.querySelector('[data-animate]:nth-child(2)'), // Subtitle
+                    root.querySelector('[data-animate]:nth-child(3)'), // CTA Group
+                    root.querySelector('[data-animate]:nth-child(4)')  // Image Area
+                ];
+
+                elementsToAnimate.forEach((el, index) => {
+                    if (el) {
+                        // Usamos un pequeño timeout para asegurar que la transición se aplique secuencialmente
+                        setTimeout(() => {
+                            el.classList.add('is-visible');
+                        }, 100 + (index * 200)); // Retraso creciente: 100ms, 300ms, 500ms...
+                    }
+                });
+
+                // Detener la observación una vez que se ha animado
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    // Observar el contenedor principal de la sección
+    observer.observe(heroSection);
+}
+
+initializeHeroAnimation();
+```
+
+### APPEND: api.js
+```javascript
+// No se requieren nuevas funciones API para este componente.
+```

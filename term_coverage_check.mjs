@@ -11,7 +11,7 @@
 // Por eso es un aviso para que lo lea Miche, sin umbral, y cada aviso se
 // etiqueta (hueco real / falso aviso) para juntar casos de calibración.
 
-import { terms, synKey } from "./intent_mention_check.mjs";
+import { terms, synKey } from "./text_terms.mjs";
 import { distinctiveTerms, extractTasks } from "./completeness_reviewer3.mjs";
 
 export const TERM_COVERAGE_VERSION = "term_coverage v0.1";

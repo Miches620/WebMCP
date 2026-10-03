@@ -29,7 +29,7 @@
 // respuesta.
 
 import { loadStageBlock } from "./context/stage_loader.mjs";
-import { norm, terms, synKey } from "./intent_mention_check.mjs";
+import { norm, terms, synKey } from "./text_terms.mjs";
 
 const LM_STUDIO_URL = "http://localhost:1234/v1/chat/completions";
 // Default; se puede pisar por corrida con opts.model.

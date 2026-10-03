@@ -15,7 +15,7 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle } from "./form_runtime.mjs";
 
-export const CATALOG_VERSION = "check_catalog v0.5.1";
+export const CATALOG_VERSION = "check_catalog v0.5.2";
 
 // v0.5 (03/10): sections_visible — chequeo de BASE (lo corre el harness, no el
 // traductor). Evidencia: en Project22 v0.6.1 el hero y el contacto quedaron con
@@ -218,12 +218,16 @@ const SEEN_WORDS = (el) => {
   };
   const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
   for (let n = tw.nextNode(); n; n = tw.nextNode()) {
-    const p = n.parentElement;
+    let p = n.parentElement;
     if (!p || p.closest("script, style, noscript, template")) continue;
     const k = count(n.textContent || "");
     if (!k) continue;
     total += k;
-    if (shown(p)) seen += k;
+    // v0.5.2: <option> no tiene caja propia; se ve si se ve su <select>
+    if (p.closest("option, optgroup")) p = p.closest("select") || p;
+    // v0.5.2: se acumula entre llamadas (una sección más alta que la pantalla se recorre de a tramos)
+    const memo = (window.__vcSeen = window.__vcSeen || new WeakSet());
+    if (memo.has(n) || shown(p)) { memo.add(n); seen += k; }
   }
   return { total, seen };
 };
@@ -558,7 +562,21 @@ export async function runChecks(htmlPath, checks) {
                 await page.waitForTimeout(60);
               }
               await page.waitForTimeout(900);
-              const w = await page.evaluate(([src, i]) => (0, eval)(`(${src})`)(document.querySelector(`[data-vc-anchor="${i}"]`)), [SEEN_SRC, a.i]);
+              const measure = () => page.evaluate(([src, i]) => (0, eval)(`(${src})`)(document.querySelector(`[data-vc-anchor="${i}"]`)), [SEEN_SRC, a.i]);
+              let w = await measure();
+              // v0.5.2 (Project22 v0.7.1, contacto): la pieza puede ser más alta que la pantalla y
+              // su contenido de abajo aparece recién al llegar ahí. Se recorre de a tramos, como un
+              // usuario, y cuenta lo que se vio en algún momento.
+              for (let k = 0; k < 12 && w.seen < w.total; k++) {
+                const more = await page.evaluate((i) => {
+                  const r = document.querySelector(`[data-vc-anchor="${i}"]`).getBoundingClientRect();
+                  return r.bottom > innerHeight + 5 && scrollY + innerHeight < document.documentElement.scrollHeight - 2;
+                }, a.i);
+                if (!more) break;
+                for (let s = 0; s < 2; s++) { await page.mouse.wheel(0, 250); await page.waitForTimeout(60); }
+                await page.waitForTimeout(700);
+                w = await measure();
+              }
               const ok = w.total === 0 ? false : w.seen / w.total >= 0.5;
               parts.push(`#${a.id}: ${w.seen}/${w.total} palabras visibles${ok ? "" : " ✗"}`);
               per.push({ id: a.id, features: a.features, seen: w.seen, total: w.total, ok });

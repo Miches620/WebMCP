@@ -19,7 +19,7 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { chatStream } from "./lm_stream.mjs";
-import { estTokens, CONTEXT_TOKENS } from "./file_diet.mjs";
+import { estTokens } from "./file_diet.mjs";
 import { briefText, apiContract } from "./specialist_spa.mjs";
 import {
   componentsFromPlan, transversalsFromPlan, initialState, assemble, tasksFor,
@@ -29,8 +29,11 @@ import { runChecks } from "../validation/check_catalog.mjs";
 
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 export const SPECIALIST_MODEL = "google/gemma-4-e4b";
-export const SPECIALIST_VERSION = "spa_specialist v0.7.1-componentes";
-const MAX_ANSWER = 6000;
+export const SPECIALIST_VERSION = "spa_specialist v0.7.2-componentes";
+// v0.7.2 (03/10): Gemma corre con 16k de contexto en la PC de Miche (WEBMCP_CONTEXT para cambiarlo).
+// En v0.7.1 el reintento de #contacto (prompt + 3 archivos actuales) se cortó por length a los 6000.
+const COMPONENT_CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
+const MAX_ANSWER = 8000;
 
 export const SYSTEM_PROMPT = `Sos el Specialist de MicheLab. Construís un PROTOTIPO de página web COMPONENTE POR COMPONENTE, como en Angular: cada componente tiene su propio HTML, CSS y JS y no toca a los demás.
 
@@ -138,7 +141,7 @@ function writeSrc(dir, state, comps) {
 export async function buildComponents({ refined, tasks }, outDir, opts = {}) {
   const log = opts.log || console.log;
   const model = opts.model || SPECIALIST_MODEL;
-  const context = opts.contextTokens || CONTEXT_TOKENS;
+  const context = opts.contextTokens || COMPONENT_CONTEXT;
   const features = refined.features || [];
   const comps = componentsFromPlan(opts.pagePlan, features);
   const transversals = transversalsFromPlan(opts.pagePlan, features);

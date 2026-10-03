@@ -72,7 +72,7 @@ const server = createServer(async (req, res) => {
       const r = await runIntentForge(conversation || [], { callModel });
       console.log(
         `[INTENT_FORGE] iter ${iteration} ${r.status} líneas=${r.lines.length} llamadas=${calls.length}` +
-          (r.status === "COMPLETE" ? ` ítems=${r.refined.brief.items.length} auto=${r.auto_added.length}` : ""),
+          (r.status === "COMPLETE" ? ` ítems=${r.refined.brief.items.length} auto=${r.auto_added.length} compuestas=${r.compound.length}` : ` faltantes=${(r.faltantes || []).length}`),
       );
 
       // Evidencia de cada turno (líneas, salidas crudas, reintentos).

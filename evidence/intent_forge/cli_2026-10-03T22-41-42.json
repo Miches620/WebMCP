@@ -1,0 +1,122 @@
+{
+  "version": "intent_brief v0.2",
+  "model": "qwen2.5-7b-instruct",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Qué querés construir:\r\nWebapp estilo Kanban/Trello\r\n\r\nQué tiene que hacer:\r\nCrear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\r\n\r\nCómo se tiene que ver:\r\nPaleta de colores de estilo industrial, opaco. Con hovers en el movimiento drag & drop. Sistema de semaforo para el orden prioritario de las tareas. Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo.\r\n\r\nQué no debe hacer:\r\nno debe persistirse en ninguna base de datos. El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp."
+    }
+  ],
+  "refined_prompt": {
+    "project_name": "Kanban Webapp",
+    "objetivo": "Webapp estilo Kanban/Trello",
+    "features": [
+      "Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea",
+      "Paleta de colores de estilo industrial, opaco. Con hovers en el movimiento drag & drop. Sistema de semaforo para el orden prioritario de las tareas. Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo"
+    ],
+    "criterios_holdout": [
+      "Se pueden crear, editar y borrar tarjetas de tareas",
+      "Se puede arrastrar las tarjetas entre columnas",
+      "El sistema tiene un orden prioritario visualizado con semaforo",
+      "Las etiquetas son en tono grisaceo",
+      "Sin persistencia en base de datos. El contenido se pierde al recargar la página"
+    ],
+    "restricciones": [
+      "no debe persistirse en ninguna base de datos. El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp"
+    ],
+    "estilo": [
+      "Paleta de colores de estilo industrial, opaco. Con hovers en el movimiento drag & drop. Sistema de semaforo para el orden prioritario de las tareas. Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo"
+    ],
+    "contexto": [
+      "Webapp estilo Kanban/Trello"
+    ],
+    "brief": {
+      "version": "intent_brief v0.2",
+      "lines": [
+        {
+          "id": "L1",
+          "field": "construir",
+          "text": "Webapp estilo Kanban/Trello"
+        },
+        {
+          "id": "L2",
+          "field": "hacer",
+          "text": "Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea"
+        },
+        {
+          "id": "L3",
+          "field": "ver",
+          "text": "Paleta de colores de estilo industrial, opaco. Con hovers en el movimiento drag & drop. Sistema de semaforo para el orden prioritario de las tareas. Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo."
+        },
+        {
+          "id": "L4",
+          "field": "no",
+          "text": "no debe persistirse en ninguna base de datos. El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp."
+        }
+      ],
+      "items": [
+        {
+          "de": [
+            "L1"
+          ],
+          "tipo": "contexto",
+          "texto": "Webapp estilo Kanban/Trello"
+        },
+        {
+          "de": [
+            "L2"
+          ],
+          "tipo": "feature",
+          "texto": "Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea"
+        },
+        {
+          "de": [
+            "L3"
+          ],
+          "tipo": "estilo",
+          "texto": "Paleta de colores de estilo industrial, opaco. Con hovers en el movimiento drag & drop. Sistema de semaforo para el orden prioritario de las tareas. Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo"
+        },
+        {
+          "de": [
+            "L4"
+          ],
+          "tipo": "restriccion",
+          "texto": "no debe persistirse en ninguna base de datos. El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp"
+        }
+      ],
+      "repairs": 0,
+      "preguntas": []
+    }
+  },
+  "auto_added": [],
+  "calls": [
+    {
+      "ms": 15856,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir.\nHacé UNA pregunta corta, cerrada (sí/no, o elegir entre opciones), sobre UNA de estas cosas, en este orden de prioridad:\n1. Una línea vaga que no se pueda construir tal cual (por ejemplo \"que sea completa\": ¿qué tiene que tener?).\n2. Algo que una app de este tipo suele necesitar y el usuario no mencionó (por ejemplo, en un listado: ¿se puede buscar?, ¿ordenar?; en un formulario: ¿qué campos son obligatorios?).\n3. Un detalle que falta en una feature ya pedida (cantidades, nombres, qué pasa al terminar).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- Si no falta nada importante, respondé exactamente: LISTO\n- Respondé SOLO con la pregunta (una línea) o con LISTO."
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco. Con hovers en el movimiento drag & drop. Sistema de semaforo para el orden prioritario de las tareas. Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo.\n- [qué no debe hacer] no debe persistirse en ninguna base de datos. El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp.\n\n¿Qué le preguntás? (o LISTO)"
+        }
+      ],
+      "content": "LISTO"
+    },
+    {
+      "ms": 114222,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos Intent Forge v0.3 del equipo MicheLab.\n\nRecibís las LÍNEAS que escribió el usuario, numeradas (L1, L2...). Entre corchetes va el campo de la plantilla donde la escribió.\nTu trabajo es CLASIFICAR cada línea, NO resumir.\n\nTIPOS:\n- contexto: qué es el proyecto, para quién, referencias (\"estilo Trello\"), adjetivos generales (\"sencilla\").\n- feature: algo que el usuario tiene que poder HACER en la app.\n- estilo: cómo se tiene que VER o sentir (colores, sombras, animaciones, efectos al pasar el mouse).\n- restriccion: un límite o algo que NO debe hacer (\"sin login\", \"sin base de datos\", \"solo frontend\", \"los datos se borran al recargar\").\n- descartado: SOLO si una línea [ajuste] pide sacar algo; en \"de\" van la línea que se saca y la línea [ajuste].\n\nREGLAS:\n1. Cada línea L tiene que aparecer en \"de\" de al menos un ítem. Ninguna se pierde.\n2. Si una línea nombra varias cosas, separalas: un ítem por cosa.\n3. Usá las palabras del usuario. No resumas ni generalices. Nombres, cantidades y listas (por ejemplo entre paréntesis) van dentro del texto del ítem.\n4. No agregues ítems que no salgan de una línea.\n5. El campo entre corchetes es una pista. Cambiá el tipo solo si la línea claramente es de otro tipo (por ejemplo \"drag & drop\" escrito en [cómo se tiene que ver] es una feature).\n6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.\n7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo \"¿Se pueden crear columnas?\" + \"sí\" → feature \"Crear columnas\"). Si es negativa, es una restriccion con \"Sin ...\" (por ejemplo \"¿Buscar tarjetas?\" + \"no\" → restriccion \"Sin búsqueda de tarjetas\").\n8. No hagas preguntas: devolvé siempre el JSON.\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"...\",\"items\":[{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"...\"}],\"criterios_holdout\":[\"cómo se verifica cada feature\"]}\n```\n\nEJEMPLO (otro proyecto):\nL1 [qué querés construir] Una app para guardar mis recetas, simple\nL2 [qué tiene que hacer] cargar recetas con ingredientes y pasos\nL3 [cómo se tiene que ver] colores cálidos, fotos grandes, que se puedan marcar favoritas\nL4 [qué no debe hacer] sin usuarios ni login\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Recetario\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"App simple para guardar mis recetas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Cargar recetas con ingredientes y pasos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Colores cálidos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Fotos grandes\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"Marcar recetas como favoritas\"},\n{\"de\":[\"L4\"],\"tipo\":\"restriccion\",\"texto\":\"Sin usuarios ni login\"}],\n\"criterios_holdout\":[\"Se puede cargar una receta con ingredientes y pasos\",\"Se puede marcar una receta como favorita\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LÍNEAS DEL USUARIO:\nL1 [qué querés construir] Webapp estilo Kanban/Trello\nL2 [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\nL3 [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco. Con hovers en el movimiento drag & drop. Sistema de semaforo para el orden prioritario de las tareas. Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo.\nL4 [qué no debe hacer] no debe persistirse en ninguna base de datos. El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp."
+        }
+      ],
+      "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco. Con hovers en el movimiento drag & drop. Sistema de semaforo para el orden prioritario de las tareas. Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\"},\n{\"de\":[\"L4\"],\"tipo\":\"restriccion\",\"texto\":\"no debe persistirse en ninguna base de datos. El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"}],\n\"criterios_holdout\":[\"Se pueden crear, editar y borrar tarjetas de tareas\",\"Se puede arrastrar las tarjetas entre columnas\",\"El sistema tiene un orden prioritario visualizado con semaforo\",\"Las etiquetas son en tono grisaceo\",\"Sin persistencia en base de datos. El contenido se pierde al recargar la página\"]}\n```"
+    }
+  ]
+}

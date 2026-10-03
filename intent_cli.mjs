@@ -58,6 +58,7 @@ let r;
 for (;;) {
   r = await runIntentForge(conversation, { callModel });
   if (r.status === "COMPLETE") break;
+  if (r.faltantes?.length) console.log(`\n  (faltantes según el entrevistador: ${r.faltantes.join(" · ")})`);
   console.log(`\n[Intent Forge${r.by === "harness" ? " · harness" : ""}] ${r.question}`);
   conversation.push({ role: "assistant", content: r.question });
   conversation.push({ role: "user", content: await ask("> ") });
@@ -68,7 +69,7 @@ const ref = r.refined;
 console.log(`\n=== ${ref.project_name} — ${ref.brief.items.length} ítems, ${ref.brief.preguntas.length} preguntas, reintentos ${ref.brief.repairs}, auto ${r.auto_added.length} ===`);
 for (const { line, items } of linesWithItems(ref.brief)) {
   console.log(`\n${line.id} [${fieldLabel(line.field)}] "${line.text}"`);
-  for (const it of items) console.log(`   → ${it.tipo.padEnd(11)} ${it.texto}${it.auto ? "   ⚠ ubicada por el harness" : ""}`);
+  for (const it of items) console.log(`   → ${it.tipo.padEnd(11)} ${it.texto}${it.auto ? "   ⚠ ubicada por el harness" : ""}${it.compuesta ? "   ⚠ junta varias acciones" : ""}`);
 }
 const dir = join(here, "evidence", "intent_forge");
 mkdirSync(dir, { recursive: true });

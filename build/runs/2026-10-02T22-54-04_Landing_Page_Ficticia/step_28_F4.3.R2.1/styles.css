@@ -1,0 +1,1037 @@
+/* estilos */
+
+/* ========================================= */
+/* 1. RESET Y ESTILOS BASE GLOBALES            */
+/* ========================================= */
+
+/* Reset básico para asegurar consistencia entre navegadores */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Configuración de la tipografía y el cuerpo del documento */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    line-height: 1.6;
+    color: var(--text-dark);
+    background-color: var(--bg-light);
+    scroll-behavior: smooth; /* Para el scroll suave del nav */
+}
+
+/* Estilos para enlaces (links) */
+a {
+    text-decoration: none;
+    color: var(--primary-color);
+    transition: color 0.3s ease, opacity 0.3s ease;
+}
+
+a:hover {
+    opacity: 0.85; /* Efecto hover sutil */
+}
+
+/* Contenedor principal para centrar el contenido y limitar su ancho máximo */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px; /* Padding lateral en todos los contenedores */
+}
+
+/* ========================================= */
+/* 2. VARIABLES DE DISEÑO (PALETA Y ESPACIADO)  */
+/* ========================================= */
+
+:root {
+    /* Colores Primarios y Secundarios */
+    --primary-color: #007bff; /* Azul vibrante para CTAs y acentos */
+    --secondary-color: #28a745; /* Verde para éxito o elementos secundarios */
+    --accent-color: #ffc107; /* Amarillo/Naranja para destacar */
+
+    /* Colores de Fondo y Texto */
+    --bg-light: #f8f9fa; /* Gris muy claro para fondos generales */
+    --bg-dark: #343a40; /* Gris oscuro para footers o secciones oscuras */
+    --text-dark: #333; /* Color principal del texto */
+    --text-light: #ffffff; /* Texto sobre fondos oscuros */
+
+    /* Sombras y Bordes */
+    --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --border-radius: 8px;
+
+    /* Espaciado (Utilizando unidades relativas) */
+    --spacing-sm: 1rem;
+    --spacing-md: 2rem;
+    --spacing-lg: 4rem;
+}
+
+/* ========================================= */
+/* 3. ESTILOS DE COMPONENTES BASE             */
+/* ========================================= */
+
+/* Estilos para encabezados (H1, H2) */
+h1, h2 {
+    color: var(--text-dark);
+    margin-bottom: var(--spacing-md);
+}
+
+/* Botones genéricos */
+.btn {
+    display: inline-block;
+    padding: 0.8rem 2rem;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    border-radius: var(--border-radius);
+}
+
+/* Botón Primario (CTA) */
+.primary-btn {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+}
+
+/* Efecto hover para botones */
+.btn.primary-btn:hover {
+    background-color: #0056b3; /* Azul más oscuro al pasar el ratón */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 123, 255, 0.4);
+}
+
+/* Estilos para secciones de contenido (para padding vertical) */
+section {
+    padding: var(--spacing-lg) 0;
+}
+
+/* ========================================= */
+/* 4. RESPONSIVE DESIGN (Media Queries)      */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    /* Ajustes para pantallas de tablet y móviles */
+    body {
+        padding: 0;
+    }
+
+    section {
+        padding: var(--spacing-md) 0; /* Reducir padding vertical en móvil */
+    }
+
+    .container {
+        width: 95%;
+    }
+
+    /* Ajustar el tamaño de fuente para títulos grandes */
+    h1 {
+        font-size: 2.2rem;
+    }
+    h2 {
+        font-size: 1.8rem;
+    }
+}
+
+/* ========================================= */
+/* 5. HEADER Y NAVEGACIÓN (R2)               */
+/* ========================================= */
+
+#site-header {
+    background-color: var(--text-light); /* Fondo blanco para el header */
+    padding: 1rem 0;
+    position: sticky; /* Hace que la barra se quede visible al hacer scroll */
+    top: 0;
+    z-index: 1000; /* Asegura que esté por encima del contenido */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Sombra sutil para destacarlo */
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between; /* Separa logo y nav */
+    align-items: center;
+    padding: 0; /* Ya tiene padding en .container, pero lo ajustamos aquí si es necesario */
+}
+
+/* Estilo del Logo */
+.logo {
+    font-size: 1.8rem;
+    color: var(--primary-color);
+    margin: 0;
+}
+
+/* Estilos de la lista de navegación */
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 25px; /* Espacio entre los elementos del menú */
+}
+
+nav li a {
+    color: var(--text-dark);
+    font-weight: 500;
+    padding: 0.5rem 0;
+    display: block;
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+}
+
+/* Efecto hover específico para el nav */
+nav li a:hover {
+    color: var(--primary-color); /* Cambia de color al pasar el ratón */
+    border-bottom: 2px solid var(--primary-color); /* Subrayado sutil */
+    opacity: 1; /* Sobrescribe el opacity general para que sea más visible */
+}
+
+/* ========================================= */
+/* 6. MEDIA QUERIES PARA NAVEGACIÓN (Móvil)  */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    /* Ajustar el layout del header para móvil */
+    .header-content {
+        flex-direction: column; /* Apilar logo y nav verticalmente */
+        text-align: center;
+        gap: 15px;
+    }
+
+    nav ul {
+        flex-direction: column; /* Apilar los enlaces en móvil */
+        gap: 10px;
+        padding: 0;
+        width: 100%;
+    }
+
+    nav li a {
+        display: block; /* Ocupar todo el ancho disponible para mejor toque */
+        text-align: center;
+    }
+}
+
+/* ========================================= */
+/* 7. ESTILOS DE SECCIÓN HERO (R1)            */
+/* ========================================= */
+
+.hero-section {
+    background-color: var(--bg-light); /* Fondo suave para el hero */
+    padding: 8rem 0; /* Padding generoso verticalmente */
+    text-align: center;
+}
+
+.hero-content {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Estilo del Título Principal (H1) en Hero */
+.hero-section h1 {
+    font-size: 3.5rem; /* Tamaño grande y impactante */
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+    line-height: 1.1;
+}
+
+/* Estilo del Subtítulo (P) en Hero */
+.hero-section .subtitle {
+    font-size: 1.35rem;
+    color: #6c757d; /* Gris más suave para el subtítulo */
+    margin-bottom: 2.5rem;
+}
+
+/* Ajuste de tamaño en dispositivos móviles para H1 */
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+    .hero-section .subtitle {
+        font-size: 1.1rem;
+    }
+}
+
+/* ========================================= */
+/* 8. SECCIÓN CARACTERÍSTICAS (R3)           */
+/* ========================================= */
+
+#caracteristicas {
+    background-color: var(--text-light); /* Fondo blanco para la sección de características */
+}
+
+/* Contenedor de las tarjetas, usando Flexbox o Grid */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-md); /* Espacio entre tarjetas */
+    margin-top: var(--spacing-lg);
+}
+
+/* Estilo de la tarjeta individual */
+.feature-card {
+    background-color: #ffffff;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-card); /* Sombra definida en variables */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Efecto hover para las tarjetas (elevación y sombra) */
+.feature-card:hover {
+    transform: translateY(-5px); /* Levanta la tarjeta ligeramente */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
+}
+
+/* Estilo del icono o ilustración dentro de la tarjeta */
+.feature-icon {
+    background-color: var(--primary-color);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%; /* Hace que el fondo sea circular */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+/* Estilo del contenido de la tarjeta (Título y Descripción) */
+.feature-card h3 {
+    color: var(--primary-color); /* Color primario para el título */
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.feature-card p {
+    color: #6c757d; /* Gris suave para la descripción */
+    flex-grow: 1; /* Asegura que el texto ocupe espacio disponible */
+}
+
+/* Ajustes de Responsividad para las tarjetas */
+@media (max-width: 768px) {
+    .feature-grid {
+        gap: 20px;
+    }
+    
+    .feature-card {
+        padding: var(--spacing-md);
+    }
+
+    /* Asegurar que el texto no se desborde en móvil */
+    .feature-card h3 {
+        font-size: 1.2rem;
+    }
+}
+
+/* ========================================= */
+/* 9. SECCIÓN TESTIMONIOS (R3)               */
+/* ========================================= */
+
+#testimonios {
+    background-color: var(--bg-light); /* Fondo suave para la sección de testimonios */
+}
+
+/* Contenedor principal que puede usar un grid o flexbox */
+.testimonial-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-md); /* Espacio entre testimonios */
+    margin-top: var(--spacing-lg);
+}
+
+/* Estilo de la tarjeta/bloque del testimonio individual */
+.testimonial-card {
+    background-color: #ffffff;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-card);
+    border-left: 5px solid var(--primary-color); /* Acento visual */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efecto hover para los testimonios */
+.testimonial-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilo de la cita (el texto del testimonio) */
+.testimonial-quote {
+    font-style: italic;
+    font-size: 1.1rem;
+    color: #555; /* Gris oscuro para el cuerpo de la cita */
+    margin-bottom: var(--spacing-md);
+    line-height: 1.6;
+}
+
+/* Estilo del autor (nombre y cargo) */
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: var(--spacing-md);
+}
+
+/* Placeholder para el avatar/imagen de perfil */
+.avatar {
+    width: 60px;
+    height: 60px;
+    background-color: #ccc; /* Color placeholder */
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Estilo del nombre y cargo del autor */
+.author-info strong {
+    display: block; /* Hace que el nombre ocupe su propia línea */
+    font-size: 1rem;
+    color: var(--text-dark);
+}
+
+.author-info span {
+    display: block;
+    font-size: 0.9rem;
+    color: #6c757d; /* Gris más suave para el cargo */
+}
+
+
+/* ========================================= */
+/* RESPONSIVE PARA TESTIMONIOS (Móvil)      */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    .testimonial-grid {
+        gap: 20px;
+    }
+    
+    .testimonial-card {
+        padding: var(--spacing-md);
+    }
+
+    .testimonial-quote {
+        font-size: 1rem;
+    }
+}
+
+/* ========================================= */
+/* 10. SECCIÓN ESTADÍSTICAS (R3)             */
+/* ========================================= */
+
+#estadisticas-animadas {
+    background-color: var(--text-light); /* Fondo blanco para la sección de estadísticas */
+}
+
+/* Contenedor principal del grid de estadísticas */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-md); /* Espacio entre los elementos estadísticos */
+    margin-top: 3rem;
+}
+
+/* Estilo de cada elemento estadístico individual */
+.stat-item {
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Sombra más marcada */
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efecto hover para los elementos estadísticos (destacar) */
+.stat-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilo del número grande (el contador) */
+.stat-number {
+    font-size: 3.5rem; /* Tamaño muy grande para impacto visual */
+    font-weight: 700;
+    color: var(--primary-color); /* Usamos el color primario como acento principal */
+    margin-bottom: 1rem;
+    /* Añadimos un efecto de transición suave al cambiar el número (JS lo manejará) */
+    transition: all 0.5s ease-out;
+}
+
+/* Estilo del texto descriptivo debajo del número */
+.stat-label {
+    font-size: 1.2rem;
+    color: #6c757d; /* Gris suave para la descripción */
+    margin: 0;
+    padding-top: 0.5rem;
+    display: block;
+}
+
+/* Ajustes de Responsividad para Estadísticas (Móvil) */
+@media (max-width: 768px) {
+    .stats-grid {
+        gap: 20px;
+    }
+    
+    .stat-item {
+        padding: 1.5rem;
+    }
+
+    /* Reducir el tamaño del número en móvil */
+    .stat-number {
+        font-size: 2.5rem;
+    }
+
+    .stat-label {
+        font-size: 1rem;
+    }
+}
+
+/* ========================================= */
+/* 11. SECCIÓN CONTACTO (R3)                */
+/* ========================================= */
+
+#contacto {
+    background-color: var(--bg-light); /* Fondo suave para la sección de contacto */
+}
+
+/* Contenedor principal del layout de contacto (Grid) */
+.contact-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* Formulario más ancho que info */
+    gap: var(--spacing-lg);
+    align-items: flex-start; /* Alinea los elementos al inicio */
+}
+
+/* Estilo general del formulario de contacto */
+.contact-form {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Estilo de los grupos de formulario (Label + Input) */
+.form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+/* Etiqueta del campo (label) */
+.form-group label {
+    display: block; /* Hace que la etiqueta ocupe su propia línea */
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+/* Estilo de los inputs y textarea */
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ced4da; /* Borde gris estándar */
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efecto focus para inputs (mejor UX) */
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: var(--primary-color); /* Borde azul al enfocar */
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15); /* Sombra suave de acento */
+    outline: none; /* Quitar el borde por defecto del navegador */
+}
+
+/* Estilo específico para el botón de envío dentro del formulario */
+.submit-form-btn {
+    margin-top: var(--spacing-md);
+    width: 100%; /* Ocupar todo el ancho disponible */
+    padding: 1rem;
+}
+
+
+/* Contenedor de información de contacto (columna derecha) */
+.contact-info-container {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Estilo de los títulos dentro del info container */
+.contact-info-container h3 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* Estilo de cada ítem de información (Teléfono, Email, etc.) */
+.info-item {
+    margin-bottom: var(--spacing-md);
+}
+
+.info-item h4 {
+    font-size: 1rem;
+    color: #6c757d; /* Gris para el título del contacto */
+    margin-bottom: 0.3rem;
+}
+
+.info-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+/* Placeholder de mapa (ya tiene estilos inline, pero añadimos un ajuste general) */
+.map-placeholder {
+    margin-top: var(--spacing-md);
+}
+
+
+/* ========================================= */
+/* RESPONSIVE PARA CONTACTO (Móvil)         */
+/* ========================================= */
+
+@media (max-width: 992px) {
+    .contact-grid {
+        /* Cambiar de grid a apilado verticalmente en pantallas medianas/móviles */
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+
+    /* Asegurar que el formulario y la info ocupen todo el ancho disponible */
+    .contact-form-container, .contact-info-container {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Ajustes generales para móvil en contacto */
+    .contact-form, .contact-info-container {
+        padding: 20px;
+    }
+    
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+}
+
+/* ========================================= */
+/* 12. FOOTER (R4)                           */
+/* ========================================= */
+
+#site-footer {
+    background-color: var(--bg-dark); /* Fondo oscuro para contraste */
+    color: #ccc; /* Texto gris claro sobre fondo oscuro */
+    padding: 3rem 0 1.5rem; /* Padding generoso, más espacio abajo */
+    border-top: 4px solid var(--primary-color); /* Línea de acento superior */
+}
+
+/* Contenedor principal del footer */
+.footer-content {
+    display: flex;
+    flex-wrap: wrap; /* Permite que los elementos se envuelvan en móvil */
+    justify-content: space-between; /* Distribuye el espacio entre columnas */
+    gap: 30px; /* Espacio general entre las secciones del footer */
+    padding-bottom: 20px;
+}
+
+/* Estilo de la columna de información (Logo/Contacto) */
+.footer-col {
+    min-width: 200px; /* Asegura un ancho mínimo para el contenido */
+    flex: 1; /* Permite que crezca y se distribuya bien */
+    max-width: 30%; /* Limita su crecimiento en escritorio */
+}
+
+/* Estilo del logo/nombre dentro del footer */
+.footer-col h4 {
+    font-size: 1.5rem;
+    color: var(--text-light);
+    margin-bottom: 1rem;
+}
+
+/* Título de las secciones de enlaces (ej. Servicios, Legal) */
+.footer-col h5 {
+    font-size: 1.1rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+}
+
+/* Lista de enlaces dentro del footer (ul/li o nav) */
+.footer-col ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column; /* Apilados verticalmente */
+    gap: 8px;
+}
+
+/* Estilo de los enlaces específicos del footer */
+.footer-col a {
+    color: #ccc;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+/* Efecto hover para enlaces del footer */
+.footer-col a:hover {
+    color: var(--primary-color); /* Color de acento al pasar el ratón */
+    text-decoration: underline; /* Subrayado visible en hover */
+    opacity: 1; /* Asegura visibilidad */
+}
+
+/* Estilo del copyright y la línea final */
+.footer-bottom {
+    width: 100%; /* Ocupa todo el ancho disponible */
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid #444; /* Separador sutil */
+}
+
+.footer-bottom p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #888; /* Gris más apagado para el copyright */
+}
+
+
+/* ========================================= */
+/* RESPONSIVE PARA FOOTER (Móvil)           */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column; /* Apilar todas las columnas en móvil */
+        align-items: center;
+        text-align: center;
+        gap: 20px;
+    }
+
+    /* Asegurar que todos los elementos ocupen el ancho completo o casi completo */
+    .footer-col {
+        max-width: 100%;
+        text-align: left; /* Mantener la alineación de texto a la izquierda dentro del bloque */
+    }
+
+    /* Ajustar el logo en móvil para centrarlo mejor si es necesario */
+    .footer-col h4 {
+        text-align: center;
+    }
+}
+
+/* ========================================= */
+/* 7. ESTILOS DE SECCIÓN HERO (R1)            */
+/* ========================================= */
+
+.hero-section {
+    background-color: var(--bg-light); /* Fondo suave para el hero */
+    padding: 8rem 0; /* Padding generoso verticalmente */
+    text-align: center;
+}
+
+.hero-content {
+    max-width: 900px;
+    margin: 0 auto;
+    /* Usamos Flexbox para manejar el layout de forma más robusta, aunque actualmente solo haya contenido apilado. */
+    display: flex;
+    flex-direction: column; /* Por defecto, los elementos se apilan verticalmente */
+    align-items: center; /* Centra horizontalmente todos los hijos */
+    gap: 2rem; /* Espacio entre el título, subtítulo y botón */
+}
+
+/* Estilo del Título Principal (H1) en Hero */
+.hero-section h1 {
+    font-size: 3.5rem; /* Tamaño grande y impactante */
+    color: var(--text-dark);
+    margin-bottom: 0; /* Quitamos el margen inferior ya que usamos gap en .hero-content */
+    line-height: 1.1;
+}
+
+/* Estilo del Subtítulo (P) en Hero */
+.hero-section .subtitle {
+    font-size: 1.35rem;
+    color: #6c757d; /* Gris más suave para el subtítulo */
+    margin-bottom: 0; /* Quitamos el margen inferior ya que usamos gap en .hero-content */
+}
+
+/* Ajuste de tamaño en dispositivos móviles y tabletas (Media Queries) */
+@media (min-width: 992px) {
+    /* En pantallas grandes, si tuviéramos una imagen a la derecha, podríamos usar grid/flex horizontal aquí.
+       Por ahora, mantenemos el stack vertical pero lo hacemos más robusto. */
+}
+
+@media (max-width: 1200px) {
+    /* Ajuste de tamaño para pantallas medianas */
+    .hero-section h1 {
+        font-size: 3rem; /* Reducción gradual del título */
+    }
+    .hero-section .subtitle {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Ajustes para pantallas de tablet y móviles */
+    .hero-content {
+        padding: 0 15px; /* Añadir padding lateral al contenido del hero */
+    }
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+    .hero-section .subtitle {
+        font-size: 1.1rem;
+    }
+    /* Aseguramos que el botón no sea demasiado grande en móvil */
+    .btn {
+        width: 100%; /* Ocupar todo el ancho disponible para mejor toque */
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+     /* Ajustes específicos para móviles pequeños */
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    .hero-section .subtitle {
+        font-size: 1rem;
+    }
+}
+
+/* ========================================= */
+/* 8. SECCIÓN CARACTERÍSTICAS (R3)           */
+/* ... (código existente) ... */
+
+/* Ajustes de Responsividad para las tarjetas */
+@media (max-width: 768px) {
+    .feature-grid {
+        gap: 20px;
+    }
+    
+    .feature-card {
+        padding: var(--spacing-md);
+    }
+
+    /* Asegurar que el texto no se desborde en móvil */
+    .feature-card h3 {
+        font-size: 1.2rem;
+    }
+}
+
+/* Ajuste adicional para dispositivos móviles muy pequeños (stacking for mobile) */
+@media (max-width: 480px) {
+    .feature-grid {
+        /* Forzar una sola columna en pantallas pequeñas para mejor lectura vertical */
+        grid-template-columns: 1fr;
+        gap: 15px; /* Reducir el espacio entre tarjetas en móvil pequeño */
+    }
+
+    .feature-card {
+        padding: var(--spacing-md);
+    }
+}
+
+/* ========================================= */
+/* 3. ESTILOS DE COMPONENTES BASE             */
+/* ... (código existente) ... */
+
+/* Botón Secundario (Secondary CTA) */
+.secondary-btn {
+    background-color: var(--secondary-color); /* Verde para el fondo secundario */
+    color: var(--text-light);
+    border: 2px solid var(--secondary-color); /* Borde visible */
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+
+/* Efecto hover para botones secundarios */
+.btn.secondary-btn:hover {
+    background-color: #218838; /* Verde más oscuro al pasar el ratón */
+    border-color: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
+}
+
+/* Ajuste general para que el botón de envío en contacto también pueda usar la clase .btn */
+.submit-form-btn {
+    /* Aseguramos que los botones de formulario usen las transiciones y estilos base */
+    transition: all 0.3s ease;
+}
+
+/* ========================================= */
+/* ENHANCEMENT: HOVER AVANZADO PARA TARJETAS   */
+/* ========================================= */
+
+/* Refinamiento del efecto hover para las tarjetas de características (Feature Cards) */
+/* Añadimos un cambio sutil en el fondo y una sombra más definida con un toque de color primario. */
+.feature-card:hover {
+    transform: translateY(-8px); /* Mayor elevación al pasar el ratón */
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) translate(0, -2px), 0 0 15px var(--primary-color); /* Sombra más profunda y un toque de color primario (glow) */
+    background-color: #f9f9ff; /* Fondo ligeramente diferente para indicar interacción */
+}
+
+/* Aseguramos que el icono también reaccione sutilmente al hover del contenedor padre */
+.feature-card:hover .feature-icon {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+}
+
+/* Estilos base para la animación de aparición (Reveal) */
+/* Se aplica a los contenedores principales que deben animarse al hacer scroll */
+#testimonios .testimonial-card,
+#estadisticas-animadas .stat-item {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+/* Clase que se añade con JavaScript para mostrar el elemento */
+.reveal-active {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    transition-delay: var(--delay); /* Permite un retraso secuencial si es necesario */
+}
+
+/* Ajuste específico para que los elementos dentro de las secciones se muestren correctamente al cargar la página, pero aún así puedan ser observados. */
+#testimonios .testimonial-card {
+    transition-delay: 0s; /* Aseguramos que el primer elemento no tenga delay inicial */
+}
+
+/* Ajuste general para asegurar que los elementos de las secciones estén listos para animar */
+section {
+    overflow: hidden; /* Evita saltos visuales durante la animación */
+}
+
+/* Estilos para mensajes de error */
+.form-group .error-message {
+    color: #e74c3c; /* Rojo suave */
+    font-size: 0.85em;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Estilos para el estado de éxito del formulario */
+#contacto .form-group input:valid, #contacto .form-group textarea:valid {
+    border-color: #2ecc71 !important; /* Verde suave */
+}
+
+.submit-form-btn[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ========================================= */
+/* 12. FOOTER (R4)                           */
+/* ... (código existente hasta aquí) ... */
+
+
+/* ========================================= */
+/* RESPONSIVE PARA FOOTER (Móvil)           */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column; /* Apilar todas las columnas en móvil */
+        align-items: center;
+        text-align: center;
+        gap: 20px;
+    }
+
+    /* Asegurar que todos los elementos ocupen el ancho completo o casi completo */
+    .footer-col {
+        max-width: 100%;
+        text-align: left; /* Mantener la alineación de texto a la izquierda dentro del bloque */
+    }
+}
+
+/* ========================================= */
+/* FIN DE ESTILOS RESPONSIVOS Y COMPATIBLES   */
+/* Se eliminó el bloque duplicado de estilos para Hero (Sección 7) que aparecía al final del archivo. */
+
+/* -------------------------------------------------- */
+/* Global Transitions and Polish for Interactions (QA) */
+/* -------------------------------------------------- */
+
+/* Aplicar transiciones suaves a elementos interactivos clave */
+button, .btn {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Mejorar el efecto hover de las tarjetas de características */
+.feature-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #e0e0e0; /* Añadir borde base para mejor definición */
+}
+
+/* Efecto al pasar el ratón sobre la tarjeta de característica (Elevación y sombra) */
+.feature-card:hover {
+    transform: translateY(-5px); /* Levantar ligeramente */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada */
+}
+
+/* Mejorar el efecto hover de las tarjetas de testimonio (Suavidad) */
+.testimonial-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-left: 4px solid transparent; /* Preparación para un indicador visual */
+}
+
+/* Efecto al pasar el ratón sobre la tarjeta de testimonio (Resaltado sutil) */
+.testimonial-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Mejorar el efecto hover de los ítems estadísticos */
+.stat-item {
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+}
+
+/* Efecto al pasar el ratón sobre un ítem estadístico (Resaltado y escala) */
+.stat-item:hover {
+    background-color: #f4f7fa; /* Fondo ligeramente diferente */
+    transform: scale(1.02);
+}
+
+/* Mejorar la interacción del botón principal al hacer hover */
+.primary-btn {
+    box-shadow: 0 4px 15px rgba(60, 130, 255, 0.4); /* Sombra inicial para darle profundidad */
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px); /* Pequeño levantamiento al pasar el ratón */
+    box-shadow: 0 8px 25px rgba(60, 130, 255, 0.6); /* Sombra más intensa */
+}
+
+/* Asegurar que los enlaces de navegación y footer tengan transiciones suaves */
+#site-header nav li a {
+    transition: color 0.3s ease;
+}
+
+#site-header nav li a:hover {
+    color: #4a90e2 !important; /* Color de hover más definido */
+}
+
+/* Asegurar que los inputs y textarea muestren un foco suave */
+.form-group input:focus, .form-group textarea:focus {
+    border-color: #4a90e2 !important;
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.3); /* Sombra de foco suave */
+}
+
+/* Estilo para el mensaje de éxito (QA) */
+#contact-success-message {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    background-color: #d4edda; /* Verde claro */
+    color: #155724; /* Texto verde oscuro */
+    border: 1px solid #c3e6cb;
+}
+
+/* Estilo para el mensaje de error (QA) - Ya parcialmente cubierto, pero reforzando la visibilidad */
+.error-message {
+    display: block;
+    color: #dc3545; /* Rojo visible */
+    font-size: 0.9em;
+    margin-top: 5px;
+}

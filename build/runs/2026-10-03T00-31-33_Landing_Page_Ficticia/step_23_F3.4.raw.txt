@@ -1,0 +1,123 @@
+### APPEND: styles.css
+```css
+/* Estilos base para la animación de aparición */
+section {
+    opacity: 0; /* Inicialmente oculto */
+    transform: translateY(40px); /* Desplazado hacia abajo */
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+/* Clase que se añade con JS para mostrar el elemento */
+section.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Ajuste específico para elementos internos que deben animar más rápido o de forma diferente */
+.feature-card, .testimonial-card, .stat-item {
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    opacity: 0; /* Inicialmente oculto */
+    transform: translateY(20px);
+}
+
+/* Aseguramos que los elementos visibles tengan la clase visible al cargar o cuando se detecta el scroll */
+section.visible .feature-card,
+section.visible .testimonial-card,
+section.visible .stat-item {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Ajuste para que los elementos de la sección de estadísticas animen individualmente */
+#estadisticas-animadas .stats-grid article {
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+/* Ajuste para que los elementos de la sección de testimonios animen individualmente */
+#testimonios .testimonial-card {
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+/* Aseguramos que los elementos de la sección de testimonios y estadísticas se muestren correctamente al cargar */
+#testimonios .testimonial-card {
+    transition-delay: 0.1s; /* Pequeño retraso para efecto cascada */
+}
+
+#estadisticas-animadas article {
+    transition-delay: 0.2s; /* Retraso progresivo en las estadísticas */
+}
+```
+
+### APPEND: app.js
+```javascript
+/**
+ * Inicializa el comportamiento de scroll suave para los enlaces internos del Navbar.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    const navLinks = document.querySelectorAll('#site-header nav a[href^="#"]');
+    const headerHeight = 80; // Asumiendo una altura de cabecera fija
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+
+            if (targetElement) {
+                // Calcula la posición de scroll, restando la altura del header para que el contenido no quede oculto detrás de él.
+                const offsetTop = targetElement.offsetTop - headerHeight; 
+
+                window.scrollTo({
+                    top: offsetTop,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+
+    // --- TAREA F3.4: Implementación del Observador de Intersección (Reveal on Scroll) ---
+
+    const options = {
+        root: null, // El viewport es el root
+        rootMargin: '0px',
+        threshold: 0.2 // Se activa cuando el 20% del elemento está visible
+    };
+
+    /**
+     * Función de callback para Intersection Observer API.
+     * @param {IntersectionObserverEntry[]} entries - Lista de elementos que cruzaron la intersección.
+     */
+    const handleIntersect = (entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // El elemento está visible en el viewport
+                entry.target.classList.add('visible');
+                
+                // Detener la observación una vez que se ha animado para no re-animar al hacer scroll hacia arriba/abajo
+                observer.unobserve(entry.target); 
+            } else {
+                // Opcional: Si quieres que el elemento desaparezca si sale de vista, puedes añadir lógica aquí.
+            }
+        });
+    };
+
+    // Observadores para secciones principales (Testimonios y Estadísticas)
+    const observer = new IntersectionObserver(handleIntersect, options);
+
+    // 1. Observar la sección de Testimonios
+    const testimoniosSection = document.querySelector('#testimonios');
+    if (testimoniosSection) {
+        observer.observe(testimoniosSection);
+    }
+
+    // 2. Observar la sección de Estadísticas Animadas
+    const estadisticasSection = document.querySelector('#estadisticas-animadas');
+    if (estadisticasSection) {
+        observer.observe(estadisticasSection);
+    }
+});
+```

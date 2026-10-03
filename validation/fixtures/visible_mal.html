@@ -1,0 +1,11 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>visible mal</title>
+<style>body{margin:0;font-family:sans-serif} section{min-height:900px;padding:20px}
+.rev{opacity:0;transition:opacity .3s} .rev.on{opacity:1}</style></head><body>
+<header data-feature="R2"><nav><a href="#inicio">Inicio</a> <a href="#datos">Datos</a></nav></header>
+<main>
+<section id="inicio" data-feature="R1" class="rev"><h1>Bienvenido al producto</h1><p>Un subtítulo con varias palabras que explican todo.</p></section>
+<section id="datos" data-feature="R3" class="rev"><h2>Datos</h2><p>Contenido que aparece cuando el usuario llega con el scroll.</p></section>
+<section id="contacto" data-feature="R3" style="visibility:hidden"><h2>Contacto</h2><p>Escribinos cuando quieras por cualquier medio.</p></section>
+</main><footer data-feature="R4" style="display:none"><p>Pie de página con derechos reservados.</p></footer>
+<script>const io=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting&&e.target.classList.add('on')),{threshold:.1});
+document.querySelectorAll('#datos').forEach(e=>io.observe(e));</script></body></html>

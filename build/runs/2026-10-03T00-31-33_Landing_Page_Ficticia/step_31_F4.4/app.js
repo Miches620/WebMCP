@@ -1,0 +1,274 @@
+// Lógica de la UI.
+
+/**
+ * Inicializa el comportamiento de scroll suave para los enlaces internos del Navbar.
+ */
+const initializeScrollSpy = () => {
+    const navLinks = document.querySelectorAll('#site-header nav a[href^="#"]');
+    // Asumiendo una altura de cabecera fija (ajustar si es necesario)
+    const headerHeight = 80; 
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+
+            if (targetElement) {
+                // Calcula la posición de scroll, restando la altura del header para que el contenido no quede oculto detrás de él.
+                const offsetTop = targetElement.offsetTop - headerHeight; 
+
+                window.scrollTo({
+                    top: offsetTop,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+};
+
+
+// --- TAREA F3.4: Implementación del Observador de Intersección (Reveal on Scroll) ---
+
+/**
+ * Configura el Intersection Observer para animar elementos al hacer scroll.
+ */
+const initializeIntersectionObserver = () => {
+    const options = {
+        root: null, // El viewport es el root
+        rootMargin: '0px',
+        threshold: 0.15 // Se activa cuando el 15% del elemento está visible (más sensible para mejor flujo)
+    };
+
+    /**
+     * Función de callback para Intersection Observer API.
+     * @param {IntersectionObserverEntry[]} entries - Lista de elementos que cruzaron la intersección.
+     */
+    const handleIntersect = (entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // El elemento está visible en el viewport
+                entry.target.classList.add('visible');
+                
+                // Detener la observación una vez que se ha animado para no re-animar al hacer scroll hacia arriba/abajo
+                observer.unobserve(entry.target); 
+            }
+        });
+    };
+
+    const observer = new IntersectionObserver(handleIntersect, options);
+
+    // Observadores para secciones principales (Características, Testimonios y Estadísticas)
+    const seccionesParaObservar = [
+        document.querySelector('#caracteristicas'), // Añadido: Características
+        document.querySelector('#testimonios'),
+        document.querySelector('#estadisticas-animadas')
+    ].filter(el => el); // Filtra elementos nulos
+
+    seccionesParaObservar.forEach(section => {
+        observer.observe(section);
+    });
+};
+
+
+// --- TAREA F3.6: Manejo del Formulario de Contacto (Mejorado con Validación) ---
+
+/**
+ * Limpia todos los mensajes de error y validación del formulario.
+ * @param {HTMLElement} form - El formulario en sí.
+ */
+const clearFormErrors = (form) => {
+    // Eliminar errores generales
+    const generalErrorSummary = form.querySelector('.form-error-summary');
+    if (generalErrorSummary) generalErrorSummary.remove();
+
+    // Limpiar mensajes de éxito
+    const successMessageContainer = document.getElementById('contacto').querySelector('.success-message');
+    if (successMessageContainer) successMessageContainer.remove();
+
+    // Eliminar errores por campo y limpiar clases
+    form.querySelectorAll('.form-group').forEach(group => {
+        group.classList.remove('has-error');
+        const errorElement = group.querySelector('.error-message');
+        if (errorElement) errorElement.remove();
+    });
+};
+
+/**
+ * Valida los datos del formulario de contacto client-side.
+ * @param {object} formData - Los datos a validar.
+ * @returns {boolean} True si la validación es exitosa, False en caso contrario.
+ */
+const validateContactForm = (formData) => {
+    let isValid = true;
+
+    // 1. Validación de Nombre (Requerido)
+    if (!formData.nombre || formData.nombre.trim() === '') {
+        alert("Por favor, ingresa tu nombre completo.");
+        isValid = false;
+    }
+
+    // 2. Validación de Email (Formato y Requerido)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email || !emailRegex.test(formData.email)) {
+        alert("Por favor, ingresa un correo electrónico válido.");
+        isValid = false;
+    }
+
+    // 3. Validación de Servicio (Requerido)
+    if (!formData.servicio || formData.servicio === 'Selecciona el motivo de tu consulta') {
+        alert("Por favor, selecciona un motivo de contacto.");
+        isValid = false;
+    }
+
+    return isValid;
+};
+
+
+/**
+ * Maneja el envío del formulario de contacto, simulando la comunicación con la API.
+ */
+const handleContactFormSubmit = async (e) => {
+    e.preventDefault();
+
+    const form = e.target;
+    // 1. Recolección de datos
+    const nameInput = form.querySelector('input[name="nombre"]');
+    const emailInput = form.querySelector('input[name="email"]');
+    const serviceSelect = form.querySelector('select[name="servicio"]');
+    const messageTextarea = form.querySelector('textarea[name="mensaje"]');
+    
+    const formData = {
+        nombre: nameInput ? nameInput.value : '',
+        email: emailInput ? emailInput.value : '',
+        servicio: serviceSelect ? serviceSelect.value : '',
+        mensaje: messageTextarea ? messageTextarea.value : ''
+    };
+
+    // 2. Validación Client-Side (F3.5)
+    if (!validateContactForm(formData)) {
+        clearFormErrors(form); // Limpiar cualquier error previo antes de fallar la validación
+        return; // Detener el envío si hay errores
+    }
+
+    // 3. Preparación de la UI para el envío (Feedback visual)
+    const submitButton = form.querySelector('.submit-form');
+    clearFormErrors(form); // Limpiar mensajes anteriores antes del intento de envío
+
+    // Deshabilitar y cambiar texto
+    submitButton.disabled = true;
+    submitButton.textContent = 'Enviando...';
+
+    try {
+        // 4. Llamada a la API simulada (F3.6)
+        const isSuccess = await window.api.enviarContacto(formData);
+
+        if (isSuccess) {
+            // Éxito: Mostrar mensaje y limpiar formulario
+            const successHtml = `
+                <div class="success-message" style="padding: 20px; background-color: #e6ffe6; border: 1px solid #b3ffb3; color: #006400; margin-bottom: 20px; border-radius: 5px;">
+                    ✅ ¡Mensaje enviado con éxito! Nos pondremos en contacto contigo lo antes posible.
+                </div>
+            `;
+            // Insertar el mensaje justo encima del formulario
+            form.insertAdjacentHTML('beforebegin', successHtml);
+
+            form.reset(); // Limpiar los campos
+        } else {
+            throw new Error("Error desconocido al enviar.");
+        }
+    } catch (error) {
+        // Manejo de errores: Mostrar mensaje de error general
+        const errorHtml = `
+            <div class="form-error-summary" style="padding: 15px; background-color: #ffe6e6; border: 1px solid #ffb3b3; color: #cc0000; margin-bottom: 20px; border-radius: 5px;">
+                ❌ Lo sentimos, ocurrió un error al enviar tu consulta. Por favor, inténtalo más tarde o llámanos directamente.
+            </div>
+        `;
+        form.insertAdjacentHTML('beforebegin', errorHtml);
+
+    } finally {
+        // 5. Restaurar el estado del botón
+        submitButton.disabled = false;
+        submitButton.textContent = 'Enviar Consulta';
+    }
+};
+
+
+/**
+ * Inicializa el evento de envío para el formulario de contacto.
+ */
+const initializeContactForm = () => {
+    const contactForm = document.querySelector('#contacto .contact-form');
+    if (contactForm) {
+        // Aseguramos que el listener se añada solo una vez
+        contactForm.removeEventListener('submit', handleContactFormSubmit); 
+        contactForm.addEventListener('submit', handleContactFormSubmit);
+    }
+};
+
+/**
+ * TAREA F4.3.R2.1: Inicializar el contador de estadísticas al cargar la página.
+ */
+const initializeCounters = () => {
+    // Seleccionar todos los elementos con la clase 'counter'
+    const counters = document.querySelectorAll('.stat-item .counter');
+
+    counters.forEach(counterElement => {
+        // Usamos un pequeño retraso para asegurar que el DOM esté listo y los estilos estén aplicados.
+        setTimeout(() => {
+            if (counterElement && !counterElement.dataset.counted) {
+                // Simular la activación del contador
+                counterElement.dataset.counted = 'true'; 
+            }
+        }, 100);
+    });
+};
+
+/**
+ * TAREA F4.3: Animación de entrada para el Hero (Mejora de Flujo Inicial).
+ */
+const animateHeroContent = () => {
+    const heroTitle = document.querySelector('#inicio h1');
+    const heroSubtitle = document.querySelector('#inicio p');
+    const ctaButton = document.querySelector('#inicio .cta-button');
+
+    if (heroTitle) {
+        // Animación de título con retraso progresivo
+        setTimeout(() => {
+            heroTitle.classList.add('visible');
+        }, 100);
+    }
+    if (heroSubtitle) {
+        // Animación de subtítulo después del título
+        setTimeout(() => {
+            heroSubtitle.classList.add('visible');
+        }, 300);
+    }
+    if (ctaButton) {
+        // Animación del botón al final
+        setTimeout(() => {
+            ctaButton.classList.add('visible');
+        }, 500);
+    }
+};
+
+
+/**
+ * Función principal de inicialización que se ejecuta al cargar el DOM.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Inicializar navegación (Scroll Spy)
+    initializeScrollSpy();
+
+    // 2. Animación Hero: Ejecutar animación específica para la primera impresión
+    animateHeroContent();
+
+    // 3. Inicializar animaciones al hacer scroll (Observador de Intersección)
+    initializeIntersectionObserver();
+
+    // 4. Inicializar formulario de contacto
+    initializeContactForm();
+
+    // 5. Inicializar contadores de estadísticas
+    initializeCounters();
+});

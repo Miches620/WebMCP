@@ -1,0 +1,107 @@
+### APPEND: styles.css
+```css
+/* Estilos base para la animación de aparición (Reveal) */
+/* Se aplica a los contenedores principales que deben animarse al hacer scroll */
+#testimonios .testimonial-card,
+#estadisticas-animadas .stat-item {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+/* Clase que se añade con JavaScript para mostrar el elemento */
+.reveal-active {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    transition-delay: var(--delay); /* Permite un retraso secuencial si es necesario */
+}
+
+/* Ajuste específico para que los elementos dentro de las secciones se muestren correctamente al cargar la página, pero aún así puedan ser observados. */
+#testimonios .testimonial-card {
+    transition-delay: 0s; /* Aseguramos que el primer elemento no tenga delay inicial */
+}
+
+/* Ajuste general para asegurar que los elementos de las secciones estén listos para animar */
+section {
+    overflow: hidden; /* Evita saltos visuales durante la animación */
+}
+```
+
+### APPEND: app.js
+```javascript
+// Lógica de la UI.
+
+/**
+ * Inicializa el observador de intersección (Intersection Observer)
+ * para detectar cuándo las secciones clave entran en la vista del usuario,
+ * activando así sus animaciones de aparición.
+ */
+const observerOptions = {
+    root: null, // Observa respecto al viewport
+    rootMargin: '0px',
+    threshold: 0.2 // Se dispara cuando el 20% del elemento es visible
+};
+
+/**
+ * Callback que se ejecuta cuando un elemento cruza el umbral de intersección.
+ * @param {IntersectionObserverEntry[]} entries - Array de entradas observadas.
+ * @param {IntersectionObserver} observer - El objeto Intersection Observer.
+ */
+const handleIntersect = (entries, observer) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            // Si el elemento está visible, añade la clase de activación para animarlo
+            entry.target.classList.add('reveal-active');
+
+            // Opcional: Desconectar el observador una vez que se ha activado la animación
+            observer.unobserve(entry.target);
+        }
+    });
+};
+
+/**
+ * Inicializa y ejecuta el Intersection Observer para las secciones de contenido clave.
+ */
+const setupRevealAnimations = () => {
+    // 1. Seleccionar los contenedores principales que deben animarse: Testimonios y Estadísticas.
+    const elementsToObserve = [
+        document.querySelector('#testimonios .testimonial-card'), // Observar cada tarjeta de testimonio individualmente
+        ...Array.from(document.querySelectorAll('#estadisticas-animadas .stat-item')) // Observar cada ítem estadístico
+    ].filter(el => el); // Filtra elementos nulos
+
+    if (elementsToObserve.length === 0) {
+        console.warn("No se encontraron elementos clave para animar con Intersection Observer.");
+        return;
+    }
+
+    // 2. Crear la instancia del observador
+    const observer = new IntersectionObserver(handleIntersect, observerOptions);
+
+    // 3. Observar cada elemento seleccionado
+    elementsToObserve.forEach(element => {
+        observer.observe(element);
+    });
+};
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Lógica de navegación (ya existente)
+    const navLinks = document.querySelectorAll('#site-header nav a[href^="#"]');
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+
+            if (targetElement) {
+                // Usamos scrollIntoView con comportamiento suave para el desplazamiento
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+
+    // Llamar a la función de animación al cargar la página
+    setupRevealAnimations();
+});
+```

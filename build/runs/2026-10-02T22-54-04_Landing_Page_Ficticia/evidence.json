@@ -1,0 +1,628 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Landing Page Ficticia",
+  "source": "project22_snapshot.json",
+  "catalog": "check_catalog v0.4",
+  "artifact_loads_without_js_errors": false,
+  "summary": {
+    "requisitos": 9,
+    "PASS": 1,
+    "FAIL": 5,
+    "SIN_EVIDENCIA": 1,
+    "SIN_CHEQUEO": 2
+  },
+  "control": "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "Hero con título, subtítulo, botón de llamada a la acción y animación de entrada",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "hero",
+              "portada"
+            ],
+            "feature": [
+              "R1"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#inicio [R1]: 16 palabras propias (mín. 8)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "section_control",
+          "params": {
+            "section": [
+              "hero",
+              "portada"
+            ],
+            "feature": [
+              "R1"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#inicio [R1]: control \"SOLICITAR DEMO GRATUITA\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "entrance_animation",
+          "params": {
+            "section": [
+              "hero",
+              "portada"
+            ],
+            "feature": [
+              "R1"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "#inicio [R1]: nada se animó al cargar",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Barra de navegación fija con enlaces que hacen scroll suave a cada sección",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "nav_scroll",
+          "params": {},
+          "result": "FAIL",
+          "detail": "clic en #contacto: no llegó (scrollY 792, sección a 400px); nav sigue visible arriba",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "Secciones: Características (tarjetas con iconos), Testimonios, Estadísticas animadas y Contacto",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "section_items",
+          "params": {
+            "section": [
+              "características",
+              "secciones"
+            ],
+            "feature": [
+              "R3"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "#caracteristicas [R3]: 1 ítems (Nuestras Características Únicas)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "testimonios",
+              "secciones"
+            ],
+            "feature": [
+              "R3"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "#testimonios [R3]: 0 palabras propias (mín. 8)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "numbers_animate",
+          "params": {
+            "section": [
+              "estadísticas",
+              "secciones"
+            ],
+            "feature": [
+              "R3"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "#estadisticas-animadas [R3]: no hay números",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "contacto",
+              "secciones"
+            ],
+            "feature": [
+              "R3"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "#contacto [R3]: 0 palabras propias (mín. 8)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "Pie de página completo",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "pie",
+              "footer",
+              "pagina",
+              "completo"
+            ],
+            "feature": [
+              "R4"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#site-footer [R4]: 9 palabras propias (mín. 8)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "Animaciones al hacer scroll (elementos que aparecen suavemente)",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "reveal_on_scroll",
+          "params": {},
+          "result": "FAIL",
+          "detail": "nada oculto debajo del primer pantallazo: no hay aparición al hacer scroll",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "Efectos hover en botones y tarjetas",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "hover_changes",
+          "params": {
+            "elementos": [
+              "boton",
+              "tarjeta"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "botón: cambia al pasar el mouse; tarjeta: no hay",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "text": "Visualmente atractivo: diseño moderno, paleta de colores coherente, tipografía elegante (usando fuentes del sistema), animaciones suaves",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El requisito 'Visualmente atractivo: diseño moderno, paleta de colores coherente, tipografía elegante (usando fuentes del sistema), animaciones suaves' no puede ser verificado mediante chequeos ejecutables. Estas son características estéticas y de interacción que no se pueden demostrar con la carga o el comportamiento de la página.",
+      "checks": []
+    },
+    {
+      "id": "R8",
+      "text": "Totalmente interactivo y responsive (escritorio y móvil)",
+      "verdict": "SIN_EVIDENCIA",
+      "checks": [
+        {
+          "type": "no_horizontal_scroll",
+          "params": {},
+          "result": "PASS",
+          "detail": "390px: ok; 1280px: ok",
+          "baseline": "PASS",
+          "trivial": true
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "text": "Código limpio, ordenado y comentado donde haga falta",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El requisito 'código limpio, ordenado y comentado' no puede ser verificado ejecutando la página. Se trata de una cuestión de calidad del código fuente que no se puede demostrar mediante chequeos de interfaz de usuario.",
+      "checks": []
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "spa_specialist v0.6-file-diet",
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "F1.1",
+        "role": "Frontend",
+        "ms": 103996,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 2,
+        "task_id": "F1.2",
+        "role": "Frontend",
+        "ms": 80015,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [
+          "SECTION index.html: no existe un elemento con ese id"
+        ],
+        "error": "cambios descartados: SECTION index.html: no existe un elemento con ese id",
+        "contract_missing": []
+      },
+      {
+        "n": 3,
+        "task_id": "F1.3",
+        "role": "Frontend",
+        "ms": 58873,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [
+          "SECTION inicio: el bloque tiene que empezar con el elemento id=\"inicio\""
+        ],
+        "error": "cambios descartados: SECTION inicio: el bloque tiene que empezar con el elemento id=\"inicio\"",
+        "contract_missing": []
+      },
+      {
+        "n": 4,
+        "task_id": "F1.4",
+        "role": "Frontend",
+        "ms": 47838,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [
+          "SECTION index.html: no existe un elemento con ese id"
+        ],
+        "error": "cambios descartados: SECTION index.html: no existe un elemento con ese id",
+        "contract_missing": []
+      },
+      {
+        "n": 5,
+        "task_id": "F1.5",
+        "role": "Frontend",
+        "ms": 45016,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [
+          "SECTION testimonios: el bloque tiene que empezar con el elemento id=\"testimonios\""
+        ],
+        "error": "cambios descartados: SECTION testimonios: el bloque tiene que empezar con el elemento id=\"testimonios\"",
+        "contract_missing": []
+      },
+      {
+        "n": 6,
+        "task_id": "F1.6",
+        "role": "Frontend",
+        "ms": 49296,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [
+          "SECTION estadisticas-animadas: el bloque tiene que empezar con el elemento id=\"estadisticas-animadas\""
+        ],
+        "error": "cambios descartados: SECTION estadisticas-animadas: el bloque tiene que empezar con el elemento id=\"estadisticas-animadas\"",
+        "contract_missing": []
+      },
+      {
+        "n": 7,
+        "task_id": "F1.7",
+        "role": "Frontend",
+        "ms": 46285,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [
+          "SECTION contacto: el bloque tiene que empezar con el elemento id=\"contacto\""
+        ],
+        "error": "cambios descartados: SECTION contacto: el bloque tiene que empezar con el elemento id=\"contacto\"",
+        "contract_missing": []
+      },
+      {
+        "n": 8,
+        "task_id": "F1.8",
+        "role": "Frontend",
+        "ms": 72521,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [
+          "SECTION site-footer: el bloque tiene que empezar con el elemento id=\"site-footer\""
+        ],
+        "error": "cambios descartados: SECTION site-footer: el bloque tiene que empezar con el elemento id=\"site-footer\"",
+        "contract_missing": []
+      },
+      {
+        "n": 9,
+        "task_id": "F2.1",
+        "role": "Frontend",
+        "ms": 83273,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 10,
+        "task_id": "F2.2",
+        "role": "Frontend",
+        "ms": 101519,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 11,
+        "task_id": "F2.3",
+        "role": "Frontend",
+        "ms": 97221,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 12,
+        "task_id": "F2.4",
+        "role": "Frontend",
+        "ms": 127394,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 13,
+        "task_id": "F2.5",
+        "role": "Frontend",
+        "ms": 146156,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 14,
+        "task_id": "F2.6",
+        "role": "Frontend",
+        "ms": 199621,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [
+          "SECTION estadisticas-animadas: el bloque tiene que empezar con el elemento id=\"estadisticas-animadas\""
+        ],
+        "contract_missing": []
+      },
+      {
+        "n": 15,
+        "task_id": "F2.7",
+        "role": "Frontend",
+        "ms": 283104,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [
+          "SECTION contacto: el bloque tiene que empezar con el elemento id=\"contacto\""
+        ],
+        "contract_missing": []
+      },
+      {
+        "n": 16,
+        "task_id": "F2.8",
+        "role": "Frontend",
+        "ms": 229446,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 17,
+        "task_id": "F2.9.R2.1",
+        "role": "Frontend",
+        "ms": 256669,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [
+          "SECTION site-header: el bloque tiene que empezar con el elemento id=\"site-header\""
+        ],
+        "error": "cambios descartados: SECTION site-header: el bloque tiene que empezar con el elemento id=\"site-header\"",
+        "contract_missing": []
+      },
+      {
+        "n": 18,
+        "task_id": "F2.9.R2.2",
+        "role": "Frontend",
+        "ms": 317705,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 19,
+        "task_id": "F2.9.R2.3",
+        "role": "Frontend",
+        "ms": 260021,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 20,
+        "task_id": "F3.1",
+        "role": "Frontend",
+        "ms": 58980,
+        "finish_reason": "stop",
+        "changed": [
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 21,
+        "task_id": "F3.2",
+        "role": "Frontend",
+        "ms": 274033,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 22,
+        "task_id": "F3.3",
+        "role": "Frontend",
+        "ms": 300290,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 23,
+        "task_id": "F3.4",
+        "role": "Frontend",
+        "ms": 110249,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css",
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 24,
+        "task_id": "F3.5",
+        "role": "Frontend",
+        "ms": 234218,
+        "finish_reason": "stop",
+        "changed": [
+          "api.js",
+          "styles.css",
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 25,
+        "task_id": "F3.6",
+        "role": "Frontend",
+        "ms": 105307,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [],
+        "no_change": "La lógica de manejo del formulario de contacto y el feedback al usuario ya están implementados en `app.js` dentro del bloque dedicado a la validación y envío del formulario, cumpliendo con todos los requisitos de la tarea.",
+        "contract_missing": []
+      },
+      {
+        "n": 26,
+        "task_id": "F4.1",
+        "role": "QA",
+        "ms": 382101,
+        "finish_reason": "length",
+        "changed": [],
+        "rejected": [],
+        "error": "la respuesta no trae bloques FILE/APPEND/SECTION",
+        "contract_missing": []
+      },
+      {
+        "n": 27,
+        "task_id": "F4.2",
+        "role": "QA",
+        "ms": 337714,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 28,
+        "task_id": "F4.3.R2.1",
+        "role": "QA",
+        "ms": 304109,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css",
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 29,
+        "task_id": "F4.3.R2.2.R3.1",
+        "role": "QA",
+        "ms": 166864,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [],
+        "no_change": "La lógica de navegación (scroll suave), la validación del formulario y el manejo de las animaciones con Intersection Observer están implementados correctamente en `app.js`, asegurando un flujo de usuario coherente desde el inicio hasta el c",
+        "contract_missing": []
+      },
+      {
+        "n": 30,
+        "task_id": "F4.3.R2.2.R3.2",
+        "role": "QA",
+        "ms": 176407,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css",
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 31,
+        "task_id": "F4.4",
+        "role": "QA",
+        "ms": 169417,
+        "finish_reason": "stop",
+        "changed": [],
+        "rejected": [],
+        "no_change": "El archivo app.js ya contiene la lógica completa para el manejo del formulario de contacto (validación client-side y envío simulado a window.api.crearContacto), cumpliendo con los requisitos de la tarea F4.4.",
+        "contract_missing": []
+      }
+    ]
+  }
+}

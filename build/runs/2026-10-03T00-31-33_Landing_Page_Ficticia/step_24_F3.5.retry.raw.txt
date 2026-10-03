@@ -1,0 +1,220 @@
+El error principal en `app.js` es la duplicación completa del listener de `DOMContentLoaded`, lo que causa código redundante y potencialmente errores de sintaxis o ejecución. Además, el código está desordenado al mezclar definiciones de funciones con listeners repetidos.
+
+A continuación, corrijo `app.js` unificando toda la lógica en una estructura limpia y funcional, manteniendo todas las características implementadas (Scroll Spy, Intersection Observer, Validación de Formulario).
+
+### FILE: app.js
+```javascript
+// Lógica de la UI.
+
+/**
+ * Función auxiliar para mostrar mensajes de error en el formulario.
+ * @param {HTMLElement} inputElement - El elemento input que falló.
+ * @param {string} message - El mensaje de error a mostrar.
+ */
+const displayError = (inputElement, message) => {
+    // Limpiar errores previos
+    let errorContainer = inputElement.parentNode.querySelector('.error-message');
+    if (errorContainer) {
+        errorContainer.remove();
+    }
+
+    // Crear y añadir el nuevo mensaje de error
+    const newError = document.createElement('span');
+    newError.className = 'error-message';
+    newError.textContent = message;
+    inputElement.parentNode.appendChild(newError);
+};
+
+/**
+ * Función auxiliar para limpiar errores del formulario.
+ */
+const clearErrors = () => {
+    document.querySelectorAll('.form-group .error-message').forEach(el => el.remove());
+    document.querySelector('#contacto .form-error-summary')?.style.display = 'none';
+    document.querySelector('#contacto .success-message')?.style.display = 'none';
+};
+
+/**
+ * Maneja la validación y el envío del formulario de contacto.
+ * @param {Event} e - El evento de envío del formulario.
+ */
+const validateAndSubmitForm = async (e) => {
+    e.preventDefault();
+
+    clearErrors(); // Limpiar errores antes de empezar la validación
+
+    // 1. Obtener los elementos del formulario
+    const form = e.target;
+    const nombreInput = form.querySelector('#nombre');
+    const emailInput = form.querySelector('#email');
+    const servicioSelect = form.querySelector('#servicio');
+    const mensajeTextarea = form.querySelector('#mensaje');
+
+    // 2. Validación de campos obligatorios y formato
+    let isValid = true;
+    let validationErrors = [];
+
+    // Nombre (Obligatorio)
+    if (!nombreInput.value.trim()) {
+        displayError(nombreInput, 'El nombre completo es un campo obligatorio.');
+        isValid = false;
+        validationErrors.push('Nombre');
+    } else {
+        displayError(nombreInput, ''); // Limpiar si estaba vacío antes de la validación
+    }
+
+    // Email (Obligatorio y Formato)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailInput.value.trim()) {
+        displayError(emailInput, 'El correo electrónico es obligatorio.');
+        isValid = false;
+        validationErrors.push('Email');
+    } else if (!emailRegex.test(emailInput.value.trim())) {
+        displayError(emailInput, 'Por favor, introduce un formato de email válido (ej: usuario@dominio.com).');
+        isValid = false;
+        validationErrors.push('Email');
+    } else {
+        displayError(emailInput, '');
+    }
+
+    // Mensaje (Obligatorio)
+    if (!mensajeTextarea.value.trim()) {
+        displayError(mensajeTextarea, 'Por favor, escribe un mensaje para que podamos ayudarte.');
+        isValid = false;
+        validationErrors.push('Mensaje');
+    } else {
+        displayError(mensajeTextarea, '');
+    }
+
+    // 3. Si la validación falla, detener el proceso
+    if (!isValid) {
+        const summary = document.querySelector('#contacto .form-error-summary');
+        summary.textContent = 'Por favor, corrige los errores marcados en el formulario antes de enviar.';
+        summary.style.display = 'block';
+        return;
+    }
+
+    // 4. Si la validación es exitosa: Preparar y enviar datos
+    const formData = {
+        nombre: nombreInput.value.trim(),
+        email: emailInput.value.trim(),
+        servicio: servicioSelect.options[servicioSelect.selectedIndex].text,
+        mensaje: mensajeTextarea.value.trim()
+    };
+
+    // Mostrar estado de carga y deshabilitar botón
+    const submitButton = form.querySelector('.submit-form');
+    submitButton.disabled = true;
+    submitButton.textContent = 'Enviando...';
+
+    try {
+        // Llamada a la API simulada
+        const success = await window.api.enviarContacto(formData);
+
+        if (success) {
+            // Mostrar mensaje de éxito y limpiar el formulario
+            form.reset();
+            const successMessage = document.querySelector('#contacto .success-message');
+            successMessage.innerHTML = '✅ ¡Mensaje enviado con éxito! Nos pondremos en contacto contigo lo antes posible.';
+            successMessage.style.display = 'block';
+
+        } else {
+            // Manejo de error del backend (aunque la API siempre resuelve con éxito, es buena práctica)
+            alert('Hubo un error al enviar el formulario. Por favor, inténtalo más tarde.');
+        }
+    } catch (error) {
+        console.error("Error al enviar el formulario:", error);
+        alert('Ocurrió un error inesperado. Intenta recargar la página o contactarnos por otro medio.');
+    } finally {
+        // Restaurar estado del botón
+        submitButton.disabled = false;
+        submitButton.textContent = 'Enviar Consulta';
+    }
+};
+
+
+/**
+ * Inicializa el comportamiento de scroll suave para los enlaces internos del Navbar (Scroll Spy).
+ */
+const setupSmoothScrolling = () => {
+    const navLinks = document.querySelectorAll('#site-header nav a[href^="#"]');
+    // Se asume una altura de cabecera fija, ajustarla si es necesario.
+    const headerHeight = 80; 
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+
+            if (targetElement) {
+                // Calcula la posición de scroll, restando la altura del header para que el contenido no quede oculto detrás de él.
+                const offsetTop = targetElement.offsetTop - headerHeight; 
+
+                window.scrollTo({
+                    top: offsetTop,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+};
+
+
+/**
+ * Implementa el Observador de Intersección (Reveal on Scroll).
+ */
+const setupIntersectionObserver = () => {
+    const options = {
+        root: null, // El viewport es el root
+        rootMargin: '0px',
+        threshold: 0.2 // Se activa cuando el 20% del elemento está visible
+    };
+
+    /**
+     * Función de callback para Intersection Observer API.
+     */
+    const handleIntersect = (entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // El elemento está visible en el viewport
+                entry.target.classList.add('visible');
+                
+                // Detener la observación una vez que se ha animado para no re-animar al hacer scroll hacia arriba/abajo
+                observer.unobserve(entry.target); 
+            }
+        });
+    };
+
+    const observer = new IntersectionObserver(handleIntersect, options);
+
+    // Observadores para secciones principales (Testimonios y Estadísticas)
+    const testimoniosSection = document.querySelector('#testimonios');
+    if (testimoniosSection) {
+        observer.observe(testimoniosSection);
+    }
+
+    const estadisticasSection = document.querySelector('#estadisticas-animadas');
+    if (estadisticasSection) {
+        observer.observe(estadisticasSection);
+    }
+};
+
+
+/**
+ * Función principal de inicialización que se ejecuta al cargar el DOM.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Configurar Scroll Spy
+    setupSmoothScrolling();
+
+    // 2. Configurar Animaciones al hacer scroll
+    setupIntersectionObserver();
+
+    // 3. Asignar Listener de Formulario
+    const contactForm = document.querySelector('.contact-form');
+    if (contactForm) {
+        contactForm.addEventListener('submit', validateAndSubmitForm);
+    }
+});
+```

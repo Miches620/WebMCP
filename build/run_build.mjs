@@ -133,14 +133,28 @@ const baseline = join(baselineDir, "index.html");
 //   SIN_EVIDENCIA todos pasan, pero todos pasan también en el esqueleto
 const coverage = [];
 const smoke = await runChecks(artifact, [{ type: "no_js_errors", params: {} }]);
+// Base v0.5 (03/10): sections_visible lo corre el harness siempre, no el traductor.
+// Es una COMPUERTA: si la pieza de un requisito no se ve cuando el usuario llega,
+// el requisito es FAIL aunque sus chequeos pasen. Nunca suma un PASS (en el
+// esqueleto también se ve todo; no discrimina como evidencia a favor).
+const [visibility] = await runChecks(artifact, [{ type: "sections_visible", params: {} }]);
+const visGate = (id) => visibility.features?.[id] === "FAIL"
+  ? { type: "sections_visible", gate: true, result: "FAIL", detail: visibility.anchors.filter((a) => !a.ok && a.features.includes(id)).map((a) => `#${a.id}: se ven ${a.seen}/${a.total} palabras`).join("; ") + " al llegar con el scroll" }
+  : null;
 for (const r of reqChecks) {
-  if (!r.checks.length) { coverage.push({ id: r.id, text: r.text, verdict: "SIN_CHEQUEO", reason: r.error || r.sin_chequeo || "el traductor no produjo chequeos válidos", checks: [] }); continue; }
+  const gate = visGate(r.id);
+  if (!r.checks.length) {
+    coverage.push(gate ? { id: r.id, text: r.text, verdict: "FAIL", reason: "sin chequeos del traductor, pero su pieza no se ve", checks: [gate] }
+      : { id: r.id, text: r.text, verdict: "SIN_CHEQUEO", reason: r.error || r.sin_chequeo || "el traductor no produjo chequeos válidos", checks: [] });
+    continue;
+  }
   const checks = anchorSections(r.checks, r.id, r.text, featureLabel(r.text)).map(normalizeCheck);
   const before = r.checks.map((c) => c.type).join(","), after = checks.map((c) => c.type).join(",");
   if (before !== after) log(`[VALIDATION] ${r.id}: el harness ajustó chequeos ${before} → ${after} (palabras que describen la pieza)`);
   const res = await runChecks(artifact, checks);
   const ctl = await runChecks(baseline, checks);
   res.forEach((x, k) => { x.baseline = ctl[k].result; if (x.result === "PASS" && ctl[k].result === "PASS") x.trivial = true; });
+  if (gate) res.push(gate);
   const verdict = res.some((x) => x.result !== "PASS") ? "FAIL"
     : res.some((x) => !x.trivial) ? "PASS" : "SIN_EVIDENCIA";
   coverage.push({ id: r.id, text: r.text, verdict, checks: res });
@@ -154,6 +168,7 @@ const evidence = {
   source: input.source,
   catalog: CATALOG_VERSION,
   artifact_loads_without_js_errors: smoke[0].result === "PASS",
+  sections_visible: { result: visibility.result, features: visibility.features || {}, anchors: visibility.anchors || [], detail: visibility.detail },
   summary: { requisitos: coverage.length, PASS: count("PASS"), FAIL: count("FAIL"), SIN_EVIDENCIA: count("SIN_EVIDENCIA"), SIN_CHEQUEO: count("SIN_CHEQUEO") },
   control: "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
   coverage,
@@ -163,6 +178,7 @@ writeFileSync(join(outDir, "evidence.json"), JSON.stringify(evidence, null, 2));
 
 log("\n=== Cobertura por requisito (Validation) ===");
 log(`carga sin errores de JS: ${evidence.artifact_loads_without_js_errors ? "sí" : "NO — " + smoke[0].detail}`);
+log(`piezas visibles al llegar con el scroll: ${visibility.result === "PASS" ? "todas" : visibility.result === "FAIL" ? "NO — " + visibility.detail.split("; ").filter((p) => p.endsWith("✗")).join("; ") : visibility.detail}`);
 for (const c of coverage) {
   log(`${c.verdict.padEnd(11)} ${c.id} ${c.text.slice(0, 70)}`);
   for (const x of c.checks.filter((x) => x.result !== "PASS")) log(`             ✗ ${x.type}: ${x.detail}`);

@@ -1,0 +1,125 @@
+### APPEND: styles.css
+```css
+/* ========================================= */
+/* 3. COMPONENTES BASE (Header, Nav, Section) - REFINEMENTS */
+/* ========================================= */
+
+/* Ajuste de la estructura del logo para mejor presentación */
+#site-header .logo {
+    display: flex;
+    align-items: center;
+}
+
+/* Estilos de la lista de navegación (Desktop) */
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 30px; /* Aumentamos un poco el espacio entre ítems */
+}
+
+/* Mejora del efecto hover en los enlaces de navegación */
+nav a {
+    font-weight: 500;
+    padding: 0.5rem 0;
+    color: var(--color-text-dark);
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+    position: relative; /* Necesario para el efecto de subrayado */
+}
+
+nav a::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 2px;
+    background-color: var(--color-primary);
+    transition: width 0.3s ease;
+    position: absolute;
+    bottom: -5px; /* Posiciona el subrayado ligeramente debajo del texto */
+}
+
+nav a:hover {
+    color: var(--color-primary);
+}
+
+/* Efecto de underline al hacer hover en la navegación */
+nav a:hover::after {
+    width: 100%;
+}
+
+
+/* ========================================= */
+/* HERO SECTION STYLING (R1) */
+/* ========================================= */
+
+#inicio {
+    background-color: var(--color-bg-light); /* Usamos el fondo general, pero lo hacemos más prominente */
+    padding: 8rem 0; /* Aumentamos el padding vertical para darle espacio heroico */
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-content {
+    max-width: 900px;
+    padding: 20px;
+}
+
+#inicio h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem); /* Tamaño responsivo para el título */
+    color: var(--color-text-dark);
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+}
+
+#inicio p {
+    font-size: clamp(1rem, 2vw, 1.25rem); /* Tamaño responsivo para el subtítulo */
+    color: var(--color-secondary);
+    margin-bottom: 30px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Ajuste del botón CTA dentro del Hero para que sea más visible */
+#inicio .cta-button {
+    padding: 15px 40px; /* Botón ligeramente más grande en el hero */
+    font-size: 1.1rem;
+    margin-top: 20px;
+}
+
+/* ========================================= */
+/* RESPONSIVE DESIGN (Media Queries) - HERO ADJUSTMENTS */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    /* Ajuste de la navegación en móvil */
+    #site-header .container {
+        flex-direction: column;
+        gap: 15px;
+    }
+    nav ul {
+        flex-direction: column;
+        align-items: center;
+        padding: 0;
+    }
+
+    /* Ajuste de secciones y columnas */
+    section {
+        padding: var(--spacing-lg) 0;
+    }
+    
+    /* Hero en móvil */
+    #inicio {
+        padding: 4rem 0;
+    }
+    
+    .hero-content h1 {
+        font-size: clamp(2rem, 8vw, 3rem);
+    }
+
+    .hero-content p {
+        font-size: 1rem;
+    }
+}
+```

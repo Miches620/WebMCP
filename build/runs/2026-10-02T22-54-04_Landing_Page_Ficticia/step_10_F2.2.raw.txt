@@ -1,0 +1,76 @@
+### APPEND: styles.css
+```css
+/* ========================================= */
+/* 5. HEADER Y NAVEGACIÓN (R2)               */
+/* ========================================= */
+
+#site-header {
+    background-color: var(--text-light); /* Fondo blanco para el header */
+    padding: 1rem 0;
+    position: sticky; /* Hace que la barra se quede visible al hacer scroll */
+    top: 0;
+    z-index: 1000; /* Asegura que esté por encima del contenido */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Sombra sutil para destacarlo */
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between; /* Separa logo y nav */
+    align-items: center;
+    padding: 0; /* Ya tiene padding en .container, pero lo ajustamos aquí si es necesario */
+}
+
+/* Estilo del Logo */
+.logo {
+    font-size: 1.8rem;
+    color: var(--primary-color);
+    margin: 0;
+}
+
+/* Estilos de la lista de navegación */
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 25px; /* Espacio entre los elementos del menú */
+}
+
+nav li a {
+    color: var(--text-dark);
+    font-weight: 500;
+    padding: 0.5rem 0;
+    display: block;
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+}
+
+/* Efecto hover específico para el nav */
+nav li a:hover {
+    color: var(--primary-color); /* Cambia de color al pasar el ratón */
+    border-bottom: 2px solid var(--primary-color); /* Subrayado sutil */
+    opacity: 1; /* Sobrescribe el opacity general para que sea más visible */
+}
+
+/* ========================================= */
+/* 6. MEDIA QUERIES PARA NAVEGACIÓN (Móvil)  */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    /* Ajustar el layout del header para móvil */
+    .header-content {
+        flex-direction: column; /* Apilar logo y nav verticalmente */
+        text-align: center;
+        gap: 15px;
+    }
+
+    nav ul {
+        flex-direction: column; /* Apilar los enlaces en móvil */
+        gap: 10px;
+        padding: 0;
+        width: 100%;
+    }
+
+    nav li a {
+        display: block; /* Ocupar todo el ancho disponible para mejor toque */
+        text-align: center;
+    }
+}
+```

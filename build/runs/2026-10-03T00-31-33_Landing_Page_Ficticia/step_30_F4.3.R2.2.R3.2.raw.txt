@@ -1,0 +1,53 @@
+### APPEND: styles.css
+```css
+/* =========================================
+   PERFORMANCE OPTIMIZATIONS (F4.3)
+   Asegura la fluidez del scroll y las animaciones al usar transform/opacity en lugar de propiedades costosas como width/height.
+========================================= */
+
+/* Optimización general para elementos que se mueven o cambian estado */
+body, #site-header, section, .feature-card, .testimonial-card, .stat-item {
+    will-change: transform, opacity; /* Indica al navegador qué propiedades cambiarán frecuentemente */
+}
+
+/* Transiciones optimizadas para hardware acceleration */
+.cta-button, .feature-card, .testimonial-card, .stat-item {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Usar una curva de Bézier suave y consistente */
+}
+
+/* Optimización para el estado visible (Intersection Observer) */
+section.visible * {
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+/* Asegurar que los elementos animados no causen reflow excesivo al aparecer */
+.feature-card, .testimonial-card, .stat-item {
+    transform: translateY(20px); /* Posición inicial ligeramente baja para el efecto de aparición */
+    opacity: 0;
+}
+
+/* Estado visible (cuando Intersection Observer añade la clase 'visible') */
+section.visible .feature-card, section.visible .testimonial-card, section.visible .stat-item {
+    transform: translateY(0); /* Vuelve a su posición original */
+    opacity: 1;
+}
+
+/* Optimización de hover en tarjetas y botones (usando transform) */
+.cta-button:hover, .feature-card:hover, .testimonial-card:hover, .stat-item:hover {
+    transform: translateY(-5px); /* Movimiento sutil usando transform */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada al pasar el ratón */
+}
+
+/* Optimización de la navegación fija (Header) */
+#site-header {
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Sombra sutil para sensación de profundidad */
+}
+
+/* Optimización del scroll suave (Smooth scrolling) */
+html {
+    scroll-behavior: smooth;
+}
+```
+
+**Nota:** Se han añadido propiedades `will-change` y se ha ajustado la lógica de las transiciones en CSS para forzar el uso de `transform` y `opacity`, lo cual es mucho más eficiente que manipular dimensiones o posiciones directamente, mejorando drásticamente la fluidez del scroll.

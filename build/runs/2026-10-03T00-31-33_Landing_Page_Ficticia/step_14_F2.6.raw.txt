@@ -1,0 +1,73 @@
+### APPEND: styles.css
+```css
+/* ========================================= */
+/* 5. ESTADÍSTICAS SECCIÓN (R3) STYLING */
+/* ========================================= */
+
+#estadisticas-animadas {
+    background-color: var(--color-bg-light); /* Fondo claro para destacar la sección */
+    padding: var(--spacing-xl) 0;
+}
+
+/* Contenedor de los ítems de estadísticas - Grid responsivo */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Distribución uniforme y adaptable */
+    gap: var(--spacing-md);
+    margin-top: 40px;
+}
+
+/* Estilo de cada ítem estadístico */
+.stat-item {
+    background: #ffffff;
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    text-align: center; /* Centrar el contenido dentro de la tarjeta */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efecto hover en tarjetas de estadísticas */
+.stat-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilos del contador numérico (el número grande) */
+.stat-item .counter {
+    font-size: clamp(2.5rem, 6vw, 4rem); /* Tamaño responsivo y prominente */
+    font-weight: 800; /* Más grueso para impacto */
+    display: block;
+    color: var(--color-primary);
+    margin-bottom: 10px; /* Espacio entre el número y la etiqueta */
+}
+
+/* Estilo de la etiqueta descriptiva (el texto debajo del contador) */
+.stat-item .label {
+    font-size: 1rem;
+    color: var(--color-secondary);
+    margin-top: 0; /* Aseguramos que no haya margen superior extra */
+    font-weight: 500;
+}
+
+/* ========================================= */
+/* RESPONSIVE ADJUSTMENTS PARA ESTADÍSTICAS */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    .stats-grid {
+        gap: var(--spacing-md);
+    }
+    
+    .stat-item {
+        padding: var(--spacing-md);
+    }
+    
+    /* Reducir el tamaño del contador en móvil */
+    .stat-item .counter {
+        font-size: clamp(2rem, 8vw, 3rem);
+    }
+}
+```
+
+Nota: Se ha añadido la sección de estilos para estadísticas (`#estadisticas-animadas`) al final del archivo `styles.css`, siguiendo el patrón de las otras secciones.

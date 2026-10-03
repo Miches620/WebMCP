@@ -15,7 +15,15 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle } from "./form_runtime.mjs";
 
-export const CATALOG_VERSION = "check_catalog v0.4";
+export const CATALOG_VERSION = "check_catalog v0.5";
+
+// v0.5 (03/10): sections_visible — chequeo de BASE (lo corre el harness, no el
+// traductor). Evidencia: en Project22 v0.6.1 el hero y el contacto quedaron con
+// opacity:0 para siempre (CSS global `section{opacity:0}` + observer que no los
+// vigilaba) y Validation dio PASS igual: innerText ignora la opacidad. Ahora cada
+// pieza anclada con data-feature se mira DESPUÉS de llevarla a pantalla con la
+// rueda del mouse, y se cuentan solo las palabras que se ven de verdad
+// (opacidad acumulada ≥ 0.5, visibility, display, tamaño).
 
 // v0.4 (02/10): chequeos de requisitos TRANSVERSALES y de interacción, que en
 // Project22 quedaron SIN_CHEQUEO o con FAIL falso: sin scroll horizontal en
@@ -111,6 +119,11 @@ export const CATALOG = {
     describe: "En la sección X hay números que cambian solos al verla (contadores animados). Usar para 'estadísticas / contadores animados'.",
     params: { section: "string[]" },
   },
+  sections_visible: {
+    describe: "BASE (no lo usa el traductor): cada pieza con data-feature (header, secciones, footer) muestra su texto cuando el usuario llega a ella con el scroll.",
+    params: {},
+    base: true,
+  },
   click_reveals: {
     describe: "Al hacer clic en un control cuyo texto menciona A, aparece visible texto que menciona B.",
     params: { click: "string[]", expect: "string[]" },
@@ -182,6 +195,32 @@ const MARK_SECTION = ([ws, feature]) => {
   best.forEach((e) => e.setAttribute("data-vc-item", "1"));
   return { id: (sec.id || sec.tagName.toLowerCase()) + (anchored ? ` [${feature}]` : ""), words: wordsN, items: best.length, sample: best.slice(0, 3).map((e) => e.innerText.trim().split("\n")[0].slice(0, 40)) };
 };
+// v0.5: palabras que se VEN dentro de un elemento (opacidad acumulada, visibility, display, tamaño)
+const SEEN_WORDS = (el) => {
+  const count = (t) => t.split(/\s+/).filter((w) => /[a-záéíóúñ0-9]{2,}/i.test(w)).length;
+  let total = 0, seen = 0;
+  const shown = (e) => {
+    const r = e.getBoundingClientRect();
+    if (!r.width || !r.height) return false;
+    let op = 1;
+    for (let a = e; a && a !== document.documentElement; a = a.parentElement) {
+      const c = getComputedStyle(a);
+      if (c.display === "none" || c.visibility === "hidden" || c.visibility === "collapse") return false;
+      op *= Number(c.opacity);
+    }
+    return op >= 0.5;
+  };
+  const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  for (let n = tw.nextNode(); n; n = tw.nextNode()) {
+    const p = n.parentElement;
+    if (!p || p.closest("script, style, noscript, template")) continue;
+    const k = count(n.textContent || "");
+    if (!k) continue;
+    total += k;
+    if (shown(p)) seen += k;
+  }
+  return { total, seen };
+};
 const ITEM_LEFTS = () => [...document.querySelectorAll("[data-vc-item]")].map((e) => Math.round(e.getBoundingClientRect().left));
 // v0.4: estilo comparable para hover
 const STYLE_SNAP = (el) => { const c = getComputedStyle(el); return [c.color, c.backgroundColor, c.boxShadow, c.transform, c.borderColor, c.opacity, c.textDecorationLine, c.outlineStyle].join("|"); };
@@ -199,6 +238,8 @@ async function visibleTexts(page, selector) {
       .map((e) => [e.innerText, e.value, e.getAttribute("aria-label"), e.getAttribute("title")].filter(Boolean).join(" ")),
   );
 }
+
+const SEEN_SRC = SEEN_WORDS.toString();
 
 /**
  * Ejecuta una lista de chequeos sobre un artefacto HTML.
@@ -485,6 +526,43 @@ export async function runChecks(htmlPath, checks) {
             const changed = early !== after || before !== after;
             r.result = changed ? "PASS" : "FAIL";
             r.detail = `#${info.id}: ${changed ? `"${before.slice(0, 40)}" → "${after.slice(0, 40)}"` : `los números no cambian ("${after.slice(0, 50)}")`}`;
+            break;
+          }
+          case "sections_visible": {
+            // Cada pieza anclada: llevarla a pantalla con la rueda (dispara observers reales),
+            // esperar las transiciones y contar las palabras que se ven. Visible = ≥ 50 %.
+            await page.setViewportSize({ width: 1280, height: 800 });
+            await reload();
+            const anchors = await page.evaluate(() => [...document.querySelectorAll("[data-feature]")].map((e, i) => {
+              e.setAttribute("data-vc-anchor", String(i));
+              return { i, id: e.id || e.tagName.toLowerCase(), features: (e.getAttribute("data-feature") || "").split(/\s+/).filter(Boolean) };
+            }));
+            if (!anchors.length) { r.result = "NOT_APPLICABLE"; r.detail = "la página no tiene piezas con data-feature"; break; }
+            const parts = [], byFeature = {}, per = [];
+            for (const a of anchors) {
+              const target = await page.evaluate((i) => {
+                const e = document.querySelector(`[data-vc-anchor="${i}"]`);
+                const top = e.getBoundingClientRect().top + scrollY;
+                return Math.max(0, Math.min(top - 80, document.documentElement.scrollHeight - innerHeight));
+              }, a.i);
+              for (let k = 0; k < 60; k++) {
+                const y = await page.evaluate(() => scrollY);
+                if (Math.abs(y - target) < 30) break;
+                await page.mouse.wheel(0, Math.max(-300, Math.min(300, target - y)));
+                await page.waitForTimeout(60);
+              }
+              await page.waitForTimeout(900);
+              const w = await page.evaluate(([src, i]) => (0, eval)(`(${src})`)(document.querySelector(`[data-vc-anchor="${i}"]`)), [SEEN_SRC, a.i]);
+              const ok = w.total === 0 ? false : w.seen / w.total >= 0.5;
+              parts.push(`#${a.id}: ${w.seen}/${w.total} palabras visibles${ok ? "" : " ✗"}`);
+              per.push({ id: a.id, features: a.features, seen: w.seen, total: w.total, ok });
+              for (const f of a.features) byFeature[f] = (byFeature[f] ?? true) && ok;
+            }
+            r.anchors = per;
+            r.features = Object.fromEntries(Object.entries(byFeature).map(([f, ok]) => [f, ok ? "PASS" : "FAIL"]));
+            r.result = Object.values(byFeature).every(Boolean) ? "PASS" : "FAIL";
+            r.detail = parts.join("; ");
+            await page.setViewportSize({ width: 1280, height: 720 });
             break;
           }
           case "click_reveals": {

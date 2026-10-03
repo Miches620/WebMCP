@@ -1,0 +1,186 @@
+### SECTION: #contacto
+```html
+<div class="contact-grid">
+    <!-- Columna del Formulario -->
+    <div class="contact-form-container">
+        <p>Completa el formulario y nuestro equipo se pondrá en contacto contigo lo antes posible.</p>
+        <form id="contact-form" class="contact-form">
+            <div class="form-group">
+                <label for="nombre">Nombre Completo</label>
+                <input type="text" id="nombre" name="nombre" required placeholder="Ej: Juan Pérez">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Correo Electrónico</label>
+                <input type="email" id="email" name="email" required placeholder="ejemplo@dominio.com">
+            </div>
+
+            <div class="form-group">
+                <label for="mensaje">Mensaje / Consulta</label>
+                <textarea id="mensaje" name="mensaje" rows="6" required placeholder="Cuéntanos sobre tu proyecto..."></textarea>
+            </div>
+
+            <button type="submit" class="btn primary-btn submit-form-btn">Enviar Solicitud</button>
+        </form>
+    </div>
+
+    <!-- Columna de Información de Contacto -->
+    <div class="contact-info-container">
+        <h3>¿Prefieres contactarnos por otro medio?</h3>
+        <div class="info-item">
+            <h4>📞 Teléfono</h4>
+            <p class="info-text">+34 912 345 678</p>
+        </div>
+        <div class="info-item">
+            <h4>📧 Email General</h4>
+            <p class="info-text">contacto@technova.com</p>
+        </div>
+        <div class="info-item">
+            <h4>📍 Oficina Central</h4>
+            <p class="info-text">Avenida de la Innovación, 123, Ciudad Digital.</p>
+        </div>
+
+        <!-- Placeholder para un mapa o imagen -->
+        <div class="map-placeholder" style="height: 250px; background-color: #e9ecef; border-radius: var(--border-radius); display: flex; align-items: center; justify-content: center; color: #6c757d;">
+            [Mapa de Ubicación Aquí]
+        </div>
+    </div>
+</div>
+```
+
+### APPEND: styles.css
+```css
+/* ========================================= */
+/* 11. SECCIÓN CONTACTO (R3)                */
+/* ========================================= */
+
+#contacto {
+    background-color: var(--bg-light); /* Fondo suave para la sección de contacto */
+}
+
+/* Contenedor principal del layout de contacto (Grid) */
+.contact-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* Formulario más ancho que info */
+    gap: var(--spacing-lg);
+    align-items: flex-start; /* Alinea los elementos al inicio */
+}
+
+/* Estilo general del formulario de contacto */
+.contact-form {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Estilo de los grupos de formulario (Label + Input) */
+.form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+/* Etiqueta del campo (label) */
+.form-group label {
+    display: block; /* Hace que la etiqueta ocupe su propia línea */
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+/* Estilo de los inputs y textarea */
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ced4da; /* Borde gris estándar */
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efecto focus para inputs (mejor UX) */
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: var(--primary-color); /* Borde azul al enfocar */
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15); /* Sombra suave de acento */
+    outline: none; /* Quitar el borde por defecto del navegador */
+}
+
+/* Estilo específico para el botón de envío dentro del formulario */
+.submit-form-btn {
+    margin-top: var(--spacing-md);
+    width: 100%; /* Ocupar todo el ancho disponible */
+    padding: 1rem;
+}
+
+
+/* Contenedor de información de contacto (columna derecha) */
+.contact-info-container {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Estilo de los títulos dentro del info container */
+.contact-info-container h3 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* Estilo de cada ítem de información (Teléfono, Email, etc.) */
+.info-item {
+    margin-bottom: var(--spacing-md);
+}
+
+.info-item h4 {
+    font-size: 1rem;
+    color: #6c757d; /* Gris para el título del contacto */
+    margin-bottom: 0.3rem;
+}
+
+.info-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+/* Placeholder de mapa (ya tiene estilos inline, pero añadimos un ajuste general) */
+.map-placeholder {
+    margin-top: var(--spacing-md);
+}
+
+
+/* ========================================= */
+/* RESPONSIVE PARA CONTACTO (Móvil)         */
+/* ========================================= */
+
+@media (max-width: 992px) {
+    .contact-grid {
+        /* Cambiar de grid a apilado verticalmente en pantallas medianas/móviles */
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+
+    /* Asegurar que el formulario y la info ocupen todo el ancho disponible */
+    .contact-form-container, .contact-info-container {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Ajustes generales para móvil en contacto */
+    .contact-form, .contact-info-container {
+        padding: 20px;
+    }
+    
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+}
+```
+
+**Nota:** Se ha completado la sección de contacto en `index.html` y se han añadido todos los estilos necesarios para el formulario, campos de entrada e información de contacto en `styles.css`.

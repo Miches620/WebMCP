@@ -1,0 +1,31 @@
+Este tipo de tarea requiere ajustes en el nivel más bajo del código, principalmente en CSS y JavaScript, para garantizar que la experiencia de usuario sea fluida y no cause tirones (jank).
+
+### APPEND: styles.css
+```css
+/* =========================================
+   PERFORMANCE & SCROLL OPTIMIZATION
+   ========================================= */
+
+/* Asegura un comportamiento de scroll suave a nivel global */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Optimización general para animaciones y transiciones (Hardware Acceleration Hint) */
+body, section, .feature-card, .testimonial-card, .stat-item {
+    will-change: transform, opacity, box-shadow;
+    transition-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1); /* Easing más natural */
+}
+
+/* Optimización para el scroll en dispositivos táctiles (si es necesario) */
+/* Aunque no siempre es visible, ayuda a la consistencia del rendimiento */
+body {
+    -webkit-overflow-scrolling: touch;
+}
+```
+
+### APPEND: app.js
+```javascript
+// No se requiere código adicional en app.js ya que el uso de Intersection Observer y scrollIntoView({ behavior: 'smooth' }) 
+// es la implementación moderna y eficiente para estas tareas. La optimización principal reside en CSS.
+```

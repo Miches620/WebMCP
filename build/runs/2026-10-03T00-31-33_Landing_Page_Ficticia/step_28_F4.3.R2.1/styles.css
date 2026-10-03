@@ -1,0 +1,1183 @@
+/* estilos */
+
+/* ========================================= */
+/* 1. GLOBAL STYLES & RESET */
+/* ========================================= */
+
+/* Reset básico para asegurar consistencia en navegadores */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Establecer la fuente base y el color de texto por defecto */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    line-height: 1.6;
+    color: var(--color-text-dark);
+    background-color: var(--color-bg-light);
+}
+
+/* Estilos para enlaces */
+a {
+    text-decoration: none;
+    color: var(--color-primary);
+    transition: color 0.3s ease, opacity 0.3s ease;
+}
+
+a:hover {
+    opacity: 0.85; /* Efecto sutil al pasar el ratón */
+}
+
+/* Contenedor principal para centrar y limitar el ancho del contenido */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px; /* Padding lateral en todos los contenedores */
+}
+
+/* ========================================= */
+/* 2. VARIABLES DE DISEÑO (Design Tokens) */
+/* ========================================= */
+
+:root {
+    /* Paleta de Colores */
+    --color-primary: #007bff; /* Azul vibrante - CTA, enlaces principales */
+    --color-secondary: #6c757d; /* Gris medio - Texto secundario, bordes */
+    --color-success: #28a745; /* Verde - Éxito */
+    --color-warning: #ffc107; /* Amarillo - Advertencia */
+    --color-danger: #dc3545; /* Rojo - Error */
+
+    /* Fondo y Texto */
+    --color-bg-light: #f8f9fa; /* Fondo general claro */
+    --color-bg-dark: #212529; /* Fondo oscuro (Footer, secciones especiales) */
+    --color-text-dark: #343a40; /* Texto principal oscuro */
+    --color-text-light: #f8f9fa; /* Texto claro para fondos oscuros */
+
+    /* Espaciado y Bordes */
+    --spacing-xl: 6rem;
+    --spacing-lg: 3rem;
+    --spacing-md: 1.5rem;
+    --border-radius: 8px;
+    --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ========================================= */
+/* 3. COMPONENTES BASE (Header, Nav, Section) */
+/* ========================================= */
+
+/* Header y Navegación */
+#site-header {
+    background-color: var(--color-bg-light);
+    padding: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: sticky; /* Hace que la barra sea fija al hacer scroll */
+    top: 0;
+    z-index: 1000;
+}
+
+#site-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo a {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-text-dark);
+}
+
+/* Estilos de la lista de navegación */
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 25px;
+}
+
+nav a {
+    font-weight: 500;
+    padding: 0.5rem 0;
+    color: var(--color-text-dark);
+    transition: color 0.3s ease;
+}
+
+nav a:hover {
+    color: var(--color-primary); /* Cambia de color al hacer hover */
+}
+
+
+/* Secciones principales */
+section {
+    padding: var(--spacing-xl) 0;
+    opacity: 0; /* Inicialmente ocultas para animación JS */
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+/* Clase que JavaScript añadirá al hacer scroll (para la animación) */
+section.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Estilo para títulos de sección */
+h2 {
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+    font-size: 2.5rem;
+    color: var(--color-text-dark);
+}
+
+/* ========================================= */
+/* 4. ELEMENTOS INTERACTIVOS (Botones, Cards) */
+/* ========================================= */
+
+/* Botón CTA general */
+.cta-button {
+    display: inline-block;
+    padding: 12px 30px;
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+/* Efecto hover en botones */
+.cta-button:hover {
+    background-color: #0056b3; /* Azul más oscuro al pasar el ratón */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 123, 255, 0.4);
+}
+
+/* Tarjetas de características (Feature Cards) */
+.feature-card {
+    background: var(--color-bg-light);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-card);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%; /* Asegura que todas las tarjetas tengan la misma altura */
+}
+
+/* Efecto hover en tarjetas */
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================================= */
+/* 5. FOOTER Y ESTADÍSTICAS */
+/* ========================================= */
+
+#site-footer {
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-light);
+    padding: var(--spacing-xl) 0;
+}
+
+.footer-column h4, .footer-column h3 {
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+}
+
+.footer-links ul {
+    list-style: none;
+}
+
+.footer-links a {
+    display: block;
+    padding: 0.5rem 0;
+    color: #adb5bd; /* Gris claro para enlaces del footer */
+}
+
+/* Estilos de los contadores de estadísticas */
+.stat-item .counter {
+    font-size: 3.5rem;
+    font-weight: 700;
+    display: block;
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+}
+
+/* ========================================= */
+/* 6. RESPONSIVE DESIGN (Media Queries) */
+/* ========================================= */
+
+@media (max-width: 992px) {
+    /* Ajuste de la navegación en pantallas medianas */
+    nav ul {
+        gap: 15px;
+    }
+
+    h2 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Ajuste de la navegación en móvil */
+    #site-header .container {
+        flex-direction: column;
+        gap: 15px;
+    }
+    nav ul {
+        flex-direction: column;
+        align-items: center;
+        padding: 0;
+    }
+
+    /* Ajuste de secciones y columnas */
+    section {
+        padding: var(--spacing-lg) 0;
+    }
+
+    .feature-card, .testimonial-card, .stat-item {
+        margin-bottom: var(--spacing-md);
+    }
+}
+
+/* ========================================= */
+/* 3. COMPONENTES BASE (Header, Nav, Section) - REFINEMENTS */
+/* ========================================= */
+
+/* Ajuste de la estructura del logo para mejor presentación */
+#site-header .logo {
+    display: flex;
+    align-items: center;
+}
+
+/* Estilos de la lista de navegación (Desktop) */
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 30px; /* Aumentamos un poco el espacio entre ítems */
+}
+
+/* Mejora del efecto hover en los enlaces de navegación */
+nav a {
+    font-weight: 500;
+    padding: 0.5rem 0;
+    color: var(--color-text-dark);
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+    position: relative; /* Necesario para el efecto de subrayado */
+}
+
+nav a::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 2px;
+    background-color: var(--color-primary);
+    transition: width 0.3s ease;
+    position: absolute;
+    bottom: -5px; /* Posiciona el subrayado ligeramente debajo del texto */
+}
+
+nav a:hover {
+    color: var(--color-primary);
+}
+
+/* Efecto de underline al hacer hover en la navegación */
+nav a:hover::after {
+    width: 100%;
+}
+
+/* ========================================= */
+/* 3. COMPONENTES BASE (Header, Nav, Section) - REFINEMENTS */
+/* ========================================= */
+
+/* Ajuste de la estructura del logo para mejor presentación */
+#site-header .logo {
+    display: flex;
+    align-items: center;
+}
+
+/* Estilos de la lista de navegación (Desktop) */
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 30px; /* Aumentamos un poco el espacio entre ítems */
+}
+
+/* Mejora del efecto hover en los enlaces de navegación */
+nav a {
+    font-weight: 500;
+    padding: 0.5rem 0;
+    color: var(--color-text-dark);
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+    position: relative; /* Necesario para el efecto de subrayado */
+}
+
+nav a::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 2px;
+    background-color: var(--color-primary);
+    transition: width 0.3s ease;
+    position: absolute;
+    bottom: -5px; /* Posiciona el subrayado ligeramente debajo del texto */
+}
+
+nav a:hover {
+    color: var(--color-primary);
+}
+
+/* Efecto de underline al hacer hover en la navegación */
+nav a:hover::after {
+    width: 100%;
+}
+
+
+/* ========================================= */
+/* HERO SECTION STYLING (R1) */
+/* ========================================= */
+
+#inicio {
+    background-color: var(--color-bg-light); /* Usamos el fondo general, pero lo hacemos más prominente */
+    padding: 8rem 0; /* Aumentamos el padding vertical para darle espacio heroico */
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-content {
+    max-width: 900px;
+    padding: 20px;
+}
+
+#inicio h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem); /* Tamaño responsivo para el título */
+    color: var(--color-text-dark);
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+}
+
+#inicio p {
+    font-size: clamp(1rem, 2vw, 1.25rem); /* Tamaño responsivo para el subtítulo */
+    color: var(--color-secondary);
+    margin-bottom: 30px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Ajuste del botón CTA dentro del Hero para que sea más visible */
+#inicio .cta-button {
+    padding: 15px 40px; /* Botón ligeramente más grande en el hero */
+    font-size: 1.1rem;
+    margin-top: 20px;
+}
+
+/* ========================================= */
+/* RESPONSIVE DESIGN (Media Queries) - HERO ADJUSTMENTS */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    /* Ajuste de la navegación en móvil */
+    #site-header .container {
+        flex-direction: column;
+        gap: 15px;
+    }
+    nav ul {
+        flex-direction: column;
+        align-items: center;
+        padding: 0;
+    }
+
+    /* Ajuste de secciones y columnas */
+    section {
+        padding: var(--spacing-lg) 0;
+    }
+    
+    /* Hero en móvil */
+    #inicio {
+        padding: 4rem 0;
+    }
+    
+    .hero-content h1 {
+        font-size: clamp(2rem, 8vw, 3rem);
+    }
+
+    .hero-content p {
+        font-size: 1rem;
+    }
+}
+
+/* ========================================= */
+/* 4. CARACTERÍSTICAS SECCIÓN (R3) STYLING */
+/* ========================================= */
+
+#caracteristicas {
+    background-color: var(--color-bg-light); /* Fondo claro para destacar la sección */
+}
+
+/* Contenedor de las tarjetas de características */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Grid responsivo */
+    gap: var(--spacing-md);
+    margin-top: 40px;
+}
+
+/* Estilo de la tarjeta individual */
+.feature-card {
+    background: #ffffff; /* Fondo blanco puro para las tarjetas */
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); /* Sombra más pronunciada */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Efecto hover mejorado en tarjetas */
+.feature-card:hover {
+    transform: translateY(-8px); /* Movimiento más notable */
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilo del icono (Placeholder) */
+.feature-icon {
+    background-color: var(--color-primary);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%; /* Circular */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    font-size: 2rem; /* Tamaño del placeholder de icono */
+    color: white;
+}
+
+/* Estilo del título y descripción dentro de la tarjeta */
+.feature-card h3 {
+    font-size: 1.4rem;
+    color: var(--color-text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.feature-card p {
+    color: var(--color-secondary);
+    line-height: 1.5;
+    flex-grow: 1; /* Permite que el texto ocupe espacio disponible */
+}
+
+
+/* ========================================= */
+/* RESPONSIVE ADJUSTMENTS PARA CARACTERÍSTICAS */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    .features-grid {
+        gap: var(--spacing-md);
+    }
+    
+    .feature-card {
+        padding: var(--spacing-md);
+    }
+}
+
+/* ========================================= */
+/* 5. TESTIMONIOS SECCIÓN (R3) STYLING */
+/* ========================================= */
+
+#testimonios {
+    background-color: var(--color-bg-light); /* Fondo claro para destacar la sección */
+}
+
+/* Contenedor principal de testimonios - Grid responsivo */
+.testimonials-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-md);
+    margin-top: 40px;
+}
+
+/* Estilo de la tarjeta individual de testimonio */
+.testimonial-card {
+    background: #ffffff;
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Efecto hover en tarjetas de testimonio */
+.testimonial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilo del bloque de cita (el texto del testimonio) */
+blockquote {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--color-text-dark);
+    margin-bottom: var(--spacing-md);
+    /* Añadimos un borde izquierdo para simular la cita */
+    border-left: 4px solid var(--color-primary);
+    padding-left: 15px;
+    font-style: italic;
+}
+
+/* Estilo del pie de foto (autor y cargo) */
+figcaption {
+    margin-top: auto; /* Empuja la información del autor al fondo de la tarjeta */
+    text-align: center;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+/* Estilo del nombre del autor */
+figcaption strong {
+    display: block; /* Hace que el nombre ocupe su propia línea */
+    font-size: 1.1rem;
+    color: var(--color-primary);
+    margin-bottom: 3px;
+}
+
+/* Ajustes para dispositivos móviles en la sección de testimonios */
+@media (max-width: 768px) {
+    .testimonials-container {
+        grid-template-columns: 1fr; /* Una columna en móvil */
+    }
+}
+
+/* ========================================= */
+/* 5. ESTADÍSTICAS SECCIÓN (R3) STYLING */
+/* ========================================= */
+
+#estadisticas-animadas {
+    background-color: var(--color-bg-light); /* Fondo claro para destacar la sección */
+    padding: var(--spacing-xl) 0;
+}
+
+/* Contenedor de los ítems de estadísticas - Grid responsivo */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Distribución uniforme y adaptable */
+    gap: var(--spacing-md);
+    margin-top: 40px;
+}
+
+/* Estilo de cada ítem estadístico */
+.stat-item {
+    background: #ffffff;
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    text-align: center; /* Centrar el contenido dentro de la tarjeta */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efecto hover en tarjetas de estadísticas */
+.stat-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilos del contador numérico (el número grande) */
+.stat-item .counter {
+    font-size: clamp(2.5rem, 6vw, 4rem); /* Tamaño responsivo y prominente */
+    font-weight: 800; /* Más grueso para impacto */
+    display: block;
+    color: var(--color-primary);
+    margin-bottom: 10px; /* Espacio entre el número y la etiqueta */
+}
+
+/* Estilo de la etiqueta descriptiva (el texto debajo del contador) */
+.stat-item .label {
+    font-size: 1rem;
+    color: var(--color-secondary);
+    margin-top: 0; /* Aseguramos que no haya margen superior extra */
+    font-weight: 500;
+}
+
+/* ========================================= */
+/* RESPONSIVE ADJUSTMENTS PARA ESTADÍSTICAS */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    .stats-grid {
+        gap: var(--spacing-md);
+    }
+    
+    .stat-item {
+        padding: var(--spacing-md);
+    }
+    
+    /* Reducir el tamaño del contador en móvil */
+    .stat-item .counter {
+        font-size: clamp(2rem, 8vw, 3rem);
+    }
+}
+
+/* ========================================= */
+/* 7. CONTACTO SECCIÓN STYLING (R3) */
+/* ========================================= */
+
+#contacto {
+    background-color: var(--color-bg-light); /* Fondo claro para destacar la sección */
+}
+
+/* Contenedor principal de contacto - Usaremos Flexbox o Grid para dividir el formulario y quizás información adicional */
+.contact-container {
+    display: flex;
+    flex-wrap: wrap; /* Permite que los elementos se envuelvan en móvil */
+    gap: 40px;
+    max-width: 900px; /* Limitar el ancho del formulario para mejor lectura */
+    margin: 0 auto;
+}
+
+/* Estilo general del formulario */
+.contact-form {
+    flex: 2; /* Ocupa más espacio en escritorio */
+    min-width: 300px; /* Mínimo de ancho para que no se colapse demasiado */
+    padding: 20px;
+    background: #ffffff;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+/* Estilo de los grupos de formulario */
+.form-group {
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Etiqueta del campo (Label) */
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--color-text-dark);
+    display: block; /* Asegura que la etiqueta ocupe su propia línea */
+}
+
+/* Estilo de los inputs, select y textarea */
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group select,
+.form-group textarea {
+    padding: 12px;
+    border: 1px solid var(--color-secondary);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efecto focus en los campos */
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15); /* Sombra suave del color primario */
+    outline: none;
+}
+
+/* Estilo específico para el textarea */
+#mensaje {
+    resize: vertical; /* Permite redimensionar solo verticalmente */
+    min-height: 120px;
+}
+
+/* Botón de envío del formulario (CTA) */
+.submit-form {
+    margin-top: 20px;
+    width: 100%; /* Ocupa todo el ancho disponible en la columna */
+    cursor: pointer;
+}
+
+
+/* ========================================= */
+/* RESPONSIVE ADJUSTMENTS PARA CONTACTO */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    .contact-container {
+        flex-direction: column; /* Apilar todo en móvil */
+        gap: 30px;
+    }
+    
+    .contact-form {
+        flex: 1 1 100%; /* Ocupar el 100% del ancho disponible */
+    }
+
+    /* Ajuste de padding general para móviles */
+    section {
+        padding: var(--spacing-lg) 0;
+    }
+}
+
+/* ========================================= */
+/* 5. FOOTER STYLING ENHANCEMENTS (R4) */
+/* ========================================= */
+
+/* Contenedor principal del contenido del footer (columnas) */
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap; /* Permite que las columnas se envuelvan en móvil */
+    gap: 40px;
+    padding-bottom: var(--spacing-lg); /* Espacio entre contenido y copyright */
+}
+
+/* Estilo general de cada columna dentro del footer */
+.footer-column {
+    flex: 1; /* Distribución equitativa en escritorio */
+    min-width: 200px; /* Mínimo ancho para que no se colapse demasiado */
+}
+
+/* Ajuste específico para la marca (columna 1) */
+.footer-brand h3 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: var(--color-text-light); /* Usamos texto claro aquí */
+}
+
+.footer-brand p {
+    color: #adb5bd;
+    margin-bottom: 20px;
+}
+
+/* Estilos de los enlaces sociales */
+.social-links {
+    display: flex;
+    gap: 15px;
+}
+
+.social-links a {
+    font-size: 1.5rem;
+    color: #adb5bd; /* Gris para iconos inactivos */
+    transition: color 0.3s ease, transform 0.2s ease;
+}
+
+/* Efecto hover en redes sociales */
+.social-links a:hover {
+    color: var(--color-primary); /* Color primario al pasar el ratón */
+    transform: translateY(-3px) scale(1.1);
+}
+
+
+/* Estilos de la lista de navegación (Footer Links) */
+.footer-links ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-links li {
+    margin-bottom: 8px;
+}
+
+.footer-links a {
+    display: block;
+    padding: 5px 0;
+    color: #adb5bd; /* Gris claro para enlaces del footer */
+    transition: color 0.2s ease;
+}
+
+/* Efecto hover en enlaces de navegación del footer */
+.footer-links a:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+
+/* Estilos de la información de contacto (Footer Info) */
+.footer-info p {
+    margin-bottom: 10px;
+    color: #adb5bd;
+}
+
+/* Ajuste para los enlaces legales */
+.legal-links a {
+    display: block;
+    padding: 5px 0;
+    color: #adb5bd;
+    font-size: 0.9rem;
+}
+
+/* Estilos del pie de página inferior (Copyright) */
+.footer-bottom {
+    background-color: rgba(0, 0, 0, 0.1); /* Un gris muy oscuro para separarlo visualmente */
+    padding: 20px 0;
+    text-align: center;
+}
+
+.footer-bottom p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #888;
+}
+
+
+/* ========================================= */
+/* RESPONSIVE ADJUSTMENTS PARA FOOTER */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    /* Ajuste de la estructura del contenido en móvil */
+    .footer-content {
+        flex-direction: column; /* Apilar todas las columnas verticalmente */
+        gap: 30px;
+        padding-bottom: var(--spacing-lg);
+    }
+
+    /* Asegurar que cada columna ocupe el ancho completo en móvil */
+    .footer-column {
+        flex: 1 1 100%;
+    }
+}
+
+/* ========================================= */
+/* 3. COMPONENTES BASE (Header, Nav, Section) - REFINEMENTS */
+/* ========================================= */
+
+/* Ajuste de la estructura del logo para mejor presentación */
+#site-header .logo {
+    display: flex;
+    align-items: center;
+}
+
+/* Estilos de la lista de navegación (Desktop) */
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 30px; /* Aumentamos un poco el espacio entre ítems */
+}
+
+/* Mejora del efecto hover en los enlaces de navegación */
+nav a {
+    font-weight: 500;
+    padding: 0.5rem 0;
+    color: var(--color-text-dark);
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+    position: relative; /* Necesario para el efecto de subrayado */
+}
+
+nav a::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 2px;
+    background-color: var(--color-primary);
+    transition: width 0.3s ease;
+    position: absolute;
+    bottom: -5px; /* Posiciona el subrayado ligeramente debajo del texto */
+}
+
+nav a:hover {
+    color: var(--color-primary);
+}
+
+/* Efecto de underline al hacer hover en la navegación */
+nav a:hover::after {
+    width: 100%;
+}
+
+
+/* ========================================= */
+/* RESPONSIVE DESIGN (Media Queries) - HEADER/NAV ADJUSTMENTS */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    /* Ajuste de la navegación en móvil y tabletas */
+    #site-header .container {
+        flex-direction: column; /* Apila logo y nav verticalmente */
+        align-items: flex-start; /* Alinea el contenido a la izquierda o centro si es necesario */
+        gap: 15px;
+        padding: 0 20px; /* Añadimos padding lateral en móvil */
+    }
+
+    /* Estilos de la lista de navegación cuando está colapsada/apilada */
+    nav ul {
+        flex-direction: column;
+        align-items: stretch; /* Hace que los enlaces ocupen el ancho disponible */
+        padding: 0;
+        gap: 10px; /* Reducimos el gap verticalmente */
+        width: 100%; /* Asegura que ocupe todo el ancho del contenedor */
+    }
+
+    /* Ajuste de cada enlace individual en móvil */
+    nav a {
+        display: block; /* Hace que cada enlace se comporte como un bloque completo */
+        padding: 10px 15px;
+        text-align: center;
+        border-radius: var(--border-radius);
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* Mejorar el efecto hover en móvil */
+    nav a:hover {
+        background-color: rgba(0, 123, 255, 0.1); /* Fondo azul claro al pasar el ratón */
+        color: var(--color-primary);
+        text-decoration: none;
+    }
+
+    /* Eliminamos el efecto de underline complejo en móvil para que no interfiera con el bloque completo */
+    nav a::after {
+        content: none;
+    }
+}
+
+/* ========================================= */
+/* RESPONSIVE ADJUSTMENTS PARA HERO (Tablet/Mobile Refinement) */
+/* ========================================= */
+
+@media (max-width: 1024px) {
+    /* Ajuste para tablets en orientación vertical */
+    #inicio {
+        padding: 6rem 0; /* Reducimos el padding vertical ligeramente */
+    }
+    .hero-content h1 {
+        font-size: clamp(2.5rem, 7vw, 3rem);
+    }
+    .hero-content p {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Ajuste de la navegación en móvil */
+    #site-header .container {
+        flex-direction: column;
+        gap: 15px;
+    }
+    nav ul {
+        flex-direction: column;
+        align-items: center;
+        padding: 0;
+    }
+
+    /* Ajuste de secciones y columnas */
+    section {
+        padding: var(--spacing-lg) 0;
+    }
+    
+    /* Hero en móvil - Aseguramos que el contenido se centre bien */
+    #inicio {
+        padding: 4rem 0;
+    }
+
+    .hero-content {
+        display: flex;
+        flex-direction: column; /* Apilar elementos verticalmente */
+        align-items: center; /* Centrar horizontalmente el bloque de contenido */
+        text-align: center;
+        padding: 0 20px; /* Añadir padding lateral para evitar que toque los bordes */
+    }
+
+    .hero-content h1 {
+        font-size: clamp(2rem, 8vw, 3rem);
+        margin-bottom: 1rem; /* Reducir el espacio entre título y subtítulo */
+    }
+
+    .hero-content p {
+        font-size: 1rem;
+        margin-bottom: 25px;
+    }
+    
+    /* Asegurar que el botón ocupe un buen ancho en móvil */
+    #inicio .cta-button {
+        width: 90%; /* Ocupar casi todo el ancho disponible */
+        max-width: 350px;
+        display: block; /* Forzarlo a ser de bloque para mejor control */
+        margin: 20px auto 0; /* Centrar y añadir margen superior/inferior */
+    }
+}
+
+/* ========================================= */
+/* 4. CARACTERÍSTICAS SECCIÓN (R3) STYLING - ENHANCEMENT */
+/* ========================================= */
+
+/* Efecto hover mejorado en tarjetas (Añadimos un borde sutil y glow) */
+.feature-card:hover {
+    transform: translateY(-8px); /* Movimiento más notable */
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15), 0 0 0 4px var(--color-primary); /* Añadimos un borde de color primario (glow) */
+}
+
+/* ========================================= */
+/* RESPONSIVE ADJUSTMENTS PARA CARACTERÍSTICAS - ENHANCEMENT */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    .features-grid {
+        gap: var(--spacing-md);
+    }
+    
+    .feature-card {
+        padding: var(--spacing-md);
+    }
+}
+
+/* Estilos base para la animación de aparición */
+section {
+    opacity: 0; /* Inicialmente oculto */
+    transform: translateY(40px); /* Desplazado hacia abajo */
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+/* Clase que se añade con JS para mostrar el elemento */
+section.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Ajuste específico para elementos internos que deben animar más rápido o de forma diferente */
+.feature-card, .testimonial-card, .stat-item {
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    opacity: 0; /* Inicialmente oculto */
+    transform: translateY(20px);
+}
+
+/* Aseguramos que los elementos visibles tengan la clase visible al cargar o cuando se detecta el scroll */
+section.visible .feature-card,
+section.visible .testimonial-card,
+section.visible .stat-item {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Ajuste para que los elementos de la sección de estadísticas animen individualmente */
+#estadisticas-animadas .stats-grid article {
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+/* Ajuste para que los elementos de la sección de testimonios animen individualmente */
+#testimonios .testimonial-card {
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+/* Aseguramos que los elementos de la sección de testimonios y estadísticas se muestren correctamente al cargar */
+#testimonios .testimonial-card {
+    transition-delay: 0.1s; /* Pequeño retraso para efecto cascada */
+}
+
+#estadisticas-animadas article {
+    transition-delay: 0.2s; /* Retraso progresivo en las estadísticas */
+}
+
+/* Estilos para mensajes de error */
+.form-group .error-message {
+    color: #e74c3c; /* Rojo suave */
+    font-size: 0.85em;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Estilo para el mensaje de éxito/éxito en la sección de contacto */
+#contacto .success-message {
+    padding: 20px;
+    background-color: #e6f7ff; /* Azul muy claro */
+    border: 1px solid #b3e0ff;
+    color: #0056b3;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: none; /* Inicialmente oculto */
+}
+
+/* Estilo para el mensaje de error general del formulario */
+#contacto .form-error-summary {
+    padding: 15px;
+    background-color: #fbeaea;
+    border: 1px solid #e74c3c;
+    color: #c0392b;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: none; /* Inicialmente oculto */
+}
+
+/* Global Transitions */
+body * {
+    transition: color 0.3s, background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+
+/* --- Component Enhancements for QA --- */
+
+/* Feature Card Hover Effect (R3) */
+.feature-card {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eee;
+}
+.feature-card:hover {
+    transform: translateY(-5px); /* Ligeramente levantado */
+    box-shadow: 0 8px 20px rgba(66, 133, 244, 0.2); /* Sombra azul suave */
+}
+
+/* Testimonial Card Hover Effect (R3) */
+.testimonial-card {
+    background: #f9f9f9;
+    border-left: 5px solid #6a5acd; /* Color distintivo */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+.testimonial-card:hover {
+    transform: scale(1.02); /* Pequeño zoom al pasar el ratón */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Stat Item Hover Effect (R3) */
+.stat-item {
+    background: #f4f7fa;
+    padding: 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+.stat-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(66, 133, 244, 0.1);
+    background: #eef4ff; /* Fondo ligeramente más azul */
+}
+
+/* CTA Button Hover Effect (General) */
+.cta-button {
+    padding: 12px 30px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+/* Asegurar que el botón de formulario también tenga buen hover */
+.submit-form {
+    background-color: #6a5acd !important; /* Usar color principal */
+    border-color: #6a5acd !important;
+}
+
+.cta-button:hover, .submit-form:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(66, 133, 244, 0.3);
+    opacity: 0.9;
+}
+
+/* Icon Placeholder (Asegurar que los iconos se vean bien) */
+.feature-icon {
+    font-size: 3rem;
+    color: #6a5acd; /* Color principal para iconos */
+    margin-bottom: 15px;
+    display: block;
+}
+
+/* Responsive adjustments for hover effects on smaller screens */
+@media (max-width: 768px) {
+  .feature-card, .testimonial-card, .stat-item {
+      transform: none !important; /* Desactivar transformaciones complejas en móvil si causan problemas de espacio */
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+  }
+}

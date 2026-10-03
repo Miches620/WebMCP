@@ -36,10 +36,11 @@ import { createHash } from "node:crypto";
 import vm from "node:vm";
 import { topoOrder } from "../pilot/specialist_runner.mjs";
 import { chatStream } from "./lm_stream.mjs";
+import { planPrompt, applyBlocks, filesBlockDiet, CONTEXT_TOKENS } from "./file_diet.mjs";
 
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 export const SPECIALIST_MODEL = "google/gemma-4-e4b";
-export const SPECIALIST_VERSION = "spa_specialist v0.5-pageplan";
+export const SPECIALIST_VERSION = "spa_specialist v0.6.1-file-diet";
 
 export const FILES = ["index.html", "styles.css", "api.js", "app.js"];
 const LANG = { "index.html": "html", "styles.css": "css", "api.js": "javascript", "app.js": "javascript" };
@@ -152,6 +153,11 @@ export function apiContract(files) {
   return { defined, called, missing, loadError };
 }
 
+/** Error de sintaxis de un JS sin ejecutarlo (v0.6.1: APPEND repetía `const` ya declarados). */
+export function jsSyntaxError(src) {
+  try { new vm.Script(String(src || ""), { filename: "app.js" }); return null; } catch (e) { return e.message; }
+}
+
 function contractText(c) {
   return c.defined.length ? c.defined.map((f) => `window.api.${f}()`).join(", ") : "(todavía ninguna)";
 }
@@ -166,7 +172,7 @@ El proyecto tiene 4 archivos:
 
 La página ya tiene su estructura: un <header> con el nombre y un <nav>, las <section> del cuerpo en orden (cada una con id y data-feature con los requisitos que muestra, ej. data-feature="R3") y un <footer>. Las features que no tienen sección (diseño, responsive, hover, calidad del código) aplican a toda la página.
 
-Ejecutás UNA tarea atómica por vez. Recibís el BRIEF (contexto), la TAREA, el CONTRATO de window.api y los ARCHIVOS ACTUALES.
+Ejecutás UNA tarea atómica por vez. Recibís el BRIEF (contexto), la TAREA, el CONTRATO de window.api y los ARCHIVOS que la tarea necesita.
 
 Reglas:
 1. Hacé lo que pide la TAREA. No adelantes trabajo de otras tareas.
@@ -175,14 +181,24 @@ Reglas:
 4. Las funciones simuladas de window.api SIEMPRE resuelven con éxito (no lanzan errores) y simulan una latencia corta (300 ms como máximo).
 5. app.js solo puede llamar funciones que existan en window.api. Si necesitás una nueva, agregala en api.js en la MISMA respuesta.
 6. Textos visibles en español, con contenido concreto (nombres, descripciones), no marcadores como "[Nombre]" o "Producto 1". Cada campo de formulario con su <label>.
-7. Devolvé SOLO los archivos que cambiaste, cada uno COMPLETO, con este formato exacto:
+7. Algunos archivos los recibís COMPLETOS y otros como RESUMEN (solo su estructura). Respondé SOLO con los cambios, en estos formatos:
+
+### APPEND: styles.css
+\`\`\`css
+reglas nuevas (se agregan al final del archivo; sirve igual para app.js y api.js)
+\`\`\`
+
+### SECTION: id
+\`\`\`html
+el elemento completo con ese id (una <section>, el <header> o el <footer>), que reemplaza al actual en index.html
+\`\`\`
 
 ### FILE: nombre.ext
 \`\`\`lenguaje
-contenido completo del archivo
+el archivo entero (SOLO si lo recibiste COMPLETO y tenés que cambiar mucho)
 \`\`\`
 
-Los archivos que no cambiaste NO los devuelvas. Si la tarea ya está hecha y no hace falta cambiar nada, respondé solo: SIN CAMBIOS: <motivo en una línea>. Fuera de los bloques, como máximo una línea de nota.`;
+Preferí APPEND y SECTION: son más cortos. APPEND es solo para código NUEVO: no copies reglas ni funciones que ya están (en JS, repetir un const o una función rompe la página). Para cambiar código que ya existe en un archivo que recibiste COMPLETO, usá FILE. Nunca devuelvas con FILE un archivo que recibiste como RESUMEN. Si la tarea ya está hecha, respondé solo: SIN CAMBIOS: <motivo en una línea>. Fuera de los bloques, como máximo una línea de nota.`;
 
 export function briefText(refined) {
   const parts = [`Proyecto: ${refined.project_name || ""}`, refined.objetivo || "", "", "Features:"];
@@ -216,7 +232,7 @@ const writeApp = (dir, files) => { mkdirSync(dir, { recursive: true }); for (con
 /**
  * @param {{refined:object, tasks:object[]}} input
  * @param {string} outDir  la app final queda en outDir/app/ (abrir outDir/app/index.html)
- * @param {{log?:(m:string)=>void, model?:string, forbidden?:string[], resume?:boolean, pagePlan?:object|null}} [opts]
+ * @param {{log?:(m:string)=>void, model?:string, forbidden?:string[], resume?:boolean, pagePlan?:object|null, contextTokens?:number}} [opts]
  */
 export async function buildSpa({ refined, tasks }, outDir, opts = {}) {
   const log = opts.log || console.log;
@@ -233,81 +249,82 @@ export async function buildSpa({ refined, tasks }, outDir, opts = {}) {
     log(`[SPECIALIST] retomando: ${steps.length}/${order.length} pasos ya hechos${last ? ` (desde ${last.dir})` : ""}`);
   }
   const model = opts.model || SPECIALIST_MODEL;
-  const ask = async (user) => {
+  const context = opts.contextTokens || CONTEXT_TOKENS;
+  const ask = async (user, maxTokens = 8192) => {
     const t0 = Date.now();
     const data = await chatStream(LM_STUDIO_URL, {
       model,
       messages: [{ role: "system", content: SYSTEM_PROMPT }, { role: "user", content: user }],
       temperature: 0,
-      max_tokens: 8192,
+      max_tokens: maxTokens,
     });
     return { raw: data.content || "", ms: Date.now() - t0, finish_reason: data.finish_reason ?? null, usage: data.usage ?? null };
   };
-  // Aplica los bloques FILE sobre una copia; devuelve {next, changed, rejected}.
-  const apply = (base, raw) => {
-    const next = { ...base }, changed = [], rejected = [];
-    for (const [f, content] of Object.entries(extractFiles(raw))) {
-      // Guardia por archivo: si quedó mucho más corto, es un fragmento o un corte.
-      if (base[f].length > 200 && content.length < base[f].length * 0.6) {
-        rejected.push(`${f}: ${content.length} chars vs ${base[f].length} anterior`);
-        continue;
-      }
-      next[f] = content;
-      changed.push(f);
-    }
-    return { next, changed, rejected };
-  };
-
   for (const [i, t] of order.entries()) {
     if (i < steps.length) continue;
     const contract = apiContract(files);
-    const user =
+    const head =
       `BRIEF:\n${brief}\n\n` +
       `TAREA ${t.id} (${t.role || "?"}): ${t.task}\n${t.description || ""}\n\n` +
-      `CONTRATO window.api (funciones que existen hoy): ${contractText(contract)}\n\n` +
-      `ARCHIVOS ACTUALES:\n\n${filesBlock(files)}`;
+      `CONTRATO window.api (funciones que existen hoy): ${contractText(contract)}\n\n`;
+    const pp = planPrompt({ task: t, files, head, system: SYSTEM_PROMPT, context });
+    const user = head + `ARCHIVOS:\n\n${pp.block}`;
     const leak = (opts.forbidden || []).find((f) => f && user.toLowerCase().includes(f.toLowerCase()));
     if (leak) throw new Error(`criterio holdout filtrado al Specialist en ${t.id}: "${leak}"`);
     log(`[SPECIALIST] ${i + 1}/${order.length} ${t.id} (${t.role || "?"}) — ${t.task}`);
     const tag = `step_${String(i + 1).padStart(2, "0")}_${t.id}`;
-    const r1 = await ask(user);
+    log(`[SPECIALIST]   ve completos: ${[...pp.full].join(", ")}${pp.downgraded.length ? ` (resumidos por presupuesto: ${pp.downgraded.join(", ")})` : ""} · prompt ~${pp.promptTokens} tok · respuesta hasta ${pp.maxTokens}`);
+    const r1 = await ask(user, pp.maxTokens);
     writeFileSync(join(outDir, `${tag}.raw.txt`), r1.raw, "utf8");
-    let { next, changed, rejected } = apply(files, r1.raw);
+    let { next, changed, rejected, ops } = applyBlocks(files, r1.raw, pp.full);
     const step = {
       n: i + 1, task_id: t.id, role: t.role || null, ms: r1.ms,
       finish_reason: r1.finish_reason, usage: r1.usage,
-      changed, rejected,
+      kinds: { primary: pp.primary, secondary: pp.secondary }, full: [...pp.full], downgraded: pp.downgraded, prompt_tokens_est: pp.promptTokens, max_tokens: pp.maxTokens,
+      changed, rejected, ops,
     };
 
     // Contrato: si después del paso app.js llama funciones que api.js no tiene
     // (o api.js no carga), un reintento con el faltante como feedback.
     let after = apiContract(next);
-    if (changed.length && (after.missing.length || after.loadError)) {
-      const problem = after.loadError
+    let appErr = jsSyntaxError(next["app.js"]);
+    if (changed.length && (after.missing.length || after.loadError || appErr)) {
+      const problem = appErr
+        ? `app.js quedó con un error de sintaxis: ${appErr}. Si APPEND repitió código que ya estaba, devolvé app.js COMPLETO con FILE, sin duplicados`
+        : after.loadError
         ? `api.js no se puede ejecutar: ${after.loadError}`
         : `app.js llama ${after.missing.map((m) => `window.api.${m}()`).join(", ")}, que no existe en api.js (funciones definidas: ${contractText(after)})`;
-      log(`[SPECIALIST]   contrato roto: ${problem} → reintento`);
+      log(`[SPECIALIST]   ${appErr ? "JS roto" : "contrato roto"}: ${problem} → reintento`);
       step.contract_retry = { problem };
       const fixUser =
         `BRIEF:\n${brief}\n\n` +
         `TAREA ${t.id} (${t.role || "?"}): ${t.task}\n${t.description || ""}\n\n` +
         `PROBLEMA EN TU RESPUESTA ANTERIOR: ${problem}.\n` +
-        `Corregilo: agregá en api.js lo que falta (simulado, que resuelva con éxito) o hacé que app.js use una función existente. Devolvé solo los archivos que cambies.\n\n` +
-        `ARCHIVOS ACTUALES (ya incluyen tu respuesta anterior):\n\n${filesBlock(next)}`;
-      const r2 = await ask(fixUser);
+        `Corregilo: agregá en api.js lo que falta (simulado, que resuelva con éxito; usá APPEND: api.js) o hacé que app.js use una función existente.\n\n` +
+        `ARCHIVOS (ya incluyen tu respuesta anterior):\n\n${filesBlockDiet(next, new Set(["api.js", "app.js"]))}`;
+      const r2 = await ask(fixUser, 4000);
       writeFileSync(join(outDir, `${tag}.retry.raw.txt`), r2.raw, "utf8");
-      const fix = apply(next, r2.raw);
+      const fix = applyBlocks(next, r2.raw, new Set(["api.js", "app.js"]));
       const fixedContract = apiContract(fix.next);
       step.contract_retry.ms = r2.ms;
       step.contract_retry.finish_reason = r2.finish_reason;
       step.contract_retry.changed = fix.changed;
-      step.contract_retry.resolved = !fixedContract.missing.length && !fixedContract.loadError;
-      if (fix.changed.length) {
+      const fixedAppErr = jsSyntaxError(fix.next["app.js"]);
+      step.contract_retry.resolved = !fixedContract.missing.length && !fixedContract.loadError && !fixedAppErr;
+      if (fix.changed.length && !fixedAppErr) {
         next = fix.next;
         step.changed = [...new Set([...step.changed, ...fix.changed])];
+        step.ops = [...(step.ops || []), ...fix.ops.map((o) => `${o} (reintento)`)];
         after = fixedContract;
       }
       log(`[SPECIALIST]   reintento: ${step.contract_retry.resolved ? "contrato OK" : "sigue roto"}`);
+    }
+    if (jsSyntaxError(next["app.js"])) {
+      // Ni el reintento lo arregló: se descarta el cambio a app.js (mejor sin la tarea que con la página rota).
+      step.rejected.push(`app.js: error de sintaxis (${jsSyntaxError(next["app.js"])}); se conserva la versión anterior`);
+      next = { ...next, "app.js": files["app.js"] };
+      step.changed = step.changed.filter((f) => f !== "app.js" || next["app.js"] !== files["app.js"]);
+      after = apiContract(next);
     }
     step.contract = { defined: after.defined, called: after.called, missing: after.missing, loadError: after.loadError };
 
@@ -317,7 +334,7 @@ export async function buildSpa({ refined, tasks }, outDir, opts = {}) {
         step.no_change = (r1.raw.match(/SIN CAMBIOS:\s*(.*)/i)?.[1] || r1.raw.trim().split("\n")[0] || "").slice(0, 240);
         log(`[SPECIALIST]   sin cambios: ${step.no_change}`);
       } else {
-        step.error = rejected.length ? `cambios descartados: ${rejected.join("; ")}` : "la respuesta no trae bloques ### FILE";
+        step.error = rejected.length ? `cambios descartados: ${rejected.join("; ")}` : "la respuesta no trae bloques FILE/APPEND/SECTION";
         log(`[SPECIALIST] ✗ ${t.id}: ${step.error} (finish_reason=${step.finish_reason})`);
       }
     } else {
@@ -325,7 +342,7 @@ export async function buildSpa({ refined, tasks }, outDir, opts = {}) {
       step.dir = tag;
       writeApp(join(outDir, tag), files);
       step.sha256 = Object.fromEntries(FILES.map((f) => [f, sha(files[f])]));
-      log(`[SPECIALIST]   cambió: ${step.changed.join(", ")}${rejected.length ? ` | descartado: ${rejected.join("; ")}` : ""}${after.missing.length ? ` | ⚠ contrato: faltan ${after.missing.join(", ")}` : ""}`);
+      log(`[SPECIALIST]   ${(step.ops || []).join(", ") || "cambió: " + step.changed.join(", ")}${rejected.length ? ` | descartado: ${rejected.join("; ")}` : ""}${after.missing.length ? ` | ⚠ contrato: faltan ${after.missing.join(", ")}` : ""}`);
     }
     steps.push(step);
     writeFileSync(sj, JSON.stringify(steps, null, 2));

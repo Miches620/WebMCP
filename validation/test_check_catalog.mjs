@@ -57,6 +57,21 @@ for (const [name, exp] of Object.entries({ transversal_ok: "PPPPPPP", transversa
   else { fail++; console.log(`✗ ${name} esperado ${exp} dio ${got}\n    ${r.map((x) => `${x.type}: ${x.detail}`).join("\n    ")}`); }
 }
 
+// v0.5: sections_visible (base) — controles sintéticos y las dos corridas reales de Project22
+const VIS = [{ type: "sections_visible", params: {} }].map(normalizeCheck);
+const VIS_CASES = {
+  visible_ok: ["PASS", { R1: "PASS", R2: "PASS", R3: "PASS", R4: "PASS" }],
+  visible_mal: ["FAIL", { R1: "FAIL", R2: "PASS", R3: "FAIL", R4: "FAIL" }],
+  "real_p22_v05/index": ["PASS", { R1: "PASS", R2: "PASS", R3: "PASS", R4: "PASS" }],
+  "real_p22_v061/index": ["FAIL", { R1: "FAIL", R2: "PASS", R3: "FAIL", R4: "PASS" }],
+};
+for (const [name, [exp, feats]] of Object.entries(VIS_CASES)) {
+  const [r] = await runChecks(S(name), VIS);
+  const good = r.result === exp && Object.entries(feats).every(([f, v]) => r.features?.[f] === v);
+  if (good) { ok++; console.log(`✓ sections_visible ${name} ${r.result}`); }
+  else { fail++; console.log(`✗ sections_visible ${name} esperado ${exp} ${JSON.stringify(feats)} dio ${r.result} ${JSON.stringify(r.features)}\n    ${r.detail}`); }
+}
+
 const bad = [normalizeCheck({ type: "inventado" }), normalizeCheck({ type: "field_exists", params: {} }), normalizeCheck({ type: "click_reveals", params: { click: ["x"] } })];
 if (bad.every((b) => b === null)) { ok++; console.log("✓ normalizeCheck rechaza tipos y params inválidos"); } else { fail++; console.log("✗ normalizeCheck", bad); }
 console.log(`\n${ok}/${ok + fail} OK`);

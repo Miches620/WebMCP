@@ -61,6 +61,7 @@ export function anchorSections(checks, rid, requirementText, label) {
 
 function catalogText() {
   return Object.entries(CATALOG)
+    .filter(([, d]) => !d.base) // los chequeos de base los corre el harness
     .map(([type, d]) => {
       const p = Object.keys(d.params).length ? ` params: { ${Object.keys(d.params).map((k) => `"${k}": ["sinónimo", ...]`).join(", ")} }` : " params: {}";
       return `- ${type}: ${d.describe}${p}`;
@@ -130,7 +131,7 @@ export async function translateRequirement(requirement, opts = {}) {
   const parsed = parseJsonLoose(raw);
   const checks = [], dropped = [];
   for (const c of parsed.checks || []) {
-    const n = normalizeCheck(c);
+    const n = CATALOG[c?.type]?.base ? null : normalizeCheck(c);
     if (n) checks.push({ ...n, covers: String(c.covers || "") });
     else dropped.push(c);
   }

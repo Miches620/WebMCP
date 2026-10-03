@@ -1,0 +1,633 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Landing Page Ficticia",
+  "source": "project22_snapshot.json",
+  "catalog": "check_catalog v0.4",
+  "artifact_loads_without_js_errors": true,
+  "summary": {
+    "requisitos": 9,
+    "PASS": 4,
+    "FAIL": 3,
+    "SIN_EVIDENCIA": 0,
+    "SIN_CHEQUEO": 2
+  },
+  "control": "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "Hero con título, subtítulo, botón de llamada a la acción y animación de entrada",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "hero",
+              "portada"
+            ],
+            "feature": [
+              "R1"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#inicio [R1]: 20 palabras propias (mín. 8)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "section_control",
+          "params": {
+            "section": [
+              "hero",
+              "portada"
+            ],
+            "feature": [
+              "R1"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#inicio [R1]: control \"Solicitar Demo Gratuita\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "entrance_animation",
+          "params": {
+            "section": [
+              "hero",
+              "portada"
+            ],
+            "feature": [
+              "R1"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "#inicio [R1]: nada se animó al cargar",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Barra de navegación fija con enlaces que hacen scroll suave a cada sección",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "nav_scroll",
+          "params": {},
+          "result": "PASS",
+          "detail": "clic en #contacto: llegó a la sección; nav sigue visible arriba",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "Secciones: Características (tarjetas con iconos), Testimonios, Estadísticas animadas y Contacto",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "section_items",
+          "params": {
+            "section": [
+              "características",
+              "secciones"
+            ],
+            "feature": [
+              "R3"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#caracteristicas [R3]: 4 ítems ([Icon Placeholder] · [Icon Placeholder] · [Icon Placeholder])",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "testimonios",
+              "secciones"
+            ],
+            "feature": [
+              "R3"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#testimonios [R3]: 116 palabras propias (mín. 8)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "numbers_animate",
+          "params": {
+            "section": [
+              "estadísticas",
+              "secciones"
+            ],
+            "feature": [
+              "R3"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "#estadisticas-animadas [R3]: los números no cambian (\"0 | 0+ | 5 | 1000+\")",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "section_control",
+          "params": {
+            "section": [
+              "contacto",
+              "secciones"
+            ],
+            "feature": [
+              "R3"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#contacto [R3]: control \"Enviar Consulta\"",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "Pie de página completo",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "section_content",
+          "params": {
+            "section": [
+              "pie",
+              "footer",
+              "pagina",
+              "completo"
+            ],
+            "feature": [
+              "R4"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#site-footer [R4]: 35 palabras propias (mín. 8)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "Animaciones al hacer scroll (elementos que aparecen suavemente)",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "reveal_on_scroll",
+          "params": {},
+          "result": "PASS",
+          "detail": "10 elementos ocultos abajo; 6 aparecieron al bajar",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "Efectos hover en botones y tarjetas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "hover_changes",
+          "params": {
+            "elementos": [
+              "boton",
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "botón: cambia al pasar el mouse; tarjeta: cambia al pasar el mouse",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "text": "Visualmente atractivo: diseño moderno, paleta de colores coherente, tipografía elegante (usando fuentes del sistema), animaciones suaves",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El requisito 'Visualmente atractivo: diseño moderno, paleta de colores coherente, tipografía elegante (usando fuentes del sistema), animaciones suaves' no puede ser verificado mediante chequeos ejecutables. Estas son características estéticas y de interacción que no se pueden demostrar con la carga o el comportamiento de la página.",
+      "checks": []
+    },
+    {
+      "id": "R8",
+      "text": "Totalmente interactivo y responsive (escritorio y móvil)",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "no_horizontal_scroll",
+          "params": {},
+          "result": "FAIL",
+          "detail": "390px: ok; 1280px: desborda 9px",
+          "baseline": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "text": "Código limpio, ordenado y comentado donde haga falta",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El requisito 'código limpio, ordenado y comentado' no puede ser verificado ejecutando la página. Se trata de una cuestión de calidad del código fuente que no se puede demostrar mediante chequeos en el frontend.",
+      "checks": []
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "spa_specialist v0.6.1-file-diet",
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "F1.1",
+        "role": "Frontend",
+        "ms": 98690,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 2,
+        "task_id": "F1.2",
+        "role": "Frontend",
+        "ms": 44543,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 3,
+        "task_id": "F1.3",
+        "role": "Frontend",
+        "ms": 36106,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 4,
+        "task_id": "F1.4",
+        "role": "Frontend",
+        "ms": 45175,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 5,
+        "task_id": "F1.5",
+        "role": "Frontend",
+        "ms": 63523,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 6,
+        "task_id": "F1.6",
+        "role": "Frontend",
+        "ms": 141757,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 7,
+        "task_id": "F1.7",
+        "role": "Frontend",
+        "ms": 70406,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 8,
+        "task_id": "F1.8",
+        "role": "Frontend",
+        "ms": 85594,
+        "finish_reason": "stop",
+        "changed": [
+          "index.html"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 9,
+        "task_id": "F2.1",
+        "role": "Frontend",
+        "ms": 155029,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 10,
+        "task_id": "F2.2",
+        "role": "Frontend",
+        "ms": 167175,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 11,
+        "task_id": "F2.3",
+        "role": "Frontend",
+        "ms": 200401,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 12,
+        "task_id": "F2.4",
+        "role": "Frontend",
+        "ms": 209008,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 13,
+        "task_id": "F2.5",
+        "role": "Frontend",
+        "ms": 226373,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 14,
+        "task_id": "F2.6",
+        "role": "Frontend",
+        "ms": 251054,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 15,
+        "task_id": "F2.7",
+        "role": "Frontend",
+        "ms": 237951,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 16,
+        "task_id": "F2.8",
+        "role": "Frontend",
+        "ms": 325171,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 17,
+        "task_id": "F2.9.R2.1",
+        "role": "Frontend",
+        "ms": 347800,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 18,
+        "task_id": "F2.9.R2.2",
+        "role": "Frontend",
+        "ms": 379041,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 19,
+        "task_id": "F2.9.R2.3",
+        "role": "Frontend",
+        "ms": 363329,
+        "finish_reason": "length",
+        "changed": [],
+        "rejected": [],
+        "error": "la respuesta no trae bloques FILE/APPEND/SECTION",
+        "contract_missing": []
+      },
+      {
+        "n": 20,
+        "task_id": "F3.1",
+        "role": "Frontend",
+        "ms": 98052,
+        "finish_reason": "stop",
+        "changed": [
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 21,
+        "task_id": "F3.2",
+        "role": "Frontend",
+        "ms": 339277,
+        "finish_reason": "length",
+        "changed": [],
+        "rejected": [],
+        "error": "la respuesta no trae bloques FILE/APPEND/SECTION",
+        "contract_missing": []
+      },
+      {
+        "n": 22,
+        "task_id": "F3.3",
+        "role": "Frontend",
+        "ms": 331780,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 23,
+        "task_id": "F3.4",
+        "role": "Frontend",
+        "ms": 140993,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css",
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 24,
+        "task_id": "F3.5",
+        "role": "Frontend",
+        "ms": 248561,
+        "finish_reason": "stop",
+        "changed": [
+          "api.js",
+          "styles.css"
+        ],
+        "rejected": [
+          "app.js: error de sintaxis (Invalid left-hand side in assignment); se conserva la versión anterior"
+        ],
+        "contract_retry": {
+          "problem": "app.js quedó con un error de sintaxis: Invalid left-hand side in assignment. Si APPEND repitió código que ya estaba, devolvé app.js COMPLETO con FILE, sin duplicados",
+          "ms": 318281,
+          "finish_reason": "stop",
+          "changed": [
+            "app.js"
+          ],
+          "resolved": false
+        },
+        "contract_missing": []
+      },
+      {
+        "n": 25,
+        "task_id": "F3.6",
+        "role": "Frontend",
+        "ms": 158234,
+        "finish_reason": "stop",
+        "changed": [
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 26,
+        "task_id": "F4.1",
+        "role": "QA",
+        "ms": 239,
+        "finish_reason": null,
+        "changed": [],
+        "rejected": [],
+        "error": "la respuesta no trae bloques FILE/APPEND/SECTION",
+        "contract_missing": []
+      },
+      {
+        "n": 27,
+        "task_id": "F4.2",
+        "role": "QA",
+        "ms": 212,
+        "finish_reason": null,
+        "changed": [],
+        "rejected": [],
+        "error": "la respuesta no trae bloques FILE/APPEND/SECTION",
+        "contract_missing": []
+      },
+      {
+        "n": 28,
+        "task_id": "F4.3.R2.1",
+        "role": "QA",
+        "ms": 260474,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css",
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_retry": {
+          "problem": "app.js quedó con un error de sintaxis: Identifier 'handleContactFormSubmit' has already been declared. Si APPEND repitió código que ya estaba, devolvé app.js COMPLETO con FILE, sin duplicados",
+          "ms": 289924,
+          "finish_reason": "stop",
+          "changed": [
+            "app.js"
+          ],
+          "resolved": true
+        },
+        "contract_missing": []
+      },
+      {
+        "n": 29,
+        "task_id": "F4.3.R2.2.R3.1",
+        "role": "QA",
+        "ms": 305951,
+        "finish_reason": "stop",
+        "changed": [
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 30,
+        "task_id": "F4.3.R2.2.R3.2",
+        "role": "QA",
+        "ms": 179726,
+        "finish_reason": "stop",
+        "changed": [
+          "styles.css"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      },
+      {
+        "n": 31,
+        "task_id": "F4.4",
+        "role": "QA",
+        "ms": 330892,
+        "finish_reason": "stop",
+        "changed": [
+          "app.js"
+        ],
+        "rejected": [],
+        "contract_missing": []
+      }
+    ]
+  }
+}

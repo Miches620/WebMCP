@@ -1,0 +1,95 @@
+### APPEND: styles.css
+```css
+/* ========================================= */
+/* 3. COMPONENTES BASE (Header, Nav, Section) - REFINEMENTS */
+/* ========================================= */
+
+/* Ajuste de la estructura del logo para mejor presentación */
+#site-header .logo {
+    display: flex;
+    align-items: center;
+}
+
+/* Estilos de la lista de navegación (Desktop) */
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 30px; /* Aumentamos un poco el espacio entre ítems */
+}
+
+/* Mejora del efecto hover en los enlaces de navegación */
+nav a {
+    font-weight: 500;
+    padding: 0.5rem 0;
+    color: var(--color-text-dark);
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+    position: relative; /* Necesario para el efecto de subrayado */
+}
+
+nav a::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 2px;
+    background-color: var(--color-primary);
+    transition: width 0.3s ease;
+    position: absolute;
+    bottom: -5px; /* Posiciona el subrayado ligeramente debajo del texto */
+}
+
+nav a:hover {
+    color: var(--color-primary);
+}
+
+/* Efecto de underline al hacer hover en la navegación */
+nav a:hover::after {
+    width: 100%;
+}
+
+
+/* ========================================= */
+/* RESPONSIVE DESIGN (Media Queries) - HEADER/NAV ADJUSTMENTS */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    /* Ajuste de la navegación en móvil y tabletas */
+    #site-header .container {
+        flex-direction: column; /* Apila logo y nav verticalmente */
+        align-items: flex-start; /* Alinea el contenido a la izquierda o centro si es necesario */
+        gap: 15px;
+        padding: 0 20px; /* Añadimos padding lateral en móvil */
+    }
+
+    /* Estilos de la lista de navegación cuando está colapsada/apilada */
+    nav ul {
+        flex-direction: column;
+        align-items: stretch; /* Hace que los enlaces ocupen el ancho disponible */
+        padding: 0;
+        gap: 10px; /* Reducimos el gap verticalmente */
+        width: 100%; /* Asegura que ocupe todo el ancho del contenedor */
+    }
+
+    /* Ajuste de cada enlace individual en móvil */
+    nav a {
+        display: block; /* Hace que cada enlace se comporte como un bloque completo */
+        padding: 10px 15px;
+        text-align: center;
+        border-radius: var(--border-radius);
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* Mejorar el efecto hover en móvil */
+    nav a:hover {
+        background-color: rgba(0, 123, 255, 0.1); /* Fondo azul claro al pasar el ratón */
+        color: var(--color-primary);
+        text-decoration: none;
+    }
+
+    /* Eliminamos el efecto de underline complejo en móvil para que no interfiera con el bloque completo */
+    nav a::after {
+        content: none;
+    }
+}
+```
+
+Nota: Se ha añadido un bloque de CSS específico para mejorar la experiencia del menú de navegación cuando se colapsa en dispositivos móviles, haciendo que los enlaces ocupen todo el ancho y tengan un efecto hover más visible.

@@ -1,0 +1,275 @@
+### APPEND: styles.css
+```css
+/* -------------------------------------------------- */
+/* Global Transitions and Polish for Interactions (QA) */
+/* -------------------------------------------------- */
+
+/* Aplicar transiciones suaves a elementos interactivos clave */
+button, .btn {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Mejorar el efecto hover de las tarjetas de características */
+.feature-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #e0e0e0; /* Añadir borde base para mejor definición */
+}
+
+/* Efecto al pasar el ratón sobre la tarjeta de característica (Elevación y sombra) */
+.feature-card:hover {
+    transform: translateY(-5px); /* Levantar ligeramente */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada */
+}
+
+/* Mejorar el efecto hover de las tarjetas de testimonio (Suavidad) */
+.testimonial-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-left: 4px solid transparent; /* Preparación para un indicador visual */
+}
+
+/* Efecto al pasar el ratón sobre la tarjeta de testimonio (Resaltado sutil) */
+.testimonial-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Mejorar el efecto hover de los ítems estadísticos */
+.stat-item {
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+}
+
+/* Efecto al pasar el ratón sobre un ítem estadístico (Resaltado y escala) */
+.stat-item:hover {
+    background-color: #f4f7fa; /* Fondo ligeramente diferente */
+    transform: scale(1.02);
+}
+
+/* Mejorar la interacción del botón principal al hacer hover */
+.primary-btn {
+    box-shadow: 0 4px 15px rgba(60, 130, 255, 0.4); /* Sombra inicial para darle profundidad */
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px); /* Pequeño levantamiento al pasar el ratón */
+    box-shadow: 0 8px 25px rgba(60, 130, 255, 0.6); /* Sombra más intensa */
+}
+
+/* Asegurar que los enlaces de navegación y footer tengan transiciones suaves */
+#site-header nav li a {
+    transition: color 0.3s ease;
+}
+
+#site-header nav li a:hover {
+    color: #4a90e2 !important; /* Color de hover más definido */
+}
+
+/* Asegurar que los inputs y textarea muestren un foco suave */
+.form-group input:focus, .form-group textarea:focus {
+    border-color: #4a90e2 !important;
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.3); /* Sombra de foco suave */
+}
+
+/* Estilo para el mensaje de éxito (QA) */
+#contact-success-message {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    background-color: #d4edda; /* Verde claro */
+    color: #155724; /* Texto verde oscuro */
+    border: 1px solid #c3e6cb;
+}
+
+/* Estilo para el mensaje de error (QA) - Ya parcialmente cubierto, pero reforzando la visibilidad */
+.error-message {
+    display: block;
+    color: #dc3545; /* Rojo visible */
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+```
+
+**Nota:** Se han añadido transiciones y efectos de elevación/sombra a los componentes clave (`.feature-card`, `.testimonial-card`, `.stat-item`, botones) para cumplir con la verificación de interacciones (QA). También se mejoró el manejo visual del mensaje de éxito en el formulario de contacto.
+
+### APPEND: app.js
+```javascript
+// Lógica de la UI.
+
+// ... [Código existente] ...
+
+/**
+ * Inicializa y ejecuta el Intersection Observer para las secciones de contenido clave.
+ */
+const setupRevealAnimations = () => {
+    // 1. Seleccionar los contenedores principales que deben animarse: Testimonios y Estadísticas.
+    // Se asegura que cada elemento individual sea observado para un efecto más granular.
+    const elementsToObserve = [
+        ...Array.from(document.querySelectorAll('#testimonios .testimonial-card')), // Observar todas las tarjetas de testimonio
+        ...Array.from(document.querySelectorAll('#estadisticas-animadas .stat-item')) // Observar cada ítem estadístico
+    ].filter(el => el); // Filtra elementos nulos
+
+    if (elementsToObserve.length === 0) {
+        console.warn("No se encontraron elementos clave para animar con Intersection Observer.");
+        return;
+    }
+
+    // 2. Crear la instancia del observador
+    const observer = new IntersectionObserver(handleIntersect, observerOptions);
+
+    // 3. Observar cada elemento seleccionado
+    elementsToObserve.forEach(element => {
+        observer.observe(element);
+    });
+};
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Lógica de navegación (ya existente)
+    const navLinks = document.querySelectorAll('#site-header nav a[href^="#"]');
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+
+            if (targetElement) {
+                // Usamos scrollIntoView con comportamiento suave para el desplazamiento
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+
+    // --- Lógica de Validación y Envío del Formulario de Contacto ---
+    const contactForm = document.querySelector('#contacto .contact-form');
+    if (contactForm) {
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // 1. Obtener valores y limpiar errores previos
+            const nombreInput = document.getElementById('nombre');
+            const emailInput = document.getElementById('email');
+            const mensajeTextarea = document.getElementById('mensaje');
+            const submitButton = document.querySelector('.submit-form-btn');
+
+            // Limpiar mensajes de error anteriores y éxito
+            document.querySelectorAll('#contacto .error-message').forEach(el => el.remove());
+            const successMessageDiv = document.getElementById('contact-success-message');
+            if (successMessageDiv) {
+                successMessageDiv.remove();
+            }
+
+            const nombre = nombreInput ? nombreInput.value.trim() : '';
+            const email = emailInput ? emailInput.value.trim() : '';
+            const mensaje = mensajeTextarea ? mensajeTextarea.value.trim() : '';
+
+            let isValid = true;
+
+            // 2. Validación de campos obligatorios y formato
+            if (!nombre) {
+                displayError(nombreInput, 'Por favor, ingresa tu nombre completo.');
+                isValid = false;
+            } else {
+                displayError(nombreInput, ''); // Limpiar error si se vuelve a intentar
+            }
+
+            // Regex simple para email: [texto]@[texto].[dominio]
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email) {
+                displayError(emailInput, 'El correo electrónico es obligatorio.');
+                isValid = false;
+            } else if (!emailRegex.test(email)) {
+                displayError(emailInput, 'Por favor, ingresa un formato de email válido (ej: usuario@dominio.com).');
+                isValid = false;
+            } else {
+                displayError(emailInput, ''); // Limpiar error si es válido
+            }
+
+            if (!mensaje) {
+                displayError(mensajeTextarea, 'Por favor, describe tu consulta.');
+                isValid = false;
+            } else {
+                displayError(mensajeTextarea, ''); // Limpiar error si se vuelve a intentar
+            }
+
+
+            // 3. Manejo del envío si es válido
+            if (isValid) {
+                submitButton.disabled = true;
+                submitButton.textContent = 'Enviando...';
+
+                const formData = { nombre, email, mensaje };
+
+                try {
+                    // Llamada a la API simulada
+                    const resultMessage = await window.api.crearContacto(formData);
+
+                    // Mostrar éxito y limpiar formulario
+                    document.querySelector('#contacto .form-group').forEach(group => group.classList.remove('has-error'));
+                    contactForm.reset();
+                    displaySuccessMessage(resultMessage);
+
+                } catch (error) {
+                    console.error("Error al enviar el contacto:", error);
+                    // Usar un mensaje de alerta más amigable si falla la promesa simulada
+                    alert("Hubo un error inesperado al conectar con nuestro servidor. Por favor, inténtalo más tarde.");
+                } finally {
+                    // Restaurar botón
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Enviar Mensaje';
+                }
+            }
+        });
+    }
+
+    /**
+     * Muestra el mensaje de error debajo del campo correspondiente.
+     * @param {HTMLElement} inputElement - El elemento <input> o <textarea>.
+     * @param {string} message - El mensaje de error a mostrar.
+     */
+    const displayError = (inputElement, message) => {
+        let errorContainer = inputElement.parentNode.querySelector('.error-message');
+        if (!errorContainer) {
+            errorContainer = document.createElement('span');
+            errorContainer.className = 'error-message';
+            inputElement.parentNode.appendChild(errorContainer);
+        }
+        errorContainer.textContent = message;
+
+        // Añadir clase de error visualmente (aunque el CSS lo maneja, es buena práctica)
+        if (message) {
+             inputElement.closest('.form-group').classList.add('has-error');
+        } else {
+             inputElement.closest('.form-group').classList.remove('has-error');
+        }
+    };
+
+    /**
+     * Muestra un mensaje de éxito en la sección del formulario.
+     * @param {string} message - El mensaje de confirmación.
+     */
+    const displaySuccessMessage = (message) => {
+        // Eliminar cualquier mensaje de éxito previo
+        let successMessageDiv = document.getElementById('contact-success-message');
+        if (successMessageDiv) {
+            successMessageDiv.remove();
+        }
+
+        // Crear un contenedor temporal para el mensaje de éxito
+        const formContainer = document.querySelector('#contacto .form-group');
+        if (!formContainer) return;
+
+        successMessageDiv = document.createElement('div');
+        successMessageDiv.id = 'contact-success-message';
+        successMessageDiv.className = 'alert alert-success'; // Usando la clase definida en CSS
+        successMessageDiv.innerHTML = `<p>${message}</p>`;
+        
+        // Insertar el mensaje de éxito justo antes del formulario
+        formContainer.parentNode.insertBefore(successMessageDiv, formContainer);
+    };
+
+
+    // Llamar a la función de animación al cargar la página
+    setupRevealAnimations();
+});
+```

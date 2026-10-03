@@ -1,0 +1,196 @@
+{
+  "source": "project23_snapshot.json",
+  "refined": {
+    "project_name": "Kanban WebApp",
+    "objetivo": "Desarrollar una webapp estilo Kanban sin persistencia de datos, con funcionalidades CRUD para tarjetas y columnas.",
+    "features": [
+      "Crear tarjetas",
+      "Mover tarjetas entre columnas",
+      "Agregar comentarios a las tarjetas",
+      "Etiquetar tarjetas",
+      "Editar tarjetas",
+      "Borrar tarjetas",
+      "Diseño con paleta de colores oscura y estilo industrial",
+      "Sombras en tarjetas",
+      "Efectos de iluminación al pasar el mouse sobre las tarjetas"
+    ],
+    "criterios_holdout": [
+      "Se pueden crear nuevas tarjetas.",
+      "Las tarjetas se pueden mover entre columnas.",
+      "Se pueden agregar comentarios a las tarjetas.",
+      "Se pueden etiquetar las tarjetas.",
+      "Se puede editar la información de las tarjetas.",
+      "Se puede eliminar las tarjetas.",
+      "El diseño utiliza una paleta de colores oscura y un estilo industrial.",
+      "Las tarjetas tienen sombras y se iluminan al pasar el mouse sobre ellas."
+    ],
+    "project_stage": "PROTOTYPE",
+    "exclusiones": [
+      "trello (lo que dijiste: \"Crear una webapp estilo Kanban o Trello\")",
+      "contenido (lo que dijiste: \"el contenido se debera borrar\")",
+      "sencilla (lo que dijiste: \"Sencilla\")",
+      "frontend (lo que dijiste: \"solo frontend\")",
+      "drag, drop (lo que dijiste: \"Drag & Drop funcional\")",
+      "colocar (lo que dijiste: \"efectos al colocar una card sobre alguna columna\")",
+      "durante, sesion (lo que dijiste: \"solo durante la sesion actual\")",
+      "posibilidad (lo que dijiste: \"Posibilidad de agregar comentarios a las tarjetas\")",
+      "creadas, completo (lo que dijiste: \"posibilidad de editar o borrar tarjetas creadas (CRUD completo)\")",
+      "sombas (lo que dijiste: \"sombas en tarjetas\")"
+    ]
+  },
+  "tasks": [
+    {
+      "id": "F1.1",
+      "role": "Frontend",
+      "task": "Establecer la estructura base del Shell y el diseño global oscuro",
+      "description": "Crear el contenedor principal de la aplicación (shell) e implementar los estilos CSS globales, aplicando la paleta de colores oscura y definiendo las variables de estilo para el tema industrial general.",
+      "depends_on": []
+    },
+    {
+      "id": "F1.3",
+      "role": "Frontend",
+      "task": "Desarrollar el componente básico de Tarjeta (Card)",
+      "description": "Crear el componente visual atómico para la tarjeta Kanban, incluyendo placeholders para título, descripción y metadata, aplicando los estilos base requeridos.",
+      "depends_on": []
+    },
+    {
+      "id": "F1.4",
+      "role": "Frontend",
+      "task": "Desarrollar el componente de Columna (Column)",
+      "description": "Crear el contenedor visual para una columna Kanban individual, incluyendo la estructura para títulos y el área donde se alojarán las tarjetas.",
+      "depends_on": []
+    },
+    {
+      "id": "F1.2",
+      "role": "Frontend",
+      "task": "Implementar el layout principal del tablero Kanban",
+      "description": "Ensamblar la estructura de columnas (usando F1.4) dentro del contenedor principal, y poblar estas columnas con instancias del componente Tarjeta (F1.3), completando así el esqueleto visual observable del prototipo.",
+      "depends_on": [
+        "F1.3",
+        "F1.4"
+      ]
+    },
+    {
+      "id": "F2.1",
+      "role": "Frontend",
+      "task": "Implementación de la gestión de estado en memoria para el tablero Kanban",
+      "description": "Establecer y encapsular la lógica de estado central (in-memory) que contendrá todos los datos del tablero, incluyendo las tarjetas y su pertenencia a columnas. Este estado debe ser reactivo.",
+      "depends_on": []
+    },
+    {
+      "id": "F2.2",
+      "role": "Frontend",
+      "task": "Desarrollar la funcionalidad de creación de nuevas tarjetas (Crear)",
+      "description": "Implementar el componente y la lógica para que los usuarios puedan crear una nueva tarjeta, capturando su contenido e insertándolo en el estado central del tablero.",
+      "depends_on": [
+        "F2.1"
+      ]
+    },
+    {
+      "id": "F2.3",
+      "role": "Frontend",
+      "task": "Desarrollar la funcionalidad de edición de tarjetas (Actualizar)",
+      "description": "Implementar la lógica para permitir al usuario editar el contenido de una tarjeta existente, actualizando tanto el componente visual como el estado central del tablero.",
+      "depends_on": [
+        "F2.1"
+      ]
+    },
+    {
+      "id": "F2.4",
+      "role": "Frontend",
+      "task": "Desarrollar la funcionalidad de eliminación de tarjetas (Borrar)",
+      "description": "Implementar el mecanismo para eliminar una tarjeta seleccionada del tablero, actualizando correctamente el estado central y deshabilitando su visualización.",
+      "depends_on": [
+        "F2.1"
+      ]
+    },
+    {
+      "id": "F2.5",
+      "role": "Frontend",
+      "task": "Implementar la lógica de movimiento manual de tarjetas entre columnas",
+      "description": "Desarrollar el mecanismo frontend (ej. drag-and-drop o botón) que permita seleccionar una tarjeta y moverla programáticamente desde el estado de una columna a otra, actualizando la estructura del estado central.",
+      "depends_on": [
+        "F2.1",
+        "F1.4"
+      ]
+    },
+    {
+      "id": "F3.1",
+      "role": "Frontend",
+      "task": "Implementar la interfaz de usuario para añadir etiquetas (labels) a una tarjeta.",
+      "description": "Crear el componente o flujo dentro del Card Component que permita al usuario ingresar y gestionar múltiples etiquetas asociadas a una tarjeta específica.",
+      "depends_on": [
+        "F1.3"
+      ]
+    },
+    {
+      "id": "F3.2",
+      "role": "Frontend",
+      "task": "Integrar la gestión de estado para las etiquetas de tarjetas.",
+      "description": "Modificar la lógica de gestión de estado (state management) del tablero Kanban para almacenar, actualizar y recuperar el array de etiquetas asociadas a cada tarjeta.",
+      "depends_on": [
+        "F2.1"
+      ]
+    },
+    {
+      "id": "F3.3",
+      "role": "Frontend",
+      "task": "Visualizar las etiquetas en el componente Tarjeta (Card).",
+      "description": "Actualizar el Card Component para que muestre de manera visible y estilizada todas las etiquetas recuperadas del estado, sin alterar la funcionalidad existente.",
+      "depends_on": [
+        "F1.3",
+        "F3.2"
+      ]
+    },
+    {
+      "id": "F3.4",
+      "role": "Frontend",
+      "task": "Implementar la interfaz de usuario para agregar comentarios a una tarjeta.",
+      "description": "Desarrollar el componente o modal que permita al usuario escribir y enviar un nuevo comentario asociado a una tarjeta específica, incluyendo la identificación del autor (simulada).",
+      "depends_on": [
+        "F1.3"
+      ]
+    },
+    {
+      "id": "F3.5",
+      "role": "Frontend",
+      "task": "Integrar la gestión de estado para los comentarios de tarjetas.",
+      "description": "Modificar el estado global del tablero Kanban para almacenar, actualizar y recuperar el historial completo de comentarios asociados a cada tarjeta.",
+      "depends_on": [
+        "F2.1"
+      ]
+    },
+    {
+      "id": "F3.6",
+      "role": "Frontend",
+      "task": "Visualizar los comentarios en el componente Tarjeta (Card).",
+      "description": "Actualizar el Card Component para que muestre de manera ordenada y legible la lista completa de comentarios asociados a la tarjeta, incluyendo autor y fecha.",
+      "depends_on": [
+        "F1.3",
+        "F3.5"
+      ]
+    },
+    {
+      "id": "F3.7",
+      "role": "Frontend",
+      "task": "Refinar efectos visuales de interacción (Hover Effect).",
+      "description": "Aplicar y refinar los efectos visuales, como el efecto de iluminación o sombra al pasar el mouse sobre las tarjetas o columnas, para mejorar la experiencia observable del prototipo.",
+      "depends_on": [
+        "F1.3"
+      ]
+    }
+  ],
+  "holdout": {
+    "forbidden": [
+      "Se pueden crear nuevas tarjetas.",
+      "Las tarjetas se pueden mover entre columnas.",
+      "Se pueden agregar comentarios a las tarjetas.",
+      "Se pueden etiquetar las tarjetas.",
+      "Se puede editar la información de las tarjetas.",
+      "Se puede eliminar las tarjetas.",
+      "El diseño utiliza una paleta de colores oscura y un estilo industrial.",
+      "Las tarjetas tienen sombras y se iluminan al pasar el mouse sobre ellas."
+    ],
+    "repeated_in_features": []
+  }
+}

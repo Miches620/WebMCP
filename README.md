@@ -5,7 +5,7 @@ validado, pensado para correr con modelos chicos en una GPU de 8 GB (LM Studio).
 
 ```
 Intención del usuario
-   ↓  Intent Forge (entrevista, 1 pregunta por vez, hasta 10 iteraciones)
+   ↓  Intent Forge v0.3 (plantilla de 4 campos → Qwen clasifica cada línea; pregunta solo si falta algo)
 refined_prompt + answer_key_requirements
    ↓  confirmación humana (Confirmar / Ajustar)
 TechLeader  → plan de fases   (recibe la ETAPA y su criterio desde context/ProjectStage.md)
@@ -63,10 +63,11 @@ Para el build y Validation (una vez): `npm install` y `npx playwright install ch
 | `plan_stage_check.mjs` | Chequeo de etapa **a nivel plan**, antes de atomizar: un veredicto por fase (IN_SCOPE / DEFERRED / EXCESS), validado por el harness como el reviewer v3. Arma el feedback para TechLeader. |
 | `test_plan_stage_check.mjs` | 8 tests deterministas (fetch simulado): `node test_plan_stage_check.mjs`. |
 | `bench_stage_check.mjs` | **Matriz de briefs contra LM Studio real** (6 casos: Project20 intentos 1-3, deploy pedido, operación/hardening, exceso no pedido). `node bench_stage_check.mjs 5` → `evidence/stage_check_<fecha>.json`. |
-| `intent_forge_v02.ps1` | **Herramienta manual de debug**, no forma parte del pipeline. Su system prompt es parecido pero distinto al de `server.mjs`: editar uno no cambia el otro. |
+| `intent_brief.mjs` | **Intent Forge v0.3** (módulo puro, lo usan `server.mjs` y `script.js`): plantilla fija (qué querés construir / qué tiene que hacer / cómo se tiene que ver / qué no debe hacer), numera cada línea del usuario (L1, L2…), Qwen devuelve un ítem tipado por línea (contexto / feature / estilo / restriccion / descartado), el harness exige que **cada línea termine en al menos un ítem** (hasta 2 reintentos con feedback; lo que quede sin ubicar lo agrega el harness marcado `auto`). Arma el refined_prompt y el texto para TechLeader. Cada turno deja evidencia en `evidence/intent_forge/`. |
+| `test_intent_brief.mjs` | 22 tests deterministas (modelo simulado), con Project23 reescrito en la plantilla: `node test_intent_brief.mjs`. |
+| `intent_forge_v02.ps1` | **Desactualizado (v0.2)**, herramienta manual de debug, no forma parte del pipeline. |
 | `test_completeness_bounded.mjs`, `test_completeness_bounded_2.mjs` | Casos de prueba del reviewer v3 (recetas / instrumentos). |
-| `intent_mention_check.mjs` | Chequeo determinista "mencionaste y no incluí": frases del usuario en la entrevista cuyas palabras de contenido no aparecen en el refined_prompt. Lo usa la tarjeta de confirmación. |
-| `test_mention_check.mjs` | 10 tests del chequeo anterior, con la conversación real de Project20: `node test_mention_check.mjs`. |
+| `intent_mention_check.mjs`, `test_mention_check.mjs` | **Reemplazados por `intent_brief.mjs` (03/10)**, nada los usa. Van a `_archivo/`. |
 | `term_coverage_check.mjs` | Aviso determinista (sin LLM) de cobertura por palabras: por requisito, las palabras **propias** que no aparecen en ninguna tarea (título + descripción). Corre dentro de `/api/completeness-review`; **no bloquea** ni dispara reintentos. |
 | `test_reviewer_quotes.mjs` | 9 tests de la regla de cita v0.7 (opt-in, no adoptada). |
 | `test_phase_dependency_check.mjs` | Regresión del chequeo de dependencias por fase (caso Project20). Determinista: `node test_phase_dependency_check.mjs`. |
@@ -182,7 +183,12 @@ Experimentos del traductor (con control): `experiments/exp_translator.mjs` (form
 
 **Piloto, experimentos del reviewer y aviso por palabras (30/09)** — ver `pilot/` y `experiments/` arriba. `term_coverage` quedó **solo en el log** (la tarjeta de etiquetado se desactivó: pedirle a Miche que juzgue cada requisito no escala; el juez de cobertura pasa a ser Validation ejecutando el artefacto).
 
-**Intent Forge:** una exclusión guarda las palabras faltantes **y** la frase original como contexto (`palabras (lo que dijiste: "...")`); TechLeader recibe "NO planificar lo que nombran estas palabras; el resto de la frase es solo contexto".
+**Intent Forge v0.3 — plantilla + clasificación acotada (03/10, Project23)**
+- *Evidencia de origen:* el chequeo "mencionaste y no incluí" dio 13 avisos en Project23, 3 pérdidas reales (nombres de columnas, drag & drop, efecto al soltar) y 10 ruido léxico ("posibilidad", "sombas", "actualizamos"). "Excluir" mandó palabras sueltas como órdenes negativas a TechLeader ("NO planificar: frontend") y el drag & drop terminó diferido. La pérdida venía de Intent Forge resumiendo, no del prompt del usuario.
+- *Cambio (decisión de Miche):* el input arranca con una plantilla de 4 campos (Ctrl+Enter para mandar) y un ejemplo en el chat. Qwen **no resume**: clasifica cada línea numerada en ítems tipados, con la regla de cobertura del harness (misma lección que el reviewer v0.6-bounded). El campo es una pista del tipo; si Qwen lo cambia, la tarjeta lo muestra como "↪ movido".
+- La tarjeta de confirmación muestra "dijiste → quedó como" línea por línea. No hay avisos ni botones Incluir/Excluir: se corrige con ✏️ Ajustar (el mensaje entra como línea `[ajuste]`; para sacar algo Qwen usa `descartado`).
+- refined_prompt: `features` = feature + estilo (para que reviewer, page plan, traductor y Specialist lean lo mismo que antes); además `restricciones`, `estilo`, `contexto` y `brief` (líneas + ítems). TechLeader recibe las restricciones después de los criterios; desaparece "Fuera de alcance".
+- Probado: 22 tests del módulo; flujo en navegador con server real y LM Studio simulado (falta una línea → reintento → tarjeta; Ajustar → descartado; prompt de TechLeader; recarga sin JSON crudo). **Falta la evidencia con Qwen real.**
 
 **UI:** `BUILD_ID` + `/api/version` + `no-store` (Project21 corrió JS viejo en una pestaña abierta).
 
@@ -205,13 +211,12 @@ Experimentos del traductor (con control): `experiments/exp_translator.mjs` (form
 - **Persistencia en SQLite desconectada.** La ruta `/api/projects` (con `db.mjs`) existía en una versión anterior de `server.mjs` y se perdió; `persistProject()` sigue en `script.js` pero nada la llama. `db.mjs` y `test_db.mjs` quedan archivados hasta decidir si vuelve.
 - **Chequeo de etapa: evidencia parcial.** Bench 30/09 con v0.1: 30/30 corridas con veredicto **solo para F1** (JSON válido, `finish_reason=stop`, ~70 tokens): Qwen copiaba el ejemplo de un elemento del system prompt → 0 fases evaluadas más allá de F1. v0.2 cambia una sola variable: el pedido es un esqueleto con todas las fases precargadas (`"?"` a completar).
   - **Bench v0.2 (30/09, 5 reps, `evidence/stage_check_2026-09-30T15-31-06.json`):** sin veredicto 0 (antes 21/25 por corrida). En los 4 casos **con descripción de fase**: 0 falsos OUT sobre 55 juicios IN (incluye "deploy pedido" 10/10 IN, regla 5 respetada) y 15/15 OUT detectados (hardening, admin no pedido). Todos los errores (14 falsos OUT, 5 OUT perdidos) caen en Project20 intentos 1-2, que **solo tienen nombre de fase**: marca "Formulario de contacto" como DEFERRED (4/5, es Feature explícita) y deja "Pruebas Funcionales, Optimización y Despliegue" IN_SCOPE (5/5, fase mixta leída por "Pruebas"). El admin no pedido sale DEFERRED en vez de EXCESS (para el reintento da igual). Límite conocido: fases con nombre ambiguo ("Configuración del entorno") quedan como `ANY` en la matriz.
-- **Los "criterios_holdout" no son holdout en el pipeline:** `buildTechLeaderInputFromRefinedPrompt` los manda a TechLeader como "Criterios de éxito". El piloto los mantiene fuera del Specialist; falta decidir si TechLeader debe verlos.
+- **Los "criterios_holdout" no son holdout en el pipeline:** `buildTechLeaderInput` (intent_brief.mjs) los manda a TechLeader como "Criterios de éxito". El piloto los mantiene fuera del Specialist; falta decidir si TechLeader debe verlos.
 - **Gap que el reviewer no ve:** en Project20, F4.1 pide "nombre, email, mensaje" y no el campo de preferencias de la Feature 2; el reviewer v3 la dio por cubierta. El piloto (C4) lo detectó; el reviewer LLM no discrimina (experimentos 30/09).
 - **Build: un solo proyecto validado (n=1).** Falta correr el pipeline completo en un segundo proyecto de otro tipo.
 - **Build: cortes por `length`** en las últimas tareas (F5.1, F5.3) cuando los archivos crecen; se acepta lo que vino completo y se pierde el resto.
 - **El build se corre por consola** desde un snapshot exportado; todavía no está integrado a la UI ni a `server.mjs`.
-- **Intent Forge "Incluir":** el mensaje automático hace que Qwen pegue la frase literal como feature.
+- **Intent Forge v0.3: `restricciones` y `estilo` no llegan todavía al Specialist** (lee solo `features`, donde el estilo sigue incluido).
 - `deferredWork` se guarda pero no se muestra en la UI ni se persiste fuera del navegador.
-- **Chequeo de menciones es heurístico** (palabras de 4+ letras, raíz de 5, lista corta de sinónimos): va a dar falsos avisos con redacciones distintas y no detecta pedidos parafraseados. Por eso no decide nada, solo pregunta. Las exclusiones todavía no llegan al Completeness Reviewer (lee solo features de `answer_key_requirements.json`, lo cual hoy alcanza).
 - `runDependencyResolverTests()` — **TEST 7 falla** desde antes de este cambio: el motor sí rechaza la dependencia-objeto, pero el test busca el texto `INVALID_DEPENDENCY` y el mensaje real es otro. Además los tests usan `console.assert` e imprimen "✓" aunque fallen.
 - TechLeader y el Atomic Engine llaman a LM Studio desde el navegador (requiere CORS); pasarlos por `server.mjs` unificaría logs y errores.

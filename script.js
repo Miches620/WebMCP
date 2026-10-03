@@ -1,12 +1,21 @@
 import { validateRoleDependencies } from "./validation_profile_role_dependencies.mjs";
 import { runAtomicGraph, resolveDependencies } from "./atomic_engine_v5.js";
-import { missingMentions, norm } from "./intent_mention_check.mjs";
+import {
+  TEMPLATE_TEXT,
+  TEMPLATE_EXAMPLE,
+  buildTechLeaderInput,
+  linesWithItems,
+  fieldLabel,
+  isCompleteMessage,
+  FIELDS,
+  norm,
+} from "./intent_brief.mjs";
 
 // BUILD_ID: subirlo en cada cambio de script.js. server.mjs lo lee del disco
 // (/api/version) y, si no coincide con el de la pestaña abierta, la UI avisa
 // que hay que recargar. Origen: Project21 corrió con el JS viejo en una
 // pestaña abierta desde antes del cambio (reiniciar el server no alcanza).
-const BUILD_ID = "2026-10-01.3";
+const BUILD_ID = "2026-10-03.1";
 
 const STORAGE_KEY = "webmcp_state";
 const MAX_TECHLEADER_ATTEMPTS = 3;
@@ -75,10 +84,15 @@ function syncChatUI() {
   btn.classList.remove("opacity-50", "cursor-not-allowed");
 
   const phase = getChatPhase();
+  // IDLE: la plantilla de 4 campos precargada (Intent Forge v0.3). El resto
+  // de las fases usa el input chico de siempre.
+  input.rows = phase === "IDLE" ? 12 : 2;
+  if (phase === "IDLE" && !input.value.trim()) input.value = TEMPLATE_TEXT;
+  if (phase !== "IDLE" && input.value === TEMPLATE_TEXT) input.value = "";
   switch (phase) {
     case "IDLE":
-      btn.innerText = "Iniciar entrevista";
-      input.placeholder = "Contame qué querés construir...";
+      btn.innerText = "Enviar plantilla";
+      input.placeholder = "Completá la plantilla (Ctrl+Enter para enviar)";
       break;
     case "ASKING":
       btn.innerText = `⏳ Preguntando (iter ${webmcpState.intentForge?.iteration || 0}/${INTENT_FORGE_MAX_ITERATIONS})...`;
@@ -119,9 +133,12 @@ function syncChatUI() {
 const INTENT_FORGE_MAX_ITERATIONS = 10;
 let INTENT_FORGE_ITERATION = 0;
 
-function appendToIntentForgeChat(role, text) {
+function appendToIntentForgeChat(role, text, { plain = false } = {}) {
   const container = document.getElementById("intentForgeChatHistory");
   if (!container) return;
+  // plain: texto escrito por el usuario o el modelo → se escapa y conserva
+  // los saltos de línea (la plantilla viaja en varias líneas).
+  if (plain) text = `<span class="whitespace-pre-wrap">${escapeHTML(text)}</span>`;
   const color = role === "user" ? "text-indigo-300" : "text-gray-300";
   const label =
     role === "user"
@@ -161,7 +178,7 @@ async function sendToIntentForge(userMessage, { auto = false } = {}) {
   // con una respuesta parcial a una pregunta de Intent Forge.
   if (!webmcpState.prompt) webmcpState.prompt = userMessage;
 
-  appendToIntentForgeChat("user", userMessage);
+  appendToIntentForgeChat("user", userMessage, { plain: true });
   const input = document.getElementById("refinementPrompt");
   if (input) input.value = "";
 
@@ -172,9 +189,8 @@ async function sendToIntentForge(userMessage, { auto = false } = {}) {
     iteration: 0,
   };
   webmcpState.intentForge.status = "ASKING";
-  // auto=true: mensaje armado por el sistema (p.ej. "Agregá también...").
-  // Se manda a Intent Forge igual, pero el chequeo de menciones lo ignora
-  // para no avisar por sus propias palabras.
+  // auto=true: mensaje armado por el sistema. intent_brief.numberLines lo
+  // ignora (no es una línea del usuario).
   webmcpState.intentForge.history.push(
     auto
       ? { role: "user", content: userMessage, auto: true }
@@ -227,15 +243,14 @@ async function sendToIntentForge(userMessage, { auto = false } = {}) {
       // renderConfirmationPrompt() a partir de refined_prompt, estructurado.
       webmcpState.intentForge.refined_prompt = data.refined_prompt;
       webmcpState.intentForge.status = "COMPLETE";
-      webmcpState.intentForge.mentionDecisions = {};
       updateIntentForgeStatus("COMPLETE");
       updateRefinedPromptPin(data.refined_prompt);
       renderConfirmationPrompt(data.refined_prompt);
       appendToReasoning(
-        `<div class="text-green-400 font-bold">✅ Intent Forge COMPLETE (${(data.refined_prompt.features || []).length} features)</div>`,
+        `<div class="text-green-400 font-bold">✅ Intent Forge COMPLETE (${(data.refined_prompt.features || []).length} features, ${(data.refined_prompt.restricciones || []).length} restricciones${data.auto_added?.length ? `, ${data.auto_added.length} línea(s) ubicadas por el harness` : ""}${data.refined_prompt.brief?.repairs ? `, ${data.refined_prompt.brief.repairs} reintento(s)` : ""})</div>`,
       );
     } else {
-      appendToIntentForgeChat("assistant", assistantMessage);
+      appendToIntentForgeChat("assistant", assistantMessage, { plain: true });
       updateIntentForgeStatus(`ASKING (iter ${INTENT_FORGE_ITERATION})`);
     }
     saveState();
@@ -257,31 +272,12 @@ async function sendToIntentForge(userMessage, { auto = false } = {}) {
   }
 }
 
-// === TARJETA DE CONFIRMACIÓN (reemplaza a approveIntentForgeBtn) ===
-// En vez de un botón aparte lejos del chat, el resumen y la decisión viven
-// en la misma burbuja del chat — así el input nunca hace doble rol.
-function buildRefinedSummaryHTML(refined) {
-  const feats = (refined.features || [])
-    .map((f) => `<li>${f}</li>`)
-    .join("");
-  const criterios = (refined.criterios_holdout || [])
-    .map((c) => `<li>${c}</li>`)
-    .join("");
-  return `
-    <div class="text-indigo-300 font-bold mb-1">Ok, en base a lo que acordamos, voy a construir:</div>
-    <div class="text-white font-medium">${refined.project_name || ""}${refined.project_stage ? ` <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-800 text-cyan-200 align-middle">Etapa: ${refined.project_stage}</span>` : ""}</div>
-    ${refined.objetivo ? `<div class="text-gray-300 mt-1">${refined.objetivo}</div>` : ""}
-    ${feats ? `<ul class="list-disc list-inside text-gray-300 mt-1">${feats}</ul>` : ""}
-    ${criterios ? `<div class="text-gray-500 text-[10px] mt-1">Criterios de éxito: <ul class="list-disc list-inside">${criterios}</ul></div>` : ""}
-  `;
-}
-
-// === "MENCIONASTE Y NO INCLUÍ" (paso 2 post-Project20) ===
-// Al llegar el COMPLETE, compara lo que dijo el usuario en la entrevista con
-// el refined_prompt (intent_mention_check.mjs, determinista) y muestra las
-// frases que quedaron afuera. "Confirmar y generar" queda bloqueado hasta
-// decidir cada aviso: Incluir (vuelve a Intent Forge) / Excluir a propósito
-// (va a TechLeader como fuera de alcance) / Falso aviso (no vuelve a salir).
+// === TARJETA DE CONFIRMACIÓN (Intent Forge v0.3) ===
+// Muestra cada línea que escribió el usuario y en qué quedó ("dijiste →
+// quedó como"). Reemplaza al chequeo "mencionaste y no incluí" (Project23:
+// 10 de 13 avisos eran ruido y "Excluir" mandaba palabras sueltas como
+// órdenes negativas a TechLeader). Acá no hay nada que decidir aviso por
+// aviso: si algo quedó mal, se corrige con ✏️ Ajustar.
 function escapeHTML(t) {
   return String(t ?? "").replace(
     /[&<>"']/g,
@@ -289,84 +285,53 @@ function escapeHTML(t) {
   );
 }
 
-function ensureIntentForgeListState() {
-  const f = webmcpState.intentForge;
-  f.exclusiones = f.exclusiones || [];
-  f.ignoredMentions = f.ignoredMentions || [];
-  f.mentionDecisions = f.mentionDecisions || {};
-  f.requestedMentions = f.requestedMentions || {};
-  return f;
-}
+const TIPO_BADGE = {
+  feature: ["feature", "bg-indigo-700 text-indigo-100"],
+  estilo: ["estilo", "bg-fuchsia-800 text-fuchsia-100"],
+  restriccion: ["restricción", "bg-red-800 text-red-100"],
+  contexto: ["contexto", "bg-gray-600 text-gray-100"],
+  descartado: ["descartado", "bg-gray-800 text-gray-400 line-through"],
+};
 
-function computeMentionNotices(refined) {
-  const f = ensureIntentForgeListState();
-  const userMsgs = (f.history || [])
-    .filter((m) => m.role === "user" && !m.auto)
-    .map((m) => m.content);
-  // Una frase ya pedida con "Incluir" se da por atendida si Intent Forge
-  // cubrió AL MENOS una de sus palabras faltantes (la frase entera rara vez
-  // aparece literal: "algo de panaderia (las cafeterias ... vender ...)" ->
-  // feature "Sección de panadería"). Si no cubrió ninguna, vuelve a salir:
-  // eso es evidencia de que el modelo ignoró el pedido.
-  return missingMentions(userMsgs, refined, {
-    exclusiones: f.exclusiones,
-    ignoradas: f.ignoredMentions,
-  }).filter((n) => {
-    const before = f.requestedMentions[n.phrase];
-    return !(before && n.missing.length < before.length);
-  });
-}
-
-const MENTION_CHOICES = [
-  ["incluir", "➕ Incluir"],
-  ["excluir", "🚫 Excluir a propósito"],
-  ["ignorar", "🙈 Falso aviso"],
-];
-
-function renderMentionControls(card) {
-  const f = ensureIntentForgeListState();
-  const notices = computeMentionNotices(f.refined_prompt);
-  const box = card.querySelector('[data-role="mentions"]');
-  const btn = card.querySelector('[data-action="confirm-refined"]');
-  const dec = f.mentionDecisions;
-  const pending = notices.filter((n) => !dec[n.phrase]).length;
-  const includes = notices.filter((n) => dec[n.phrase] === "incluir").length;
-
-  box.innerHTML = notices.length
-    ? `<div class="text-amber-300 font-bold mt-2">⚠️ Mencionaste y no quedó en la lista (${notices.length}):</div>` +
-      notices
-        .map(
-          (n) => `
-      <div class="border border-amber-700/60 rounded p-2 mt-1" data-phrase="${escapeHTML(n.phrase)}">
-        <div class="text-gray-200">"${escapeHTML(n.phrase)}"</div>
-        <div class="text-gray-500 text-[10px]">falta: ${n.missing.map(escapeHTML).join(", ")}</div>
-        <div class="flex gap-1 mt-1">
-          ${MENTION_CHOICES.map(
-            ([k, label]) =>
-              `<button type="button" data-action="mention" data-choice="${k}" class="flex-1 rounded py-0.5 text-[10px] ${
-                dec[n.phrase] === k ? "bg-amber-600 text-white font-bold" : "bg-gray-700 text-gray-300"
-              }">${label}</button>`,
-          ).join("")}
-        </div>
-      </div>`,
-        )
-        .join("")
+function itemHTML(it, line) {
+  const [label, cls] = TIPO_BADGE[it.tipo] || [it.tipo, "bg-gray-700"];
+  const hint = FIELDS[line.field]?.tipo;
+  const moved = hint && hint !== it.tipo ? ` <span class="text-[9px] text-cyan-400">↪ movido</span>` : "";
+  const auto = it.auto
+    ? ` <span class="text-[9px] text-amber-300" title="El modelo no ubicó esta línea; la agregó el harness con el tipo de su campo. Revisala.">⚠ ubicada por el harness</span>`
     : "";
+  return `<div class="ml-3"><span class="text-[9px] px-1 rounded ${cls}">${label}</span> ${escapeHTML(it.texto)}${moved}${auto}</div>`;
+}
 
-  if (pending > 0) {
-    btn.textContent = `Decidí los avisos (${pending} pendiente${pending > 1 ? "s" : ""})`;
-    btn.disabled = true;
-    btn.className = "flex-1 bg-gray-600 rounded py-1 text-xs font-bold opacity-50 cursor-not-allowed";
-  } else if (includes > 0) {
-    btn.textContent = `📨 Pedir a Intent Forge que agregue (${includes})`;
-    btn.disabled = false;
-    btn.className = "flex-1 bg-amber-600 rounded py-1 text-xs font-bold";
-  } else {
-    btn.textContent = "✅ Confirmar y generar";
-    btn.disabled = false;
-    btn.className = "flex-1 bg-green-600 rounded py-1 text-xs font-bold";
+function buildRefinedSummaryHTML(refined) {
+  const stage = refined.project_stage
+    ? ` <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-800 text-cyan-200 align-middle">Etapa: ${escapeHTML(refined.project_stage)}</span>`
+    : "";
+  const head = `
+    <div class="text-indigo-300 font-bold mb-1">Así entendí lo que escribiste:</div>
+    <div class="text-white font-medium">${escapeHTML(refined.project_name || "")}${stage}</div>`;
+  // Snapshot viejo (antes de v0.3): sin brief, lista simple de features.
+  if (!refined.brief?.lines?.length) {
+    const feats = (refined.features || []).map((f) => `<li>${escapeHTML(f)}</li>`).join("");
+    return `${head}${refined.objetivo ? `<div class="text-gray-300 mt-1">${escapeHTML(refined.objetivo)}</div>` : ""}<ul class="list-disc list-inside text-gray-300 mt-1">${feats}</ul>`;
   }
-  return { notices, pending, includes };
+  const rows = linesWithItems(refined.brief)
+    .map(
+      ({ line, items }) => `
+      <div class="border-l-2 ${items.some((i) => i.auto) ? "border-amber-500" : "border-gray-600"} pl-2 mt-1">
+        <div class="text-gray-400 text-[10px]">${line.id} · ${escapeHTML(fieldLabel(line.field))}</div>
+        <div class="text-gray-200">“${escapeHTML(line.text)}”</div>
+        ${items.map((it) => itemHTML(it, line)).join("")}
+      </div>`,
+    )
+    .join("");
+  const counts = ["feature", "estilo", "restriccion", "contexto"]
+    .map((t) => `${refined.brief.items.filter((i) => i.tipo === t).length} ${TIPO_BADGE[t][0]}`)
+    .join(" · ");
+  return `${head}
+    <div class="text-gray-500 text-[10px] mt-1">${counts}</div>
+    <div class="mt-1">${rows}</div>
+    <div class="text-gray-500 text-[10px] mt-2">Si algo quedó mal, tocá ✏️ Ajustar y escribilo (ej.: "las etiquetas van como feature", "sacá los comentarios").</div>`;
 }
 
 // Un solo listener delegado en el contenedor: appendToIntentForgeChat usa
@@ -379,19 +344,8 @@ function ensureConfirmDelegation(container) {
     const el = ev.target.closest("button[data-action]");
     const card = el?.closest("[data-confirm-card]");
     if (!el || !card || card.dataset.stale === "1" || el.disabled) return;
-    const action = el.dataset.action;
-    if (action === "confirm-refined") confirmRefinedPrompt();
-    else if (action === "adjust-refined") adjustRefinedPrompt();
-    else if (action === "mention") {
-      const phrase = el.closest("[data-phrase]")?.dataset.phrase;
-      if (phrase == null) return;
-      const dec = ensureIntentForgeListState().mentionDecisions;
-      // Tocar la opción ya elegida la deselecciona.
-      dec[phrase] = dec[phrase] === el.dataset.choice ? undefined : el.dataset.choice;
-      if (!dec[phrase]) delete dec[phrase];
-      saveState();
-      renderMentionControls(card);
-    }
+    if (el.dataset.action === "confirm-refined") confirmRefinedPrompt();
+    else if (el.dataset.action === "adjust-refined") adjustRefinedPrompt();
   });
 }
 
@@ -410,138 +364,40 @@ function renderConfirmationPrompt(refined) {
   if (!container) return;
   ensureConfirmDelegation(container);
   markConfirmCardsStale(container);
-  const cardId = `confirm-${Date.now()}`;
   container.innerHTML += `
-    <div class="bg-indigo-900/30 border border-indigo-600 p-3 rounded text-xs my-2" id="${cardId}" data-confirm-card="1">
+    <div class="bg-indigo-900/30 border border-indigo-600 p-3 rounded text-xs my-2" data-confirm-card="1">
       ${buildRefinedSummaryHTML(refined)}
-      <div data-role="mentions"></div>
       <div class="flex gap-2 mt-2">
         <button type="button" class="flex-1 bg-green-600 rounded py-1 text-xs font-bold" data-action="confirm-refined">✅ Confirmar y generar</button>
         <button type="button" class="flex-1 bg-gray-700 rounded py-1 text-xs font-bold" data-action="adjust-refined">✏️ Ajustar</button>
       </div>
     </div>`;
-  const card = document.getElementById(cardId);
-  if (card) {
-    const { notices } = renderMentionControls(card);
-    if (notices.length) {
-      appendToReasoning(
-        `<div class="text-amber-400 text-xs">[MENTION_CHECK] ${notices.length} frase(s) del usuario sin reflejo en refined_prompt</div>`,
-      );
-    }
-  }
   container.scrollTop = container.scrollHeight;
   syncChatUI();
-}
-
-// Pasa las decisiones Excluir / Falso aviso a las listas persistentes.
-// Devuelve las frases marcadas Incluir.
-// Ojo: lo que se excluye son las PALABRAS faltantes, no la frase entera.
-// 'seccion "carta" para ver productos y precios' excluida entera le diría a
-// TechLeader que no planifique la Carta, que sí es feature; se excluye "precios".
-function commitMentionDecisions(notices = []) {
-  const f = ensureIntentForgeListState();
-  const incluir = [];
-  const missingOf = Object.fromEntries(notices.map((n) => [n.phrase, n.missing]));
-  for (const [phrase, d] of Object.entries(f.mentionDecisions)) {
-    // Palabras faltantes + la frase como contexto. Solo palabras perdía el
-    // sentido (Project21: "enviarle" sola no le dice nada a TechLeader); solo
-    // la frase podía arrastrar features válidas (Project20: "carta ... precios").
-    const words = (missingOf[phrase] || []).join(", ");
-    const excl = words ? `${words} (lo que dijiste: "${phrase}")` : phrase;
-    if (d === "excluir" && !f.exclusiones.includes(excl)) f.exclusiones.push(excl);
-    else if (d === "ignorar" && !f.ignoredMentions.includes(phrase)) f.ignoredMentions.push(phrase);
-    else if (d === "incluir") incluir.push(phrase);
-  }
-  f.mentionDecisions = {};
-  return incluir;
-}
-
-// FIX (bug real, no solo de interfaz): antes esto mandaba a TechLeader
-// SOLO refined_prompt.objetivo, descartando la lista de features que Intent
-// Forge armó con tanto cuidado. TechLeader terminaba planificando a partir
-// de una sola oración, mientras el Completeness Reviewer sí recibía las
-// features completas vía answer_key_requirements.json — dos fuentes de
-// verdad desalineadas. Acá se reconstruye el prompt completo, y además en
-// el mismo formato de lista numerada que ya sabe leer
-// completeness_reviewer3.mjs (extractRequirements), para que TechLeader y
-// el Reviewer trabajen sobre el mismo texto.
-function buildTechLeaderInputFromRefinedPrompt(refined, exclusiones = []) {
-  const parts = [];
-  if (refined.project_name) parts.push(`Proyecto: ${refined.project_name}`);
-  if (refined.objetivo) parts.push(refined.objetivo);
-  if (Array.isArray(refined.features) && refined.features.length) {
-    // Antes decía "El prototipo debe permitir:": fijaba la etapa en el
-    // texto y el reviewer la marcó AMBIGUOUS en Project20. La etapa ahora
-    // viaja aparte (refined.project_stage + /api/stage).
-    parts.push("", "Features:", "");
-    refined.features.forEach((f, i) => parts.push(`${i + 1}. ${f}`));
-  }
-  if (Array.isArray(refined.criterios_holdout) && refined.criterios_holdout.length) {
-    parts.push("", "Criterios de éxito:");
-    refined.criterios_holdout.forEach((c) => parts.push(`- ${c}`));
-  }
-  // Va DESPUÉS de "Criterios de éxito" a propósito: extractRequirements del
-  // reviewer toma la lista numerada de features, y esto no debe contar como
-  // requisito. El reviewer además lee answer_key_requirements.json (solo features).
-  if (exclusiones.length) {
-    parts.push(
-      "",
-      "Fuera de alcance (el usuario lo descartó explícitamente; NO planificar lo que nombran estas palabras; el resto de la frase es solo contexto):",
-    );
-    exclusiones.forEach((x) => parts.push(`- ${x}`));
-  }
-  return parts.join("\n");
 }
 
 async function confirmRefinedPrompt() {
   const refined = webmcpState.intentForge?.refined_prompt;
   if (!refined) return;
   if (!(await checkBuild())) return; // no generar con JS viejo
-  const f = ensureIntentForgeListState();
-  const notices = computeMentionNotices(refined);
-  if (notices.some((n) => !f.mentionDecisions[n.phrase])) return; // guardia: el botón ya está bloqueado
-  const incluir = commitMentionDecisions(notices);
-  for (const n of notices) {
-    if (incluir.includes(n.phrase)) f.requestedMentions[n.phrase] = n.missing;
-  }
-  saveState();
-
-  if (incluir.length) {
-    // Vuelve a Intent Forge: reescribe el refined_prompt y, en el próximo
-    // COMPLETE, el chequeo corre de nuevo sobre la versión nueva.
-    const container = document.getElementById("intentForgeChatHistory");
-    if (container) markConfirmCardsStale(container);
-    webmcpState.intentForge.status = "ASKING";
-    await sendToIntentForge(
-      "Agregá también al refined_prompt, como features atómicas:\n" +
-        incluir.map((p) => `- ${p}`).join("\n") +
-        "\nMantené todo lo demás igual y devolvé el refined_prompt completo.",
-      { auto: true },
-    );
-    return;
-  }
-
-  webmcpState.prompt = buildTechLeaderInputFromRefinedPrompt(refined, f.exclusiones);
+  webmcpState.prompt = buildTechLeaderInput(refined);
   appendToIntentForgeChat(
     "user",
-    f.exclusiones.length
-      ? `✅ Confirmado (fuera de alcance: ${f.exclusiones.map(escapeHTML).join(" · ")}).`
+    refined.restricciones?.length
+      ? `✅ Confirmado (restricciones: ${refined.restricciones.map(escapeHTML).join(" · ")}).`
       : "✅ Confirmado.",
   );
   appendToReasoning(
-    `<div class="text-green-400 text-xs">[FORGE→TECHLEADER] refined_prompt completo, ${(refined.features || []).length} features, ${f.exclusiones.length} exclusiones</div>`,
+    `<div class="text-green-400 text-xs">[FORGE→TECHLEADER] ${(refined.features || []).length} features, ${(refined.restricciones || []).length} restricciones</div>`,
   );
   saveState();
   await handleContinuePlan();
 }
 
 function adjustRefinedPrompt() {
-  // Vuelve a fase DEFAULT: el próximo mensaje sigue la conversación normal
-  // con Intent Forge, por el mismo input de siempre. syncChatUI() ya
-  // habilita el input solo con este cambio de status, no hace falta
-  // tocar el DOM acá directamente.
+  // El próximo mensaje del usuario entra como línea [ajuste]
+  // (intent_brief.numberLines) y Qwen vuelve a clasificar todo.
   if (webmcpState.intentForge) {
-    commitMentionDecisions(computeMentionNotices(webmcpState.intentForge.refined_prompt)); // Excluir / Falso aviso se conservan; Incluir se pide escribiendo
     webmcpState.intentForge.status = "ASKING";
     const container = document.getElementById("intentForgeChatHistory");
     if (container) markConfirmCardsStale(container);
@@ -552,15 +408,30 @@ function adjustRefinedPrompt() {
   document.getElementById("refinementPrompt")?.focus();
 }
 
+// Mensaje de bienvenida (no se guarda en el historial): explica la plantilla
+// con un ejemplo de otro dominio.
+function showTemplateIntro() {
+  const container = document.getElementById("intentForgeChatHistory");
+  if (!container || container.childElementCount) return;
+  container.innerHTML = `
+    <div class="text-gray-300"><b>Intent Forge:</b> Completá la plantilla de abajo, una idea por línea. No hace falta que esté perfecta: si falta algo, te pregunto.
+      <div class="mt-1 text-gray-400">Ejemplo:</div>
+      <pre class="whitespace-pre-wrap text-gray-400 bg-black/20 rounded p-2 mt-1 text-[11px]">${escapeHTML(TEMPLATE_EXAMPLE)}</pre>
+    </div>`;
+}
+
 function updateRefinedPromptPin(refined) {
   const el = document.getElementById("refinedPromptPin");
   if (!el || !refined) return;
-  const feats = (refined.features || []).map((f) => `<li>${f}</li>`).join("");
+  const li = (xs) => (xs || []).map((f) => `<li>${escapeHTML(f)}</li>`).join("");
+  const feats = li(refined.features);
+  const restr = li(refined.restricciones);
   el.innerHTML = `
     <div class="text-cyan-400 font-bold mb-1">📌 Refined prompt</div>
-    <div class="text-white">${refined.project_name || ""}</div>
-    ${refined.objetivo ? `<div class="text-gray-400 mt-1">${refined.objetivo}</div>` : ""}
+    <div class="text-white">${escapeHTML(refined.project_name || "")}</div>
+    ${refined.objetivo ? `<div class="text-gray-400 mt-1">${escapeHTML(refined.objetivo)}</div>` : ""}
     ${feats ? `<ul class="list-disc list-inside text-gray-400 mt-1">${feats}</ul>` : ""}
+    ${restr ? `<div class="text-red-300 mt-1">Restricciones:</div><ul class="list-disc list-inside text-gray-400">${restr}</ul>` : ""}
   `;
   el.classList.remove("hidden");
 }
@@ -866,10 +737,6 @@ let webmcpState = {
     history: [],
     refined_prompt: null,
     iteration: 0,
-    exclusiones: [],
-    ignoredMentions: [],
-    mentionDecisions: {},
-    requestedMentions: {},
   },
   awaitingDecision: null,
   validation: null,
@@ -1017,10 +884,6 @@ function clearState() {
       history: [],
       refined_prompt: null,
       iteration: 0,
-      exclusiones: [],
-      ignoredMentions: [],
-      mentionDecisions: {},
-      requestedMentions: {},
     },
     awaitingDecision: null,
     validation: null,
@@ -1034,6 +897,9 @@ function clearState() {
   document.getElementById("intentForgeChatHistory").innerHTML = "";
   document.getElementById("llmReasoningOutput").innerHTML = "";
   document.getElementById("refinedPromptPin")?.classList.add("hidden");
+  const inp = document.getElementById("refinementPrompt");
+  if (inp) inp.value = "";
+  showTemplateIntro();
   OrchestrationLock.unlock();
   updateUIFromState();
   toggleResumeButtons();
@@ -1060,9 +926,12 @@ function updateUIFromState() {
   ) {
     hist.innerHTML = "";
     webmcpState.intentForge.history.forEach((m) => {
+      // El marcador COMPLETE no se muestra: la tarjeta se reconstruye abajo.
+      if (m.role !== "user" && isCompleteMessage(m.content)) return;
       appendToIntentForgeChat(
         m.role === "user" ? "user" : "assistant",
         m.content,
+        { plain: true },
       );
     });
     updateIntentForgeStatus(webmcpState.intentForge.status || "IDLE");
@@ -1699,6 +1568,7 @@ function initializeApp() {
   appendToReasoning(`<div class="text-gray-500 text-[10px]">[BUILD] script.js ${BUILD_ID}</div>`);
   checkBuild();
   renderTaskList(); // siempre renderiza
+  showTemplateIntro();
   syncChatUI();
 
   document
@@ -1712,7 +1582,8 @@ function initializeApp() {
   const sendCurrentInput = () => {
     const input = document.getElementById("refinementPrompt");
     const v = input?.value?.trim();
-    if (v) sendToIntentForge(v);
+    if (!v || v === TEMPLATE_TEXT.trim()) return; // plantilla sin completar
+    sendToIntentForge(v);
   };
   document
     .getElementById("chatActionBtn")
@@ -1720,10 +1591,12 @@ function initializeApp() {
   document
     .getElementById("refinementPrompt")
     ?.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        sendCurrentInput();
-      }
+      // Con la plantilla (IDLE) Enter es salto de línea y se manda con
+      // Ctrl+Enter; en el resto de las fases Enter manda, como siempre.
+      if (e.key !== "Enter" || e.shiftKey) return;
+      if (getChatPhase() === "IDLE" && !(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      sendCurrentInput();
     });
 }
 

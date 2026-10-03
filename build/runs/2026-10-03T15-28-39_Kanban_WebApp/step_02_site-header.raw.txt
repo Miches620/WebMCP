@@ -1,0 +1,97 @@
+### FILE: componente.html
+```html
+<header id="site-header">
+  <div class="brand">Kanban WebApp</div>
+  <nav>
+    <ul class="nav-list">
+      <li><a href="#inicio">Inicio</a></li>
+      <li><a href="#kanban-board">Tablero Kanban</a></li>
+      <li><a href="#tarjetas-crear">Crear Tarjeta</a></li>
+      <li><a href="#comentarios">Actividad</a></li>
+    </ul>
+  </nav>
+</header>
+```
+
+### FILE: componente.css
+```css
+#site-header {
+    background-color: var(--color-surface-card);
+    padding: var(--spacing-md) 0;
+    box-shadow: var(--shadow-base);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+#site-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Allows wrapping on smaller screens */
+}
+
+#site-header .brand {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--color-accent-primary);
+    letter-spacing: 1px;
+}
+
+#site-header nav {
+    flex-grow: 1; /* Allows the navigation to take up available space */
+    margin: 0 auto;
+}
+
+.nav-list {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    gap: var(--spacing-lg);
+}
+
+.nav-list li a {
+    color: var(--color-text-default);
+    padding: var(--spacing-sm) 0;
+    display: block;
+    font-weight: 500;
+    transition: color var(--transition-speed), border-bottom var(--transition-speed);
+}
+
+.nav-list li a:hover {
+    color: var(--color-accent-primary);
+    border-bottom: 2px solid var(--color-accent-primary);
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+    #site-header .container {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .nav-list {
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: var(--spacing-md);
+        gap: 10px; /* Smaller gap for mobile */
+    }
+
+    .nav-list li a {
+        padding: 8px 12px;
+        border-bottom: none !important; /* Remove desktop underline effect on mobile */
+    }
+}
+```
+
+### FILE: componente.js
+```javascript
+// No JavaScript necesario para este componente estático de cabecera y navegación.
+```
+
+### APPEND: api.js
+```javascript
+// No se requiere ninguna función API adicional para el encabezado.
+```

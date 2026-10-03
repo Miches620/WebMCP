@@ -1,0 +1,146 @@
+### FILE: site-footer.html
+```html
+<footer id="site-footer">
+  <div class="container footer-content">
+    <div class="footer-section copyright-info">
+      <p>&copy; 2024 Kanban WebApp | Desarrollado por MicheLab.</p>
+    </div>
+    <div class="footer-section links-group">
+      <h4>Navegación</h4>
+      <ul>
+        <li><a href="#inicio">Inicio</a></li>
+        <li><a href="#columnas">Columnas</a></li>
+        <li><a href="#tarjetas">Tarjetas</a></li>
+        <li><a href="#">Documentación</a></li>
+      </ul>
+    </div>
+    <div class="footer-section links-group">
+      <h4>Recursos</h4>
+      <ul>
+        <li><a href="#">Acerca de</a></li>
+        <li><a href="#">Contacto</a></li>
+        <li><a href="#">Privacidad</a></li>
+        <li><a href="#">Términos de Uso</a></li>
+      </ul>
+    </div>
+    <div class="footer-section social-media">
+      <h4>Síguenos</h4>
+      <div class="social-icons">
+        <!-- Usando emojis como placeholders para redes sociales -->
+        <a href="#" aria-label="GitHub"><span role="img" aria-label="github">🐙</span></a>
+        <a href="#" aria-label="Twitter/X"><span role="img" aria-label="twitter">🐦</span></a>
+        <a href="#" aria-label="LinkedIn"><span role="img" aria-label="linkedin">🔗</span></a>
+      </div>
+    </div>
+  </div>
+</footer>
+```
+
+### FILE: site-footer.css
+```css
+#site-footer {
+    background-color: var(--color-bg-primary); /* Usando el fondo principal */
+    padding: calc(var(--spacing-lg) * 2) 0;
+    border-top: 1px solid var(--color-border);
+}
+
+.footer-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start; /* Alinea los elementos al inicio */
+    gap: var(--spacing-lg);
+}
+
+.footer-section {
+    min-width: 150px; /* Asegura un ancho mínimo para las columnas */
+    flex: 1 1 calc(25% - var(--spacing-md)); /* Permite que crezcan y se encojan, ocupando aproximadamente 4 columnas */
+}
+
+/* Ajuste específico para el copyright para que no sea tan grande */
+.copyright-info {
+    flex: 1 1 100%; /* Ocupa todo el ancho en la primera fila */
+    text-align: right;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Estilos de títulos y listas */
+.footer-section h4, .links-group h4 {
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-section li {
+    margin-bottom: var(--spacing-xs);
+}
+
+.footer-section a {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    transition: color var(--transition-speed);
+}
+
+.footer-section a:hover {
+    color: var(--color-accent-primary); /* Usamos el acento principal al pasar el mouse */
+    opacity: 1;
+}
+
+/* Estilos de redes sociales */
+.social-icons a {
+    display: inline-block;
+    margin-right: var(--spacing-sm);
+    font-size: 1.5rem; /* Tamaño visible para los emojis/iconos */
+    color: var(--color-text-secondary);
+}
+
+.social-icons a:hover {
+    transform: scale(1.1);
+    opacity: 0.8;
+}
+
+
+/* Media Query para dispositivos móviles (390px) */
+@media (max-width: 600px) {
+    .footer-content {
+        flex-direction: column; /* Apila los elementos verticalmente */
+        align-items: center;
+        text-align: center;
+    }
+
+    .footer-section {
+        min-width: 100%; /* Ocupa todo el ancho en móvil */
+        margin-bottom: var(--spacing-md);
+        padding: var(--spacing-sm) 0;
+        border-bottom: 1px dashed var(--color-border);
+    }
+
+    .footer-section:last-child {
+        border-bottom: none; /* Quitar borde al último elemento */
+    }
+
+    /* Ajustar el copyright para que esté centrado en móvil si se apila */
+    .copyright-info {
+        text-align: center !important;
+        margin-top: var(--spacing-md);
+        border-bottom: none;
+    }
+}
+```
+
+### FILE: site-footer.js
+```javascript
+// No requiere lógica de JavaScript, es un componente estático.
+```
+
+### APPEND: api.js
+```javascript
+// No se requieren nuevas llamadas a la API para este componente.
+```

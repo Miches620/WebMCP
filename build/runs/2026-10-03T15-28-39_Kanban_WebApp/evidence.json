@@ -1,0 +1,256 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Kanban WebApp",
+  "source": "project23_snapshot.json",
+  "catalog": "check_catalog v0.5.2",
+  "artifact_loads_without_js_errors": true,
+  "sections_visible": {
+    "result": "PASS",
+    "features": {
+      "R1": "PASS",
+      "R2": "PASS",
+      "R3": "PASS",
+      "R4": "PASS",
+      "R5": "PASS",
+      "R6": "PASS",
+      "R8": "PASS",
+      "R9": "PASS"
+    },
+    "anchors": [
+      {
+        "id": "inicio",
+        "features": [
+          "R1",
+          "R2",
+          "R3",
+          "R4",
+          "R5",
+          "R6",
+          "R8",
+          "R9"
+        ],
+        "seen": 81,
+        "total": 100,
+        "ok": true
+      }
+    ],
+    "detail": "#inicio: 81/100 palabras visibles"
+  },
+  "summary": {
+    "requisitos": 9,
+    "PASS": 6,
+    "FAIL": 1,
+    "SIN_EVIDENCIA": 0,
+    "SIN_CHEQUEO": 2
+  },
+  "control": "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "Crear tarjetas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "crear",
+              "nueva"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"Crear Tarjeta\"",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Mover tarjetas entre columnas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "click_reveals",
+          "params": {
+            "click": [
+              "columna",
+              "tarjeta"
+            ],
+            "expect": [
+              "columna"
+            ]
+          },
+          "result": "PASS",
+          "detail": "clic \"Crear Tarjeta\" → visible \"columna\"",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "Agregar comentarios a las tarjetas",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El requisito no se puede verificar con el catálogo proporcionado ya que no incluye tipos de chequeos específicos para la funcionalidad de agregar comentarios a las tarjetas.",
+      "checks": []
+    },
+    {
+      "id": "R4",
+      "text": "Etiquetar tarjetas",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "field_exists",
+          "params": {
+            "field": [
+              "tarjeta",
+              "tarea"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "no hay campo: tarjeta / tarea",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "Editar tarjetas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "editar",
+              "edit"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"✏️ EDITAR\"",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "Borrar tarjetas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "borrar",
+              "eliminar"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"🗑️ BORRAR\"",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "text": "Diseño con paleta de colores oscura y estilo industrial",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "Este requisito se refiere a la apariencia estética de la página, específicamente al diseño visual y la paleta de colores. No hay interacciones o elementos que puedan ser verificados con los chequeos del catálogo proporcionados.",
+      "checks": []
+    },
+    {
+      "id": "R8",
+      "text": "Sombras en tarjetas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "hover_changes",
+          "params": {
+            "elementos": [
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "tarjeta: cambia al pasar el mouse",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "text": "Efectos de iluminación al pasar el mouse sobre las tarjetas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "hover_changes",
+          "params": {
+            "elementos": [
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "tarjeta: cambia al pasar el mouse",
+          "baseline": "FAIL"
+        }
+      ]
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "spa_specialist v0.7.2-componentes",
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "tokens",
+        "ms": 426308,
+        "finish_reason": "stop",
+        "changed": [
+          "tokens.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 2,
+        "task_id": "site-header",
+        "role": "header",
+        "ms": 318676,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 3,
+        "task_id": "inicio",
+        "role": "section",
+        "ms": 1820943,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 4,
+        "task_id": "site-footer",
+        "role": "footer",
+        "ms": 317752,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      }
+    ]
+  }
+}

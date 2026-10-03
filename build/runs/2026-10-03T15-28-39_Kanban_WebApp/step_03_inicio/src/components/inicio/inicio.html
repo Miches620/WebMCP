@@ -1,0 +1,119 @@
+<section data-feature="R1 R2 R3 R4 R5 R6 R8 R9" id="inicio" class="kanban-board">
+    <h1>Tablero de Proyectos Kanban</h1>
+    <div class="controls">
+        <button id="btn-add-card" class="btn">+ Crear Nueva Tarjeta</button>
+        <button id="btn-add-column" class="btn btn-secondary">+ Añadir Columna</button>
+    </div>
+
+    <div class="kanban-columns-container">
+        <!-- Columna 1: Pendiente -->
+        <div class="kanban-column" data-status="pendiente" id="col-pendiente">
+            <h2 class="column-header">📋 Pendiente</h2>
+            <div class="card-list" data-status="pendiente">
+                <!-- Tarjeta de ejemplo 1 -->
+                <div class="kanban-card" draggable="true" data-id="c001" data-status="pendiente">
+                    <div class="card-content">
+                        <h3>Diseñar arquitectura API</h3>
+                        <p>Definir endpoints y modelos de datos para el backend.</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="label label-urgente">Urgente</span>
+                        <button class="btn btn-small btn-secondary edit-btn" data-id="c001">✏️ Editar</button>
+                        <button class="btn btn-small btn-danger delete-btn" data-id="c001">🗑️ Borrar</button>
+                    </div>
+                </div>
+                <!-- Tarjeta de ejemplo 2 -->
+                <div class="kanban-card" draggable="true" data-id="c002" data-status="pendiente">
+                    <div class="card-content">
+                        <h3>Revisar UX/UI del Dashboard</h3>
+                        <p>Asegurar la coherencia visual en todos los componentes.</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="label label-bajo">Bajo</span>
+                        <button class="btn btn-small btn-secondary edit-btn" data-id="c002">✏️ Editar</button>
+                        <button class="btn btn-small btn-danger delete-btn" data-id="c002">🗑️ Borrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna 2: En Progreso -->
+        <div class="kanban-column" data-status="en_progreso" id="col-en-progreso">
+            <h2 class="column-header">⚙️ En Progreso</h2>
+            <div class="card-list" data-status="en_progreso">
+                <!-- Tarjeta de ejemplo 3 -->
+                <div class="kanban-card" draggable="true" data-id="c003" data-status="en_progreso">
+                    <div class="card-content">
+                        <h3>Implementar lógica de drag & drop</h3>
+                        <p>Conectar la funcionalidad de movimiento entre columnas.</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="label label-medio">Medio</span>
+                        <button class="btn btn-small btn-secondary edit-btn" data-id="c003">✏️ Editar</button>
+                        <button class="btn btn-small btn-danger delete-btn" data-id="c003">🗑️ Borrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna 3: Completado -->
+        <div class="kanban-column" data-status="completado" id="col-completado">
+            <h2 class="column-header">✅ Completado</h2>
+            <div class="card-list" data-status="completado">
+                <!-- Tarjeta de ejemplo 4 -->
+                <div class="kanban-card" draggable="true" data-id="c004" data-status="completado">
+                    <div class="card-content">
+                        <h3>Diseño inicial del layout</h3>
+                        <p>Definición de la estructura base y paleta de colores.</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="label label-bajo">Bajo</span>
+                        <button class="btn btn-small btn-secondary edit-btn" data-id="c004">✏️ Editar</button>
+                        <button class="btn btn-small btn-danger delete-btn" data-id="c004">🗑️ Borrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal/Panel de Detalles y Comentarios (R3, R5) -->
+    <div id="card-detail-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="modal-title">Detalles de la Tarjeta <span id="modal-card-id"></span></h3>
+            <p><strong>Descripción:</strong> <span id="modal-description"></span></p>
+
+            <!-- Sección de Edición (R5) -->
+            <div class="detail-section edit-section">
+                <h4>Editar Contenido</h4>
+                <textarea id="edit-content" placeholder="Modifica la descripción o el contenido principal..." rows="3"></textarea>
+                <button id="save-card-btn" class="btn btn-success">Guardar Cambios</button>
+            </div>
+
+            <!-- Sección de Etiquetas (R4) -->
+            <div class="detail-section labels-section">
+                <h4>Etiquetas</h4>
+                <div id="current-labels" class="label-container">
+                    <!-- Labels se insertarán aquí -->
+                </div>
+                <input type="text" id="new-label-input" placeholder="Añadir etiqueta (ej: Backend)">
+                <button id="add-label-btn" class="btn btn-secondary">Agregar Etiqueta</button>
+            </div>
+
+            <!-- Sección de Comentarios (R3) -->
+            <div class="detail-section comments-section">
+                <h4>Comentarios</h4>
+                <div id="comments-list" class="comment-list">
+                    <!-- Comentarios se insertarán aquí -->
+                </div>
+                <form id="comment-form" class="comment-form">
+                    <label for="comment-text">Tu comentario:</label>
+                    <textarea id="comment-text" required placeholder="Escribe tu aporte..."></textarea>
+                    <button type="submit" class="btn btn-primary">Enviar Comentario</button>
+                </form>
+            </div>
+
+            <!-- Botón de cierre -->
+            <button id="close-modal-btn" class="btn btn-secondary" style="margin-top: 20px;">Cerrar Detalles</button>
+        </div>
+    </div>
+</section>

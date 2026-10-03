@@ -46,128 +46,71 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  // === API INTENT FORGE ===
+  // === API INTENT FORGE v0.3 (plantilla + clasificación acotada) ===
+  // La lógica vive en intent_brief.mjs (testeable sin LLM): numera las líneas
+  // que escribió el usuario, le pide a Qwen un ítem tipado por cada una y
+  // reintenta si alguna línea queda sin destino. Acá solo va la llamada a
+  // LM Studio y la escritura de archivos/evidencia.
+  // intent_forge_v02.ps1 quedó desactualizado (v0.2): no lo usa el pipeline.
   if (req.method === "POST" && req.url === "/api/intent-forge") {
     try {
-      const { prompt, conversation, iteration } = await getBody(req);
+      const { conversation, iteration } = await getBody(req);
+      const { runIntentForge, BRIEF_VERSION } = await import("./intent_brief.mjs");
+      const calls = [];
+      const callModel = async (messages) => {
+        const lmRes = await fetch("http://127.0.0.1:1234/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "qwen2.5-7b-instruct", messages, temperature: 0.2 }),
+        });
+        if (!lmRes.ok)
+          throw new Error(`LM Studio ${lmRes.status}: ${(await lmRes.text()).slice(0, 800)}`);
+        const content = (await lmRes.json()).choices?.[0]?.message?.content || "";
+        calls.push({ messages, content });
+        return content;
+      };
+      const r = await runIntentForge(conversation || [], { callModel });
       console.log(
-        `[INTENT_FORGE] iter ${iteration} -> ${prompt?.substring(0, 100)}`,
+        `[INTENT_FORGE] iter ${iteration} ${r.status} líneas=${r.lines.length} llamadas=${calls.length}` +
+          (r.status === "COMPLETE" ? ` ítems=${r.refined.brief.items.length} auto=${r.auto_added.length}` : ""),
       );
 
-      // Este es el ÚNICO system prompt de Intent Forge que corre en vivo.
-      // intent_forge_v02.ps1 (en la raíz de webmcp) tiene una versión
-      // parecida pero DISTINTA, pensada para correr sola desde una terminal
-      // como herramienta manual de debug — el pipeline real (esta ruta)
-      // nunca la invoca. Si se edita una regla acá, no asumir que también
-      // cambió del lado del .ps1, y viceversa: son dos archivos separados.
-      const SYSTEM = `
-Sos Intent Forge v0.2 del Equipo MicheLab.
+      // Evidencia de cada turno (líneas, salidas crudas, reintentos).
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      const evDir = join(STATIC_DIR, "evidence", "intent_forge");
+      await mkdir(evDir, { recursive: true });
+      await writeFile(
+        join(evDir, `${stamp}_iter${iteration}.json`),
+        JSON.stringify({ version: BRIEF_VERSION, iteration, status: r.status, lines: r.lines, attempts: r.attempts || [], auto_added: r.auto_added || [], refined_prompt: r.refined || null, calls }, null, 2),
+      );
 
-Tu laburo NO es inventar un número fijo de features. Tu laburo es:
-1. Entender qué quiere construir el usuario.
-2. Hacer preguntas atómicas para no asumir.
-3. Generar el refined_prompt: una lista de requisitos ATÓMICOS y verificables, sin agrupar ni omitir.
-
-REGLAS DURAS:
-1. UNA (1) pregunta por vez. Nunca hagas lista de preguntas.
-2. No hardcodees número de features. Si el proyecto pide 3, son 3; si pide 15, son 15.
-3. Una feature atómica = 1 capacidad verificable. No agrupes "CRUD completo" en una sola; separala si el proyecto la pide, aunque sea implícito.
-4. No muestres el refined_prompt crudo en el chat mientras preguntás. Si no estás COMPLETE, hacé una sola pregunta corta.
-5. NUNCA respondas COMPLETE en tu primera respuesta. El primer mensaje del usuario es una intención inicial, no un refined_prompt: siempre hacé al menos una pregunta antes. Si el usuario menciona una cantidad de features sin nombrarlas ("9 features claras", "unas 5 funciones"), no las inventes: preguntale cuáles son.
-6. Cuando ya tenés suficiente, respondé EXCLUSIVAMENTE con:
-\`\`\`json
-{
-  "status": "COMPLETE",
-  "refined_prompt": {
-    "project_name": "...",
-    "objetivo": "...",
-    "features": ["feature atómica 1", "feature atómica 2", ...],
-    "criterios_holdout": ["cómo se verifica cada una"]
-  }
-}
-\`\`\`
-Estilo: corto, directo, TechLead. Máximo 10 iteraciones.
-`;
-      // FIX (bug real, encontrado en logs de LM Studio: el mismo mensaje
-      // llegaba dos veces seguidas como "user", sin ningún "assistant" en
-      // el medio). script.js ya empuja el mensaje del turno actual a
-      // intentForge.history ANTES de armar el fetch, así que `conversation`
-      // llega acá con ese turno ya adentro. Agregar además `prompt` como
-      // último mensaje lo duplicaba. `prompt` se sigue usando para el log
-      // de debug de la línea de arriba; para armar `messages` alcanza con
-      // `conversation`, salvo el caso raro de que venga vacío.
-      const conv = conversation || [];
-      const messages = [
-        { role: "system", content: SYSTEM },
-        ...(conv.length > 0
-          ? conv.map((m) => ({
-              role: m.role === "user" ? "user" : "assistant",
-              content: m.content,
-            }))
-          : [{ role: "user", content: prompt }]),
-      ];
-
-      const lmRes = await fetch("http://127.0.0.1:1234/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "qwen2.5-7b-instruct",
-          messages,
-          temperature: 0.3,
-        }),
-      });
-
-      if (!lmRes.ok)
-        throw new Error(
-          `LM Studio ${lmRes.status}: ${(await lmRes.text()).slice(0, 800)}`,
-        );
-      const lmData = await lmRes.json();
-      const content = lmData.choices?.[0]?.message?.content || "";
-
-      let isComplete = content.includes("COMPLETE");
       let refined_prompt = null;
-      const match = content.match(/```json([\s\S]*?)```/);
-      if (match) {
-        try {
-          const parsed = JSON.parse(match[1]);
-          if (parsed.refined_prompt) {
-            refined_prompt = parsed.refined_prompt;
-            // La etapa la declara Miche (ProjectStage.md), nunca el modelo:
-            // si Intent Forge devolviera project_stage, se pisa.
-            refined_prompt.project_stage = currentStage().stage;
-            isComplete = true;
-            await writeFile(
-              join(STATIC_DIR, "refined_prompt.json"),
-              JSON.stringify(parsed, null, 2),
-            );
-            await writeFile(
-              join(STATIC_DIR, "answer_key_requirements.json"),
-              JSON.stringify(
-                refined_prompt.features.map((f, i) => ({
-                  id: `R${i + 1}`,
-                  text: f,
-                })),
-                null,
-                2,
-              ),
-            );
-            console.log(
-              `[INTENT_FORGE] COMPLETE con ${refined_prompt.features.length} features`,
-            );
-          }
-        } catch (e) {
-          console.log("No es JSON final:", e.message);
-        }
+      if (r.status === "COMPLETE") {
+        refined_prompt = r.refined;
+        // La etapa la declara Miche (ProjectStage.md), nunca el modelo.
+        refined_prompt.project_stage = currentStage().stage;
+        await writeFile(
+          join(STATIC_DIR, "refined_prompt.json"),
+          JSON.stringify({ status: "COMPLETE", refined_prompt }, null, 2),
+        );
+        await writeFile(
+          join(STATIC_DIR, "answer_key_requirements.json"),
+          JSON.stringify(refined_prompt.features.map((f, i) => ({ id: `R${i + 1}`, text: f })), null, 2),
+        );
       }
 
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(
         JSON.stringify({
           iteration,
-          assistantMessage: content,
-          isComplete,
+          // COMPLETE: marcador fijo con "status":"COMPLETE" (numberLines lo usa
+          // para marcar el próximo mensaje del usuario como [ajuste]).
+          assistantMessage: r.status === "COMPLETE" ? JSON.stringify({ status: "COMPLETE", project_name: r.refined.project_name }) : r.question,
+          askedBy: r.by || null,
+          isComplete: r.status === "COMPLETE",
           refined_prompt,
-          rawOutput: content,
+          auto_added: r.auto_added || [],
+          rawOutput: calls.at(-1)?.content || "",
         }),
       );
     } catch (e) {

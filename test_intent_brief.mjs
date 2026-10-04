@@ -4,7 +4,7 @@ import {
   parseBrief, numberLines, validateItems, fillUncovered, buildRefined,
   buildTechLeaderInput, parseModelOutput, runIntentForge, formatLinesForModel,
   TEMPLATE_TEXT, TEMPLATE_EXAMPLE, HARNESS_QUESTIONS, QUESTION_SYSTEM, QUESTION_HINT,
-  isControlReply, splitSentences, actionVerbs, parseInterviewer, sameTopicAsked, questionFromGap, grounded, repairFeedback,
+  isControlReply, splitSentences, actionVerbs, parseInterviewer, sameTopicAsked, questionFromGap, grounded, repairFeedback, touchesRestriction, isGenericGap, detailDuplicates,
 } from "./intent_brief.mjs";
 
 let ok = 0, fail = 0;
@@ -421,6 +421,48 @@ await check("faltantes no preguntados viajan en el historial y se le recuerdan a
   assert(prompt.includes("TODAVÍA NO PREGUNTASTE") && prompt.includes("cuántas columnas hay y qué estados representan"), prompt);
   assert(!prompt.split("TODAVÍA NO PREGUNTASTE")[1].includes("cómo se manejará la prioridad"), "recordó un tema ya preguntado");
   eq([r.by, r.question], ["harness_faltante", `¿Cuántas columnas hay y qué estados representan? ${QUESTION_HINT}`]);
+});
+
+// ---- v0.6 del módulo (cuarta corrida Project24, preguntas y textos reales) ----
+const P24ans = (answers) => {
+  const conv = [{ role: "user", content: P24 }];
+  for (const [q, a] of answers) conv.push({ role: "assistant", content: q }, { role: "user", content: a });
+  return numberLines(conv).lines;
+};
+await check("no se pregunta sobre lo que el usuario ya decidió en 'qué no debe hacer'", () => {
+  const lines = P24ans([]);
+  assert(touchesRestriction("¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?", lines));
+  assert(!touchesRestriction("¿Las columnas tendrán un nombre específico y cuántas serán?", lines));
+  assert(!touchesRestriction("¿Cómo se cargan y editan los datos de las tarjetas?", lines));
+});
+await check("pregunta repetida aunque las respuestas repitan la palabra (prioridad)", () => {
+  const q1 = "¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?";
+  const lines = P24ans([[q1, "mediante etiquetas -> baja:verde, media:amarilla, alta:roja"], ["¿Existirán comentarios en las tarjetas?", "Cada tarjeta tendra un titulo, una descripcion y una etiqueta de prioridad"]]);
+  assert(sameTopicAsked("¿Cómo se manejará la prioridad de las tareas?", [q1, "¿Existirán comentarios en las tarjetas?"], lines));
+});
+await check("faltantes genéricos (el checklist copiado) se descartan", () => {
+  assert(isGenericGap("nombres o cantidades que faltan") && isGenericGap("cómo se usa una feature pedida"));
+  assert(!isGenericGap("cuántas columnas hay y qué estados representan"));
+  eq(parseInterviewer('{"faltantes":["nombres o cantidades que faltan","nombres para las columnas"],"pregunta":"¿Qué nombres tienen las columnas?"}').faltantes, ["nombres para las columnas"]);
+});
+await check("pregunta contra una restricción → el harness pasa a otro faltante", async () => {
+  const model = fakeModel([complete([])], ['{"faltantes":["cómo se manejará la persistencia sin base de datos","si existirán subtareas en las tarjetas"],"pregunta":"¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?"}']);
+  const r = await runIntentForge([{ role: "user", content: P24 }], { callModel: model });
+  eq([r.by, r.question, r.attempts[0].kind], ["harness_faltante", `¿Existirán subtareas en las tarjetas? ${QUESTION_HINT}`, "faltante_siguiente"]);
+});
+await check("feature-respuesta que repite otra → vuelve como detalle (textos reales)", () => {
+  const lines = P24ans([["¿Cómo se cargan y editan los datos de las tarjetas?", "mediante un formulario de crear/editar tarjetas"], ["¿Cómo se manejará la interacción al borrar una tarjeta?", "mediante un boton de borrado inline en la tarjeta"]]);
+  const items = [
+    { de: ["L2"], tipo: "feature", texto: "Crear tarjetas de tareas" },
+    { de: ["L2"], tipo: "feature", texto: "Editar tarjetas de tareas" },
+    { de: ["L2"], tipo: "feature", texto: "Borrar tarjetas de tareas" },
+    { de: ["L9"], tipo: "feature", texto: "Editar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)" },
+    { de: ["L10"], tipo: "feature", texto: "Manejo de interacción al borrar una tarjeta mediante un botón inline en la tarjeta" },
+  ];
+  const d = detailDuplicates(items, lines).map((x) => `${x.item.de[0]}→${x.of.texto}`);
+  eq(d, ["L9→Editar tarjetas de tareas", "L10→Borrar tarjetas de tareas"]);
+  eq(detailDuplicates(items.slice(0, 3), lines), [], "crear/editar/borrar de la plantilla no son duplicados entre sí");
+  assert(repairFeedback({ details: detailDuplicates(items, lines) }, lines).includes('sumá L9 a su "de"'));
 });
 
 console.log(`\n${ok}/${ok + fail} tests OK`);

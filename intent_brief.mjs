@@ -17,7 +17,18 @@
 //
 // Módulo puro (sin fs ni fetch): lo usan server.mjs y script.js (navegador).
 
-export const BRIEF_VERSION = "intent_brief v0.5";
+export const BRIEF_VERSION = "intent_brief v0.6";
+
+// v0.6 (04/10, cuarta corrida de Project24): el entrevistador preguntó cómo
+// persistir datos cuando el usuario ya había dicho "sin base de datos" (y la
+// respuesta "localStorage" contradijo "se pierde al recargar"); repitió la
+// prioridad porque las respuestas volvían "común" la palabra; convirtió un
+// ítem del checklist ("nombres o cantidades que faltan") en pregunta; y las
+// respuestas que detallaban crear/editar/borrar quedaron como features
+// duplicadas. Cambios: no se pregunta sobre lo que tocan las líneas de "qué no
+// debe hacer"; las palabras comunes salen solo de la plantilla; se descartan
+// faltantes genéricos; una feature-respuesta que repite otra vuelve al modelo
+// como detalle de esa.
 
 // v0.5 (04/10, tercera corrida de Project24): el modelo no supo dónde poner
 // L10 ("lista desplegable") y, tras 2 reintentos, la "cubrió" con un ítem
@@ -331,11 +342,29 @@ function topicWords(t, common) {
     (norm(t).match(/[a-z0-9]{4,}/g) || []).filter((w) => !Q_STOP.has(w)).map((w) => w.slice(0, 5)).filter((w) => !common.has(w)),
   );
 }
+// Palabras que aparecen en 2+ líneas de la PLANTILLA (no en las respuestas:
+// Project24 volvió "común" a "prioridad" por las respuestas y dejó pasar una
+// pregunta repetida).
+function commonWords(lines) {
+  const freq = new Map();
+  for (const l of lines) {
+    if (l.field === "respuesta" || l.field === "ajuste") continue;
+    for (const w of new Set((norm(l.text).match(/[a-z0-9]{4,}/g) || []).map((x) => x.slice(0, 5)))) freq.set(w, (freq.get(w) || 0) + 1);
+  }
+  return new Set([...freq].filter(([, n]) => n >= 2).map(([w]) => w));
+}
+// ¿La pregunta toca algo que el usuario ya decidió en "qué no debe hacer"?
+// Project24: "¿Cómo se manejará la persistencia si no se usa base de datos?"
+export function touchesRestriction(q, lines = []) {
+  if (!q) return false;
+  const common = commonWords(lines);
+  const a = topicWords(q, common);
+  return lines.some((l) => l.field === "no" && [...topicWords(l.text, common)].filter((w) => a.has(w)).length >= 2);
+}
 export function sameTopicAsked(q, preguntas = [], lines = []) {
   if (!q) return false;
   const freq = new Map();
-  for (const l of lines) for (const w of new Set((norm(l.text).match(/[a-z0-9]{4,}/g) || []).map((x) => x.slice(0, 5)))) freq.set(w, (freq.get(w) || 0) + 1);
-  const common = new Set([...freq].filter(([, n]) => n >= 2).map(([w]) => w));
+  const common = commonWords(lines);
   const a = topicWords(q, common);
   return preguntas.some((p) => {
     if (norm(p) === norm(q)) return true;
@@ -358,13 +387,18 @@ export const isDone = (t) => /^\W*listo\W*$/i.test(String(t || "").trim()) || /^
 
 // Lee la salida del entrevistador: JSON {faltantes, pregunta}, o (tolerancia)
 // texto plano con una pregunta o LISTO.
+// Faltantes que son el checklist copiado, no algo del proyecto
+// (Project24: "nombres o cantidades que faltan" terminó como pregunta).
+const GENERIC_GAP = /(que faltan|feature pedida|suele tener|no menciono|lineas vagas|datos tiene cada cosa|como se usa una feature|hasta 3 cosas)/;
+export const isGenericGap = (f) => GENERIC_GAP.test(norm(f));
+
 export function parseInterviewer(raw) {
   const text = String(raw || "");
   const src = jsonSlice(text);
   if (src) {
     try {
       const d = JSON.parse(src.replace(/,\s*([}\]])/g, "$1"));
-      const faltantes = (Array.isArray(d.faltantes) ? d.faltantes : []).map(String).map((x) => x.trim()).filter(Boolean);
+      const faltantes = (Array.isArray(d.faltantes) ? d.faltantes : []).map(String).map((x) => x.trim()).filter((x) => x && !isGenericGap(x));
       let pregunta = typeof d.pregunta === "string" ? d.pregunta.trim() : "";
       if (!pregunta && faltantes.length) pregunta = `¿Me contás sobre esto: ${faltantes[0]}?`;
       return { done: !pregunta, pregunta, faltantes };
@@ -488,10 +522,38 @@ export function actionVerbs(text) {
   }
   return [...verbs];
 }
+// Feature que sale solo de respuestas y repite otra feature (mismas palabras,
+// sin una acción distinta): es un detalle de esa otra (Project24: "Editar los
+// datos de las tarjetas mediante un formulario…" junto a "Editar tarjetas").
+export function detailDuplicates(items, lines) {
+  const byId = new Map(lines.map((l) => [l.id, l]));
+  const feats = items.filter((i) => i.tipo === "feature");
+  const onlyAnswers = (i) => i.de.every((id) => ["respuesta", "ajuste"].includes(byId.get(id)?.field));
+  const words = (t) => new Set((norm(t).match(/[a-z0-9]{4,}/g) || []).filter((w) => !Q_STOP.has(w)).map((w) => w.slice(0, 5)));
+  const out = [];
+  for (const a of feats) {
+    if (!onlyAnswers(a)) continue;
+    const va = actionVerbs(a.texto), wa = words(a.texto);
+    let best = null;
+    for (const b of feats) {
+      if (b === a || out.some((x) => x.item === b && x.of === a)) continue;
+      const vb = actionVerbs(b.texto);
+      if (va.length && vb.length && !va.some((v) => vb.includes(v))) continue; // acciones distintas
+      const wb = words(b.texto);
+      const shared = [...wa].filter((w) => wb.has(w)).length;
+      const min = Math.min(wa.size, wb.size);
+      const score = min ? shared / min : 0;
+      if (min >= 2 && shared >= 2 && score >= 0.6 && (!best || score > best.score || (!onlyAnswers(b) && onlyAnswers(best.of)))) best = { of: b, score };
+    }
+    if (best) out.push({ item: a, of: best.of });
+  }
+  return out;
+}
+
 export const compoundFeatures = (items) =>
   items.filter((i) => i.tipo === "feature" && actionVerbs(i.texto).length >= 2);
 
-export function repairFeedback({ uncovered = [], invalid = [], compound = [] }, lines = []) {
+export function repairFeedback({ uncovered = [], invalid = [], compound = [], details = [] }, lines = []) {
   const out = ["Revisá tu JSON:"];
   const byId = new Map(lines.map((l) => [l.id, l]));
   if (uncovered.length) {
@@ -502,6 +564,8 @@ export function repairFeedback({ uncovered = [], invalid = [], compound = [] }, 
     }
   }
   for (const x of invalid) out.push(`- Ítem inválido (${x.reason}): ${JSON.stringify(x.item)}`);
+  for (const x of details)
+    out.push(`- "${x.item.texto}" (${x.item.de.join(", ")}) repite "${x.of.texto}": escribí ese detalle dentro de "${x.of.texto}" y sumá ${x.item.de.join(", ")} a su "de"; no lo dejes como ítem aparte.`);
   for (const x of compound)
     out.push(`- La feature "${x.texto}" junta varias acciones (${actionVerbs(x.texto).join(", ")}): separala en un ítem por acción, con el mismo "de".`);
   out.push("Devolvé el JSON COMPLETE entero de nuevo.");
@@ -622,7 +686,8 @@ export async function runIntentForge(conversation, { callModel, maxQuestions = M
   const attempts = [];
   // Faltantes de turnos anteriores cuyo tema todavía no se preguntó
   // (Project24: "cuántas columnas y qué estados" se detectó y nunca se preguntó).
-  const pendientes = (numbered.faltantesPrevios || []).filter((f) => !sameTopicAsked(questionFromGap(f), preguntas, lines));
+  const blocked = (x) => sameTopicAsked(x, preguntas, lines) || touchesRestriction(x, lines);
+  const pendientes = (numbered.faltantesPrevios || []).filter((f) => !blocked(questionFromGap(f)));
   const noMoreQuestions = numbered.skip || numbered.afterComplete || preguntas.length >= maxQuestions;
 
   // 2. Entrevista de completitud.
@@ -636,11 +701,11 @@ export async function runIntentForge(conversation, { callModel, maxQuestions = M
     let q = iv.pregunta;
     let by = "model";
     let kind = iv.done ? "listo" : "pregunta";
-    if (!iv.done && sameTopicAsked(q, preguntas, lines)) {
+    if (!iv.done && blocked(q)) {
       // Mismo tema con otras palabras: el harness pasa al siguiente faltante
       // que no se haya preguntado (Project24: 4 de 5 preguntas sobre el semáforo).
-      kind = "pregunta_repetida";
-      const alt = [...iv.faltantes.slice(1), ...pendientes].map(questionFromGap).find((x) => !sameTopicAsked(x, preguntas, lines));
+      kind = touchesRestriction(q, lines) ? "pregunta_contra_restriccion" : "pregunta_repetida";
+      const alt = [...iv.faltantes.slice(1), ...pendientes].map(questionFromGap).find((x) => !blocked(x));
       if (alt) { q = alt; by = "harness_faltante"; kind = "faltante_siguiente"; }
       else q = "";
     }
@@ -671,9 +736,10 @@ export async function runIntentForge(conversation, { callModel, maxQuestions = M
     }
     const v = validateItems(parsed.data.items, lines);
     v.compound = compoundFeatures(v.items);
+    v.details = detailDuplicates(v.items, lines);
     last = { raw, data: parsed.data, ...v };
-    attempts.push({ raw, kind: "complete", uncovered: v.uncovered, invalid: v.invalid.map((x) => x.reason), compound: v.compound.map((x) => x.texto) });
-    if (!v.uncovered.length && !v.invalid.length && !v.compound.length) break;
+    attempts.push({ raw, kind: "complete", uncovered: v.uncovered, invalid: v.invalid.map((x) => x.reason), compound: v.compound.map((x) => x.texto), details: v.details.map((x) => `${x.item.texto} ⊂ ${x.of.texto}`) });
+    if (!v.uncovered.length && !v.invalid.length && !v.compound.length && !v.details.length) break;
     if (i < maxRepairs) messages.push({ role: "assistant", content: raw }, { role: "user", content: repairFeedback(v, lines) });
   }
 

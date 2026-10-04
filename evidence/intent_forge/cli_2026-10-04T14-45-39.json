@@ -1,0 +1,668 @@
+{
+  "version": "intent_brief v0.5",
+  "model": "qwen2.5-7b-instruct",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Qué querés construir:\r\nWebapp estilo Kanban/Trello\r\n\r\nQué tiene que hacer:\r\nCrear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\r\n\r\nCómo se tiene que ver:\r\nPaleta de colores de estilo industrial, opaco. Con hovers en el movimiento drag & drop. Sistema de semaforo para el orden prioritario de las tareas. Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo.\r\n\r\nQué no debe hacer:\r\nno debe persistirse en ninguna base de datos. El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp."
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se manejará la prioridad de las tareas",
+        "si existirán comentarios en las tarjetas"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "mediante etiquetas -> baja:verde, media:amarilla, alta:roja"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Existirán comentarios en las tarjetas? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se manejará la prioridad de las tareas en el sistema de semáforo",
+        "si existirán comentarios en las tarjetas"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "Cada tarjeta tendra un titulo, una descripcion (seria tu equivalente a comentario) y una etiqueta de prioridad"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cómo se manejará la prioridad de las tareas? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se manejará la prioridad de las tareas en el sistema de semáforo"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "la prioridad sera unicamente un indicativo visual para el usuario"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cómo se cargan y editan los datos de las tarjetas? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se cargan y editan los datos de las tarjetas",
+        "cuántos niveles tiene el sistema de semáforo"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "mediante un formulario de crear/editar tarjetas, ingresando desde sus respectivos botones"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cuáles campos tendrá cada tarjeta? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se cargan y editan los datos de las tarjetas"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "titulo, descripcion y prioridad"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cómo se manejará la interacción al borrar una tarjeta? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se manejará la interacción al borrar una tarjeta",
+        "si existirán subtareas en las tarjetas"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "mediante un boton de borrado inline en la tarjeta"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se manejará la persistencia de los datos sin usar una base de datos"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "utilizamos localstorage del navegador"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Existirán subtareas en las tarjetas? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "si existirán subtareas en las tarjetas"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "no"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Las columnas tendrán un nombre específico y cuántas serán? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "nombres o cantidades que faltan",
+        "cómo se usa una feature pedida"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "pediente, en proceso y completada"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Me contás sobre esto: nombres o cantidades que faltan? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "nombres para las columnas",
+        "cómo se manejará la interacción al arrastrar y soltar las tarjetas"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "nombres: pendiente, en proceso, y completada. cantidades: 3 columnas"
+    }
+  ],
+  "refined_prompt": {
+    "project_name": "Kanban/Trello Webapp",
+    "objetivo": "Webapp estilo Kanban/Trello. La prioridad será únicamente un indicativo visual para el usuario",
+    "features": [
+      "Crear tarjetas de tareas",
+      "Editar tarjetas de tareas",
+      "Borrar tarjetas de tareas",
+      "Poder arrastrar las tarjetas entre columnas que definan el estado actual de la tarea",
+      "Sistema de semáforo para el orden prioritario de las tareas mediante etiquetas (baja: verde, media: amarilla, alta: roja)",
+      "Cargar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)",
+      "Editar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)",
+      "Cada tarjeta tendrá un título, una descripción (equivalente a comentario) y una etiqueta de prioridad",
+      "Manejo de interacción al borrar una tarjeta mediante un botón inline en la tarjeta",
+      "Paleta de colores de estilo industrial, opaco",
+      "Con hovers en el movimiento drag & drop",
+      "Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título"
+    ],
+    "criterios_holdout": [
+      "Se puede crear una tarjeta de tareas",
+      "Se puede editar una tarjeta de tareas",
+      "Se puede borrar una tarjeta de tareas",
+      "Se pueden arrastrar las tarjetas entre columnas que definan el estado actual de la tarea",
+      "El sistema de semáforo para prioridad visual se manejará mediante etiquetas (baja: verde, media: amarilla, alta: roja)",
+      "Las tarjetas tendrán un título, una descripción y una etiqueta de prioridad",
+      "Se puede cargar los datos de las tarjetas mediante un formulario",
+      "Se puede editar los datos de las tarjetas mediante un formulario",
+      "Se puede borrar una tarjeta mediante un botón inline en la tarjeta",
+      "Los datos se persistirán usando localstorage del navegador",
+      "Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas"
+    ],
+    "restricciones": [
+      "Sin persistencia en ninguna base de datos",
+      "El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp",
+      "Utilización de localstorage del navegador para persistencia de datos",
+      "Sin subtareas en las tarjetas",
+      "Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas"
+    ],
+    "estilo": [
+      "Paleta de colores de estilo industrial, opaco",
+      "Con hovers en el movimiento drag & drop",
+      "Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título"
+    ],
+    "contexto": [
+      "Webapp estilo Kanban/Trello",
+      "La prioridad será únicamente un indicativo visual para el usuario"
+    ],
+    "brief": {
+      "version": "intent_brief v0.5",
+      "lines": [
+        {
+          "id": "L1",
+          "field": "construir",
+          "text": "Webapp estilo Kanban/Trello"
+        },
+        {
+          "id": "L2",
+          "field": "hacer",
+          "text": "Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea"
+        },
+        {
+          "id": "L3",
+          "field": "ver",
+          "text": "Paleta de colores de estilo industrial, opaco"
+        },
+        {
+          "id": "L4",
+          "field": "ver",
+          "text": "Con hovers en el movimiento drag & drop"
+        },
+        {
+          "id": "L5",
+          "field": "ver",
+          "text": "Sistema de semaforo para el orden prioritario de las tareas"
+        },
+        {
+          "id": "L6",
+          "field": "ver",
+          "text": "Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo"
+        },
+        {
+          "id": "L7",
+          "field": "no",
+          "text": "no debe persistirse en ninguna base de datos"
+        },
+        {
+          "id": "L8",
+          "field": "no",
+          "text": "El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp"
+        },
+        {
+          "id": "L9",
+          "field": "respuesta",
+          "text": "mediante etiquetas -> baja:verde, media:amarilla, alta:roja",
+          "pregunta": "¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?"
+        },
+        {
+          "id": "L10",
+          "field": "respuesta",
+          "text": "Cada tarjeta tendra un titulo, una descripcion (seria tu equivalente a comentario) y una etiqueta de prioridad",
+          "pregunta": "¿Existirán comentarios en las tarjetas?"
+        },
+        {
+          "id": "L11",
+          "field": "respuesta",
+          "text": "la prioridad sera unicamente un indicativo visual para el usuario",
+          "pregunta": "¿Cómo se manejará la prioridad de las tareas?"
+        },
+        {
+          "id": "L12",
+          "field": "respuesta",
+          "text": "mediante un formulario de crear/editar tarjetas, ingresando desde sus respectivos botones",
+          "pregunta": "¿Cómo se cargan y editan los datos de las tarjetas?"
+        },
+        {
+          "id": "L13",
+          "field": "respuesta",
+          "text": "titulo, descripcion y prioridad",
+          "pregunta": "¿Cuáles campos tendrá cada tarjeta?"
+        },
+        {
+          "id": "L14",
+          "field": "respuesta",
+          "text": "mediante un boton de borrado inline en la tarjeta",
+          "pregunta": "¿Cómo se manejará la interacción al borrar una tarjeta?"
+        },
+        {
+          "id": "L15",
+          "field": "respuesta",
+          "text": "utilizamos localstorage del navegador",
+          "pregunta": "¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?"
+        },
+        {
+          "id": "L16",
+          "field": "respuesta",
+          "text": "no",
+          "pregunta": "¿Existirán subtareas en las tarjetas?"
+        },
+        {
+          "id": "L17",
+          "field": "respuesta",
+          "text": "pediente, en proceso y completada",
+          "pregunta": "¿Las columnas tendrán un nombre específico y cuántas serán?"
+        },
+        {
+          "id": "L18",
+          "field": "respuesta",
+          "text": "nombres: pendiente, en proceso, y completada",
+          "pregunta": "¿Me contás sobre esto: nombres o cantidades que faltan?"
+        },
+        {
+          "id": "L19",
+          "field": "respuesta",
+          "text": "cantidades: 3 columnas",
+          "pregunta": "¿Me contás sobre esto: nombres o cantidades que faltan?"
+        }
+      ],
+      "items": [
+        {
+          "de": [
+            "L1"
+          ],
+          "tipo": "contexto",
+          "texto": "Webapp estilo Kanban/Trello"
+        },
+        {
+          "de": [
+            "L2"
+          ],
+          "tipo": "feature",
+          "texto": "Crear tarjetas de tareas"
+        },
+        {
+          "de": [
+            "L2"
+          ],
+          "tipo": "feature",
+          "texto": "Editar tarjetas de tareas"
+        },
+        {
+          "de": [
+            "L2"
+          ],
+          "tipo": "feature",
+          "texto": "Borrar tarjetas de tareas"
+        },
+        {
+          "de": [
+            "L2"
+          ],
+          "tipo": "feature",
+          "texto": "Poder arrastrar las tarjetas entre columnas que definan el estado actual de la tarea"
+        },
+        {
+          "de": [
+            "L3"
+          ],
+          "tipo": "estilo",
+          "texto": "Paleta de colores de estilo industrial, opaco"
+        },
+        {
+          "de": [
+            "L4"
+          ],
+          "tipo": "estilo",
+          "texto": "Con hovers en el movimiento drag & drop"
+        },
+        {
+          "de": [
+            "L5",
+            "L9"
+          ],
+          "tipo": "feature",
+          "texto": "Sistema de semáforo para el orden prioritario de las tareas mediante etiquetas (baja: verde, media: amarilla, alta: roja)"
+        },
+        {
+          "de": [
+            "L6"
+          ],
+          "tipo": "estilo",
+          "texto": "Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título"
+        },
+        {
+          "de": [
+            "L7"
+          ],
+          "tipo": "restriccion",
+          "texto": "Sin persistencia en ninguna base de datos"
+        },
+        {
+          "de": [
+            "L8"
+          ],
+          "tipo": "restriccion",
+          "texto": "El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp"
+        },
+        {
+          "de": [
+            "L10"
+          ],
+          "tipo": "feature",
+          "texto": "Cargar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)"
+        },
+        {
+          "de": [
+            "L11"
+          ],
+          "tipo": "contexto",
+          "texto": "La prioridad será únicamente un indicativo visual para el usuario"
+        },
+        {
+          "de": [
+            "L12"
+          ],
+          "tipo": "feature",
+          "texto": "Editar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)"
+        },
+        {
+          "de": [
+            "L13"
+          ],
+          "tipo": "feature",
+          "texto": "Cada tarjeta tendrá un título, una descripción (equivalente a comentario) y una etiqueta de prioridad"
+        },
+        {
+          "de": [
+            "L14"
+          ],
+          "tipo": "feature",
+          "texto": "Manejo de interacción al borrar una tarjeta mediante un botón inline en la tarjeta"
+        },
+        {
+          "de": [
+            "L15"
+          ],
+          "tipo": "restriccion",
+          "texto": "Utilización de localstorage del navegador para persistencia de datos"
+        },
+        {
+          "de": [
+            "L16"
+          ],
+          "tipo": "restriccion",
+          "texto": "Sin subtareas en las tarjetas"
+        },
+        {
+          "de": [
+            "L17",
+            "L18",
+            "L19"
+          ],
+          "tipo": "restriccion",
+          "texto": "Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas"
+        }
+      ],
+      "repairs": 2,
+      "preguntas": [
+        "¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?",
+        "¿Existirán comentarios en las tarjetas?",
+        "¿Cómo se manejará la prioridad de las tareas?",
+        "¿Cómo se cargan y editan los datos de las tarjetas?",
+        "¿Cuáles campos tendrá cada tarjeta?",
+        "¿Cómo se manejará la interacción al borrar una tarjeta?",
+        "¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?",
+        "¿Existirán subtareas en las tarjetas?",
+        "¿Las columnas tendrán un nombre específico y cuántas serán?",
+        "¿Me contás sobre esto: nombres o cantidades que faltan?"
+      ]
+    }
+  },
+  "auto_added": [],
+  "calls": [
+    {
+      "ms": 1935,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\n- [cómo se tiene que ver] Con hovers en el movimiento drag & drop\n- [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\n- [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\n- [qué no debe hacer] no debe persistirse en ninguna base de datos\n- [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se manejará la prioridad de las tareas\",\"si existirán comentarios en las tarjetas\"],\"pregunta\":\"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"}\n```"
+    },
+    {
+      "ms": 6912,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\n- [cómo se tiene que ver] Con hovers en el movimiento drag & drop\n- [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\n- [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\n- [qué no debe hacer] no debe persistirse en ninguna base de datos\n- [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] mediante etiquetas -> baja:verde, media:amarilla, alta:roja\n\nPREGUNTAS QUE YA HICISTE (1/10, no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- si existirán comentarios en las tarjetas\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se manejará la prioridad de las tareas en el sistema de semáforo\",\"si existirán comentarios en las tarjetas\"],\"pregunta\":\"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"}\n```"
+    },
+    {
+      "ms": 7064,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\n- [cómo se tiene que ver] Con hovers en el movimiento drag & drop\n- [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\n- [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\n- [qué no debe hacer] no debe persistirse en ninguna base de datos\n- [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] mediante etiquetas -> baja:verde, media:amarilla, alta:roja\n- [respuesta a \"¿Existirán comentarios en las tarjetas?\"] Cada tarjeta tendra un titulo, una descripcion (seria tu equivalente a comentario) y una etiqueta de prioridad\n\nPREGUNTAS QUE YA HICISTE (2/10, no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Existirán comentarios en las tarjetas?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- cómo se manejará la prioridad de las tareas\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se manejará la prioridad de las tareas en el sistema de semáforo\"],\"pregunta\":\"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"}\n```"
+    },
+    {
+      "ms": 4229,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\n- [cómo se tiene que ver] Con hovers en el movimiento drag & drop\n- [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\n- [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\n- [qué no debe hacer] no debe persistirse en ninguna base de datos\n- [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] mediante etiquetas -> baja:verde, media:amarilla, alta:roja\n- [respuesta a \"¿Existirán comentarios en las tarjetas?\"] Cada tarjeta tendra un titulo, una descripcion (seria tu equivalente a comentario) y una etiqueta de prioridad\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas?\"] la prioridad sera unicamente un indicativo visual para el usuario\n\nPREGUNTAS QUE YA HICISTE (3/10, no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Existirán comentarios en las tarjetas?\n- ¿Cómo se manejará la prioridad de las tareas?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se cargan y editan los datos de las tarjetas\",\"cuántos niveles tiene el sistema de semáforo\"],\"pregunta\":\"¿Cómo se cargan y editan los datos de las tarjetas?\"}\n```"
+    },
+    {
+      "ms": 5534,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\n- [cómo se tiene que ver] Con hovers en el movimiento drag & drop\n- [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\n- [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\n- [qué no debe hacer] no debe persistirse en ninguna base de datos\n- [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] mediante etiquetas -> baja:verde, media:amarilla, alta:roja\n- [respuesta a \"¿Existirán comentarios en las tarjetas?\"] Cada tarjeta tendra un titulo, una descripcion (seria tu equivalente a comentario) y una etiqueta de prioridad\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas?\"] la prioridad sera unicamente un indicativo visual para el usuario\n- [respuesta a \"¿Cómo se cargan y editan los datos de las tarjetas?\"] mediante un formulario de crear/editar tarjetas, ingresando desde sus respectivos botones\n\nPREGUNTAS QUE YA HICISTE (4/10, no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Existirán comentarios en las tarjetas?\n- ¿Cómo se manejará la prioridad de las tareas?\n- ¿Cómo se cargan y editan los datos de las tarjetas?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se cargan y editan los datos de las tarjetas\"],\"pregunta\":\"¿Cuáles campos tendrá cada tarjeta?\"}\n```"
+    },
+    {
+      "ms": 5748,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\n- [cómo se tiene que ver] Con hovers en el movimiento drag & drop\n- [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\n- [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\n- [qué no debe hacer] no debe persistirse en ninguna base de datos\n- [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] mediante etiquetas -> baja:verde, media:amarilla, alta:roja\n- [respuesta a \"¿Existirán comentarios en las tarjetas?\"] Cada tarjeta tendra un titulo, una descripcion (seria tu equivalente a comentario) y una etiqueta de prioridad\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas?\"] la prioridad sera unicamente un indicativo visual para el usuario\n- [respuesta a \"¿Cómo se cargan y editan los datos de las tarjetas?\"] mediante un formulario de crear/editar tarjetas, ingresando desde sus respectivos botones\n- [respuesta a \"¿Cuáles campos tendrá cada tarjeta?\"] titulo, descripcion y prioridad\n\nPREGUNTAS QUE YA HICISTE (5/10, no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Existirán comentarios en las tarjetas?\n- ¿Cómo se manejará la prioridad de las tareas?\n- ¿Cómo se cargan y editan los datos de las tarjetas?\n- ¿Cuáles campos tendrá cada tarjeta?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se manejará la interacción al borrar una tarjeta\",\"si existirán subtareas en las tarjetas\"],\"pregunta\":\"¿Cómo se manejará la interacción al borrar una tarjeta?\"}\n```"
+    },
+    {
+      "ms": 8950,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\n- [cómo se tiene que ver] Con hovers en el movimiento drag & drop\n- [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\n- [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\n- [qué no debe hacer] no debe persistirse en ninguna base de datos\n- [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] mediante etiquetas -> baja:verde, media:amarilla, alta:roja\n- [respuesta a \"¿Existirán comentarios en las tarjetas?\"] Cada tarjeta tendra un titulo, una descripcion (seria tu equivalente a comentario) y una etiqueta de prioridad\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas?\"] la prioridad sera unicamente un indicativo visual para el usuario\n- [respuesta a \"¿Cómo se cargan y editan los datos de las tarjetas?\"] mediante un formulario de crear/editar tarjetas, ingresando desde sus respectivos botones\n- [respuesta a \"¿Cuáles campos tendrá cada tarjeta?\"] titulo, descripcion y prioridad\n- [respuesta a \"¿Cómo se manejará la interacción al borrar una tarjeta?\"] mediante un boton de borrado inline en la tarjeta\n\nPREGUNTAS QUE YA HICISTE (6/10, no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Existirán comentarios en las tarjetas?\n- ¿Cómo se manejará la prioridad de las tareas?\n- ¿Cómo se cargan y editan los datos de las tarjetas?\n- ¿Cuáles campos tendrá cada tarjeta?\n- ¿Cómo se manejará la interacción al borrar una tarjeta?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- si existirán subtareas en las tarjetas\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se manejará la persistencia de los datos sin usar una base de datos\"],\"pregunta\":\"¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?\"}\n```"
+    },
+    {
+      "ms": 9155,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\n- [cómo se tiene que ver] Con hovers en el movimiento drag & drop\n- [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\n- [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\n- [qué no debe hacer] no debe persistirse en ninguna base de datos\n- [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] mediante etiquetas -> baja:verde, media:amarilla, alta:roja\n- [respuesta a \"¿Existirán comentarios en las tarjetas?\"] Cada tarjeta tendra un titulo, una descripcion (seria tu equivalente a comentario) y una etiqueta de prioridad\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas?\"] la prioridad sera unicamente un indicativo visual para el usuario\n- [respuesta a \"¿Cómo se cargan y editan los datos de las tarjetas?\"] mediante un formulario de crear/editar tarjetas, ingresando desde sus respectivos botones\n- [respuesta a \"¿Cuáles campos tendrá cada tarjeta?\"] titulo, descripcion y prioridad\n- [respuesta a \"¿Cómo se manejará la interacción al borrar una tarjeta?\"] mediante un boton de borrado inline en la tarjeta\n- [respuesta a \"¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?\"] utilizamos localstorage del navegador\n\nPREGUNTAS QUE YA HICISTE (7/10, no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Existirán comentarios en las tarjetas?\n- ¿Cómo se manejará la prioridad de las tareas?\n- ¿Cómo se cargan y editan los datos de las tarjetas?\n- ¿Cuáles campos tendrá cada tarjeta?\n- ¿Cómo se manejará la interacción al borrar una tarjeta?\n- ¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- si existirán subtareas en las tarjetas\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"si existirán subtareas en las tarjetas\"],\"pregunta\":\"¿Existirán subtareas en las tarjetas?\"}\n```"
+    },
+    {
+      "ms": 7411,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\n- [cómo se tiene que ver] Con hovers en el movimiento drag & drop\n- [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\n- [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\n- [qué no debe hacer] no debe persistirse en ninguna base de datos\n- [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] mediante etiquetas -> baja:verde, media:amarilla, alta:roja\n- [respuesta a \"¿Existirán comentarios en las tarjetas?\"] Cada tarjeta tendra un titulo, una descripcion (seria tu equivalente a comentario) y una etiqueta de prioridad\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas?\"] la prioridad sera unicamente un indicativo visual para el usuario\n- [respuesta a \"¿Cómo se cargan y editan los datos de las tarjetas?\"] mediante un formulario de crear/editar tarjetas, ingresando desde sus respectivos botones\n- [respuesta a \"¿Cuáles campos tendrá cada tarjeta?\"] titulo, descripcion y prioridad\n- [respuesta a \"¿Cómo se manejará la interacción al borrar una tarjeta?\"] mediante un boton de borrado inline en la tarjeta\n- [respuesta a \"¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?\"] utilizamos localstorage del navegador\n- [respuesta a \"¿Existirán subtareas en las tarjetas?\"] no\n\nPREGUNTAS QUE YA HICISTE (8/10, no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Existirán comentarios en las tarjetas?\n- ¿Cómo se manejará la prioridad de las tareas?\n- ¿Cómo se cargan y editan los datos de las tarjetas?\n- ¿Cuáles campos tendrá cada tarjeta?\n- ¿Cómo se manejará la interacción al borrar una tarjeta?\n- ¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?\n- ¿Existirán subtareas en las tarjetas?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"nombres o cantidades que faltan\",\"cómo se usa una feature pedida\"],\"pregunta\":\"¿Las columnas tendrán un nombre específico y cuántas serán?\"}\n```"
+    },
+    {
+      "ms": 10998,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\n- [cómo se tiene que ver] Con hovers en el movimiento drag & drop\n- [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\n- [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\n- [qué no debe hacer] no debe persistirse en ninguna base de datos\n- [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] mediante etiquetas -> baja:verde, media:amarilla, alta:roja\n- [respuesta a \"¿Existirán comentarios en las tarjetas?\"] Cada tarjeta tendra un titulo, una descripcion (seria tu equivalente a comentario) y una etiqueta de prioridad\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas?\"] la prioridad sera unicamente un indicativo visual para el usuario\n- [respuesta a \"¿Cómo se cargan y editan los datos de las tarjetas?\"] mediante un formulario de crear/editar tarjetas, ingresando desde sus respectivos botones\n- [respuesta a \"¿Cuáles campos tendrá cada tarjeta?\"] titulo, descripcion y prioridad\n- [respuesta a \"¿Cómo se manejará la interacción al borrar una tarjeta?\"] mediante un boton de borrado inline en la tarjeta\n- [respuesta a \"¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?\"] utilizamos localstorage del navegador\n- [respuesta a \"¿Existirán subtareas en las tarjetas?\"] no\n- [respuesta a \"¿Las columnas tendrán un nombre específico y cuántas serán?\"] pediente, en proceso y completada\n\nPREGUNTAS QUE YA HICISTE (9/10, no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Existirán comentarios en las tarjetas?\n- ¿Cómo se manejará la prioridad de las tareas?\n- ¿Cómo se cargan y editan los datos de las tarjetas?\n- ¿Cuáles campos tendrá cada tarjeta?\n- ¿Cómo se manejará la interacción al borrar una tarjeta?\n- ¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?\n- ¿Existirán subtareas en las tarjetas?\n- ¿Las columnas tendrán un nombre específico y cuántas serán?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- nombres o cantidades que faltan\n- cómo se usa una feature pedida\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"nombres para las columnas\",\"cómo se manejará la interacción al arrastrar y soltar las tarjetas\"],\"pregunta\":\"¿Las columnas tendrán un nombre específico y cuántas serán?\"}\n```"
+    },
+    {
+      "ms": 35910,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos Intent Forge v0.3 del equipo MicheLab.\n\nRecibís las LÍNEAS que escribió el usuario, numeradas (L1, L2...). Entre corchetes va el campo de la plantilla donde la escribió.\nTu trabajo es CLASIFICAR cada línea, NO resumir.\n\nTIPOS:\n- contexto: qué es el proyecto, para quién, referencias (\"estilo Trello\"), adjetivos generales (\"sencilla\").\n- feature: algo que el usuario tiene que poder HACER en la app.\n- estilo: cómo se tiene que VER o sentir (colores, sombras, animaciones, efectos al pasar el mouse).\n- restriccion: un límite o algo que NO debe hacer (\"sin login\", \"sin base de datos\", \"solo frontend\", \"los datos se borran al recargar\").\n- descartado: SOLO si una línea [ajuste] pide sacar algo; en \"de\" van la línea que se saca y la línea [ajuste].\n\nREGLAS:\n1. Cada línea L tiene que aparecer en \"de\" de al menos un ítem. Ninguna se pierde.\n2. Si una línea nombra varias cosas, separalas: un ítem por cosa.\n3. Usá las palabras del usuario. No resumas ni generalices. Nombres, cantidades y listas (por ejemplo entre paréntesis) van dentro del texto del ítem.\n4. No agregues ítems que no salgan de una línea.\n5. El campo entre corchetes es una pista. Cambiá el tipo solo si la línea claramente es de otro tipo (por ejemplo \"drag & drop\" escrito en [cómo se tiene que ver] es una feature).\n   Si algo necesita un dato o una acción del usuario (prioridad, estado, etiquetas, fechas), es feature aunque esté en [cómo se tiene que ver]: \"semáforo de prioridad\" → feature \"Asignar prioridad a una tarjeta (semáforo)\".\n   Una feature = UNA acción. \"Crear, editar y borrar tarjetas\" son tres ítems: \"Crear tarjetas\", \"Editar tarjetas\", \"Borrar tarjetas\".\n6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.\n7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo \"¿Se pueden crear columnas?\" + \"sí\" → feature \"Crear columnas\"). Si es negativa, es una restriccion con \"Sin ...\" (por ejemplo \"¿Buscar tarjetas?\" + \"no\" → restriccion \"Sin búsqueda de tarjetas\").\n   Si la respuesta DETALLA algo que ya está en otra línea, NO hagas un ítem suelto: escribí el detalle dentro de ese ítem y poné las dos líneas en \"de\". Por ejemplo L5 \"semáforo de prioridad\" + L9 respuesta \"verde baja, amarillo media, rojo alta\" + L10 respuesta \"se elige en una lista al crear la tarjeta\" → {\"de\":[\"L5\",\"L9\",\"L10\"],\"tipo\":\"feature\",\"texto\":\"Asignar prioridad al crear la tarjeta, desde una lista (semáforo: verde baja, amarillo media, rojo alta)\"}.\n8. No hagas preguntas: devolvé siempre el JSON.\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"...\",\"items\":[{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"...\"}],\"criterios_holdout\":[\"cómo se verifica cada feature\"]}\n```\n\nEJEMPLO (otro proyecto):\nL1 [qué querés construir] Una app para guardar mis recetas, simple\nL2 [qué tiene que hacer] cargar recetas con ingredientes y pasos\nL3 [cómo se tiene que ver] colores cálidos, fotos grandes, que se puedan marcar favoritas\nL4 [qué no debe hacer] sin usuarios ni login\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Recetario\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"App simple para guardar mis recetas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Cargar recetas con ingredientes y pasos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Colores cálidos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Fotos grandes\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"Marcar recetas como favoritas\"},\n{\"de\":[\"L4\"],\"tipo\":\"restriccion\",\"texto\":\"Sin usuarios ni login\"}],\n\"criterios_holdout\":[\"Se puede cargar una receta con ingredientes y pasos\",\"Se puede marcar una receta como favorita\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LÍNEAS DEL USUARIO:\nL1 [qué querés construir] Webapp estilo Kanban/Trello\nL2 [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\nL3 [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\nL4 [cómo se tiene que ver] Con hovers en el movimiento drag & drop\nL5 [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\nL6 [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\nL7 [qué no debe hacer] no debe persistirse en ninguna base de datos\nL8 [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\nL9 [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] mediante etiquetas -> baja:verde, media:amarilla, alta:roja\nL10 [respuesta a \"¿Existirán comentarios en las tarjetas?\"] Cada tarjeta tendra un titulo, una descripcion (seria tu equivalente a comentario) y una etiqueta de prioridad\nL11 [respuesta a \"¿Cómo se manejará la prioridad de las tareas?\"] la prioridad sera unicamente un indicativo visual para el usuario\nL12 [respuesta a \"¿Cómo se cargan y editan los datos de las tarjetas?\"] mediante un formulario de crear/editar tarjetas, ingresando desde sus respectivos botones\nL13 [respuesta a \"¿Cuáles campos tendrá cada tarjeta?\"] titulo, descripcion y prioridad\nL14 [respuesta a \"¿Cómo se manejará la interacción al borrar una tarjeta?\"] mediante un boton de borrado inline en la tarjeta\nL15 [respuesta a \"¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?\"] utilizamos localstorage del navegador\nL16 [respuesta a \"¿Existirán subtareas en las tarjetas?\"] no\nL17 [respuesta a \"¿Las columnas tendrán un nombre específico y cuántas serán?\"] pediente, en proceso y completada\nL18 [respuesta a \"¿Me contás sobre esto: nombres o cantidades que faltan?\"] nombres: pendiente, en proceso, y completada\nL19 [respuesta a \"¿Me contás sobre esto: nombres o cantidades que faltan?\"] cantidades: 3 columnas\n\nPREGUNTAS QUE YA HICISTE (no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Existirán comentarios en las tarjetas?\n- ¿Cómo se manejará la prioridad de las tareas?\n- ¿Cómo se cargan y editan los datos de las tarjetas?\n- ¿Cuáles campos tendrá cada tarjeta?\n- ¿Cómo se manejará la interacción al borrar una tarjeta?\n- ¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?\n- ¿Existirán subtareas en las tarjetas?\n- ¿Las columnas tendrán un nombre específico y cuántas serán?\n- ¿Me contás sobre esto: nombres o cantidades que faltan?"
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n{\"de\":[\"L5\",\"L9\"],\"tipo\":\"feature\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas mediante etiquetas (baja: verde, media: amarilla, alta: roja)\"},\n{\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n{\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n{\"de\":[\"L12\",\"L13\"],\"tipo\":\"feature\",\"texto\":\"Cargar y editar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\"},\n{\"de\":[\"L14\"],\"tipo\":\"feature\",\"texto\":\"Manejo de interacción al borrar una tarjeta mediante un botón inline en la tarjeta\"},\n{\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"Utilización de localstorage del navegador para persistencia de datos\"},\n{\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Cada tarjeta tendrá un título, una descripción (equivalente a comentario) y una etiqueta de prioridad\"},\n{\"de\":[\"L17\",\"L18\",\"L19\"],\"tipo\":\"restriccion\",\"texto\":\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"}],\n\"criterios_holdout\":[\"Se puede crear, editar y borrar tarjetas de tareas\",\"Se pueden arrastrar las tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo para prioridad visual se manejará mediante etiquetas (baja: verde, media: amarilla, alta: roja)\",\"Las tarjetas tendrán un título, una descripción y una etiqueta de prioridad\",\"Se puede cargar y editar los datos de las tarjetas mediante un formulario\",\"Se puede borrar una tarjeta mediante un botón inline en la tarjeta\",\"Los datos se persistirán usando localstorage del navegador\",\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "Revisá tu JSON:\n- Estas líneas no quedaron en ningún ítem. Asignalas con sus palabras (si detallan otro ítem, agregalas a ese ítem y sumá la línea a su \"de\"; si no hay nada para construir, van como contexto):\n  L11 (respuesta a \"¿Cómo se manejará la prioridad de las tareas?\"): \"la prioridad sera unicamente un indicativo visual para el usuario\"\n  L16 (respuesta a \"¿Existirán subtareas en las tarjetas?\"): \"no\"\n- La feature \"Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\" junta varias acciones (crear, editar, borrar, arrastrar): separala en un ítem por acción, con el mismo \"de\".\n- La feature \"Cargar y editar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\" junta varias acciones (cargar, editar): separala en un ítem por acción, con el mismo \"de\".\nDevolvé el JSON COMPLETE entero de nuevo."
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n    {\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Poder arrastrar las tarjetas entre columnas que definan el estado actual de la tarea\"},\n    {\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n    {\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n    {\"de\":[\"L5\",\"L9\"],\"tipo\":\"feature\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas mediante etiquetas (baja: verde, media: amarilla, alta: roja)\"},\n    {\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n    {\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n    {\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n    {\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Cargar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\"},\n    {\"de\":[\"L12\"],\"tipo\":\"feature\",\"texto\":\"Editar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\"},\n    {\"de\":[\"L14\"],\"tipo\":\"feature\",\"texto\":\"Manejo de interacción al borrar una tarjeta mediante un botón inline en la tarjeta\"},\n    {\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"Utilización de localstorage del navegador para persistencia de datos\"},\n    {\"de\":[\"L16\"],\"tipo\":\"restriccion\",\"texto\":\"Sin subtareas en las tarjetas\"},\n    {\"de\":[\"L17\",\"L18\",\"L19\"],\"tipo\":\"restriccion\",\"texto\":\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"}],\n\"criterios_holdout\":[\"Se puede crear una tarjeta de tareas\",\"Se puede editar una tarjeta de tareas\",\"Se puede borrar una tarjeta de tareas\",\"Se pueden arrastrar las tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo para prioridad visual se manejará mediante etiquetas (baja: verde, media: amarilla, alta: roja)\",\"Las tarjetas tendrán un título, una descripción y una etiqueta de prioridad\",\"Se puede cargar los datos de las tarjetas mediante un formulario\",\"Se puede editar los datos de las tarjetas mediante un formulario\",\"Se puede borrar una tarjeta mediante un botón inline en la tarjeta\",\"Los datos se persistirán usando localstorage del navegador\",\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "Revisá tu JSON:\n- Estas líneas no quedaron en ningún ítem. Asignalas con sus palabras (si detallan otro ítem, agregalas a ese ítem y sumá la línea a su \"de\"; si no hay nada para construir, van como contexto):\n  L11 (respuesta a \"¿Cómo se manejará la prioridad de las tareas?\"): \"la prioridad sera unicamente un indicativo visual para el usuario\"\n  L13 (respuesta a \"¿Cuáles campos tendrá cada tarjeta?\"): \"titulo, descripcion y prioridad\"\nDevolvé el JSON COMPLETE entero de nuevo."
+        }
+      ],
+      "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n{\"de\":[\"L5\",\"L9\"],\"tipo\":\"feature\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas mediante etiquetas (baja: verde, media: amarilla, alta: roja)\"},\n{\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n{\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n{\"de\":[\"L12\",\"L13\"],\"tipo\":\"feature\",\"texto\":\"Cargar y editar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\"},\n{\"de\":[\"L14\"],\"tipo\":\"feature\",\"texto\":\"Manejo de interacción al borrar una tarjeta mediante un botón inline en la tarjeta\"},\n{\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"Utilización de localstorage del navegador para persistencia de datos\"},\n{\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Cada tarjeta tendrá un título, una descripción (equivalente a comentario) y una etiqueta de prioridad\"},\n{\"de\":[\"L17\",\"L18\",\"L19\"],\"tipo\":\"restriccion\",\"texto\":\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"}],\n\"criterios_holdout\":[\"Se puede crear, editar y borrar tarjetas de tareas\",\"Se pueden arrastrar las tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo para prioridad visual se manejará mediante etiquetas (baja: verde, media: amarilla, alta: roja)\",\"Las tarjetas tendrán un título, una descripción y una etiqueta de prioridad\",\"Se puede cargar y editar los datos de las tarjetas mediante un formulario\",\"Se puede borrar una tarjeta mediante un botón inline en la tarjeta\",\"Los datos se persistirán usando localstorage del navegador\",\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"]}\n```"
+    },
+    {
+      "ms": 28916,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos Intent Forge v0.3 del equipo MicheLab.\n\nRecibís las LÍNEAS que escribió el usuario, numeradas (L1, L2...). Entre corchetes va el campo de la plantilla donde la escribió.\nTu trabajo es CLASIFICAR cada línea, NO resumir.\n\nTIPOS:\n- contexto: qué es el proyecto, para quién, referencias (\"estilo Trello\"), adjetivos generales (\"sencilla\").\n- feature: algo que el usuario tiene que poder HACER en la app.\n- estilo: cómo se tiene que VER o sentir (colores, sombras, animaciones, efectos al pasar el mouse).\n- restriccion: un límite o algo que NO debe hacer (\"sin login\", \"sin base de datos\", \"solo frontend\", \"los datos se borran al recargar\").\n- descartado: SOLO si una línea [ajuste] pide sacar algo; en \"de\" van la línea que se saca y la línea [ajuste].\n\nREGLAS:\n1. Cada línea L tiene que aparecer en \"de\" de al menos un ítem. Ninguna se pierde.\n2. Si una línea nombra varias cosas, separalas: un ítem por cosa.\n3. Usá las palabras del usuario. No resumas ni generalices. Nombres, cantidades y listas (por ejemplo entre paréntesis) van dentro del texto del ítem.\n4. No agregues ítems que no salgan de una línea.\n5. El campo entre corchetes es una pista. Cambiá el tipo solo si la línea claramente es de otro tipo (por ejemplo \"drag & drop\" escrito en [cómo se tiene que ver] es una feature).\n   Si algo necesita un dato o una acción del usuario (prioridad, estado, etiquetas, fechas), es feature aunque esté en [cómo se tiene que ver]: \"semáforo de prioridad\" → feature \"Asignar prioridad a una tarjeta (semáforo)\".\n   Una feature = UNA acción. \"Crear, editar y borrar tarjetas\" son tres ítems: \"Crear tarjetas\", \"Editar tarjetas\", \"Borrar tarjetas\".\n6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.\n7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo \"¿Se pueden crear columnas?\" + \"sí\" → feature \"Crear columnas\"). Si es negativa, es una restriccion con \"Sin ...\" (por ejemplo \"¿Buscar tarjetas?\" + \"no\" → restriccion \"Sin búsqueda de tarjetas\").\n   Si la respuesta DETALLA algo que ya está en otra línea, NO hagas un ítem suelto: escribí el detalle dentro de ese ítem y poné las dos líneas en \"de\". Por ejemplo L5 \"semáforo de prioridad\" + L9 respuesta \"verde baja, amarillo media, rojo alta\" + L10 respuesta \"se elige en una lista al crear la tarjeta\" → {\"de\":[\"L5\",\"L9\",\"L10\"],\"tipo\":\"feature\",\"texto\":\"Asignar prioridad al crear la tarjeta, desde una lista (semáforo: verde baja, amarillo media, rojo alta)\"}.\n8. No hagas preguntas: devolvé siempre el JSON.\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"...\",\"items\":[{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"...\"}],\"criterios_holdout\":[\"cómo se verifica cada feature\"]}\n```\n\nEJEMPLO (otro proyecto):\nL1 [qué querés construir] Una app para guardar mis recetas, simple\nL2 [qué tiene que hacer] cargar recetas con ingredientes y pasos\nL3 [cómo se tiene que ver] colores cálidos, fotos grandes, que se puedan marcar favoritas\nL4 [qué no debe hacer] sin usuarios ni login\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Recetario\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"App simple para guardar mis recetas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Cargar recetas con ingredientes y pasos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Colores cálidos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Fotos grandes\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"Marcar recetas como favoritas\"},\n{\"de\":[\"L4\"],\"tipo\":\"restriccion\",\"texto\":\"Sin usuarios ni login\"}],\n\"criterios_holdout\":[\"Se puede cargar una receta con ingredientes y pasos\",\"Se puede marcar una receta como favorita\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LÍNEAS DEL USUARIO:\nL1 [qué querés construir] Webapp estilo Kanban/Trello\nL2 [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\nL3 [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\nL4 [cómo se tiene que ver] Con hovers en el movimiento drag & drop\nL5 [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\nL6 [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\nL7 [qué no debe hacer] no debe persistirse en ninguna base de datos\nL8 [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\nL9 [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] mediante etiquetas -> baja:verde, media:amarilla, alta:roja\nL10 [respuesta a \"¿Existirán comentarios en las tarjetas?\"] Cada tarjeta tendra un titulo, una descripcion (seria tu equivalente a comentario) y una etiqueta de prioridad\nL11 [respuesta a \"¿Cómo se manejará la prioridad de las tareas?\"] la prioridad sera unicamente un indicativo visual para el usuario\nL12 [respuesta a \"¿Cómo se cargan y editan los datos de las tarjetas?\"] mediante un formulario de crear/editar tarjetas, ingresando desde sus respectivos botones\nL13 [respuesta a \"¿Cuáles campos tendrá cada tarjeta?\"] titulo, descripcion y prioridad\nL14 [respuesta a \"¿Cómo se manejará la interacción al borrar una tarjeta?\"] mediante un boton de borrado inline en la tarjeta\nL15 [respuesta a \"¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?\"] utilizamos localstorage del navegador\nL16 [respuesta a \"¿Existirán subtareas en las tarjetas?\"] no\nL17 [respuesta a \"¿Las columnas tendrán un nombre específico y cuántas serán?\"] pediente, en proceso y completada\nL18 [respuesta a \"¿Me contás sobre esto: nombres o cantidades que faltan?\"] nombres: pendiente, en proceso, y completada\nL19 [respuesta a \"¿Me contás sobre esto: nombres o cantidades que faltan?\"] cantidades: 3 columnas\n\nPREGUNTAS QUE YA HICISTE (no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Existirán comentarios en las tarjetas?\n- ¿Cómo se manejará la prioridad de las tareas?\n- ¿Cómo se cargan y editan los datos de las tarjetas?\n- ¿Cuáles campos tendrá cada tarjeta?\n- ¿Cómo se manejará la interacción al borrar una tarjeta?\n- ¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?\n- ¿Existirán subtareas en las tarjetas?\n- ¿Las columnas tendrán un nombre específico y cuántas serán?\n- ¿Me contás sobre esto: nombres o cantidades que faltan?"
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n{\"de\":[\"L5\",\"L9\"],\"tipo\":\"feature\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas mediante etiquetas (baja: verde, media: amarilla, alta: roja)\"},\n{\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n{\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n{\"de\":[\"L12\",\"L13\"],\"tipo\":\"feature\",\"texto\":\"Cargar y editar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\"},\n{\"de\":[\"L14\"],\"tipo\":\"feature\",\"texto\":\"Manejo de interacción al borrar una tarjeta mediante un botón inline en la tarjeta\"},\n{\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"Utilización de localstorage del navegador para persistencia de datos\"},\n{\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Cada tarjeta tendrá un título, una descripción (equivalente a comentario) y una etiqueta de prioridad\"},\n{\"de\":[\"L17\",\"L18\",\"L19\"],\"tipo\":\"restriccion\",\"texto\":\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"}],\n\"criterios_holdout\":[\"Se puede crear, editar y borrar tarjetas de tareas\",\"Se pueden arrastrar las tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo para prioridad visual se manejará mediante etiquetas (baja: verde, media: amarilla, alta: roja)\",\"Las tarjetas tendrán un título, una descripción y una etiqueta de prioridad\",\"Se puede cargar y editar los datos de las tarjetas mediante un formulario\",\"Se puede borrar una tarjeta mediante un botón inline en la tarjeta\",\"Los datos se persistirán usando localstorage del navegador\",\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "Revisá tu JSON:\n- Estas líneas no quedaron en ningún ítem. Asignalas con sus palabras (si detallan otro ítem, agregalas a ese ítem y sumá la línea a su \"de\"; si no hay nada para construir, van como contexto):\n  L11 (respuesta a \"¿Cómo se manejará la prioridad de las tareas?\"): \"la prioridad sera unicamente un indicativo visual para el usuario\"\n  L16 (respuesta a \"¿Existirán subtareas en las tarjetas?\"): \"no\"\n- La feature \"Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\" junta varias acciones (crear, editar, borrar, arrastrar): separala en un ítem por acción, con el mismo \"de\".\n- La feature \"Cargar y editar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\" junta varias acciones (cargar, editar): separala en un ítem por acción, con el mismo \"de\".\nDevolvé el JSON COMPLETE entero de nuevo."
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n    {\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Poder arrastrar las tarjetas entre columnas que definan el estado actual de la tarea\"},\n    {\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n    {\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n    {\"de\":[\"L5\",\"L9\"],\"tipo\":\"feature\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas mediante etiquetas (baja: verde, media: amarilla, alta: roja)\"},\n    {\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n    {\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n    {\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n    {\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Cargar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\"},\n    {\"de\":[\"L12\"],\"tipo\":\"feature\",\"texto\":\"Editar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\"},\n    {\"de\":[\"L14\"],\"tipo\":\"feature\",\"texto\":\"Manejo de interacción al borrar una tarjeta mediante un botón inline en la tarjeta\"},\n    {\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"Utilización de localstorage del navegador para persistencia de datos\"},\n    {\"de\":[\"L16\"],\"tipo\":\"restriccion\",\"texto\":\"Sin subtareas en las tarjetas\"},\n    {\"de\":[\"L17\",\"L18\",\"L19\"],\"tipo\":\"restriccion\",\"texto\":\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"}],\n\"criterios_holdout\":[\"Se puede crear una tarjeta de tareas\",\"Se puede editar una tarjeta de tareas\",\"Se puede borrar una tarjeta de tareas\",\"Se pueden arrastrar las tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo para prioridad visual se manejará mediante etiquetas (baja: verde, media: amarilla, alta: roja)\",\"Las tarjetas tendrán un título, una descripción y una etiqueta de prioridad\",\"Se puede cargar los datos de las tarjetas mediante un formulario\",\"Se puede editar los datos de las tarjetas mediante un formulario\",\"Se puede borrar una tarjeta mediante un botón inline en la tarjeta\",\"Los datos se persistirán usando localstorage del navegador\",\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "Revisá tu JSON:\n- Estas líneas no quedaron en ningún ítem. Asignalas con sus palabras (si detallan otro ítem, agregalas a ese ítem y sumá la línea a su \"de\"; si no hay nada para construir, van como contexto):\n  L11 (respuesta a \"¿Cómo se manejará la prioridad de las tareas?\"): \"la prioridad sera unicamente un indicativo visual para el usuario\"\n  L13 (respuesta a \"¿Cuáles campos tendrá cada tarjeta?\"): \"titulo, descripcion y prioridad\"\nDevolvé el JSON COMPLETE entero de nuevo."
+        }
+      ],
+      "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n    {\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Poder arrastrar las tarjetas entre columnas que definan el estado actual de la tarea\"},\n    {\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n    {\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n    {\"de\":[\"L5\",\"L9\"],\"tipo\":\"feature\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas mediante etiquetas (baja: verde, media: amarilla, alta: roja)\"},\n    {\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n    {\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n    {\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n    {\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Cargar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\"},\n    {\"de\":[\"L12\"],\"tipo\":\"feature\",\"texto\":\"Editar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\"},\n    {\"de\":[\"L14\"],\"tipo\":\"feature\",\"texto\":\"Manejo de interacción al borrar una tarjeta mediante un botón inline en la tarjeta\"},\n    {\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"Utilización de localstorage del navegador para persistencia de datos\"},\n    {\"de\":[\"L16\"],\"tipo\":\"restriccion\",\"texto\":\"Sin subtareas en las tarjetas\"},\n    {\"de\":[\"L17\",\"L18\",\"L19\"],\"tipo\":\"restriccion\",\"texto\":\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"}],\n\"criterios_holdout\":[\"Se puede crear una tarjeta de tareas\",\"Se puede editar una tarjeta de tareas\",\"Se puede borrar una tarjeta de tareas\",\"Se pueden arrastrar las tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo para prioridad visual se manejará mediante etiquetas (baja: verde, media: amarilla, alta: roja)\",\"Las tarjetas tendrán un título, una descripción y una etiqueta de prioridad\",\"Se puede cargar los datos de las tarjetas mediante un formulario\",\"Se puede editar los datos de las tarjetas mediante un formulario\",\"Se puede borrar una tarjeta mediante un botón inline en la tarjeta\",\"Los datos se persistirán usando localstorage del navegador\",\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"]}\n```"
+    },
+    {
+      "ms": 26343,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos Intent Forge v0.3 del equipo MicheLab.\n\nRecibís las LÍNEAS que escribió el usuario, numeradas (L1, L2...). Entre corchetes va el campo de la plantilla donde la escribió.\nTu trabajo es CLASIFICAR cada línea, NO resumir.\n\nTIPOS:\n- contexto: qué es el proyecto, para quién, referencias (\"estilo Trello\"), adjetivos generales (\"sencilla\").\n- feature: algo que el usuario tiene que poder HACER en la app.\n- estilo: cómo se tiene que VER o sentir (colores, sombras, animaciones, efectos al pasar el mouse).\n- restriccion: un límite o algo que NO debe hacer (\"sin login\", \"sin base de datos\", \"solo frontend\", \"los datos se borran al recargar\").\n- descartado: SOLO si una línea [ajuste] pide sacar algo; en \"de\" van la línea que se saca y la línea [ajuste].\n\nREGLAS:\n1. Cada línea L tiene que aparecer en \"de\" de al menos un ítem. Ninguna se pierde.\n2. Si una línea nombra varias cosas, separalas: un ítem por cosa.\n3. Usá las palabras del usuario. No resumas ni generalices. Nombres, cantidades y listas (por ejemplo entre paréntesis) van dentro del texto del ítem.\n4. No agregues ítems que no salgan de una línea.\n5. El campo entre corchetes es una pista. Cambiá el tipo solo si la línea claramente es de otro tipo (por ejemplo \"drag & drop\" escrito en [cómo se tiene que ver] es una feature).\n   Si algo necesita un dato o una acción del usuario (prioridad, estado, etiquetas, fechas), es feature aunque esté en [cómo se tiene que ver]: \"semáforo de prioridad\" → feature \"Asignar prioridad a una tarjeta (semáforo)\".\n   Una feature = UNA acción. \"Crear, editar y borrar tarjetas\" son tres ítems: \"Crear tarjetas\", \"Editar tarjetas\", \"Borrar tarjetas\".\n6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.\n7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo \"¿Se pueden crear columnas?\" + \"sí\" → feature \"Crear columnas\"). Si es negativa, es una restriccion con \"Sin ...\" (por ejemplo \"¿Buscar tarjetas?\" + \"no\" → restriccion \"Sin búsqueda de tarjetas\").\n   Si la respuesta DETALLA algo que ya está en otra línea, NO hagas un ítem suelto: escribí el detalle dentro de ese ítem y poné las dos líneas en \"de\". Por ejemplo L5 \"semáforo de prioridad\" + L9 respuesta \"verde baja, amarillo media, rojo alta\" + L10 respuesta \"se elige en una lista al crear la tarjeta\" → {\"de\":[\"L5\",\"L9\",\"L10\"],\"tipo\":\"feature\",\"texto\":\"Asignar prioridad al crear la tarjeta, desde una lista (semáforo: verde baja, amarillo media, rojo alta)\"}.\n8. No hagas preguntas: devolvé siempre el JSON.\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"...\",\"items\":[{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"...\"}],\"criterios_holdout\":[\"cómo se verifica cada feature\"]}\n```\n\nEJEMPLO (otro proyecto):\nL1 [qué querés construir] Una app para guardar mis recetas, simple\nL2 [qué tiene que hacer] cargar recetas con ingredientes y pasos\nL3 [cómo se tiene que ver] colores cálidos, fotos grandes, que se puedan marcar favoritas\nL4 [qué no debe hacer] sin usuarios ni login\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Recetario\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"App simple para guardar mis recetas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Cargar recetas con ingredientes y pasos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Colores cálidos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Fotos grandes\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"Marcar recetas como favoritas\"},\n{\"de\":[\"L4\"],\"tipo\":\"restriccion\",\"texto\":\"Sin usuarios ni login\"}],\n\"criterios_holdout\":[\"Se puede cargar una receta con ingredientes y pasos\",\"Se puede marcar una receta como favorita\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LÍNEAS DEL USUARIO:\nL1 [qué querés construir] Webapp estilo Kanban/Trello\nL2 [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\nL3 [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\nL4 [cómo se tiene que ver] Con hovers en el movimiento drag & drop\nL5 [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\nL6 [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\nL7 [qué no debe hacer] no debe persistirse en ninguna base de datos\nL8 [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\nL9 [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] mediante etiquetas -> baja:verde, media:amarilla, alta:roja\nL10 [respuesta a \"¿Existirán comentarios en las tarjetas?\"] Cada tarjeta tendra un titulo, una descripcion (seria tu equivalente a comentario) y una etiqueta de prioridad\nL11 [respuesta a \"¿Cómo se manejará la prioridad de las tareas?\"] la prioridad sera unicamente un indicativo visual para el usuario\nL12 [respuesta a \"¿Cómo se cargan y editan los datos de las tarjetas?\"] mediante un formulario de crear/editar tarjetas, ingresando desde sus respectivos botones\nL13 [respuesta a \"¿Cuáles campos tendrá cada tarjeta?\"] titulo, descripcion y prioridad\nL14 [respuesta a \"¿Cómo se manejará la interacción al borrar una tarjeta?\"] mediante un boton de borrado inline en la tarjeta\nL15 [respuesta a \"¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?\"] utilizamos localstorage del navegador\nL16 [respuesta a \"¿Existirán subtareas en las tarjetas?\"] no\nL17 [respuesta a \"¿Las columnas tendrán un nombre específico y cuántas serán?\"] pediente, en proceso y completada\nL18 [respuesta a \"¿Me contás sobre esto: nombres o cantidades que faltan?\"] nombres: pendiente, en proceso, y completada\nL19 [respuesta a \"¿Me contás sobre esto: nombres o cantidades que faltan?\"] cantidades: 3 columnas\n\nPREGUNTAS QUE YA HICISTE (no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Existirán comentarios en las tarjetas?\n- ¿Cómo se manejará la prioridad de las tareas?\n- ¿Cómo se cargan y editan los datos de las tarjetas?\n- ¿Cuáles campos tendrá cada tarjeta?\n- ¿Cómo se manejará la interacción al borrar una tarjeta?\n- ¿Cómo se manejará la persistencia de los datos si no se utilizará ninguna base de datos?\n- ¿Existirán subtareas en las tarjetas?\n- ¿Las columnas tendrán un nombre específico y cuántas serán?\n- ¿Me contás sobre esto: nombres o cantidades que faltan?"
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n{\"de\":[\"L5\",\"L9\"],\"tipo\":\"feature\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas mediante etiquetas (baja: verde, media: amarilla, alta: roja)\"},\n{\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n{\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n{\"de\":[\"L12\",\"L13\"],\"tipo\":\"feature\",\"texto\":\"Cargar y editar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\"},\n{\"de\":[\"L14\"],\"tipo\":\"feature\",\"texto\":\"Manejo de interacción al borrar una tarjeta mediante un botón inline en la tarjeta\"},\n{\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"Utilización de localstorage del navegador para persistencia de datos\"},\n{\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Cada tarjeta tendrá un título, una descripción (equivalente a comentario) y una etiqueta de prioridad\"},\n{\"de\":[\"L17\",\"L18\",\"L19\"],\"tipo\":\"restriccion\",\"texto\":\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"}],\n\"criterios_holdout\":[\"Se puede crear, editar y borrar tarjetas de tareas\",\"Se pueden arrastrar las tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo para prioridad visual se manejará mediante etiquetas (baja: verde, media: amarilla, alta: roja)\",\"Las tarjetas tendrán un título, una descripción y una etiqueta de prioridad\",\"Se puede cargar y editar los datos de las tarjetas mediante un formulario\",\"Se puede borrar una tarjeta mediante un botón inline en la tarjeta\",\"Los datos se persistirán usando localstorage del navegador\",\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "Revisá tu JSON:\n- Estas líneas no quedaron en ningún ítem. Asignalas con sus palabras (si detallan otro ítem, agregalas a ese ítem y sumá la línea a su \"de\"; si no hay nada para construir, van como contexto):\n  L11 (respuesta a \"¿Cómo se manejará la prioridad de las tareas?\"): \"la prioridad sera unicamente un indicativo visual para el usuario\"\n  L16 (respuesta a \"¿Existirán subtareas en las tarjetas?\"): \"no\"\n- La feature \"Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\" junta varias acciones (crear, editar, borrar, arrastrar): separala en un ítem por acción, con el mismo \"de\".\n- La feature \"Cargar y editar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\" junta varias acciones (cargar, editar): separala en un ítem por acción, con el mismo \"de\".\nDevolvé el JSON COMPLETE entero de nuevo."
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n    {\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Poder arrastrar las tarjetas entre columnas que definan el estado actual de la tarea\"},\n    {\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n    {\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n    {\"de\":[\"L5\",\"L9\"],\"tipo\":\"feature\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas mediante etiquetas (baja: verde, media: amarilla, alta: roja)\"},\n    {\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n    {\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n    {\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n    {\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Cargar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\"},\n    {\"de\":[\"L12\"],\"tipo\":\"feature\",\"texto\":\"Editar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\"},\n    {\"de\":[\"L14\"],\"tipo\":\"feature\",\"texto\":\"Manejo de interacción al borrar una tarjeta mediante un botón inline en la tarjeta\"},\n    {\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"Utilización de localstorage del navegador para persistencia de datos\"},\n    {\"de\":[\"L16\"],\"tipo\":\"restriccion\",\"texto\":\"Sin subtareas en las tarjetas\"},\n    {\"de\":[\"L17\",\"L18\",\"L19\"],\"tipo\":\"restriccion\",\"texto\":\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"}],\n\"criterios_holdout\":[\"Se puede crear una tarjeta de tareas\",\"Se puede editar una tarjeta de tareas\",\"Se puede borrar una tarjeta de tareas\",\"Se pueden arrastrar las tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo para prioridad visual se manejará mediante etiquetas (baja: verde, media: amarilla, alta: roja)\",\"Las tarjetas tendrán un título, una descripción y una etiqueta de prioridad\",\"Se puede cargar los datos de las tarjetas mediante un formulario\",\"Se puede editar los datos de las tarjetas mediante un formulario\",\"Se puede borrar una tarjeta mediante un botón inline en la tarjeta\",\"Los datos se persistirán usando localstorage del navegador\",\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "Revisá tu JSON:\n- Estas líneas no quedaron en ningún ítem. Asignalas con sus palabras (si detallan otro ítem, agregalas a ese ítem y sumá la línea a su \"de\"; si no hay nada para construir, van como contexto):\n  L11 (respuesta a \"¿Cómo se manejará la prioridad de las tareas?\"): \"la prioridad sera unicamente un indicativo visual para el usuario\"\n  L13 (respuesta a \"¿Cuáles campos tendrá cada tarjeta?\"): \"titulo, descripcion y prioridad\"\nDevolvé el JSON COMPLETE entero de nuevo."
+        }
+      ],
+      "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n    {\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n    {\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Poder arrastrar las tarjetas entre columnas que definan el estado actual de la tarea\"},\n    {\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n    {\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n    {\"de\":[\"L5\",\"L9\"],\"tipo\":\"feature\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas mediante etiquetas (baja: verde, media: amarilla, alta: roja)\"},\n    {\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n    {\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n    {\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n    {\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Cargar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\"},\n    {\"de\":[\"L12\"],\"tipo\":\"feature\",\"texto\":\"Editar los datos de las tarjetas mediante un formulario (campos: título, descripción y prioridad)\"},\n    {\"de\":[\"L14\"],\"tipo\":\"feature\",\"texto\":\"Manejo de interacción al borrar una tarjeta mediante un botón inline en la tarjeta\"},\n    {\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"Utilización de localstorage del navegador para persistencia de datos\"},\n    {\"de\":[\"L16\"],\"tipo\":\"restriccion\",\"texto\":\"Sin subtareas en las tarjetas\"},\n    {\"de\":[\"L17\",\"L18\",\"L19\"],\"tipo\":\"restriccion\",\"texto\":\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"},\n    {\"de\":[\"L11\"],\"tipo\":\"contexto\",\"texto\":\"La prioridad será únicamente un indicativo visual para el usuario\"},\n    {\"de\":[\"L13\"],\"tipo\":\"feature\",\"texto\":\"Cada tarjeta tendrá un título, una descripción (equivalente a comentario) y una etiqueta de prioridad\"}],\n\"criterios_holdout\":[\"Se puede crear una tarjeta de tareas\",\"Se puede editar una tarjeta de tareas\",\"Se puede borrar una tarjeta de tareas\",\"Se pueden arrastrar las tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo para prioridad visual se manejará mediante etiquetas (baja: verde, media: amarilla, alta: roja)\",\"Las tarjetas tendrán un título, una descripción y una etiqueta de prioridad\",\"Se puede cargar los datos de las tarjetas mediante un formulario\",\"Se puede editar los datos de las tarjetas mediante un formulario\",\"Se puede borrar una tarjeta mediante un botón inline en la tarjeta\",\"Los datos se persistirán usando localstorage del navegador\",\"Las columnas tendrán nombres específicos: pendiente, en proceso, completada; y serán 3 columnas\"]}\n```"
+    }
+  ]
+}

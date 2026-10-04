@@ -66,7 +66,7 @@ const server = createServer(async (req, res) => {
         if (!lmRes.ok)
           throw new Error(`LM Studio ${lmRes.status}: ${(await lmRes.text()).slice(0, 800)}`);
         const content = (await lmRes.json()).choices?.[0]?.message?.content || "";
-        calls.push({ messages, content });
+        calls.push({ messages: messages.map((m) => ({ ...m })), content });
         return content;
       };
       const r = await runIntentForge(conversation || [], { callModel });

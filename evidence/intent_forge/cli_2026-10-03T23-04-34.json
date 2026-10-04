@@ -1,0 +1,484 @@
+{
+  "version": "intent_brief v0.3",
+  "model": "qwen2.5-7b-instruct",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Qué querés construir:\r\nWebapp estilo Kanban/Trello\r\n\r\nQué tiene que hacer:\r\nCrear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\r\n\r\nCómo se tiene que ver:\r\nPaleta de colores de estilo industrial, opaco. Con hovers en el movimiento drag & drop. Sistema de semaforo para el orden prioritario de las tareas. Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo.\r\n\r\nQué no debe hacer:\r\nno debe persistirse en ninguna base de datos. El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp."
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)"
+    },
+    {
+      "role": "user",
+      "content": "Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta."
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cómo se elige una prioridad para cada tarea en la webapp? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)"
+    },
+    {
+      "role": "user",
+      "content": "Al crear una nueva tarjeta, mediante su formulario de creacion, la prioridad debera ser elegida en una lista desplegable."
+    },
+    {
+      "role": "assistant",
+      "content": "¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)"
+    },
+    {
+      "role": "user",
+      "content": "indicacion visual"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cómo se manejará la interacción con el sistema de semáforo? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)"
+    },
+    {
+      "role": "user",
+      "content": "igual para cada tarjeta"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cómo se verán los estados en las columnas? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)"
+    },
+    {
+      "role": "user",
+      "content": "los estados se veran en el detalle de la tarjeta no en las columnas"
+    }
+  ],
+  "refined_prompt": {
+    "project_name": "Webapp estilo Kanban/Trello",
+    "objetivo": "Webapp estilo Kanban/Trello",
+    "features": [
+      "Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea",
+      "Paleta de colores de estilo industrial, opaco",
+      "Con hovers en el movimiento drag & drop",
+      "Sistema de semaforo para el orden prioritario de las tareas",
+      "Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo"
+    ],
+    "criterios_holdout": [],
+    "restricciones": [
+      "no debe persistirse en ninguna base de datos",
+      "El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp"
+    ],
+    "estilo": [
+      "Paleta de colores de estilo industrial, opaco",
+      "Con hovers en el movimiento drag & drop",
+      "Sistema de semaforo para el orden prioritario de las tareas",
+      "Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo"
+    ],
+    "contexto": [
+      "Webapp estilo Kanban/Trello",
+      "¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo? → Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta",
+      "¿Cómo se elige una prioridad para cada tarea en la webapp? → Al crear una nueva tarjeta, mediante su formulario de creacion, la prioridad debera ser elegida en una lista desplegable",
+      "¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual? → indicacion visual",
+      "¿Cómo se manejará la interacción con el sistema de semáforo? → igual para cada tarjeta",
+      "¿Cómo se verán los estados en las columnas? → los estados se veran en el detalle de la tarjeta no en las columnas"
+    ],
+    "brief": {
+      "version": "intent_brief v0.3",
+      "lines": [
+        {
+          "id": "L1",
+          "field": "construir",
+          "text": "Webapp estilo Kanban/Trello"
+        },
+        {
+          "id": "L2",
+          "field": "hacer",
+          "text": "Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea"
+        },
+        {
+          "id": "L3",
+          "field": "ver",
+          "text": "Paleta de colores de estilo industrial, opaco"
+        },
+        {
+          "id": "L4",
+          "field": "ver",
+          "text": "Con hovers en el movimiento drag & drop"
+        },
+        {
+          "id": "L5",
+          "field": "ver",
+          "text": "Sistema de semaforo para el orden prioritario de las tareas"
+        },
+        {
+          "id": "L6",
+          "field": "ver",
+          "text": "Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo"
+        },
+        {
+          "id": "L7",
+          "field": "no",
+          "text": "no debe persistirse en ninguna base de datos"
+        },
+        {
+          "id": "L8",
+          "field": "no",
+          "text": "El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp"
+        },
+        {
+          "id": "L9",
+          "field": "respuesta",
+          "text": "Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta",
+          "pregunta": "¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?"
+        },
+        {
+          "id": "L10",
+          "field": "respuesta",
+          "text": "Al crear una nueva tarjeta, mediante su formulario de creacion, la prioridad debera ser elegida en una lista desplegable",
+          "pregunta": "¿Cómo se elige una prioridad para cada tarea en la webapp?"
+        },
+        {
+          "id": "L11",
+          "field": "respuesta",
+          "text": "indicacion visual",
+          "pregunta": "¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual?"
+        },
+        {
+          "id": "L12",
+          "field": "respuesta",
+          "text": "igual para cada tarjeta",
+          "pregunta": "¿Cómo se manejará la interacción con el sistema de semáforo?"
+        },
+        {
+          "id": "L13",
+          "field": "respuesta",
+          "text": "los estados se veran en el detalle de la tarjeta no en las columnas",
+          "pregunta": "¿Cómo se verán los estados en las columnas?"
+        }
+      ],
+      "items": [
+        {
+          "de": [
+            "L1"
+          ],
+          "tipo": "contexto",
+          "texto": "Webapp estilo Kanban/Trello",
+          "auto": true
+        },
+        {
+          "de": [
+            "L2"
+          ],
+          "tipo": "feature",
+          "texto": "Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea",
+          "auto": true
+        },
+        {
+          "de": [
+            "L3"
+          ],
+          "tipo": "estilo",
+          "texto": "Paleta de colores de estilo industrial, opaco",
+          "auto": true
+        },
+        {
+          "de": [
+            "L4"
+          ],
+          "tipo": "estilo",
+          "texto": "Con hovers en el movimiento drag & drop",
+          "auto": true
+        },
+        {
+          "de": [
+            "L5"
+          ],
+          "tipo": "estilo",
+          "texto": "Sistema de semaforo para el orden prioritario de las tareas",
+          "auto": true
+        },
+        {
+          "de": [
+            "L6"
+          ],
+          "tipo": "estilo",
+          "texto": "Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo",
+          "auto": true
+        },
+        {
+          "de": [
+            "L7"
+          ],
+          "tipo": "restriccion",
+          "texto": "no debe persistirse en ninguna base de datos",
+          "auto": true
+        },
+        {
+          "de": [
+            "L8"
+          ],
+          "tipo": "restriccion",
+          "texto": "El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp",
+          "auto": true
+        },
+        {
+          "de": [
+            "L9"
+          ],
+          "tipo": "contexto",
+          "texto": "¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo? → Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta",
+          "auto": true
+        },
+        {
+          "de": [
+            "L10"
+          ],
+          "tipo": "contexto",
+          "texto": "¿Cómo se elige una prioridad para cada tarea en la webapp? → Al crear una nueva tarjeta, mediante su formulario de creacion, la prioridad debera ser elegida en una lista desplegable",
+          "auto": true
+        },
+        {
+          "de": [
+            "L11"
+          ],
+          "tipo": "contexto",
+          "texto": "¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual? → indicacion visual",
+          "auto": true
+        },
+        {
+          "de": [
+            "L12"
+          ],
+          "tipo": "contexto",
+          "texto": "¿Cómo se manejará la interacción con el sistema de semáforo? → igual para cada tarjeta",
+          "auto": true
+        },
+        {
+          "de": [
+            "L13"
+          ],
+          "tipo": "contexto",
+          "texto": "¿Cómo se verán los estados en las columnas? → los estados se veran en el detalle de la tarjeta no en las columnas",
+          "auto": true
+        }
+      ],
+      "repairs": 2,
+      "preguntas": [
+        "¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?",
+        "¿Cómo se elige una prioridad para cada tarea en la webapp?",
+        "¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual?",
+        "¿Cómo se manejará la interacción con el sistema de semáforo?",
+        "¿Cómo se verán los estados en las columnas?"
+      ]
+    }
+  },
+  "auto_added": [
+    "L1",
+    "L2",
+    "L3",
+    "L4",
+    "L5",
+    "L6",
+    "L7",
+    "L8",
+    "L9",
+    "L10",
+    "L11",
+    "L12",
+    "L13"
+  ],
+  "calls": [
+    {
+      "ms": 39108,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\n- [cómo se tiene que ver] Con hovers en el movimiento drag & drop\n- [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\n- [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\n- [qué no debe hacer] no debe persistirse en ninguna base de datos\n- [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se manejará la prioridad de las tareas\",\"si las tarjetas tendrán comentarios\"],\"pregunta\":\"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"}\n```"
+    },
+    {
+      "ms": 14660,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\n- [cómo se tiene que ver] Con hovers en el movimiento drag & drop\n- [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\n- [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\n- [qué no debe hacer] no debe persistirse en ninguna base de datos\n- [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\n\nPREGUNTAS QUE YA HICISTE (1/10, no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se elige una prioridad\",\"qué campos tiene cada tarjeta\"],\"pregunta\":\"¿Cómo se elige una prioridad para cada tarea en la webapp?\"}\n```"
+    },
+    {
+      "ms": 19259,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\n- [cómo se tiene que ver] Con hovers en el movimiento drag & drop\n- [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\n- [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\n- [qué no debe hacer] no debe persistirse en ninguna base de datos\n- [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\n- [respuesta a \"¿Cómo se elige una prioridad para cada tarea en la webapp?\"] Al crear una nueva tarjeta, mediante su formulario de creacion, la prioridad debera ser elegida en una lista desplegable\n\nPREGUNTAS QUE YA HICISTE (2/10, no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Cómo se elige una prioridad para cada tarea en la webapp?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se usará el sistema de semáforo\",\"qué campos tendrá una tarjeta\"],\"pregunta\":\"¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual?\"}\n```"
+    },
+    {
+      "ms": 17732,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\n- [cómo se tiene que ver] Con hovers en el movimiento drag & drop\n- [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\n- [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\n- [qué no debe hacer] no debe persistirse en ninguna base de datos\n- [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\n- [respuesta a \"¿Cómo se elige una prioridad para cada tarea en la webapp?\"] Al crear una nueva tarjeta, mediante su formulario de creacion, la prioridad debera ser elegida en una lista desplegable\n- [respuesta a \"¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual?\"] indicacion visual\n\nPREGUNTAS QUE YA HICISTE (3/10, no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Cómo se elige una prioridad para cada tarea en la webapp?\n- ¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se manejará la interacción con el sistema de semáforo\"],\"pregunta\":\"¿Cómo se manejará la interacción con el sistema de semáforo?\"}\n```"
+    },
+    {
+      "ms": 17960,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\n- [cómo se tiene que ver] Con hovers en el movimiento drag & drop\n- [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\n- [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\n- [qué no debe hacer] no debe persistirse en ninguna base de datos\n- [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\n- [respuesta a \"¿Cómo se elige una prioridad para cada tarea en la webapp?\"] Al crear una nueva tarjeta, mediante su formulario de creacion, la prioridad debera ser elegida en una lista desplegable\n- [respuesta a \"¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual?\"] indicacion visual\n- [respuesta a \"¿Cómo se manejará la interacción con el sistema de semáforo?\"] igual para cada tarjeta\n\nPREGUNTAS QUE YA HICISTE (4/10, no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Cómo se elige una prioridad para cada tarea en la webapp?\n- ¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual?\n- ¿Cómo se manejará la interacción con el sistema de semáforo?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se verán los estados en las columnas\",\"si habrá algún tipo de búsqueda o filtrado\"],\"pregunta\":\"¿Cómo se verán los estados en las columnas?\"}\n```"
+    },
+    {
+      "ms": 15548,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Webapp estilo Kanban/Trello\n- [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\n- [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\n- [cómo se tiene que ver] Con hovers en el movimiento drag & drop\n- [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\n- [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\n- [qué no debe hacer] no debe persistirse en ninguna base de datos\n- [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\n- [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\n- [respuesta a \"¿Cómo se elige una prioridad para cada tarea en la webapp?\"] Al crear una nueva tarjeta, mediante su formulario de creacion, la prioridad debera ser elegida en una lista desplegable\n- [respuesta a \"¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual?\"] indicacion visual\n- [respuesta a \"¿Cómo se manejará la interacción con el sistema de semáforo?\"] igual para cada tarjeta\n- [respuesta a \"¿Cómo se verán los estados en las columnas?\"] los estados se veran en el detalle de la tarjeta no en las columnas\n\nPREGUNTAS QUE YA HICISTE (5/10, no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Cómo se elige una prioridad para cada tarea en la webapp?\n- ¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual?\n- ¿Cómo se manejará la interacción con el sistema de semáforo?\n- ¿Cómo se verán los estados en las columnas?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se verán los estados en las columnas\"],\"pregunta\":\"¿Cómo se verán los estados en las columnas?\"}\n```"
+    },
+    {
+      "ms": 196385,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos Intent Forge v0.3 del equipo MicheLab.\n\nRecibís las LÍNEAS que escribió el usuario, numeradas (L1, L2...). Entre corchetes va el campo de la plantilla donde la escribió.\nTu trabajo es CLASIFICAR cada línea, NO resumir.\n\nTIPOS:\n- contexto: qué es el proyecto, para quién, referencias (\"estilo Trello\"), adjetivos generales (\"sencilla\").\n- feature: algo que el usuario tiene que poder HACER en la app.\n- estilo: cómo se tiene que VER o sentir (colores, sombras, animaciones, efectos al pasar el mouse).\n- restriccion: un límite o algo que NO debe hacer (\"sin login\", \"sin base de datos\", \"solo frontend\", \"los datos se borran al recargar\").\n- descartado: SOLO si una línea [ajuste] pide sacar algo; en \"de\" van la línea que se saca y la línea [ajuste].\n\nREGLAS:\n1. Cada línea L tiene que aparecer en \"de\" de al menos un ítem. Ninguna se pierde.\n2. Si una línea nombra varias cosas, separalas: un ítem por cosa.\n3. Usá las palabras del usuario. No resumas ni generalices. Nombres, cantidades y listas (por ejemplo entre paréntesis) van dentro del texto del ítem.\n4. No agregues ítems que no salgan de una línea.\n5. El campo entre corchetes es una pista. Cambiá el tipo solo si la línea claramente es de otro tipo (por ejemplo \"drag & drop\" escrito en [cómo se tiene que ver] es una feature).\n   Si algo necesita un dato o una acción del usuario (prioridad, estado, etiquetas, fechas), es feature aunque esté en [cómo se tiene que ver]: \"semáforo de prioridad\" → feature \"Asignar prioridad a una tarjeta (semáforo)\".\n   Una feature = UNA acción. \"Crear, editar y borrar tarjetas\" son tres ítems: \"Crear tarjetas\", \"Editar tarjetas\", \"Borrar tarjetas\".\n6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.\n7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo \"¿Se pueden crear columnas?\" + \"sí\" → feature \"Crear columnas\"). Si es negativa, es una restriccion con \"Sin ...\" (por ejemplo \"¿Buscar tarjetas?\" + \"no\" → restriccion \"Sin búsqueda de tarjetas\").\n8. No hagas preguntas: devolvé siempre el JSON.\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"...\",\"items\":[{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"...\"}],\"criterios_holdout\":[\"cómo se verifica cada feature\"]}\n```\n\nEJEMPLO (otro proyecto):\nL1 [qué querés construir] Una app para guardar mis recetas, simple\nL2 [qué tiene que hacer] cargar recetas con ingredientes y pasos\nL3 [cómo se tiene que ver] colores cálidos, fotos grandes, que se puedan marcar favoritas\nL4 [qué no debe hacer] sin usuarios ni login\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Recetario\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"App simple para guardar mis recetas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Cargar recetas con ingredientes y pasos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Colores cálidos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Fotos grandes\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"Marcar recetas como favoritas\"},\n{\"de\":[\"L4\"],\"tipo\":\"restriccion\",\"texto\":\"Sin usuarios ni login\"}],\n\"criterios_holdout\":[\"Se puede cargar una receta con ingredientes y pasos\",\"Se puede marcar una receta como favorita\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LÍNEAS DEL USUARIO:\nL1 [qué querés construir] Webapp estilo Kanban/Trello\nL2 [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\nL3 [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\nL4 [cómo se tiene que ver] Con hovers en el movimiento drag & drop\nL5 [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\nL6 [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\nL7 [qué no debe hacer] no debe persistirse en ninguna base de datos\nL8 [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\nL9 [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\nL10 [respuesta a \"¿Cómo se elige una prioridad para cada tarea en la webapp?\"] Al crear una nueva tarjeta, mediante su formulario de creacion, la prioridad debera ser elegida en una lista desplegable\nL11 [respuesta a \"¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual?\"] indicacion visual\nL12 [respuesta a \"¿Cómo se manejará la interacción con el sistema de semáforo?\"] igual para cada tarjeta\nL13 [respuesta a \"¿Cómo se verán los estados en las columnas?\"] los estados se veran en el detalle de la tarjeta no en las columnas\n\nPREGUNTAS QUE YA HICISTE (no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Cómo se elige una prioridad para cada tarea en la webapp?\n- ¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual?\n- ¿Cómo se manejará la interacción con el sistema de semáforo?\n- ¿Cómo se verán los estados en las columnas?"
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n{\"de\":[\"L5\"],\"tipo\":\"estilo\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas\"},\n{\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n{\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n{\"de\":[\"L9\"],\"tipo\":\"feature\",\"texto\":\"Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\"},\n{\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Al crear una nueva tarjeta, mediante su formulario de creación, la prioridad deberá ser elegida en una lista desplegable\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"Indicación visual del sistema de semáforo\"},\n{\"de\":[\"L12\"],\"tipo\":\"restriccion\",\"texto\":\"Igual para cada tarjeta\"},\n{\"de\":[\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"Los estados se verán en el detalle de la tarjeta no en las columnas\"}],\n\"criterios_holdout\":[\"Se pueden crear, editar y borrar tarjetas de tareas\",\"Se puede arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo indica prioridad visualmente\",\"La prioridad se elige al crear una nueva tarjeta mediante un formulario\",\"Los estados no se verán en las columnas\"]}\"\n```"
+        },
+        {
+          "role": "user",
+          "content": "No preguntes. Devolvé solo el JSON COMPLETE, válido, dentro de ```json."
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n{\"de\":[\"L5\"],\"tipo\":\"estilo\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas\"},\n{\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n{\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n{\"de\":[\"L9\"],\"tipo\":\"feature\",\"texto\":\"Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\"},\n{\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Al crear una nueva tarjeta, mediante su formulario de creación, la prioridad deberá ser elegida en una lista desplegable\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"Indicación visual del sistema de semáforo\"},\n{\"de\":[\"L12\"],\"tipo\":\"restriccion\",\"texto\":\"Igual para cada tarjeta\"},\n{\"de\":[\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"Los estados se verán en el detalle de la tarjeta no en las columnas\"}],\n\"criterios_holdout\":[\"Se pueden crear, editar y borrar tarjetas de tareas\",\"Se puede arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo indica prioridad visualmente\",\"La prioridad se elige al crear una nueva tarjeta mediante un formulario\",\"Los estados no se verán en las columnas\"]}\"\n```"
+        },
+        {
+          "role": "user",
+          "content": "No preguntes. Devolvé solo el JSON COMPLETE, válido, dentro de ```json."
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n{\"de\":[\"L5\"],\"tipo\":\"estilo\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas\"},\n{\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n{\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n{\"de\":[\"L9\"],\"tipo\":\"feature\",\"texto\":\"Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\"},\n{\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Al crear una nueva tarjeta, mediante su formulario de creación, la prioridad deberá ser elegida en una lista desplegable\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"Indicación visual del sistema de semáforo\"},\n{\"de\":[\"L12\"],\"tipo\":\"restriccion\",\"texto\":\"Igual para cada tarjeta\"},\n{\"de\":[\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"Los estados se verán en el detalle de la tarjeta no en las columnas\"}],\n\"criterios_holdout\":[\"Se pueden crear, editar y borrar tarjetas de tareas\",\"Se puede arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo indica prioridad visualmente\",\"La prioridad se elige al crear una nueva tarjeta mediante un formulario\",\"Los estados no se verán en las columnas\"]}\"\n```"
+        },
+        {
+          "role": "user",
+          "content": "No preguntes. Devolvé solo el JSON COMPLETE, válido, dentro de ```json."
+        }
+      ],
+      "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n{\"de\":[\"L5\"],\"tipo\":\"estilo\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas\"},\n{\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n{\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n{\"de\":[\"L9\"],\"tipo\":\"feature\",\"texto\":\"Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\"},\n{\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Al crear una nueva tarjeta, mediante su formulario de creación, la prioridad deberá ser elegida en una lista desplegable\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"Indicación visual del sistema de semáforo\"},\n{\"de\":[\"L12\"],\"tipo\":\"restriccion\",\"texto\":\"Igual para cada tarjeta\"},\n{\"de\":[\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"Los estados se verán en el detalle de la tarjeta no en las columnas\"}],\n\"criterios_holdout\":[\"Se pueden crear, editar y borrar tarjetas de tareas\",\"Se puede arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo indica prioridad visualmente\",\"La prioridad se elige al crear una nueva tarjeta mediante un formulario\",\"Los estados no se verán en las columnas\"]}\"\n```"
+    },
+    {
+      "ms": 159471,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos Intent Forge v0.3 del equipo MicheLab.\n\nRecibís las LÍNEAS que escribió el usuario, numeradas (L1, L2...). Entre corchetes va el campo de la plantilla donde la escribió.\nTu trabajo es CLASIFICAR cada línea, NO resumir.\n\nTIPOS:\n- contexto: qué es el proyecto, para quién, referencias (\"estilo Trello\"), adjetivos generales (\"sencilla\").\n- feature: algo que el usuario tiene que poder HACER en la app.\n- estilo: cómo se tiene que VER o sentir (colores, sombras, animaciones, efectos al pasar el mouse).\n- restriccion: un límite o algo que NO debe hacer (\"sin login\", \"sin base de datos\", \"solo frontend\", \"los datos se borran al recargar\").\n- descartado: SOLO si una línea [ajuste] pide sacar algo; en \"de\" van la línea que se saca y la línea [ajuste].\n\nREGLAS:\n1. Cada línea L tiene que aparecer en \"de\" de al menos un ítem. Ninguna se pierde.\n2. Si una línea nombra varias cosas, separalas: un ítem por cosa.\n3. Usá las palabras del usuario. No resumas ni generalices. Nombres, cantidades y listas (por ejemplo entre paréntesis) van dentro del texto del ítem.\n4. No agregues ítems que no salgan de una línea.\n5. El campo entre corchetes es una pista. Cambiá el tipo solo si la línea claramente es de otro tipo (por ejemplo \"drag & drop\" escrito en [cómo se tiene que ver] es una feature).\n   Si algo necesita un dato o una acción del usuario (prioridad, estado, etiquetas, fechas), es feature aunque esté en [cómo se tiene que ver]: \"semáforo de prioridad\" → feature \"Asignar prioridad a una tarjeta (semáforo)\".\n   Una feature = UNA acción. \"Crear, editar y borrar tarjetas\" son tres ítems: \"Crear tarjetas\", \"Editar tarjetas\", \"Borrar tarjetas\".\n6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.\n7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo \"¿Se pueden crear columnas?\" + \"sí\" → feature \"Crear columnas\"). Si es negativa, es una restriccion con \"Sin ...\" (por ejemplo \"¿Buscar tarjetas?\" + \"no\" → restriccion \"Sin búsqueda de tarjetas\").\n8. No hagas preguntas: devolvé siempre el JSON.\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"...\",\"items\":[{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"...\"}],\"criterios_holdout\":[\"cómo se verifica cada feature\"]}\n```\n\nEJEMPLO (otro proyecto):\nL1 [qué querés construir] Una app para guardar mis recetas, simple\nL2 [qué tiene que hacer] cargar recetas con ingredientes y pasos\nL3 [cómo se tiene que ver] colores cálidos, fotos grandes, que se puedan marcar favoritas\nL4 [qué no debe hacer] sin usuarios ni login\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Recetario\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"App simple para guardar mis recetas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Cargar recetas con ingredientes y pasos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Colores cálidos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Fotos grandes\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"Marcar recetas como favoritas\"},\n{\"de\":[\"L4\"],\"tipo\":\"restriccion\",\"texto\":\"Sin usuarios ni login\"}],\n\"criterios_holdout\":[\"Se puede cargar una receta con ingredientes y pasos\",\"Se puede marcar una receta como favorita\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LÍNEAS DEL USUARIO:\nL1 [qué querés construir] Webapp estilo Kanban/Trello\nL2 [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\nL3 [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\nL4 [cómo se tiene que ver] Con hovers en el movimiento drag & drop\nL5 [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\nL6 [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\nL7 [qué no debe hacer] no debe persistirse en ninguna base de datos\nL8 [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\nL9 [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\nL10 [respuesta a \"¿Cómo se elige una prioridad para cada tarea en la webapp?\"] Al crear una nueva tarjeta, mediante su formulario de creacion, la prioridad debera ser elegida en una lista desplegable\nL11 [respuesta a \"¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual?\"] indicacion visual\nL12 [respuesta a \"¿Cómo se manejará la interacción con el sistema de semáforo?\"] igual para cada tarjeta\nL13 [respuesta a \"¿Cómo se verán los estados en las columnas?\"] los estados se veran en el detalle de la tarjeta no en las columnas\n\nPREGUNTAS QUE YA HICISTE (no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Cómo se elige una prioridad para cada tarea en la webapp?\n- ¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual?\n- ¿Cómo se manejará la interacción con el sistema de semáforo?\n- ¿Cómo se verán los estados en las columnas?"
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n{\"de\":[\"L5\"],\"tipo\":\"estilo\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas\"},\n{\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n{\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n{\"de\":[\"L9\"],\"tipo\":\"feature\",\"texto\":\"Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\"},\n{\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Al crear una nueva tarjeta, mediante su formulario de creación, la prioridad deberá ser elegida en una lista desplegable\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"Indicación visual del sistema de semáforo\"},\n{\"de\":[\"L12\"],\"tipo\":\"restriccion\",\"texto\":\"Igual para cada tarjeta\"},\n{\"de\":[\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"Los estados se verán en el detalle de la tarjeta no en las columnas\"}],\n\"criterios_holdout\":[\"Se pueden crear, editar y borrar tarjetas de tareas\",\"Se puede arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo indica prioridad visualmente\",\"La prioridad se elige al crear una nueva tarjeta mediante un formulario\",\"Los estados no se verán en las columnas\"]}\"\n```"
+        },
+        {
+          "role": "user",
+          "content": "No preguntes. Devolvé solo el JSON COMPLETE, válido, dentro de ```json."
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n{\"de\":[\"L5\"],\"tipo\":\"estilo\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas\"},\n{\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n{\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n{\"de\":[\"L9\"],\"tipo\":\"feature\",\"texto\":\"Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\"},\n{\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Al crear una nueva tarjeta, mediante su formulario de creación, la prioridad deberá ser elegida en una lista desplegable\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"Indicación visual del sistema de semáforo\"},\n{\"de\":[\"L12\"],\"tipo\":\"restriccion\",\"texto\":\"Igual para cada tarjeta\"},\n{\"de\":[\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"Los estados se verán en el detalle de la tarjeta no en las columnas\"}],\n\"criterios_holdout\":[\"Se pueden crear, editar y borrar tarjetas de tareas\",\"Se puede arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo indica prioridad visualmente\",\"La prioridad se elige al crear una nueva tarjeta mediante un formulario\",\"Los estados no se verán en las columnas\"]}\"\n```"
+        },
+        {
+          "role": "user",
+          "content": "No preguntes. Devolvé solo el JSON COMPLETE, válido, dentro de ```json."
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n{\"de\":[\"L5\"],\"tipo\":\"estilo\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas\"},\n{\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n{\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n{\"de\":[\"L9\"],\"tipo\":\"feature\",\"texto\":\"Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\"},\n{\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Al crear una nueva tarjeta, mediante su formulario de creación, la prioridad deberá ser elegida en una lista desplegable\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"Indicación visual del sistema de semáforo\"},\n{\"de\":[\"L12\"],\"tipo\":\"restriccion\",\"texto\":\"Igual para cada tarjeta\"},\n{\"de\":[\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"Los estados se verán en el detalle de la tarjeta no en las columnas\"}],\n\"criterios_holdout\":[\"Se pueden crear, editar y borrar tarjetas de tareas\",\"Se puede arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo indica prioridad visualmente\",\"La prioridad se elige al crear una nueva tarjeta mediante un formulario\",\"Los estados no se verán en las columnas\"]}\"\n```"
+        },
+        {
+          "role": "user",
+          "content": "No preguntes. Devolvé solo el JSON COMPLETE, válido, dentro de ```json."
+        }
+      ],
+      "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n{\"de\":[\"L5\"],\"tipo\":\"estilo\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas\"},\n{\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n{\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n{\"de\":[\"L9\"],\"tipo\":\"feature\",\"texto\":\"Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\"},\n{\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Al crear una nueva tarjeta, mediante su formulario de creación, la prioridad deberá ser elegida en una lista desplegable\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"Indicación visual del sistema de semáforo\"},\n{\"de\":[\"L12\"],\"tipo\":\"restriccion\",\"texto\":\"Igual para cada tarjeta\"},\n{\"de\":[\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"Los estados se verán en el detalle de la tarjeta no en las columnas\"}],\n\"criterios_holdout\":[\"Se pueden crear, editar y borrar tarjetas de tareas\",\"Se puede arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo indica prioridad visualmente\",\"La prioridad se elige al crear una nueva tarjeta mediante un formulario\",\"Los estados no se verán en las columnas\"]}\"\n```"
+    },
+    {
+      "ms": 160928,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos Intent Forge v0.3 del equipo MicheLab.\n\nRecibís las LÍNEAS que escribió el usuario, numeradas (L1, L2...). Entre corchetes va el campo de la plantilla donde la escribió.\nTu trabajo es CLASIFICAR cada línea, NO resumir.\n\nTIPOS:\n- contexto: qué es el proyecto, para quién, referencias (\"estilo Trello\"), adjetivos generales (\"sencilla\").\n- feature: algo que el usuario tiene que poder HACER en la app.\n- estilo: cómo se tiene que VER o sentir (colores, sombras, animaciones, efectos al pasar el mouse).\n- restriccion: un límite o algo que NO debe hacer (\"sin login\", \"sin base de datos\", \"solo frontend\", \"los datos se borran al recargar\").\n- descartado: SOLO si una línea [ajuste] pide sacar algo; en \"de\" van la línea que se saca y la línea [ajuste].\n\nREGLAS:\n1. Cada línea L tiene que aparecer en \"de\" de al menos un ítem. Ninguna se pierde.\n2. Si una línea nombra varias cosas, separalas: un ítem por cosa.\n3. Usá las palabras del usuario. No resumas ni generalices. Nombres, cantidades y listas (por ejemplo entre paréntesis) van dentro del texto del ítem.\n4. No agregues ítems que no salgan de una línea.\n5. El campo entre corchetes es una pista. Cambiá el tipo solo si la línea claramente es de otro tipo (por ejemplo \"drag & drop\" escrito en [cómo se tiene que ver] es una feature).\n   Si algo necesita un dato o una acción del usuario (prioridad, estado, etiquetas, fechas), es feature aunque esté en [cómo se tiene que ver]: \"semáforo de prioridad\" → feature \"Asignar prioridad a una tarjeta (semáforo)\".\n   Una feature = UNA acción. \"Crear, editar y borrar tarjetas\" son tres ítems: \"Crear tarjetas\", \"Editar tarjetas\", \"Borrar tarjetas\".\n6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.\n7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo \"¿Se pueden crear columnas?\" + \"sí\" → feature \"Crear columnas\"). Si es negativa, es una restriccion con \"Sin ...\" (por ejemplo \"¿Buscar tarjetas?\" + \"no\" → restriccion \"Sin búsqueda de tarjetas\").\n8. No hagas preguntas: devolvé siempre el JSON.\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"...\",\"items\":[{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"...\"}],\"criterios_holdout\":[\"cómo se verifica cada feature\"]}\n```\n\nEJEMPLO (otro proyecto):\nL1 [qué querés construir] Una app para guardar mis recetas, simple\nL2 [qué tiene que hacer] cargar recetas con ingredientes y pasos\nL3 [cómo se tiene que ver] colores cálidos, fotos grandes, que se puedan marcar favoritas\nL4 [qué no debe hacer] sin usuarios ni login\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Recetario\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"App simple para guardar mis recetas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Cargar recetas con ingredientes y pasos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Colores cálidos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Fotos grandes\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"Marcar recetas como favoritas\"},\n{\"de\":[\"L4\"],\"tipo\":\"restriccion\",\"texto\":\"Sin usuarios ni login\"}],\n\"criterios_holdout\":[\"Se puede cargar una receta con ingredientes y pasos\",\"Se puede marcar una receta como favorita\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LÍNEAS DEL USUARIO:\nL1 [qué querés construir] Webapp estilo Kanban/Trello\nL2 [qué tiene que hacer] Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea\nL3 [cómo se tiene que ver] Paleta de colores de estilo industrial, opaco\nL4 [cómo se tiene que ver] Con hovers en el movimiento drag & drop\nL5 [cómo se tiene que ver] Sistema de semaforo para el orden prioritario de las tareas\nL6 [cómo se tiene que ver] Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo\nL7 [qué no debe hacer] no debe persistirse en ninguna base de datos\nL8 [qué no debe hacer] El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp\nL9 [respuesta a \"¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\"] Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\nL10 [respuesta a \"¿Cómo se elige una prioridad para cada tarea en la webapp?\"] Al crear una nueva tarjeta, mediante su formulario de creacion, la prioridad debera ser elegida en una lista desplegable\nL11 [respuesta a \"¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual?\"] indicacion visual\nL12 [respuesta a \"¿Cómo se manejará la interacción con el sistema de semáforo?\"] igual para cada tarjeta\nL13 [respuesta a \"¿Cómo se verán los estados en las columnas?\"] los estados se veran en el detalle de la tarjeta no en las columnas\n\nPREGUNTAS QUE YA HICISTE (no las repitas):\n- ¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?\n- ¿Cómo se elige una prioridad para cada tarea en la webapp?\n- ¿El sistema de semáforo se utilizará para reorganizar las tareas automáticamente o solo como indicación visual?\n- ¿Cómo se manejará la interacción con el sistema de semáforo?\n- ¿Cómo se verán los estados en las columnas?"
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n{\"de\":[\"L5\"],\"tipo\":\"estilo\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas\"},\n{\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n{\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n{\"de\":[\"L9\"],\"tipo\":\"feature\",\"texto\":\"Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\"},\n{\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Al crear una nueva tarjeta, mediante su formulario de creación, la prioridad deberá ser elegida en una lista desplegable\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"Indicación visual del sistema de semáforo\"},\n{\"de\":[\"L12\"],\"tipo\":\"restriccion\",\"texto\":\"Igual para cada tarjeta\"},\n{\"de\":[\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"Los estados se verán en el detalle de la tarjeta no en las columnas\"}],\n\"criterios_holdout\":[\"Se pueden crear, editar y borrar tarjetas de tareas\",\"Se puede arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo indica prioridad visualmente\",\"La prioridad se elige al crear una nueva tarjeta mediante un formulario\",\"Los estados no se verán en las columnas\"]}\"\n```"
+        },
+        {
+          "role": "user",
+          "content": "No preguntes. Devolvé solo el JSON COMPLETE, válido, dentro de ```json."
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n{\"de\":[\"L5\"],\"tipo\":\"estilo\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas\"},\n{\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n{\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n{\"de\":[\"L9\"],\"tipo\":\"feature\",\"texto\":\"Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\"},\n{\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Al crear una nueva tarjeta, mediante su formulario de creación, la prioridad deberá ser elegida en una lista desplegable\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"Indicación visual del sistema de semáforo\"},\n{\"de\":[\"L12\"],\"tipo\":\"restriccion\",\"texto\":\"Igual para cada tarjeta\"},\n{\"de\":[\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"Los estados se verán en el detalle de la tarjeta no en las columnas\"}],\n\"criterios_holdout\":[\"Se pueden crear, editar y borrar tarjetas de tareas\",\"Se puede arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo indica prioridad visualmente\",\"La prioridad se elige al crear una nueva tarjeta mediante un formulario\",\"Los estados no se verán en las columnas\"]}\"\n```"
+        },
+        {
+          "role": "user",
+          "content": "No preguntes. Devolvé solo el JSON COMPLETE, válido, dentro de ```json."
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n{\"de\":[\"L5\"],\"tipo\":\"estilo\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas\"},\n{\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n{\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n{\"de\":[\"L9\"],\"tipo\":\"feature\",\"texto\":\"Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\"},\n{\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Al crear una nueva tarjeta, mediante su formulario de creación, la prioridad deberá ser elegida en una lista desplegable\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"Indicación visual del sistema de semáforo\"},\n{\"de\":[\"L12\"],\"tipo\":\"restriccion\",\"texto\":\"Igual para cada tarjeta\"},\n{\"de\":[\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"Los estados se verán en el detalle de la tarjeta no en las columnas\"}],\n\"criterios_holdout\":[\"Se pueden crear, editar y borrar tarjetas de tareas\",\"Se puede arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo indica prioridad visualmente\",\"La prioridad se elige al crear una nueva tarjeta mediante un formulario\",\"Los estados no se verán en las columnas\"]}\"\n```"
+        },
+        {
+          "role": "user",
+          "content": "No preguntes. Devolvé solo el JSON COMPLETE, válido, dentro de ```json."
+        }
+      ],
+      "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Kanban/Trello Webapp\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Webapp estilo Kanban/Trello\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Crear tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Editar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Borrar tarjetas de tareas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Paleta de colores de estilo industrial, opaco\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Con hovers en el movimiento drag & drop\"},\n{\"de\":[\"L5\"],\"tipo\":\"estilo\",\"texto\":\"Sistema de semáforo para el orden prioritario de las tareas\"},\n{\"de\":[\"L6\"],\"tipo\":\"estilo\",\"texto\":\"Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su título\"},\n{\"de\":[\"L7\"],\"tipo\":\"restriccion\",\"texto\":\"Sin persistencia en ninguna base de datos\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El contenido cargado se perderá al actualizar la pestaña del navegador donde se encuentre la webapp\"},\n{\"de\":[\"L9\"],\"tipo\":\"feature\",\"texto\":\"Verde:Prioridad baja, Amarillo:Prioridad Media, Rojo:Prioridad Alta\"},\n{\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"Al crear una nueva tarjeta, mediante su formulario de creación, la prioridad deberá ser elegida en una lista desplegable\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"Indicación visual del sistema de semáforo\"},\n{\"de\":[\"L12\"],\"tipo\":\"restriccion\",\"texto\":\"Igual para cada tarjeta\"},\n{\"de\":[\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"Los estados se verán en el detalle de la tarjeta no en las columnas\"}],\n\"criterios_holdout\":[\"Se pueden crear, editar y borrar tarjetas de tareas\",\"Se puede arrastrar y soltar tarjetas entre columnas que definan el estado actual de la tarea\",\"El sistema de semáforo indica prioridad visualmente\",\"La prioridad se elige al crear una nueva tarjeta mediante un formulario\",\"Los estados no se verán en las columnas\"]}\"\n```"
+    }
+  ]
+}

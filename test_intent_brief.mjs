@@ -4,7 +4,7 @@ import {
   parseBrief, numberLines, validateItems, fillUncovered, buildRefined,
   buildTechLeaderInput, parseModelOutput, runIntentForge, formatLinesForModel,
   TEMPLATE_TEXT, TEMPLATE_EXAMPLE, HARNESS_QUESTIONS, QUESTION_SYSTEM, QUESTION_HINT,
-  isControlReply,
+  isControlReply, splitSentences, actionVerbs, parseInterviewer, sameTopicAsked, questionFromGap, grounded, repairFeedback,
 } from "./intent_brief.mjs";
 
 let ok = 0, fail = 0;
@@ -17,7 +17,7 @@ const eq = (a, b, m = "") => assert(JSON.stringify(a) === JSON.stringify(b), `${
 
 // Project23 reescrito con la plantilla, con las mismas frases que usó Miche.
 const P23 = `Qué querés construir:
-- Una webapp estilo Kanban o Trello. Sencilla
+- Una webapp estilo Kanban o Trello, sencilla
 Qué tiene que hacer:
 - Crear cards y moverlas en columnas de estados (pendientes, en curso, finalizadas, pospuestas)
 - Drag & Drop funcional
@@ -52,7 +52,7 @@ const P23_ITEMS = [
 const complete = (items, extra = {}) =>
   "```json\n" + JSON.stringify({ status: "COMPLETE", project_name: "Kanban WebApp", items, criterios_holdout: ["Se puede crear una tarjeta"], ...extra }) + "\n```";
 // Modelo simulado con dos colas: preguntas (QUESTION_SYSTEM) y clasificación.
-const fakeModel = (classify, questions = ["LISTO"]) => {
+const fakeModel = (classify, questions = ['{"faltantes":[],"pregunta":null}']) => {
   const calls = [], qcalls = [];
   const fn = async (messages) => {
     if (messages[0].content === QUESTION_SYSTEM) {
@@ -277,6 +277,150 @@ await check("clasificación: JSON ilegible o pregunta en vez de JSON → reinten
   const model = fakeModel(['```json\n{"status":"COMPLETE","items":[\n```', "¿Querés algo más?", complete(P23_ITEMS)]);
   const r = await runIntentForge([{ role: "user", content: P23 }], { callModel: model });
   eq([r.status, model.calls.length], ["COMPLETE", 3]);
+});
+
+// ---- v0.3 (evidencia Project24) ----
+const P24 = `Qué querés construir:
+Webapp estilo Kanban/Trello
+
+Qué tiene que hacer:
+Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado actual de la tarea
+
+Cómo se tiene que ver:
+Paleta de colores de estilo industrial, opaco. Con hovers en el movimiento drag & drop. Sistema de semaforo para el orden prioritario de las tareas. Etiquetas en tono grisaceo para diferenciarse del contenido de la tarjeta y su titulo.
+
+Qué no debe hacer:
+no debe persistirse en ninguna base de datos. El contenido cargado se perdera al actualizar la pestaña del navegador donde se encuentre la webapp.`;
+
+await check("splitSentences: corta por oración, no adentro de paréntesis ni en números", () => {
+  eq(splitSentences("Paleta opaca. Hovers en drag & drop. Semáforo (alta. media) de 1.5 niveles; etiquetas grises."),
+    ["Paleta opaca", "Hovers en drag & drop", "Semáforo (alta. media) de 1.5 niveles", "etiquetas grises"]);
+});
+await check("P24 real: 8 líneas (la de estilo se parte en 4, la restricción en 2)", () => {
+  const n = numberLines([{ role: "user", content: P24 }]);
+  eq(n.lines.map((l) => l.field), ["construir", "hacer", "ver", "ver", "ver", "ver", "no", "no"]);
+  eq(n.lines[4].text, "Sistema de semaforo para el orden prioritario de las tareas");
+});
+await check("actionVerbs: compuesta vs. simple (subordinada y auxiliares no cuentan)", () => {
+  eq(actionVerbs("Crear, editar y borrar tarjetas de tareas y poder arrastrarlas entre columnas que definan el estado"), ["crear", "editar", "borrar", "arrastrar"]);
+  eq(actionVerbs("Arrastrar tarjetas entre columnas para cambiar su estado"), ["arrastrar"]);
+  eq(actionVerbs("Permitir crear tarjetas"), ["crear"]);
+  eq(actionVerbs("Ver y editar el detalle"), ["ver", "editar"]);
+  eq(actionVerbs("Mover tarjetas entre columnas (pendientes, en curso)"), ["mover"]);
+});
+await check("P24: la feature compuesta vuelve al modelo y se separa", async () => {
+  const lines = numberLines([{ role: "user", content: P24 }]).lines;
+  const base = [
+    { de: ["L1"], tipo: "contexto", texto: "Webapp estilo Kanban/Trello" },
+    { de: ["L3"], tipo: "estilo", texto: "Paleta industrial, opaca" },
+    { de: ["L4"], tipo: "estilo", texto: "Hovers durante el drag & drop" },
+    { de: ["L5"], tipo: "feature", texto: "Asignar prioridad a una tarjeta (semáforo)" },
+    { de: ["L6"], tipo: "estilo", texto: "Etiquetas en tono grisáceo" },
+    { de: ["L7", "L8"], tipo: "restriccion", texto: "Sin persistencia: se pierde al recargar" },
+  ];
+  const junta = [...base, { de: ["L2"], tipo: "feature", texto: lines[1].text }];
+  const separada = [...base, ...["Crear tarjetas", "Editar tarjetas", "Borrar tarjetas", "Arrastrar tarjetas entre columnas de estado"].map((texto) => ({ de: ["L2"], tipo: "feature", texto }))];
+  const model = fakeModel([complete(junta), complete(separada)]);
+  const r = await runIntentForge([{ role: "user", content: P24 }], { callModel: model });
+  eq(model.calls.length, 2);
+  assert(model.calls[1].at(-1).content.includes("junta varias acciones (crear, editar, borrar, arrastrar)"), model.calls[1].at(-1).content);
+  eq(r.refined.features.slice(0, 5), ["Crear tarjetas", "Editar tarjetas", "Borrar tarjetas", "Arrastrar tarjetas entre columnas de estado", "Asignar prioridad a una tarjeta (semáforo)"]);
+  eq(r.compound, []);
+});
+await check("si sigue compuesta después de los reintentos, queda marcada", async () => {
+  const lines = numberLines([{ role: "user", content: P24 }]).lines;
+  const junta = lines.map((l) => ({ de: [l.id], tipo: l.field === "hacer" ? "feature" : "contexto", texto: l.text }));
+  const r = await runIntentForge([{ role: "user", content: P24 }], { callModel: fakeModel([complete(junta)]) });
+  eq(r.compound.length, 1);
+  assert(r.refined.brief.items.find((i) => i.compuesta), "no marcó compuesta");
+});
+await check("entrevistador JSON: con faltantes pregunta; vacío = LISTO; texto plano tolerado", () => {
+  eq(parseInterviewer('```json\n{"faltantes":["nombres de columnas"],"pregunta":"¿Qué columnas querés?"}\n```'), { done: false, pregunta: "¿Qué columnas querés?", faltantes: ["nombres de columnas"] });
+  eq(parseInterviewer('{"faltantes":[],"pregunta":null}').done, true);
+  eq(parseInterviewer('{"faltantes":["campos de una tarjeta"],"pregunta":""}').pregunta, "¿Me contás sobre esto: campos de una tarjeta?");
+  eq(parseInterviewer("LISTO").done, true);
+  eq(parseInterviewer("¿Hay comentarios?").pregunta, "¿Hay comentarios?");
+});
+await check("entrevistador: los faltantes quedan en la evidencia del turno", async () => {
+  const r = await runIntentForge([{ role: "user", content: P24 }],
+    { callModel: fakeModel([complete([])], ['{"faltantes":["nombres de columnas","campos de la tarjeta"],"pregunta":"¿Qué columnas querés?"}']) });
+  eq([r.status, r.faltantes], ["ASKING", ["nombres de columnas", "campos de la tarjeta"]]);
+  eq(r.attempts[0].faltantes, ["nombres de columnas", "campos de la tarjeta"]);
+});
+
+// ---- v0.4 (segunda corrida Project24) ----
+await check("parser: JSON válido con '\"' suelto después de la última } (caso real P24)", () => {
+  const raw = '```json\n{"status":"COMPLETE","project_name":"K","items":[\n{"de":["L1"],"tipo":"contexto","texto":"Kanban"}],\n"criterios_holdout":["a"]}"\n```';
+  const p = parseModelOutput(raw);
+  assert(p.complete && p.data.items.length === 1, JSON.stringify(p));
+});
+await check("JSON ilegible: el reintento le dice el error real", async () => {
+  const model = fakeModel(['```json\n{"status":"COMPLETE","items":[{"de":["L1"]\n```', complete(P23_ITEMS)]);
+  await runIntentForge([{ role: "user", content: P23 }], { callModel: model });
+  assert(/no se pudo leer \(.+\)/.test(model.calls[1].at(-1).content), model.calls[1].at(-1).content);
+});
+await check("mismo tema con otras palabras → se detecta (preguntas reales P24)", () => {
+  const lines = numberLines([{ role: "user", content: P24 }]).lines;
+  const q1 = "¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo?";
+  assert(sameTopicAsked("¿Cómo se manejará la interacción con el sistema de semáforo?", [q1], lines), "no detectó el repetido");
+  assert(!sameTopicAsked("¿Cómo se verán los estados en las columnas?", [q1], lines), "falso repetido");
+  assert(!sameTopicAsked("¿Las tarjetas tienen comentarios?", [q1], lines), "falso repetido");
+});
+await check("tema repetido → el harness pregunta el siguiente faltante", async () => {
+  const conv = [
+    { role: "user", content: P24 },
+    { role: "assistant", content: `¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo? ${QUESTION_HINT}` },
+    { role: "user", content: "verde baja, amarillo media, rojo alta" },
+  ];
+  const model = fakeModel([complete([])], ['{"faltantes":["la interacción con el semáforo","si las tarjetas tendrán comentarios"],"pregunta":"¿Cómo se manejará la interacción con el sistema de semáforo?"}']);
+  const r = await runIntentForge(conv, { callModel: model });
+  eq([r.status, r.by, r.question], ["ASKING", "harness_faltante", `¿Las tarjetas tendrán comentarios? ${QUESTION_HINT}`]);
+  eq(r.attempts[0].kind, "faltante_siguiente");
+});
+await check("tema repetido y sin otro faltante → clasifica", async () => {
+  const conv = [
+    { role: "user", content: P24 },
+    { role: "assistant", content: `¿Cómo se manejará la prioridad de las tareas en el sistema de semáforo? ${QUESTION_HINT}` },
+    { role: "user", content: "verde baja" },
+  ];
+  const lines = numberLines(conv).lines;
+  const items = lines.map((l) => ({ de: [l.id], tipo: l.field === "hacer" ? "feature" : "contexto", texto: `x ${l.id}` }));
+  const model = fakeModel([complete(items)], ['{"faltantes":["la interacción con el semáforo"],"pregunta":"¿Cómo se manejará la interacción con el sistema de semáforo?"}']);
+  const r = await runIntentForge(conv, { callModel: model });
+  eq(r.status, "COMPLETE");
+});
+await check("questionFromGap y 'arrastrar y soltar' como una sola acción", () => {
+  eq(questionFromGap("si las tarjetas tendrán comentarios"), "¿Las tarjetas tendrán comentarios?");
+  eq(questionFromGap("qué campos tiene cada tarjeta"), "¿Qué campos tiene cada tarjeta?");
+  eq(actionVerbs("Arrastrar y soltar tarjetas entre columnas"), ["arrastrar"]);
+});
+
+// ---- v0.5 del módulo (tercera corrida Project24) ----
+const L10 = { id: "L10", field: "respuesta", text: "dentro del formulario de creacion/edicion, mediante una lista desplegable", pregunta: "¿Cómo se elegirá la prioridad al crear o editar una tarjeta?" };
+await check("ítem inventado ('Sin login' citando L10) → inválido; con palabras de la pregunta → válido", () => {
+  assert(!grounded("Sin login", [L10]), "aceptó Sin login");
+  assert(grounded("Elegir la prioridad desde una lista desplegable", [L10]));
+  assert(grounded("Sin búsqueda de tarjetas", [{ id: "L1", field: "respuesta", text: "no", pregunta: "¿Se pueden buscar tarjetas?" }]));
+  assert(grounded("Lo que sea", [{ id: "L1", field: "respuesta", text: "sí" }]), "línea sin palabras de contenido no exige");
+  eq(validateItems([{ de: ["L10"], tipo: "restriccion", texto: "Sin login" }], [L10]).invalid.length, 1);
+});
+await check("el reintento muestra el texto (y la pregunta) de cada línea sin ubicar", () => {
+  const fb = repairFeedback({ uncovered: ["L10"] }, [L10]);
+  assert(fb.includes('L10 (respuesta a "¿Cómo se elegirá la prioridad al crear o editar una tarjeta?"): "dentro del formulario'), fb);
+  assert(fb.includes("agregalas a ese ítem"), fb);
+});
+await check("faltantes no preguntados viajan en el historial y se le recuerdan al entrevistador", async () => {
+  const conv = [
+    { role: "user", content: P24 },
+    { role: "assistant", content: `¿Cómo se manejará la prioridad de las tareas? ${QUESTION_HINT}`, faltantes: ["cómo se manejará la prioridad", "cuántas columnas hay y qué estados representan"] },
+    { role: "user", content: "verde baja, amarillo media, rojo alta" },
+  ];
+  const model = fakeModel([complete([])], ['{"faltantes":["cómo se usará el semáforo de prioridad"],"pregunta":"¿Cómo se manejará la prioridad de las tareas en el semáforo?"}']);
+  const r = await runIntentForge(conv, { callModel: model });
+  const prompt = model.qcalls[0][1].content;
+  assert(prompt.includes("TODAVÍA NO PREGUNTASTE") && prompt.includes("cuántas columnas hay y qué estados representan"), prompt);
+  assert(!prompt.split("TODAVÍA NO PREGUNTASTE")[1].includes("cómo se manejará la prioridad"), "recordó un tema ya preguntado");
+  eq([r.by, r.question], ["harness_faltante", `¿Cuántas columnas hay y qué estados representan? ${QUESTION_HINT}`]);
 });
 
 console.log(`\n${ok}/${ok + fail} tests OK`);

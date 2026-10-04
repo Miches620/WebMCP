@@ -15,7 +15,7 @@ import {
 // (/api/version) y, si no coincide con el de la pestaña abierta, la UI avisa
 // que hay que recargar. Origen: Project21 corrió con el JS viejo en una
 // pestaña abierta desde antes del cambio (reiniciar el server no alcanza).
-const BUILD_ID = "2026-10-03.2";
+const BUILD_ID = "2026-10-04.1";
 
 const STORAGE_KEY = "webmcp_state";
 const MAX_TECHLEADER_ATTEMPTS = 3;
@@ -231,6 +231,7 @@ async function sendToIntentForge(userMessage, { auto = false } = {}) {
     webmcpState.intentForge.history.push({
       role: "assistant",
       content: assistantMessage,
+      ...(data.faltantes?.length ? { faltantes: data.faltantes } : {}),
     });
     appendToReasoning(
       `<div class="text-cyan-400 text-xs">[INTENT_FORGE] iter=${data.iteration} COMPLETE=${data.isComplete}</div>`,
@@ -300,7 +301,10 @@ function itemHTML(it, line) {
   const auto = it.auto
     ? ` <span class="text-[9px] text-amber-300" title="El modelo no ubicó esta línea; la agregó el harness con el tipo de su campo. Revisala.">⚠ ubicada por el harness</span>`
     : "";
-  return `<div class="ml-3"><span class="text-[9px] px-1 rounded ${cls}">${label}</span> ${escapeHTML(it.texto)}${moved}${auto}</div>`;
+  const comp = it.compuesta
+    ? ` <span class="text-[9px] text-amber-300" title="Junta varias acciones en una sola feature. Con Ajustar podés pedir que la separe (ej.: separá crear, editar y borrar).">⚠ junta varias acciones</span>`
+    : "";
+  return `<div class="ml-3"><span class="text-[9px] px-1 rounded ${cls}">${label}</span> ${escapeHTML(it.texto)}${moved}${auto}${comp}</div>`;
 }
 
 function buildRefinedSummaryHTML(refined) {
@@ -318,7 +322,7 @@ function buildRefinedSummaryHTML(refined) {
   const rows = linesWithItems(refined.brief)
     .map(
       ({ line, items }) => `
-      <div class="border-l-2 ${items.some((i) => i.auto) ? "border-amber-500" : "border-gray-600"} pl-2 mt-1">
+      <div class="border-l-2 ${items.some((i) => i.auto || i.compuesta) ? "border-amber-500" : "border-gray-600"} pl-2 mt-1">
         <div class="text-gray-400 text-[10px]">${line.id} · ${escapeHTML(fieldLabel(line.field))}</div>
         <div class="text-gray-200">“${escapeHTML(line.text)}”</div>
         ${items.map((it) => itemHTML(it, line)).join("")}

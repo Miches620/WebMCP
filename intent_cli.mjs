@@ -60,7 +60,7 @@ for (;;) {
   if (r.status === "COMPLETE") break;
   if (r.faltantes?.length) console.log(`\n  (faltantes según el entrevistador: ${r.faltantes.join(" · ")})`);
   console.log(`\n[Intent Forge${r.by === "harness" ? " · harness" : ""}] ${r.question}`);
-  conversation.push({ role: "assistant", content: r.question });
+  conversation.push({ role: "assistant", content: r.question, ...(r.faltantes?.length ? { faltantes: r.faltantes } : {}) });
   conversation.push({ role: "user", content: await ask("> ") });
 }
 rl.close();

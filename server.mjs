@@ -107,6 +107,9 @@ const server = createServer(async (req, res) => {
           // para marcar el próximo mensaje del usuario como [ajuste]).
           assistantMessage: r.status === "COMPLETE" ? JSON.stringify({ status: "COMPLETE", project_name: r.refined.project_name }) : r.question,
           askedBy: r.by || null,
+          // Viajan en el historial (script.js los guarda con la pregunta) para
+          // recordarle al entrevistador lo que detectó y no preguntó.
+          faltantes: r.faltantes || [],
           isComplete: r.status === "COMPLETE",
           refined_prompt,
           auto_added: r.auto_added || [],

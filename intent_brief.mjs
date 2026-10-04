@@ -17,7 +17,33 @@
 //
 // Módulo puro (sin fs ni fetch): lo usan server.mjs y script.js (navegador).
 
-export const BRIEF_VERSION = "intent_brief v0.2";
+export const BRIEF_VERSION = "intent_brief v0.5";
+
+// v0.5 (04/10, tercera corrida de Project24): el modelo no supo dónde poner
+// L10 ("lista desplegable") y, tras 2 reintentos, la "cubrió" con un ítem
+// inventado ("Sin login"). Además nunca preguntó por las columnas aunque lo
+// había detectado como faltante. Cambios: (a) un ítem tiene que compartir al
+// menos una palabra con las líneas que cita (o con la pregunta, si es una
+// respuesta): si no, es inválido; (b) el reintento muestra el texto de cada
+// línea sin ubicar; (c) los faltantes de cada turno viajan en el historial y
+// los no preguntados se le recuerdan al entrevistador.
+
+// v0.4 (03/10, segunda corrida de Project24 por consola): la clasificación
+// salió bien (crear/editar/borrar/arrastrar separados) pero el JSON traía un
+// '"' suelto después de la última '}' y el parser lo descartó 3 veces → todo
+// por la red del harness. Además 4 de 5 preguntas fueron sobre el semáforo
+// con otras palabras, y las respuestas quedaron como ítems sueltos.
+// Cambios: parser recorta al último '}' y el reintento dice el error real;
+// el harness detecta preguntas del mismo tema y pasa al siguiente faltante;
+// una respuesta que detalla una feature se escribe dentro de esa feature.
+
+// v0.3 (03/10, evidencia Project24): Qwen copió cada línea entera como un
+// solo ítem (2 features en vez de ~8) y el entrevistador dijo LISTO de
+// entrada. Cambios: (a) el harness corta cada línea por oración antes de
+// numerar; (b) una feature que junta varias acciones vuelve al modelo para
+// separarla (mismo reintento de cobertura); (c) el entrevistador primero
+// lista lo que falta (JSON) y recién después pregunta: decir "LISTO" ya no
+// es la salida más corta.
 
 // v0.2 (03/10, pedido de Miche): entrevista de completitud. Después de la
 // plantilla, Qwen puede hacer hasta 10 preguntas (no obligatorias) sobre lo
@@ -91,6 +117,27 @@ export function norm(t) {
 const BULLET = /^\s*(?:[-*•·]|\d+[.)])\s*/;
 const stripBullet = (s) => String(s).replace(BULLET, "").trim();
 
+// Corta por oración (. ; ! ?) seguidos de espacio, sin cortar dentro de
+// paréntesis ni números ("1.5"). La plantilla pide una idea por línea, pero
+// la gente escribe párrafos (Project24: 4 ideas en una línea).
+export function splitSentences(text) {
+  const out = [];
+  let depth = 0, cur = "";
+  const s = String(text || "");
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (ch === "(") depth++;
+    if (ch === ")") depth = Math.max(0, depth - 1);
+    cur += ch;
+    if (depth === 0 && /[.;!?]/.test(ch) && /\s/.test(s[i + 1] || "") ) {
+      out.push(cur);
+      cur = "";
+    }
+  }
+  out.push(cur);
+  return out.map((x) => x.trim().replace(/[.;]+$/, "").trim()).filter(Boolean);
+}
+
 // Reconoce el encabezado de un campo. Tolera "¿", acentos, mayúsculas, el
 // "qué" omitido y contenido en la misma línea después de los dos puntos.
 function headerOf(rawLine) {
@@ -120,11 +167,10 @@ export function parseBrief(text) {
     if (h) {
       hasTemplate = true;
       field = h.field;
-      if (h.rest) lines.push({ field, text: h.rest });
+      for (const t of splitSentences(h.rest)) lines.push({ field, text: t });
       continue;
     }
-    const t = stripBullet(raw);
-    if (t) lines.push({ field, text: t });
+    for (const t of splitSentences(stripBullet(raw))) lines.push({ field, text: t });
   }
   const empty = hasTemplate ? Object.keys(FIELDS).filter((f) => !lines.some((l) => l.field === f)) : [];
   return { hasTemplate, lines, empty };
@@ -146,6 +192,7 @@ export const isControlReply = (t) => CONTROL.test(norm(t));
 export function numberLines(conversation = []) {
   const lines = [];
   const preguntas = [];
+  const faltantesPrevios = [];
   let last = null;
   let first = true;
   let parsedFirst = null;
@@ -154,6 +201,7 @@ export function numberLines(conversation = []) {
     if (m.role !== "user") {
       last = m.content;
       if (!isCompleteMessage(m.content) && String(m.content || "").trim()) preguntas.push(String(m.content).replace(QUESTION_HINT, "").trim());
+      for (const f of Array.isArray(m.faltantes) ? m.faltantes : []) if (!faltantesPrevios.includes(f)) faltantesPrevios.push(f);
       continue;
     }
     if (m.auto) continue;
@@ -167,14 +215,14 @@ export function numberLines(conversation = []) {
     const field = last && isCompleteMessage(last) ? "ajuste" : "respuesta";
     const pregunta = field === "respuesta" && last ? String(last).replace(QUESTION_HINT, "").trim().slice(0, 200) : undefined;
     for (const raw of String(m.content || "").split(/\r?\n/)) {
-      const t = stripBullet(raw);
-      if (t) lines.push({ id: `L${lines.length + 1}`, field, text: t, ...(pregunta ? { pregunta } : {}) });
+      for (const t of splitSentences(stripBullet(raw)))
+        lines.push({ id: `L${lines.length + 1}`, field, text: t, ...(pregunta ? { pregunta } : {}) });
     }
   }
   const lastMsg = conversation.at(-1);
   const afterComplete = conversation.some((m) => m.role !== "user" && isCompleteMessage(m.content));
   return {
-    lines, preguntas, skip, afterComplete,
+    lines, preguntas, faltantesPrevios, skip, afterComplete,
     lastIsAnswer: lastMsg?.role === "user" && !isControlReply(lastMsg.content),
     hasTemplate: !!parsedFirst?.hasTemplate, empty: parsedFirst?.empty || [],
   };
@@ -198,8 +246,11 @@ REGLAS:
 3. Usá las palabras del usuario. No resumas ni generalices. Nombres, cantidades y listas (por ejemplo entre paréntesis) van dentro del texto del ítem.
 4. No agregues ítems que no salgan de una línea.
 5. El campo entre corchetes es una pista. Cambiá el tipo solo si la línea claramente es de otro tipo (por ejemplo "drag & drop" escrito en [cómo se tiene que ver] es una feature).
+   Si algo necesita un dato o una acción del usuario (prioridad, estado, etiquetas, fechas), es feature aunque esté en [cómo se tiene que ver]: "semáforo de prioridad" → feature "Asignar prioridad a una tarjeta (semáforo)".
+   Una feature = UNA acción. "Crear, editar y borrar tarjetas" son tres ítems: "Crear tarjetas", "Editar tarjetas", "Borrar tarjetas".
 6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.
 7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo "¿Se pueden crear columnas?" + "sí" → feature "Crear columnas"). Si es negativa, es una restriccion con "Sin ..." (por ejemplo "¿Buscar tarjetas?" + "no" → restriccion "Sin búsqueda de tarjetas").
+   Si la respuesta DETALLA algo que ya está en otra línea, NO hagas un ítem suelto: escribí el detalle dentro de ese ítem y poné las dos líneas en "de". Por ejemplo L5 "semáforo de prioridad" + L9 respuesta "verde baja, amarillo media, rojo alta" + L10 respuesta "se elige en una lista al crear la tarjeta" → {"de":["L5","L9","L10"],"tipo":"feature","texto":"Asignar prioridad al crear la tarjeta, desde una lista (semáforo: verde baja, amarillo media, rojo alta)"}.
 8. No hagas preguntas: devolvé siempre el JSON.
 
 SALIDA: EXCLUSIVAMENTE este JSON:
@@ -225,20 +276,35 @@ L4 [qué no debe hacer] sin usuarios ni login
 
 export const QUESTION_SYSTEM = `Sos el entrevistador de Intent Forge (equipo MicheLab).
 
-Leés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir.
-Hacé UNA pregunta corta, cerrada (sí/no, o elegir entre opciones), sobre UNA de estas cosas, en este orden de prioridad:
-1. Una línea vaga que no se pueda construir tal cual (por ejemplo "que sea completa": ¿qué tiene que tener?).
-2. Algo que una app de este tipo suele necesitar y el usuario no mencionó (por ejemplo, en un listado: ¿se puede buscar?, ¿ordenar?; en un formulario: ¿qué campos son obligatorios?).
-3. Un detalle que falta en una feature ya pedida (cantidades, nombres, qué pasa al terminar).
+Leés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.
+Casi ninguna plantilla está completa la primera vez. Revisá, en este orden:
+1. Líneas vagas que no se puedan construir tal cual ("que sea completa", "con estados").
+2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).
+3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).
+4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).
+5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).
 
 REGLAS:
 - Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.
+- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).
 - Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.
 - No preguntes por tecnología, lenguajes ni frameworks.
-- Si no falta nada importante, respondé exactamente: LISTO
-- Respondé SOLO con la pregunta (una línea) o con LISTO.`;
+- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).
 
-export function formatForQuestion({ lines, preguntas = [] }) {
+SALIDA: EXCLUSIVAMENTE este JSON:
+\`\`\`json
+{"faltantes":["hasta 3 cosas que faltan, de la más importante a la menos"],"pregunta":"la pregunta sobre la primera"}
+\`\`\`
+Si de verdad no falta nada: {"faltantes":[],"pregunta":null}
+
+EJEMPLO (otro proyecto):
+- [qué tiene que hacer] cargar recetas con ingredientes
+- [cómo se tiene que ver] colores cálidos
+\`\`\`json
+{"faltantes":["si las recetas llevan pasos además de ingredientes","si se pueden buscar recetas","si tienen foto"],"pregunta":"¿Las recetas llevan pasos de preparación además de los ingredientes?"}
+\`\`\``;
+
+export function formatForQuestion({ lines, preguntas = [], pendientes = [] }) {
   const out = ["LO QUE ESCRIBIÓ EL USUARIO:"];
   for (const l of lines) {
     const tag = l.field === "respuesta" && l.pregunta ? `respuesta a "${l.pregunta}"` : fieldLabel(l.field);
@@ -248,11 +314,66 @@ export function formatForQuestion({ lines, preguntas = [] }) {
     out.push("", `PREGUNTAS QUE YA HICISTE (${preguntas.length}/${MAX_QUESTIONS}, no las repitas):`);
     preguntas.forEach((p) => out.push(`- ${p}`));
   }
-  out.push("", "¿Qué le preguntás? (o LISTO)");
+  if (pendientes.length) {
+    out.push("", "COSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):");
+    pendientes.forEach((p) => out.push(`- ${p}`));
+  }
+  out.push("", "¿Qué falta? Respondé con el JSON.");
   return out.join("\n");
 }
 
+// ¿Esta pregunta repite el tema de una ya hecha? Compara palabras de
+// contenido (raíz de 5 letras), sin contar las que se repiten en 2+ líneas
+// del usuario (tarjeta, tarea: aparecen en todas las preguntas).
+const Q_STOP = new Set("como cual cuales cuando donde para porque sera seran puede pueden tiene tienen debe deben esta estan hace hacer usar habra cada tipo tipos algun alguna sobre entre desde solo".split(" "));
+function topicWords(t, common) {
+  return new Set(
+    (norm(t).match(/[a-z0-9]{4,}/g) || []).filter((w) => !Q_STOP.has(w)).map((w) => w.slice(0, 5)).filter((w) => !common.has(w)),
+  );
+}
+export function sameTopicAsked(q, preguntas = [], lines = []) {
+  if (!q) return false;
+  const freq = new Map();
+  for (const l of lines) for (const w of new Set((norm(l.text).match(/[a-z0-9]{4,}/g) || []).map((x) => x.slice(0, 5)))) freq.set(w, (freq.get(w) || 0) + 1);
+  const common = new Set([...freq].filter(([, n]) => n >= 2).map(([w]) => w));
+  const a = topicWords(q, common);
+  return preguntas.some((p) => {
+    if (norm(p) === norm(q)) return true;
+    const b = topicWords(p, common);
+    const shared = [...a].filter((w) => b.has(w)).length;
+    const min = Math.min(a.size, b.size);
+    return min >= 2 && shared / min >= 0.6;
+  });
+}
+// "si las tarjetas tienen comentarios" → "¿Las tarjetas tienen comentarios?"
+export function questionFromGap(f) {
+  let t = String(f || "").trim().replace(/[?¿.]+$/g, "").replace(/^¿/, "");
+  if (!t) return "";
+  if (/^si\s+/i.test(t)) t = t.replace(/^si\s+/i, "");
+  else if (!/^(que|qué|como|cómo|cuant|cuánt|cual|cuál|donde|dónde|quien|quién)/i.test(t)) return `¿Me contás sobre esto: ${t}?`;
+  return `¿${t[0].toUpperCase()}${t.slice(1)}?`;
+}
+
 export const isDone = (t) => /^\W*listo\W*$/i.test(String(t || "").trim()) || /^\W*LISTO\b/.test(String(t || "").trim());
+
+// Lee la salida del entrevistador: JSON {faltantes, pregunta}, o (tolerancia)
+// texto plano con una pregunta o LISTO.
+export function parseInterviewer(raw) {
+  const text = String(raw || "");
+  const src = jsonSlice(text);
+  if (src) {
+    try {
+      const d = JSON.parse(src.replace(/,\s*([}\]])/g, "$1"));
+      const faltantes = (Array.isArray(d.faltantes) ? d.faltantes : []).map(String).map((x) => x.trim()).filter(Boolean);
+      let pregunta = typeof d.pregunta === "string" ? d.pregunta.trim() : "";
+      if (!pregunta && faltantes.length) pregunta = `¿Me contás sobre esto: ${faltantes[0]}?`;
+      return { done: !pregunta, pregunta, faltantes };
+    } catch { /* cae al texto plano */ }
+  }
+  const q = text.trim().split(/\r?\n/).find((l) => l.trim())?.trim() || "";
+  if (!q || isDone(q) || q.includes("{")) return { done: true, pregunta: "", faltantes: [] };
+  return { done: false, pregunta: q, faltantes: [] };
+}
 
 export function formatLinesForModel({ lines, preguntas = [] }, { forceComplete = false } = {}) {
   const out = ["LÍNEAS DEL USUARIO:"];
@@ -270,21 +391,25 @@ export function formatLinesForModel({ lines, preguntas = [] }, { forceComplete =
 
 // JSON tolerante: bloque ```json, o el primer {...} del texto; saca
 // comentarios // y comas colgantes.
+// Recorta del primer '{' al último '}': Project24 trajo '}"' + fence y el
+// JSON era válido salvo por esa comilla.
+function jsonSlice(text) {
+  const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  const src = fence ? fence[1] : text;
+  const a = src.indexOf("{"), b = src.lastIndexOf("}");
+  return a >= 0 && b > a ? src.slice(a, b + 1) : null;
+}
+
 export function parseModelOutput(content) {
   const text = String(content || "");
-  const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  let src = fence ? fence[1] : null;
-  if (!src) {
-    const a = text.indexOf("{"), b = text.lastIndexOf("}");
-    if (a >= 0 && b > a) src = text.slice(a, b + 1);
-  }
+  const src = jsonSlice(text);
   if (src) {
     const clean = src.replace(/^\s*\/\/.*$/gm, "").replace(/,\s*([}\]])/g, "$1");
     try {
       const data = JSON.parse(clean);
       if (data && (data.status === "COMPLETE" || Array.isArray(data.items))) return { complete: true, data };
-    } catch {
-      if (/COMPLETE|"items"/.test(text)) return { complete: false, parseError: true };
+    } catch (e) {
+      if (/COMPLETE|"items"/.test(text)) return { complete: false, parseError: true, error: e.message };
     }
   }
   if (/COMPLETE/.test(text)) return { complete: false, parseError: true };
@@ -302,6 +427,19 @@ const asIds = (de) =>
  * Valida los ítems del modelo contra las líneas numeradas.
  * @returns {{items:object[], invalid:{item:object,reason:string}[], uncovered:string[]}}
  */
+// El texto de un ítem tiene que compartir al menos una palabra de contenido
+// (raíz de 5 letras) con las líneas que cita; para una respuesta cuenta
+// también su pregunta ("no" + "¿Buscar tarjetas?" → "Sin búsqueda de
+// tarjetas"). Si las líneas no tienen palabras de contenido, no se exige.
+// Project24: "Sin login" citando L10 ("…mediante una lista desplegable").
+const stems = (t) => new Set((norm(t).match(/[a-z0-9ñ]{4,}/g) || []).map((w) => w.slice(0, 5)));
+export function grounded(texto, srcLines) {
+  const src = new Set();
+  for (const l of srcLines) for (const w of stems(`${l.text} ${l.pregunta || ""}`)) src.add(w);
+  if (!src.size) return true;
+  return [...stems(texto)].some((w) => src.has(w));
+}
+
 export function validateItems(rawItems, lines) {
   const byId = new Map(lines.map((l) => [l.id, l]));
   const items = [];
@@ -318,6 +456,10 @@ export function validateItems(rawItems, lines) {
       invalid.push({ item: it, reason: "descartado sin una línea [ajuste] que lo pida" });
       continue;
     }
+    if (!grounded(texto, de.map((id) => byId.get(id)))) {
+      invalid.push({ item: it, reason: `el texto no sale de ${de.join(", ")}: no comparte ninguna palabra con esa(s) línea(s)` });
+      continue;
+    }
     items.push({ de, tipo, texto });
   }
   const covered = new Set(items.flatMap((i) => i.de));
@@ -325,11 +467,43 @@ export function validateItems(rawItems, lines) {
   return { items, invalid, uncovered };
 }
 
-export function repairFeedback({ uncovered = [], invalid = [] }) {
+// Feature que junta varias acciones ("Crear, editar y borrar tarjetas y
+// arrastrarlas"): cuenta infinitivos distintos (con pronombre pegado:
+// "arrastrarlas") antes de la primera subordinada ("para", "que"...), sin
+// contar auxiliares ("poder", "permitir"). Heurístico: en el peor caso pide
+// separar de más; nunca decide solo, el modelo separa.
+const NOT_ACTION = new Set(
+  ("poder deber tener querer haber ser estar hacer permitir dejar ir lograr necesitar " +
+    "lugar hogar mar par bar militar popular similar particular regular singular escolar " +
+    "familiar solar polar titular celular modular taller placer mujer alfiler").split(" "),
+);
+const SUBORD = /\b(para|que|cuando|si|al|hasta|mientras|porque|donde|segun)\b/;
+export function actionVerbs(text) {
+  // "arrastrar y soltar" es una sola acción (drag & drop).
+  const head = norm(text).replace(/arrastrar(las|los|la|lo)? y soltar(las|los|la|lo)?/g, "arrastrar").split(SUBORD)[0];
+  const verbs = new Set();
+  for (const w of head.match(/[a-zñ]+/g) || []) {
+    const m = w.match(/^([a-zñ]{1,}?(?:ar|er|ir))(?:se|la|las|lo|los|le|les)?$/);
+    if (m && !NOT_ACTION.has(m[1])) verbs.add(m[1]);
+  }
+  return [...verbs];
+}
+export const compoundFeatures = (items) =>
+  items.filter((i) => i.tipo === "feature" && actionVerbs(i.texto).length >= 2);
+
+export function repairFeedback({ uncovered = [], invalid = [], compound = [] }, lines = []) {
   const out = ["Revisá tu JSON:"];
-  if (uncovered.length)
-    out.push(`- Estas líneas no quedaron en ningún ítem: ${uncovered.join(", ")}. Asignalas (si no hay nada para construir, van como contexto).`);
+  const byId = new Map(lines.map((l) => [l.id, l]));
+  if (uncovered.length) {
+    out.push("- Estas líneas no quedaron en ningún ítem. Asignalas con sus palabras (si detallan otro ítem, agregalas a ese ítem y sumá la línea a su \"de\"; si no hay nada para construir, van como contexto):");
+    for (const id of uncovered) {
+      const l = byId.get(id);
+      out.push(l ? `  ${id}${l.pregunta ? ` (respuesta a "${l.pregunta}")` : ""}: "${l.text}"` : `  ${id}`);
+    }
+  }
   for (const x of invalid) out.push(`- Ítem inválido (${x.reason}): ${JSON.stringify(x.item)}`);
+  for (const x of compound)
+    out.push(`- La feature "${x.texto}" junta varias acciones (${actionVerbs(x.texto).join(", ")}): separala en un ítem por acción, con el mismo "de".`);
   out.push("Devolvé el JSON COMPLETE entero de nuevo.");
   return out.join("\n");
 }
@@ -446,20 +620,33 @@ export async function runIntentForge(conversation, { callModel, maxQuestions = M
   if (!lines.length) return { status: "ASKING", question: HARNESS_QUESTIONS.vacio, by: "harness", lines };
 
   const attempts = [];
+  // Faltantes de turnos anteriores cuyo tema todavía no se preguntó
+  // (Project24: "cuántas columnas y qué estados" se detectó y nunca se preguntó).
+  const pendientes = (numbered.faltantesPrevios || []).filter((f) => !sameTopicAsked(questionFromGap(f), preguntas, lines));
   const noMoreQuestions = numbered.skip || numbered.afterComplete || preguntas.length >= maxQuestions;
 
   // 2. Entrevista de completitud.
   if (!noMoreQuestions) {
     const qMessages = [
       { role: "system", content: QUESTION_SYSTEM },
-      { role: "user", content: formatForQuestion({ lines, preguntas }) },
+      { role: "user", content: formatForQuestion({ lines, preguntas, pendientes }) },
     ];
     const raw = await callModel(qMessages);
-    const q = String(raw || "").trim().split(/\r?\n/).find((l) => l.trim())?.trim() || "";
-    const repeated = preguntas.some((p) => norm(p) === norm(q));
-    attempts.push({ raw, kind: isDone(q) ? "listo" : repeated ? "pregunta_repetida" : "pregunta" });
-    if (q && !isDone(q) && !repeated && !q.includes("{")) {
-      return { status: "ASKING", question: `${q} ${QUESTION_HINT}`, by: "model", lines, attempts };
+    const iv = parseInterviewer(raw);
+    let q = iv.pregunta;
+    let by = "model";
+    let kind = iv.done ? "listo" : "pregunta";
+    if (!iv.done && sameTopicAsked(q, preguntas, lines)) {
+      // Mismo tema con otras palabras: el harness pasa al siguiente faltante
+      // que no se haya preguntado (Project24: 4 de 5 preguntas sobre el semáforo).
+      kind = "pregunta_repetida";
+      const alt = [...iv.faltantes.slice(1), ...pendientes].map(questionFromGap).find((x) => !sameTopicAsked(x, preguntas, lines));
+      if (alt) { q = alt; by = "harness_faltante"; kind = "faltante_siguiente"; }
+      else q = "";
+    }
+    attempts.push({ raw, kind, faltantes: iv.faltantes, ...(by !== "model" ? { pregunta_usada: q } : {}) });
+    if (q) {
+      return { status: "ASKING", question: `${q} ${QUESTION_HINT}`, by, lines, attempts, faltantes: iv.faltantes };
     }
   }
 
@@ -473,22 +660,31 @@ export async function runIntentForge(conversation, { callModel, maxQuestions = M
     const raw = await callModel(messages);
     const parsed = parseModelOutput(raw);
     if (!parsed.complete) {
-      attempts.push({ raw, kind: parsed.parseError ? "json_ilegible" : "no_json" });
-      messages.push({ role: "assistant", content: raw }, { role: "user", content: "No preguntes. Devolvé solo el JSON COMPLETE, válido, dentro de ```json." });
+      attempts.push({ raw, kind: parsed.parseError ? "json_ilegible" : "no_json", error: parsed.error });
+      messages.push({ role: "assistant", content: raw }, {
+        role: "user",
+        content: parsed.parseError
+          ? `Tu JSON no se pudo leer (${parsed.error}). Devolvé el JSON COMPLETE válido dentro de \`\`\`json, sin nada después de la última }.`
+          : "No preguntes. Devolvé solo el JSON COMPLETE, válido, dentro de ```json.",
+      });
       continue;
     }
     const v = validateItems(parsed.data.items, lines);
+    v.compound = compoundFeatures(v.items);
     last = { raw, data: parsed.data, ...v };
-    attempts.push({ raw, kind: "complete", uncovered: v.uncovered, invalid: v.invalid.map((x) => x.reason) });
-    if (!v.uncovered.length && !v.invalid.length) break;
-    if (i < maxRepairs) messages.push({ role: "assistant", content: raw }, { role: "user", content: repairFeedback(v) });
+    attempts.push({ raw, kind: "complete", uncovered: v.uncovered, invalid: v.invalid.map((x) => x.reason), compound: v.compound.map((x) => x.texto) });
+    if (!v.uncovered.length && !v.invalid.length && !v.compound.length) break;
+    if (i < maxRepairs) messages.push({ role: "assistant", content: raw }, { role: "user", content: repairFeedback(v, lines) });
   }
 
   if (!last) {
     // El modelo nunca devolvió un JSON usable: todas las líneas por la red del harness.
     last = { raw: attempts.at(-1)?.raw || "", data: {}, items: [], invalid: [], uncovered: lines.map((l) => l.id) };
   }
-  const items = fillUncovered(last.items, lines, last.uncovered);
+  // Lo que siga compuesto después de los reintentos queda marcado (la tarjeta
+  // lo resalta para que el usuario lo separe con Ajustar).
+  const stillCompound = new Set(compoundFeatures(last.items));
+  const items = fillUncovered(last.items.map((i) => (stillCompound.has(i) ? { ...i, compuesta: true } : i)), lines, last.uncovered);
   if (!items.some((i) => i.tipo === "feature") && preguntas.length < maxQuestions) {
     return { status: "ASKING", question: HARNESS_QUESTIONS.sin_feature, by: "harness", lines, attempts };
   }
@@ -500,5 +696,5 @@ export async function runIntentForge(conversation, { callModel, maxQuestions = M
     attempts: attempts.filter((a) => a.kind !== "pregunta" && a.kind !== "listo" && a.kind !== "pregunta_repetida"),
   });
   refined.brief.preguntas = preguntas;
-  return { status: "COMPLETE", refined, raw: last.raw, lines, attempts, auto_added: last.uncovered };
+  return { status: "COMPLETE", refined, raw: last.raw, lines, attempts, auto_added: last.uncovered, compound: [...stillCompound].map((i) => i.texto) };
 }

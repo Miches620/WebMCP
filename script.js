@@ -1,5 +1,6 @@
 import { validateRoleDependencies } from "./validation_profile_role_dependencies.mjs";
 import { runAtomicGraph, resolveDependencies } from "./atomic_engine_v5.js";
+import { reviewStatus } from "./review_gate.mjs";
 import {
   TEMPLATE_TEXT,
   TEMPLATE_EXAMPLE,
@@ -15,7 +16,7 @@ import {
 // (/api/version) y, si no coincide con el de la pestaña abierta, la UI avisa
 // que hay que recargar. Origen: Project21 corrió con el JS viejo en una
 // pestaña abierta desde antes del cambio (reiniciar el server no alcanza).
-const BUILD_ID = "2026-10-04.1";
+const BUILD_ID = "2026-10-05.1";
 
 const STORAGE_KEY = "webmcp_state";
 const MAX_TECHLEADER_ATTEMPTS = 3;
@@ -490,10 +491,63 @@ function requestHumanDecision(type, payload) {
     );
   }
 
+  if (type === "REVIEW_NOT_RUN") {
+    chatHistory.innerHTML += `
+      <div class="bg-red-900/30 border border-red-600 p-3 rounded text-xs my-2">
+        <b class="text-red-400">ORCHESTRATOR:</b> El Completeness Reviewer <b>no corrió</b> (${escapeHTML(payload.error)}).<br>
+        El graph está generado (role_dependencies: <b>${escapeHTML(payload.validationStatus)}</b>), pero nadie revisó si cubre los requisitos.<br>
+        Revisá que LM Studio esté levantado y con el modelo cargado.<br><br>
+        ¿Qué hacemos?<br>
+        - <code>reintentar revisión</code> (mismo graph, solo vuelve a llamar al reviewer)<br>
+        - <code>aprobar sin revisión</code> (queda marcado como no revisado)<br>
+        - <code>rehacer plan</code> (TechLeader de nuevo, desde cero)
+      </div>`;
+    document.getElementById("refinementPrompt").placeholder = "reintentar revisión / aprobar sin revisión / rehacer plan";
+    appendToReasoning(`<div class="text-red-400 font-bold">[HUMAN DECISION] REVIEW_NOT_RUN - Chat habilitado</div>`);
+  }
+
+  if (type === "REVIEW_FINDINGS") {
+    chatHistory.innerHTML += `
+      <div class="bg-yellow-900/30 border border-yellow-600 p-3 rounded text-xs my-2">
+        <b class="text-yellow-400">ORCHESTRATOR:</b> La revisión corrió y encontró GAP: <b>${payload.gaps}</b> | EXCESS: <b>${payload.excess}</b>.<br><br>
+        - <code>rehacer plan</code> (TechLeader con el feedback del reviewer)<br>
+        - <code>seguir con hallazgos</code> (se aprueba con los hallazgos registrados)
+      </div>`;
+    document.getElementById("refinementPrompt").placeholder = "rehacer plan / seguir con hallazgos";
+    appendToReasoning(`<div class="text-yellow-400 font-bold">[HUMAN DECISION] REVIEW_FINDINGS - Chat habilitado</div>`);
+  }
+
   chatHistory.scrollTop = chatHistory.scrollHeight;
   syncChatUI();
   document.getElementById("refinementPrompt")?.focus();
   saveState();
+}
+
+// Vuelve a llamar solo al reviewer sobre el graph ya generado.
+async function retryReviewOnly() {
+  OrchestrationLock.lock("REVISANDO");
+  let completeness;
+  try {
+    completeness = await runCompletenessReviewFromGraph_V3(webmcpState.atomicTasks || [], webmcpState.prompt);
+  } catch (e) {
+    completeness = { error: e.message };
+  }
+  OrchestrationLock.unlock();
+  const review = reviewStatus(completeness);
+  if (!review.ran) {
+    appendToReasoning(`<div class="text-red-400 font-bold">⛔ La revisión volvió a fallar: ${escapeHTML(review.reason)}</div>`);
+    requestHumanDecision("REVIEW_NOT_RUN", { error: review.reason, validationStatus: webmcpState.validation?.status || "?" });
+    return;
+  }
+  if (review.blocking) {
+    requestHumanDecision("REVIEW_FINDINGS", { gaps: review.gaps, excess: review.excess, feedback: formatReviewerFeedback(completeness) });
+    return;
+  }
+  webmcpState.reviewSkipped = false;
+  appendToReasoning(`<div class="text-green-400 font-bold mt-3">✅ GENERACIÓN APROBADA (revisión reintentada: GAP=0 EXCESS=0)</div>`);
+  appendToIntentForgeChat("orchestrator", "La revisión corrió bien y no encontró huecos. Graph aprobado.");
+  saveState();
+  syncChatUI();
 }
 
 function handleHumanDecisionResponse(userMessage) {
@@ -540,6 +594,32 @@ function handleHumanDecisionResponse(userMessage) {
         "orchestrator",
         `No entendí: "${userMessage}". Escribí "seguir con errores" o "reiniciar 3 strikes"`,
       );
+      webmcpState.awaitingDecision = decision; // vuelve a esperar
+    }
+  }
+
+  if (decision.type === "REVIEW_NOT_RUN" || decision.type === "REVIEW_FINDINGS") {
+    const lower = userMessage.toLowerCase();
+    if (decision.type === "REVIEW_NOT_RUN" && lower.includes("reintentar")) {
+      appendToIntentForgeChat("orchestrator", "Reintentando solo la revisión, con el mismo graph...");
+      saveState();
+      retryReviewOnly();
+      return;
+    } else if (decision.type === "REVIEW_NOT_RUN" && lower.includes("aprobar")) {
+      webmcpState.reviewSkipped = true;
+      appendToReasoning(`<div class="text-amber-400 font-bold">⚠️ GENERACIÓN APROBADA SIN REVISIÓN (decisión humana)</div>`);
+      appendToIntentForgeChat("orchestrator", "Aprobado sin revisión. Queda marcado (reviewSkipped) en el estado del proyecto.");
+    } else if (decision.type === "REVIEW_FINDINGS" && lower.includes("seguir")) {
+      appendToReasoning(`<div class="text-amber-400 font-bold">⚠️ GENERACIÓN APROBADA CON HALLAZGOS DEL REVIEWER (decisión humana)</div>`);
+      appendToIntentForgeChat("orchestrator", "Seguimos con los hallazgos registrados.");
+    } else if (lower.includes("rehacer")) {
+      appendToIntentForgeChat("orchestrator", "Rehaciendo el plan con TechLeader...");
+      saveState();
+      handleContinuePlan();
+      return;
+    } else {
+      const opts = decision.type === "REVIEW_NOT_RUN" ? '"reintentar revisión", "aprobar sin revisión" o "rehacer plan"' : '"rehacer plan" o "seguir con hallazgos"';
+      appendToIntentForgeChat("orchestrator", `No entendí: "${escapeHTML(userMessage)}". Escribí ${opts}.`);
       webmcpState.awaitingDecision = decision; // vuelve a esperar
     }
   }
@@ -1435,18 +1515,33 @@ async function runGenerationAttempt(promptText, previousFeedback = "") {
       feedback: formatValidationFeedback(graphResult.validation),
     };
   }
-  const completeness = await runCompletenessReviewFromGraph_V3(
-    graphResult.atomicTasks,
-    promptText,
-  );
+  // Si la llamada al reviewer falla, no se corta la generación: se registra
+  // como "no corrió" y lo decide el gate de abajo.
+  let completeness;
+  try {
+    completeness = await runCompletenessReviewFromGraph_V3(graphResult.atomicTasks, promptText);
+  } catch (e) {
+    completeness = { error: e.message };
+  }
   const validationFailed = graphResult.validation?.status === "FAIL";
-  // FIX: GAP y EXCESS son defectos reales y bloquean el intento; AMBIGUOUS
-  // queda fuera del disparador (informativo, no bloqueante), igual que la
-  // intención original del código — solo que ahora el campo que lee sí
-  // existe en la forma real que devuelve completeness_reviewer3.mjs.
-  const completenessFailed = (completeness?.findings ?? []).some(
-    (f) => f.type === "GAP" || f.type === "EXCESS",
-  );
+  // GATE (05/10, evidencia Project23): un SYSTEM_ERROR ("fetch failed") se
+  // aprobaba porque solo frenaban GAP/EXCESS. Ahora un reviewer que no corrió
+  // no aprueba: el plan queda en pausa y decide el humano. No se rehace el
+  // plan solo, porque el problema no es el plan.
+  const review = reviewStatus(completeness);
+  if (!validationFailed && !review.ran) {
+    return {
+      status: "REVIEW_ERROR",
+      plan,
+      graphResult,
+      validation: graphResult.validation,
+      completeness,
+      reviewError: review.reason,
+      feedback: "",
+    };
+  }
+  // GAP y EXCESS son defectos reales y bloquean el intento; AMBIGUOUS no.
+  const completenessFailed = review.ran && review.blocking;
   if (validationFailed || completenessFailed) {
     let feedback = "";
     if (validationFailed)
@@ -1510,10 +1605,24 @@ async function handleContinuePlan() {
       );
       finalAttempt = await runGenerationAttempt(promptText, previousFeedback);
       if (finalAttempt.status === "PASS") {
+        webmcpState.reviewSkipped = false;
         appendToReasoning(
           `<div class="text-green-400 font-bold mt-3">✅ GENERACIÓN APROBADA EN EL INTENTO ${attempt}</div>`,
         );
         OrchestrationLock.unlock();
+        saveState();
+        return;
+      }
+      if (finalAttempt.status === "REVIEW_ERROR") {
+        appendToReasoning(
+          `<div class="text-red-400 font-bold mt-3">⛔ REVISIÓN NO EJECUTADA: ${escapeHTML(finalAttempt.reviewError)}. El graph quedó generado pero sin revisar; no se aprueba.</div>`,
+        );
+        OrchestrationLock.unlock();
+        requestHumanDecision("REVIEW_NOT_RUN", {
+          error: finalAttempt.reviewError,
+          validationStatus: finalAttempt.validation?.status || "?",
+          attempt,
+        });
         saveState();
         return;
       }

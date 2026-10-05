@@ -1,0 +1,563 @@
+{
+  "version": "intent_brief v0.7",
+  "model": "qwen2.5-7b-instruct",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Qué querés construir:\r\nJuego Boxworld en html autocontenido\r\n\r\nQué tiene que hacer:\r\nel clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel. El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente.\r\n\r\nCómo se tiene que ver:\r\nestilo family nes, 8bits.\r\n\r\nQué no debe hacer:\r\nlas cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador"
+    },
+    {
+      "role": "assistant",
+      "content": "¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se implementa la generación aleatoria de mapas",
+        "si hay un sistema de puntaje o niveles completados"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "contador de movimientos unicamente"
+    },
+    {
+      "role": "assistant",
+      "content": "¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se genera el mapa aleatoriamente",
+        "si hay algún tipo de nivel o dificultad"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "si"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "si hay algún tipo de nivel o dificultad",
+        "cómo se manejarán los botones 'reiniciar' y 'proximo nivel'"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "el boton 'reiniciar' devolvera al avatar y las cajas a las posiciones iniciales que el nivel les asigno, mientras que el boton 'proximo nivel' cargara un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cuántos niveles habrá en total? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cuántos niveles habrá en total",
+        "qué habilidades tendrá el avatar"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "al menos 10 niveles"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cuáles son las habilidades del avatar en cada nivel? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "qué habilidades tendrá el avatar"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "empujar las cajas unicamente"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Qué acciones puede realizar el jugador además de empujar las cajas? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se generan los mapas aleatorios",
+        "qué acciones puede realizar el jugador además de empujar las cajas"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "mover al avatar con las flechas del teclado, el avatar no puede atravesar paredes ni cajas, no puede mover paredes, unicamente puede mover cajas siempre y cuando las cajas no tengan una pared en direccion a la cual el avatar empuja"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Hay algún tipo de nivel o dificultad? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se generan los mapas aleatoriamente",
+        "qué acciones puede realizar el jugador además de empujar las cajas"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "si"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Qué habilidades tendrá el avatar? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "qué acciones puede realizar el jugador además de empujar las cajas",
+        "cómo se generan los mapas aleatorios"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "mover cajas"
+    },
+    {
+      "role": "assistant",
+      "content": "¿El juego incluirá algún tipo de tutorial o instrucciones para el jugador al inicio? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "el tamaño y diseño exacto del mapa en cada nivel",
+        "las acciones específicas que se podrán realizar al inicio de un nuevo nivel"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "solo una leyenda debajo del view del juego con la siguiente frase 'usa las flechas del teclado para moverte\""
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cuál será el tamaño del mapa y cuántas cajas habrá en cada nivel? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "el tamaño del mapa y la cantidad de cajas por nivel"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "350x450px seria un buen tamaño de mapa, y debera haber como minimo 3 cajas en cada nivel"
+    }
+  ],
+  "refined_prompt": {
+    "project_name": "Boxworld",
+    "objetivo": "Juego Boxworld en html autocontenido. El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente, con al menos 10 niveles. El botón 'reiniciar' devolverá al avatar y las cajas a sus posiciones iniciales, mientras que el botón 'proximo nivel' cargará un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles. Hay diferentes niveles o dificultades con mapas generados aleatoriamente. Solo una leyenda debajo del view del juego con la frase 'usa las flechas del teclado para moverte' al inicio",
+    "features": [
+      "El juego incluye el clásico Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, con botones 'reiniciar' y 'proximo nivel'",
+      "Contador de movimientos único",
+      "El avatar tiene habilidades para mover cajas. El avatar puede moverse con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja",
+      "Mover el avatar con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja",
+      "El avatar tiene habilidades para mover cajas",
+      "Estilo Family NES, 8bits"
+    ],
+    "criterios_holdout": [
+      "Se puede jugar el Boxworld con un avatar que empuja cajas a posiciones fijadas, incluyendo botones 'reiniciar' y 'proximo nivel'",
+      "El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente",
+      "El contador de movimientos único funciona correctamente",
+      "Las cajas no pueden salir del mapa ni superponerse entre sí o con el avatar",
+      "El tamaño del mapa es 350x450px y hay al menos 3 cajas en cada nivel",
+      "El avatar puede moverse con las flechas del teclado y empujar cajas sin atravesar paredes"
+    ],
+    "restricciones": [
+      "Las cajas no pueden salir del diseño del mapa, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador",
+      "El tamaño del mapa será de 350x450px y habrá como mínimo 3 cajas en cada nivel"
+    ],
+    "estilo": [
+      "Estilo Family NES, 8bits"
+    ],
+    "contexto": [
+      "Juego Boxworld en html autocontenido",
+      "El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente, con al menos 10 niveles. El botón 'reiniciar' devolverá al avatar y las cajas a sus posiciones iniciales, mientras que el botón 'proximo nivel' cargará un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles",
+      "Hay diferentes niveles o dificultades con mapas generados aleatoriamente",
+      "Solo una leyenda debajo del view del juego con la frase 'usa las flechas del teclado para moverte' al inicio"
+    ],
+    "brief": {
+      "version": "intent_brief v0.7",
+      "lines": [
+        {
+          "id": "L1",
+          "field": "construir",
+          "text": "Juego Boxworld en html autocontenido"
+        },
+        {
+          "id": "L2",
+          "field": "hacer",
+          "text": "el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel"
+        },
+        {
+          "id": "L3",
+          "field": "hacer",
+          "text": "El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente"
+        },
+        {
+          "id": "L4",
+          "field": "ver",
+          "text": "estilo family nes, 8bits"
+        },
+        {
+          "id": "L5",
+          "field": "no",
+          "text": "las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador"
+        },
+        {
+          "id": "L6",
+          "field": "respuesta",
+          "text": "contador de movimientos unicamente",
+          "pregunta": "¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?"
+        },
+        {
+          "id": "L7",
+          "field": "respuesta",
+          "text": "si",
+          "pregunta": "¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?"
+        },
+        {
+          "id": "L8",
+          "field": "respuesta",
+          "text": "el boton 'reiniciar' devolvera al avatar y las cajas a las posiciones iniciales que el nivel les asigno, mientras que el boton 'proximo nivel' cargara un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles",
+          "pregunta": "¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?"
+        },
+        {
+          "id": "L9",
+          "field": "respuesta",
+          "text": "al menos 10 niveles",
+          "pregunta": "¿Cuántos niveles habrá en total?"
+        },
+        {
+          "id": "L10",
+          "field": "respuesta",
+          "text": "empujar las cajas unicamente",
+          "pregunta": "¿Cuáles son las habilidades del avatar en cada nivel?"
+        },
+        {
+          "id": "L11",
+          "field": "respuesta",
+          "text": "mover al avatar con las flechas del teclado, el avatar no puede atravesar paredes ni cajas, no puede mover paredes, unicamente puede mover cajas siempre y cuando las cajas no tengan una pared en direccion a la cual el avatar empuja",
+          "pregunta": "¿Qué acciones puede realizar el jugador además de empujar las cajas?"
+        },
+        {
+          "id": "L12",
+          "field": "respuesta",
+          "text": "si",
+          "pregunta": "¿Hay algún tipo de nivel o dificultad?"
+        },
+        {
+          "id": "L13",
+          "field": "respuesta",
+          "text": "mover cajas",
+          "pregunta": "¿Qué habilidades tendrá el avatar?"
+        },
+        {
+          "id": "L14",
+          "field": "respuesta",
+          "text": "solo una leyenda debajo del view del juego con la siguiente frase 'usa las flechas del teclado para moverte\"",
+          "pregunta": "¿El juego incluirá algún tipo de tutorial o instrucciones para el jugador al inicio?"
+        },
+        {
+          "id": "L15",
+          "field": "respuesta",
+          "text": "350x450px seria un buen tamaño de mapa, y debera haber como minimo 3 cajas en cada nivel",
+          "pregunta": "¿Cuál será el tamaño del mapa y cuántas cajas habrá en cada nivel?"
+        }
+      ],
+      "items": [
+        {
+          "de": [
+            "L1"
+          ],
+          "tipo": "contexto",
+          "texto": "Juego Boxworld en html autocontenido"
+        },
+        {
+          "de": [
+            "L2",
+            "L3"
+          ],
+          "tipo": "feature",
+          "texto": "El juego incluye el clásico Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, con botones 'reiniciar' y 'proximo nivel'"
+        },
+        {
+          "de": [
+            "L4"
+          ],
+          "tipo": "estilo",
+          "texto": "Estilo Family NES, 8bits"
+        },
+        {
+          "de": [
+            "L5"
+          ],
+          "tipo": "restriccion",
+          "texto": "Las cajas no pueden salir del diseño del mapa, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador"
+        },
+        {
+          "de": [
+            "L6"
+          ],
+          "tipo": "feature",
+          "texto": "Contador de movimientos único"
+        },
+        {
+          "de": [
+            "L7",
+            "L8",
+            "L9"
+          ],
+          "tipo": "contexto",
+          "texto": "El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente, con al menos 10 niveles. El botón 'reiniciar' devolverá al avatar y las cajas a sus posiciones iniciales, mientras que el botón 'proximo nivel' cargará un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles"
+        },
+        {
+          "de": [
+            "L10"
+          ],
+          "tipo": "feature",
+          "texto": "El avatar tiene habilidades para mover cajas. El avatar puede moverse con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja"
+        },
+        {
+          "de": [
+            "L11"
+          ],
+          "tipo": "feature",
+          "texto": "Mover el avatar con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja",
+          "compuesta": true
+        },
+        {
+          "de": [
+            "L12"
+          ],
+          "tipo": "contexto",
+          "texto": "Hay diferentes niveles o dificultades con mapas generados aleatoriamente"
+        },
+        {
+          "de": [
+            "L13"
+          ],
+          "tipo": "feature",
+          "texto": "El avatar tiene habilidades para mover cajas"
+        },
+        {
+          "de": [
+            "L14"
+          ],
+          "tipo": "contexto",
+          "texto": "Solo una leyenda debajo del view del juego con la frase 'usa las flechas del teclado para moverte' al inicio"
+        },
+        {
+          "de": [
+            "L15"
+          ],
+          "tipo": "restriccion",
+          "texto": "El tamaño del mapa será de 350x450px y habrá como mínimo 3 cajas en cada nivel"
+        }
+      ],
+      "repairs": 2,
+      "preguntas": [
+        "¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?",
+        "¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?",
+        "¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?",
+        "¿Cuántos niveles habrá en total?",
+        "¿Cuáles son las habilidades del avatar en cada nivel?",
+        "¿Qué acciones puede realizar el jugador además de empujar las cajas?",
+        "¿Hay algún tipo de nivel o dificultad?",
+        "¿Qué habilidades tendrá el avatar?",
+        "¿El juego incluirá algún tipo de tutorial o instrucciones para el jugador al inicio?",
+        "¿Cuál será el tamaño del mapa y cuántas cajas habrá en cada nivel?"
+      ]
+    }
+  },
+  "auto_added": [],
+  "calls": [
+    {
+      "ms": 27319,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks, ni CÓMO se implementa algo (algoritmos, cómo se genera, cómo se calcula): eso lo decide el equipo.\n- No preguntes por detalles chicos que el equipo puede decidir solo (tamaños de botones, márgenes, colores exactos).\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se implementa la generación aleatoria de mapas\",\"si hay un sistema de puntaje o niveles completados\"],\"pregunta\":\"¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\"}\n```"
+    },
+    {
+      "ms": 7005,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks, ni CÓMO se implementa algo (algoritmos, cómo se genera, cómo se calcula): eso lo decide el equipo.\n- No preguntes por detalles chicos que el equipo puede decidir solo (tamaños de botones, márgenes, colores exactos).\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\"] contador de movimientos unicamente\n\nPREGUNTAS QUE YA HICISTE (1/10, no las repitas):\n- ¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- cómo se implementa la generación aleatoria de mapas\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se genera el mapa aleatoriamente\",\"si hay algún tipo de nivel o dificultad\"],\"pregunta\":\"¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\"}\n```"
+    },
+    {
+      "ms": 8041,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks, ni CÓMO se implementa algo (algoritmos, cómo se genera, cómo se calcula): eso lo decide el equipo.\n- No preguntes por detalles chicos que el equipo puede decidir solo (tamaños de botones, márgenes, colores exactos).\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\"] contador de movimientos unicamente\n- [respuesta a \"¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\"] si\n\nPREGUNTAS QUE YA HICISTE (2/10, no las repitas):\n- ¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\n- ¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- si hay algún tipo de nivel o dificultad\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"si hay algún tipo de nivel o dificultad\",\"cómo se manejarán los botones 'reiniciar' y 'proximo nivel'\"],\"pregunta\":\"¿El juego incluirá diferentes tipos de niveles o dificultades con mapas generados aleatoriamente?\"}\n```"
+    },
+    {
+      "ms": 10158,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks, ni CÓMO se implementa algo (algoritmos, cómo se genera, cómo se calcula): eso lo decide el equipo.\n- No preguntes por detalles chicos que el equipo puede decidir solo (tamaños de botones, márgenes, colores exactos).\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\"] contador de movimientos unicamente\n- [respuesta a \"¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\"] si\n- [respuesta a \"¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\"] el boton 'reiniciar' devolvera al avatar y las cajas a las posiciones iniciales que el nivel les asigno, mientras que el boton 'proximo nivel' cargara un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles\n\nPREGUNTAS QUE YA HICISTE (3/10, no las repitas):\n- ¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\n- ¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\n- ¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- si hay algún tipo de nivel o dificultad\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cuántos niveles habrá en total\",\"qué habilidades tendrá el avatar\"],\"pregunta\":\"¿Cuántos niveles habrá en total?\"}\n```"
+    },
+    {
+      "ms": 8342,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks, ni CÓMO se implementa algo (algoritmos, cómo se genera, cómo se calcula): eso lo decide el equipo.\n- No preguntes por detalles chicos que el equipo puede decidir solo (tamaños de botones, márgenes, colores exactos).\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\"] contador de movimientos unicamente\n- [respuesta a \"¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\"] si\n- [respuesta a \"¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\"] el boton 'reiniciar' devolvera al avatar y las cajas a las posiciones iniciales que el nivel les asigno, mientras que el boton 'proximo nivel' cargara un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles\n- [respuesta a \"¿Cuántos niveles habrá en total?\"] al menos 10 niveles\n\nPREGUNTAS QUE YA HICISTE (4/10, no las repitas):\n- ¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\n- ¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\n- ¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\n- ¿Cuántos niveles habrá en total?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- si hay algún tipo de nivel o dificultad\n- qué habilidades tendrá el avatar\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"qué habilidades tendrá el avatar\"],\"pregunta\":\"¿Cuáles son las habilidades del avatar en cada nivel?\"}\n```"
+    },
+    {
+      "ms": 9597,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks, ni CÓMO se implementa algo (algoritmos, cómo se genera, cómo se calcula): eso lo decide el equipo.\n- No preguntes por detalles chicos que el equipo puede decidir solo (tamaños de botones, márgenes, colores exactos).\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\"] contador de movimientos unicamente\n- [respuesta a \"¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\"] si\n- [respuesta a \"¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\"] el boton 'reiniciar' devolvera al avatar y las cajas a las posiciones iniciales que el nivel les asigno, mientras que el boton 'proximo nivel' cargara un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles\n- [respuesta a \"¿Cuántos niveles habrá en total?\"] al menos 10 niveles\n- [respuesta a \"¿Cuáles son las habilidades del avatar en cada nivel?\"] empujar las cajas unicamente\n\nPREGUNTAS QUE YA HICISTE (5/10, no las repitas):\n- ¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\n- ¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\n- ¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\n- ¿Cuántos niveles habrá en total?\n- ¿Cuáles son las habilidades del avatar en cada nivel?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- si hay algún tipo de nivel o dificultad\n- qué habilidades tendrá el avatar\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se generan los mapas aleatorios\",\"qué acciones puede realizar el jugador además de empujar las cajas\"],\"pregunta\":\"¿Cómo se generan los mapas aleatorios en cada nivel?\"}\n```"
+    },
+    {
+      "ms": 11735,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks, ni CÓMO se implementa algo (algoritmos, cómo se genera, cómo se calcula): eso lo decide el equipo.\n- No preguntes por detalles chicos que el equipo puede decidir solo (tamaños de botones, márgenes, colores exactos).\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\"] contador de movimientos unicamente\n- [respuesta a \"¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\"] si\n- [respuesta a \"¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\"] el boton 'reiniciar' devolvera al avatar y las cajas a las posiciones iniciales que el nivel les asigno, mientras que el boton 'proximo nivel' cargara un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles\n- [respuesta a \"¿Cuántos niveles habrá en total?\"] al menos 10 niveles\n- [respuesta a \"¿Cuáles son las habilidades del avatar en cada nivel?\"] empujar las cajas unicamente\n- [respuesta a \"¿Qué acciones puede realizar el jugador además de empujar las cajas?\"] mover al avatar con las flechas del teclado, el avatar no puede atravesar paredes ni cajas, no puede mover paredes, unicamente puede mover cajas siempre y cuando las cajas no tengan una pared en direccion a la cual el avatar empuja\n\nPREGUNTAS QUE YA HICISTE (6/10, no las repitas):\n- ¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\n- ¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\n- ¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\n- ¿Cuántos niveles habrá en total?\n- ¿Cuáles son las habilidades del avatar en cada nivel?\n- ¿Qué acciones puede realizar el jugador además de empujar las cajas?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- si hay algún tipo de nivel o dificultad\n- qué habilidades tendrá el avatar\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se generan los mapas aleatoriamente\",\"qué acciones puede realizar el jugador además de empujar las cajas\"],\"pregunta\":\"¿Cómo se generan los mapas aleatoriamente?\"}\n```"
+    },
+    {
+      "ms": 9882,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks, ni CÓMO se implementa algo (algoritmos, cómo se genera, cómo se calcula): eso lo decide el equipo.\n- No preguntes por detalles chicos que el equipo puede decidir solo (tamaños de botones, márgenes, colores exactos).\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\"] contador de movimientos unicamente\n- [respuesta a \"¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\"] si\n- [respuesta a \"¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\"] el boton 'reiniciar' devolvera al avatar y las cajas a las posiciones iniciales que el nivel les asigno, mientras que el boton 'proximo nivel' cargara un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles\n- [respuesta a \"¿Cuántos niveles habrá en total?\"] al menos 10 niveles\n- [respuesta a \"¿Cuáles son las habilidades del avatar en cada nivel?\"] empujar las cajas unicamente\n- [respuesta a \"¿Qué acciones puede realizar el jugador además de empujar las cajas?\"] mover al avatar con las flechas del teclado, el avatar no puede atravesar paredes ni cajas, no puede mover paredes, unicamente puede mover cajas siempre y cuando las cajas no tengan una pared en direccion a la cual el avatar empuja\n- [respuesta a \"¿Hay algún tipo de nivel o dificultad?\"] si\n\nPREGUNTAS QUE YA HICISTE (7/10, no las repitas):\n- ¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\n- ¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\n- ¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\n- ¿Cuántos niveles habrá en total?\n- ¿Cuáles son las habilidades del avatar en cada nivel?\n- ¿Qué acciones puede realizar el jugador además de empujar las cajas?\n- ¿Hay algún tipo de nivel o dificultad?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- qué habilidades tendrá el avatar\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"qué acciones puede realizar el jugador además de empujar las cajas\",\"cómo se generan los mapas aleatorios\"],\"pregunta\":\"¿Qué acciones puede realizar el jugador además de empujar las cajas?\"}\n```"
+    },
+    {
+      "ms": 8491,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks, ni CÓMO se implementa algo (algoritmos, cómo se genera, cómo se calcula): eso lo decide el equipo.\n- No preguntes por detalles chicos que el equipo puede decidir solo (tamaños de botones, márgenes, colores exactos).\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\"] contador de movimientos unicamente\n- [respuesta a \"¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\"] si\n- [respuesta a \"¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\"] el boton 'reiniciar' devolvera al avatar y las cajas a las posiciones iniciales que el nivel les asigno, mientras que el boton 'proximo nivel' cargara un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles\n- [respuesta a \"¿Cuántos niveles habrá en total?\"] al menos 10 niveles\n- [respuesta a \"¿Cuáles son las habilidades del avatar en cada nivel?\"] empujar las cajas unicamente\n- [respuesta a \"¿Qué acciones puede realizar el jugador además de empujar las cajas?\"] mover al avatar con las flechas del teclado, el avatar no puede atravesar paredes ni cajas, no puede mover paredes, unicamente puede mover cajas siempre y cuando las cajas no tengan una pared en direccion a la cual el avatar empuja\n- [respuesta a \"¿Hay algún tipo de nivel o dificultad?\"] si\n- [respuesta a \"¿Qué habilidades tendrá el avatar?\"] mover cajas\n\nPREGUNTAS QUE YA HICISTE (8/10, no las repitas):\n- ¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\n- ¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\n- ¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\n- ¿Cuántos niveles habrá en total?\n- ¿Cuáles son las habilidades del avatar en cada nivel?\n- ¿Qué acciones puede realizar el jugador además de empujar las cajas?\n- ¿Hay algún tipo de nivel o dificultad?\n- ¿Qué habilidades tendrá el avatar?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"el tamaño y diseño exacto del mapa en cada nivel\",\"las acciones específicas que se podrán realizar al inicio de un nuevo nivel\"],\"pregunta\":\"¿El juego incluirá algún tipo de tutorial o instrucciones para el jugador al inicio?\"}\n```"
+    },
+    {
+      "ms": 11975,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks, ni CÓMO se implementa algo (algoritmos, cómo se genera, cómo se calcula): eso lo decide el equipo.\n- No preguntes por detalles chicos que el equipo puede decidir solo (tamaños de botones, márgenes, colores exactos).\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\"] contador de movimientos unicamente\n- [respuesta a \"¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\"] si\n- [respuesta a \"¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\"] el boton 'reiniciar' devolvera al avatar y las cajas a las posiciones iniciales que el nivel les asigno, mientras que el boton 'proximo nivel' cargara un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles\n- [respuesta a \"¿Cuántos niveles habrá en total?\"] al menos 10 niveles\n- [respuesta a \"¿Cuáles son las habilidades del avatar en cada nivel?\"] empujar las cajas unicamente\n- [respuesta a \"¿Qué acciones puede realizar el jugador además de empujar las cajas?\"] mover al avatar con las flechas del teclado, el avatar no puede atravesar paredes ni cajas, no puede mover paredes, unicamente puede mover cajas siempre y cuando las cajas no tengan una pared en direccion a la cual el avatar empuja\n- [respuesta a \"¿Hay algún tipo de nivel o dificultad?\"] si\n- [respuesta a \"¿Qué habilidades tendrá el avatar?\"] mover cajas\n- [respuesta a \"¿El juego incluirá algún tipo de tutorial o instrucciones para el jugador al inicio?\"] solo una leyenda debajo del view del juego con la siguiente frase 'usa las flechas del teclado para moverte\"\n\nPREGUNTAS QUE YA HICISTE (9/10, no las repitas):\n- ¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\n- ¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\n- ¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\n- ¿Cuántos niveles habrá en total?\n- ¿Cuáles son las habilidades del avatar en cada nivel?\n- ¿Qué acciones puede realizar el jugador además de empujar las cajas?\n- ¿Hay algún tipo de nivel o dificultad?\n- ¿Qué habilidades tendrá el avatar?\n- ¿El juego incluirá algún tipo de tutorial o instrucciones para el jugador al inicio?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- las acciones específicas que se podrán realizar al inicio de un nuevo nivel\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"el tamaño del mapa y la cantidad de cajas por nivel\"],\"pregunta\":\"¿Cuál será el tamaño del mapa y cuántas cajas habrá en cada nivel?\"}\n```"
+    },
+    {
+      "ms": 96377,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos Intent Forge v0.3 del equipo MicheLab.\n\nRecibís las LÍNEAS que escribió el usuario, numeradas (L1, L2...). Entre corchetes va el campo de la plantilla donde la escribió.\nTu trabajo es CLASIFICAR cada línea, NO resumir.\n\nTIPOS:\n- contexto: qué es el proyecto, para quién, referencias (\"estilo Trello\"), adjetivos generales (\"sencilla\").\n- feature: algo que el usuario tiene que poder HACER en la app.\n- estilo: cómo se tiene que VER o sentir (colores, sombras, animaciones, efectos al pasar el mouse).\n- restriccion: un límite o algo que NO debe hacer (\"sin login\", \"sin base de datos\", \"solo frontend\", \"los datos se borran al recargar\").\n- descartado: SOLO si una línea [ajuste] pide sacar algo; en \"de\" van la línea que se saca y la línea [ajuste].\n\nREGLAS:\n1. Cada línea L tiene que aparecer en \"de\" de al menos un ítem. Ninguna se pierde.\n2. Si una línea nombra varias cosas, separalas: un ítem por cosa.\n3. Usá las palabras del usuario. No resumas ni generalices. Nombres, cantidades y listas (por ejemplo entre paréntesis) van dentro del texto del ítem.\n4. No agregues ítems que no salgan de una línea.\n5. El campo entre corchetes es una pista. Cambiá el tipo solo si la línea claramente es de otro tipo (por ejemplo \"drag & drop\" escrito en [cómo se tiene que ver] es una feature).\n   Si algo necesita un dato o una acción del usuario (prioridad, estado, etiquetas, fechas), es feature aunque esté en [cómo se tiene que ver]: \"semáforo de prioridad\" → feature \"Asignar prioridad a una tarjeta (semáforo)\".\n   Una feature = UNA acción. \"Crear, editar y borrar tarjetas\" son tres ítems: \"Crear tarjetas\", \"Editar tarjetas\", \"Borrar tarjetas\".\n6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.\n7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo \"¿Se pueden crear columnas?\" + \"sí\" → feature \"Crear columnas\"). Si es negativa, es una restriccion con \"Sin ...\" (por ejemplo \"¿Buscar tarjetas?\" + \"no\" → restriccion \"Sin búsqueda de tarjetas\").\n   Una [respuesta delegada] (\"no lo sé\", \"lo dejo a criterio\", \"da igual\") NO es un no: va como contexto \"A criterio del equipo: <tema de la pregunta>\", con el resto de lo que haya dicho.\n   Si la respuesta DETALLA algo que ya está en otra línea, NO hagas un ítem suelto: escribí el detalle dentro de ese ítem y poné las dos líneas en \"de\". Por ejemplo L5 \"semáforo de prioridad\" + L9 respuesta \"verde baja, amarillo media, rojo alta\" + L10 respuesta \"se elige en una lista al crear la tarjeta\" → {\"de\":[\"L5\",\"L9\",\"L10\"],\"tipo\":\"feature\",\"texto\":\"Asignar prioridad al crear la tarjeta, desde una lista (semáforo: verde baja, amarillo media, rojo alta)\"}.\n8. No hagas preguntas: devolvé siempre el JSON.\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"...\",\"items\":[{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"...\"}],\"criterios_holdout\":[\"cómo se verifica cada feature\"]}\n```\n\nEJEMPLO (otro proyecto):\nL1 [qué querés construir] Una app para guardar mis recetas, simple\nL2 [qué tiene que hacer] cargar recetas con ingredientes y pasos\nL3 [cómo se tiene que ver] colores cálidos, fotos grandes, que se puedan marcar favoritas\nL4 [qué no debe hacer] sin usuarios ni login\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Recetario\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"App simple para guardar mis recetas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Cargar recetas con ingredientes y pasos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Colores cálidos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Fotos grandes\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"Marcar recetas como favoritas\"},\n{\"de\":[\"L4\"],\"tipo\":\"restriccion\",\"texto\":\"Sin usuarios ni login\"}],\n\"criterios_holdout\":[\"Se puede cargar una receta con ingredientes y pasos\",\"Se puede marcar una receta como favorita\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LÍNEAS DEL USUARIO:\nL1 [qué querés construir] Juego Boxworld en html autocontenido\nL2 [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\nL3 [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\nL4 [cómo se tiene que ver] estilo family nes, 8bits\nL5 [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\nL6 [respuesta a \"¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\"] contador de movimientos unicamente\nL7 [respuesta a \"¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\"] si\nL8 [respuesta a \"¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\"] el boton 'reiniciar' devolvera al avatar y las cajas a las posiciones iniciales que el nivel les asigno, mientras que el boton 'proximo nivel' cargara un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles\nL9 [respuesta a \"¿Cuántos niveles habrá en total?\"] al menos 10 niveles\nL10 [respuesta a \"¿Cuáles son las habilidades del avatar en cada nivel?\"] empujar las cajas unicamente\nL11 [respuesta a \"¿Qué acciones puede realizar el jugador además de empujar las cajas?\"] mover al avatar con las flechas del teclado, el avatar no puede atravesar paredes ni cajas, no puede mover paredes, unicamente puede mover cajas siempre y cuando las cajas no tengan una pared en direccion a la cual el avatar empuja\nL12 [respuesta a \"¿Hay algún tipo de nivel o dificultad?\"] si\nL13 [respuesta a \"¿Qué habilidades tendrá el avatar?\"] mover cajas\nL14 [respuesta a \"¿El juego incluirá algún tipo de tutorial o instrucciones para el jugador al inicio?\"] solo una leyenda debajo del view del juego con la siguiente frase 'usa las flechas del teclado para moverte\"\nL15 [respuesta a \"¿Cuál será el tamaño del mapa y cuántas cajas habrá en cada nivel?\"] 350x450px seria un buen tamaño de mapa, y debera haber como minimo 3 cajas en cada nivel\n\nPREGUNTAS QUE YA HICISTE (no las repitas):\n- ¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\n- ¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\n- ¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\n- ¿Cuántos niveles habrá en total?\n- ¿Cuáles son las habilidades del avatar en cada nivel?\n- ¿Qué acciones puede realizar el jugador además de empujar las cajas?\n- ¿Hay algún tipo de nivel o dificultad?\n- ¿Qué habilidades tendrá el avatar?\n- ¿El juego incluirá algún tipo de tutorial o instrucciones para el jugador al inicio?\n- ¿Cuál será el tamaño del mapa y cuántas cajas habrá en cada nivel?"
+        }
+      ],
+      "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Boxworld\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Juego Boxworld en html autocontenido\"},\n{\"de\":[\"L2\",\"L3\"],\"tipo\":\"feature\",\"texto\":\"El juego incluye el clásico Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, con botones 'reiniciar' y 'proximo nivel'\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Estilo Family NES, 8bits\"},\n{\"de\":[\"L5\"],\"tipo\":\"restriccion\",\"texto\":\"Las cajas no pueden salir del diseño del mapa, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\"},\n{\"de\":[\"L6\"],\"tipo\":\"feature\",\"texto\":\"Contador de movimientos único\"},\n{\"de\":[\"L7\",\"L8\",\"L9\"],\"tipo\":\"contexto\",\"texto\":\"El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente, con al menos 10 niveles. El botón 'reiniciar' devolverá al avatar y las cajas a sus posiciones iniciales, mientras que el botón 'proximo nivel' cargará un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles\"},\n{\"de\":[\"L10\",\"L11\"],\"tipo\":\"feature\",\"texto\":\"El avatar puede empujar cajas y moverse con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja\"},\n{\"de\":[\"L12\"],\"tipo\":\"contexto\",\"texto\":\"Hay diferentes niveles o dificultades con mapas generados aleatoriamente\"},\n{\"de\":[\"L13\"],\"tipo\":\"feature\",\"texto\":\"El avatar tiene habilidades para mover cajas\"},\n{\"de\":[\"L14\"],\"tipo\":\"contexto\",\"texto\":\"Solo una leyenda debajo del view del juego con la frase 'usa las flechas del teclado para moverte' al inicio\"},\n{\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño del mapa será de 350x450px y habrá como mínimo 3 cajas en cada nivel\"}],\n\"criterios_holdout\":[\"Se puede jugar el Boxworld con un avatar que empuja cajas a posiciones fijadas, incluyendo botones 'reiniciar' y 'proximo nivel'\", \"El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente\", \"El contador de movimientos único funciona correctamente\", \"Las cajas no pueden salir del mapa ni superponerse entre sí o con el avatar\", \"El tamaño del mapa es 350x450px y hay al menos 3 cajas en cada nivel\", \"El avatar puede moverse con las flechas del teclado y empujar cajas sin atravesar paredes\"]}\"\n```"
+    },
+    {
+      "ms": 37219,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos Intent Forge v0.3 del equipo MicheLab.\n\nRecibís las LÍNEAS que escribió el usuario, numeradas (L1, L2...). Entre corchetes va el campo de la plantilla donde la escribió.\nTu trabajo es CLASIFICAR cada línea, NO resumir.\n\nTIPOS:\n- contexto: qué es el proyecto, para quién, referencias (\"estilo Trello\"), adjetivos generales (\"sencilla\").\n- feature: algo que el usuario tiene que poder HACER en la app.\n- estilo: cómo se tiene que VER o sentir (colores, sombras, animaciones, efectos al pasar el mouse).\n- restriccion: un límite o algo que NO debe hacer (\"sin login\", \"sin base de datos\", \"solo frontend\", \"los datos se borran al recargar\").\n- descartado: SOLO si una línea [ajuste] pide sacar algo; en \"de\" van la línea que se saca y la línea [ajuste].\n\nREGLAS:\n1. Cada línea L tiene que aparecer en \"de\" de al menos un ítem. Ninguna se pierde.\n2. Si una línea nombra varias cosas, separalas: un ítem por cosa.\n3. Usá las palabras del usuario. No resumas ni generalices. Nombres, cantidades y listas (por ejemplo entre paréntesis) van dentro del texto del ítem.\n4. No agregues ítems que no salgan de una línea.\n5. El campo entre corchetes es una pista. Cambiá el tipo solo si la línea claramente es de otro tipo (por ejemplo \"drag & drop\" escrito en [cómo se tiene que ver] es una feature).\n   Si algo necesita un dato o una acción del usuario (prioridad, estado, etiquetas, fechas), es feature aunque esté en [cómo se tiene que ver]: \"semáforo de prioridad\" → feature \"Asignar prioridad a una tarjeta (semáforo)\".\n   Una feature = UNA acción. \"Crear, editar y borrar tarjetas\" son tres ítems: \"Crear tarjetas\", \"Editar tarjetas\", \"Borrar tarjetas\".\n6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.\n7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo \"¿Se pueden crear columnas?\" + \"sí\" → feature \"Crear columnas\"). Si es negativa, es una restriccion con \"Sin ...\" (por ejemplo \"¿Buscar tarjetas?\" + \"no\" → restriccion \"Sin búsqueda de tarjetas\").\n   Una [respuesta delegada] (\"no lo sé\", \"lo dejo a criterio\", \"da igual\") NO es un no: va como contexto \"A criterio del equipo: <tema de la pregunta>\", con el resto de lo que haya dicho.\n   Si la respuesta DETALLA algo que ya está en otra línea, NO hagas un ítem suelto: escribí el detalle dentro de ese ítem y poné las dos líneas en \"de\". Por ejemplo L5 \"semáforo de prioridad\" + L9 respuesta \"verde baja, amarillo media, rojo alta\" + L10 respuesta \"se elige en una lista al crear la tarjeta\" → {\"de\":[\"L5\",\"L9\",\"L10\"],\"tipo\":\"feature\",\"texto\":\"Asignar prioridad al crear la tarjeta, desde una lista (semáforo: verde baja, amarillo media, rojo alta)\"}.\n8. No hagas preguntas: devolvé siempre el JSON.\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"...\",\"items\":[{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"...\"}],\"criterios_holdout\":[\"cómo se verifica cada feature\"]}\n```\n\nEJEMPLO (otro proyecto):\nL1 [qué querés construir] Una app para guardar mis recetas, simple\nL2 [qué tiene que hacer] cargar recetas con ingredientes y pasos\nL3 [cómo se tiene que ver] colores cálidos, fotos grandes, que se puedan marcar favoritas\nL4 [qué no debe hacer] sin usuarios ni login\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Recetario\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"App simple para guardar mis recetas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Cargar recetas con ingredientes y pasos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Colores cálidos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Fotos grandes\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"Marcar recetas como favoritas\"},\n{\"de\":[\"L4\"],\"tipo\":\"restriccion\",\"texto\":\"Sin usuarios ni login\"}],\n\"criterios_holdout\":[\"Se puede cargar una receta con ingredientes y pasos\",\"Se puede marcar una receta como favorita\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LÍNEAS DEL USUARIO:\nL1 [qué querés construir] Juego Boxworld en html autocontenido\nL2 [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\nL3 [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\nL4 [cómo se tiene que ver] estilo family nes, 8bits\nL5 [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\nL6 [respuesta a \"¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\"] contador de movimientos unicamente\nL7 [respuesta a \"¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\"] si\nL8 [respuesta a \"¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\"] el boton 'reiniciar' devolvera al avatar y las cajas a las posiciones iniciales que el nivel les asigno, mientras que el boton 'proximo nivel' cargara un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles\nL9 [respuesta a \"¿Cuántos niveles habrá en total?\"] al menos 10 niveles\nL10 [respuesta a \"¿Cuáles son las habilidades del avatar en cada nivel?\"] empujar las cajas unicamente\nL11 [respuesta a \"¿Qué acciones puede realizar el jugador además de empujar las cajas?\"] mover al avatar con las flechas del teclado, el avatar no puede atravesar paredes ni cajas, no puede mover paredes, unicamente puede mover cajas siempre y cuando las cajas no tengan una pared en direccion a la cual el avatar empuja\nL12 [respuesta a \"¿Hay algún tipo de nivel o dificultad?\"] si\nL13 [respuesta a \"¿Qué habilidades tendrá el avatar?\"] mover cajas\nL14 [respuesta a \"¿El juego incluirá algún tipo de tutorial o instrucciones para el jugador al inicio?\"] solo una leyenda debajo del view del juego con la siguiente frase 'usa las flechas del teclado para moverte\"\nL15 [respuesta a \"¿Cuál será el tamaño del mapa y cuántas cajas habrá en cada nivel?\"] 350x450px seria un buen tamaño de mapa, y debera haber como minimo 3 cajas en cada nivel\n\nPREGUNTAS QUE YA HICISTE (no las repitas):\n- ¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\n- ¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\n- ¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\n- ¿Cuántos niveles habrá en total?\n- ¿Cuáles son las habilidades del avatar en cada nivel?\n- ¿Qué acciones puede realizar el jugador además de empujar las cajas?\n- ¿Hay algún tipo de nivel o dificultad?\n- ¿Qué habilidades tendrá el avatar?\n- ¿El juego incluirá algún tipo de tutorial o instrucciones para el jugador al inicio?\n- ¿Cuál será el tamaño del mapa y cuántas cajas habrá en cada nivel?"
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Boxworld\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Juego Boxworld en html autocontenido\"},\n{\"de\":[\"L2\",\"L3\"],\"tipo\":\"feature\",\"texto\":\"El juego incluye el clásico Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, con botones 'reiniciar' y 'proximo nivel'\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Estilo Family NES, 8bits\"},\n{\"de\":[\"L5\"],\"tipo\":\"restriccion\",\"texto\":\"Las cajas no pueden salir del diseño del mapa, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\"},\n{\"de\":[\"L6\"],\"tipo\":\"feature\",\"texto\":\"Contador de movimientos único\"},\n{\"de\":[\"L7\",\"L8\",\"L9\"],\"tipo\":\"contexto\",\"texto\":\"El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente, con al menos 10 niveles. El botón 'reiniciar' devolverá al avatar y las cajas a sus posiciones iniciales, mientras que el botón 'proximo nivel' cargará un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles\"},\n{\"de\":[\"L10\",\"L11\"],\"tipo\":\"feature\",\"texto\":\"El avatar puede empujar cajas y moverse con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja\"},\n{\"de\":[\"L12\"],\"tipo\":\"contexto\",\"texto\":\"Hay diferentes niveles o dificultades con mapas generados aleatoriamente\"},\n{\"de\":[\"L13\"],\"tipo\":\"feature\",\"texto\":\"El avatar tiene habilidades para mover cajas\"},\n{\"de\":[\"L14\"],\"tipo\":\"contexto\",\"texto\":\"Solo una leyenda debajo del view del juego con la frase 'usa las flechas del teclado para moverte' al inicio\"},\n{\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño del mapa será de 350x450px y habrá como mínimo 3 cajas en cada nivel\"}],\n\"criterios_holdout\":[\"Se puede jugar el Boxworld con un avatar que empuja cajas a posiciones fijadas, incluyendo botones 'reiniciar' y 'proximo nivel'\", \"El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente\", \"El contador de movimientos único funciona correctamente\", \"Las cajas no pueden salir del mapa ni superponerse entre sí o con el avatar\", \"El tamaño del mapa es 350x450px y hay al menos 3 cajas en cada nivel\", \"El avatar puede moverse con las flechas del teclado y empujar cajas sin atravesar paredes\"]}\"\n```"
+        },
+        {
+          "role": "user",
+          "content": "Revisá tu JSON:\n- \"El avatar puede empujar cajas y moverse con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja\" (L10, L11) repite \"El avatar tiene habilidades para mover cajas\": escribí ese detalle dentro de \"El avatar tiene habilidades para mover cajas\" y sumá L10, L11 a su \"de\"; no lo dejes como ítem aparte.\n- La feature \"El avatar puede empujar cajas y moverse con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja\" junta varias acciones (avatar, empujar, mover, atravesar): separala en un ítem por acción, con el mismo \"de\".\nDevolvé el JSON COMPLETE entero de nuevo."
+        }
+      ],
+      "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Boxworld\",\"items\":[\n    {\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Juego Boxworld en html autocontenido\"},\n    {\"de\":[\"L2\",\"L3\"],\"tipo\":\"feature\",\"texto\":\"El juego incluye el clásico Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, con botones 'reiniciar' y 'proximo nivel'\"},\n    {\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Estilo Family NES, 8bits\"},\n    {\"de\":[\"L5\"],\"tipo\":\"restriccion\",\"texto\":\"Las cajas no pueden salir del diseño del mapa, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\"},\n    {\"de\":[\"L6\"],\"tipo\":\"feature\",\"texto\":\"Contador de movimientos único\"},\n    {\"de\":[\"L7\",\"L8\",\"L9\"],\"tipo\":\"contexto\",\"texto\":\"El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente, con al menos 10 niveles. El botón 'reiniciar' devolverá al avatar y las cajas a sus posiciones iniciales, mientras que el botón 'proximo nivel' cargará un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles\"},\n    {\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"El avatar puede moverse con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja\"},\n    {\"de\":[\"L12\"],\"tipo\":\"contexto\",\"texto\":\"Hay diferentes niveles o dificultades con mapas generados aleatoriamente\"},\n    {\"de\":[\"L13\"],\"tipo\":\"feature\",\"texto\":\"El avatar tiene habilidades para mover cajas\"},\n    {\"de\":[\"L14\"],\"tipo\":\"contexto\",\"texto\":\"Solo una leyenda debajo del view del juego con la frase 'usa las flechas del teclado para moverte' al inicio\"},\n    {\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño del mapa será de 350x450px y habrá como mínimo 3 cajas en cada nivel\"}],\n\"criterios_holdout\":[\"Se puede jugar el Boxworld con un avatar que empuja cajas a posiciones fijadas, incluyendo botones 'reiniciar' y 'proximo nivel'\", \"El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente\", \"El contador de movimientos único funciona correctamente\", \"Las cajas no pueden salir del mapa ni superponerse entre sí o con el avatar\", \"El tamaño del mapa es 350x450px y hay al menos 3 cajas en cada nivel\", \"El avatar puede moverse con las flechas del teclado y empujar cajas sin atravesar paredes\"]}\"\n```"
+    },
+    {
+      "ms": 48609,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos Intent Forge v0.3 del equipo MicheLab.\n\nRecibís las LÍNEAS que escribió el usuario, numeradas (L1, L2...). Entre corchetes va el campo de la plantilla donde la escribió.\nTu trabajo es CLASIFICAR cada línea, NO resumir.\n\nTIPOS:\n- contexto: qué es el proyecto, para quién, referencias (\"estilo Trello\"), adjetivos generales (\"sencilla\").\n- feature: algo que el usuario tiene que poder HACER en la app.\n- estilo: cómo se tiene que VER o sentir (colores, sombras, animaciones, efectos al pasar el mouse).\n- restriccion: un límite o algo que NO debe hacer (\"sin login\", \"sin base de datos\", \"solo frontend\", \"los datos se borran al recargar\").\n- descartado: SOLO si una línea [ajuste] pide sacar algo; en \"de\" van la línea que se saca y la línea [ajuste].\n\nREGLAS:\n1. Cada línea L tiene que aparecer en \"de\" de al menos un ítem. Ninguna se pierde.\n2. Si una línea nombra varias cosas, separalas: un ítem por cosa.\n3. Usá las palabras del usuario. No resumas ni generalices. Nombres, cantidades y listas (por ejemplo entre paréntesis) van dentro del texto del ítem.\n4. No agregues ítems que no salgan de una línea.\n5. El campo entre corchetes es una pista. Cambiá el tipo solo si la línea claramente es de otro tipo (por ejemplo \"drag & drop\" escrito en [cómo se tiene que ver] es una feature).\n   Si algo necesita un dato o una acción del usuario (prioridad, estado, etiquetas, fechas), es feature aunque esté en [cómo se tiene que ver]: \"semáforo de prioridad\" → feature \"Asignar prioridad a una tarjeta (semáforo)\".\n   Una feature = UNA acción. \"Crear, editar y borrar tarjetas\" son tres ítems: \"Crear tarjetas\", \"Editar tarjetas\", \"Borrar tarjetas\".\n6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.\n7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo \"¿Se pueden crear columnas?\" + \"sí\" → feature \"Crear columnas\"). Si es negativa, es una restriccion con \"Sin ...\" (por ejemplo \"¿Buscar tarjetas?\" + \"no\" → restriccion \"Sin búsqueda de tarjetas\").\n   Una [respuesta delegada] (\"no lo sé\", \"lo dejo a criterio\", \"da igual\") NO es un no: va como contexto \"A criterio del equipo: <tema de la pregunta>\", con el resto de lo que haya dicho.\n   Si la respuesta DETALLA algo que ya está en otra línea, NO hagas un ítem suelto: escribí el detalle dentro de ese ítem y poné las dos líneas en \"de\". Por ejemplo L5 \"semáforo de prioridad\" + L9 respuesta \"verde baja, amarillo media, rojo alta\" + L10 respuesta \"se elige en una lista al crear la tarjeta\" → {\"de\":[\"L5\",\"L9\",\"L10\"],\"tipo\":\"feature\",\"texto\":\"Asignar prioridad al crear la tarjeta, desde una lista (semáforo: verde baja, amarillo media, rojo alta)\"}.\n8. No hagas preguntas: devolvé siempre el JSON.\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"...\",\"items\":[{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"...\"}],\"criterios_holdout\":[\"cómo se verifica cada feature\"]}\n```\n\nEJEMPLO (otro proyecto):\nL1 [qué querés construir] Una app para guardar mis recetas, simple\nL2 [qué tiene que hacer] cargar recetas con ingredientes y pasos\nL3 [cómo se tiene que ver] colores cálidos, fotos grandes, que se puedan marcar favoritas\nL4 [qué no debe hacer] sin usuarios ni login\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Recetario\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"App simple para guardar mis recetas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Cargar recetas con ingredientes y pasos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Colores cálidos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Fotos grandes\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"Marcar recetas como favoritas\"},\n{\"de\":[\"L4\"],\"tipo\":\"restriccion\",\"texto\":\"Sin usuarios ni login\"}],\n\"criterios_holdout\":[\"Se puede cargar una receta con ingredientes y pasos\",\"Se puede marcar una receta como favorita\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LÍNEAS DEL USUARIO:\nL1 [qué querés construir] Juego Boxworld en html autocontenido\nL2 [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\nL3 [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\nL4 [cómo se tiene que ver] estilo family nes, 8bits\nL5 [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\nL6 [respuesta a \"¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\"] contador de movimientos unicamente\nL7 [respuesta a \"¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\"] si\nL8 [respuesta a \"¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\"] el boton 'reiniciar' devolvera al avatar y las cajas a las posiciones iniciales que el nivel les asigno, mientras que el boton 'proximo nivel' cargara un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles\nL9 [respuesta a \"¿Cuántos niveles habrá en total?\"] al menos 10 niveles\nL10 [respuesta a \"¿Cuáles son las habilidades del avatar en cada nivel?\"] empujar las cajas unicamente\nL11 [respuesta a \"¿Qué acciones puede realizar el jugador además de empujar las cajas?\"] mover al avatar con las flechas del teclado, el avatar no puede atravesar paredes ni cajas, no puede mover paredes, unicamente puede mover cajas siempre y cuando las cajas no tengan una pared en direccion a la cual el avatar empuja\nL12 [respuesta a \"¿Hay algún tipo de nivel o dificultad?\"] si\nL13 [respuesta a \"¿Qué habilidades tendrá el avatar?\"] mover cajas\nL14 [respuesta a \"¿El juego incluirá algún tipo de tutorial o instrucciones para el jugador al inicio?\"] solo una leyenda debajo del view del juego con la siguiente frase 'usa las flechas del teclado para moverte\"\nL15 [respuesta a \"¿Cuál será el tamaño del mapa y cuántas cajas habrá en cada nivel?\"] 350x450px seria un buen tamaño de mapa, y debera haber como minimo 3 cajas en cada nivel\n\nPREGUNTAS QUE YA HICISTE (no las repitas):\n- ¿El juego incluirá un sistema de puntaje basado en la eficiencia del jugador o en el tiempo?\n- ¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?\n- ¿Cómo se manejarán los botones 'reiniciar' y 'proximo nivel'?\n- ¿Cuántos niveles habrá en total?\n- ¿Cuáles son las habilidades del avatar en cada nivel?\n- ¿Qué acciones puede realizar el jugador además de empujar las cajas?\n- ¿Hay algún tipo de nivel o dificultad?\n- ¿Qué habilidades tendrá el avatar?\n- ¿El juego incluirá algún tipo de tutorial o instrucciones para el jugador al inicio?\n- ¿Cuál será el tamaño del mapa y cuántas cajas habrá en cada nivel?"
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Boxworld\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Juego Boxworld en html autocontenido\"},\n{\"de\":[\"L2\",\"L3\"],\"tipo\":\"feature\",\"texto\":\"El juego incluye el clásico Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, con botones 'reiniciar' y 'proximo nivel'\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Estilo Family NES, 8bits\"},\n{\"de\":[\"L5\"],\"tipo\":\"restriccion\",\"texto\":\"Las cajas no pueden salir del diseño del mapa, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\"},\n{\"de\":[\"L6\"],\"tipo\":\"feature\",\"texto\":\"Contador de movimientos único\"},\n{\"de\":[\"L7\",\"L8\",\"L9\"],\"tipo\":\"contexto\",\"texto\":\"El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente, con al menos 10 niveles. El botón 'reiniciar' devolverá al avatar y las cajas a sus posiciones iniciales, mientras que el botón 'proximo nivel' cargará un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles\"},\n{\"de\":[\"L10\",\"L11\"],\"tipo\":\"feature\",\"texto\":\"El avatar puede empujar cajas y moverse con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja\"},\n{\"de\":[\"L12\"],\"tipo\":\"contexto\",\"texto\":\"Hay diferentes niveles o dificultades con mapas generados aleatoriamente\"},\n{\"de\":[\"L13\"],\"tipo\":\"feature\",\"texto\":\"El avatar tiene habilidades para mover cajas\"},\n{\"de\":[\"L14\"],\"tipo\":\"contexto\",\"texto\":\"Solo una leyenda debajo del view del juego con la frase 'usa las flechas del teclado para moverte' al inicio\"},\n{\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño del mapa será de 350x450px y habrá como mínimo 3 cajas en cada nivel\"}],\n\"criterios_holdout\":[\"Se puede jugar el Boxworld con un avatar que empuja cajas a posiciones fijadas, incluyendo botones 'reiniciar' y 'proximo nivel'\", \"El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente\", \"El contador de movimientos único funciona correctamente\", \"Las cajas no pueden salir del mapa ni superponerse entre sí o con el avatar\", \"El tamaño del mapa es 350x450px y hay al menos 3 cajas en cada nivel\", \"El avatar puede moverse con las flechas del teclado y empujar cajas sin atravesar paredes\"]}\"\n```"
+        },
+        {
+          "role": "user",
+          "content": "Revisá tu JSON:\n- \"El avatar puede empujar cajas y moverse con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja\" (L10, L11) repite \"El avatar tiene habilidades para mover cajas\": escribí ese detalle dentro de \"El avatar tiene habilidades para mover cajas\" y sumá L10, L11 a su \"de\"; no lo dejes como ítem aparte.\n- La feature \"El avatar puede empujar cajas y moverse con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja\" junta varias acciones (avatar, empujar, mover, atravesar): separala en un ítem por acción, con el mismo \"de\".\nDevolvé el JSON COMPLETE entero de nuevo."
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Boxworld\",\"items\":[\n    {\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Juego Boxworld en html autocontenido\"},\n    {\"de\":[\"L2\",\"L3\"],\"tipo\":\"feature\",\"texto\":\"El juego incluye el clásico Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, con botones 'reiniciar' y 'proximo nivel'\"},\n    {\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Estilo Family NES, 8bits\"},\n    {\"de\":[\"L5\"],\"tipo\":\"restriccion\",\"texto\":\"Las cajas no pueden salir del diseño del mapa, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\"},\n    {\"de\":[\"L6\"],\"tipo\":\"feature\",\"texto\":\"Contador de movimientos único\"},\n    {\"de\":[\"L7\",\"L8\",\"L9\"],\"tipo\":\"contexto\",\"texto\":\"El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente, con al menos 10 niveles. El botón 'reiniciar' devolverá al avatar y las cajas a sus posiciones iniciales, mientras que el botón 'proximo nivel' cargará un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles\"},\n    {\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"El avatar puede moverse con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja\"},\n    {\"de\":[\"L12\"],\"tipo\":\"contexto\",\"texto\":\"Hay diferentes niveles o dificultades con mapas generados aleatoriamente\"},\n    {\"de\":[\"L13\"],\"tipo\":\"feature\",\"texto\":\"El avatar tiene habilidades para mover cajas\"},\n    {\"de\":[\"L14\"],\"tipo\":\"contexto\",\"texto\":\"Solo una leyenda debajo del view del juego con la frase 'usa las flechas del teclado para moverte' al inicio\"},\n    {\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño del mapa será de 350x450px y habrá como mínimo 3 cajas en cada nivel\"}],\n\"criterios_holdout\":[\"Se puede jugar el Boxworld con un avatar que empuja cajas a posiciones fijadas, incluyendo botones 'reiniciar' y 'proximo nivel'\", \"El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente\", \"El contador de movimientos único funciona correctamente\", \"Las cajas no pueden salir del mapa ni superponerse entre sí o con el avatar\", \"El tamaño del mapa es 350x450px y hay al menos 3 cajas en cada nivel\", \"El avatar puede moverse con las flechas del teclado y empujar cajas sin atravesar paredes\"]}\"\n```"
+        },
+        {
+          "role": "user",
+          "content": "Revisá tu JSON:\n- Estas líneas no quedaron en ningún ítem. Asignalas con sus palabras (si detallan otro ítem, agregalas a ese ítem y sumá la línea a su \"de\"; si no hay nada para construir, van como contexto):\n  L11 (respuesta a \"¿Qué acciones puede realizar el jugador además de empujar las cajas?\"): \"mover al avatar con las flechas del teclado, el avatar no puede atravesar paredes ni cajas, no puede mover paredes, unicamente puede mover cajas siempre y cuando las cajas no tengan una pared en direccion a la cual el avatar empuja\"\n- \"El avatar puede moverse con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja\" (L10) repite \"El avatar tiene habilidades para mover cajas\": escribí ese detalle dentro de \"El avatar tiene habilidades para mover cajas\" y sumá L10 a su \"de\"; no lo dejes como ítem aparte.\n- La feature \"El avatar puede moverse con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja\" junta varias acciones (avatar, mover, atravesar): separala en un ítem por acción, con el mismo \"de\".\nDevolvé el JSON COMPLETE entero de nuevo."
+        }
+      ],
+      "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Boxworld\",\"items\":[\n    {\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Juego Boxworld en html autocontenido\"},\n    {\"de\":[\"L2\",\"L3\"],\"tipo\":\"feature\",\"texto\":\"El juego incluye el clásico Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, con botones 'reiniciar' y 'proximo nivel'\"},\n    {\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Estilo Family NES, 8bits\"},\n    {\"de\":[\"L5\"],\"tipo\":\"restriccion\",\"texto\":\"Las cajas no pueden salir del diseño del mapa, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\"},\n    {\"de\":[\"L6\"],\"tipo\":\"feature\",\"texto\":\"Contador de movimientos único\"},\n    {\"de\":[\"L7\",\"L8\",\"L9\"],\"tipo\":\"contexto\",\"texto\":\"El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente, con al menos 10 niveles. El botón 'reiniciar' devolverá al avatar y las cajas a sus posiciones iniciales, mientras que el botón 'proximo nivel' cargará un mapa nuevo con ubicaciones distintas para las cajas y el avatar, pudiendo variar la cantidad de cajas entre niveles\"},\n    {\"de\":[\"L10\"],\"tipo\":\"feature\",\"texto\":\"El avatar tiene habilidades para mover cajas. El avatar puede moverse con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja\"},\n    {\"de\":[\"L12\"],\"tipo\":\"contexto\",\"texto\":\"Hay diferentes niveles o dificultades con mapas generados aleatoriamente\"},\n    {\"de\":[\"L13\"],\"tipo\":\"feature\",\"texto\":\"El avatar tiene habilidades para mover cajas\"},\n    {\"de\":[\"L14\"],\"tipo\":\"contexto\",\"texto\":\"Solo una leyenda debajo del view del juego con la frase 'usa las flechas del teclado para moverte' al inicio\"},\n    {\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño del mapa será de 350x450px y habrá como mínimo 3 cajas en cada nivel\"},\n    {\"de\":[\"L11\"],\"tipo\":\"feature\",\"texto\":\"Mover el avatar con las flechas del teclado. El avatar no puede atravesar paredes ni cajas, no puede mover paredes, solo puede mover cajas siempre que no haya una pared en la dirección a la cual el avatar empuja\"}],\n\"criterios_holdout\":[\"Se puede jugar el Boxworld con un avatar que empuja cajas a posiciones fijadas, incluyendo botones 'reiniciar' y 'proximo nivel'\", \"El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente\", \"El contador de movimientos único funciona correctamente\", \"Las cajas no pueden salir del mapa ni superponerse entre sí o con el avatar\", \"El tamaño del mapa es 350x450px y hay al menos 3 cajas en cada nivel\", \"El avatar puede moverse con las flechas del teclado y empujar cajas sin atravesar paredes\"]}\"\n```"
+    }
+  ]
+}

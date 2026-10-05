@@ -68,6 +68,8 @@ const VIS_CASES = {
   "real_p22_v07/index": ["FAIL", { R1: "FAIL", R2: "FAIL", R3: "PASS", R4: "PASS" }],
   // v0.5.2: v0.7.1 real — contacto más alto que la pantalla: la tarjeta de abajo aparece al seguir bajando (FAIL falso en v0.5.1)
   "real_p22_v071/index": ["PASS", { R1: "PASS", R2: "PASS", R3: "PASS", R4: "PASS" }],
+  // v0.6.1: Boxworld build 3 real — el overlay de victoria (style="display:none") no es contenido roto (FAIL falso en v0.6)
+  "real_boxworld_b3/index": ["PASS", { R1: "PASS", R2: "PASS", R7: "PASS", R3: "PASS" }],
 };
 for (const [name, [exp, feats]] of Object.entries(VIS_CASES)) {
   const [r] = await runChecks(S(name), VIS);
@@ -85,6 +87,8 @@ const RENDER_CASES = {
   render_mal: ["FAIL", { juego: false, dibujo: false }],
   // Boxworld build 2 real: #juego era `(root) => {…}` sin llamar; #niveles esperaba un botón que nunca se insertó
   "real_boxworld_b2/index": ["FAIL", { juego: false, niveles: false }],
+  // Boxworld build 3 real: con las 25 tareas, #juego dibuja el tablero de 10x10
+  "real_boxworld_b3/index": ["PASS", { juego: true, niveles: true }],
   // landings reales de Project22 v0.7.1: nada que dibujar falla (hero, contadores, formulario)
   "real_p22_v071/index": [null, {}],
 };

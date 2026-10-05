@@ -15,7 +15,12 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle } from "./form_runtime.mjs";
 
-export const CATALOG_VERSION = "check_catalog v0.6";
+export const CATALOG_VERSION = "check_catalog v0.6.1";
+
+// v0.6.1 (05/10, Boxworld build 3): sections_visible dio FAIL falso en #juego (10/21):
+// las 11 palabras que faltaban eran el overlay de victoria, con style="display:none"
+// en el HTML, que aparece al ganar. El texto adentro de un descendiente con `hidden`
+// o display:none inline se cuenta aparte (ondemand) y no entra en el total.
 
 // v0.6 (05/10): components_render — chequeo de BASE. Evidencia: Boxworld build 2,
 // el JS de #juego era una función anónima que nadie llamaba; el tablero
@@ -213,7 +218,7 @@ const MARK_SECTION = ([ws, feature]) => {
 // v0.5: palabras que se VEN dentro de un elemento (opacidad acumulada, visibility, display, tamaño)
 const SEEN_WORDS = (el) => {
   const count = (t) => t.split(/\s+/).filter((w) => /[a-záéíóúñ0-9]{2,}/i.test(w)).length;
-  let total = 0, seen = 0;
+  let total = 0, seen = 0, ondemand = 0;
   const shown = (e) => {
     const r = e.getBoundingClientRect();
     if (!r.width || !r.height) return false;
@@ -237,6 +242,13 @@ const SEEN_WORDS = (el) => {
     if (!p || p.closest("script, style, noscript, template")) continue;
     const k = count(n.textContent || "");
     if (!k) continue;
+    // v0.6.1 (Boxworld build 3): contenido "a demanda" marcado en el propio HTML — un
+    // descendiente con `hidden` o `style="display:none"` (overlay de "¡Nivel completado!",
+    // modal, pestaña) no está roto: espera una acción. No cuenta ni a favor ni en contra.
+    // La pieza misma (el ancla) oculta sigue siendo FAIL, y el ocultamiento por CSS
+    // (opacity, clases, visibility) sigue contando: ese fue el bug de Project22.
+    const od = p.closest('[hidden], [style*="display:none" i], [style*="display: none" i]');
+    if (od && od !== el && el.contains(od)) { ondemand += k; continue; }
     total += k;
     // v0.5.2: <option> no tiene caja propia; se ve si se ve su <select>
     if (p.closest("option, optgroup")) p = p.closest("select") || p;
@@ -244,7 +256,7 @@ const SEEN_WORDS = (el) => {
     const memo = (window.__vcSeen = window.__vcSeen || new WeakSet());
     if (memo.has(n) || shown(p)) { memo.add(n); seen += k; }
   }
-  return { total, seen };
+  return { total, seen, ondemand };
 };
 const ITEM_LEFTS = () => [...document.querySelectorAll("[data-vc-item]")].map((e) => Math.round(e.getBoundingClientRect().left));
 // v0.4: estilo comparable para hover
@@ -643,8 +655,8 @@ export async function runChecks(htmlPath, checks) {
                 w = await measure();
               }
               const ok = w.total === 0 ? false : w.seen / w.total >= 0.5;
-              parts.push(`#${a.id}: ${w.seen}/${w.total} palabras visibles${ok ? "" : " ✗"}`);
-              per.push({ id: a.id, features: a.features, seen: w.seen, total: w.total, ok });
+              parts.push(`#${a.id}: ${w.seen}/${w.total} palabras visibles${w.ondemand ? ` (+${w.ondemand} a demanda)` : ""}${ok ? "" : " ✗"}`);
+              per.push({ id: a.id, features: a.features, seen: w.seen, total: w.total, ondemand: w.ondemand || 0, ok });
               for (const f of a.features) byFeature[f] = (byFeature[f] ?? true) && ok;
             }
             r.anchors = per;

@@ -1,0 +1,115 @@
+#juego {
+    max-width: 600px; 
+    margin: 0 auto;
+}
+#juego .game-title {
+    text-align: center;
+    color: var(--color-secondary);
+    border-bottom: none; 
+}
+#juego .hud-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) 0 var(--space-md);
+    border-bottom: 4px solid #333; 
+}
+#juego .score-display {
+    font-size: 1.2rem;
+    color: var(--color-text-primary);
+    padding: 0 var(--space-md);
+}
+#juego .grid-container {
+    display: grid;
+    
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    width: 100%;
+    aspect-ratio: 1 / 1; 
+    border: 4px solid var(--color-secondary);
+    background-color: #2c2c54; 
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    position: relative; 
+}
+#juego .tile {
+    border: 2px solid #3a3a6e; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+#juego .wall {
+    background-color: #8b4513; 
+    border: 2px solid #6d3a0e;
+}
+#juego .box {
+    background-color: var(--color-accent);
+    border: 2px solid #cc5252;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    z-index: 5; 
+    box-shadow: var(--shadow-base);
+}
+#juego .avatar {
+    background-color: var(--color-secondary);
+    border: 2px solid #3a9e94;
+    z-index: 10; 
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+#juego .avatar::before {
+    content: '👤'; 
+    font-size: 1.5rem;
+}
+#juego .controls-container {
+    display: flex;
+    justify-content: space-around;
+    padding: var(--space-md) 0;
+    margin-top: var(--space-lg);
+}
+#juego #game-status {
+    color: var(--color-text-primary);
+    font-size: 1rem;
+    padding: 0 var(--space-md);
+}
+#juego .message-overlay {
+    position: absolute; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(26, 26, 46, 0.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 100; 
+}
+#juego .victory-title {
+    font-size: 2rem;
+    color: var(--color-success);
+    margin-bottom: 0.5rem;
+}
+#juego .victory-text {
+    font-size: 1.2rem;
+    margin-bottom: var(--space-md);
+}
+@media (max-width: 420px) {
+#juego .hud-container {
+        flex-direction: column;
+        gap: var(--space-sm);
+        padding: var(--space-sm) 0;
+    }
+#juego .score-display, #juego #game-status {
+        width: 100%;
+        text-align: center;
+        padding: 5px 0;
+}
+#juego .game-title { font-size: 1.8rem; }
+#juego h2 { font-size: 1.5rem !important; border-bottom: none !important;}
+}

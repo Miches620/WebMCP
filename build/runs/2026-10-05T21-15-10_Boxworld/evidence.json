@@ -1,0 +1,346 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Boxworld",
+  "source": "project25_snapshot.json",
+  "catalog": "check_catalog v0.6",
+  "profiles": {
+    "ids": [
+      "web/app"
+    ],
+    "chain": [
+      "web",
+      "web/app"
+    ],
+    "status": {
+      "web": "DRAFT",
+      "web/app": "DRAFT"
+    },
+    "borrowed": [
+      {
+        "id": "web/app",
+        "from": "web/landing",
+        "what": [
+          "page plan (header/secciones/footer)",
+          "Specialist por componentes",
+          "reglas del traductor (secciones, hero, carrusel)",
+          "catálogo de chequeos"
+        ]
+      }
+    ]
+  },
+  "artifact_loads_without_js_errors": true,
+  "sections_visible": {
+    "result": "FAIL",
+    "features": {
+      "R1": "FAIL",
+      "R2": "FAIL",
+      "R7": "FAIL",
+      "R3": "PASS"
+    },
+    "anchors": [
+      {
+        "id": "juego",
+        "features": [
+          "R1",
+          "R2",
+          "R7"
+        ],
+        "seen": 10,
+        "total": 21,
+        "ok": false
+      },
+      {
+        "id": "niveles",
+        "features": [
+          "R3"
+        ],
+        "seen": 37,
+        "total": 37,
+        "ok": true
+      }
+    ],
+    "detail": "#juego: 10/21 palabras visibles ✗; #niveles: 37/37 palabras visibles"
+  },
+  "components_render": {
+    "result": "PASS",
+    "components": [
+      {
+        "id": "juego",
+        "refs": 1,
+        "empty": [],
+        "ok": true
+      },
+      {
+        "id": "niveles",
+        "refs": 1,
+        "empty": [],
+        "ok": true
+      }
+    ],
+    "detail": "#juego: 1/1 contenedores con contenido; #niveles: 1/1 contenedores con contenido"
+  },
+  "summary": {
+    "requisitos": 8,
+    "PASS": 0,
+    "FAIL": 3,
+    "SIN_EVIDENCIA": 0,
+    "SIN_CHEQUEO": 5
+  },
+  "control": "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "El juego es el clásico Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel.",
+      "verdict": "FAIL",
+      "reason": "sin chequeos del traductor, pero su pieza no se ve",
+      "checks": [
+        {
+          "type": "sections_visible",
+          "gate": true,
+          "result": "FAIL",
+          "detail": "#juego: se ven 10/21 palabras al llegar con el scroll"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "El juego necesita un botón 'reiniciar' en caso de que el jugador haga un mal movimiento, además otro botón 'proximo nivel' para avanzar de niveles.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "reiniciar",
+              "nuevo"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"🔄 REINICIAR NIVEL\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "proximo",
+              "siguiente",
+              "nivel"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"🗺️ Niveles\"",
+          "baseline": "PASS",
+          "trivial": true
+        },
+        {
+          "type": "sections_visible",
+          "gate": true,
+          "result": "FAIL",
+          "detail": "#juego: se ven 10/21 palabras al llegar con el scroll"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "El juego deberá tener al menos 5 niveles.",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "Este requisito no puede ser verificado con los tipos de chequeos disponibles en el catálogo, ya que se trata de un aspecto del backend o estructura del juego que no está presente en la interfaz web.",
+      "checks": []
+    },
+    {
+      "id": "R4",
+      "text": "El avatar se mueve mediante las flechas del teclado.",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "Este requisito es una interacción con el backend o la lógica del juego, no puede ser verificado a través de chequeos de interfaz de usuario.",
+      "checks": []
+    },
+    {
+      "id": "R5",
+      "text": "El avatar se mueve siempre de a un casillero por vez.",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "Este requisito describe una funcionalidad del juego que no puede ser verificado mediante chequeos de interfaz de usuario.",
+      "checks": []
+    },
+    {
+      "id": "R6",
+      "text": "El tamaño del mapa es fijo, la cantidad de cajas puede variar.",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "Este requisito se refiere a la implementación técnica del juego y no puede ser verificado mediante chequeos de interfaz de usuario.",
+      "checks": []
+    },
+    {
+      "id": "R7",
+      "text": "El juego tiene un contador de movimientos como sistema de puntaje o tiempo límite por nivel.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "numbers_animate",
+          "params": {
+            "section": [
+              "puntaje",
+              "movimientos",
+              "juego",
+              "tiene"
+            ],
+            "feature": [
+              "R7"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "#juego [R7]: los números no cambian (\"0\")",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "sections_visible",
+          "gate": true,
+          "result": "FAIL",
+          "detail": "#juego: se ven 10/21 palabras al llegar con el scroll"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "text": "Estilo Family NES, 8bits",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El requisito de estilo 'Family NES, 8bits' no se puede verificar ejecutando la página. El aspecto visual y el estilo gráfico son cuestiones de diseño que no pueden ser comprobadas con chequeos funcionales.",
+      "checks": []
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "spa_specialist v0.7.3-componentes",
+    "tasks_assigned": {
+      "main": "juego",
+      "unmatched": [
+        "F1.2",
+        "F1.3",
+        "F1.4",
+        "F1.5",
+        "F1.6",
+        "F2.1",
+        "F2.2",
+        "F2.3",
+        "F2.4",
+        "F3.1",
+        "F3.2",
+        "F3.3",
+        "F3.4",
+        "F3.5",
+        "F3.6",
+        "F4.1.R2.1",
+        "F4.1.R2.2",
+        "F4.1.R2.3",
+        "F4.3",
+        "F4.4",
+        "F4.5",
+        "F4.6",
+        "F4.7"
+      ],
+      "by_component": {
+        "site-header": [],
+        "juego": [
+          "F1.1",
+          "F1.2",
+          "F1.3",
+          "F1.4",
+          "F1.5",
+          "F1.6",
+          "F2.1",
+          "F2.2",
+          "F2.3",
+          "F2.4",
+          "F3.1",
+          "F3.2",
+          "F3.3",
+          "F3.4",
+          "F3.5",
+          "F3.6",
+          "F4.1.R2.1",
+          "F4.1.R2.2",
+          "F4.1.R2.3",
+          "F4.2",
+          "F4.3",
+          "F4.4",
+          "F4.5",
+          "F4.6",
+          "F4.7"
+        ],
+        "niveles": [
+          "F1.1",
+          "F4.2"
+        ],
+        "site-footer": []
+      }
+    },
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "tokens",
+        "ms": 99923,
+        "finish_reason": "stop",
+        "changed": [
+          "tokens.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 2,
+        "task_id": "site-header",
+        "role": "header",
+        "ms": 78315,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 3,
+        "task_id": "juego",
+        "role": "section",
+        "ms": 458347,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 4,
+        "task_id": "niveles",
+        "role": "section",
+        "ms": 302589,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 5,
+        "task_id": "site-footer",
+        "role": "footer",
+        "ms": 68646,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      }
+    ]
+  }
+}

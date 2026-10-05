@@ -529,5 +529,14 @@ await check("preguntas de implementación se descartan ('¿Cómo se generan los 
   eq([r.by, r.question, r.attempts[0].kind], ["harness_faltante", `¿Hay contador de movimientos? ${QUESTION_HINT}`, "faltante_siguiente"]);
 });
 
+// ---- v0.9 del módulo (Project25 por la UI) ----
+await check("una feature no puede juntar dos líneas de 'qué tiene que hacer' (caso real P25)", () => {
+  const lines = numberLines([{ role: "user", content: P25 }]).lines;
+  const v = validateItems([{ de: ["L2", "L3"], tipo: "feature", texto: "El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, incluyendo botones 'reiniciar' y 'proximo nivel'" }], lines);
+  eq(v.invalid.length, 1);
+  assert(v.invalid[0].reason.includes("L2 y L3"), v.invalid[0].reason);
+  eq(validateItems([{ de: ["L3"], tipo: "feature", texto: "Botón 'reiniciar' para volver a empezar el nivel" }], lines).invalid.length, 0);
+});
+
 console.log(`\n${ok}/${ok + fail} tests OK`);
 if (fail) process.exit(1);

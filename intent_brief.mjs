@@ -17,7 +17,17 @@
 //
 // Módulo puro (sin fs ni fetch): lo usan server.mjs y script.js (navegador).
 
-export const BRIEF_VERSION = "intent_brief v0.8";
+export const BRIEF_VERSION = "intent_brief v0.9";
+
+// v0.9 (05/10, Project25 por la UI): el refined llegó con 3 features. El
+// modelo juntó L2 (el juego) y L3 (los botones) en un solo ítem, y respuestas
+// que describen lo que hace el juego ("al reiniciar vuelven a sus
+// posiciones", "10 niveles", "inicia solo") quedaron como restricción o
+// contexto, que el reviewer no ve: TechLeader planificó eso, el reviewer lo
+// marcó EXCESS, y en el reintento TechLeader difirió hasta el estilo NES.
+// Cambios: una feature no puede juntar dos líneas de "qué tiene que hacer"
+// (son ideas que el usuario escribió por separado); regla explícita de que
+// una respuesta que describe lo que hace la app es feature.
 
 // v0.8 (05/10, segunda corrida del hold-out Project25): dos preguntas
 // repetidas las puso el HARNESS, no el modelo: sacaba "pendientes" de todos
@@ -297,6 +307,7 @@ REGLAS:
    Una feature = UNA acción. "Crear, editar y borrar tarjetas" son tres ítems: "Crear tarjetas", "Editar tarjetas", "Borrar tarjetas".
 6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.
 7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo "¿Se pueden crear columnas?" + "sí" → feature "Crear columnas"). Si es negativa, es una restriccion con "Sin ..." (por ejemplo "¿Buscar tarjetas?" + "no" → restriccion "Sin búsqueda de tarjetas").
+   Si la respuesta DESCRIBE algo que la app hace o tiene (cantidades, qué pasa al tocar un botón, cómo empieza, qué muestra), es feature, no restriccion ni contexto: "¿Qué pasa al reiniciar?" + "el avatar y las cajas vuelven a sus posiciones" → feature "Reiniciar el nivel: el avatar y las cajas vuelven a sus posiciones iniciales"; "¿Cuántos niveles?" + "10" → feature "10 niveles". Restriccion es solo lo que la app NO debe hacer o un límite ("sin", "no", "solo", "máximo").
    Una [respuesta delegada] ("no lo sé", "lo dejo a criterio", "da igual") NO es un no: va como contexto "A criterio del equipo: <tema de la pregunta>", con el resto de lo que haya dicho.
    Si la respuesta DETALLA algo que ya está en otra línea, NO hagas un ítem suelto: escribí el detalle dentro de ese ítem y poné las dos líneas en "de". Por ejemplo L5 "semáforo de prioridad" + L9 respuesta "verde baja, amarillo media, rojo alta" + L10 respuesta "se elige en una lista al crear la tarjeta" → {"de":["L5","L9","L10"],"tipo":"feature","texto":"Asignar prioridad al crear la tarjeta, desde una lista (semáforo: verde baja, amarillo media, rojo alta)"}.
 8. No hagas preguntas: devolvé siempre el JSON.
@@ -544,6 +555,11 @@ export function validateItems(rawItems, lines) {
     }
     if (tipo === "restriccion" && de.some((id) => byId.get(id).delegada)) {
       invalid.push({ item: it, reason: `${de.filter((id) => byId.get(id).delegada).join(", ")} delega la decisión ("no lo sé", "a criterio"): no es una restricción, va como contexto "A criterio del equipo: ..."` });
+      continue;
+    }
+    const hacer = de.filter((id) => byId.get(id).field === "hacer");
+    if (tipo === "feature" && hacer.length >= 2) {
+      invalid.push({ item: it, reason: `junta ${hacer.join(" y ")}, que el usuario escribió como ideas separadas: hacé un ítem por línea` });
       continue;
     }
     if (!grounded(texto, de.map((id) => byId.get(id)))) {

@@ -1,6 +1,7 @@
 import { validateRoleDependencies } from "./validation_profile_role_dependencies.mjs";
 import { runAtomicGraph, resolveDependencies } from "./atomic_engine_v5.js";
 import { reviewStatus } from "./review_gate.mjs";
+import { parseJsonLoose } from "./json_loose.mjs";
 import {
   TEMPLATE_TEXT,
   TEMPLATE_EXAMPLE,
@@ -16,7 +17,7 @@ import {
 // (/api/version) y, si no coincide con el de la pestaña abierta, la UI avisa
 // que hay que recargar. Origen: Project21 corrió con el JS viejo en una
 // pestaña abierta desde antes del cambio (reiniciar el server no alcanza).
-const BUILD_ID = "2026-10-05.1";
+const BUILD_ID = "2026-10-05.2";
 
 const STORAGE_KEY = "webmcp_state";
 const MAX_TECHLEADER_ATTEMPTS = 3;
@@ -1146,29 +1147,38 @@ async function generateTechLeaderPlan(promptText, previousFeedback = "") {
       `<div class="text-yellow-400 text-xs">⚠️ Incluyendo feedback de revisión anterior (etapa / validación / completitud)...</div>`,
     );
   }
-  const techRes = await fetch("http://127.0.0.1:1234/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemma-4-e4b",
-      messages: [
-        { role: "system", content: techLeaderPrompt },
-        { role: "user", content: finalPrompt },
-      ],
-      temperature: 0.0,
-    }),
-  });
-  if (!techRes.ok) throw new Error(`TechLeader Error: ${techRes.status}`);
-  const techData = await techRes.json();
-  const raw = techData?.choices?.[0]?.message?.content;
-  if (!raw) throw new Error("TechLeader no devolvió contenido.");
+  // Parseo tolerante + UN reintento si el JSON no se puede leer
+  // (Project25, 05/10: una coma faltante cortó toda la corrida en el intento 3).
+  const messages = [
+    { role: "system", content: techLeaderPrompt },
+    { role: "user", content: finalPrompt },
+  ];
   let plan;
-  try {
-    plan = JSON.parse(raw);
-  } catch {
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("TechLeader no devolvió JSON válido.");
-    plan = JSON.parse(match[0]);
+  for (let jsonTry = 1; jsonTry <= 2; jsonTry++) {
+    const techRes = await fetch("http://127.0.0.1:1234/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "google/gemma-4-e4b", messages, temperature: 0.0 }),
+    });
+    if (!techRes.ok) throw new Error(`TechLeader Error: ${techRes.status}`);
+    const techData = await techRes.json();
+    const raw = techData?.choices?.[0]?.message?.content;
+    if (!raw) throw new Error("TechLeader no devolvió contenido.");
+    const parsed = parseJsonLoose(raw);
+    if (parsed.ok) {
+      plan = parsed.data;
+      if (parsed.repaired)
+        appendToReasoning(`<div class="text-yellow-400 text-xs">⚠️ TECHLEADER → JSON reparado (fence, comas o texto alrededor)</div>`);
+      break;
+    }
+    appendToReasoning(
+      `<div class="text-red-400 text-xs">✗ TECHLEADER → JSON ilegible (${escapeHTML(parsed.error)})${jsonTry < 2 ? " → se le pide de nuevo" : ""}</div>`,
+    );
+    if (jsonTry === 2) throw new Error(`TechLeader devolvió JSON ilegible dos veces: ${parsed.error}`);
+    messages.push(
+      { role: "assistant", content: raw },
+      { role: "user", content: `Tu JSON no se pudo leer (${parsed.error}). Devolvé SOLO el JSON completo y válido, con el mismo contenido: comas entre cada propiedad y cada elemento, sin texto antes ni después.` },
+    );
   }
   if (!plan || !Array.isArray(plan.fases))
     throw new Error("TechLeader no devolvió un array 'fases'.");

@@ -1,0 +1,121 @@
+{
+  "version": "term_coverage v0.1",
+  "review_id": "2026-10-05T03-13-51",
+  "requirements": [
+    {
+      "id": "R1",
+      "text": "El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, incluyendo botones 'reiniciar' y 'proximo nivel'"
+    },
+    {
+      "id": "R2",
+      "text": "Contador de movimientos para medir la eficiencia del jugador"
+    },
+    {
+      "id": "R3",
+      "text": "Estilo Family NES, 8bits"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "F1.1",
+      "task": "Creación de la estructura HTML base del juego.",
+      "description": "Crear la estructura HTML autocontenida que servirá como contenedor principal para el entorno de juego y el mapa."
+    },
+    {
+      "id": "F1.2.R2.1",
+      "task": "Definición de dimensiones del contenedor principal.",
+      "description": "Establecer las dimensiones fijas del contenedor del mapa a 350x450 píxeles en el código base, sin aplicar estilos visuales complejos aún."
+    },
+    {
+      "id": "F1.2.R2.2",
+      "task": "Aplicación del estilo visual NES (8bits).",
+      "description": "Aplicar el estilo Family NES (8bits) mediante CSS al contenedor ya dimensionado, asegurando la coherencia visual con el tema retro."
+    },
+    {
+      "id": "F1.3",
+      "task": "Renderizado inicial de la capa base del mapa.",
+      "description": "Implementar el renderizado visual del área del mapa (fondo 350x450 píxeles) en el DOM, utilizando las dimensiones y estilos definidos previamente."
+    },
+    {
+      "id": "F1.4",
+      "task": "Implementación de la lógica de posicionamiento de objetos iniciales.",
+      "description": "Desarrollar e implementar la lógica JavaScript para posicionar aleatoriamente pero coherentemente los elementos iniciales (avatar y cajas) del Nivel 1 dentro del contenedor del mapa en el DOM."
+    },
+    {
+      "id": "F2.1",
+      "task": "Implementar la validación de límites del mapa para movimientos propuestos.",
+      "description": "Desarrollar el módulo que recibe una posición propuesta y verifica si esta se encuentra dentro de los límites físicos definidos por el contenedor principal y la estructura del mapa (ej. no salir del borde)."
+    },
+    {
+      "id": "F2.2",
+      "task": "Implementar la lógica de detección de colisiones entre el avatar y otros objetos.",
+      "description": "Desarrollar el motor que compara una posición propuesta con las posiciones actuales de todos los demás objetos (cajas, obstáculos) para asegurar que no haya superposición física ni solapamiento en la nueva ubicación."
+    },
+    {
+      "id": "F2.3",
+      "task": "Actualizar el estado de posición de los objetos tras un movimiento validado.",
+      "description": "Crear la función que, solo si las verificaciones de límites (F2.1) y colisiones (F2.2) son exitosas, actualiza el estado del juego modificando las coordenadas de los objetos afectados en el motor central."
+    },
+    {
+      "id": "F3.1",
+      "task": "Implementar la interfaz de usuario (UI) del contador de movimientos.",
+      "description": "Crear y mostrar el elemento visual para el contador de movimientos en la pantalla principal del juego."
+    },
+    {
+      "id": "F3.2",
+      "task": "Conectar la lógica de incremento del contador a los movimientos válidos.",
+      "description": "Asegurar que el valor del contador se incremente únicamente cuando se detecta un movimiento exitoso y validado por la lógica del juego (basado en F2.3)."
+    },
+    {
+      "id": "F3.3",
+      "task": "Implementar el botón 'Reiniciar' y su manejo de eventos.",
+      "description": "Añadir el componente UI del botón 'Reiniciar' y enlazar la función que debe ejecutarse al hacer clic."
+    },
+    {
+      "id": "F3.4",
+      "task": "Gestionar la restauración de posiciones iniciales al reiniciar.",
+      "description": "Implementar la lógica que, al activarse el botón 'Reiniciar', restablezca todas las posiciones de los objetos a sus coordenadas originales del nivel actual (utilizando datos de F1.4). También debe resetear el contador a cero."
+    },
+    {
+      "id": "F3.5",
+      "task": "Implementar el botón 'Próximo Nivel' y su manejo de eventos.",
+      "description": "Añadir el componente UI del botón 'Próximo Nivel' y enlazar la función que debe ejecutarse al hacer clic."
+    },
+    {
+      "id": "F3.6",
+      "task": "Cargar el estado de escena para el siguiente nivel.",
+      "description": "Implementar la lógica que, al pasar al siguiente nivel, cargue y renderice correctamente los nuevos objetos, mapas y estados del juego sin perder el contexto general de la UI."
+    }
+  ],
+  "items": [
+    {
+      "id": "R1",
+      "text": "El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, incluyendo botones 'reiniciar' y 'proximo nivel'",
+      "present": 8,
+      "total": 11,
+      "missing": [
+        "acomodar",
+        "fijadas",
+        "incluyendo"
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Contador de movimientos para medir la eficiencia del jugador",
+      "present": 2,
+      "total": 4,
+      "missing": [
+        "medir",
+        "eficiencia"
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "Estilo Family NES, 8bits",
+      "present": 3,
+      "total": 3,
+      "missing": []
+    }
+  ],
+  "labels": {}
+}

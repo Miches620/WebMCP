@@ -1,0 +1,153 @@
+{
+  "version": "term_coverage v0.1",
+  "review_id": "2026-10-05T03-39-53",
+  "requirements": [
+    {
+      "id": "R1",
+      "text": "El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, incluyendo botones 'reiniciar' y 'proximo nivel'"
+    },
+    {
+      "id": "R2",
+      "text": "Contador de movimientos para medir la eficiencia del jugador"
+    },
+    {
+      "id": "R3",
+      "text": "Estilo Family NES, 8bits"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "F1.1",
+      "task": "Establecer la estructura HTML autocontenida base.",
+      "description": "Crear el esqueleto HTML completo y autocontenido que servirá como contenedor principal para la aplicación, incluyendo los placeholders necesarios para el mapa y otros elementos de interfaz."
+    },
+    {
+      "id": "F1.2",
+      "task": "Implementar el renderizado visual del contenedor del mapa (350x450px).",
+      "description": "Crear y estilizar el elemento de canvas o contenedor principal con las dimensiones fijas de 350x450px, listo para recibir la representación gráfica del mapa."
+    },
+    {
+      "id": "F1.3",
+      "task": "Implementar la lógica de cálculo de posiciones iniciales aleatorias y coherentes.",
+      "description": "Desarrollar la función o módulo que calcule las coordenadas (x, y) iniciales para el avatar y todas las cajas del Nivel 1, asegurando que estas posiciones sean válidas dentro de los límites del mapa y no se superpongan."
+    },
+    {
+      "id": "F1.4",
+      "task": "Renderizar el estado inicial de elementos en el mapa.",
+      "description": "Utilizando las posiciones calculadas (F1.3), renderizar visualmente el avatar y todas las cajas del Nivel 1 dentro del contenedor del mapa (F1.2). Esto debe ser un proceso de dibujo o manipulación DOM que refleje la disposición inicial."
+    },
+    {
+      "id": "F1.5",
+      "task": "Implementar la lógica de inicio automático al cargar el archivo.",
+      "description": "Añadir el script o evento que dispare automáticamente la visualización y activación del mapa (ej. un listener 'DOMContentLoaded') tan pronto como se cargue el archivo, sin requerir interacción manual del usuario."
+    },
+    {
+      "id": "F2.1",
+      "task": "Implementar la detección de intentos de movimiento del avatar y cajas.",
+      "description": "Desarrollar la lógica para capturar los inputs de movimiento (avatar/cajas) y calcular las posiciones candidatas que el objeto intentará alcanzar en el siguiente ciclo de juego."
+    },
+    {
+      "id": "F2.2",
+      "task": "Aplicar restricciones de límites del mapa.",
+      "description": "Implementar la validación física para asegurar que ninguna posición candidata calculada en F2.1 exceda los límites definidos por el contenedor del mapa (F1.2)."
+    },
+    {
+      "id": "F2.3",
+      "task": "Detectar colisiones entre objetos.",
+      "description": "Desarrollar el algoritmo de detección de superposición (colisión) para identificar interacciones físicas inválidas: caja-caja y avatar-caja, utilizando las posiciones candidatas generadas en F2.1."
+    },
+    {
+      "id": "F2.4",
+      "task": "Resolver colisiones y actualizar posiciones finales del motor de juego.",
+      "description": "Implementar la lógica final que toma las posiciones candidatas (F2.1), aplica los límites (F2.2) y resuelve cualquier superposición detectada (F2.3), determinando el nuevo estado físico coherente para todos los objetos en cada ciclo de juego."
+    },
+    {
+      "id": "F3.1",
+      "task": "Implementar el componente de visualización del contador de movimientos.",
+      "description": "Crear y posicionar la interfaz de usuario (UI) que mostrará el valor actual del contador de movimientos, asegurando su visibilidad en el mapa o contenedor principal."
+    },
+    {
+      "id": "F3.2",
+      "task": "Conectar y actualizar la lógica del contador con acciones válidas.",
+      "description": "Implementar el mecanismo de escucha (listener) que detecte una acción válida resuelta por el motor de juego (ej. movimiento exitoso o colisión resuelta) e incremente el valor mostrado en el contador UI."
+    },
+    {
+      "id": "F3.3",
+      "task": "Implementar la interfaz de usuario del botón 'Reiniciar'.",
+      "description": "Crear el elemento interactivo (botón) visible para que el usuario pueda iniciar el proceso de reinicio."
+    },
+    {
+      "id": "F3.4",
+      "task": "Implementar la lógica de restablecimiento del estado del juego al presionar 'Reiniciar'.",
+      "description": "Escribir el manejador de eventos para el botón 'Reiniciar', que debe resetear programáticamente las posiciones de todos los objetos y devolver el contador a su valor inicial (estado pre-juego)."
+    },
+    {
+      "id": "F3.5",
+      "task": "Implementar la interfaz de usuario del botón 'Próximo Nivel'.",
+      "description": "Crear el elemento interactivo (botón) visible para que el usuario pueda intentar avanzar al siguiente nivel."
+    },
+    {
+      "id": "F3.6",
+      "task": "Implementar la simulación de transición a 'Próximo Nivel'.",
+      "description": "Escribir el manejador de eventos para el botón 'Próximo Nivel', que debe cambiar el estado visible del contenedor (simulando la carga del siguiente nivel) sin requerir una conexión backend real."
+    },
+    {
+      "id": "F4.1",
+      "task": "Definir la estructura de datos para el estado inicial de niveles.",
+      "description": "Crear y persistir (o definir en memoria) una estructura de datos que contenga las posiciones iniciales coherentes del mapa para al menos dos niveles diferentes, cumpliendo con los parámetros requeridos por la lógica de juego."
+    },
+    {
+      "id": "F4.2",
+      "task": "Implementar la lógica de limpieza del estado actual del juego.",
+      "description": "Desarrollar una función o servicio que se encargue de resetear y limpiar todos los parámetros de estado activos (posiciones, contadores, etc.) antes de cargar el siguiente nivel."
+    },
+    {
+      "id": "F4.3",
+      "task": "Implementar la carga de nuevos parámetros del siguiente nivel.",
+      "description": "Crear la lógica que, dado el estado actual, consulte la estructura de datos definida (F4.1) y cargue los nuevos parámetros iniciales para el nivel subsiguiente."
+    },
+    {
+      "id": "F4.4",
+      "task": "Implementar la lógica de transición orquestada entre niveles.",
+      "description": "Desarrollar el servicio principal que coordina la transición: llama a la limpieza del estado (F4.2), carga los nuevos parámetros (F4.3) y prepara un objeto de estado completo listo para ser consumido por el frontend."
+    },
+    {
+      "id": "F4.5",
+      "task": "Exponer el mecanismo de transición como un endpoint callable.",
+      "description": "Crear el punto de acceso (endpoint/API) que recibirá la señal del botón 'Próximo Nivel' y ejecutará la lógica completa de transición (F4.4), devolviendo el nuevo estado al cliente."
+    }
+  ],
+  "items": [
+    {
+      "id": "R1",
+      "text": "El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, incluyendo botones 'reiniciar' y 'proximo nivel'",
+      "present": 9,
+      "total": 11,
+      "missing": [
+        "acomodar",
+        "fijadas"
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Contador de movimientos para medir la eficiencia del jugador",
+      "present": 2,
+      "total": 4,
+      "missing": [
+        "medir",
+        "eficiencia"
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "Estilo Family NES, 8bits",
+      "present": 1,
+      "total": 3,
+      "missing": [
+        "family",
+        "8bits"
+      ]
+    }
+  ],
+  "labels": {}
+}

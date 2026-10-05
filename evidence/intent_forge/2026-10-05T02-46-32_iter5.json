@@ -1,0 +1,84 @@
+{
+  "version": "intent_brief v0.8",
+  "iteration": 5,
+  "status": "ASKING",
+  "lines": [
+    {
+      "id": "L1",
+      "field": "construir",
+      "text": "Juego Boxworld en html autocontenido"
+    },
+    {
+      "id": "L2",
+      "field": "hacer",
+      "text": "el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel"
+    },
+    {
+      "id": "L3",
+      "field": "hacer",
+      "text": "El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente"
+    },
+    {
+      "id": "L4",
+      "field": "ver",
+      "text": "estilo family nes, 8bits"
+    },
+    {
+      "id": "L5",
+      "field": "no",
+      "text": "las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador"
+    },
+    {
+      "id": "L6",
+      "field": "respuesta",
+      "text": "no",
+      "pregunta": "¿El jugador puede realizar alguna acción adicional a mover las cajas, como girarlas o cambiar su dirección?"
+    },
+    {
+      "id": "L7",
+      "field": "respuesta",
+      "text": "contador de movimientos",
+      "pregunta": "¿El juego incluye algún tipo de puntaje o sistema de puntuación basado en la eficiencia del jugador?"
+    },
+    {
+      "id": "L8",
+      "field": "respuesta",
+      "text": "No se a que te referis con 'Como se estructuran los niveles', numero de niveles: 10",
+      "pregunta": "¿Cómo se estructuran los niveles y cuántos niveles hay en el juego?",
+      "delegada": true
+    },
+    {
+      "id": "L9",
+      "field": "respuesta",
+      "text": "el avatar y las cajas vuelven a las posiciones asignadas del nivel",
+      "pregunta": "¿Qué pasa al reiniciar el juego?"
+    }
+  ],
+  "attempts": [
+    {
+      "raw": "```json\n{\"faltantes\":[\"cómo se inicializa el juego\",\"qué ocurre cuando se completa un nivel\"],\"pregunta\":\"¿Cómo se inicializa el juego al comenzar a jugar?\"}\n```",
+      "kind": "pregunta",
+      "faltantes": [
+        "cómo se inicializa el juego",
+        "qué ocurre cuando se completa un nivel"
+      ]
+    }
+  ],
+  "auto_added": [],
+  "refined_prompt": null,
+  "calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks, ni CÓMO se implementa algo (algoritmos, cómo se genera, cómo se calcula): eso lo decide el equipo.\n- No preguntes por detalles chicos que el equipo puede decidir solo (tamaños de botones, márgenes, colores exactos).\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿El jugador puede realizar alguna acción adicional a mover las cajas, como girarlas o cambiar su dirección?\"] no\n- [respuesta a \"¿El juego incluye algún tipo de puntaje o sistema de puntuación basado en la eficiencia del jugador?\"] contador de movimientos\n- [respuesta delegada a \"¿Cómo se estructuran los niveles y cuántos niveles hay en el juego?\"] No se a que te referis con 'Como se estructuran los niveles', numero de niveles: 10\n- [respuesta a \"¿Qué pasa al reiniciar el juego?\"] el avatar y las cajas vuelven a las posiciones asignadas del nivel\n\nPREGUNTAS QUE YA HICISTE (4/10, no las repitas):\n- ¿El jugador puede realizar alguna acción adicional a mover las cajas, como girarlas o cambiar su dirección?\n- ¿El juego incluye algún tipo de puntaje o sistema de puntuación basado en la eficiencia del jugador?\n- ¿Cómo se estructuran los niveles y cuántos niveles hay en el juego?\n- ¿Qué pasa al reiniciar el juego?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se inicializa el juego\",\"qué ocurre cuando se completa un nivel\"],\"pregunta\":\"¿Cómo se inicializa el juego al comenzar a jugar?\"}\n```"
+    }
+  ]
+}

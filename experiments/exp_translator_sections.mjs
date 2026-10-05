@@ -19,9 +19,9 @@
 import { readdirSync, mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
-import { translateRequirement, anchorSections, TRANSLATOR_VERSION } from "../validation/check_translator.mjs";
-import { featureLabel } from "../build/specialist_spa.mjs";
-import { runChecks, normalizeCheck } from "../validation/check_catalog.mjs";
+// Refactor de profiles (05/10): traductor + reglas de landing y anclaje de sección desde el profile web/landing.
+import { TRANSLATOR_VERSION } from "../profiles/web/validation/check_translator.mjs";
+import { translateRequirement, postprocessChecks, runChecks, normalizeCheck } from "../profiles/web/landing/build.mjs";
 
 const REPS = Number(process.argv[2] || 5);
 const here = (p) => fileURLToPath(new URL(p, import.meta.url));
@@ -43,8 +43,8 @@ const PATHS = {
   esqueleto: skel,
   "v0.3": join(runsDir, v03, "app", "index.html"),
   "v0.4": join(runsDir, v04, "app", "index.html"),
-  sections_ok: here("../validation/fixtures/sections_ok.html"),
-  sections_vacio: here("../validation/fixtures/sections_vacio.html"),
+  sections_ok: here("../profiles/web/validation/fixtures/sections_ok.html"),
+  sections_vacio: here("../profiles/web/validation/fixtures/sections_vacio.html"),
 };
 
 const results = [];
@@ -53,7 +53,7 @@ for (const req of REQS) {
   tally[req.id] = 0;
   for (let rep = 1; rep <= REPS; rep++) {
     const t = await translateRequirement(req.text, { context: CONTEXT });
-    t.checks = anchorSections(t.checks, req.id, req.text, featureLabel(req.text)).map((c) => ({ ...normalizeCheck(c), covers: c.covers }));
+    t.checks = postprocessChecks(t.checks, req.id, req.text).map((c) => ({ ...normalizeCheck(c), covers: c.covers }));
     console.log(`\n${req.id} #${rep}: ${t.checks.map((c) => `${c.type}(${Object.values(c.params).map((v) => v.join("/")).join(" → ")})`).join(", ") || "NINGUNO"}${t.dropped.length ? `  | descartados: ${t.dropped.length}` : ""}`);
     const row = { req: req.id, rep, checks: t.checks, dropped: t.dropped, raw: t.raw, targets: [] };
     let ok = t.checks.length > 0;

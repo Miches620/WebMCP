@@ -1,0 +1,579 @@
+### FILE: componente.html
+```html
+<section id="juego" data-feature="R1 R2 R7">
+  <h2>Boxworld 📦</h2>
+  <div class="game-status">
+    <p>Nivel: <span id="nivel-actual">1</span> / 5</p>
+    <p>Movimientos: <span id="contador-movimientos">0</span></p>
+    <p>Cajas por colocar: <span id="cajas-restantes">?</span></p>
+  </div>
+
+  <div class="game-container">
+    <!-- El mapa se renderizará aquí -->
+    <div id="mapa-grid" class="map-grid">
+      <!-- Los tiles serán generados por JS -->
+    </div>
+  </div>
+
+  <div id="controls" class="btn-group">
+    <button id="reiniciar-btn" class="btn">🔄 Reiniciar Nivel</button>
+    <button id="proximo-nivel-btn" class="btn" disabled>➡️ Próximo Nivel</button>
+  </div>
+
+  <!-- Mensaje de resultado del juego -->
+  <div id="mensaje-juego" class="game-message hidden"></div>
+</section>
+```
+
+### FILE: componente.css
+```css
+#juego {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--space-md);
+}
+
+h2 {
+    text-align: center;
+    color: var(--color-secondary);
+    border-bottom: none; /* Sobrescribir el borde por defecto */
+    margin-bottom: var(--space-sm);
+}
+
+.game-status {
+    display: flex;
+    justify-content: space-around;
+    padding: var(--space-sm) 0;
+    border-bottom: 2px dashed #3a3a5e; /* Separador estilo retro */
+    margin-bottom: var(--space-md);
+}
+
+.game-status p {
+    font-size: 1rem;
+    text-align: center;
+    flex-grow: 1;
+}
+
+/* Contenedor principal del juego (el viewport) */
+.game-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--space-md);
+}
+
+/* Estilos del mapa grid */
+.map-grid {
+    display: grid;
+    border: 4px solid #000; /* Borde grueso estilo NES */
+    background-color: #111;
+    box-shadow: var(--shadow-base);
+}
+
+/* Definición de la cuadrícula (se ajustará en JS, pero definimos el patrón) */
+.map-grid[data-cols="8"] {
+    grid-template-columns: repeat(8, 40px); /* Tamaño fijo para los tiles */
+    grid-template-rows: repeat(6, 40px);
+}
+
+/* Estilos de los Tiles individuales */
+.tile {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem; /* Para emojis/iconos */
+}
+
+/* Tipos de Tiles */
+.tile.wall {
+    background-color: #333;
+    border: 1px solid #000;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.8);
+}
+
+.tile.start-pos {
+    background-color: var(--color-secondary);
+    border: 2px dashed white;
+    opacity: 0.7;
+}
+
+.tile.target-box {
+    background-color: #5c3d1e; /* Color caja */
+    border: 2px solid #8b4513;
+    cursor: pointer;
+    transition: background-color var(--transition-speed);
+}
+
+/* Avatar (Jugador) */
+.tile.player {
+    background-color: var(--color-accent);
+    box-shadow: 0 0 8px var(--color-text-primary), inset 0 0 5px rgba(0, 0, 0, 0.3);
+    z-index: 10; /* Asegura que esté por encima de otros tiles */
+}
+
+/* Clase para el tile donde se coloca la caja (cuando es ocupado) */
+.tile.occupied {
+    background-color: #8b4513;
+    border: 2px solid #6d390e;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+/* Botones de control */
+.btn-group {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+    margin-top: var(--space-lg);
+}
+
+#reiniciar-btn, #proximo-nivel-btn {
+    /* Usar estilos de botón compartidos */
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+/* Mensaje de juego (Éxito/Fallo) */
+.game-message {
+    margin-top: var(--space-md);
+    padding: var(--space-sm);
+    border: 3px solid;
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+.game-message.success {
+    color: var(--color-success);
+    border-color: var(--color-success);
+    background-color: rgba(126, 216, 126, 0.1);
+}
+
+.game-message.error {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+    background-color: rgba(255, 107, 107, 0.1);
+}
+
+/* Media Query para Responsividad (Celular) */
+@media (max-width: 480px) {
+    .game-status {
+        flex-direction: column;
+        gap: var(--space-xs);
+    }
+    .game-container {
+        margin-bottom: var(--space-sm);
+    }
+    /* Reducir el tamaño de los tiles en móvil */
+    .map-grid[data-cols="8"] {
+        grid-template-columns: repeat(8, 30px);
+        grid-template-rows: repeat(6, 30px);
+    }
+    .tile {
+        width: 30px;
+        height: 30px;
+        font-size: 1.5rem;
+    }
+    .btn-group {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+}
+```
+
+### FILE: componente.js
+```javascript
+// --- ESTADO GLOBAL DEL JUEGO (Simulado) ---
+const GAME_STATE = {
+    currentLevelIndex: 0,
+    playerPos: { x: 0, y: 0 },
+    moves: 0,
+    placedBoxes: new Set(), // Almacena las coordenadas 'x,y' de los tiles ocupados
+    isGameActive: false,
+};
+
+// --- DEFINICIÓN DE LOS NIVELES (Mínimo 5) ---
+const LEVELS = [
+    {
+        name: "Introducción",
+        mapData: [
+            "W.T.W.W.W.W.W.", // W=Wall, .=Empty, T=Target Box, .=Start Position
+            ".S..W....W...", 
+            ".W...W.....W..",
+            ".W.T.W.T.W.W..",
+            ".W.......W....",
+            "W.W.W.W.W.W.W."
+        ],
+        mapCols: 14, // Ajustado para el ejemplo de mapa más grande
+        mapRows: 6,
+        initialPlayerPos: { x: 0, y: 1 },
+        targetPositions: [
+            { x: 2, y: 3 },
+            { x: 5, y: 3 },
+            { x: 7, y: 3 }
+        ],
+        maxMoves: 15
+    },
+    {
+        name: "El Laberinto",
+        mapData: [
+            "W.W.W.W.W.W.W.",
+            ".S.....T....W",
+            ".W.W..W.W.W.W",
+            ".W...W.T.W.W..",
+            ".W.......W....",
+            "W.W.W.W.W.W.W."
+        ],
+        mapCols: 14,
+        mapRows: 6,
+        initialPlayerPos: { x: 0, y: 1 },
+        targetPositions: [
+            { x: 7, y: 1 },
+            { x: 5, y: 3 }
+        ],
+        maxMoves: 20
+    },
+    {
+        name: "Trampa de Cajas",
+        mapData: [
+            "W.W.W.W.W.W.W.",
+            ".S....T.....W",
+            ".W.W..W.W.W.W",
+            ".W...W.T.W.W..",
+            ".W.......W....",
+            "W.W.W.W.W.W.W."
+        ],
+        mapCols: 14,
+        mapRows: 6,
+        initialPlayerPos: { x: 0, y: 1 },
+        targetPositions: [
+            { x: 7, y: 1 },
+            { x: 5, y: 3 }
+        ],
+        maxMoves: 25
+    },
+    {
+        name: "Nivel Maestro",
+        mapData: [
+            "W.W.W.W.W.W.W.",
+            ".S....T.....W",
+            ".W.W..W.W.W.W",
+            ".W...W.T.W.W..",
+            ".W.......W....",
+            "W.W.W.W.W.W.W."
+        ],
+        mapCols: 14,
+        mapRows: 6,
+        initialPlayerPos: { x: 0, y: 1 },
+        targetPositions: [
+            { x: 7, y: 1 },
+            { x: 5, y: 3 }
+        ],
+        maxMoves: 30
+    },
+    {
+        name: "Final Boss",
+        mapData: [
+            "W.W.W.W.W.W.W.",
+            ".S....T.....W",
+            ".W.W..W.W.W.W",
+            ".W...W.T.W.W..",
+            ".W.......W....",
+            "W.W.W.W.W.W.W."
+        ],
+        mapCols: 14,
+        mapRows: 6,
+        initialPlayerPos: { x: 0, y: 1 },
+        targetPositions: [
+            { x: 7, y: 1 },
+            { x: 5, y: 3 }
+        ],
+        maxMoves: 40
+    }
+];
+
+// --- ELEMENTOS DEL DOM ---
+const root = document.getElementById('juego');
+const mapGridEl = document.getElementById('mapa-grid');
+const nivelActualEl = document.getElementById('nivel-actual');
+const contadorMovimientosEl = document.getElementById('contador-movimientos');
+const cajasRestantesEl = document.getElementById('cajas-restantes');
+const reiniciarBtn = document.getElementById('reiniciar-btn');
+const proximoNivelBtn = document.getElementById('proximo-nivel-btn');
+const mensajeJuegoEl = document.getElementById('mensaje-juego');
+
+// --- FUNCIONES DE UTILIDAD DEL JUEGO ---
+
+/**
+ * Resetea el estado del juego y renderiza el nivel actual.
+ */
+function initializeGame() {
+    if (GAME_STATE.currentLevelIndex >= LEVELS.length) {
+        mostrarMensaje("¡Felicidades! Has completado todos los niveles de Boxworld.", 'success');
+        deshabilitarControles(true);
+        return;
+    }
+
+    const level = LEVELS[GAME_STATE.currentLevelIndex];
+    
+    // Resetear estado
+    Object.assign(GAME_STATE, {
+        playerPos: { x: level.initialPlayerPos.x, y: level.initialPlayerPos.y },
+        moves: 0,
+        placedBoxes: new Set(),
+        isGameActive: true
+    });
+
+    // Actualizar UI
+    nivelActualEl.textContent = GAME_STATE.currentLevelIndex + 1;
+    contadorMovimientosEl.textContent = '0';
+    cajasRestantesEl.textContent = level.targetPositions.length;
+    mensajeJuegoEl.classList.add('hidden');
+    mensajeJuegoEl.className = 'game-message';
+
+    // Renderizar el mapa y los listeners
+    renderMap(level);
+    deshabilitarControles(false);
+}
+
+/**
+ * Renderiza la estructura HTML del mapa basado en los datos del nivel.
+ * @param {object} level - El objeto de nivel actual.
+ */
+function renderMap(level) {
+    mapGridEl.innerHTML = '';
+    mapGridEl.setAttribute('data-cols', level.mapCols);
+
+    for (let y = 0; y < level.mapRows; y++) {
+        for (let x = 0; x < level.mapCols; x++) {
+            const tile = document.createElement('div');
+            tile.classList.add('tile');
+            tile.dataset.x = x;
+            tile.dataset.y = y;
+
+            // Determinar el tipo de tile basado en la data del nivel
+            let char = level.mapData[y][x];
+            if (char === 'W') {
+                tile.classList.add('wall');
+                tile.textContent = ''; // Paredes vacías
+            } else if (char === '.') {
+                tile.classList.add('empty');
+                tile.textContent = '';
+            } else if (char === 'S') {
+                tile.classList.add('start-pos');
+                tile.textContent = '👤'; // Avatar inicial
+            } else if (char === 'T') {
+                tile.classList.add('target-box');
+                tile.dataset.isTarget = 'true';
+                tile.innerHTML = '📦'; // Caja objetivo
+            } else {
+                 // Caso de fallback o error
+                tile.textContent = '?'; 
+            }
+
+            mapGridEl.appendChild(tile);
+        }
+    }
+    updatePlayerPositionVisual();
+}
+
+/**
+ * Actualiza la posición visual del avatar en el DOM.
+ */
+function updatePlayerPositionVisual() {
+    // Limpiar clases de jugador y ocupado de todos los tiles
+    document.querySelectorAll('.tile').forEach(tile => {
+        tile.classList.remove('player');
+        if (tile.dataset.isTarget === 'true' && !GAME_STATE.placedBoxes.has(`${tile.dataset.x},${tile.dataset.y}`)) {
+             // Solo limpiamos la clase ocupado si no está en el set de cajas colocadas
+            tile.classList.remove('occupied');
+        }
+    });
+
+    const playerTile = document.querySelector(`.tile[data-x="${GAME_STATE.playerPos.x}"][data-y="${GAME_STATE.playerPos.y}"]`);
+    if (playerTile) {
+        // Asegurarse de que el tile del jugador no sea una pared o un target box
+        if (!playerTile.classList.contains('wall')) {
+            playerTile.classList.add('player');
+        }
+    }
+}
+
+/**
+ * Intenta mover al jugador a la nueva posición (x, y).
+ * @param {number} newX - Coordenada X destino.
+ * @param {number} newY - Coordenada Y destino.
+ * @returns {boolean} True si el movimiento fue exitoso.
+ */
+function attemptMove(newX, newY) {
+    const level = LEVELS[GAME_STATE.currentLevelIndex];
+
+    // 1. Validación de límites y obstáculos (Paredes)
+    if (newX < 0 || newX >= level.mapCols || newY < 0 || newY >= level.mapRows) {
+        return false; // Fuera de límites
+    }
+
+    const targetTile = document.querySelector(`.tile[data-x="${newX}"][data-y="${newY}"]`);
+    if (targetTile && targetTile.classList.contains('wall')) {
+        return false; // Colisión con pared
+    }
+
+    // 2. Validación de movimiento en el mismo lugar
+    const currentX = GAME_STATE.playerPos.x;
+    const currentY = GAME_STATE.playerPos.y;
+    if (newX === currentX && newY === currentY) {
+        return false;
+    }
+
+    // 3. Actualizar estado y UI
+    GAME_STATE.playerPos = { x: newX, y: newY };
+    GAME_STATE.moves++;
+    contadorMovimientosEl.textContent = GAME_STATE.moves;
+    updatePlayerPositionVisual();
+    checkWinCondition();
+
+    return true;
+}
+
+/**
+ * Verifica si se ha colocado una caja en la posición actual del jugador (si es un target).
+ */
+function checkBoxPlacement() {
+    const level = LEVELS[GAME_STATE.currentLevelIndex];
+    const currentX = GAME_STATE.playerPos.x;
+    const currentY = GAME_STATE.playerPos.y;
+
+    // Verificar si el tile actual es un target y no ha sido ocupado antes
+    if (document.querySelector(`.tile[data-x="${currentX}"][data-y="${currentY}"]`) && 
+        document.querySelector(`.tile[data-x="${currentX}"][data-y="${currentY}"]`).dataset.isTarget === 'true') {
+
+        const key = `${currentX},${currentY}`;
+        if (!GAME_STATE.placedBoxes.has(key)) {
+            // ¡Caja colocada!
+            GAME_STATE.placedBoxes.add(key);
+            
+            // Actualizar visualmente el tile como ocupado
+            const targetTile = document.querySelector(`.tile[data-x="${currentX}"][data-y="${currentY}"]`);
+            targetTile.classList.add('occupied');
+
+            cajasRestantesEl.textContent = level.targetPositions.length - GAME_STATE.placedBoxes.size;
+        }
+    }
+}
+
+
+/**
+ * Verifica si se han colocado todas las cajas necesarias para el nivel.
+ */
+function checkWinCondition() {
+    const level = LEVELS[GAME_STATE.currentLevelIndex];
+    const requiredTargets = level.targetPositions.length;
+
+    if (GAME_STATE.placedBoxes.size >= requiredTargets) {
+        // ¡Victoria!
+        mostrarMensaje(`¡Nivel ${GAME_STATE.currentLevelIndex + 1} completado! Has usado ${GAME_STATE.moves} movimientos.`, 'success');
+        deshabilitarControles(true);
+        proximoNivelBtn.disabled = false; // Habilitar avance
+    } else {
+         // Si no se ha ganado, asegurar que los botones estén habilitados (si el juego está activo)
+        if (GAME_STATE.isGameActive && !document.querySelector('.tile.player')) {
+             deshabilitarControles(false);
+        }
+    }
+}
+
+/**
+ * Muestra un mensaje de resultado en la interfaz.
+ * @param {string} message - El texto del mensaje.
+ * @param {'success'|'error'} type - Tipo de mensaje.
+ */
+function mostrarMensaje(message, type) {
+    mensajeJuegoEl.textContent = message;
+    mensajeJuegoEl.classList.remove('hidden', 'success', 'error');
+    mensajeJuegoEl.classList.add(type);
+}
+
+/**
+ * Habilita o deshabilita los botones de control.
+ * @param {boolean} disable - Si es true, desactiva ambos botones.
+ */
+function deshabilitarControles(disable) {
+    reiniciarBtn.disabled = disable;
+    proximoNivelBtn.disabled = disable || !GAME_STATE.isGameActive;
+}
+
+
+// --- MANEJADORES DE EVENTOS ---
+
+/**
+ * Maneja el movimiento del jugador basado en la tecla presionada.
+ * @param {KeyboardEvent} e - Evento de teclado.
+ */
+function handleKeyDown(e) {
+    if (!GAME_STATE.isGameActive) return;
+
+    let newX = GAME_STATE.playerPos.x;
+    let newY = GAME_STATE.playerPos.y;
+
+    switch (e.key) {
+        case 'ArrowUp':
+            newY -= 1;
+            break;
+        case 'ArrowDown':
+            newY += 1;
+            break;
+        case 'ArrowLeft':
+            newX -= 1;
+            break;
+        case 'ArrowRight':
+            newX += 1;
+            break;
+        default:
+            return; // Ignorar otras teclas
+    }
+
+    e.preventDefault();
+    if (attemptMove(newX, newY)) {
+        checkBoxPlacement();
+    }
+}
+
+/**
+ * Maneja el clic en el botón Reiniciar Nivel.
+ */
+function handleRestartGame() {
+    // Resetear estado de cajas y movimientos
+    GAME_STATE.placedBoxes.clear();
+    GAME_STATE.moves = 0;
+    contadorMovimientosEl.textContent = '0';
+    cajasRestantesEl.textContent = LEVELS[GAME_STATE.currentLevelIndex].targetPositions.length;
+
+    // Re-renderizar el mapa para limpiar clases ocupadas y resetear la posición visual
+    const level = LEVELS[GAME_STATE.currentLevelIndex];
+    renderMap(level); 
+    updatePlayerPositionVisual();
+    mostrarMensaje("¡Comencemos de nuevo! Recuerda que cada movimiento cuenta.", 'error');
+}
+
+/**
+ * Maneja el clic en el botón Próximo Nivel.
+ */
+function handleNextLevel() {
+    GAME_STATE.currentLevelIndex++;
+    initializeGame(); // Inicializa y renderiza el siguiente nivel
+}
+
+
+// --- INICIALIZACIÓN DE EVENT LISTENERS Y JUEGO ---
+
+document.addEventListener('keydown', handleKeyDown);
+reiniciarBtn.addEventListener('click', handleRestartGame);
+proximoNivelBtn.addEventListener('click', handleNextLevel);
+
+// Iniciar el juego al cargar la página
+initializeGame();
+```
+
+### APPEND: api.js
+```javascript
+// No se requiere ninguna función de API simulada para este componente, ya que toda la lógica es autocontenida en el estado del juego.
+```

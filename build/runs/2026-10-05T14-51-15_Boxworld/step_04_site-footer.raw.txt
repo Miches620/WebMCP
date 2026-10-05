@@ -1,0 +1,126 @@
+### FILE: site-footer.html
+```html
+<footer id="site-footer">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <div class="footer-info" style="min-width: 200px; margin-bottom: var(--spacing-unit);">
+            <h3 style="border-bottom: none;">Boxworld</h3>
+            <p>El juego clásico de acomodar cajas en el mapa. ¡Prepárate para el desafío y la estrategia!</p>
+        </div>
+        <div class="footer-links" style="display: flex; gap: 2rem; margin-bottom: var(--spacing-unit);">
+            <div>
+                <h4>Mapa</h4>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li><a href="#juego">Jugar Ahora</a></li>
+                    <li><a href="#">Reglas del Juego</a></li>
+                    <li><a href="#">Tutorial Completo</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Acerca de</h4>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li><a href="#">Desarrolladores</a></li>
+                    <li><a href="#">Contacto</a></li>
+                    <li><a href="#">Soporte Técnico</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-copyright" style="min-width: 150px; text-align: right;">
+            <p>&copy; <span id="current-year"></span> Boxworld. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</footer>
+```
+
+### FILE: site-footer.css
+```css
+#site-footer {
+    background-color: var(--color-primary); 
+    padding: 2rem 0;
+    border-top: 5px solid var(--color-secondary); /* Separador estilo NES */
+}
+
+/* Estilos para el contenedor interno del footer */
+#site-footer .container {
+    padding: 0 calc(2 * var(--spacing-unit));
+}
+
+/* Enlaces generales dentro del pie de página */
+#site-footer a {
+    color: var(--color-secondary);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.5rem;
+    transition: color var(--transition-speed);
+}
+
+#site-footer a:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+}
+
+/* Estilo de los títulos de sección (h4) */
+#site-footer h4 {
+    color: var(--color-secondary);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    border-bottom: 2px solid var(--color-accent); /* Separador sutil estilo NES */
+    display: inline-block;
+}
+
+/* Listas de enlaces */
+#site-footer ul {
+    padding: 0;
+    margin: 0;
+}
+
+#site-footer li {
+    margin-bottom: 0.5rem;
+}
+
+/* Sección de copyright */
+#site-footer .footer-copyright p {
+    font-size: 0.9rem;
+    color: var(--color-text);
+    margin: 0;
+}
+
+/* Responsive para dispositivos móviles (máximo 600px) */
+@media screen and (max-width: 600px) {
+    #site-footer .container {
+        flex-direction: column;
+        align-items: center;
+        text-align: center !important;
+    }
+
+    /* Asegura que todos los bloques ocupen el ancho completo y se apilen */
+    #site-footer .footer-info,
+    #site-footer .footer-links,
+    #site-footer .footer-copyright {
+        min-width: 100%;
+        margin-bottom: 2rem !important;
+        text-align: center;
+    }
+
+    /* Ajusta la disposición de los enlaces para que se apilen verticalmente */
+    #site-footer .footer-links {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    /* Hace que los títulos sean bloques completos en móvil */
+    #site-footer h4 {
+        display: block;
+        text-align: center;
+    }
+}
+```
+
+### FILE: site-footer.js
+```javascript
+document.getElementById('current-year').textContent = new Date().getFullYear();
+```
+
+### APPEND: api.js
+```javascript
+// No se requieren nuevas funciones de API para este componente estático.
+```

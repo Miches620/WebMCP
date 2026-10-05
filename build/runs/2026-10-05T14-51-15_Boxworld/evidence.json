@@ -1,0 +1,159 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Boxworld",
+  "source": "project25_snapshot.json",
+  "catalog": "check_catalog v0.5.2",
+  "artifact_loads_without_js_errors": true,
+  "sections_visible": {
+    "result": "PASS",
+    "features": {
+      "R1": "PASS",
+      "R2": "PASS",
+      "R3": "PASS"
+    },
+    "anchors": [
+      {
+        "id": "juego",
+        "features": [
+          "R1",
+          "R2",
+          "R3"
+        ],
+        "seen": 31,
+        "total": 31,
+        "ok": true
+      }
+    ],
+    "detail": "#juego: 31/31 palabras visibles"
+  },
+  "summary": {
+    "requisitos": 4,
+    "PASS": 1,
+    "FAIL": 0,
+    "SIN_EVIDENCIA": 1,
+    "SIN_CHEQUEO": 2
+  },
+  "control": "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "El juego clásico de Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "Este requisito describe la funcionalidad del juego pero no especifica elementos visuales o interacciones que puedan ser verificadas con los chequeos del catálogo.",
+      "checks": []
+    },
+    {
+      "id": "R2",
+      "text": "Botón 'reiniciar' para corregir errores y botón 'proximo nivel' para generar mapas aleatorios",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "reiniciar",
+              "corregir"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"🔄 REINICIAR NIVEL\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "proximo nivel",
+              "siguiente nivel",
+              "nuevo mapa"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"➡️ PRÓXIMO NIVEL\"",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "El juego se inicializa automáticamente al abrir el HTML",
+      "verdict": "SIN_EVIDENCIA",
+      "checks": [
+        {
+          "type": "no_js_errors",
+          "params": {},
+          "result": "PASS",
+          "detail": "sin excepciones",
+          "baseline": "PASS",
+          "trivial": true
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "Estilo Family NES, 8 bits",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "Este requisito es una descripción estilística y no puede ser verificado mediante chequeos de funcionalidad.",
+      "checks": []
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "spa_specialist v0.7.2-componentes",
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "tokens",
+        "ms": 95634,
+        "finish_reason": "stop",
+        "changed": [
+          "tokens.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 2,
+        "task_id": "site-header",
+        "role": "header",
+        "ms": 72446,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 3,
+        "task_id": "juego",
+        "role": "section",
+        "ms": 305941,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 4,
+        "task_id": "site-footer",
+        "role": "footer",
+        "ms": 147127,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      }
+    ]
+  }
+}

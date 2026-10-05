@@ -3,7 +3,7 @@
    ============================================================
 
    Documento    : validation_profile_role_dependencies.mjs
-   Version      : 0.1
+   Version      : 0.2 (reglas por rol desde el profile, 05/10)
    Dominio      : Atomizer (TechLeader → Atomizer → Checker → Re-Atomizer)
    Relacionado  : Specialist.md (Validation Profiles), Validation.md
 
@@ -61,40 +61,50 @@ function findTaskById(tasks, id) {
 }
 
 /* ------------------------------------------------------------
-   RULE 1 (FAIL) — QA_REQUIRES_UPSTREAM_ARTIFACT
+   Refactor de profiles (05/10)
+   ------------------------------------------------------------
+   Las reglas que nombran roles (QA, Backend, Frontend, DBA) ahora las declara
+   el profile del proyecto (profiles/web/profile.mjs → roleDependencyRules) y
+   acá quedan solo los DOS TIPOS de regla, genéricos:
 
-   Encodes: "Si tu fase es QA, debe depender de al menos una Atomic
-   Task concreta de Backend o Frontend cuando existan tareas de esas
-   fases que produzcan el artefacto a validar."
+     requires_upstream (ej. QA_REQUIRES_UPSTREAM_ARTIFACT, FAIL)
+       Encodes: "Si tu fase es QA, debe depender de al menos una Atomic
+       Task concreta de Backend o Frontend cuando existan tareas de esas
+       fases que produzcan el artefacto a validar."
+       Si NO existe ninguna tarea upstream en el grafo, la regla no aplica.
 
-   Si NO existe ninguna tarea Backend/Frontend en el grafo, la regla
-   no aplica — igual que en el prompt original — y no se reporta nada.
+     root_without (ej. BACKEND_ROOT_WITHOUT_DBA / FRONTEND_ROOT_WITHOUT_BACKEND, WARN)
+       Encodes: "Si tu fase es Backend y necesita esquema de DB, depende
+       de las Atomic Tasks concretas de DBA...". WARN y no FAIL a propósito:
+       no todo Backend necesita esquema ni todo Frontend consume una API
+       propia — pide confirmación humana, no auto-falla.
+
+   NO_PHASE_LEVEL_DEPENDENCY es universal (no depende de roles) y sigue acá.
+   Mismos nombres de regla y mismos mensajes que v0.1.
    ------------------------------------------------------------ */
-function checkQaRequiresUpstreamArtifact(tasks) {
-  const upstreamCandidates = tasks.filter(
-    (t) => t.role === "Backend" || t.role === "Frontend",
-  );
+function checkRequiresUpstream(tasks, r) {
+  const upstreamCandidates = tasks.filter((t) => r.upstream.includes(t.role));
 
   if (upstreamCandidates.length === 0) return [];
 
   const failures = [];
 
   for (const t of tasks) {
-    if (t.role !== "QA") continue;
+    if (t.role !== r.role) continue;
 
     const deps = t.depends_on || [];
     const hasUpstreamDependency = deps.some((depId) => {
       const dep = findTaskById(tasks, depId);
-      return dep && (dep.role === "Backend" || dep.role === "Frontend");
+      return dep && r.upstream.includes(dep.role);
     });
 
     if (!hasUpstreamDependency) {
       failures.push({
-        rule: "QA_REQUIRES_UPSTREAM_ARTIFACT",
-        severity: "FAIL",
+        rule: r.rule,
+        severity: r.severity,
         taskId: t.id,
         message:
-          `${t.id} (QA) no depende de ninguna Atomic Task Backend/Frontend, ` +
+          `${t.id} (${r.role}) no depende de ninguna Atomic Task ${r.upstream.join("/")}, ` +
           `pero existen ${upstreamCandidates.length} en el grafo. No hay ` +
           `artefacto declarado para validar.`,
       });
@@ -105,7 +115,7 @@ function checkQaRequiresUpstreamArtifact(tasks) {
 }
 
 /* ------------------------------------------------------------
-   RULE 2 (FAIL, defensivo) — NO_PHASE_LEVEL_DEPENDENCY
+   RULE (FAIL, defensivo, universal) — NO_PHASE_LEVEL_DEPENDENCY
 
    resolveDependencies() ya lanza DEPENDENCY_LEVEL_MISMATCH para esto.
    Se repite acá a propósito: un Validation Profile independiente no
@@ -133,31 +143,20 @@ function checkNoPhaseLevelDependency(tasks) {
   return failures;
 }
 
-/* ------------------------------------------------------------
-   RULE 3 (WARN) — BACKEND_ROOT_WITHOUT_DBA
-
-   Encodes: "Si tu fase es Backend y necesita esquema de DB, depende
-   de las Atomic Tasks concretas de DBA..."
-
-   WARN y no FAIL a propósito: no todo Backend necesita esquema
-   (puede ser un servicio sin persistencia propia). Esto no se puede
-   saber con certeza estructural — pide confirmación humana, no
-   auto-falla.
-   ------------------------------------------------------------ */
-function checkBackendRootWithoutDba(tasks) {
-  const dbaTasks = tasks.filter((t) => t.role === "DBA");
-  if (dbaTasks.length === 0) return [];
+function checkRootWithout(tasks, r) {
+  const upstreamTasks = tasks.filter((t) => t.role === r.upstream);
+  if (upstreamTasks.length === 0) return [];
 
   const warnings = [];
 
   for (const t of tasks) {
-    if (t.role !== "Backend") continue;
+    if (t.role !== r.role) continue;
     if ((t.depends_on || []).length === 0) {
       warnings.push({
-        rule: "BACKEND_ROOT_WITHOUT_DBA",
-        severity: "WARN",
+        rule: r.rule,
+        severity: r.severity,
         taskId: t.id,
-        message: `${t.id} (Backend) no tiene dependencias y existen ${dbaTasks.length} tarea(s) DBA en el grafo. Confirmar si necesita esquema de base de datos.`,
+        message: `${t.id} (${r.role}) no tiene dependencias y existen ${upstreamTasks.length} tarea(s) ${r.upstream} en el grafo. ${r.hint}`,
       });
     }
   }
@@ -165,52 +164,35 @@ function checkBackendRootWithoutDba(tasks) {
   return warnings;
 }
 
-/* ------------------------------------------------------------
-   RULE 4 (WARN) — FRONTEND_ROOT_WITHOUT_BACKEND
-
-   Encodes: "Si tu fase es Frontend y consume APIs, depende de las
-   Atomic Tasks concretas de Backend..." Mismo criterio WARN que la
-   regla 3 y por la misma razón: no todo Frontend consume una API
-   propia (puede ser layout/shell puro).
-   ------------------------------------------------------------ */
-function checkFrontendRootWithoutBackend(tasks) {
-  const backendTasks = tasks.filter((t) => t.role === "Backend");
-  if (backendTasks.length === 0) return [];
-
-  const warnings = [];
-
-  for (const t of tasks) {
-    if (t.role !== "Frontend") continue;
-    if ((t.depends_on || []).length === 0) {
-      warnings.push({
-        rule: "FRONTEND_ROOT_WITHOUT_BACKEND",
-        severity: "WARN",
-        taskId: t.id,
-        message: `${t.id} (Frontend) no tiene dependencias y existen ${backendTasks.length} tarea(s) Backend en el grafo. Confirmar si consume alguna API.`,
-      });
-    }
-  }
-
-  return warnings;
-}
+const RULE_TYPES = { requires_upstream: checkRequiresUpstream, root_without: checkRootWithout };
 
 /* ------------------------------------------------------------
    ENTRY POINT
    ------------------------------------------------------------ */
-export function validateRoleDependencies(tasks = []) {
+/**
+ * @param {object[]} tasks
+ * @param {{roleDependencyRules: object[]}} profile  resultado de resolveProfiles()
+ */
+export function validateRoleDependencies(tasks = [], profile) {
   if (!Array.isArray(tasks)) {
     throw new Error("INVALID_INPUT: tasks debe ser un array.");
   }
+  if (!Array.isArray(profile?.roleDependencyRules)) {
+    throw new Error("PROFILE_REQUIRED: validateRoleDependencies necesita el profile del proyecto (roleDependencyRules).");
+  }
+  const run = (r) => {
+    const fn = RULE_TYPES[r.type];
+    if (!fn) throw new Error(`PROFILE_BAD_RULE: tipo de regla desconocido "${r.type}" (${r.rule})`);
+    return fn(tasks, r);
+  };
+  const byRules = profile.roleDependencyRules.flatMap(run);
 
   const failures = [
-    ...checkQaRequiresUpstreamArtifact(tasks),
+    ...byRules.filter((x) => x.severity === "FAIL"),
     ...checkNoPhaseLevelDependency(tasks),
   ];
 
-  const warnings = [
-    ...checkBackendRootWithoutDba(tasks),
-    ...checkFrontendRootWithoutBackend(tasks),
-  ];
+  const warnings = byRules.filter((x) => x.severity !== "FAIL");
 
   const status =
     failures.length > 0
@@ -221,7 +203,7 @@ export function validateRoleDependencies(tasks = []) {
 
   return {
     profile: "role_dependencies",
-    version: "0.1",
+    version: "0.2",
     status,
     failures,
     warnings,
@@ -238,9 +220,16 @@ function makeTask(id, role, depends_on = []) {
   return { id, role, depends_on };
 }
 
-export function runRoleDependencyProfileTests() {
+// console.assert imprimía "✓" aunque fallara (README, pendientes): ahora corta.
+function check(cond, msg) {
+  if (!cond) throw new Error(msg);
+}
+
+export async function runRoleDependencyProfileTests() {
+  const { resolveProfiles } = await import("./profiles/registry.mjs");
+  const WEB = resolveProfiles(["web/landing"]);
   console.log("==========================================");
-  console.log("VALIDATION PROFILE — role_dependencies v0.1 — TESTS");
+  console.log("VALIDATION PROFILE — role_dependencies v0.2 — TESTS");
   console.log("==========================================");
 
   // TEST 1 — QA root con Backend disponible → FAIL (caso real: F4.4.R2.1/.2)
@@ -250,9 +239,9 @@ export function runRoleDependencyProfileTests() {
       makeTask("F4.4.R2.1", "QA"),
       makeTask("F4.4.R2.2", "QA"),
     ];
-    const result = validateRoleDependencies(tasks);
-    console.assert(result.status === "FAIL", "TEST 1 FAILED: debería fallar");
-    console.assert(
+    const result = validateRoleDependencies(tasks, WEB);
+    check(result.status === "FAIL", "TEST 1 FAILED: debería fallar");
+    check(
       result.failures.filter((f) => f.rule === "QA_REQUIRES_UPSTREAM_ARTIFACT")
         .length === 2,
       "TEST 1 FAILED: deberían reportarse 2 violaciones QA",
@@ -266,16 +255,16 @@ export function runRoleDependencyProfileTests() {
       makeTask("F2.1", "Backend"),
       makeTask("F4.3", "QA", ["F2.1"]),
     ];
-    const result = validateRoleDependencies(tasks);
-    console.assert(result.status === "PASS", "TEST 2 FAILED: debería pasar");
+    const result = validateRoleDependencies(tasks, WEB);
+    check(result.status === "PASS", "TEST 2 FAILED: debería pasar");
     console.log("TEST 2 ✓ QA con dependencia Backend real → PASS");
   }
 
   // TEST 3 — QA root sin Backend/Frontend en el grafo → PASS (regla no aplica)
   {
     const tasks = [makeTask("F1.1", "DBA"), makeTask("F4.1", "QA")];
-    const result = validateRoleDependencies(tasks);
-    console.assert(
+    const result = validateRoleDependencies(tasks, WEB);
+    check(
       result.status === "PASS",
       "TEST 3 FAILED: sin Backend/Frontend, la regla no debería dispararse",
     );
@@ -285,12 +274,12 @@ export function runRoleDependencyProfileTests() {
   // TEST 4 — Backend root con DBA disponible → WARN (caso real: F2.3.R2.1)
   {
     const tasks = [makeTask("F1.3", "DBA"), makeTask("F2.3.R2.1", "Backend")];
-    const result = validateRoleDependencies(tasks);
-    console.assert(
+    const result = validateRoleDependencies(tasks, WEB);
+    check(
       result.status === "PASS_WITH_WARNINGS",
       "TEST 4 FAILED: debería generar warning, no fail",
     );
-    console.assert(
+    check(
       result.warnings.some((w) => w.rule === "BACKEND_ROOT_WITHOUT_DBA"),
       "TEST 4 FAILED: falta el warning esperado",
     );
@@ -303,17 +292,17 @@ export function runRoleDependencyProfileTests() {
       makeTask("F1.3", "DBA"),
       makeTask("F2.3.R2.1", "Backend", ["F1.3"]),
     ];
-    const result = validateRoleDependencies(tasks);
-    console.assert(result.status === "PASS", "TEST 5 FAILED");
+    const result = validateRoleDependencies(tasks, WEB);
+    check(result.status === "PASS", "TEST 5 FAILED");
     console.log("TEST 5 ✓ Backend con dependencia DBA declarada → PASS");
   }
 
   // TEST 6 — Frontend root con Backend disponible → WARN
   {
     const tasks = [makeTask("F2.1", "Backend"), makeTask("F3.5", "Frontend")];
-    const result = validateRoleDependencies(tasks);
-    console.assert(result.status === "PASS_WITH_WARNINGS", "TEST 6 FAILED");
-    console.assert(
+    const result = validateRoleDependencies(tasks, WEB);
+    check(result.status === "PASS_WITH_WARNINGS", "TEST 6 FAILED");
+    check(
       result.warnings.some((w) => w.rule === "FRONTEND_ROOT_WITHOUT_BACKEND"),
       "TEST 6 FAILED",
     );
@@ -323,9 +312,9 @@ export function runRoleDependencyProfileTests() {
   // TEST 7 — dependencia a un ID de FASE en vez de una AT → FAIL
   {
     const tasks = [makeTask("F2.1", "Backend", ["F1"])];
-    const result = validateRoleDependencies(tasks);
-    console.assert(result.status === "FAIL", "TEST 7 FAILED");
-    console.assert(
+    const result = validateRoleDependencies(tasks, WEB);
+    check(result.status === "FAIL", "TEST 7 FAILED");
+    check(
       result.failures.some((f) => f.rule === "NO_PHASE_LEVEL_DEPENDENCY"),
       "TEST 7 FAILED",
     );
@@ -340,9 +329,9 @@ export function runRoleDependencyProfileTests() {
       makeTask("F3.1", "Frontend", ["F2.1"]),
       makeTask("F4.1", "QA", ["F2.1", "F3.1"]),
     ];
-    const result = validateRoleDependencies(tasks);
-    console.assert(result.status === "PASS", "TEST 8 FAILED");
-    console.assert(
+    const result = validateRoleDependencies(tasks, WEB);
+    check(result.status === "PASS", "TEST 8 FAILED");
+    check(
       result.failures.length === 0 && result.warnings.length === 0,
       "TEST 8 FAILED",
     );
@@ -364,5 +353,5 @@ if (
   process.argv[1] &&
   import.meta.url === `file://${process.argv[1]}`
 ) {
-  runRoleDependencyProfileTests();
+  await runRoleDependencyProfileTests();
 }

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Boxworld</title>
+  <style>
+/* ===== tokens.css (global) ===== */
+:root {
+    
+    --color-primary: #1a1a2e; 
+    --color-secondary: #00bcd4; 
+    --color-accent: #ffeb3b; 
+    --color-text: #f0f0d8; 
+    --color-background: #2c3e50; 
+
+    
+    --font-family: 'Courier New', monospace, system-ui, -apple-system, Roboto, sans-serif;
+    --spacing-unit: 1rem;
+    --padding-base: 0.5rem 1rem;
+
+    
+    --radius-sm: 4px;
+    --shadow-box: 3px 3px 0 0 var(--color-primary); 
+    --transition-speed: 0.15s;
+}
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-primary);
+    color: var(--color-text);
+    font-family: var(--font-family);
+    line-height: 1.6;
+}
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--spacing-unit) calc(2 * var(--spacing-unit));
+}
+h1, h2, h3 {
+    color: var(--color-secondary);
+    font-size: 1.8rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 3px solid var(--color-secondary); 
+    display: inline-block;
+}
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.5rem; color: var(--color-accent); border-bottom: none;}
+p {
+    margin-bottom: 1rem;
+}
+a {
+    color: var(--color-secondary);
+    text-decoration: underline;
+    transition: color var(--transition-speed);
+}
+a:hover {
+    color: var(--color-accent);
+    text-decoration: none;
+}
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--color-secondary);
+    color: var(--color-primary); 
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: var(--shadow-box);
+    transition: all var(--transition-speed) ease;
+}
+.btn:hover {
+    background-color: var(--color-accent);
+    color: var(--color-primary);
+    
+    transform: translate(1px, 1px);
+    box-shadow: none;
+}
+
+/* ===== componente #site-header ===== */
+#site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem; 
+    background-color: var(--color-primary);
+    border-bottom: 4px solid var(--color-secondary);
+}
+#site-header .brand {
+    font-size: 2.5rem;
+    color: var(--color-accent);
+    text-shadow: 3px 3px 0 0 var(--color-primary); 
+}
+#site-header .nav-list {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+#site-header .nav-list li {
+    margin-left: 1.5rem;
+}
+#site-header .nav-list a {
+    color: var(--color-text);
+    font-size: 1.2rem;
+    padding: 0.5rem 0.75rem;
+    display: block;
+    border-bottom: 3px solid transparent; 
+    transition: all var(--transition-speed) ease;
+}
+#site-header .nav-list a:hover {
+    color: var(--color-secondary);
+    text-decoration: none;
+    border-bottom: 3px solid var(--color-accent);
+    transform: translateY(-2px); 
+}
+@media (max-width: 600px) {
+#site-header {
+        flex-direction: column;
+        padding: 1rem;
+        text-align: center;
+    }
+#site-header .brand {
+        margin-bottom: 1rem;
+    }
+#site-header .nav-list {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+#site-header .nav-list li {
+        margin: 0 0.5rem;
+    }
+}
+
+  </style>
+</head>
+<body>
+  <header id="site-header" class="container">
+    <div class="brand">Boxworld</div>
+    <nav>
+      <ul class="nav-list">
+        <li><a href="#juego">🎮 Juego</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main id="app">
+  <section id="juego" data-feature="R1 R2 R3">
+    <h2>Juego</h2>
+  </section>
+  </main>
+  <footer id="site-footer">
+    <p>Boxworld</p>
+  </footer>
+<script data-file="api.js">
+// Capa de datos SIMULADA (backend mock). Los componentes usan solo window.api.
+window.api = window.api || {};
+
+// No se requieren nuevas funciones API.
+
+
+</script>
+<script data-component="site-header">
+(function (root) {
+  if (!root) return;
+// No se requiere lógica de JavaScript para este componente.
+
+})(document.getElementById("site-header"));
+</script>
+</body>
+</html>

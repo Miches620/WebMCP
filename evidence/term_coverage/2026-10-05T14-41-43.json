@@ -1,0 +1,167 @@
+{
+  "version": "term_coverage v0.1",
+  "review_id": "2026-10-05T14-41-43",
+  "requirements": [
+    {
+      "id": "R1",
+      "text": "El juego clásico de Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel"
+    },
+    {
+      "id": "R2",
+      "text": "Botón 'reiniciar' para corregir errores y botón 'proximo nivel' para generar mapas aleatorios"
+    },
+    {
+      "id": "R3",
+      "text": "El juego se inicializa automáticamente al abrir el HTML"
+    },
+    {
+      "id": "R4",
+      "text": "Estilo Family NES, 8 bits"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "F1.1",
+      "task": "Establecer el modelo de datos para los niveles y sus componentes",
+      "description": "Diseñar e implementar las tablas (schema) necesarias para almacenar la estructura del mapa, las dimensiones generales del juego y las posiciones fijas de cajas o elementos clave."
+    },
+    {
+      "id": "F1.2",
+      "task": "Definir el sistema de coordenadas y límites del juego",
+      "description": "Crear la estructura de datos que define las coordenadas (ejes X, Y) y los límites físicos máximos y mínimos del área de juego, asegurando su coherencia con el modelo de niveles definido."
+    },
+    {
+      "id": "F1.3",
+      "task": "Implementar la lógica inicial de carga de nivel en memoria",
+      "description": "Desarrollar las funciones o procedimientos almacenados (Stored Procedures) que permitan recuperar y estructurar los datos de un nivel específico (ya sea predefinido o generado aleatoriamente), preparándolos para su consumo por la capa de aplicación."
+    },
+    {
+      "id": "F2.1",
+      "task": "Implementar la lógica de movimiento del avatar (Player)",
+      "description": "Desarrollar el motor que calcula la nueva posición del avatar en función de las entradas y los límites del nivel, sin considerar colisiones aún."
+    },
+    {
+      "id": "F2.2",
+      "task": "Implementar la detección de colisión del avatar con el entorno estático",
+      "description": "Desarrollar el sistema para verificar si la trayectoria propuesta por el avatar choca contra paredes u otros elementos fijos definidos en el nivel."
+    },
+    {
+      "id": "F2.3",
+      "task": "Implementar la lógica de empuje y movimiento de cajas (Box Movement)",
+      "description": "Desarrollar el motor que calcula la nueva posición de una caja al ser empujada, respetando los límites del nivel."
+    },
+    {
+      "id": "F2.4",
+      "task": "Implementar la detección de colisión de cajas con el entorno estático",
+      "description": "Desarrollar el sistema para verificar si una caja choca contra paredes u otros elementos fijos del nivel."
+    },
+    {
+      "id": "F2.5",
+      "task": "Implementar la resolución de colisiones entre objetos móviles (Box-to-Object)",
+      "description": "Desarrollar el algoritmo central que asegura que, al moverse un objeto (caja o avatar), no se superponga con ningún otro objeto móvil o estático. Debe manejar la física de empuje y detención."
+    },
+    {
+      "id": "F2.6",
+      "task": "Implementar la lógica de estado del nivel (Solvabilidad)",
+      "description": "Desarrollar el motor que determina si un nivel está resuelto (todos los objetos están en su destino) o si es irresoluble, basándose en las reglas físicas y límites establecidos."
+    },
+    {
+      "id": "F3.1",
+      "task": "Implementación de la inicialización automática de la interfaz al cargar el HTML.",
+      "description": "Configurar el punto de entrada del juego (game loop) y asegurar que la vista esté lista para recibir datos de estado en cuanto se cargue la página, sin depender de interacciones manuales."
+    },
+    {
+      "id": "F3.2",
+      "task": "Renderizado visual estático del mapa y entorno.",
+      "description": "Implementar la lógica para dibujar el mapa (paredes, suelos) en la interfaz de usuario utilizando las coordenadas definidas por F1.2 y los límites cargados por F1.3."
+    },
+    {
+      "id": "F3.3",
+      "task": "Renderizado dinámico y actualización visual del avatar (Player).",
+      "description": "Implementar el componente visual del avatar que se actualice en tiempo real, siguiendo las posiciones calculadas por la lógica de movimiento y colisión del jugador."
+    },
+    {
+      "id": "F3.4",
+      "task": "Renderizado dinámico y actualización visual de las cajas (Boxes).",
+      "description": "Implementar el componente visual para dibujar todas las cajas en el mapa, asegurando que su posición se actualice correctamente tras cualquier movimiento o colisión."
+    },
+    {
+      "id": "F3.5",
+      "task": "Implementación del botón 'Reiniciar Nivel' (Restart).",
+      "description": "Crear el botón de interfaz y la lógica asociada para resetear completamente el estado visual y lógico del juego cuando se detecta que un nivel es irresoluble."
+    },
+    {
+      "id": "F3.6",
+      "task": "Implementación del botón 'Próximo Nivel' (Next Level).",
+      "description": "Crear el botón de interfaz y la lógica asociada para solicitar y renderizar un nuevo nivel, utilizando los mecanismos de carga de niveles ya definidos."
+    },
+    {
+      "id": "F4.1",
+      "task": "Establecer la paleta de colores y el motor de renderizado pixelado global (NES/8-bit)",
+      "description": "Implementar las reglas visuales fundamentales del estilo NES, incluyendo la limitación de la paleta de colores y la lógica de escalado o representación pixelada para todos los elementos del juego."
+    },
+    {
+      "id": "F4.2",
+      "task": "Aplicar el estilo visual NES/8-bit al mapa y entorno estático",
+      "description": "Estilizar los tilesets, fondos y elementos del entorno fijo utilizando la estética pixelada y la paleta de colores definida."
+    },
+    {
+      "id": "F4.3",
+      "task": "Aplicar el estilo visual NES/8-bit al avatar del jugador (Player)",
+      "description": "Estilizar el sprite y la representación visual dinámica del personaje principal, asegurando que respete la estética 8 bits."
+    },
+    {
+      "id": "F4.4",
+      "task": "Aplicar el estilo visual NES/8-bit a las cajas móviles (Boxes)",
+      "description": "Estilizar los sprites y la representación visual dinámica de las cajas, aplicando la estética pixelada requerida."
+    },
+    {
+      "id": "F4.5",
+      "task": "Aplicar el estilo visual NES/8-bit a los elementos de la interfaz de usuario (Botones)",
+      "description": "Estilizar los botones 'Reiniciar Nivel' y 'Próximo Nivel', asegurando que su apariencia sea coherente con la estética pixelada general del juego."
+    }
+  ],
+  "items": [
+    {
+      "id": "R1",
+      "text": "El juego clásico de Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel",
+      "present": 5,
+      "total": 9,
+      "missing": [
+        "clasico",
+        "boxworld",
+        "acomodar",
+        "fijadas"
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Botón 'reiniciar' para corregir errores y botón 'proximo nivel' para generar mapas aleatorios",
+      "present": 6,
+      "total": 8,
+      "missing": [
+        "errores",
+        "mapas"
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "El juego se inicializa automáticamente al abrir el HTML",
+      "present": 3,
+      "total": 4,
+      "missing": [
+        "abrir"
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "Estilo Family NES, 8 bits",
+      "present": 2,
+      "total": 3,
+      "missing": [
+        "family"
+      ]
+    }
+  ],
+  "labels": {}
+}

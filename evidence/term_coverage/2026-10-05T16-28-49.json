@@ -1,0 +1,216 @@
+{
+  "version": "term_coverage v0.1",
+  "review_id": "2026-10-05T16-28-49",
+  "requirements": [
+    {
+      "id": "R1",
+      "text": "El juego es el clásico Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel."
+    },
+    {
+      "id": "R2",
+      "text": "El juego necesita un botón 'reiniciar' en caso de que el jugador haga un mal movimiento, además otro botón 'proximo nivel' para avanzar de niveles."
+    },
+    {
+      "id": "R3",
+      "text": "El juego deberá tener al menos 5 niveles."
+    },
+    {
+      "id": "R4",
+      "text": "El avatar se mueve mediante las flechas del teclado."
+    },
+    {
+      "id": "R5",
+      "text": "El avatar se mueve siempre de a un casillero por vez."
+    },
+    {
+      "id": "R6",
+      "text": "El tamaño del mapa es fijo, la cantidad de cajas puede variar."
+    },
+    {
+      "id": "R7",
+      "text": "El juego tiene un contador de movimientos como sistema de puntaje o tiempo límite por nivel."
+    },
+    {
+      "id": "R8",
+      "text": "Estilo Family NES, 8bits"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "F1.1",
+      "task": "Definir la estructura de datos para los metadatos del juego y niveles.",
+      "description": "Crear el esquema de tablas necesarias para gestionar los al menos 5 niveles, incluyendo campos para identificar cada nivel (ID), su orden, y cualquier dato asociado a nivel global (ej. contador máximo permitido)."
+    },
+    {
+      "id": "F1.2",
+      "task": "Definir la estructura de datos del mapa base.",
+      "description": "Crear el esquema de tablas para modelar el mapa base (10x10), definiendo cómo se almacenarán los tipos de tiles o elementos en cada coordenada y su relación con un nivel específico."
+    },
+    {
+      "id": "F1.3",
+      "task": "Definir la estructura de datos de posiciones de entidades por nivel.",
+      "description": "Crear el esquema de tablas para almacenar las coordenadas específicas (X, Y) y los tipos de entidades asociadas a cada nivel: posición inicial del avatar y ubicaciones objetivo de todas las cajas. Estas tablas deben relacionarse con la estructura de niveles definida en F1.1."
+    },
+    {
+      "id": "F2.1",
+      "task": "Implementación del cálculo base de movimiento y validación de límites.",
+      "description": "Desarrollar la lógica central que recibe las coordenadas deseadas (input) y calcula el vector de movimiento potencial, asegurando que este se mantenga dentro de los límites físicos definidos por el mapa base (F1.2). Esta tarea no maneja colisiones complejas, solo límites del mapa."
+    },
+    {
+      "id": "F2.2",
+      "task": "Implementación de detección de colisión con objetos estáticos y paredes.",
+      "description": "Desarrollar el servicio que, dado un vector de movimiento potencial (calculado en F2.1), verifica si la trayectoria choca contra cualquier pared o caja estática definida en el mapa base (F1.2). Debe devolver un estado de colisión y, si es posible, una posición ajustada."
+    },
+    {
+      "id": "F2.3",
+      "task": "Implementación de la simulación física de empuje de cajas (Physics Engine).",
+      "description": "Desarrollar el motor que simula la cadena de movimiento cuando una caja móvil es empujada en línea recta. Debe iterar sobre las entidades móviles, utilizando los resultados de detección de colisión (F2.2) para determinar si el empuje detiene o desplaza a otras cajas."
+    },
+    {
+      "id": "F2.4",
+      "task": "Actualización del estado interno del juego (Game State Update).",
+      "description": "Crear el servicio final que recibe los resultados validados de movimiento (ya sea por F2.1, F2.2 o F2.3) y actualiza las posiciones internas de todas las entidades en el estado del juego, respetando la estructura de datos definida en F1.3."
+    },
+    {
+      "id": "F2.5",
+      "task": "Orquestación y exposición de la API del Motor de Movimiento Core.",
+      "description": "Integrar los componentes F2.1, F2.2 y F2.3 en un único punto de entrada (API) que recibe las coordenadas deseadas y orquesta el proceso completo: cálculo -> detección de colisión/física -> actualización del estado final (F2.4)."
+    },
+    {
+      "id": "F3.1",
+      "task": "Implementación de la visualización del mapa (grid 10x10)",
+      "description": "Renderizar el contenedor principal del juego y dibujar la estructura visual del grid 10x10 en el navegador."
+    },
+    {
+      "id": "F3.2",
+      "task": "Renderizado de entidades estáticas y dinámicas",
+      "description": "Implementar la lógica para posicionar y renderizar gráficamente el avatar, las cajas y los objetivos dentro del grid, utilizando las coordenadas definidas."
+    },
+    {
+      "id": "F3.3",
+      "task": "Captura de eventos de teclado (Input Handling)",
+      "description": "Configurar los listeners de eventos para capturar las pulsaciones de teclas de flecha y mapearlas a coordenadas de movimiento relativas."
+    },
+    {
+      "id": "F3.4",
+      "task": "Integración del motor de movimiento con input",
+      "description": "Capturar las coordenadas generadas por el manejo de input (F3.3) y enviarlas al Motor de Movimiento Core para iniciar la simulación de movimiento."
+    },
+    {
+      "id": "F3.5",
+      "task": "Gestión inicial de visibilidad de botones UI",
+      "description": "Implementar la lógica frontend para determinar y gestionar la visibilidad inicial (mostrar/ocultar) de los botones 'Reiniciar' y 'Siguiente Nivel'."
+    },
+    {
+      "id": "F4.1",
+      "task": "Implementación del contador de movimiento y puntaje en la UI.",
+      "description": "Integrar el mecanismo para recibir y mostrar el puntaje o conteo total de movimientos realizados por el jugador, consumiendo los datos actualizados del estado interno del juego (Game State Update)."
+    },
+    {
+      "id": "F4.2",
+      "task": "Lógica de verificación de condiciones de victoria.",
+      "description": "Implementar la lógica que, al finalizar un turno o movimiento, verifique si todas las cajas han alcanzado sus objetivos definidos en el nivel (basándose en los metadatos del juego). Esta función debe determinar el estado 'Ganador' o 'No Ganador'."
+    },
+    {
+      "id": "F4.3",
+      "task": "Manejo de la funcionalidad del botón 'Reiniciar Nivel'.",
+      "description": "Asociar un manejador de eventos al botón 'Reiniciar Nivel' que, al ser pulsado, restablezca el estado visual y lógico de todos los elementos del juego (posiciones, puntajes) a sus valores iniciales definidos para el nivel actual."
+    },
+    {
+      "id": "F4.4",
+      "task": "Gestión de la transición al siguiente nivel y flujo de juego.",
+      "description": "Implementar el flujo de control que, tras determinar una condición de victoria (F4.2), solicite y maneje la carga del estado del siguiente nivel, actualizando toda la interfaz para reflejar el nuevo entorno de juego."
+    },
+    {
+      "id": "F4.5",
+      "task": "Visualización y manejo de mensajes de resultado (Éxito/Fracaso).",
+      "description": "Crear o actualizar el componente UI para mostrar mensajes claros al usuario indicando si ha ganado, perdido o completado un nivel con éxito. Este mensaje debe ser visible hasta que se inicie la transición de nivel."
+    }
+  ],
+  "items": [
+    {
+      "id": "R1",
+      "text": "El juego es el clásico Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel.",
+      "present": 2,
+      "total": 6,
+      "missing": [
+        "clasico",
+        "boxworld",
+        "acomodar",
+        "fijadas"
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "El juego necesita un botón 'reiniciar' en caso de que el jugador haga un mal movimiento, además otro botón 'proximo nivel' para avanzar de niveles.",
+      "present": 3,
+      "total": 7,
+      "missing": [
+        "caso",
+        "haga",
+        "proximo",
+        "avanzar"
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "El juego deberá tener al menos 5 niveles.",
+      "present": 2,
+      "total": 2,
+      "missing": []
+    },
+    {
+      "id": "R4",
+      "text": "El avatar se mueve mediante las flechas del teclado.",
+      "present": 2,
+      "total": 3,
+      "missing": [
+        "mediante"
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "El avatar se mueve siempre de a un casillero por vez.",
+      "present": 0,
+      "total": 2,
+      "missing": [
+        "siempre",
+        "casillero"
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "El tamaño del mapa es fijo, la cantidad de cajas puede variar.",
+      "present": 1,
+      "total": 5,
+      "missing": [
+        "tamano",
+        "fijo",
+        "cantidad",
+        "variar"
+      ]
+    },
+    {
+      "id": "R7",
+      "text": "El juego tiene un contador de movimientos como sistema de puntaje o tiempo límite por nivel.",
+      "present": 3,
+      "total": 5,
+      "missing": [
+        "sistema",
+        "tiempo"
+      ]
+    },
+    {
+      "id": "R8",
+      "text": "Estilo Family NES, 8bits",
+      "present": 0,
+      "total": 3,
+      "missing": [
+        "estilo",
+        "family",
+        "8bits"
+      ]
+    }
+  ],
+  "labels": {}
+}

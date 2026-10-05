@@ -1,0 +1,115 @@
+#juego {
+    padding-bottom: 3rem;
+}
+#juego h2 {
+    border-bottom: none; 
+    margin-top: 0;
+}
+#juego #game-board-wrapper {
+    background-color: var(--color-background);
+    padding: 1rem;
+    border: 4px solid var(--color-secondary);
+    box-shadow: var(--shadow-box), inset 0 0 10px rgba(0, 0, 0, 0.5);
+    
+    display: block; 
+}
+#juego .map-grid {
+    display: grid;
+    gap: 1px;
+    background-color: #000; 
+    border: 2px solid var(--color-secondary);
+    
+    width: 100%; 
+}
+#juego .cell {
+    
+    width: calc(100% / var(--map-width)); 
+    height: auto; 
+    aspect-ratio: 1 / 1; 
+    background-color: #1e3a5f; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+}
+#juego .box {
+    background-color: #8b4513; 
+    border: 2px solid #6d370e;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+    width: 90%;
+    height: 90%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#juego .avatar {
+    background-color: var(--color-accent); 
+    border: 2px solid #ccbb00;
+    box-shadow: 0 0 10px rgba(255, 235, 59, 0.8);
+    width: 90%;
+    height: 90%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#juego .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+    align-items: center;
+}
+#juego .move-btn {
+    width: 60px; 
+    height: 60px;
+    padding: 0;
+    font-size: 2rem;
+    box-shadow: var(--shadow-box);
+}
+#juego .secondary-btn {
+    background-color: #ff9800; 
+    color: var(--color-primary);
+}
+#juego .secondary-btn:hover {
+    background-color: var(--color-accent);
+    color: var(--color-primary);
+}
+#juego .primary-btn {
+    background-color: #4caf50; 
+    color: white;
+}
+#juego .primary-btn:hover {
+    background-color: var(--color-secondary);
+    color: var(--color-primary);
+}
+#juego #game-status {
+    min-height: 2em; 
+    padding: 0.5rem;
+    border: 1px dashed var(--color-secondary);
+    background-color: rgba(0, 0, 0, 0.3);
+}
+@media (max-width: 420px) {
+#juego .cell {
+        
+        min-width: 10vw; 
+        height: min(8vw, 50px); 
+    }
+#juego .move-btn {
+        width: 45%; 
+        height: auto;
+        padding: 0.5rem 0;
+        font-size: 1.8rem;
+    }
+#juego .controls {
+        flex-direction: row; 
+        justify-content: space-around;
+        gap: 0.2rem; 
+    }
+#juego #btn-move-up, #juego #btn-move-left, #juego #btn-move-right, #juego #btn-move-down {
+        flex-grow: 1; 
+        width: auto; 
+    }
+#juego .secondary-btn, #juego .primary-btn {
+        flex-basis: 45%; 
+    }
+}

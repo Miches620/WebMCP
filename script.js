@@ -2,6 +2,8 @@ import { validateRoleDependencies } from "./validation_profile_role_dependencies
 import { runAtomicGraph, resolveDependencies } from "./atomic_engine_v5.js";
 import { reviewStatus } from "./review_gate.mjs";
 import { parseJsonLoose } from "./json_loose.mjs";
+import { resolveProfiles, SELECTABLE, profileLabel } from "./profiles/registry.mjs";
+import { buildTechLeaderPrompt } from "./techleader_prompt.mjs";
 import {
   TEMPLATE_TEXT,
   TEMPLATE_EXAMPLE,
@@ -17,7 +19,7 @@ import {
 // (/api/version) y, si no coincide con el de la pestaña abierta, la UI avisa
 // que hay que recargar. Origen: Project21 corrió con el JS viejo en una
 // pestaña abierta desde antes del cambio (reiniciar el server no alcanza).
-const BUILD_ID = "2026-10-05.2";
+const BUILD_ID = "2026-10-05.3";
 
 const STORAGE_KEY = "webmcp_state";
 const MAX_TECHLEADER_ATTEMPTS = 3;
@@ -86,6 +88,12 @@ function syncChatUI() {
   btn.classList.remove("opacity-50", "cursor-not-allowed");
 
   const phase = getChatPhase();
+  // Tipo de proyecto (profiles, 05/10): se elige en IDLE y queda fijo para el proyecto.
+  const sel = document.getElementById("projectProfile");
+  if (sel) {
+    if (webmcpState.profiles?.length) sel.value = webmcpState.profiles[0];
+    sel.disabled = phase !== "IDLE";
+  }
   // IDLE: la plantilla de 4 campos precargada (Intent Forge v0.3). El resto
   // de las fases usa el input chico de siempre.
   input.rows = phase === "IDLE" ? 12 : 2;
@@ -175,6 +183,18 @@ async function sendToIntentForge(userMessage, { auto = false } = {}) {
     return;
   }
 
+  // Tipo de proyecto (profiles, 05/10): lo declara Miche antes del primer
+  // mensaje, como la etapa. Nunca lo decide un modelo ni hay uno por defecto.
+  if (!webmcpState.prompt) {
+    const chosen = document.getElementById("projectProfile")?.value || "";
+    if (!chosen) {
+      appendToIntentForgeChat("orchestrator", "Elegí el <b>tipo de proyecto</b> (arriba del cuadro de texto) antes de mandar la plantilla.");
+      return;
+    }
+    resolveProfiles([chosen]); // falla fuerte si el id no existe
+    webmcpState.profiles = [chosen];
+  }
+
   // El primer mensaje que se manda (fase IDLE) ES el prompt crudo del
   // proyecto. No se vuelve a tocar en mensajes siguientes, para no pisarlo
   // con una respuesta parcial a una pregunta de Intent Forge.
@@ -219,6 +239,7 @@ async function sendToIntentForge(userMessage, { auto = false } = {}) {
         prompt: userMessage,
         conversation: webmcpState.intentForge.history,
         iteration: INTENT_FORGE_ITERATION,
+        profiles: webmcpState.profiles,
       }),
     });
     if (!res.ok)
@@ -309,13 +330,43 @@ function itemHTML(it, line) {
   return `<div class="ml-3"><span class="text-[9px] px-1 rounded ${cls}">${label}</span> ${escapeHTML(it.texto)}${moved}${auto}${comp}</div>`;
 }
 
+// Chip "Tipo: web/landing (DRAFT)" — en rojo si el proyecto no declara tipo.
+function profileChip(ids) {
+  try {
+    const p = resolveProfiles(ids);
+    const borrowed = p.borrowed.length ? ` · usa ${p.borrowed.map((b) => b.from).join(", ")}` : "";
+    return ` <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-900 text-emerald-200 align-middle" title="${escapeHTML(profileLabel(p))}">Tipo: ${escapeHTML(p.ids.join(" + "))} (${escapeHTML(p.ids.map((i) => p.status[i]).join("/"))})${escapeHTML(borrowed)}</span>`;
+  } catch (e) {
+    return ` <span class="text-[10px] px-1.5 py-0.5 rounded bg-red-900 text-red-200 align-middle">Sin tipo de proyecto</span>`;
+  }
+}
+
+/** Profile del proyecto en curso. Falla fuerte si no declara tipo (estado de antes del 05/10). */
+function activeProfile() {
+  return resolveProfiles(webmcpState.intentForge?.refined_prompt?.profiles || webmcpState.profiles);
+}
+
+/** Opciones del selector de tipo, desde profiles/registry.mjs. */
+function populateProfileSelect() {
+  const sel = document.getElementById("projectProfile");
+  if (!sel || sel.options.length > 1) return;
+  for (const p of SELECTABLE) {
+    const o = document.createElement("option");
+    o.value = p.id;
+    o.textContent = `${p.label} — ${p.id} (${p.status})`;
+    o.title = p.describe;
+    sel.appendChild(o);
+  }
+}
+
 function buildRefinedSummaryHTML(refined) {
   const stage = refined.project_stage
     ? ` <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-800 text-cyan-200 align-middle">Etapa: ${escapeHTML(refined.project_stage)}</span>`
     : "";
+  const tipo = profileChip(refined.profiles);
   const head = `
     <div class="text-indigo-300 font-bold mb-1">Así entendí lo que escribiste:</div>
-    <div class="text-white font-medium">${escapeHTML(refined.project_name || "")}${stage}</div>`;
+    <div class="text-white font-medium">${escapeHTML(refined.project_name || "")}${stage}${tipo}</div>`;
   // Snapshot viejo (antes de v0.3): sin brief, lista simple de features.
   if (!refined.brief?.lines?.length) {
     const feats = (refined.features || []).map((f) => `<li>${escapeHTML(f)}</li>`).join("");
@@ -829,82 +880,12 @@ let webmcpState = {
   stage: null,
   stageChecks: [],
   deferredWork: [],
+  profiles: [],
 };
 
-const techLeaderPrompt = `Eres un TechLeader Senior.
+// El system prompt de TechLeader vive en techleader_prompt.mjs y sale del
+// profile del proyecto (roles), ver generateTechLeaderPlan.
 
-Tu responsabilidad es analizar el proyecto solicitado y construir su PLAN DE FASES.
-
-NO debes atomizar las fases en Atomic Tasks.
-NO debes ejecutar tareas.
-NO debes diseñar cada implementación en detalle.
-
-Tu salida debe representar únicamente las fases necesarias para organizar la ejecución del proyecto.
-
-ETAPA DEL PROYECTO:
-
-El PROYECTO trae su ETAPA y el criterio de pertenencia de esa etapa.
-Planifica SOLO el trabajo que pertenece a la etapa indicada.
-El trabajo profesional válido que pertenece a una etapa posterior NO se
-planifica como fase: se lista en "diferido" (se difiere, no se descarta).
-La etapa nunca quita una Feature pedida ni agrega requisitos nuevos.
-
-REGLAS:
-
-1. Determina CUÁNTAS FASES sean realmente necesarias.
-NO existe un número fijo máximo o mínimo de fases.
-No agregues fases artificiales para alcanzar una cantidad determinada.
-No fusiones fases diferentes únicamente para reducir su cantidad.
-
-2. Cada fase debe representar una unidad coherente de trabajo del proyecto.
-
-3. Cada fase DEBE tener un "responsable_sugerido".
-
-4. "responsable_sugerido" DEBE ser EXACTAMENTE UNO de estos roles:
-"Backend"
-"Frontend"
-"DBA"
-"DevOps"
-"QA"
-
-5. El responsable debe ser el rol más adecuado para comprender y
-posteriormente atomizar esa fase.
-
-6. Una fase puede depender conceptualmente de otra.
-Si existe una dependencia necesaria, exprésala mediante "depends_on".
-
-7. NO conviertas una fase en una lista de Atomic Tasks.
-
-8. NO agregues trabajo que no sea necesario para cumplir el objetivo solicitado.
-
-9. NO inventes requisitos.
-
-10. El resultado debe permitir que cada fase sea enviada posteriormente,
-de manera independiente, a un Atomizer que asumirá temporalmente el rol
-indicado en "responsable_sugerido".
-
-RESPONDE ÚNICAMENTE CON JSON VÁLIDO.
-FORMATO OBLIGATORIO:
-
-{
-  "stack_sugerido": ["..."],
-  "fases": [
-    {
-      "id": "F1",
-      "name": "...",
-      "responsable_sugerido": "DBA",
-      "description": "...",
-      "depends_on": []
-    }
-  ],
-  "features_clave": ["..."],
-  "diferido": ["trabajo válido que corresponde a una etapa posterior"]
-}
-
-PROYECTO:
-`;
-
-const ROLES_VALIDOS = ["Backend", "Frontend", "DBA", "DevOps", "QA"];
 
 function appendToReasoning(html) {
   const reasoningPanel = document.getElementById("llmReasoningOutput");
@@ -976,6 +957,7 @@ function clearState() {
     stage: null,
     stageChecks: [],
     deferredWork: [],
+    profiles: [],
   };
   GLOBAL_ID = 1;
   INTENT_FORGE_ITERATION = 0;
@@ -984,6 +966,8 @@ function clearState() {
   document.getElementById("refinedPromptPin")?.classList.add("hidden");
   const inp = document.getElementById("refinementPrompt");
   if (inp) inp.value = "";
+  const sel = document.getElementById("projectProfile");
+  if (sel) sel.value = "";
   showTemplateIntro();
   OrchestrationLock.unlock();
   updateUIFromState();
@@ -1140,6 +1124,8 @@ async function generateTechLeaderPlan(promptText, previousFeedback = "") {
   // La etapa se pide al server en cada llamada (si ProjectStage.md cambió,
   // se usa la nueva). Falla fuerte: nunca TechLeader "sin etapa" en silencio.
   const stage = await loadStage();
+  // Roles y reglas por rol: del profile del proyecto (profiles, 05/10).
+  const profile = activeProfile();
   let finalPrompt = `${promptText}\n\n${stage.criterion}`;
   if (previousFeedback) {
     finalPrompt += `\n\n--- FEEDBACK DE REVISIÓN ANTERIOR ---\n${previousFeedback}\nPor favor, ajusta el plan de fases para corregir estos problemas. NO inventes requisitos, solo ajusta lo estrictamente necesario para resolver el feedback.`;
@@ -1150,7 +1136,7 @@ async function generateTechLeaderPlan(promptText, previousFeedback = "") {
   // Parseo tolerante + UN reintento si el JSON no se puede leer
   // (Project25, 05/10: una coma faltante cortó toda la corrida en el intento 3).
   const messages = [
-    { role: "system", content: techLeaderPrompt },
+    { role: "system", content: buildTechLeaderPrompt(profile) },
     { role: "user", content: finalPrompt },
   ];
   let plan;
@@ -1185,9 +1171,9 @@ async function generateTechLeaderPlan(promptText, previousFeedback = "") {
   plan.fases = plan.fases.map((fase, index) => ({
     ...fase,
     id: fase.id || `F${index + 1}`,
-    responsable_sugerido: ROLES_VALIDOS.includes(fase.responsable_sugerido)
+    responsable_sugerido: profile.roles.includes(fase.responsable_sugerido)
       ? fase.responsable_sugerido
-      : "Backend",
+      : profile.defaultRole,
     depends_on: Array.isArray(fase.depends_on) ? fase.depends_on : [],
   }));
   plan.diferido = Array.isArray(plan.diferido)
@@ -1320,10 +1306,12 @@ async function runGraph(plan) {
     renderTaskList();
   };
   try {
+    const profile = activeProfile();
     const result = await runAtomicGraph(
       plan.fases,
       logCallback,
       onTaskResolved,
+      { profile },
     );
     webmcpState.replacementMap = result.replacementMap || {};
     webmcpState.rejectedTasks = result.rejectedTasks || [];
@@ -1334,7 +1322,7 @@ async function runGraph(plan) {
       `<div class="text-cyan-400 text-xs mt-2">↻ DEPENDENCY RECONCILIATION completada</div>`,
     );
     const dependencyResult = resolveDependencies(result.allTasks, plan.fases);
-    const validation = validateRoleDependencies(dependencyResult.nodes);
+    const validation = validateRoleDependencies(dependencyResult.nodes, profile);
     webmcpState.validation = validation;
     webmcpState.dependencyGraph = dependencyResult;
     webmcpState.atomicTasks = dependencyResult.nodes;
@@ -1687,6 +1675,7 @@ async function checkBuild() {
 }
 
 function initializeApp() {
+  populateProfileSelect();
   loadState();
   appendToReasoning(`<div class="text-gray-500 text-[10px]">[BUILD] script.js ${BUILD_ID}</div>`);
   checkBuild();

@@ -40,7 +40,7 @@ export const CRITERIA = {
   C7: "Con datos válidos el envío pasa",
 };
 
-import { PREF, INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle } from "../../validation/form_runtime.mjs";
+import { PREF, INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle } from "../../profiles/web/validation/form_runtime.mjs";
 
 /**
  * @param {string} htmlPath archivo a validar

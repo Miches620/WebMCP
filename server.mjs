@@ -5,6 +5,7 @@ import { join, extname } from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { loadStageBlock } from "./context/stage_loader.mjs";
+import { resolveProfiles } from "./profiles/registry.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const STATIC_DIR = __dirname;
@@ -54,7 +55,10 @@ const server = createServer(async (req, res) => {
   // intent_forge_v02.ps1 quedó desactualizado (v0.2): no lo usa el pipeline.
   if (req.method === "POST" && req.url === "/api/intent-forge") {
     try {
-      const { conversation, iteration } = await getBody(req);
+      const { conversation, iteration, profiles } = await getBody(req);
+      // Tipo de proyecto (profiles, 05/10): lo elige Miche en la UI. Falla
+      // antes de llamar al modelo si falta o no existe.
+      resolveProfiles(profiles);
       const { runIntentForge, BRIEF_VERSION } = await import("./intent_brief.mjs");
       const calls = [];
       const callModel = async (messages) => {
@@ -89,6 +93,8 @@ const server = createServer(async (req, res) => {
         refined_prompt = r.refined;
         // La etapa la declara Miche (ProjectStage.md), nunca el modelo.
         refined_prompt.project_stage = currentStage().stage;
+        // El tipo de proyecto también lo declara Miche (selector de la UI).
+        refined_prompt.profiles = profiles;
         await writeFile(
           join(STATIC_DIR, "refined_prompt.json"),
           JSON.stringify({ status: "COMPLETE", refined_prompt }, null, 2),
@@ -129,6 +135,7 @@ const server = createServer(async (req, res) => {
     try {
       const { refined_prompt } = await getBody(req);
       if (!refined_prompt) throw new Error("No refined_prompt");
+      resolveProfiles(refined_prompt.profiles); // sin tipo de proyecto no se aprueba
       await writeFile(
         join(STATIC_DIR, "refined_prompt.json"),
         JSON.stringify(refined_prompt, null, 2),

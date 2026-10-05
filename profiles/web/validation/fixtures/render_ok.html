@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>render ok</title></head><body>
+<main id="app">
+<section id="juego" data-feature="R1"><h2>Juego</h2><div id="tablero"></div><p id="mensaje"></p><div class="hud"></div></section>
+<section id="dibujo" data-feature="R2"><h2>Dibujo</h2><canvas id="lienzo" width="40" height="40"></canvas></section>
+<section id="estatico" data-feature="R3"><h2>Sin JS</h2><div class="separador"></div></section>
+</main>
+<script data-component="juego">
+(function (root) {
+  if (!root) return;
+  const t = root.querySelector('#tablero');
+  for (let i = 0; i < 4; i++) { const d = document.createElement('div'); d.className = 'casillero'; t.appendChild(d); }
+  // #mensaje se llena recién al ganar: vacío está bien porque el tablero sí se dibujó
+  root.querySelector('#mensaje').textContent = '';
+})(document.getElementById("juego"));
+</script>
+<script data-component="dibujo">
+(function (root) {
+  if (!root) return;
+  const ctx = root.querySelector('#lienzo').getContext('2d');
+  ctx.fillStyle = '#f00'; ctx.fillRect(0, 0, 10, 10);
+})(document.getElementById("dibujo"));
+</script>
+</body></html>

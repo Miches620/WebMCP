@@ -1,0 +1,117 @@
+{
+  "version": "intent_brief v0.9",
+  "iteration": 10,
+  "status": "ASKING",
+  "lines": [
+    {
+      "id": "L1",
+      "field": "construir",
+      "text": "Juego Boxworld en html autocontenido"
+    },
+    {
+      "id": "L2",
+      "field": "hacer",
+      "text": "el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel"
+    },
+    {
+      "id": "L3",
+      "field": "hacer",
+      "text": "El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para avanzar de niveles"
+    },
+    {
+      "id": "L4",
+      "field": "hacer",
+      "text": "El juego debera tener al menos 5 niveles"
+    },
+    {
+      "id": "L5",
+      "field": "ver",
+      "text": "estilo family nes, 8bits"
+    },
+    {
+      "id": "L6",
+      "field": "no",
+      "text": "las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador"
+    },
+    {
+      "id": "L7",
+      "field": "respuesta",
+      "text": "solo moverse en el sentido que le indiquen las flechas del teclado",
+      "pregunta": "¿El avatar puede realizar movimientos específicos, como saltar o girar?"
+    },
+    {
+      "id": "L8",
+      "field": "respuesta",
+      "text": "el avatar debera empujar y acomodar las cajas hacia los objetivos",
+      "pregunta": "¿Cuál es el proceso para pasar de un nivel a otro?"
+    },
+    {
+      "id": "L9",
+      "field": "respuesta",
+      "text": "el nivel se considera superado cuando todas las cajas ocupan todos los objetivos del nivel",
+      "pregunta": "¿Me contás sobre esto: los objetivos que deben alcanzarse en cada nivel?"
+    },
+    {
+      "id": "L10",
+      "field": "respuesta",
+      "text": "el tamaño del mapa si, la cantidad de cajas puede variar",
+      "pregunta": "¿El tamaño del mapa y la cantidad de cajas por nivel es fijo en todos los niveles?"
+    },
+    {
+      "id": "L11",
+      "field": "respuesta",
+      "text": "el avatar se desplaza mediante las flechas del teclado, se mueve siempre de a un casillero por vez, no puede atravesar paredes ni cajas, al situarse al lado de una caja, si la misma no cuenta con ninguna pared que impida su movimiento en una direccion concreta, el avatar podra empujarla en dicha direccion",
+      "pregunta": "¿El proceso exacto de cómo se mueve el avatar?"
+    },
+    {
+      "id": "L12",
+      "field": "respuesta",
+      "text": "contador de movimientos",
+      "pregunta": "¿El juego tiene algún sistema de puntaje o tiempo límite por nivel?"
+    },
+    {
+      "id": "L13",
+      "field": "respuesta",
+      "text": "10 casilleros de largo x 10 casilleros de alto",
+      "pregunta": "¿Podés indicar el tamaño exacto del mapa que tendrá cada nivel?"
+    },
+    {
+      "id": "L14",
+      "field": "respuesta",
+      "text": "el juego solo puede reiniciar el nivel si el usuario considera que su ultimo movimiento volvio irresoluble el nivel, la forma de reiniciar dicho nivel es mediante el boton 'reiniciar nivel'",
+      "pregunta": "¿El juego reinicia automáticamente después de un mal movimiento o desde dónde comienza la partida?"
+    },
+    {
+      "id": "L15",
+      "field": "respuesta",
+      "text": "no",
+      "pregunta": "¿El juego ofrece alguna forma de ayuda o indicación para resolver los niveles?"
+    }
+  ],
+  "attempts": [
+    {
+      "raw": "```json\n{\"faltantes\":[\"el proceso exacto de cómo se mueve el avatar\"],\"pregunta\":\"¿El avatar puede atravesar cajas para empujarlas desde atrás?\"}\n```",
+      "kind": "pregunta",
+      "faltantes": [
+        "el proceso exacto de cómo se mueve el avatar"
+      ]
+    }
+  ],
+  "auto_added": [],
+  "refined_prompt": null,
+  "calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks, ni CÓMO se implementa algo (algoritmos, cómo se genera, cómo se calcula): eso lo decide el equipo.\n- No preguntes por detalles chicos que el equipo puede decidir solo (tamaños de botones, márgenes, colores exactos).\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para avanzar de niveles\n- [qué tiene que hacer] El juego debera tener al menos 5 niveles\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿El avatar puede realizar movimientos específicos, como saltar o girar?\"] solo moverse en el sentido que le indiquen las flechas del teclado\n- [respuesta a \"¿Cuál es el proceso para pasar de un nivel a otro?\"] el avatar debera empujar y acomodar las cajas hacia los objetivos\n- [respuesta a \"¿Me contás sobre esto: los objetivos que deben alcanzarse en cada nivel?\"] el nivel se considera superado cuando todas las cajas ocupan todos los objetivos del nivel\n- [respuesta a \"¿El tamaño del mapa y la cantidad de cajas por nivel es fijo en todos los niveles?\"] el tamaño del mapa si, la cantidad de cajas puede variar\n- [respuesta a \"¿El proceso exacto de cómo se mueve el avatar?\"] el avatar se desplaza mediante las flechas del teclado, se mueve siempre de a un casillero por vez, no puede atravesar paredes ni cajas, al situarse al lado de una caja, si la misma no cuenta con ninguna pared que impida su movimiento en una direccion concreta, el avatar podra empujarla en dicha direccion\n- [respuesta a \"¿El juego tiene algún sistema de puntaje o tiempo límite por nivel?\"] contador de movimientos\n- [respuesta a \"¿Podés indicar el tamaño exacto del mapa que tendrá cada nivel?\"] 10 casilleros de largo x 10 casilleros de alto\n- [respuesta a \"¿El juego reinicia automáticamente después de un mal movimiento o desde dónde comienza la partida?\"] el juego solo puede reiniciar el nivel si el usuario considera que su ultimo movimiento volvio irresoluble el nivel, la forma de reiniciar dicho nivel es mediante el boton 'reiniciar nivel'\n- [respuesta a \"¿El juego ofrece alguna forma de ayuda o indicación para resolver los niveles?\"] no\n\nPREGUNTAS QUE YA HICISTE (9/10, no las repitas):\n- ¿El avatar puede realizar movimientos específicos, como saltar o girar?\n- ¿Cuál es el proceso para pasar de un nivel a otro?\n- ¿Me contás sobre esto: los objetivos que deben alcanzarse en cada nivel?\n- ¿El tamaño del mapa y la cantidad de cajas por nivel es fijo en todos los niveles?\n- ¿El proceso exacto de cómo se mueve el avatar?\n- ¿El juego tiene algún sistema de puntaje o tiempo límite por nivel?\n- ¿Podés indicar el tamaño exacto del mapa que tendrá cada nivel?\n- ¿El juego reinicia automáticamente después de un mal movimiento o desde dónde comienza la partida?\n- ¿El juego ofrece alguna forma de ayuda o indicación para resolver los niveles?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"el proceso exacto de cómo se mueve el avatar\"],\"pregunta\":\"¿El avatar puede atravesar cajas para empujarlas desde atrás?\"}\n```"
+    }
+  ]
+}

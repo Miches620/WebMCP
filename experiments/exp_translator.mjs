@@ -13,8 +13,8 @@
 import { readdirSync, mkdirSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
-import { translateRequirement } from "../validation/check_translator.mjs";
-import { runChecks } from "../validation/check_catalog.mjs";
+// Refactor de profiles (05/10): el traductor y el catálogo de landing viven en profiles/web/landing/build.mjs.
+import { translateRequirement, runChecks } from "../profiles/web/landing/build.mjs";
 
 const REPS = Number(process.argv[2] || 5);
 const here = (p) => fileURLToPath(new URL(p, import.meta.url));

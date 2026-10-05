@@ -73,6 +73,7 @@ function extractJSON(text) {
 const DECOMPOSE_PROMPT = (
   phase,
   rolePadre,
+  roles,
 ) => `Eres un especialista Senior en el rol "${rolePadre}".
 
 Tu única responsabilidad es ATOMIZAR la fase recibida en
@@ -143,11 +144,7 @@ Todas las Atomic Tasks deben utilizar "${rolePadre}".
 
 Roles permitidos:
 
-"Backend"
-"Frontend"
-"DBA"
-"DevOps"
-"QA"
+${roles.map((r) => `"${r}"`).join("\n")}
 
 SALIDA:
 
@@ -190,7 +187,7 @@ NO incluyas texto antes ni después del JSON.
 `;
 
 // ADDENDUM DE COHERENCIA - ESTO ES LO NUEVO, NO MODIFICA EL ANTERIOR
-const DECOMPOSE_CONTEXT_ADDENDUM = (previousTasks = []) => {
+const DECOMPOSE_CONTEXT_ADDENDUM = (previousTasks = [], roleRules = []) => {
   if (!previousTasks || previousTasks.length === 0) {
     return `
 
@@ -266,20 +263,26 @@ Ejemplos INCORRECTOS:
 - cualquier ID que no aparezca literalmente en la lista de tareas previas
 
 REGLAS ESPECÍFICAS POR ROL:
-- Si tu fase es Backend y necesita esquema de DB, depende de las Atomic Tasks concretas de DBA que proporcionen ese esquema.
-- Si tu fase es Frontend y consume APIs, depende de las Atomic Tasks concretas de Backend que proporcionen esas APIs.
-- Si tu fase es QA, debe depender de al menos una Atomic Task concreta de Backend o Frontend cuando existan tareas de esas fases que produzcan el artefacto a validar.
-- Si tu fase es DevOps, depende de las Atomic Tasks concretas de fases anteriores que sean necesarias para su trabajo.
+${roleRules.map((r) => `- ${r}`).join("\n")}
 - Estas reglas NO autorizan a usar IDs de fase como dependencias.
 
 `;
 };
 
 // WRAPPER QUE UNE AMBOS SIN MODIFICAR EL ORIGINAL
-const buildDecomposePrompt = (phase, rolePadre, previousTasks = []) => {
+// Refactor de profiles (05/10): los roles permitidos y las "REGLAS ESPECÍFICAS
+// POR ROL" vienen del profile del proyecto (profiles/registry.mjs); antes
+// estaban fijas acá (Backend/Frontend/DBA/DevOps/QA). Sin profile, falla fuerte.
+function requireProfile(profile, where) {
+  if (!profile?.roles?.length || !Array.isArray(profile.atomizerRoleRules))
+    throw new Error(`PROFILE_REQUIRED: ${where} necesita el profile del proyecto (opts.profile = resolveProfiles(...))`);
+  return profile;
+}
+
+const buildDecomposePrompt = (phase, rolePadre, previousTasks = [], profile) => {
   return (
-    DECOMPOSE_PROMPT(phase, rolePadre) +
-    DECOMPOSE_CONTEXT_ADDENDUM(previousTasks)
+    DECOMPOSE_PROMPT(phase, rolePadre, profile.roles) +
+    DECOMPOSE_CONTEXT_ADDENDUM(previousTasks, profile.atomizerRoleRules)
   );
 };
 
@@ -292,7 +295,9 @@ export async function atomizePhase(
   rolePadre,
   previousTasksOrCallback = [],
   logCallback = () => {},
+  opts = {},
 ) {
+  const profile = requireProfile(opts.profile, "atomizePhase");
   // Retrocompatibilidad: si el 3er param es función, es el logCallback viejo
   let previousTasks = [];
   let logger = logCallback;
@@ -318,7 +323,7 @@ export async function atomizePhase(
       const raw = await callLLM([
         {
           role: "user",
-          content: buildDecomposePrompt(phase, rolePadre, previousTasks),
+          content: buildDecomposePrompt(phase, rolePadre, previousTasks, profile),
         },
       ]);
 
@@ -1438,7 +1443,9 @@ export async function runAtomicGraph(
   phases = [],
   logCallback = () => {},
   onTaskResolved = () => {},
+  opts = {},
 ) {
+  const profile = requireProfile(opts.profile, "runAtomicGraph");
   if (!Array.isArray(phases)) {
     throw new Error("INVALID_PHASES: phases debe ser un array.");
   }
@@ -1467,6 +1474,7 @@ export async function runAtomicGraph(
         phase.responsable_sugerido,
         acceptedTasks,
         logCallback,
+        { profile },
       );
 
       if (!result || !Array.isArray(result.subtasks)) {

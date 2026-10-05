@@ -1,0 +1,116 @@
+### FILE: tokens.css
+```css
+:root {
+    /* --- PALETTE DE COLORES NES / RETRO --- */
+    --color-bg-primary: #1a1a2e; /* Fondo oscuro, casi negro */
+    --color-text-dark: #d9d9d9; /* Texto principal claro */
+    --color-text-primary: #ffffff; /* Títulos y elementos importantes */
+    --color-accent: #ff6b6b; /* Rojo/Coral para acciones (Botones, errores) */
+    --color-secondary: #4ecdc4; /* Cian brillante para acentos o estado activo */
+    --color-success: #7ed87e; /* Verde para éxito/avanzar */
+
+    /* --- TIPOGRAFÍA Y ESTILO --- */
+    --font: 'Press Start 2P', system-ui, -apple-system, Roboto, monospace; /* Usamos un fallback monoespaciado que evoca lo retro */
+    --border-radius: 4px; /* Bordes ligeramente cuadrados para el estilo pixelado */
+    --shadow-base: 3px 3px 0 var(--color-accent); /* Sombra fuerte y definida, típica de los juegos antiguos */
+
+    /* --- ESPACIADO (Escala base de 8px) --- */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 32px;
+    --space-xl: 64px;
+
+    /* --- TRANSICIONES Y EFECTOS --- */
+    --transition-speed: 0.2s;
+}
+
+/* =========================================
+   RESET & BASE STYLES
+   ========================================= */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-dark);
+    font-family: var(--font);
+    line-height: 1.6;
+}
+
+/* =========================================
+   TIPOGRAFÍA (HEADINGS, P, A)
+   ========================================= */
+
+h1, h2, h3 {
+    margin-top: 0;
+    margin-bottom: var(--space-md);
+    line-height: 1.2;
+    color: var(--color-text-primary);
+    /* Añadimos un ligero efecto de sombra para simular el estilo retro */
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.75rem; border-bottom: var(--space-xs) solid var(--color-secondary); padding-bottom: var(--space-sm); }
+h3 { font-size: 1.4rem; color: var(--color-accent); }
+
+p {
+    margin-bottom: var(--space-md);
+}
+
+a {
+    color: var(--color-secondary);
+    text-decoration: none;
+    transition: color var(--transition-speed) ease, background-color var(--transition-speed) ease;
+    cursor: pointer;
+}
+
+a:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+}
+
+/* =========================================
+   LAYOUT Y COMPONENTES
+   ========================================= */
+
+.container {
+    max-width: 1200px; /* Ancho máximo para el contenido principal */
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
+}
+
+/* Botón Estilo NES/8bit */
+.btn {
+    display: inline-block;
+    padding: var(--space-sm) var(--space-md);
+    background-color: var(--color-accent);
+    color: var(--color-text-primary);
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    /* Estilo de botón sólido y retro */
+    box-shadow: var(--shadow-base);
+    transition: all var(--transition-speed) ease;
+    text-transform: uppercase;
+}
+
+.btn:hover {
+    background-color: #ff8c8c; /* Un tono más claro al pasar el ratón */
+    box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3); /* Reducimos la sombra para simular un "clic" */
+    transform: translate(2px, 2px);
+}
+
+/* Estado deshabilitado (útil para botones de nivel) */
+.btn:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+```

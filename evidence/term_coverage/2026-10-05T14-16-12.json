@@ -1,0 +1,169 @@
+{
+  "version": "term_coverage v0.1",
+  "review_id": "2026-10-05T14-16-12",
+  "requirements": [
+    {
+      "id": "R1",
+      "text": "El juego clásico de Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel"
+    },
+    {
+      "id": "R2",
+      "text": "Botón 'reiniciar' para corregir errores y botón 'proximo nivel' para generar mapas aleatorios"
+    },
+    {
+      "id": "R3",
+      "text": "El juego se inicializa automáticamente al abrir el HTML"
+    },
+    {
+      "id": "R4",
+      "text": "Estilo Family NES, 8 bits"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "F1.1",
+      "task": "Establecer el esqueleto HTML autocontenido del juego.",
+      "description": "Crear la estructura base de archivos (index.html, style.css) y definir los contenedores semánticos necesarios para albergar el mapa, el avatar y otros elementos visuales."
+    },
+    {
+      "id": "F1.2",
+      "task": "Implementar estilos CSS base (Estética NES/8-bit).",
+      "description": "Aplicar los estilos globales y de reset necesarios para simular la estética Family NES, 8 bits (paleta de colores, fuentes pixeladas, restricciones visuales generales) a la estructura definida en F1.1."
+    },
+    {
+      "id": "F1.3",
+      "task": "Crear y estilizar el contenedor principal del mapa de juego.",
+      "description": "Definir la estructura HTML y aplicar los estilos CSS específicos para el área delimitada que servirá como el mapa o mundo visible del juego, asegurando su posicionamiento dentro del esqueleto base."
+    },
+    {
+      "id": "F1.4",
+      "task": "Implementar la estructura y estilo básico del avatar del jugador.",
+      "description": "Crear el elemento HTML para representar al personaje principal (avatar) e implementar los estilos CSS necesarios para que cumpla con la estética 8-bit, posicionándolo dentro del contenedor de mapa."
+    },
+    {
+      "id": "F1.5",
+      "task": "Implementar la estructura y estilo básico de los elementos de caja.",
+      "description": "Crear el elemento HTML para representar las cajas o bloques interactivos (ej. crates) e implementar los estilos CSS necesarios, asegurando que se integren visualmente con el mapa base."
+    },
+    {
+      "id": "F2.1",
+      "task": "Implementar el motor de estado central del juego.",
+      "description": "Desarrollar la estructura de datos y los métodos para gestionar el estado actual del mapa, incluyendo las posiciones (coordenadas X, Y) del avatar y todas las cajas. Este módulo debe ser la fuente única de verdad sobre la ubicación de todos los elementos."
+    },
+    {
+      "id": "F2.2",
+      "task": "Implementar la lógica de movimiento del avatar.",
+      "description": "Desarrollar el motor que calcula y aplica los cambios de posición al avatar en función de las entradas de usuario, utilizando el estado definido en F2.1."
+    },
+    {
+      "id": "F2.3",
+      "task": "Implementar la lógica de movimiento de las cajas.",
+      "description": "Desarrollar el motor que calcula y aplica los cambios de posición a las cajas, considerando interacciones o fuerzas externas (si aplican) y actualizando el estado en F2.1."
+    },
+    {
+      "id": "F2.4.R2.1",
+      "task": "Implementar la detección de límites del mapa para entidades",
+      "description": "Desarrollar el módulo que verifica si cualquier entidad (avatar o caja) ha superado los límites físicos definidos del mapa, asegurando que se manejen tanto los límites del Mapa/Avatar como los límites del Mapa/Caja."
+    },
+    {
+      "id": "F2.4.R2.2",
+      "task": "Implementar la detección de colisión Avatar-Caja",
+      "description": "Desarrollar el módulo que detecta si un avatar y una caja se superponen físicamente en el espacio del juego, manejando únicamente este tipo de interacción."
+    },
+    {
+      "id": "F2.4.R2.3",
+      "task": "Implementar la detección de colisión Caja-Caja",
+      "description": "Desarrollar el módulo que detecta si dos cajas diferentes se superponen físicamente en el espacio del juego, manejando únicamente esta interacción."
+    },
+    {
+      "id": "F2.5.R2.1",
+      "task": "Implementar la detección y prevención de colisiones entre entidades",
+      "description": "Desarrollar el módulo que recibe las posiciones calculadas para todas las entidades (avatar/caja, caja/caja) y verifica si hay superposiciones físicas. Este sistema debe aplicar reglas de colisión para ajustar o invalidar movimientos que resulten en overlaps."
+    },
+    {
+      "id": "F2.5.R2.2",
+      "task": "Implementar la validación de límites del mapa",
+      "description": "Desarrollar el módulo que asegura que todas las posiciones calculadas para las entidades permanezcan dentro de los límites físicos definidos del mapa. Este sistema debe rechazar o corregir cualquier movimiento que exceda estas fronteras."
+    },
+    {
+      "id": "F3.1",
+      "task": "Definir la estructura de datos para los niveles y el mapa.",
+      "description": "Establecer el esquema de datos (JSON o similar) que contendrá la representación del mapa (tipo de tile, dimensiones), las posiciones iniciales de entidades clave (jugador, cajas) y cualquier restricción de nivel."
+    },
+    {
+      "id": "F3.2",
+      "task": "Implementar el cargador de niveles predefinidos.",
+      "description": "Crear la lógica backend que lea un archivo de datos estructurado (basado en F3.1) y construya el estado inicial del mapa, incluyendo la colocación estática de tiles y entidades."
+    },
+    {
+      "id": "F3.3",
+      "task": "Implementar la lógica de generación aleatoria de mapas simples.",
+      "description": "Desarrollar el algoritmo backend que genere un mapa válido y simple (ej. llenado con tiles predefinidos) cumpliendo con las restricciones básicas del juego, utilizando la estructura definida en F3.1."
+    },
+    {
+      "id": "F3.4",
+      "task": "Integrar el estado inicial al motor de movimiento central.",
+      "description": "Implementar la función que recibe el mapa y las posiciones iniciales (ya sea cargadas en F3.2 o generadas en F3.3) y establece este estado como el punto de partida para el motor de estado del juego (F2.1)."
+    },
+    {
+      "id": "F4.1",
+      "task": "Implementar el auto-inicio del juego al cargar la página.",
+      "description": "Asegurar que el motor de juego se inicialice y comience a ejecutarse automáticamente cuando el documento HTML esté completamente cargado, sin requerir interacción manual del usuario."
+    },
+    {
+      "id": "F4.2",
+      "task": "Implementar el manejador de eventos para el botón 'Reiniciar'.",
+      "description": "Conectar la acción del botón 'Reiniciar' a la lógica central del juego (F2) para resetear completamente el estado, posición y puntuación del jugador."
+    },
+    {
+      "id": "F4.3",
+      "task": "Implementar el manejador de eventos para el botón 'Próximo Nivel'.",
+      "description": "Conectar la acción del botón 'Próximo Nivel' a la lógica de carga de niveles (F3) y al motor de estado (F2), gestionando la transición de nivel sin perder el contexto de juego."
+    },
+    {
+      "id": "F4.4",
+      "task": "Orquestar la sincronización del estado del juego con los niveles cargados.",
+      "description": "Establecer el flujo de control principal que garantiza que, tras cualquier cambio de nivel o interacción significativa (ej. colisión), el motor de estado central (F2) se actualice correctamente utilizando la información proporcionada por el nuevo nivel cargado (F3)."
+    }
+  ],
+  "items": [
+    {
+      "id": "R1",
+      "text": "El juego clásico de Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel",
+      "present": 5,
+      "total": 9,
+      "missing": [
+        "clasico",
+        "boxworld",
+        "acomodar",
+        "fijadas"
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Botón 'reiniciar' para corregir errores y botón 'proximo nivel' para generar mapas aleatorios",
+      "present": 7,
+      "total": 8,
+      "missing": [
+        "errores"
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "El juego se inicializa automáticamente al abrir el HTML",
+      "present": 3,
+      "total": 4,
+      "missing": [
+        "abrir"
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "Estilo Family NES, 8 bits",
+      "present": 3,
+      "total": 3,
+      "missing": []
+    }
+  ],
+  "labels": {}
+}

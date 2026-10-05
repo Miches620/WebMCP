@@ -1,0 +1,64 @@
+{
+  "version": "intent_brief v0.9",
+  "iteration": 1,
+  "status": "ASKING",
+  "lines": [
+    {
+      "id": "L1",
+      "field": "construir",
+      "text": "Juego Boxworld en html autocontenido"
+    },
+    {
+      "id": "L2",
+      "field": "hacer",
+      "text": "el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel"
+    },
+    {
+      "id": "L3",
+      "field": "hacer",
+      "text": "El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para avanzar de niveles"
+    },
+    {
+      "id": "L4",
+      "field": "hacer",
+      "text": "El juego debera tener al menos 5 niveles"
+    },
+    {
+      "id": "L5",
+      "field": "ver",
+      "text": "estilo family nes, 8bits"
+    },
+    {
+      "id": "L6",
+      "field": "no",
+      "text": "las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador"
+    }
+  ],
+  "attempts": [
+    {
+      "raw": "```json\n{\"faltantes\":[\"cómo se pasa de un nivel a otro\",\"qué habilidades tiene el avatar\"],\"pregunta\":\"¿El avatar puede realizar movimientos específicos, como saltar o girar?\"}\n```",
+      "kind": "pregunta",
+      "faltantes": [
+        "cómo se pasa de un nivel a otro",
+        "qué habilidades tiene el avatar"
+      ]
+    }
+  ],
+  "auto_added": [],
+  "refined_prompt": null,
+  "calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks, ni CÓMO se implementa algo (algoritmos, cómo se genera, cómo se calcula): eso lo decide el equipo.\n- No preguntes por detalles chicos que el equipo puede decidir solo (tamaños de botones, márgenes, colores exactos).\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para avanzar de niveles\n- [qué tiene que hacer] El juego debera tener al menos 5 niveles\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se pasa de un nivel a otro\",\"qué habilidades tiene el avatar\"],\"pregunta\":\"¿El avatar puede realizar movimientos específicos, como saltar o girar?\"}\n```"
+    }
+  ]
+}

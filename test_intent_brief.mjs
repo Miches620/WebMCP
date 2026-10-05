@@ -4,7 +4,7 @@ import {
   parseBrief, numberLines, validateItems, fillUncovered, buildRefined,
   buildTechLeaderInput, parseModelOutput, runIntentForge, formatLinesForModel,
   TEMPLATE_TEXT, TEMPLATE_EXAMPLE, HARNESS_QUESTIONS, QUESTION_SYSTEM, QUESTION_HINT,
-  isControlReply, splitSentences, actionVerbs, parseInterviewer, sameTopicAsked, questionFromGap, grounded, repairFeedback, touchesRestriction, isGenericGap, detailDuplicates, isDelegated,
+  isControlReply, splitSentences, actionVerbs, parseInterviewer, sameTopicAsked, questionFromGap, grounded, repairFeedback, touchesRestriction, isGenericGap, detailDuplicates, isDelegated, sharesTopicWithAsked, isImplementationQuestion,
 } from "./intent_brief.mjs";
 
 let ok = 0, fail = 0;
@@ -501,6 +501,32 @@ await check("dos respuestas delegadas seguidas cortan la entrevista (sin llamar 
   const model = fakeModel([complete(items)], ['{"faltantes":["algo"],"pregunta":"¿Otra?"}']);
   const r = await runIntentForge(conv, { callModel: model });
   eq([r.status, model.qcalls.length], ["COMPLETE", 0]);
+});
+
+// ---- v0.8 del módulo (2ª corrida del hold-out P25: repetidas que puso el harness) ----
+await check("el harness no repite: 'nivel o dificultad' y 'habilidades del avatar' (casos reales)", () => {
+  const lines = numberLines([{ role: "user", content: P25 }]).lines;
+  const asked = ["¿El juego incluirá diferentes niveles o dificultades con mapas generados aleatoriamente?", "¿Cuáles son las habilidades del avatar en cada nivel?"];
+  assert(sharesTopicWithAsked("¿Hay algún tipo de nivel o dificultad?", asked, lines));
+  assert(sharesTopicWithAsked("¿Qué habilidades tendrá el avatar?", asked, lines));
+  assert(!sharesTopicWithAsked("¿El juego incluirá algún tipo de tutorial o instrucciones?", asked, lines));
+});
+await check("pendientes solo del turno anterior", () => {
+  const n = numberLines([
+    { role: "user", content: P25 },
+    { role: "assistant", content: "¿P1?", faltantes: ["viejo faltante"] },
+    { role: "user", content: "x" },
+    { role: "assistant", content: "¿P2?", faltantes: ["faltante nuevo"] },
+    { role: "user", content: "y" },
+  ]);
+  eq(n.faltantesPrevios, ["faltante nuevo"]);
+});
+await check("preguntas de implementación se descartan ('¿Cómo se generan los mapas…?')", async () => {
+  assert(isImplementationQuestion("¿Cómo se generan los mapas aleatorios en cada nivel?"));
+  assert(!isImplementationQuestion("¿Cómo se elige una prioridad al crear la tarjeta?"));
+  const model = fakeModel([complete([])], ['{"faltantes":["cómo se generan los mapas","si hay contador de movimientos"],"pregunta":"¿Cómo se generan los mapas aleatoriamente?"}']);
+  const r = await runIntentForge([{ role: "user", content: P25 }], { callModel: model });
+  eq([r.by, r.question, r.attempts[0].kind], ["harness_faltante", `¿Hay contador de movimientos? ${QUESTION_HINT}`, "faltante_siguiente"]);
 });
 
 console.log(`\n${ok}/${ok + fail} tests OK`);

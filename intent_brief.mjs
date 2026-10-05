@@ -17,7 +17,18 @@
 //
 // Módulo puro (sin fs ni fetch): lo usan server.mjs y script.js (navegador).
 
-export const BRIEF_VERSION = "intent_brief v0.7";
+export const BRIEF_VERSION = "intent_brief v0.8";
+
+// v0.8 (05/10, segunda corrida del hold-out Project25): dos preguntas
+// repetidas las puso el HARNESS, no el modelo: sacaba "pendientes" de todos
+// los turnos anteriores ("si hay algún tipo de nivel o dificultad", "qué
+// habilidades tendrá el avatar") aunque ya se habían preguntado con otras
+// palabras, y el control de repetidas no frena preguntas de 1-2 palabras de
+// contenido. Cambios: pendientes solo del turno anterior; una pregunta que
+// propone el harness se descarta si comparte UNA palabra de tema con algo ya
+// preguntado (más estricto que para el modelo: ante la duda, el harness no
+// pregunta); las preguntas de implementación ("¿cómo se generan…?") se
+// descartan también en el harness, porque el modelo ignora esa regla.
 
 // v0.7 (05/10, hold-out Project25 "Boxworld"): el usuario contestó "no lo
 // sé" a "¿cómo se genera aleatoriamente el mapa?" y el clasificador lo leyó
@@ -227,6 +238,9 @@ export function numberLines(conversation = []) {
     if (m.role !== "user") {
       last = m.content;
       if (!isCompleteMessage(m.content) && String(m.content || "").trim()) preguntas.push(String(m.content).replace(QUESTION_HINT, "").trim());
+      // Solo los del turno anterior: los viejos ya se preguntaron con otras
+      // palabras o dejaron de importar (Project25: se repetían).
+      faltantesPrevios.length = 0;
       for (const f of Array.isArray(m.faltantes) ? m.faltantes : []) if (!faltantesPrevios.includes(f)) faltantesPrevios.push(f);
       continue;
     }
@@ -361,9 +375,11 @@ export function formatForQuestion({ lines, preguntas = [], pendientes = [] }) {
 // contenido (raíz de 5 letras), sin contar las que se repiten en 2+ líneas
 // del usuario (tarjeta, tarea: aparecen en todas las preguntas).
 const Q_STOP = new Set("como cual cuales cuando donde para porque sera seran puede pueden tiene tienen debe deben esta estan hace hacer usar habra cada tipo tipos algun alguna sobre entre desde solo".split(" "));
+// Raíces de verbos de pregunta que no dicen el tema ("incluirá", "tendrá").
+const Q_STOP_STEMS = new Set(["inclu", "tendr", "podra", "podr", "exist", "habra", "usara", "neces", "quier", "debera"]);
 function topicWords(t, common) {
   return new Set(
-    (norm(t).match(/[a-z0-9]{4,}/g) || []).filter((w) => !Q_STOP.has(w)).map((w) => w.slice(0, 5)).filter((w) => !common.has(w)),
+    (norm(t).match(/[a-z0-9]{4,}/g) || []).filter((w) => !Q_STOP.has(w)).map((w) => w.slice(0, 5)).filter((w) => !common.has(w) && !Q_STOP_STEMS.has(w)),
   );
 }
 // Palabras que aparecen en 2+ líneas de la PLANTILLA (no en las respuestas:
@@ -398,6 +414,18 @@ export function sameTopicAsked(q, preguntas = [], lines = []) {
     return min >= 2 && shared / min >= 0.6;
   });
 }
+// Más estricto, para lo que propone el harness: alcanza con UNA palabra de
+// tema en común con algo ya preguntado.
+export function sharesTopicWithAsked(q, preguntas = [], lines = []) {
+  if (!q) return false;
+  const common = commonWords(lines);
+  const a = topicWords(q, common);
+  return preguntas.some((p) => norm(p) === norm(q) || [...topicWords(p, common)].some((w) => a.has(w)));
+}
+// "¿Cómo se generan los mapas?": cómo se implementa algo lo decide el equipo.
+const IMPLEMENTATION_Q = /^\W*como se (genera|generan|generaran|implementa|implementaran|calcula|calculan|programa|construye|hace el|haran)\b/;
+export const isImplementationQuestion = (q) => IMPLEMENTATION_Q.test(norm(q));
+
 // "si las tarjetas tienen comentarios" → "¿Las tarjetas tienen comentarios?"
 export function questionFromGap(f) {
   let t = String(f || "").trim().replace(/[?¿.]+$/g, "").replace(/^¿/, "");
@@ -714,8 +742,9 @@ export async function runIntentForge(conversation, { callModel, maxQuestions = M
   const attempts = [];
   // Faltantes de turnos anteriores cuyo tema todavía no se preguntó
   // (Project24: "cuántas columnas y qué estados" se detectó y nunca se preguntó).
-  const blocked = (x) => sameTopicAsked(x, preguntas, lines) || touchesRestriction(x, lines);
-  const pendientes = (numbered.faltantesPrevios || []).filter((f) => !blocked(questionFromGap(f)));
+  const blocked = (x) => sameTopicAsked(x, preguntas, lines) || touchesRestriction(x, lines) || isImplementationQuestion(x);
+  const blockedForHarness = (x) => blocked(x) || sharesTopicWithAsked(x, preguntas, lines);
+  const pendientes = (numbered.faltantesPrevios || []).filter((f) => !blockedForHarness(questionFromGap(f)));
   const noMoreQuestions = numbered.skip || numbered.afterComplete || preguntas.length >= maxQuestions || numbered.delegatedRun >= 2;
 
   // 2. Entrevista de completitud.
@@ -732,8 +761,8 @@ export async function runIntentForge(conversation, { callModel, maxQuestions = M
     if (!iv.done && blocked(q)) {
       // Mismo tema con otras palabras: el harness pasa al siguiente faltante
       // que no se haya preguntado (Project24: 4 de 5 preguntas sobre el semáforo).
-      kind = touchesRestriction(q, lines) ? "pregunta_contra_restriccion" : "pregunta_repetida";
-      const alt = [...iv.faltantes.slice(1), ...pendientes].map(questionFromGap).find((x) => !blocked(x));
+      kind = touchesRestriction(q, lines) ? "pregunta_contra_restriccion" : isImplementationQuestion(q) ? "pregunta_de_implementacion" : "pregunta_repetida";
+      const alt = [...iv.faltantes.slice(1), ...pendientes].map(questionFromGap).find((x) => !blockedForHarness(x));
       if (alt) { q = alt; by = "harness_faltante"; kind = "faltante_siguiente"; }
       else q = "";
     }

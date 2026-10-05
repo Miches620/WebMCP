@@ -15,7 +15,17 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle } from "./form_runtime.mjs";
 
-export const CATALOG_VERSION = "check_catalog v0.6.1";
+export const CATALOG_VERSION = "check_catalog v0.7";
+
+// v0.7 (05/10, web/app y web/game): chequeos de INTERACCIÓN. Evidencia: Boxworld
+// build 3 — el juego "ganaba" con el primer movimiento, reiniciar quedaba
+// deshabilitado y el contador de movimientos se verificó con numbers_animate
+// ("cambian solos"): 5 de 8 requisitos SIN_CHEQUEO y el bug invisible.
+//   key_changes          apretar una tecla cambia la pantalla
+//   click_changes        hacer clic en un control cambia la pantalla
+//   counter_on_action    el número junto a una etiqueta cambia después de actuar
+//   not_won_immediately  (juego) UN movimiento no alcanza para ganar
+//   reset_restores       (juego) después de jugar, reiniciar vuelve al estado inicial
 
 // v0.6.1 (05/10, Boxworld build 3): sections_visible dio FAIL falso en #juego (10/21):
 // las 11 palabras que faltaban eran el overlay de victoria, con style="display:none"
@@ -144,6 +154,26 @@ export const CATALOG = {
     params: {},
     base: true,
   },
+  key_changes: {
+    describe: "Al apretar una tecla (flechas, espacio, enter o una letra) algo cambia en la pantalla. Usar para 'se mueve con las flechas / con el teclado'.",
+    params: { keys: "string[]?" },
+  },
+  click_changes: {
+    describe: "Al hacer clic en un control cuyo texto menciona X, algo cambia en la pantalla. Usar para 'botón que hace X' cuando no dice qué texto aparece.",
+    params: { click: "string[]" },
+  },
+  counter_on_action: {
+    describe: "El número que está junto a la etiqueta X (movimientos, puntaje, tiempo) cambia después de actuar (teclas o un clic). Usar para 'contador de movimientos / puntaje'.",
+    params: { label: "string[]", keys: "string[]?", click: "string[]?" },
+  },
+  not_won_immediately: {
+    describe: "Con UN solo movimiento (una tecla) no aparece un mensaje de victoria ni se completa el nivel. Usar para 'acomodar / llegar / completar el nivel / ganar'.",
+    params: { keys: "string[]?" },
+  },
+  reset_restores: {
+    describe: "Después de jugar (teclas), el control X (reiniciar) vuelve la pantalla al estado del inicio. Usar para 'botón reiniciar / volver a empezar'.",
+    params: { click: "string[]", keys: "string[]?" },
+  },
   click_reveals: {
     describe: "Al hacer clic en un control cuyo texto menciona A, aparece visible texto que menciona B.",
     params: { click: "string[]", expect: "string[]" },
@@ -159,6 +189,7 @@ export function normalizeCheck(c) {
     const v = c.params?.[k];
     const list = (Array.isArray(v) ? v : typeof v === "string" ? [v] : []).map(String).map((s) => s.trim()).filter(Boolean);
     if (t === "string[]" && !words(list).length) return null;
+    if (t === "string[]?" && !list.length) continue; // opcional (v0.7)
     params[k] = list;
   }
   // feature (opcional, lo agrega el harness con anchorSections): id de requisito "Rn"
@@ -269,6 +300,18 @@ const HOVER_KINDS = [
 const NUMBERS_IN = (sel) => [...document.querySelectorAll(sel + " *")].filter((e) => !e.children.length && /\d/.test(e.textContent || "")).map((e) => (e.textContent || "").trim()).join(" | ");
 const NAV_RE = /(anterior|siguiente|previo|prev|next|‹|›|←|→|«|»|^\s*<\s*$|^\s*>\s*$)/i;
 
+/** Primer control visible cuyo texto (o value / aria-label) menciona alguna palabra. */
+async function findControl(page, syn) {
+  const loc = page.locator("button, a, [role=tab], [role=button], input[type=button], input[type=submit], summary").filter({ visible: true });
+  const n = await loc.count();
+  for (let i = 0; i < n; i++) {
+    const el = loc.nth(i);
+    const t = (await el.innerText().catch(() => "")) || (await el.getAttribute("value")) || (await el.getAttribute("aria-label")) || "";
+    if (matches(t, syn)) return { loc: el, text: t.trim() };
+  }
+  return null;
+}
+
 async function visibleTexts(page, selector) {
   return page.$$eval(selector, (els) =>
     els.filter((e) => e.offsetParent !== null || e.getClientRects().length)
@@ -277,6 +320,67 @@ async function visibleTexts(page, selector) {
 }
 
 const SEEN_SRC = SEEN_WORDS.toString();
+
+// ---------- interacción (v0.7) ----------
+const ARROWS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
+/** Palabras del traductor → teclas de Playwright. Sin teclas → las cuatro flechas. */
+export function keysFrom(list) {
+  const out = [];
+  const add = (...k) => k.forEach((x) => { if (!out.includes(x)) out.push(x); });
+  for (const raw of list || []) {
+    const w = norm(raw);
+    if (/flecha|arrow|cursor|direcc/.test(w)) add(...ARROWS);
+    else if (/arriba|^up$/.test(w)) add("ArrowUp");
+    else if (/abajo|^down$/.test(w)) add("ArrowDown");
+    else if (/izquierda|^left$/.test(w)) add("ArrowLeft");
+    else if (/derecha|^right$/.test(w)) add("ArrowRight");
+    else if (/espacio|space/.test(w)) add("Space");
+    else if (/enter|intro/.test(w)) add("Enter");
+    else if (/wasd/.test(w)) add("w", "a", "s", "d");
+    else if (/^[a-z0-9]$/.test(w)) add(w);
+    else if (/^(arrowup|arrowdown|arrowleft|arrowright|escape|tab)$/i.test(raw)) add(raw);
+  }
+  return out.length ? out : [...ARROWS];
+}
+// Foto de la pantalla (dentro de <main>, o body): tag, clases, style, disabled y, si
+// withText, el texto de las hojas. Un <canvas> entra con un resumen de sus píxeles.
+const SNAP = (withText) => {
+  const root = document.querySelector("main") || document.body;
+  const out = [];
+  const px = (c) => { try { const u = c.toDataURL(); let h = 0; for (let i = 0; i < u.length; i += 7) h = (h * 31 + u.charCodeAt(i)) | 0; return u.length + ":" + h; } catch { return "?"; } };
+  for (const e of root.querySelectorAll("*")) {
+    if (e.closest("script, style")) continue;
+    let line = `${e.tagName}.${e.getAttribute("class") || ""}|${e.getAttribute("style") || ""}|${e.disabled ? "disabled" : ""}`;
+    if (e.tagName === "CANVAS") line += "|" + px(e);
+    if (withText && !e.children.length) line += "|" + (e.textContent || "").trim();
+    out.push(line);
+  }
+  return out;
+};
+// Misma cantidad de elementos → se compara posición por posición (un avatar que se mueve
+// cambia QUÉ casillero tiene la clase, no cuántos la tienen). Si no, multiconjunto.
+const diffCount = (a, b) => {
+  if (a.length === b.length) return a.reduce((s, x, i) => s + (x === b[i] ? 0 : 1), 0);
+  const m = new Map();
+  a.forEach((x) => m.set(x, (m.get(x) || 0) + 1));
+  b.forEach((x) => m.set(x, (m.get(x) || 0) - 1));
+  return [...m.values()].reduce((s, v) => s + Math.abs(v), 0);
+};
+const diffSample = (a, b) => (a.length === b.length ? b.filter((x, i) => x !== a[i]) : b.filter((x) => !a.includes(x))).slice(0, 2).map((x) => x.slice(0, 70));
+// Números en elementos chicos cuyo texto nombra alguna etiqueta (ej. "Movimientos: 0").
+const LABELED_NUMBERS = (ws) => {
+  const n = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const out = [];
+  for (const e of document.querySelectorAll("body *")) {
+    if (e.closest("script, style")) continue;
+    const t = (e.innerText || "").trim();
+    if (!t || t.length > 80 || !/\d/.test(t)) continue;
+    if (ws.some((w) => n(t).includes(w))) out.push({ e, t: t.replace(/\s+/g, " ") });
+  }
+  // el más chico: fuera los que contienen a otro que ya nombra la etiqueta
+  return out.filter((x) => !out.some((y) => y !== x && x.e.contains(y.e))).map((x) => x.t);
+};
+const WIN_WORDS = ["ganaste", "ganado", "victoria", "felicitaciones", "completado", "completaste", "superado", "superaste", "nivel completo", "you win"];
 
 // components_render, paso 1 (página SIN JavaScript, o sea el HTML tal como lo escribió
 // Gemma): por cada <script data-component="id">, los elementos de #id que su JS nombra
@@ -681,6 +785,94 @@ export async function runChecks(htmlPath, checks) {
             const bad = comps.filter((x) => !x.ok);
             r.result = bad.length ? "FAIL" : "PASS";
             r.detail = comps.map((x) => `#${x.id}: ${x.ok ? `${x.refs - x.empty.length}/${x.refs} contenedores con contenido` : `nada dibujado (${x.empty.slice(0, 4).join(", ")} vacíos)`}`).join("; ");
+            break;
+          }
+          case "key_changes": {
+            const keys = keysFrom(c.params.keys);
+            const changed = [];
+            for (const k of keys) {
+              await reload();
+              const a = await page.evaluate(SNAP, true);
+              await page.keyboard.press(k);
+              await page.waitForTimeout(150); await waitForSettle(page);
+              const b = await page.evaluate(SNAP, true);
+              if (diffCount(a, b)) changed.push(k);
+            }
+            r.result = changed.length ? "PASS" : "FAIL";
+            r.detail = changed.length ? `cambia la pantalla: ${changed.join(", ")}` : `ninguna tecla cambia nada (${keys.join(", ")})`;
+            break;
+          }
+          case "click_changes": {
+            const ctl = await findControl(page, c.params.click);
+            if (!ctl) { r.detail = `ningún control visible menciona: ${c.params.click.join(" / ")}`; break; }
+            const a = await page.evaluate(SNAP, true);
+            if (await ctl.loc.isDisabled().catch(() => false)) { r.detail = `"${ctl.text.slice(0, 40)}" está deshabilitado`; break; }
+            await ctl.loc.click({ timeout: 2000 }).catch(() => {});
+            await page.waitForTimeout(150); await waitForSettle(page);
+            const b = await page.evaluate(SNAP, true);
+            const d = diffCount(a, b);
+            r.result = d ? "PASS" : "FAIL";
+            r.detail = d ? `clic "${ctl.text.slice(0, 40)}" → ${d} cambios` : `clic "${ctl.text.slice(0, 40)}" → no cambia nada`;
+            break;
+          }
+          case "counter_on_action": {
+            const ws = words(c.params.label);
+            const before = await page.evaluate(LABELED_NUMBERS, ws);
+            if (!before.length) { r.detail = `no hay ningún número junto a: ${c.params.label.join(" / ")}`; break; }
+            let did = "";
+            if (c.params.click?.length) {
+              const ctl = await findControl(page, c.params.click);
+              if (!ctl) { r.detail = `ningún control visible menciona: ${c.params.click.join(" / ")}`; break; }
+              await ctl.loc.click({ timeout: 2000 }).catch(() => {}); did = `clic "${ctl.text.slice(0, 30)}"`;
+            } else {
+              const keys = keysFrom(c.params.keys);
+              for (const k of keys) { await page.keyboard.press(k); await page.waitForTimeout(120); }
+              did = keys.join(", ");
+            }
+            await waitForSettle(page);
+            const after = await page.evaluate(LABELED_NUMBERS, ws);
+            const changed = after.join(" | ") !== before.join(" | ");
+            r.result = changed ? "PASS" : "FAIL";
+            r.detail = `${did}: "${before.join(" | ").slice(0, 60)}" → ${changed ? `"${after.join(" | ").slice(0, 60)}"` : "no cambia"}`;
+            break;
+          }
+          case "not_won_immediately": {
+            const keys = keysFrom(c.params.keys);
+            const won = [], moved = [];
+            for (const k of keys) {
+              await reload();
+              const a = await page.evaluate(SNAP, true);
+              const t0 = norm(await page.evaluate(() => document.body.innerText));
+              await page.keyboard.press(k);
+              await page.waitForTimeout(200); await waitForSettle(page);
+              const t1 = norm(await page.evaluate(() => document.body.innerText));
+              if (diffCount(a, await page.evaluate(SNAP, true))) moved.push(k);
+              const w = WIN_WORDS.find((x) => t1.includes(x) && !t0.includes(x));
+              if (w) won.push(`${k} → "${w}"`);
+            }
+            if (!moved.length) { r.result = "FAIL"; r.detail = `ninguna tecla cambia nada (${keys.join(", ")}): no se puede jugar`; break; }
+            r.result = won.length ? "FAIL" : "PASS";
+            r.detail = won.length ? `con UN movimiento ya aparece la victoria: ${won.join("; ")}` : `${moved.length} movimientos de prueba, ninguno gana`;
+            break;
+          }
+          case "reset_restores": {
+            const keys = keysFrom(c.params.keys);
+            const s0 = await page.evaluate(SNAP, false);
+            for (const k of keys) { await page.keyboard.press(k); await page.waitForTimeout(120); }
+            await waitForSettle(page);
+            const s1 = await page.evaluate(SNAP, false);
+            const d1 = diffCount(s0, s1);
+            if (!d1) { r.detail = `las teclas (${keys.join(", ")}) no cambian nada: no hay qué reiniciar`; break; }
+            const ctl = await findControl(page, c.params.click);
+            if (!ctl) { r.detail = `después de jugar, ningún control visible menciona: ${c.params.click.join(" / ")}`; break; }
+            if (await ctl.loc.isDisabled().catch(() => false)) { r.detail = `después de jugar, "${ctl.text.slice(0, 40)}" está deshabilitado`; break; }
+            await ctl.loc.click({ timeout: 2000 }).catch(() => {});
+            await page.waitForTimeout(150); await waitForSettle(page);
+            const s2 = await page.evaluate(SNAP, false);
+            const d2 = diffCount(s0, s2);
+            r.result = d2 === 0 ? "PASS" : "FAIL";
+            r.detail = d2 === 0 ? `jugar cambió ${d1} elementos; "${ctl.text.slice(0, 30)}" los volvió todos al inicio`
+              : `jugar cambió ${d1} elementos; después de "${ctl.text.slice(0, 30)}" quedan ${d2} distintos del inicio (ej. ${diffSample(s0, s2).join(" ; ")})`;
             break;
           }
           case "click_reveals": {

@@ -84,13 +84,17 @@ if (args[0] === "--validate") {
   // holdout y la guardia no puede dispararse por eso. Evidencia 02/10, Project22:
   // criterio "Código limpio, ordenado y comentado" ⊂ feature 9 → corte falso en F1.1.
   const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
-  const visible = nrm([refined.objetivo, ...(refined.features || [])].join("\n"));
+  // 05/10 (web/app, web/game): si el profile le pasa al Specialist más texto del usuario
+  // (restricciones: las reglas del juego), eso también es visible. Boxworld: el criterio
+  // "El tamaño del mapa es 10 x 10" era copia literal de una restricción.
+  const extraVisible = typeof B.specialistSees === "function" ? B.specialistSees(refined) : "";
+  const visible = nrm([refined.objetivo, ...(refined.features || []), extraVisible].join("\n"));
   const criteria = (refined.criterios_holdout || []).filter(Boolean);
   const overlap = criteria.filter((c) => visible.includes(nrm(c)));
   const forbidden = criteria.filter((c) => !overlap.includes(c));
   input.holdout = { forbidden, repeated_in_features: overlap };
   writeFileSync(join(outDir, "input.json"), JSON.stringify(input, null, 2));
-  for (const c of overlap) log(`[BUILD] criterio holdout que repite una feature (el Specialist ya lo ve; no se vigila): "${c}"`);
+  for (const c of overlap) log(`[BUILD] criterio holdout que repite lo que escribió el usuario (el Specialist ya lo ve; no se vigila): "${c}"`);
   // Plan de página (v0.5): qué secciones tiene la SPA y qué features cubre cada una.
   const planPath = join(outDir, "page_plan.json");
   let pagePlan;
@@ -98,7 +102,7 @@ if (args[0] === "--validate") {
     pagePlan = JSON.parse(readFileSync(planPath, "utf8")).plan;
     log(`[PLAN] usando ${planPath}`);
   } else {
-    const pp = await B.planPage(refined.features);
+    const pp = await B.planPage(refined.features, { refined }); // refined: web/app y web/game separan las de estilo
     writeFileSync(planPath, JSON.stringify(pp, null, 2));
     pagePlan = pp.plan;
     if (pagePlan) log(`[PLAN] ${B.PAGE_PLAN_VERSION}${pp.attempts.length > 1 ? " (con reintento)" : ""}\n${B.planText(pagePlan)}`);

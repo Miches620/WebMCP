@@ -30,7 +30,10 @@ import { runChecks } from "../validation/check_catalog.mjs";
 
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 export const SPECIALIST_MODEL = "google/gemma-4-e4b";
-export const SPECIALIST_VERSION = "spa_specialist v0.7.3-componentes";
+export const SPECIALIST_VERSION = "spa_specialist v0.7.4-componentes";
+// v0.7.4 (05/10, web/app y web/game): el profile puede pasar briefExtra (restricciones del
+// usuario al brief), systemExtra (reglas del tipo), maxAnswer y extraChecks (chequeos de
+// base propios con su mensaje de problema). Plan sin header/footer → sin esas piezas.
 // v0.7.3 (05/10, Boxworld build 2): (1) TODA tarea del graph (menos QA) llega a un
 // componente: por palabra clave o, si no nombra ninguno, al principal (antes 2 de 25);
 // (2) componente.js que es una sola función anónima `(root) => {…}` → el harness la llama;
@@ -97,7 +100,8 @@ function compSpec(c, comps) {
     lines.push("", "Secciones de la página (el <nav> tiene que enlazar TODAS con href=\"#id\"):",
       ...comps.filter((x) => x.kind === "section").map((x) => `- #${x.id}: ${x.titulo}`));
   } else {
-    lines.push("", `Otras partes de la página (no las construyas): ${comps.filter((x) => x.id !== c.id).map((x) => "#" + x.id).join(", ")}`);
+    const others = comps.filter((x) => x.id !== c.id);
+    lines.push("", others.length ? `Otras partes de la página (no las construyas): ${others.map((x) => "#" + x.id).join(", ")}` : "Es la ÚNICA pieza de la página: todo lo pedido va en este componente.");
   }
   return lines.join("\n");
 }
@@ -105,14 +109,19 @@ function compSpec(c, comps) {
 const fence = (lang, s) => "```" + lang + "\n" + (String(s || "").trim() || "(vacío)") + "\n```";
 
 /** Chequeos de base de UN componente sobre la página ensamblada. Devuelve la lista de problemas. */
-export async function componentProblems(htmlPath, c, comps, state, prev = {}) {
+export async function componentProblems(htmlPath, c, comps, state, prev = {}, extra = []) {
   const problems = [];
-  const [vis, js, scroll, render] = await runChecks(htmlPath, [
+  // `extra` (v0.7.4): chequeos de base que pone el profile, solo para el componente principal
+  // ({ check, problem(r) → texto para Gemma }). Ej. web/game: not_won_immediately.
+  const mine = extra.filter((x) => !x.only || x.only === c.id);
+  const [vis, js, scroll, render, ...ext] = await runChecks(htmlPath, [
     { type: "sections_visible", params: {} },
     { type: "no_js_errors", params: {} },
     { type: "no_horizontal_scroll", params: {} },
     { type: "components_render", params: {} },
+    ...mine.map((x) => x.check),
   ]);
+  mine.forEach((x, i) => { if (ext[i]?.result === "FAIL") problems.push(x.problem(ext[i])); });
   const a = (vis.anchors || []).find((x) => x.id === c.id);
   if (a && !a.ok) problems.push(`al llegar con el scroll a #${c.id} se ven solo ${a.seen} de ${a.total} palabras: hay contenido oculto (opacity, visibility o display) que tu JS nunca muestra`);
   if (js.result === "FAIL" && prev.js !== "FAIL") problems.push(`la página tiene un error de JavaScript: ${js.detail}`);
@@ -171,7 +180,11 @@ export async function buildComponents({ refined, tasks }, outDir, opts = {}) {
   const features = refined.features || [];
   const comps = componentsFromPlan(opts.pagePlan, features);
   const transversals = transversalsFromPlan(opts.pagePlan, features);
-  const brief = briefText(refined);
+  // v0.7.4: el profile puede sumar al brief (web/app, web/game: las RESTRICCIONES del usuario,
+  // que para un juego son sus reglas) y al prompt de sistema (reglas propias del tipo).
+  const brief = briefText(refined) + (opts.briefExtra ? "\n\n" + opts.briefExtra(refined) : "");
+  const SYSTEM = SYSTEM_PROMPT + (opts.systemExtra ? "\n\n" + opts.systemExtra : "");
+  const maxAnswer = opts.maxAnswer || MAX_ANSWER;
   mkdirSync(outDir, { recursive: true });
 
   const statePath = join(outDir, "state.json"), sj = join(outDir, "steps.json");
@@ -188,7 +201,7 @@ export async function buildComponents({ refined, tasks }, outDir, opts = {}) {
 
   const ask = async (system, user) => {
     const promptTokens = estTokens(system) + estTokens(user);
-    const maxTokens = Math.max(1500, Math.min(MAX_ANSWER, context - promptTokens - 200));
+    const maxTokens = Math.max(1500, Math.min(maxAnswer, context - promptTokens - 200));
     const t0 = Date.now();
     const data = await chatStream(LM_STUDIO_URL, { model, messages: [{ role: "system", content: system }, { role: "user", content: user }], temperature: 0, max_tokens: maxTokens });
     return { raw: data.content || "", ms: Date.now() - t0, finish_reason: data.finish_reason ?? null, usage: data.usage ?? null, promptTokens, maxTokens };
@@ -234,8 +247,8 @@ export async function buildComponents({ refined, tasks }, outDir, opts = {}) {
       `tokens.css (compartido; usá sus variables y clases):\n${fence("css", state.tokens)}\n\n`;
     const user = head + `COMPONENTE ACTUAL (esqueleto del harness):\n### FILE: componente.html\n${fence("html", cur.html)}`;
     guard(user, c.id);
-    log(`[SPECIALIST] ${i + 1}/${plan.length} #${c.id} (${c.features.map((f) => f.id).join(" ") || "sin requisitos propios"}) · ${notes.length} notas del TechLeader · prompt ~${estTokens(SYSTEM_PROMPT) + estTokens(user)} tok`);
-    const r1 = await ask(SYSTEM_PROMPT, user);
+    log(`[SPECIALIST] ${i + 1}/${plan.length} #${c.id} (${c.features.map((f) => f.id).join(" ") || "sin requisitos propios"}) · ${notes.length} notas del TechLeader · prompt ~${estTokens(SYSTEM) + estTokens(user)} tok`);
+    const r1 = await ask(SYSTEM, user);
     writeFileSync(join(outDir, `${tag}.raw.txt`), r1.raw, "utf8");
     let a = applyComponentResponse(state, c, r1.raw);
     const step = {
@@ -249,7 +262,7 @@ export async function buildComponents({ refined, tasks }, outDir, opts = {}) {
     let check = { problems: [], status };
     if (opts.check !== false) {
       writeSrc(join(outDir, tag), candidate, comps);
-      check = await componentProblems(join(outDir, tag, "index.html"), c, comps, candidate, status);
+      check = await componentProblems(join(outDir, tag, "index.html"), c, comps, candidate, status, opts.extraChecks || []);
     }
     const problems = [...a.rejected, ...(a.changed.includes("html") ? [] : ["la respuesta no trajo componente.html"]), ...check.problems];
     if (problems.length) {
@@ -260,7 +273,7 @@ export async function buildComponents({ refined, tasks }, outDir, opts = {}) {
         `TU COMPONENTE ACTUAL (ya encapsulado por el harness):\n### FILE: componente.html\n${fence("html", x.html)}\n\n### FILE: componente.css\n${fence("css", x.css)}\n\n### FILE: componente.js\n${fence("javascript", x.js)}\n\n` +
         `Devolvé los tres FILE corregidos.`;
       guard(fixUser, c.id);
-      const r2 = await ask(SYSTEM_PROMPT, fixUser);
+      const r2 = await ask(SYSTEM, fixUser);
       writeFileSync(join(outDir, `${tag}.retry.raw.txt`), r2.raw, "utf8");
       const b = applyComponentResponse(candidate, c, r2.raw);
       step.retry = { problems, ms: r2.ms, finish_reason: r2.finish_reason, changed: b.changed, rejected: b.rejected, notes: b.notes };
@@ -269,7 +282,7 @@ export async function buildComponents({ refined, tasks }, outDir, opts = {}) {
         let check2 = { problems: [], status };
         if (opts.check !== false) {
           writeSrc(join(outDir, tag), cand2, comps);
-          check2 = await componentProblems(join(outDir, tag, "index.html"), c, comps, cand2, status);
+          check2 = await componentProblems(join(outDir, tag, "index.html"), c, comps, cand2, status, opts.extraChecks || []);
         }
         step.retry.problems_after = check2.problems;
         // Se queda la versión con menos problemas (empate → la del reintento).

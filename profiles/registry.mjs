@@ -4,6 +4,8 @@
 // apps ni firmware; cada TIPO de artefacto trae su profile. Dos niveles:
 //   plataforma (web, firmware/…)  → roles, reglas de dependencia, runner de chequeos
 //   tipo (web/landing, web/app…)  → planner, Specialist, reglas del traductor
+// Un tipo puede extender a otro tipo (05/10: web/game extiende web/app): la cadena
+// queda web → web/app → web/game y se suman roles y reglas de todos.
 // Un proyecto declara sus tipos en refined_prompt.profiles (lo elige Miche en la
 // UI, como la etapa; nunca un modelo). Puede declarar más de uno (NodeMCU =
 // firmware + web/app): los roles se suman; el build multi-artefacto todavía no existe.
@@ -13,8 +15,9 @@
 import web from "./web/profile.mjs";
 import landing from "./web/landing/profile.mjs";
 import app from "./web/app/profile.mjs";
+import game from "./web/game/profile.mjs";
 
-const ALL = [web, landing, app];
+const ALL = [web, landing, app, game];
 export const PROFILES = Object.freeze(Object.fromEntries(ALL.map((p) => [p.id, p])));
 /** Tipos que se pueden elegir para un proyecto. */
 export const SELECTABLE = ALL.filter((p) => p.selectable);

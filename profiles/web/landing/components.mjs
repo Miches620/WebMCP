@@ -25,12 +25,17 @@ const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 const norm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
 
 // ---------- lista de componentes ----------
-/** Componentes en orden de página, desde el page plan. plan null/undefined → solo header y footer. */
+/**
+ * Componentes en orden de página, desde el page plan. plan null/undefined → solo header y footer.
+ * v0.7.4 (web/app, web/game): `header: null` / `footer: null` EXPLÍCITO en el plan → sin esa pieza
+ * (una app o un juego es una pantalla, no una landing con menú y pie).
+ */
 export function componentsFromPlan(plan, features = []) {
   const feat = (ids) => (ids || []).map((r) => ({ id: r, text: features[Number(r.slice(1)) - 1] || "" }));
-  const out = [{ id: "site-header", tag: "header", kind: "header", titulo: "Encabezado y navegación", features: feat(plan?.header?.features) }];
+  const out = [];
+  if (plan?.header !== null) out.push({ id: "site-header", tag: "header", kind: "header", titulo: "Encabezado y navegación", features: feat(plan?.header?.features) });
   for (const s of plan?.sections || []) out.push({ id: s.id, tag: "section", kind: "section", titulo: s.titulo, features: feat(s.features) });
-  out.push({ id: "site-footer", tag: "footer", kind: "footer", titulo: "Pie de página", features: feat(plan?.footer?.features) });
+  if (plan?.footer !== null) out.push({ id: "site-footer", tag: "footer", kind: "footer", titulo: "Pie de página", features: feat(plan?.footer?.features) });
   return out;
 }
 

@@ -1,7 +1,7 @@
 // test_check_catalog.mjs — el catálogo sobre los fixtures del piloto, con chequeos escritos a mano.
 //   node validation/test_check_catalog.mjs
 import { fileURLToPath } from "node:url";
-import { runChecks, normalizeCheck } from "./check_catalog.mjs";
+import { runChecks, normalizeCheck, keysFrom } from "./check_catalog.mjs";
 
 const F = (n) => fileURLToPath(new URL(`../../../pilot/fixtures/${n}.html`, import.meta.url));
 const CHECKS = [
@@ -99,6 +99,30 @@ for (const [name, [exp, comps]] of Object.entries(RENDER_CASES)) {
   if (good) { ok++; console.log(`✓ components_render ${name} ${r.result}`); }
   else { fail++; console.log(`✗ components_render ${name} esperado ${exp ?? "no FAIL"} ${JSON.stringify(comps)} dio ${r.result} ${JSON.stringify(byId)}\n    ${r.detail}`); }
 }
+
+// v0.7: interacción (web/app, web/game) — juego correcto, juego con los bugs de Boxworld b3, b3 real y página sin JS
+const PLAY = [
+  { type: "key_changes", params: { keys: ["flechas"] } },
+  { type: "counter_on_action", params: { label: ["movimientos"] } },
+  { type: "not_won_immediately", params: {} },
+  { type: "reset_restores", params: { click: ["reiniciar"] } },
+].map(normalizeCheck);
+const PLAY_CASES = {
+  game_ok: "PPPP",
+  game_mal: "PPFF", // gana con un movimiento; al ganar, reiniciar queda deshabilitado
+  "real_boxworld_b3/index": "PPFF",
+  sections_vacio: "FFFF", // nada responde: ninguno pasa (el esqueleto de control da FAIL → los PASS no son triviales)
+};
+for (const [name, exp] of Object.entries(PLAY_CASES)) {
+  const r = await runChecks(S(name), PLAY);
+  const got = r.map((x) => x.result[0]).join("");
+  if (got === exp) { ok++; console.log(`✓ interacción ${name} ${got}`); }
+  else { fail++; console.log(`✗ interacción ${name} esperado ${exp} dio ${got}\n    ${r.map((x) => `${x.type}: ${x.detail}`).join("\n    ")}`); }
+}
+const [cc] = await runChecks(S("real_boxworld_b3/index"), [normalizeCheck({ type: "click_changes", params: { click: ["reiniciar"] } })]);
+if (cc.result === "PASS") { ok++; console.log("✓ click_changes b3 PASS"); } else { fail++; console.log(`✗ click_changes b3 ${cc.result} ${cc.detail}`); }
+const kf = [keysFrom(["flechas"]).length === 4, keysFrom(["espacio"]).join() === "Space", keysFrom([]).length === 4, keysFrom(["arriba", "w"]).join() === "ArrowUp,w"];
+if (kf.every(Boolean)) { ok++; console.log("✓ keysFrom"); } else { fail++; console.log("✗ keysFrom", kf); }
 
 const bad = [normalizeCheck({ type: "inventado" }), normalizeCheck({ type: "field_exists", params: {} }), normalizeCheck({ type: "click_reveals", params: { click: ["x"] } })];
 if (bad.every((b) => b === null)) { ok++; console.log("✓ normalizeCheck rechaza tipos y params inválidos"); } else { fail++; console.log("✗ normalizeCheck", bad); }

@@ -18,8 +18,20 @@ profiles/
     specialist_components.mjs, components.mjs   Specialist v0.7 por componentes
     specialist_spa.mjs, file_diet.mjs           Specialist v0.6.1 (--legacy)
     translator_rules.mjs, check_postprocess.mjs reglas 5-6 del traductor, anclaje de sección
-  web/app/              TIPO app — DRAFT vacío: usa el build de landing (declarado en `borrowed`)
+  web/app/              TIPO app de UNA pantalla (base de web/game)
+    profile.mjs         datos del tipo (borrowed: motor del Specialist por componentes de landing)
+    build.mjs           contrato + makeScreenBuild(cfg) que reusa web/game
+    page_plan.mjs       plan determinista: un componente principal, sin header/footer; estilo → transversal
+    translator_rules.mjs  regla 5: lo que el usuario puede HACER (key_changes, click_changes, counter_on_action)
+    specialist_rules.mjs  A1–A4 (estado + dibujar(), un componente) y rulesBrief (restricciones → brief)
+    test_app.mjs
+  web/game/             TIPO juego — extends web/app (cadena web → web/app → web/game)
+    profile.mjs, build.mjs  reglas G1–G6 del Specialist y chequeo de base not_won_immediately
+    translator_rules.mjs    regla 6: not_won_immediately, reset_restores, "próximo" sin "nivel"
 ```
+
+Un tipo puede extender otro tipo: `web/game` extiende `web/app`, que extiende `web`.
+Roles y reglas se suman por toda la cadena; el build es el de la hoja.
 
 ## Quién elige el profile
 
@@ -34,7 +46,7 @@ Para snapshots viejos: `node build/run_build.mjs snapshot.json --profile web/lan
 
 | Campo | Para qué |
 |---|---|
-| `id`, `extends`, `label`, `describe` | identidad; `extends` apunta a la plataforma |
+| `id`, `extends`, `label`, `describe` | identidad; `extends` apunta a la plataforma o a otro tipo |
 | `selectable` | `true` en tipos (se eligen), `false` en plataformas |
 | `status`, `version` | todo nace `DRAFT`; pasar a Standard lo decide Governance con evidencia |
 | `roles`, `defaultRole`, `exampleRole` | roles de TechLeader / Atomizer (plataforma) |
@@ -46,7 +58,9 @@ Para snapshots viejos: `node build/run_build.mjs snapshot.json --profile web/lan
 
 **`build.mjs`** (Node): `planPage`, `planText`, `PAGE_PLAN_VERSION`, `build`,
 `writeBaseline`, `translateRequirement`, `postprocessChecks`, `runChecks`,
-`normalizeCheck`, `CATALOG_VERSION`.
+`normalizeCheck`, `CATALOG_VERSION`. Opcional: `specialistSees(refined)` — texto del
+usuario que el Specialist ve además de objetivo + features (la guardia de holdout del core
+no lo cuenta como filtración). `planPage(features, { refined })`.
 
 ## Cómo se combinan
 

@@ -17,7 +17,17 @@
 //
 // Módulo puro (sin fs ni fetch): lo usan server.mjs y script.js (navegador).
 
-export const BRIEF_VERSION = "intent_brief v0.6";
+export const BRIEF_VERSION = "intent_brief v0.7";
+
+// v0.7 (05/10, hold-out Project25 "Boxworld"): el usuario contestó "no lo
+// sé" a "¿cómo se genera aleatoriamente el mapa?" y el clasificador lo leyó
+// como un NO → restricción "No se genera aleatoriamente", que contradice la
+// feature "generación aleatoria si es posible". Además el entrevistador
+// preguntó cómo implementar algo y gastó las últimas preguntas en detalles
+// que el usuario dejó "a criterio". Cambios: una respuesta delegada ("no lo
+// sé", "a criterio", "da igual") se marca y va como contexto, nunca como
+// restricción; dos respuestas delegadas seguidas cortan la entrevista; el
+// entrevistador no pregunta cómo se implementa algo.
 
 // v0.6 (04/10, cuarta corrida de Project24): el entrevistador preguntó cómo
 // persistir datos cuando el usuario ya había dicho "sin base de datos" (y la
@@ -194,6 +204,10 @@ export const isCompleteMessage = (content) => /"status"\s*:\s*"COMPLETE"/.test(S
 const CONTROL = /^(listo|ya esta|nada mas|eso es todo|segui|seguir|basta|termina|terminar|ninguna|ninguno|no,? nada mas|no tengo mas)[.! ]*$/;
 export const isControlReply = (t) => CONTROL.test(norm(t));
 
+// Respuesta que delega la decisión: no es un sí ni un no.
+const DELEGATED = /(^(no (lo )?se|ni idea|no estoy seguro|da igual|me da igual|como (quieras|prefieras|te parezca)|lo que (sea|quieras)|indistinto)\b)|a criterio|lo decid(e|a|is)|decidilo/;
+export const isDelegated = (t) => DELEGATED.test(norm(t));
+
 /**
  * Numera TODAS las líneas que escribió el usuario en la conversación.
  * El primer mensaje se parte con la plantilla; los siguientes son
@@ -208,6 +222,7 @@ export function numberLines(conversation = []) {
   let first = true;
   let parsedFirst = null;
   let skip = false; // el usuario cortó la entrevista con "listo"
+  let delegatedRun = 0;
   for (const m of conversation) {
     if (m.role !== "user") {
       last = m.content;
@@ -223,21 +238,28 @@ export function numberLines(conversation = []) {
       continue;
     }
     if (isControlReply(m.content)) { skip = true; continue; }
+    // Dos respuestas seguidas que delegan ("no lo sé", "a criterio") cortan
+    // la entrevista: el usuario ya no tiene más para decidir.
+    const firstSentence = splitSentences(stripBullet(String(m.content || "").split(/\r?\n/).find((x) => x.trim()) || ""))[0] || "";
+    delegatedRun = isDelegated(firstSentence) ? delegatedRun + 1 : 0;
     const field = last && isCompleteMessage(last) ? "ajuste" : "respuesta";
     const pregunta = field === "respuesta" && last ? String(last).replace(QUESTION_HINT, "").trim().slice(0, 200) : undefined;
     for (const raw of String(m.content || "").split(/\r?\n/)) {
       for (const t of splitSentences(stripBullet(raw)))
-        lines.push({ id: `L${lines.length + 1}`, field, text: t, ...(pregunta ? { pregunta } : {}) });
+        lines.push({ id: `L${lines.length + 1}`, field, text: t, ...(pregunta ? { pregunta } : {}), ...(field === "respuesta" && isDelegated(t) ? { delegada: true } : {}) });
     }
   }
   const lastMsg = conversation.at(-1);
   const afterComplete = conversation.some((m) => m.role !== "user" && isCompleteMessage(m.content));
   return {
-    lines, preguntas, faltantesPrevios, skip, afterComplete,
+    lines, preguntas, faltantesPrevios, skip, afterComplete, delegatedRun,
     lastIsAnswer: lastMsg?.role === "user" && !isControlReply(lastMsg.content),
     hasTemplate: !!parsedFirst?.hasTemplate, empty: parsedFirst?.empty || [],
   };
 }
+
+const lineTag = (l) =>
+  l.field === "respuesta" && l.pregunta ? `respuesta${l.delegada ? " delegada" : ""} a "${l.pregunta}"` : fieldLabel(l.field);
 
 export const INTENT_SYSTEM = `Sos Intent Forge v0.3 del equipo MicheLab.
 
@@ -261,6 +283,7 @@ REGLAS:
    Una feature = UNA acción. "Crear, editar y borrar tarjetas" son tres ítems: "Crear tarjetas", "Editar tarjetas", "Borrar tarjetas".
 6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.
 7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo "¿Se pueden crear columnas?" + "sí" → feature "Crear columnas"). Si es negativa, es una restriccion con "Sin ..." (por ejemplo "¿Buscar tarjetas?" + "no" → restriccion "Sin búsqueda de tarjetas").
+   Una [respuesta delegada] ("no lo sé", "lo dejo a criterio", "da igual") NO es un no: va como contexto "A criterio del equipo: <tema de la pregunta>", con el resto de lo que haya dicho.
    Si la respuesta DETALLA algo que ya está en otra línea, NO hagas un ítem suelto: escribí el detalle dentro de ese ítem y poné las dos líneas en "de". Por ejemplo L5 "semáforo de prioridad" + L9 respuesta "verde baja, amarillo media, rojo alta" + L10 respuesta "se elige en una lista al crear la tarjeta" → {"de":["L5","L9","L10"],"tipo":"feature","texto":"Asignar prioridad al crear la tarjeta, desde una lista (semáforo: verde baja, amarillo media, rojo alta)"}.
 8. No hagas preguntas: devolvé siempre el JSON.
 
@@ -299,7 +322,8 @@ REGLAS:
 - Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.
 - Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).
 - Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.
-- No preguntes por tecnología, lenguajes ni frameworks.
+- No preguntes por tecnología, lenguajes ni frameworks, ni CÓMO se implementa algo (algoritmos, cómo se genera, cómo se calcula): eso lo decide el equipo.
+- No preguntes por detalles chicos que el equipo puede decidir solo (tamaños de botones, márgenes, colores exactos).
 - La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).
 
 SALIDA: EXCLUSIVAMENTE este JSON:
@@ -318,7 +342,7 @@ EJEMPLO (otro proyecto):
 export function formatForQuestion({ lines, preguntas = [], pendientes = [] }) {
   const out = ["LO QUE ESCRIBIÓ EL USUARIO:"];
   for (const l of lines) {
-    const tag = l.field === "respuesta" && l.pregunta ? `respuesta a "${l.pregunta}"` : fieldLabel(l.field);
+    const tag = lineTag(l);
     out.push(`- [${tag}] ${l.text}`);
   }
   if (preguntas.length) {
@@ -412,7 +436,7 @@ export function parseInterviewer(raw) {
 export function formatLinesForModel({ lines, preguntas = [] }, { forceComplete = false } = {}) {
   const out = ["LÍNEAS DEL USUARIO:"];
   for (const l of lines) {
-    const tag = l.field === "respuesta" && l.pregunta ? `respuesta a "${l.pregunta}"` : fieldLabel(l.field);
+    const tag = lineTag(l);
     out.push(`${l.id} [${tag}] ${l.text}`);
   }
   if (preguntas.length) {
@@ -488,6 +512,10 @@ export function validateItems(rawItems, lines) {
     if (!de.length) { invalid.push({ item: it, reason: `"de" no cita ninguna línea existente (${ids.join(", ") || "vacío"})` }); continue; }
     if (tipo === "descartado" && !de.some((id) => byId.get(id).field === "ajuste")) {
       invalid.push({ item: it, reason: "descartado sin una línea [ajuste] que lo pida" });
+      continue;
+    }
+    if (tipo === "restriccion" && de.some((id) => byId.get(id).delegada)) {
+      invalid.push({ item: it, reason: `${de.filter((id) => byId.get(id).delegada).join(", ")} delega la decisión ("no lo sé", "a criterio"): no es una restricción, va como contexto "A criterio del equipo: ..."` });
       continue;
     }
     if (!grounded(texto, de.map((id) => byId.get(id)))) {
@@ -688,7 +716,7 @@ export async function runIntentForge(conversation, { callModel, maxQuestions = M
   // (Project24: "cuántas columnas y qué estados" se detectó y nunca se preguntó).
   const blocked = (x) => sameTopicAsked(x, preguntas, lines) || touchesRestriction(x, lines);
   const pendientes = (numbered.faltantesPrevios || []).filter((f) => !blocked(questionFromGap(f)));
-  const noMoreQuestions = numbered.skip || numbered.afterComplete || preguntas.length >= maxQuestions;
+  const noMoreQuestions = numbered.skip || numbered.afterComplete || preguntas.length >= maxQuestions || numbered.delegatedRun >= 2;
 
   // 2. Entrevista de completitud.
   if (!noMoreQuestions) {

@@ -4,7 +4,7 @@ import {
   parseBrief, numberLines, validateItems, fillUncovered, buildRefined,
   buildTechLeaderInput, parseModelOutput, runIntentForge, formatLinesForModel,
   TEMPLATE_TEXT, TEMPLATE_EXAMPLE, HARNESS_QUESTIONS, QUESTION_SYSTEM, QUESTION_HINT,
-  isControlReply, splitSentences, actionVerbs, parseInterviewer, sameTopicAsked, questionFromGap, grounded, repairFeedback, touchesRestriction, isGenericGap, detailDuplicates,
+  isControlReply, splitSentences, actionVerbs, parseInterviewer, sameTopicAsked, questionFromGap, grounded, repairFeedback, touchesRestriction, isGenericGap, detailDuplicates, isDelegated,
 } from "./intent_brief.mjs";
 
 let ok = 0, fail = 0;
@@ -463,6 +463,44 @@ await check("feature-respuesta que repite otra → vuelve como detalle (textos r
   eq(d, ["L9→Editar tarjetas de tareas", "L10→Borrar tarjetas de tareas"]);
   eq(detailDuplicates(items.slice(0, 3), lines), [], "crear/editar/borrar de la plantilla no son duplicados entre sí");
   assert(repairFeedback({ details: detailDuplicates(items, lines) }, lines).includes('sumá L9 a su "de"'));
+});
+
+// ---- v0.7 del módulo (hold-out Project25 "Boxworld", textos reales) ----
+const P25 = `Qué querés construir:
+Juego Boxworld en html autocontenido
+
+Qué tiene que hacer:
+el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel. El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente.
+
+Cómo se tiene que ver:
+estilo family nes, 8bits.
+
+Qué no debe hacer:
+las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador`;
+await check("respuestas delegadas: 'no lo sé' y 'a criterio' sí; 'no' y respuestas normales no", () => {
+  assert(isDelegated("no lo se") && isDelegated("lo dejo a criterio del specialist") && isDelegated("da igual"));
+  assert(!isDelegated("no") && !isDelegated("si no se puede, prefiero que se diseñen al menos 3 niveles") && !isDelegated("no hay limite para la creacion de tarjetas"));
+});
+await check("P25: 'no lo sé' no puede terminar en una restricción (era 'No se genera aleatoriamente')", () => {
+  const conv = [{ role: "user", content: P25 }, { role: "assistant", content: "¿Cómo se genera aleatoriamente el mapa y las cajas?" }, { role: "user", content: "no lo se. si no se puede, prefiero que se diseñen al menos 3 niveles" }];
+  const lines = numberLines(conv).lines;
+  const L = lines.filter((l) => l.field === "respuesta").map((l) => [l.id, !!l.delegada]);
+  eq(L, [["L6", true], ["L7", false]]);
+  const bad = validateItems([{ de: ["L6", "L7"], tipo: "restriccion", texto: "No se genera aleatoriamente el mapa y las cajas, sino que se diseñarán al menos 3 niveles" }], lines);
+  eq(bad.invalid.length, 1);
+  const ok2 = validateItems([{ de: ["L6"], tipo: "contexto", texto: "A criterio del equipo: cómo se genera el mapa aleatorio" }], lines);
+  eq(ok2.invalid.length, 0);
+  assert(formatLinesForModel({ lines }).includes('L6 [respuesta delegada a "¿Cómo se genera aleatoriamente el mapa y las cajas?"] no lo se'));
+});
+await check("dos respuestas delegadas seguidas cortan la entrevista (sin llamar al entrevistador)", async () => {
+  const conv = [{ role: "user", content: P25 },
+    { role: "assistant", content: "¿Qué tan grande será cada nivel?" }, { role: "user", content: "el tamaño del mapa lo dejo a criterio del specialist" },
+    { role: "assistant", content: "¿Qué tan grandes serán los botones?" }, { role: "user", content: "lo dejo a criterio del specialist" }];
+  const lines = numberLines(conv).lines;
+  const items = lines.map((l) => ({ de: [l.id], tipo: l.field === "hacer" ? "feature" : "contexto", texto: l.text }));
+  const model = fakeModel([complete(items)], ['{"faltantes":["algo"],"pregunta":"¿Otra?"}']);
+  const r = await runIntentForge(conv, { callModel: model });
+  eq([r.status, model.qcalls.length], ["COMPLETE", 0]);
 });
 
 console.log(`\n${ok}/${ok + fail} tests OK`);

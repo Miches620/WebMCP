@@ -424,7 +424,7 @@ a:hover {
   </header>
   <main id="app">
   <section data-feature="R1 R2 R3 R4 R5 R6 R8 R9" id="inicio" class="kanban-board">
-      <h1>Pendientes webmcp</h1>
+      <h1>Pendientes webmcp (04/10)</h1>
       <div class="controls">
           <button id="btn-add-card" class="btn">+ Crear Nueva Tarjeta</button>
           <button id="btn-add-column" class="btn btn-secondary">+ Añadir Columna</button>
@@ -605,8 +605,8 @@ let kanbanState = {
   "p01": {
    "id": "p01",
    "status": "pendiente",
-   "content": "URGENTE · Probar Intent Forge v0.4 con Qwen real",
-   "description": "Mover intent_mention_check.mjs, test_mention_check.mjs e intent_forge_v02.ps1 a _archivo/, commit, reiniciar server + Ctrl+F5. Cargar el Kanban en la plantilla y contestar la entrevista. Mirar: ¿pregunta cosas útiles?, ¿dice LISTO?, ¿una cosa por ítem?, ¿mantiene los nombres de columnas? Evidencia en evidence/intent_forge/.",
+   "content": "1 · URGENTE · Hold-out de Intent Forge v0.8",
+   "description": "Proyecto distinto al Kanban (o uno viejo que no se haya usado para ajustar), solo por consola: node intent_cli.mjs plantilla.txt. Plantilla escrita sin mostrársela a Claude antes. Si falla, solo arreglos generales. Mirar: ¿pregunta cosas útiles y sin repetir?, ¿pregunta contra restricciones?, ¿una acción por feature?, ¿respuestas como detalle y no duplicadas?, ¿algo inventado? Evidencia en evidence/intent_forge/cli_*.json.",
    "labels": [
     "urgente",
     "IntentForge"
@@ -616,135 +616,85 @@ let kanbanState = {
   "p02": {
    "id": "p02",
    "status": "pendiente",
-   "content": "Correr el pipeline completo con el refined de v0.4",
-   "description": "TechLeader → graph → build con el Kanban nuevo. Comparar contra Project23 (drag & drop no diferido, 4 columnas, restricciones en el prompt de TechLeader).",
+   "content": "2 · Gate: SYSTEM_ERROR del reviewer no aprueba",
+   "description": "script.js (~1574): hoy solo frenan GAP/EXCESS; un 'fetch failed' pasa como aprobado (Project23). Debe quedar 'REVISIÓN NO EJECUTADA' y pedir decisión. Antes de cualquier corrida completa.",
    "labels": [
-    "IntentForge"
+    "Gate"
    ],
    "comments": []
   },
   "p03": {
    "id": "p03",
    "status": "pendiente",
-   "content": "Gate: SYSTEM_ERROR del reviewer no aprueba",
-   "description": "script.js ~1574: hoy solo frenan GAP/EXCESS; un 'fetch failed' pasa como aprobado (Project23). Debe quedar 'REVISIÓN NO EJECUTADA' y pedir decisión.",
+   "content": "3 · Pipeline completo desde la UI",
+   "description": "Con el refined del paso 1: TechLeader → graph → build. Ver cómo llega el refined nuevo (restricciones, features separadas) hasta Gemma.",
    "labels": [
-    "Gate"
+    "IntentForge"
    ],
    "comments": []
   },
   "p04": {
    "id": "p04",
    "status": "pendiente",
-   "content": "Estilo fuera de features",
-   "description": "Después de un run con estilo dentro de features: pasarlo al campo estilo (reviewer, page plan, traductor y Specialist lo leen aparte).",
+   "content": "4 · Validation: chequeos de flujo + traductor",
+   "description": "crear → +1, arrastrar → cambia de columna, editar → el valor queda, borrar → −1. Arreglar params del traductor (R4 pidió campo 'tarjeta/tarea'). Casos de prueba: los bugs del Kanban v1 (editar borra etiquetas, [object HTMLDivElement], modal sin scroll, doble confirm, título no editable, + Añadir Columna muerto). Va ANTES del Specialist: sin Validation confiable no se puede medir si el Specialist mejora.",
    "labels": [
-    "Transversales"
+    "Validation"
    ],
    "comments": []
   },
   "p05": {
    "id": "p05",
    "status": "pendiente",
-   "content": "Specialist lee estilo + restricciones en cada componente",
-   "description": "Idea de Miche (02/10): requisitos transversales en un campo aparte que no entra al paso a paso de TechLeader pero que el Specialist respeta en cada paso, como criterios de éxito propios.",
+   "content": "5 · Specialist: page plan para apps + tasksFor",
+   "description": "Project23: 1 sección con 8/9 features → 30 min y 7981/8000 tokens. Componentes de app (tablero, columna, tarjeta, modal), sin header/footer de landing. Que le lleguen las tareas de TechLeader (le llegaron 4 de 16). Se mide con el paso 4.",
    "labels": [
-    "Transversales"
+    "Specialist"
    ],
    "comments": []
   },
   "p06": {
    "id": "p06",
    "status": "pendiente",
-   "content": "Page plan para apps (no landing)",
-   "description": "Project23: una sola sección con 8/9 features → 30 min y 7981/8000 tokens. Componentes de app: tablero, columna, tarjeta, modal. Sin header/footer de landing (links muertos, Privacidad, redes).",
+   "content": "6 · Transversales: estilo fuera de features + Specialist lee estilo y restricciones",
+   "description": "Idea de Miche (02/10): requisitos transversales en un campo aparte que no entra al paso a paso de TechLeader y que el Specialist respeta en cada componente.",
    "labels": [
-    "Specialist"
+    "Transversales"
    ],
    "comments": []
   },
   "p07": {
    "id": "p07",
    "status": "pendiente",
-   "content": "tasksFor: el Specialist recibió 4 de 16 tareas",
-   "description": "Project23: Gemma construyó desde las features, no desde el graph de TechLeader. Revisar el mapeo tarea → componente.",
+   "content": "7 · Infra: TechLeader/Atomic por server.mjs + reconectar SQLite",
+   "description": "Hoy TechLeader llama a LM Studio desde el navegador (CORS). SQLite: /api/projects se perdió; persistProject() no lo llama nadie. Requisito para 'Proyectos'.",
    "labels": [
-    "Specialist"
+    "Infra"
    ],
    "comments": []
   },
   "p08": {
    "id": "p08",
    "status": "pendiente",
-   "content": "Chequeos de flujo en el catálogo de Validation",
-   "description": "crear → +1 tarjeta, arrastrar → cambia de columna, editar → el valor queda, borrar → −1. Project23: R2 PASS falso, R4 FAIL falso, R1/R5/R6 solo verifican que el botón existe.",
+   "content": "FUTURO · Botón Proyectos (Continuar / + Feature)",
+   "description": "Solo con el Specialist pulido. Lista de proyectos con estado; 'Continuar' si quedó a mitad, '+ Feature' si está terminado.",
    "labels": [
-    "Validation"
+    "Futuro"
    ],
    "comments": []
   },
   "p09": {
    "id": "p09",
    "status": "pendiente",
-   "content": "Traductor: params malos",
-   "description": "R4 pidió un campo 'tarjeta/tarea' para etiquetas; el campo existía dentro del modal.",
+   "content": "FUTURO · Estado del proyecto desde datos",
+   "description": "Nombre, qué hace, features actuales = las que tienen PASS en Validation. Lo arma el código, no un LLM.",
    "labels": [
-    "Validation"
+    "Futuro"
    ],
    "comments": []
   },
   "p10": {
    "id": "p10",
-   "status": "pendiente",
-   "content": "Kanban v1: 7 bugs como casos de prueba",
-   "description": "Editar borra etiquetas · '[object HTMLDivElement]' en cada tarjeta · modal de 860px sin scroll · doble confirm al borrar · título no editable · '+ Añadir Columna' muerto · 3 columnas en vez de 4. Los chequeos de flujo tienen que detectarlos.",
-   "labels": [
-    "Validation"
-   ],
-   "comments": []
-  },
-  "p11": {
-   "id": "p11",
-   "status": "pendiente",
-   "content": "Reconectar SQLite",
-   "description": "/api/projects se perdió; persistProject() no lo llama nadie. Requisito de 'Proyectos'.",
-   "labels": [
-    "Infra"
-   ],
-   "comments": []
-  },
-  "p12": {
-   "id": "p12",
-   "status": "pendiente",
-   "content": "TechLeader y Atomic Engine por server.mjs",
-   "description": "Hoy llaman a LM Studio desde el navegador (CORS); pasarlos por el server unifica logs y errores.",
-   "labels": [
-    "Infra"
-   ],
-   "comments": []
-  },
-  "p13": {
-   "id": "p13",
-   "status": "pendiente",
-   "content": "FUTURO · Botón Proyectos (Continuar / + Feature)",
-   "description": "Solo cuando el Specialist esté pulido. Lista de proyectos con su estado; 'Continuar' si quedó a mitad, '+ Feature' si está terminado.",
-   "labels": [
-    "Futuro"
-   ],
-   "comments": []
-  },
-  "p14": {
-   "id": "p14",
-   "status": "pendiente",
-   "content": "FUTURO · Estado del proyecto desde datos",
-   "description": "Nombre, qué hace, features actuales = las que tienen PASS en Validation (no las pedidas). Lo arma el código, no un LLM.",
-   "labels": [
-    "Futuro"
-   ],
-   "comments": []
-  },
-  "p15": {
-   "id": "p15",
    "status": "pendiente",
    "content": "FUTURO · + Feature con regresión",
    "description": "Intent Forge delta + TechLeader delta + volver a correr la Validation de TODAS las features anteriores.",
@@ -753,28 +703,38 @@ let kanbanState = {
    ],
    "comments": []
   },
-  "p16": {
-   "id": "p16",
+  "p11": {
+   "id": "p11",
    "status": "completado",
-   "content": "Intent Forge v0.3: plantilla + clasificación acotada",
-   "description": "Reemplaza 'mencionaste y no incluí'. Cada línea del usuario termina en un ítem (reintentos + red del harness).",
+   "content": "Intent Forge v0.3/v0.4: plantilla + entrevista",
+   "description": "Reemplaza 'mencionaste y no incluí'. Plantilla de 4 campos, hasta 10 preguntas, 'listo' corta, un 'no' queda como restricción. intent_cli.mjs reemplaza al .ps1.",
    "labels": [
     "IntentForge"
    ],
    "comments": []
   },
-  "p17": {
-   "id": "p17",
+  "p12": {
+   "id": "p12",
    "status": "completado",
-   "content": "Intent Forge v0.4: entrevista de completitud",
-   "description": "Hasta 10 preguntas no obligatorias; 'listo' corta; un 'no' queda como restricción. intent_cli.mjs reemplaza al .ps1.",
+   "content": "Intent Forge v0.5–v0.8 (4 corridas de Project24)",
+   "description": "Corte por oración, features compuestas, entrevistador con faltantes, parser tolerante, temas repetidos, ítems anclados a sus líneas (adiós 'Sin login'), faltantes pendientes, sin preguntas contra restricciones, detalles duplicados. 48 tests.",
    "labels": [
     "IntentForge"
    ],
    "comments": []
   },
-  "p18": {
-   "id": "p18",
+  "p13": {
+   "id": "p13",
+   "status": "completado",
+   "content": "Fix: text_terms.mjs",
+   "description": "El reviewer importaba intent_mention_check.mjs (archivado) → 500. Funciones extraídas tal cual.",
+   "labels": [
+    "Gate"
+   ],
+   "comments": []
+  },
+  "p14": {
+   "id": "p14",
    "status": "completado",
    "content": "Evidencia Project23",
    "description": "claude/evidencia_project23_2026-10-03.md en el proyecto.",
@@ -797,12 +757,7 @@ let kanbanState = {
     "p07",
     "p08",
     "p09",
-    "p10",
-    "p11",
-    "p12",
-    "p13",
-    "p14",
-    "p15"
+    "p10"
    ]
   },
   "en_progreso": {
@@ -812,9 +767,10 @@ let kanbanState = {
   "completado": {
    "title": "Completado",
    "cards": [
-    "p16",
-    "p17",
-    "p18"
+    "p11",
+    "p12",
+    "p13",
+    "p14"
    ]
   }
  }

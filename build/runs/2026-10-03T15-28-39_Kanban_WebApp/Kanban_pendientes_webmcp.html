@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MicheLab Kanban</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+  
+  body {
+    background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+    color: #e4e4e7;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .header {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    background: rgba(0,0,0,0.2);
+    backdrop-filter: blur(10px);
+    flex-shrink: 0;
+  }
+  
+  .header h1 {
+    font-size: 1.5rem;
+    background: linear-gradient(90deg, #a78bfa, #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+  }
+  
+  .board {
+    flex: 1;
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    align-items: flex-start;
+  }
+  
+  .column {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    flex: 1 1 0;
+    min-width: 250px;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 140px);
+    transition: all 0.2s;
+  }
+  
+  .column.drag-over {
+    border-color: #a78bfa;
+    background: rgba(167,139,250,0.08);
+  }
+  
+  .column-header {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    background: inherit;
+    border-radius: 12px 12px 0 0;
+    z-index: 2;
+  }
+  
+  .column-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  
+  .column-count {
+    background: rgba(255,255,255,0.1);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    color: #a1a1aa;
+  }
+  
+  .column-actions { display: flex; gap: 2px; }
+  
+  .cards-container {
+    padding: 10px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 40px;
+  }
+  
+  .cards-container::-webkit-scrollbar { width: 5px; }
+  .cards-container::-webkit-scrollbar-track { background: transparent; }
+  .cards-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+  
+  /* TARJETA - YA NO ES DRAGGABLE DIRECTAMENTE */
+  .card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: row;
+  }
+  .card:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(167,139,250,0.3);
+  }
+  .card.dragging { opacity: 0.4; }
+  
+  /* DRAG HANDLE - La unica zona arrastrable */
+  .drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    min-width: 24px;
+    cursor: grab;
+    color: #52525b;
+    font-size: 1rem;
+    border-radius: 8px 0 0 8px;
+    transition: color 0.15s;
+    user-select: none;
+    letter-spacing: -2px;
+  }
+  .drag-handle:hover { color: #a78bfa; }
+  .drag-handle:active { cursor: grabbing; }
+  
+  .card-content {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 10px 10px 0 4px;
+    gap: 6px;
+  }
+  
+  .card-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #f4f4f5;
+    flex: 1;
+    line-height: 1.3;
+  }
+  
+  /* BOTONES SOLO EN HOVER */
+  .card-actions {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .card:hover .card-actions {
+    opacity: 1;
+  }
+  
+  .card-body {
+    padding: 4px 10px 0 4px;
+  }
+  
+  .card-desc {
+    font-size: 0.75rem;
+    color: #a1a1aa;
+    line-height: 1.4;
+  }
+  
+  .card-footer {
+    padding: 8px 10px 10px 4px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .priority-badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .priority-urgente { background: rgba(239,68,68,0.2); color: #fca5a5; }
+  .priority-medio { background: rgba(251,191,36,0.2); color: #fcd34d; }
+  .priority-bajo { background: rgba(34,197,94,0.2); color: #86efac; }
+  
+  .icon-btn {
+    background: transparent;
+    border: none;
+    color: #71717a;
+    cursor: pointer;
+    padding: 4px 5px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+  .icon-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .icon-btn.danger:hover { background: rgba(239,68,68,0.2); color: #ef4444; }
+  
+  .add-card-btn {
+    width: 100%;
+    padding: 8px;
+    background: transparent;
+    border: 1px dashed rgba(255,255,255,0.15);
+    border-radius: 8px;
+    color: #71717a;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-shrink: 0;
+    margin: 0 0 10px 0;
+  }
+  .add-card-btn:hover {
+    border-color: #a78bfa;
+    color: #a78bfa;
+    background: rgba(167,139,250,0.05);
+  }
+  
+  .add-column {
+    flex: 0 0 250px;
+    min-width: 250px;
+    background: rgba(255,255,255,0.02);
+    border: 2px dashed rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #71717a;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    height: 60px;
+    flex-shrink: 0;
+  }
+  .add-column:hover {
+    border-color: #a78bfa;
+    color: #a78bfa;
+    background: rgba(167,139,250,0.05);
+  }
+  .add-column.disabled { opacity: 0.4; cursor: not-allowed; }
+  .add-column.disabled:hover { border-color: rgba(255,255,255,0.1); color: #71717a; background: transparent; }
+  
+  .footer {
+    padding: 12px 24px;
+    text-align: center;
+    color: #71717a;
+    font-size: 0.8rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+  }
+  
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal-overlay.active { display: flex; }
+  
+  .modal {
+    background: #27272a;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 450px;
+    animation: slideUp 0.25s;
+  }
+  
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  
+  .modal h2 { font-size: 1.1rem; margin-bottom: 16px; color: #f4f4f5; }
+  
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; margin-bottom: 6px; font-size: 0.8rem; color: #a1a1aa; font-weight: 500; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: #f4f4f5;
+    font-size: 0.85rem;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #a78bfa; }
+  .form-group textarea { resize: vertical; min-height: 70px; }
+  
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  
+  .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: linear-gradient(135deg, #a78bfa, #8b5cf6); color: white; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(139,92,246,0.4); }
+  .btn-secondary { background: rgba(255,255,255,0.08); color: #e4e4e7; border: 1px solid rgba(255,255,255,0.1); }
+  .btn-secondary:hover { background: rgba(255,255,255,0.15); }
+  .btn-danger { background: #ef4444; color: white; }
+  .btn-danger:hover { background: #dc2626; }
+  
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #27272a;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-left: 4px solid #a78bfa;
+    padding: 10px 16px;
+    border-radius: 8px;
+    color: #f4f4f5;
+    font-size: 0.85rem;
+    transform: translateX(400px);
+    transition: transform 0.3s;
+    z-index: 200;
+  }
+  .toast.show { transform: translateX(0); }
+  .toast.error { border-left-color: #ef4444; }
+  .toast.success { border-left-color: #22c55e; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🧪 MicheLab Kanban</h1>
+</div>
+
+<div class="board" id="board"></div>
+
+<footer class="footer">© 2026 Kanban WebApp | Desarrollado por MicheLab.</footer>
+
+<!-- MODAL COLUMNA -->
+<div class="modal-overlay" id="columnModal">
+  <div class="modal">
+    <h2 id="columnModalTitle">Añadir Columna</h2>
+    <div class="form-group">
+      <label>Nombre de la columna</label>
+      <input type="text" id="columnName" placeholder="Ej: En Revisión" maxlength="30">
+    </div>
+    <div class="form-group">
+      <label>Ubicación</label>
+      <select id="columnPosition"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeColumnModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveColumn()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TARJETA -->
+<div class="modal-overlay" id="cardModal">
+  <div class="modal">
+    <h2 id="cardModalTitle">Nueva Tarjeta</h2>
+    <div class="form-group">
+      <label>Título</label>
+      <input type="text" id="cardTitle" placeholder="Ej: Diseñar arquitectura API" maxlength="60">
+    </div>
+    <div class="form-group">
+      <label>Descripción</label>
+      <textarea id="cardDesc" placeholder="Detalles de la tarjeta..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Prioridad</label>
+      <select id="cardPriority">
+        <option value="bajo">🟢 Bajo</option>
+        <option value="medio" selected>🟡 Medio</option>
+        <option value="urgente">🔴 Urgente</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeCardModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCard()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMACIÓN -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <h2>¿Estás seguro?</h2>
+    <p id="confirmMessage" style="color:#a1a1aa; margin-bottom: 10px; font-size: 0.85rem;"></p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn btn-danger" id="confirmBtn">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const STORAGE_KEY = 'michelab_pendientes_webmcp'; // clave propia: no pisa tu tablero (michelab_kanban_v4)
+  let state = loadState() || {
+ "columns": [
+  {
+   "id": "col-1",
+   "name": "📋 Pendiente",
+   "isInbox": true,
+   "isDefault": true,
+   "cards": [
+    {
+     "id": "p1",
+     "title": "1 · URGENTE · Hold-out de Intent Forge v0.8",
+     "desc": "[#IntentForge] Proyecto distinto al Kanban (o uno viejo que no se haya usado para ajustar), solo por consola: node intent_cli.mjs plantilla.txt. Plantilla escrita sin mostrársela a Claude antes. Si falla, solo arreglos generales. Mirar: ¿pregunta cosas útiles y sin repetir?, ¿pregunta contra restricciones?, ¿una acción por feature?, ¿respuestas como detalle y no duplicadas?, ¿algo inventado? Evidencia en evidence/intent_forge/cli_*.json.",
+     "priority": "urgente"
+    },
+    {
+     "id": "p2",
+     "title": "2 · Gate: SYSTEM_ERROR del reviewer no aprueba",
+     "desc": "[#Gate] script.js (~1574): hoy solo frenan GAP/EXCESS; un 'fetch failed' pasa como aprobado (Project23). Debe quedar 'REVISIÓN NO EJECUTADA' y pedir decisión. Antes de cualquier corrida completa.",
+     "priority": "medio"
+    },
+    {
+     "id": "p3",
+     "title": "3 · Pipeline completo desde la UI",
+     "desc": "[#IntentForge] Con el refined del paso 1: TechLeader → graph → build. Ver cómo llega el refined nuevo (restricciones, features separadas) hasta Gemma.",
+     "priority": "medio"
+    },
+    {
+     "id": "p4",
+     "title": "4 · Validation: chequeos de flujo + traductor",
+     "desc": "[#Validation] crear → +1, arrastrar → cambia de columna, editar → el valor queda, borrar → −1. Arreglar params del traductor (R4 pidió campo 'tarjeta/tarea'). Casos de prueba: los bugs del Kanban v1 (editar borra etiquetas, [object HTMLDivElement], modal sin scroll, doble confirm, título no editable, + Añadir Columna muerto). Va ANTES del Specialist: sin Validation confiable no se puede medir si el Specialist mejora.",
+     "priority": "medio"
+    },
+    {
+     "id": "p5",
+     "title": "5 · Specialist: page plan para apps + tasksFor",
+     "desc": "[#Specialist] Project23: 1 sección con 8/9 features → 30 min y 7981/8000 tokens. Componentes de app (tablero, columna, tarjeta, modal), sin header/footer de landing. Que le lleguen las tareas de TechLeader (le llegaron 4 de 16). Se mide con el paso 4.",
+     "priority": "medio"
+    },
+    {
+     "id": "p6",
+     "title": "6 · Transversales: estilo fuera de features + Specialist lee estilo y restricciones",
+     "desc": "[#Transversales] Idea de Miche (02/10): requisitos transversales en un campo aparte que no entra al paso a paso de TechLeader y que el Specialist respeta en cada componente.",
+     "priority": "medio"
+    },
+    {
+     "id": "p7",
+     "title": "7 · Infra: TechLeader/Atomic por server.mjs + reconectar SQLite",
+     "desc": "[#Infra] Hoy TechLeader llama a LM Studio desde el navegador (CORS). SQLite: /api/projects se perdió; persistProject() no lo llama nadie. Requisito para 'Proyectos'.",
+     "priority": "medio"
+    },
+    {
+     "id": "p8",
+     "title": "FUTURO · Botón Proyectos (Continuar / + Feature)",
+     "desc": "[#Futuro] Solo con el Specialist pulido. Lista de proyectos con estado; 'Continuar' si quedó a mitad, '+ Feature' si está terminado.",
+     "priority": "bajo"
+    },
+    {
+     "id": "p9",
+     "title": "FUTURO · Estado del proyecto desde datos",
+     "desc": "[#Futuro] Nombre, qué hace, features actuales = las que tienen PASS en Validation. Lo arma el código, no un LLM.",
+     "priority": "bajo"
+    },
+    {
+     "id": "p10",
+     "title": "FUTURO · + Feature con regresión",
+     "desc": "[#Futuro] Intent Forge delta + TechLeader delta + volver a correr la Validation de TODAS las features anteriores.",
+     "priority": "bajo"
+    }
+   ]
+  },
+  {
+   "id": "col-2",
+   "name": "⚙️ En Progreso",
+   "isInbox": false,
+   "isDefault": true,
+   "cards": []
+  },
+  {
+   "id": "col-3",
+   "name": "✅ Completado",
+   "isInbox": false,
+   "isDefault": true,
+   "cards": [
+    {
+     "id": "p11",
+     "title": "Intent Forge v0.3/v0.4: plantilla + entrevista",
+     "desc": "[#IntentForge] Reemplaza 'mencionaste y no incluí'. Plantilla de 4 campos, hasta 10 preguntas, 'listo' corta, un 'no' queda como restricción. intent_cli.mjs reemplaza al .ps1.",
+     "priority": "bajo"
+    },
+    {
+     "id": "p12",
+     "title": "Intent Forge v0.5–v0.8 (4 corridas de Project24)",
+     "desc": "[#IntentForge] Corte por oración, features compuestas, entrevistador con faltantes, parser tolerante, temas repetidos, ítems anclados a sus líneas (adiós 'Sin login'), faltantes pendientes, sin preguntas contra restricciones, detalles duplicados. 48 tests.",
+     "priority": "bajo"
+    },
+    {
+     "id": "p13",
+     "title": "Fix: text_terms.mjs",
+     "desc": "[#Gate] El reviewer importaba intent_mention_check.mjs (archivado) → 500. Funciones extraídas tal cual.",
+     "priority": "bajo"
+    },
+    {
+     "id": "p14",
+     "title": "Evidencia Project23",
+     "desc": "[#Evidencia] claude/evidencia_project23_2026-10-03.md en el proyecto.",
+     "priority": "bajo"
+    }
+   ]
+  }
+ ],
+ "customColumnsCount": 0,
+ "cardCounter": 15
+};
+  
+  let editingColumnId = null;
+  let editingCardId = null;
+  let confirmCallback = null;
+  let draggedCard = null;
+  
+  function loadState() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
+  }
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+  
+  function getInboxColumn() {
+    return state.columns.find(c => c.isInbox) || state.columns[0];
+  }
+  
+  // ============ RENDER ============
+  function render() {
+    const board = document.getElementById('board');
+    board.innerHTML = '';
+    
+    state.columns.forEach(col => {
+      const colEl = document.createElement('div');
+      colEl.className = 'column';
+      colEl.dataset.columnId = col.id;
+      
+      // Drop zone en la columna
+      colEl.addEventListener('dragover', e => { e.preventDefault(); colEl.classList.add('drag-over'); });
+      colEl.addEventListener('dragleave', () => colEl.classList.remove('drag-over'));
+      colEl.addEventListener('drop', e => handleDrop(e, col.id));
+      
+      const actionsHtml = col.isDefault 
+        ? `<span class="icon-btn" title="Columna del sistema" style="cursor:default; font-size:0.7rem;">🔒</span>`
+        : `<button class="icon-btn" onclick="editColumn('${col.id}')" title="Editar">✏️</button>
+           <button class="icon-btn danger" onclick="confirmDeleteColumn('${col.id}')" title="Borrar">🗑️</button>`;
+      
+      const cardsHtml = col.cards.map(card => renderCard(card, col.id)).join('');
+      
+      const addCardBtn = col.isInbox 
+        ? `<button class="add-card-btn" onclick="openCardModal()">+ Nueva Tarjeta</button>`
+        : '';
+      
+      colEl.innerHTML = `
+        <div class="column-header">
+          <div class="column-title">
+            <span>${escapeHtml(col.name)}</span>
+            <span class="column-count">${col.cards.length}</span>
+          </div>
+          <div class="column-actions">${actionsHtml}</div>
+        </div>
+        <div class="cards-container">
+          ${cardsHtml}
+        </div>
+        ${addCardBtn}
+      `;
+      board.appendChild(colEl);
+    });
+    
+    const maxCustom = 2;
+    const canAdd = state.customColumnsCount < maxCustom;
+    const addEl = document.createElement('div');
+    addEl.className = 'add-column' + (canAdd ? '' : ' disabled');
+    addEl.innerHTML = `+ Añadir Columna ${!canAdd ? '(máx ' + maxCustom + ')' : ''}`;
+    if (canAdd) addEl.onclick = () => openColumnModal();
+    board.appendChild(addEl);
+    
+    saveState();
+  }
+  
+  function renderCard(card, columnId) {
+    return `
+      <div class="card" data-card-id="${card.id}" data-column-id="${columnId}">
+        <div class="drag-handle" 
+             draggable="true" 
+             ondragstart="handleDragStart(event, '${card.id}', '${columnId}')" 
+             ondragend="handleDragEnd(event)"
+             title="Arrastrar">⠿</div>
+        <div class="card-content">
+          <div class="card-top">
+            <div class="card-title">${escapeHtml(card.title)}</div>
+            <div class="card-actions">
+              <button class="icon-btn" onclick="openCardModal('${card.id}', '${columnId}')" title="Editar">✏️</button>
+              <button class="icon-btn danger" onclick="confirmDeleteCard('${card.id}', '${columnId}')" title="Borrar">🗑️</button>
+            </div>
+          </div>
+          ${card.desc ? `<div class="card-body"><div class="card-desc">${escapeHtml(card.desc)}</div></div>` : ''}
+          <div class="card-footer">
+            <span class="priority-badge priority-${card.priority}">${card.priority}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+  
+  // ============ DRAG & DROP (solo desde el handle ⠿) ============
+  function handleDragStart(e, cardId, columnId) {
+    draggedCard = { cardId, fromColumn: columnId };
+    e.dataTransfer.effectAllowed = 'move';
+    // Marcar la card como dragging
+    const cardEl = e.target.closest('.card');
+    if (cardEl) setTimeout(() => cardEl.classList.add('dragging'), 0);
+  }
+  
+  function handleDragEnd(e) {
+    const cardEl = e.target.closest('.card');
+    if (cardEl) cardEl.classList.remove('dragging');
+    document.querySelectorAll('.column').forEach(c => c.classList.remove('drag-over'));
+    draggedCard = null;
+  }
+  
+  function handleDrop(e, toColumnId) {
+    e.preventDefault();
+    if (!draggedCard) return;
+    const fromCol = state.columns.find(c => c.id === draggedCard.fromColumn);
+    const toCol = state.columns.find(c => c.id === toColumnId);
+    if (!fromCol || !toCol || fromCol.id === toCol.id) return;
+    const idx = fromCol.cards.findIndex(c => c.id === draggedCard.cardId);
+    if (idx === -1) return;
+    const [card] = fromCol.cards.splice(idx, 1);
+    toCol.cards.push(card);
+    draggedCard = null;
+    render();
+    showToast('Tarjeta movida', 'success');
+  }
+  
+  // ============ COLUMNAS ============
+  function openColumnModal(columnId = null) {
+    editingColumnId = columnId;
+    const posSelect = document.getElementById('columnPosition');
+    posSelect.innerHTML = '';
+    
+    const first = document.createElement('option');
+    first.value = -1;
+    first.textContent = 'Al principio';
+    posSelect.appendChild(first);
+    
+    state.columns.forEach((col, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `Después de: ${col.name}`;
+      posSelect.appendChild(opt);
+    });
+    
+    if (columnId) {
+      document.getElementById('columnModalTitle').textContent = 'Editar Columna';
+      const col = state.columns.find(c => c.id === columnId);
+      document.getElementById('columnName').value = col.name;
+      posSelect.value = state.columns.indexOf(col);
+    } else {
+      document.getElementById('columnModalTitle').textContent = 'Añadir Columna';
+      document.getElementById('columnName').value = '';
+      posSelect.value = state.columns.length - 1;
+    }
+    
+    document.getElementById('columnModal').classList.add('active');
+    setTimeout(() => document.getElementById('columnName').focus(), 100);
+  }
+  
+  function closeColumnModal() {
+    document.getElementById('columnModal').classList.remove('active');
+    editingColumnId = null;
+  }
+  
+  function saveColumn() {
+    const name = document.getElementById('columnName').value.trim();
+    const pos = parseInt(document.getElementById('columnPosition').value);
+    if (!name) { showToast('El nombre es obligatorio', 'error'); return; }
+    
+    if (editingColumnId) {
+      const col = state.columns.find(c => c.id === editingColumnId);
+      const oldIdx = state.columns.indexOf(col);
+      col.name = name;
+      if (pos !== oldIdx && pos !== oldIdx - 1) {
+        state.columns.splice(oldIdx, 1);
+        const newIdx = pos > oldIdx ? pos : pos + 1;
+        state.columns.splice(Math.min(newIdx, state.columns.length), 0, col);
+      }
+      showToast('Columna actualizada', 'success');
+    } else {
+      const newCol = {
+        id: 'col-' + Date.now(),
+        name: name,
+        isInbox: false,
+        isDefault: false,
+        cards: []
+      };
+      const insertAt = pos === -1 ? 0 : pos + 1;
+      state.columns.splice(insertAt, 0, newCol);
+      state.customColumnsCount++;
+      showToast('Columna creada', 'success');
+    }
+    
+    closeColumnModal();
+    render();
+  }
+  
+  function editColumn(id) { openColumnModal(id); }
+  
+  function confirmDeleteColumn(id) {
+    const col = state.columns.find(c => c.id === id);
+    if (!col) return;
+    if (col.cards.length > 0) {
+      showToast('No se puede borrar: tiene ' + col.cards.length + ' tarjeta(s)', 'error');
+      return;
+    }
+    showConfirm(`¿Borrar la columna "${col.name}"?`, () => {
+      state.columns = state.columns.filter(c => c.id !== id);
+      state.customColumnsCount--;
+      render();
+      showToast('Columna eliminada', 'success');
+    });
+  }
+  
+  // ============ TARJETAS ============
+  function openCardModal(cardId = null, columnId = null) {
+    editingCardId = cardId;
+    
+    if (cardId) {
+      document.getElementById('cardModalTitle').textContent = 'Editar Tarjeta';
+      const col = state.columns.find(c => c.id === columnId);
+      const card = col ? col.cards.find(c => c.id === cardId) : null;
+      if (card) {
+        document.getElementById('cardTitle').value = card.title;
+        document.getElementById('cardDesc').value = card.desc || '';
+        document.getElementById('cardPriority').value = card.priority;
+      }
+    } else {
+      document.getElementById('cardModalTitle').textContent = 'Nueva Tarjeta';
+      document.getElementById('cardTitle').value = '';
+      document.getElementById('cardDesc').value = '';
+      document.getElementById('cardPriority').value = 'medio';
+    }
+    
+    document.getElementById('cardModal').classList.add('active');
+    setTimeout(() => document.getElementById('cardTitle').focus(), 100);
+  }
+  
+  function closeCardModal() {
+    document.getElementById('cardModal').classList.remove('active');
+    editingCardId = null;
+  }
+  
+  function saveCard() {
+    const titleVal = document.getElementById('cardTitle').value.trim();
+    const desc = document.getElementById('cardDesc').value.trim();
+    const priority = document.getElementById('cardPriority').value;
+    
+    if (!titleVal) { showToast('El título es obligatorio', 'error'); return; }
+    
+    if (editingCardId) {
+      for (const c of state.columns) {
+        const idx = c.cards.findIndex(card => card.id === editingCardId);
+        if (idx !== -1) {
+          c.cards[idx].title = titleVal;
+          c.cards[idx].desc = desc;
+          c.cards[idx].priority = priority;
+          break;
+        }
+      }
+      showToast('Tarjeta actualizada', 'success');
+    } else {
+      const inbox = getInboxColumn();
+      state.cardCounter = (state.cardCounter || 5) + 1;
+      inbox.cards.push({
+        id: 'c' + state.cardCounter,
+        title: titleVal,
+        desc: desc,
+        priority: priority
+      });
+      showToast('Tarjeta creada en Pendiente', 'success');
+    }
+    
+    closeCardModal();
+    render();
+  }
+  
+  function confirmDeleteCard(cardId, columnId) {
+    const col = state.columns.find(c => c.id === columnId);
+    if (!col) return;
+    const card = col.cards.find(c => c.id === cardId);
+    if (!card) return;
+    showConfirm(`¿Borrar "${card.title}"?`, () => {
+      col.cards = col.cards.filter(c => c.id !== cardId);
+      render();
+      showToast('Tarjeta eliminada', 'success');
+    });
+  }
+  
+  // ============ UTILS UI ============
+function showConfirm(msg, callback) {
+  document.getElementById('confirmMessage').textContent = msg;
+  document.getElementById('confirmModal').classList.add('active');
+  confirmCallback = callback;
+  document.getElementById('confirmBtn').onclick = () => {
+    const cb = confirmCallback; // guardamos la referencia
+    closeConfirm();
+    if (cb) cb();
+  };
+}
+  
+  function closeConfirm() {
+    document.getElementById('confirmModal').classList.remove('active');
+    confirmCallback = null;
+  }
+  
+  function showToast(msg, type = 'info') {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.className = 'toast show ' + type;
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+  
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeColumnModal(); closeCardModal(); closeConfirm();
+    }
+  });
+  ['columnModal','cardModal','confirmModal'].forEach(id => {
+    document.getElementById(id).addEventListener('click', e => {
+      if (e.target.id === id) {
+        closeColumnModal(); closeCardModal(); closeConfirm();
+      }
+    });
+  });
+  
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,583 @@
+{
+  "version": "intent_brief v0.6",
+  "model": "qwen2.5-7b-instruct",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Qué querés construir:\r\nJuego Boxworld en html autocontenido\r\n\r\nQué tiene que hacer:\r\nel clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel. El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente.\r\n\r\nCómo se tiene que ver:\r\nestilo family nes, 8bits.\r\n\r\nQué no debe hacer:\r\nlas cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Me contás sobre esto: los niveles y su cantidad? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "el tamaño y diseño exacto del mapa",
+        "los niveles y su cantidad"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "de ser posible, los niveles deberian generarse aleatoriamente, sino se diseñaran por lo menos 3 niveles"
+    },
+    {
+      "role": "assistant",
+      "content": "¿El jugador puede realizar más acciones además de mover las cajas? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se inicializa el juego",
+        "qué acciones puede realizar el jugador"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "el jugador movera un avatar que podra 'empujar' las cajas en diferentes direcciones siempre y cuando la direccion del movimiento no este impedida por alguna pared"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cómo se inicializa el juego? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se inicializa el juego"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "el juego inicia automaticamente al abrir el html en el navegador"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se reinicia el juego en caso de mal movimiento",
+        "qué pasa cuando se completa un nivel"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "si el jugador realizo un mal movimiento y necesita reiniciar el nivel, se dispondra en la interfaz del juego un boton 'reinciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Qué ocurre cuando se completa un nivel? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "qué ocurre cuando se completa un nivel"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "la interfaz del juego contara con un boton 'proximo nivel' que le permitira al jugador avanzar a un nivel nuevo con una disposicion distinta del mapa, las ubicaciones de las cajas y el avatar"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "el tamaño del mapa y la cantidad de cajas y paredes en cada nivel"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "en cada nivel abra un minimo de 4 cajas, el tamaño del mapa sera lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habran tantas como el diseño lo necesite"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Cómo se genera aleatoriamente el mapa y las cajas? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "el tamaño exacto del mapa",
+        "cómo se genera aleatoriamente el mapa y las cajas"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "no lo se. si no se puede, prefiero que se diseñen al menos 3 niveles"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Qué pasa cuando se completa un nivel? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se genera aleatoriamente el mapa y las cajas"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "el jugador podra avanzar al proximo nivel apretando el boton 'proximo nivel'"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Qué tan grande será cada nivel? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se generan aleatoriamente los niveles",
+        "qué tan grande será cada nivel"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "el tamaño del mapa lo dejo a criterio del specialist, debera poder contemplar la movilidad del avatar, el desplazamiento consecuente de las cajas y los pasillos que surgan al diseñar el mapeo con las paredes"
+    },
+    {
+      "role": "assistant",
+      "content": "¿Qué tan grandes serán los botones 'reiniciar' y 'proximo nivel'? (Respondé, o escribí \"listo\" para seguir sin más preguntas.)",
+      "faltantes": [
+        "cómo se generan aleatoriamente los niveles",
+        "qué tan grandes serán los botones 'reiniciar' y 'proximo nivel'"
+      ]
+    },
+    {
+      "role": "user",
+      "content": "lo dejo a criterio del specialist"
+    }
+  ],
+  "refined_prompt": {
+    "project_name": "Boxworld",
+    "objetivo": "Juego Boxworld en html autocontenido",
+    "features": [
+      "El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, si el jugador realiza un mal movimiento y necesita reiniciar el nivel, se dispondrá en la interfaz del juego un botón 'reiniciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel",
+      "El juego necesita un botón 'reiniciar' y otro botón 'proximo nivel'",
+      "Generación aleatoria de niveles si posible, sino se diseñarán al menos 3 niveles",
+      "El jugador moverá un avatar que podrá 'empujar' las cajas en diferentes direcciones siempre y cuando la dirección del movimiento no esté impedida por alguna pared",
+      "La interfaz del juego contará con un botón 'proximo nivel' que permitirá al jugador avanzar a un nivel nuevo con una disposición distinta del mapa, las ubicaciones de las cajas y el avatar",
+      "Estilo Family NES, 8bits"
+    ],
+    "criterios_holdout": [
+      "Se puede mover un avatar para acomodar cajas en posiciones fijadas en cada nivel, si el jugador realiza un mal movimiento y necesita reiniciar el nivel, se dispondrá en la interfaz del juego un botón 'reiniciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel",
+      "Se pueden reiniciar niveles si se realiza un mal movimiento",
+      "Se pueden avanzar a niveles nuevos con botones 'proximo nivel'",
+      "El juego inicia automáticamente al abrir el HTML en el navegador"
+    ],
+    "restricciones": [
+      "Las cajas no pueden salir del diseño del mapa, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador",
+      "El juego inicia automáticamente al abrir el HTML en el navegador",
+      "En cada nivel habrá un mínimo de 4 cajas, el tamaño del mapa será lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habrá tantas como el diseño lo necesite",
+      "No se genera aleatoriamente el mapa y las cajas, sino que se diseñarán al menos 3 niveles",
+      "El tamaño del mapa lo dejo a criterio del specialist, debe poder contemplar la movilidad del avatar, el desplazamiento consecuente de las cajas y los pasillos que surgan al diseñar el mapeo con las paredes",
+      "El tamaño de los botones 'reiniciar' y 'proximo nivel' lo dejo a criterio del specialist"
+    ],
+    "estilo": [
+      "Estilo Family NES, 8bits"
+    ],
+    "contexto": [
+      "Juego Boxworld en html autocontenido",
+      "¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego? → si el jugador realizo un mal movimiento y necesita reiniciar el nivel, se dispondra en la interfaz del juego un boton 'reinciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel"
+    ],
+    "brief": {
+      "version": "intent_brief v0.6",
+      "lines": [
+        {
+          "id": "L1",
+          "field": "construir",
+          "text": "Juego Boxworld en html autocontenido"
+        },
+        {
+          "id": "L2",
+          "field": "hacer",
+          "text": "el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel"
+        },
+        {
+          "id": "L3",
+          "field": "hacer",
+          "text": "El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente"
+        },
+        {
+          "id": "L4",
+          "field": "ver",
+          "text": "estilo family nes, 8bits"
+        },
+        {
+          "id": "L5",
+          "field": "no",
+          "text": "las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador"
+        },
+        {
+          "id": "L6",
+          "field": "respuesta",
+          "text": "de ser posible, los niveles deberian generarse aleatoriamente, sino se diseñaran por lo menos 3 niveles",
+          "pregunta": "¿Me contás sobre esto: los niveles y su cantidad?"
+        },
+        {
+          "id": "L7",
+          "field": "respuesta",
+          "text": "el jugador movera un avatar que podra 'empujar' las cajas en diferentes direcciones siempre y cuando la direccion del movimiento no este impedida por alguna pared",
+          "pregunta": "¿El jugador puede realizar más acciones además de mover las cajas?"
+        },
+        {
+          "id": "L8",
+          "field": "respuesta",
+          "text": "el juego inicia automaticamente al abrir el html en el navegador",
+          "pregunta": "¿Cómo se inicializa el juego?"
+        },
+        {
+          "id": "L9",
+          "field": "respuesta",
+          "text": "si el jugador realizo un mal movimiento y necesita reiniciar el nivel, se dispondra en la interfaz del juego un boton 'reinciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel",
+          "pregunta": "¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?"
+        },
+        {
+          "id": "L10",
+          "field": "respuesta",
+          "text": "la interfaz del juego contara con un boton 'proximo nivel' que le permitira al jugador avanzar a un nivel nuevo con una disposicion distinta del mapa, las ubicaciones de las cajas y el avatar",
+          "pregunta": "¿Qué ocurre cuando se completa un nivel?"
+        },
+        {
+          "id": "L11",
+          "field": "respuesta",
+          "text": "en cada nivel abra un minimo de 4 cajas, el tamaño del mapa sera lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habran tantas como el diseño lo necesite",
+          "pregunta": "¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?"
+        },
+        {
+          "id": "L12",
+          "field": "respuesta",
+          "text": "no lo se",
+          "pregunta": "¿Cómo se genera aleatoriamente el mapa y las cajas?"
+        },
+        {
+          "id": "L13",
+          "field": "respuesta",
+          "text": "si no se puede, prefiero que se diseñen al menos 3 niveles",
+          "pregunta": "¿Cómo se genera aleatoriamente el mapa y las cajas?"
+        },
+        {
+          "id": "L14",
+          "field": "respuesta",
+          "text": "el jugador podra avanzar al proximo nivel apretando el boton 'proximo nivel'",
+          "pregunta": "¿Qué pasa cuando se completa un nivel?"
+        },
+        {
+          "id": "L15",
+          "field": "respuesta",
+          "text": "el tamaño del mapa lo dejo a criterio del specialist, debera poder contemplar la movilidad del avatar, el desplazamiento consecuente de las cajas y los pasillos que surgan al diseñar el mapeo con las paredes",
+          "pregunta": "¿Qué tan grande será cada nivel?"
+        },
+        {
+          "id": "L16",
+          "field": "respuesta",
+          "text": "lo dejo a criterio del specialist",
+          "pregunta": "¿Qué tan grandes serán los botones 'reiniciar' y 'proximo nivel'?"
+        }
+      ],
+      "items": [
+        {
+          "de": [
+            "L1"
+          ],
+          "tipo": "contexto",
+          "texto": "Juego Boxworld en html autocontenido"
+        },
+        {
+          "de": [
+            "L2"
+          ],
+          "tipo": "feature",
+          "texto": "El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, si el jugador realiza un mal movimiento y necesita reiniciar el nivel, se dispondrá en la interfaz del juego un botón 'reiniciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel"
+        },
+        {
+          "de": [
+            "L3"
+          ],
+          "tipo": "feature",
+          "texto": "El juego necesita un botón 'reiniciar' y otro botón 'proximo nivel'"
+        },
+        {
+          "de": [
+            "L4"
+          ],
+          "tipo": "estilo",
+          "texto": "Estilo Family NES, 8bits"
+        },
+        {
+          "de": [
+            "L5"
+          ],
+          "tipo": "restriccion",
+          "texto": "Las cajas no pueden salir del diseño del mapa, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador"
+        },
+        {
+          "de": [
+            "L6",
+            "L13"
+          ],
+          "tipo": "feature",
+          "texto": "Generación aleatoria de niveles si posible, sino se diseñarán al menos 3 niveles"
+        },
+        {
+          "de": [
+            "L7"
+          ],
+          "tipo": "feature",
+          "texto": "El jugador moverá un avatar que podrá 'empujar' las cajas en diferentes direcciones siempre y cuando la dirección del movimiento no esté impedida por alguna pared"
+        },
+        {
+          "de": [
+            "L8"
+          ],
+          "tipo": "restriccion",
+          "texto": "El juego inicia automáticamente al abrir el HTML en el navegador"
+        },
+        {
+          "de": [
+            "L9"
+          ],
+          "tipo": "contexto",
+          "texto": "¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego? → si el jugador realizo un mal movimiento y necesita reiniciar el nivel, se dispondra en la interfaz del juego un boton 'reinciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel",
+          "auto": true
+        },
+        {
+          "de": [
+            "L10",
+            "L14"
+          ],
+          "tipo": "feature",
+          "texto": "La interfaz del juego contará con un botón 'proximo nivel' que permitirá al jugador avanzar a un nivel nuevo con una disposición distinta del mapa, las ubicaciones de las cajas y el avatar"
+        },
+        {
+          "de": [
+            "L11"
+          ],
+          "tipo": "restriccion",
+          "texto": "En cada nivel habrá un mínimo de 4 cajas, el tamaño del mapa será lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habrá tantas como el diseño lo necesite"
+        },
+        {
+          "de": [
+            "L12",
+            "L13"
+          ],
+          "tipo": "restriccion",
+          "texto": "No se genera aleatoriamente el mapa y las cajas, sino que se diseñarán al menos 3 niveles"
+        },
+        {
+          "de": [
+            "L15"
+          ],
+          "tipo": "restriccion",
+          "texto": "El tamaño del mapa lo dejo a criterio del specialist, debe poder contemplar la movilidad del avatar, el desplazamiento consecuente de las cajas y los pasillos que surgan al diseñar el mapeo con las paredes"
+        },
+        {
+          "de": [
+            "L16"
+          ],
+          "tipo": "restriccion",
+          "texto": "El tamaño de los botones 'reiniciar' y 'proximo nivel' lo dejo a criterio del specialist"
+        }
+      ],
+      "repairs": 2,
+      "preguntas": [
+        "¿Me contás sobre esto: los niveles y su cantidad?",
+        "¿El jugador puede realizar más acciones además de mover las cajas?",
+        "¿Cómo se inicializa el juego?",
+        "¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?",
+        "¿Qué ocurre cuando se completa un nivel?",
+        "¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?",
+        "¿Cómo se genera aleatoriamente el mapa y las cajas?",
+        "¿Qué pasa cuando se completa un nivel?",
+        "¿Qué tan grande será cada nivel?",
+        "¿Qué tan grandes serán los botones 'reiniciar' y 'proximo nivel'?"
+      ]
+    }
+  },
+  "auto_added": [
+    "L9"
+  ],
+  "calls": [
+    {
+      "ms": 28725,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"el tamaño y diseño exacto del mapa\",\"los niveles y su cantidad\"],\"pregunta\":\"¿Cuál es el tamaño y diseño exacto del mapa en cada nivel?\"}\n```"
+    },
+    {
+      "ms": 2553,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿Me contás sobre esto: los niveles y su cantidad?\"] de ser posible, los niveles deberian generarse aleatoriamente, sino se diseñaran por lo menos 3 niveles\n\nPREGUNTAS QUE YA HICISTE (1/10, no las repitas):\n- ¿Me contás sobre esto: los niveles y su cantidad?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se inicializa el juego\",\"qué acciones puede realizar el jugador\"],\"pregunta\":\"¿El jugador puede realizar más acciones además de mover las cajas?\"}\n```"
+    },
+    {
+      "ms": 6106,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿Me contás sobre esto: los niveles y su cantidad?\"] de ser posible, los niveles deberian generarse aleatoriamente, sino se diseñaran por lo menos 3 niveles\n- [respuesta a \"¿El jugador puede realizar más acciones además de mover las cajas?\"] el jugador movera un avatar que podra 'empujar' las cajas en diferentes direcciones siempre y cuando la direccion del movimiento no este impedida por alguna pared\n\nPREGUNTAS QUE YA HICISTE (2/10, no las repitas):\n- ¿Me contás sobre esto: los niveles y su cantidad?\n- ¿El jugador puede realizar más acciones además de mover las cajas?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- cómo se inicializa el juego\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se inicializa el juego\"],\"pregunta\":\"¿Cómo se inicializa el juego?\"}\n```"
+    },
+    {
+      "ms": 3149,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿Me contás sobre esto: los niveles y su cantidad?\"] de ser posible, los niveles deberian generarse aleatoriamente, sino se diseñaran por lo menos 3 niveles\n- [respuesta a \"¿El jugador puede realizar más acciones además de mover las cajas?\"] el jugador movera un avatar que podra 'empujar' las cajas en diferentes direcciones siempre y cuando la direccion del movimiento no este impedida por alguna pared\n- [respuesta a \"¿Cómo se inicializa el juego?\"] el juego inicia automaticamente al abrir el html en el navegador\n\nPREGUNTAS QUE YA HICISTE (3/10, no las repitas):\n- ¿Me contás sobre esto: los niveles y su cantidad?\n- ¿El jugador puede realizar más acciones además de mover las cajas?\n- ¿Cómo se inicializa el juego?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se reinicia el juego en caso de mal movimiento\",\"qué pasa cuando se completa un nivel\"],\"pregunta\":\"¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\"}\n```"
+    },
+    {
+      "ms": 8192,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿Me contás sobre esto: los niveles y su cantidad?\"] de ser posible, los niveles deberian generarse aleatoriamente, sino se diseñaran por lo menos 3 niveles\n- [respuesta a \"¿El jugador puede realizar más acciones además de mover las cajas?\"] el jugador movera un avatar que podra 'empujar' las cajas en diferentes direcciones siempre y cuando la direccion del movimiento no este impedida por alguna pared\n- [respuesta a \"¿Cómo se inicializa el juego?\"] el juego inicia automaticamente al abrir el html en el navegador\n- [respuesta a \"¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\"] si el jugador realizo un mal movimiento y necesita reiniciar el nivel, se dispondra en la interfaz del juego un boton 'reinciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\n\nPREGUNTAS QUE YA HICISTE (4/10, no las repitas):\n- ¿Me contás sobre esto: los niveles y su cantidad?\n- ¿El jugador puede realizar más acciones además de mover las cajas?\n- ¿Cómo se inicializa el juego?\n- ¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- qué pasa cuando se completa un nivel\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"qué ocurre cuando se completa un nivel\"],\"pregunta\":\"¿Qué ocurre cuando se completa un nivel?\"}\n```"
+    },
+    {
+      "ms": 8584,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿Me contás sobre esto: los niveles y su cantidad?\"] de ser posible, los niveles deberian generarse aleatoriamente, sino se diseñaran por lo menos 3 niveles\n- [respuesta a \"¿El jugador puede realizar más acciones además de mover las cajas?\"] el jugador movera un avatar que podra 'empujar' las cajas en diferentes direcciones siempre y cuando la direccion del movimiento no este impedida por alguna pared\n- [respuesta a \"¿Cómo se inicializa el juego?\"] el juego inicia automaticamente al abrir el html en el navegador\n- [respuesta a \"¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\"] si el jugador realizo un mal movimiento y necesita reiniciar el nivel, se dispondra en la interfaz del juego un boton 'reinciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\n- [respuesta a \"¿Qué ocurre cuando se completa un nivel?\"] la interfaz del juego contara con un boton 'proximo nivel' que le permitira al jugador avanzar a un nivel nuevo con una disposicion distinta del mapa, las ubicaciones de las cajas y el avatar\n\nPREGUNTAS QUE YA HICISTE (5/10, no las repitas):\n- ¿Me contás sobre esto: los niveles y su cantidad?\n- ¿El jugador puede realizar más acciones además de mover las cajas?\n- ¿Cómo se inicializa el juego?\n- ¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\n- ¿Qué ocurre cuando se completa un nivel?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- qué pasa cuando se completa un nivel\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"el tamaño del mapa y la cantidad de cajas y paredes en cada nivel\"],\"pregunta\":\"¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?\"}\n```"
+    },
+    {
+      "ms": 10318,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿Me contás sobre esto: los niveles y su cantidad?\"] de ser posible, los niveles deberian generarse aleatoriamente, sino se diseñaran por lo menos 3 niveles\n- [respuesta a \"¿El jugador puede realizar más acciones además de mover las cajas?\"] el jugador movera un avatar que podra 'empujar' las cajas en diferentes direcciones siempre y cuando la direccion del movimiento no este impedida por alguna pared\n- [respuesta a \"¿Cómo se inicializa el juego?\"] el juego inicia automaticamente al abrir el html en el navegador\n- [respuesta a \"¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\"] si el jugador realizo un mal movimiento y necesita reiniciar el nivel, se dispondra en la interfaz del juego un boton 'reinciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\n- [respuesta a \"¿Qué ocurre cuando se completa un nivel?\"] la interfaz del juego contara con un boton 'proximo nivel' que le permitira al jugador avanzar a un nivel nuevo con una disposicion distinta del mapa, las ubicaciones de las cajas y el avatar\n- [respuesta a \"¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?\"] en cada nivel abra un minimo de 4 cajas, el tamaño del mapa sera lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habran tantas como el diseño lo necesite\n\nPREGUNTAS QUE YA HICISTE (6/10, no las repitas):\n- ¿Me contás sobre esto: los niveles y su cantidad?\n- ¿El jugador puede realizar más acciones además de mover las cajas?\n- ¿Cómo se inicializa el juego?\n- ¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\n- ¿Qué ocurre cuando se completa un nivel?\n- ¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- qué pasa cuando se completa un nivel\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"el tamaño exacto del mapa\",\"cómo se genera aleatoriamente el mapa y las cajas\"],\"pregunta\":\"¿El tamaño exacto del mapa es fijo o variará según la cantidad de cajas y paredes?\"}\n```"
+    },
+    {
+      "ms": 9654,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿Me contás sobre esto: los niveles y su cantidad?\"] de ser posible, los niveles deberian generarse aleatoriamente, sino se diseñaran por lo menos 3 niveles\n- [respuesta a \"¿El jugador puede realizar más acciones además de mover las cajas?\"] el jugador movera un avatar que podra 'empujar' las cajas en diferentes direcciones siempre y cuando la direccion del movimiento no este impedida por alguna pared\n- [respuesta a \"¿Cómo se inicializa el juego?\"] el juego inicia automaticamente al abrir el html en el navegador\n- [respuesta a \"¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\"] si el jugador realizo un mal movimiento y necesita reiniciar el nivel, se dispondra en la interfaz del juego un boton 'reinciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\n- [respuesta a \"¿Qué ocurre cuando se completa un nivel?\"] la interfaz del juego contara con un boton 'proximo nivel' que le permitira al jugador avanzar a un nivel nuevo con una disposicion distinta del mapa, las ubicaciones de las cajas y el avatar\n- [respuesta a \"¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?\"] en cada nivel abra un minimo de 4 cajas, el tamaño del mapa sera lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habran tantas como el diseño lo necesite\n- [respuesta a \"¿Cómo se genera aleatoriamente el mapa y las cajas?\"] no lo se\n- [respuesta a \"¿Cómo se genera aleatoriamente el mapa y las cajas?\"] si no se puede, prefiero que se diseñen al menos 3 niveles\n\nPREGUNTAS QUE YA HICISTE (7/10, no las repitas):\n- ¿Me contás sobre esto: los niveles y su cantidad?\n- ¿El jugador puede realizar más acciones además de mover las cajas?\n- ¿Cómo se inicializa el juego?\n- ¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\n- ¿Qué ocurre cuando se completa un nivel?\n- ¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?\n- ¿Cómo se genera aleatoriamente el mapa y las cajas?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- qué pasa cuando se completa un nivel\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se genera aleatoriamente el mapa y las cajas\"],\"pregunta\":\"¿Cómo se genera aleatoriamente el mapa y las cajas?\"}\n```"
+    },
+    {
+      "ms": 7480,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿Me contás sobre esto: los niveles y su cantidad?\"] de ser posible, los niveles deberian generarse aleatoriamente, sino se diseñaran por lo menos 3 niveles\n- [respuesta a \"¿El jugador puede realizar más acciones además de mover las cajas?\"] el jugador movera un avatar que podra 'empujar' las cajas en diferentes direcciones siempre y cuando la direccion del movimiento no este impedida por alguna pared\n- [respuesta a \"¿Cómo se inicializa el juego?\"] el juego inicia automaticamente al abrir el html en el navegador\n- [respuesta a \"¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\"] si el jugador realizo un mal movimiento y necesita reiniciar el nivel, se dispondra en la interfaz del juego un boton 'reinciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\n- [respuesta a \"¿Qué ocurre cuando se completa un nivel?\"] la interfaz del juego contara con un boton 'proximo nivel' que le permitira al jugador avanzar a un nivel nuevo con una disposicion distinta del mapa, las ubicaciones de las cajas y el avatar\n- [respuesta a \"¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?\"] en cada nivel abra un minimo de 4 cajas, el tamaño del mapa sera lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habran tantas como el diseño lo necesite\n- [respuesta a \"¿Cómo se genera aleatoriamente el mapa y las cajas?\"] no lo se\n- [respuesta a \"¿Cómo se genera aleatoriamente el mapa y las cajas?\"] si no se puede, prefiero que se diseñen al menos 3 niveles\n- [respuesta a \"¿Qué pasa cuando se completa un nivel?\"] el jugador podra avanzar al proximo nivel apretando el boton 'proximo nivel'\n\nPREGUNTAS QUE YA HICISTE (8/10, no las repitas):\n- ¿Me contás sobre esto: los niveles y su cantidad?\n- ¿El jugador puede realizar más acciones además de mover las cajas?\n- ¿Cómo se inicializa el juego?\n- ¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\n- ¿Qué ocurre cuando se completa un nivel?\n- ¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?\n- ¿Cómo se genera aleatoriamente el mapa y las cajas?\n- ¿Qué pasa cuando se completa un nivel?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se generan aleatoriamente los niveles\",\"qué tan grande será cada nivel\"],\"pregunta\":\"¿El tamaño exacto de cada nivel en términos de cuántas cajas y paredes habrá?\"}\n```"
+    },
+    {
+      "ms": 9129,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks.\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [qué querés construir] Juego Boxworld en html autocontenido\n- [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\n- [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\n- [cómo se tiene que ver] estilo family nes, 8bits\n- [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\n- [respuesta a \"¿Me contás sobre esto: los niveles y su cantidad?\"] de ser posible, los niveles deberian generarse aleatoriamente, sino se diseñaran por lo menos 3 niveles\n- [respuesta a \"¿El jugador puede realizar más acciones además de mover las cajas?\"] el jugador movera un avatar que podra 'empujar' las cajas en diferentes direcciones siempre y cuando la direccion del movimiento no este impedida por alguna pared\n- [respuesta a \"¿Cómo se inicializa el juego?\"] el juego inicia automaticamente al abrir el html en el navegador\n- [respuesta a \"¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\"] si el jugador realizo un mal movimiento y necesita reiniciar el nivel, se dispondra en la interfaz del juego un boton 'reinciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\n- [respuesta a \"¿Qué ocurre cuando se completa un nivel?\"] la interfaz del juego contara con un boton 'proximo nivel' que le permitira al jugador avanzar a un nivel nuevo con una disposicion distinta del mapa, las ubicaciones de las cajas y el avatar\n- [respuesta a \"¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?\"] en cada nivel abra un minimo de 4 cajas, el tamaño del mapa sera lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habran tantas como el diseño lo necesite\n- [respuesta a \"¿Cómo se genera aleatoriamente el mapa y las cajas?\"] no lo se\n- [respuesta a \"¿Cómo se genera aleatoriamente el mapa y las cajas?\"] si no se puede, prefiero que se diseñen al menos 3 niveles\n- [respuesta a \"¿Qué pasa cuando se completa un nivel?\"] el jugador podra avanzar al proximo nivel apretando el boton 'proximo nivel'\n- [respuesta a \"¿Qué tan grande será cada nivel?\"] el tamaño del mapa lo dejo a criterio del specialist, debera poder contemplar la movilidad del avatar, el desplazamiento consecuente de las cajas y los pasillos que surgan al diseñar el mapeo con las paredes\n\nPREGUNTAS QUE YA HICISTE (9/10, no las repitas):\n- ¿Me contás sobre esto: los niveles y su cantidad?\n- ¿El jugador puede realizar más acciones además de mover las cajas?\n- ¿Cómo se inicializa el juego?\n- ¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\n- ¿Qué ocurre cuando se completa un nivel?\n- ¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?\n- ¿Cómo se genera aleatoriamente el mapa y las cajas?\n- ¿Qué pasa cuando se completa un nivel?\n- ¿Qué tan grande será cada nivel?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se generan aleatoriamente los niveles\",\"qué tan grandes serán los botones 'reiniciar' y 'proximo nivel'\"],\"pregunta\":\"¿Cómo se generarán aleatoriamente los niveles del juego?\"}\n```"
+    },
+    {
+      "ms": 99983,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos Intent Forge v0.3 del equipo MicheLab.\n\nRecibís las LÍNEAS que escribió el usuario, numeradas (L1, L2...). Entre corchetes va el campo de la plantilla donde la escribió.\nTu trabajo es CLASIFICAR cada línea, NO resumir.\n\nTIPOS:\n- contexto: qué es el proyecto, para quién, referencias (\"estilo Trello\"), adjetivos generales (\"sencilla\").\n- feature: algo que el usuario tiene que poder HACER en la app.\n- estilo: cómo se tiene que VER o sentir (colores, sombras, animaciones, efectos al pasar el mouse).\n- restriccion: un límite o algo que NO debe hacer (\"sin login\", \"sin base de datos\", \"solo frontend\", \"los datos se borran al recargar\").\n- descartado: SOLO si una línea [ajuste] pide sacar algo; en \"de\" van la línea que se saca y la línea [ajuste].\n\nREGLAS:\n1. Cada línea L tiene que aparecer en \"de\" de al menos un ítem. Ninguna se pierde.\n2. Si una línea nombra varias cosas, separalas: un ítem por cosa.\n3. Usá las palabras del usuario. No resumas ni generalices. Nombres, cantidades y listas (por ejemplo entre paréntesis) van dentro del texto del ítem.\n4. No agregues ítems que no salgan de una línea.\n5. El campo entre corchetes es una pista. Cambiá el tipo solo si la línea claramente es de otro tipo (por ejemplo \"drag & drop\" escrito en [cómo se tiene que ver] es una feature).\n   Si algo necesita un dato o una acción del usuario (prioridad, estado, etiquetas, fechas), es feature aunque esté en [cómo se tiene que ver]: \"semáforo de prioridad\" → feature \"Asignar prioridad a una tarjeta (semáforo)\".\n   Una feature = UNA acción. \"Crear, editar y borrar tarjetas\" son tres ítems: \"Crear tarjetas\", \"Editar tarjetas\", \"Borrar tarjetas\".\n6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.\n7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo \"¿Se pueden crear columnas?\" + \"sí\" → feature \"Crear columnas\"). Si es negativa, es una restriccion con \"Sin ...\" (por ejemplo \"¿Buscar tarjetas?\" + \"no\" → restriccion \"Sin búsqueda de tarjetas\").\n   Si la respuesta DETALLA algo que ya está en otra línea, NO hagas un ítem suelto: escribí el detalle dentro de ese ítem y poné las dos líneas en \"de\". Por ejemplo L5 \"semáforo de prioridad\" + L9 respuesta \"verde baja, amarillo media, rojo alta\" + L10 respuesta \"se elige en una lista al crear la tarjeta\" → {\"de\":[\"L5\",\"L9\",\"L10\"],\"tipo\":\"feature\",\"texto\":\"Asignar prioridad al crear la tarjeta, desde una lista (semáforo: verde baja, amarillo media, rojo alta)\"}.\n8. No hagas preguntas: devolvé siempre el JSON.\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"...\",\"items\":[{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"...\"}],\"criterios_holdout\":[\"cómo se verifica cada feature\"]}\n```\n\nEJEMPLO (otro proyecto):\nL1 [qué querés construir] Una app para guardar mis recetas, simple\nL2 [qué tiene que hacer] cargar recetas con ingredientes y pasos\nL3 [cómo se tiene que ver] colores cálidos, fotos grandes, que se puedan marcar favoritas\nL4 [qué no debe hacer] sin usuarios ni login\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Recetario\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"App simple para guardar mis recetas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Cargar recetas con ingredientes y pasos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Colores cálidos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Fotos grandes\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"Marcar recetas como favoritas\"},\n{\"de\":[\"L4\"],\"tipo\":\"restriccion\",\"texto\":\"Sin usuarios ni login\"}],\n\"criterios_holdout\":[\"Se puede cargar una receta con ingredientes y pasos\",\"Se puede marcar una receta como favorita\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LÍNEAS DEL USUARIO:\nL1 [qué querés construir] Juego Boxworld en html autocontenido\nL2 [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\nL3 [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\nL4 [cómo se tiene que ver] estilo family nes, 8bits\nL5 [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\nL6 [respuesta a \"¿Me contás sobre esto: los niveles y su cantidad?\"] de ser posible, los niveles deberian generarse aleatoriamente, sino se diseñaran por lo menos 3 niveles\nL7 [respuesta a \"¿El jugador puede realizar más acciones además de mover las cajas?\"] el jugador movera un avatar que podra 'empujar' las cajas en diferentes direcciones siempre y cuando la direccion del movimiento no este impedida por alguna pared\nL8 [respuesta a \"¿Cómo se inicializa el juego?\"] el juego inicia automaticamente al abrir el html en el navegador\nL9 [respuesta a \"¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\"] si el jugador realizo un mal movimiento y necesita reiniciar el nivel, se dispondra en la interfaz del juego un boton 'reinciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\nL10 [respuesta a \"¿Qué ocurre cuando se completa un nivel?\"] la interfaz del juego contara con un boton 'proximo nivel' que le permitira al jugador avanzar a un nivel nuevo con una disposicion distinta del mapa, las ubicaciones de las cajas y el avatar\nL11 [respuesta a \"¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?\"] en cada nivel abra un minimo de 4 cajas, el tamaño del mapa sera lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habran tantas como el diseño lo necesite\nL12 [respuesta a \"¿Cómo se genera aleatoriamente el mapa y las cajas?\"] no lo se\nL13 [respuesta a \"¿Cómo se genera aleatoriamente el mapa y las cajas?\"] si no se puede, prefiero que se diseñen al menos 3 niveles\nL14 [respuesta a \"¿Qué pasa cuando se completa un nivel?\"] el jugador podra avanzar al proximo nivel apretando el boton 'proximo nivel'\nL15 [respuesta a \"¿Qué tan grande será cada nivel?\"] el tamaño del mapa lo dejo a criterio del specialist, debera poder contemplar la movilidad del avatar, el desplazamiento consecuente de las cajas y los pasillos que surgan al diseñar el mapeo con las paredes\nL16 [respuesta a \"¿Qué tan grandes serán los botones 'reiniciar' y 'proximo nivel'?\"] lo dejo a criterio del specialist\n\nPREGUNTAS QUE YA HICISTE (no las repitas):\n- ¿Me contás sobre esto: los niveles y su cantidad?\n- ¿El jugador puede realizar más acciones además de mover las cajas?\n- ¿Cómo se inicializa el juego?\n- ¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\n- ¿Qué ocurre cuando se completa un nivel?\n- ¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?\n- ¿Cómo se genera aleatoriamente el mapa y las cajas?\n- ¿Qué pasa cuando se completa un nivel?\n- ¿Qué tan grande será cada nivel?\n- ¿Qué tan grandes serán los botones 'reiniciar' y 'proximo nivel'?"
+        }
+      ],
+      "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Boxworld\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Juego Boxworld en html autocontenido\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"El juego necesita un botón 'reiniciar' y otro botón 'proximo nivel'\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Estilo Family NES, 8bits\"},\n{\"de\":[\"L5\"],\"tipo\":\"restriccion\",\"texto\":\"Las cajas no pueden salir del diseño del mapa, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\"},\n{\"de\":[\"L6\",\"L13\"],\"tipo\":\"feature\",\"texto\":\"Generación aleatoria de niveles si posible, sino se diseñarán al menos 3 niveles\"},\n{\"de\":[\"L7\"],\"tipo\":\"feature\",\"texto\":\"El jugador moverá un avatar que podrá 'empujar' las cajas en diferentes direcciones siempre y cuando la dirección del movimiento no esté impedida por alguna pared\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El juego inicia automáticamente al abrir el HTML en el navegador\"},\n{\"de\":[\"L9\"],\"tipo\":\"feature\",\"texto\":\"Si el jugador realiza un mal movimiento, se dispondrá en la interfaz del juego un botón 'reiniciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\"},\n{\"de\":[\"L10\",\"L14\"],\"tipo\":\"feature\",\"texto\":\"La interfaz del juego contará con un botón 'proximo nivel' que permitirá al jugador avanzar a un nivel nuevo con una disposición distinta del mapa, las ubicaciones de las cajas y el avatar\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"En cada nivel habrá un mínimo de 4 cajas, el tamaño del mapa será lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habrá tantas como el diseño lo necesite\"},\n{\"de\":[\"L12\",\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"No se genera aleatoriamente el mapa y las cajas, sino que se diseñarán al menos 3 niveles\"},\n{\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño del mapa lo dejo a criterio del specialist, debe poder contemplar la movilidad del avatar, el desplazamiento consecuente de las cajas y los pasillos que surgan al diseñar el mapeo con las paredes\"},\n{\"de\":[\"L16\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño de los botones 'reiniciar' y 'proximo nivel' lo dejo a criterio del specialist\"}],\n\"criterios_holdout\":[\"Se puede mover un avatar para acomodar cajas en posiciones fijadas en cada nivel\",\"Se pueden reiniciar niveles si se realiza un mal movimiento\",\"Se pueden avanzar a niveles nuevos con botones 'proximo nivel'\",\"El juego inicia automáticamente al abrir el HTML en el navegador\"]}\n```"
+    },
+    {
+      "ms": 36660,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos Intent Forge v0.3 del equipo MicheLab.\n\nRecibís las LÍNEAS que escribió el usuario, numeradas (L1, L2...). Entre corchetes va el campo de la plantilla donde la escribió.\nTu trabajo es CLASIFICAR cada línea, NO resumir.\n\nTIPOS:\n- contexto: qué es el proyecto, para quién, referencias (\"estilo Trello\"), adjetivos generales (\"sencilla\").\n- feature: algo que el usuario tiene que poder HACER en la app.\n- estilo: cómo se tiene que VER o sentir (colores, sombras, animaciones, efectos al pasar el mouse).\n- restriccion: un límite o algo que NO debe hacer (\"sin login\", \"sin base de datos\", \"solo frontend\", \"los datos se borran al recargar\").\n- descartado: SOLO si una línea [ajuste] pide sacar algo; en \"de\" van la línea que se saca y la línea [ajuste].\n\nREGLAS:\n1. Cada línea L tiene que aparecer en \"de\" de al menos un ítem. Ninguna se pierde.\n2. Si una línea nombra varias cosas, separalas: un ítem por cosa.\n3. Usá las palabras del usuario. No resumas ni generalices. Nombres, cantidades y listas (por ejemplo entre paréntesis) van dentro del texto del ítem.\n4. No agregues ítems que no salgan de una línea.\n5. El campo entre corchetes es una pista. Cambiá el tipo solo si la línea claramente es de otro tipo (por ejemplo \"drag & drop\" escrito en [cómo se tiene que ver] es una feature).\n   Si algo necesita un dato o una acción del usuario (prioridad, estado, etiquetas, fechas), es feature aunque esté en [cómo se tiene que ver]: \"semáforo de prioridad\" → feature \"Asignar prioridad a una tarjeta (semáforo)\".\n   Una feature = UNA acción. \"Crear, editar y borrar tarjetas\" son tres ítems: \"Crear tarjetas\", \"Editar tarjetas\", \"Borrar tarjetas\".\n6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.\n7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo \"¿Se pueden crear columnas?\" + \"sí\" → feature \"Crear columnas\"). Si es negativa, es una restriccion con \"Sin ...\" (por ejemplo \"¿Buscar tarjetas?\" + \"no\" → restriccion \"Sin búsqueda de tarjetas\").\n   Si la respuesta DETALLA algo que ya está en otra línea, NO hagas un ítem suelto: escribí el detalle dentro de ese ítem y poné las dos líneas en \"de\". Por ejemplo L5 \"semáforo de prioridad\" + L9 respuesta \"verde baja, amarillo media, rojo alta\" + L10 respuesta \"se elige en una lista al crear la tarjeta\" → {\"de\":[\"L5\",\"L9\",\"L10\"],\"tipo\":\"feature\",\"texto\":\"Asignar prioridad al crear la tarjeta, desde una lista (semáforo: verde baja, amarillo media, rojo alta)\"}.\n8. No hagas preguntas: devolvé siempre el JSON.\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"...\",\"items\":[{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"...\"}],\"criterios_holdout\":[\"cómo se verifica cada feature\"]}\n```\n\nEJEMPLO (otro proyecto):\nL1 [qué querés construir] Una app para guardar mis recetas, simple\nL2 [qué tiene que hacer] cargar recetas con ingredientes y pasos\nL3 [cómo se tiene que ver] colores cálidos, fotos grandes, que se puedan marcar favoritas\nL4 [qué no debe hacer] sin usuarios ni login\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Recetario\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"App simple para guardar mis recetas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Cargar recetas con ingredientes y pasos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Colores cálidos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Fotos grandes\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"Marcar recetas como favoritas\"},\n{\"de\":[\"L4\"],\"tipo\":\"restriccion\",\"texto\":\"Sin usuarios ni login\"}],\n\"criterios_holdout\":[\"Se puede cargar una receta con ingredientes y pasos\",\"Se puede marcar una receta como favorita\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LÍNEAS DEL USUARIO:\nL1 [qué querés construir] Juego Boxworld en html autocontenido\nL2 [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\nL3 [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\nL4 [cómo se tiene que ver] estilo family nes, 8bits\nL5 [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\nL6 [respuesta a \"¿Me contás sobre esto: los niveles y su cantidad?\"] de ser posible, los niveles deberian generarse aleatoriamente, sino se diseñaran por lo menos 3 niveles\nL7 [respuesta a \"¿El jugador puede realizar más acciones además de mover las cajas?\"] el jugador movera un avatar que podra 'empujar' las cajas en diferentes direcciones siempre y cuando la direccion del movimiento no este impedida por alguna pared\nL8 [respuesta a \"¿Cómo se inicializa el juego?\"] el juego inicia automaticamente al abrir el html en el navegador\nL9 [respuesta a \"¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\"] si el jugador realizo un mal movimiento y necesita reiniciar el nivel, se dispondra en la interfaz del juego un boton 'reinciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\nL10 [respuesta a \"¿Qué ocurre cuando se completa un nivel?\"] la interfaz del juego contara con un boton 'proximo nivel' que le permitira al jugador avanzar a un nivel nuevo con una disposicion distinta del mapa, las ubicaciones de las cajas y el avatar\nL11 [respuesta a \"¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?\"] en cada nivel abra un minimo de 4 cajas, el tamaño del mapa sera lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habran tantas como el diseño lo necesite\nL12 [respuesta a \"¿Cómo se genera aleatoriamente el mapa y las cajas?\"] no lo se\nL13 [respuesta a \"¿Cómo se genera aleatoriamente el mapa y las cajas?\"] si no se puede, prefiero que se diseñen al menos 3 niveles\nL14 [respuesta a \"¿Qué pasa cuando se completa un nivel?\"] el jugador podra avanzar al proximo nivel apretando el boton 'proximo nivel'\nL15 [respuesta a \"¿Qué tan grande será cada nivel?\"] el tamaño del mapa lo dejo a criterio del specialist, debera poder contemplar la movilidad del avatar, el desplazamiento consecuente de las cajas y los pasillos que surgan al diseñar el mapeo con las paredes\nL16 [respuesta a \"¿Qué tan grandes serán los botones 'reiniciar' y 'proximo nivel'?\"] lo dejo a criterio del specialist\n\nPREGUNTAS QUE YA HICISTE (no las repitas):\n- ¿Me contás sobre esto: los niveles y su cantidad?\n- ¿El jugador puede realizar más acciones además de mover las cajas?\n- ¿Cómo se inicializa el juego?\n- ¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\n- ¿Qué ocurre cuando se completa un nivel?\n- ¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?\n- ¿Cómo se genera aleatoriamente el mapa y las cajas?\n- ¿Qué pasa cuando se completa un nivel?\n- ¿Qué tan grande será cada nivel?\n- ¿Qué tan grandes serán los botones 'reiniciar' y 'proximo nivel'?"
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Boxworld\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Juego Boxworld en html autocontenido\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"El juego necesita un botón 'reiniciar' y otro botón 'proximo nivel'\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Estilo Family NES, 8bits\"},\n{\"de\":[\"L5\"],\"tipo\":\"restriccion\",\"texto\":\"Las cajas no pueden salir del diseño del mapa, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\"},\n{\"de\":[\"L6\",\"L13\"],\"tipo\":\"feature\",\"texto\":\"Generación aleatoria de niveles si posible, sino se diseñarán al menos 3 niveles\"},\n{\"de\":[\"L7\"],\"tipo\":\"feature\",\"texto\":\"El jugador moverá un avatar que podrá 'empujar' las cajas en diferentes direcciones siempre y cuando la dirección del movimiento no esté impedida por alguna pared\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El juego inicia automáticamente al abrir el HTML en el navegador\"},\n{\"de\":[\"L9\"],\"tipo\":\"feature\",\"texto\":\"Si el jugador realiza un mal movimiento, se dispondrá en la interfaz del juego un botón 'reiniciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\"},\n{\"de\":[\"L10\",\"L14\"],\"tipo\":\"feature\",\"texto\":\"La interfaz del juego contará con un botón 'proximo nivel' que permitirá al jugador avanzar a un nivel nuevo con una disposición distinta del mapa, las ubicaciones de las cajas y el avatar\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"En cada nivel habrá un mínimo de 4 cajas, el tamaño del mapa será lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habrá tantas como el diseño lo necesite\"},\n{\"de\":[\"L12\",\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"No se genera aleatoriamente el mapa y las cajas, sino que se diseñarán al menos 3 niveles\"},\n{\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño del mapa lo dejo a criterio del specialist, debe poder contemplar la movilidad del avatar, el desplazamiento consecuente de las cajas y los pasillos que surgan al diseñar el mapeo con las paredes\"},\n{\"de\":[\"L16\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño de los botones 'reiniciar' y 'proximo nivel' lo dejo a criterio del specialist\"}],\n\"criterios_holdout\":[\"Se puede mover un avatar para acomodar cajas en posiciones fijadas en cada nivel\",\"Se pueden reiniciar niveles si se realiza un mal movimiento\",\"Se pueden avanzar a niveles nuevos con botones 'proximo nivel'\",\"El juego inicia automáticamente al abrir el HTML en el navegador\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "Revisá tu JSON:\n- \"Si el jugador realiza un mal movimiento, se dispondrá en la interfaz del juego un botón 'reiniciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\" (L9) repite \"El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\": escribí ese detalle dentro de \"El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\" y sumá L9 a su \"de\"; no lo dejes como ítem aparte.\nDevolvé el JSON COMPLETE entero de nuevo."
+        }
+      ],
+      "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Boxworld\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Juego Boxworld en html autocontenido\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, si el jugador realiza un mal movimiento, se dispondrá en la interfaz del juego un botón 'reiniciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"El juego necesita un botón 'reiniciar' y otro botón 'proximo nivel'\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Estilo Family NES, 8bits\"},\n{\"de\":[\"L5\"],\"tipo\":\"restriccion\",\"texto\":\"Las cajas no pueden salir del diseño del mapa, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\"},\n{\"de\":[\"L6\",\"L13\"],\"tipo\":\"feature\",\"texto\":\"Generación aleatoria de niveles si posible, sino se diseñarán al menos 3 niveles\"},\n{\"de\":[\"L7\"],\"tipo\":\"feature\",\"texto\":\"El jugador moverá un avatar que podrá 'empujar' las cajas en diferentes direcciones siempre y cuando la dirección del movimiento no esté impedida por alguna pared\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El juego inicia automáticamente al abrir el HTML en el navegador\"},\n{\"de\":[\"L10\",\"L14\"],\"tipo\":\"feature\",\"texto\":\"La interfaz del juego contará con un botón 'proximo nivel' que permitirá al jugador avanzar a un nivel nuevo con una disposición distinta del mapa, las ubicaciones de las cajas y el avatar\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"En cada nivel habrá un mínimo de 4 cajas, el tamaño del mapa será lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habrá tantas como el diseño lo necesite\"},\n{\"de\":[\"L12\",\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"No se genera aleatoriamente el mapa y las cajas, sino que se diseñarán al menos 3 niveles\"},\n{\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño del mapa lo dejo a criterio del specialist, debe poder contemplar la movilidad del avatar, el desplazamiento consecuente de las cajas y los pasillos que surgan al diseñar el mapeo con las paredes\"},\n{\"de\":[\"L16\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño de los botones 'reiniciar' y 'proximo nivel' lo dejo a criterio del specialist\"}],\n\"criterios_holdout\":[\"Se puede mover un avatar para acomodar cajas en posiciones fijadas en cada nivel, si el jugador realiza un mal movimiento, se dispondrá en la interfaz del juego un botón 'reiniciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\",\"Se pueden reiniciar niveles si se realiza un mal movimiento\",\"Se pueden avanzar a niveles nuevos con botones 'proximo nivel'\",\"El juego inicia automáticamente al abrir el HTML en el navegador\"]}\n```"
+    },
+    {
+      "ms": 37966,
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos Intent Forge v0.3 del equipo MicheLab.\n\nRecibís las LÍNEAS que escribió el usuario, numeradas (L1, L2...). Entre corchetes va el campo de la plantilla donde la escribió.\nTu trabajo es CLASIFICAR cada línea, NO resumir.\n\nTIPOS:\n- contexto: qué es el proyecto, para quién, referencias (\"estilo Trello\"), adjetivos generales (\"sencilla\").\n- feature: algo que el usuario tiene que poder HACER en la app.\n- estilo: cómo se tiene que VER o sentir (colores, sombras, animaciones, efectos al pasar el mouse).\n- restriccion: un límite o algo que NO debe hacer (\"sin login\", \"sin base de datos\", \"solo frontend\", \"los datos se borran al recargar\").\n- descartado: SOLO si una línea [ajuste] pide sacar algo; en \"de\" van la línea que se saca y la línea [ajuste].\n\nREGLAS:\n1. Cada línea L tiene que aparecer en \"de\" de al menos un ítem. Ninguna se pierde.\n2. Si una línea nombra varias cosas, separalas: un ítem por cosa.\n3. Usá las palabras del usuario. No resumas ni generalices. Nombres, cantidades y listas (por ejemplo entre paréntesis) van dentro del texto del ítem.\n4. No agregues ítems que no salgan de una línea.\n5. El campo entre corchetes es una pista. Cambiá el tipo solo si la línea claramente es de otro tipo (por ejemplo \"drag & drop\" escrito en [cómo se tiene que ver] es una feature).\n   Si algo necesita un dato o una acción del usuario (prioridad, estado, etiquetas, fechas), es feature aunque esté en [cómo se tiene que ver]: \"semáforo de prioridad\" → feature \"Asignar prioridad a una tarjeta (semáforo)\".\n   Una feature = UNA acción. \"Crear, editar y borrar tarjetas\" son tres ítems: \"Crear tarjetas\", \"Editar tarjetas\", \"Borrar tarjetas\".\n6. Las líneas [respuesta] y [ajuste] valen igual que las demás. Un [ajuste] corrige lo anterior.\n7. Una [respuesta] se lee junto con su pregunta. Si la respuesta es afirmativa, el ítem dice lo que se pidió (por ejemplo \"¿Se pueden crear columnas?\" + \"sí\" → feature \"Crear columnas\"). Si es negativa, es una restriccion con \"Sin ...\" (por ejemplo \"¿Buscar tarjetas?\" + \"no\" → restriccion \"Sin búsqueda de tarjetas\").\n   Si la respuesta DETALLA algo que ya está en otra línea, NO hagas un ítem suelto: escribí el detalle dentro de ese ítem y poné las dos líneas en \"de\". Por ejemplo L5 \"semáforo de prioridad\" + L9 respuesta \"verde baja, amarillo media, rojo alta\" + L10 respuesta \"se elige en una lista al crear la tarjeta\" → {\"de\":[\"L5\",\"L9\",\"L10\"],\"tipo\":\"feature\",\"texto\":\"Asignar prioridad al crear la tarjeta, desde una lista (semáforo: verde baja, amarillo media, rojo alta)\"}.\n8. No hagas preguntas: devolvé siempre el JSON.\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"...\",\"items\":[{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"...\"}],\"criterios_holdout\":[\"cómo se verifica cada feature\"]}\n```\n\nEJEMPLO (otro proyecto):\nL1 [qué querés construir] Una app para guardar mis recetas, simple\nL2 [qué tiene que hacer] cargar recetas con ingredientes y pasos\nL3 [cómo se tiene que ver] colores cálidos, fotos grandes, que se puedan marcar favoritas\nL4 [qué no debe hacer] sin usuarios ni login\n```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Recetario\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"App simple para guardar mis recetas\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"Cargar recetas con ingredientes y pasos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Colores cálidos\"},\n{\"de\":[\"L3\"],\"tipo\":\"estilo\",\"texto\":\"Fotos grandes\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"Marcar recetas como favoritas\"},\n{\"de\":[\"L4\"],\"tipo\":\"restriccion\",\"texto\":\"Sin usuarios ni login\"}],\n\"criterios_holdout\":[\"Se puede cargar una receta con ingredientes y pasos\",\"Se puede marcar una receta como favorita\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LÍNEAS DEL USUARIO:\nL1 [qué querés construir] Juego Boxworld en html autocontenido\nL2 [qué tiene que hacer] el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\nL3 [qué tiene que hacer] El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para generar mapas aleatoreamente\nL4 [cómo se tiene que ver] estilo family nes, 8bits\nL5 [qué no debe hacer] las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\nL6 [respuesta a \"¿Me contás sobre esto: los niveles y su cantidad?\"] de ser posible, los niveles deberian generarse aleatoriamente, sino se diseñaran por lo menos 3 niveles\nL7 [respuesta a \"¿El jugador puede realizar más acciones además de mover las cajas?\"] el jugador movera un avatar que podra 'empujar' las cajas en diferentes direcciones siempre y cuando la direccion del movimiento no este impedida por alguna pared\nL8 [respuesta a \"¿Cómo se inicializa el juego?\"] el juego inicia automaticamente al abrir el html en el navegador\nL9 [respuesta a \"¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\"] si el jugador realizo un mal movimiento y necesita reiniciar el nivel, se dispondra en la interfaz del juego un boton 'reinciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\nL10 [respuesta a \"¿Qué ocurre cuando se completa un nivel?\"] la interfaz del juego contara con un boton 'proximo nivel' que le permitira al jugador avanzar a un nivel nuevo con una disposicion distinta del mapa, las ubicaciones de las cajas y el avatar\nL11 [respuesta a \"¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?\"] en cada nivel abra un minimo de 4 cajas, el tamaño del mapa sera lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habran tantas como el diseño lo necesite\nL12 [respuesta a \"¿Cómo se genera aleatoriamente el mapa y las cajas?\"] no lo se\nL13 [respuesta a \"¿Cómo se genera aleatoriamente el mapa y las cajas?\"] si no se puede, prefiero que se diseñen al menos 3 niveles\nL14 [respuesta a \"¿Qué pasa cuando se completa un nivel?\"] el jugador podra avanzar al proximo nivel apretando el boton 'proximo nivel'\nL15 [respuesta a \"¿Qué tan grande será cada nivel?\"] el tamaño del mapa lo dejo a criterio del specialist, debera poder contemplar la movilidad del avatar, el desplazamiento consecuente de las cajas y los pasillos que surgan al diseñar el mapeo con las paredes\nL16 [respuesta a \"¿Qué tan grandes serán los botones 'reiniciar' y 'proximo nivel'?\"] lo dejo a criterio del specialist\n\nPREGUNTAS QUE YA HICISTE (no las repitas):\n- ¿Me contás sobre esto: los niveles y su cantidad?\n- ¿El jugador puede realizar más acciones además de mover las cajas?\n- ¿Cómo se inicializa el juego?\n- ¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\n- ¿Qué ocurre cuando se completa un nivel?\n- ¿Cuál es el tamaño del mapa y cuántas cajas y paredes habrá en cada nivel?\n- ¿Cómo se genera aleatoriamente el mapa y las cajas?\n- ¿Qué pasa cuando se completa un nivel?\n- ¿Qué tan grande será cada nivel?\n- ¿Qué tan grandes serán los botones 'reiniciar' y 'proximo nivel'?"
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Boxworld\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Juego Boxworld en html autocontenido\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"El juego necesita un botón 'reiniciar' y otro botón 'proximo nivel'\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Estilo Family NES, 8bits\"},\n{\"de\":[\"L5\"],\"tipo\":\"restriccion\",\"texto\":\"Las cajas no pueden salir del diseño del mapa, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\"},\n{\"de\":[\"L6\",\"L13\"],\"tipo\":\"feature\",\"texto\":\"Generación aleatoria de niveles si posible, sino se diseñarán al menos 3 niveles\"},\n{\"de\":[\"L7\"],\"tipo\":\"feature\",\"texto\":\"El jugador moverá un avatar que podrá 'empujar' las cajas en diferentes direcciones siempre y cuando la dirección del movimiento no esté impedida por alguna pared\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El juego inicia automáticamente al abrir el HTML en el navegador\"},\n{\"de\":[\"L9\"],\"tipo\":\"feature\",\"texto\":\"Si el jugador realiza un mal movimiento, se dispondrá en la interfaz del juego un botón 'reiniciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\"},\n{\"de\":[\"L10\",\"L14\"],\"tipo\":\"feature\",\"texto\":\"La interfaz del juego contará con un botón 'proximo nivel' que permitirá al jugador avanzar a un nivel nuevo con una disposición distinta del mapa, las ubicaciones de las cajas y el avatar\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"En cada nivel habrá un mínimo de 4 cajas, el tamaño del mapa será lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habrá tantas como el diseño lo necesite\"},\n{\"de\":[\"L12\",\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"No se genera aleatoriamente el mapa y las cajas, sino que se diseñarán al menos 3 niveles\"},\n{\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño del mapa lo dejo a criterio del specialist, debe poder contemplar la movilidad del avatar, el desplazamiento consecuente de las cajas y los pasillos que surgan al diseñar el mapeo con las paredes\"},\n{\"de\":[\"L16\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño de los botones 'reiniciar' y 'proximo nivel' lo dejo a criterio del specialist\"}],\n\"criterios_holdout\":[\"Se puede mover un avatar para acomodar cajas en posiciones fijadas en cada nivel\",\"Se pueden reiniciar niveles si se realiza un mal movimiento\",\"Se pueden avanzar a niveles nuevos con botones 'proximo nivel'\",\"El juego inicia automáticamente al abrir el HTML en el navegador\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "Revisá tu JSON:\n- \"Si el jugador realiza un mal movimiento, se dispondrá en la interfaz del juego un botón 'reiniciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\" (L9) repite \"El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\": escribí ese detalle dentro de \"El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel\" y sumá L9 a su \"de\"; no lo dejes como ítem aparte.\nDevolvé el JSON COMPLETE entero de nuevo."
+        },
+        {
+          "role": "assistant",
+          "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Boxworld\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Juego Boxworld en html autocontenido\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, si el jugador realiza un mal movimiento, se dispondrá en la interfaz del juego un botón 'reiniciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"El juego necesita un botón 'reiniciar' y otro botón 'proximo nivel'\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Estilo Family NES, 8bits\"},\n{\"de\":[\"L5\"],\"tipo\":\"restriccion\",\"texto\":\"Las cajas no pueden salir del diseño del mapa, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\"},\n{\"de\":[\"L6\",\"L13\"],\"tipo\":\"feature\",\"texto\":\"Generación aleatoria de niveles si posible, sino se diseñarán al menos 3 niveles\"},\n{\"de\":[\"L7\"],\"tipo\":\"feature\",\"texto\":\"El jugador moverá un avatar que podrá 'empujar' las cajas en diferentes direcciones siempre y cuando la dirección del movimiento no esté impedida por alguna pared\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El juego inicia automáticamente al abrir el HTML en el navegador\"},\n{\"de\":[\"L10\",\"L14\"],\"tipo\":\"feature\",\"texto\":\"La interfaz del juego contará con un botón 'proximo nivel' que permitirá al jugador avanzar a un nivel nuevo con una disposición distinta del mapa, las ubicaciones de las cajas y el avatar\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"En cada nivel habrá un mínimo de 4 cajas, el tamaño del mapa será lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habrá tantas como el diseño lo necesite\"},\n{\"de\":[\"L12\",\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"No se genera aleatoriamente el mapa y las cajas, sino que se diseñarán al menos 3 niveles\"},\n{\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño del mapa lo dejo a criterio del specialist, debe poder contemplar la movilidad del avatar, el desplazamiento consecuente de las cajas y los pasillos que surgan al diseñar el mapeo con las paredes\"},\n{\"de\":[\"L16\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño de los botones 'reiniciar' y 'proximo nivel' lo dejo a criterio del specialist\"}],\n\"criterios_holdout\":[\"Se puede mover un avatar para acomodar cajas en posiciones fijadas en cada nivel, si el jugador realiza un mal movimiento, se dispondrá en la interfaz del juego un botón 'reiniciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\",\"Se pueden reiniciar niveles si se realiza un mal movimiento\",\"Se pueden avanzar a niveles nuevos con botones 'proximo nivel'\",\"El juego inicia automáticamente al abrir el HTML en el navegador\"]}\n```"
+        },
+        {
+          "role": "user",
+          "content": "Revisá tu JSON:\n- Estas líneas no quedaron en ningún ítem. Asignalas con sus palabras (si detallan otro ítem, agregalas a ese ítem y sumá la línea a su \"de\"; si no hay nada para construir, van como contexto):\n  L9 (respuesta a \"¿Qué ocurre cuando el jugador realiza un mal movimiento y cómo se reinicia el juego?\"): \"si el jugador realizo un mal movimiento y necesita reiniciar el nivel, se dispondra en la interfaz del juego un boton 'reinciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\"\nDevolvé el JSON COMPLETE entero de nuevo."
+        }
+      ],
+      "content": "```json\n{\"status\":\"COMPLETE\",\"project_name\":\"Boxworld\",\"items\":[\n{\"de\":[\"L1\"],\"tipo\":\"contexto\",\"texto\":\"Juego Boxworld en html autocontenido\"},\n{\"de\":[\"L2\"],\"tipo\":\"feature\",\"texto\":\"El jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel, si el jugador realiza un mal movimiento y necesita reiniciar el nivel, se dispondrá en la interfaz del juego un botón 'reiniciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\"},\n{\"de\":[\"L3\"],\"tipo\":\"feature\",\"texto\":\"El juego necesita un botón 'reiniciar' y otro botón 'proximo nivel'\"},\n{\"de\":[\"L4\"],\"tipo\":\"estilo\",\"texto\":\"Estilo Family NES, 8bits\"},\n{\"de\":[\"L5\"],\"tipo\":\"restriccion\",\"texto\":\"Las cajas no pueden salir del diseño del mapa, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador\"},\n{\"de\":[\"L6\",\"L13\"],\"tipo\":\"feature\",\"texto\":\"Generación aleatoria de niveles si posible, sino se diseñarán al menos 3 niveles\"},\n{\"de\":[\"L7\"],\"tipo\":\"feature\",\"texto\":\"El jugador moverá un avatar que podrá 'empujar' las cajas en diferentes direcciones siempre y cuando la dirección del movimiento no esté impedida por alguna pared\"},\n{\"de\":[\"L8\"],\"tipo\":\"restriccion\",\"texto\":\"El juego inicia automáticamente al abrir el HTML en el navegador\"},\n{\"de\":[\"L10\",\"L14\"],\"tipo\":\"feature\",\"texto\":\"La interfaz del juego contará con un botón 'proximo nivel' que permitirá al jugador avanzar a un nivel nuevo con una disposición distinta del mapa, las ubicaciones de las cajas y el avatar\"},\n{\"de\":[\"L11\"],\"tipo\":\"restriccion\",\"texto\":\"En cada nivel habrá un mínimo de 4 cajas, el tamaño del mapa será lo suficiente para que el avatar pueda moverse entre las cajas, las paredes forman parte del mapa, por lo que habrá tantas como el diseño lo necesite\"},\n{\"de\":[\"L12\",\"L13\"],\"tipo\":\"restriccion\",\"texto\":\"No se genera aleatoriamente el mapa y las cajas, sino que se diseñarán al menos 3 niveles\"},\n{\"de\":[\"L15\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño del mapa lo dejo a criterio del specialist, debe poder contemplar la movilidad del avatar, el desplazamiento consecuente de las cajas y los pasillos que surgan al diseñar el mapeo con las paredes\"},\n{\"de\":[\"L16\"],\"tipo\":\"restriccion\",\"texto\":\"El tamaño de los botones 'reiniciar' y 'proximo nivel' lo dejo a criterio del specialist\"}],\n\"criterios_holdout\":[\"Se puede mover un avatar para acomodar cajas en posiciones fijadas en cada nivel, si el jugador realiza un mal movimiento y necesita reiniciar el nivel, se dispondrá en la interfaz del juego un botón 'reiniciar nivel' para volver a situar al avatar y a las cajas en las posiciones iniciales del nivel\",\"Se pueden reiniciar niveles si se realiza un mal movimiento\",\"Se pueden avanzar a niveles nuevos con botones 'proximo nivel'\",\"El juego inicia automáticamente al abrir el HTML en el navegador\"]}\n```"
+    }
+  ]
+}

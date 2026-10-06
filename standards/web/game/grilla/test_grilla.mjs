@@ -141,7 +141,7 @@ t("stuckBoxes: caja contra la pared con su objetivo pegado a esa pared → viva;
 t("solver: sigue resolviendo los niveles buenos de b10", b10.levels.every((rows) => solve(rows).solvable === true));
 const emit = step("niveles").emit(b10.levels, b10.report.filter((r) => r.ok));
 t("emit: niveles ordenados por empujes (dificultad creciente medible)", emit.reports.every((r, i, a) => !i || (a[i - 1].pushes ?? 0) <= (r.pushes ?? 0)), JSON.stringify(emit.reports.map((r) => r.pushes)));
-t("data: missing dice cuántos faltan y que sean nuevos", /mandá 1 nivel\(es\) NUEVO/.test(step("niveles").missing(4, 5)));
+t("data: missing dice cuántos faltan y que sean nuevos", /mandá SOLO 1 nivel\(es\) NUEVO/.test(step("niveles").missing(4, 5)));
 const sw = step("pantalla").swatches;
 const swDir = fileURLToPath(new URL("../../../../build/runs/_test_swatch/", import.meta.url));
 const swatch = async (css) => {
@@ -158,6 +158,28 @@ const refSw = await swatch(ref("styles.css"));
 t("referencia game_files_ok: sus clases se ven distintas", refSw.length === 0, JSON.stringify(refSw));
 t("traductor web/game: click_changes en 'reiniciar' (b10 R1, FAIL falso) → reset_restores", JSON.stringify(postprocessChecks([{ type: "click_changes", params: { click: ["reiniciar"] } }])) === JSON.stringify([{ type: "reset_restores", params: { click: ["reiniciar"] } }]) && postprocessChecks([{ type: "click_changes", params: { click: ["siguiente"] } }])[0].type === "click_changes");
 t("contrato: el número de nivel empieza en 1", /nivelActual \+ 1/.test(CONTRACT));
+
+// v0.1.2 (Boxworld b11: CSS bien, pero dibujar() pintaba con style; reiniciar con disabled)
+const b11 = (n) => fx(`real_boxworld_b11/${n}`);
+const looksDir = fileURLToPath(new URL("../../../../build/runs/_test_looks/", import.meta.url));
+const drawn = async (dibujoJs, css = b11("styles.css")) => {
+  mkdirSync(looksDir + "js", { recursive: true });
+  for (const f of ["js/niveles.js", "js/reglas.js"]) writeFileSync(looksDir + f, b11(f));
+  writeFileSync(looksDir + "js/dibujo.js", dibujoJs);
+  writeFileSync(looksDir + "styles.css", css);
+  const st = step("dibujo");
+  writeFileSync(looksDir + "index.html", E.pageHtml({ title: "t", fragment: '<div id="tablero"></div><div id="nivel"></div><div id="movimientos"></div>', scripts: SCRIPTS.slice(0, 3), inline: st.probe + "\n" + E.drawnLooksProbe(st.looks), mainId: "juego" }));
+  const pr = await E.probePage(looksDir + "index.html");
+  return E.drawnLooksProblems(pr.looks, st.looks, dibujoJs);
+};
+const lk = await drawn(b11("js/dibujo.js"));
+t("dibujo b11: caja y jugador se ven como el piso en el tablero dibujado + pista de style.backgroundColor", lk.length === 2 && /\.piso = \.caja = \.jugador/.test(lk[0]) && /style\.backgroundColor/.test(lk[1]), JSON.stringify(lk));
+t("dibujo b11 sin los style → sin problemas", (await drawn(b11("js/dibujo.js").replace(/\n\s*casilla\.style\.backgroundColor = [^;]+;/g, ""))).length === 0);
+t("pantalla b11: #btn-reiniciar con disabled → problema", E.disabledInHtml(b11("index.html"), "btn-reiniciar") && !E.disabledInHtml(b11("index.html"), "btn-siguiente") && step("pantalla").enabled.includes("btn-reiniciar"));
+const b11r = runRuleTests(loadScripts([b11("js/niveles.js"), b11("js/reglas.js")]).Reglas, []);
+const plus = b11r.failed.find((f) => f.name === "lee '*' y '+'")?.detail || "";
+t("prueba de '*' y '+' (b11): dice solo lo que está mal (objetivos y mapa), no lo que está bien", /objetivos: tendrían que ser/.test(plus) && /cada fila tiene que ser un STRING/.test(plus) && !/jugador: tendría/.test(plus) && !/cajas: tendrían/.test(plus), plus);
+t("niveles: con niveles ya guardados, el pedido es solo por los que faltan", /proponé 1 nivel\(es\) NUEVO\(S\) \(ya hay 4 válidos/.test(step("niveles").prompt({ hints: { minLevels: 5, rows: 10, cols: 10 }, have: 4, paso: "PASO 1 de 5" })));
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

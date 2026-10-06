@@ -1,0 +1,108 @@
+### FILE: js/controles.js
+```javascript
+let nivelActual = 0;
+let estado;
+
+/**
+ * Inicializa o reinicia el juego en un nivel específico.
+ * @param {number} i - El índice del nivel a cargar (0-based).
+ */
+function iniciarNivel(i) {
+    nivelActual = i;
+    // Creamos el nuevo estado basado en los niveles definidos
+    estado = Reglas.crearEstado(NIVELES[i]);
+
+    // Limpiar mensaje y dibujar la escena inicial
+    document.getElementById('mensaje').textContent = "¡Mueve al avatar para acomodar las cajas!";
+    dibujar(estado, nivelActual + 1);
+}
+
+/**
+ * Maneja el movimiento del jugador basado en las teclas presionadas.
+ */
+function manejarMovimientoTeclado(event) {
+    let direccion;
+    switch (event.key) {
+        case 'ArrowUp':
+            direccion = "arriba";
+            break;
+        case 'ArrowDown':
+            direccion = "abajo";
+            break;
+        case 'ArrowLeft':
+            direccion = "izquierda";
+            break;
+        case 'ArrowRight':
+            direccion = "derecha";
+            break;
+        default:
+            return; // No es una flecha de movimiento
+    }
+
+    event.preventDefault();
+
+    // 1. Calcular el nuevo estado después del intento de movimiento
+    const nuevoEstado = Reglas.mover(estado, direccion);
+
+    // Si no hubo cambio en el estado (colisión), simplemente salimos
+    if (nuevoEstado.movimientos === estado.movimientos && !Reglas.ganado(estado)) {
+        return; 
+    }
+
+    // 2. Actualizar el estado global
+    estado = nuevoEstado;
+
+    // 3. Dibujar la nueva escena y actualizar HUD
+    dibujar(estado, nivelActual + 1);
+
+    // 4. Verificar si se ganó el nivel
+    if (Reglas.ganado(estado)) {
+        document.getElementById('mensaje').textContent = "¡Nivel completado! Presiona Siguiente Nivel.";
+        // No removemos el listener aquí, ya que necesitamos que siga funcionando para reiniciar o avanzar.
+    } else if (nuevoEstado.movimientos > estado.movimientos) {
+         // Solo actualizamos el mensaje si hubo un movimiento válido y no es la primera vez que se llama a dibujar
+        if (!document.getElementById('mensaje').textContent.includes("¡Nivel completado!")) {
+            document.getElementById('mensaje').textContent = "Sigue acomodando las cajas...";
+        }
+    }
+}
+
+/**
+ * Maneja el evento de reiniciar el nivel.
+ */
+function manejarReiniciar() {
+    // Reinicia el estado al inicio del nivel actual, lo cual también restablece los controles.
+    iniciarNivel(nivelActual);
+}
+
+/**
+ * Maneja el evento de pasar al siguiente nivel.
+ */
+function manejarSiguienteNivel() {
+    const proximoNivel = nivelActual + 1;
+    if (proximoNivel < NIVELES.length) {
+        // Reinicia y carga el siguiente nivel
+        iniciarNivel(proximoNivel);
+    } else {
+        document.getElementById('mensaje').textContent = "¡Felicidades! Has completado todos los niveles.";
+        // Deshabilitar botones al terminar el juego
+        document.getElementById('btn-siguiente').disabled = true;
+        document.getElementById('btn-reiniciar').disabled = true;
+    }
+}
+
+// --- Inicialización de Event Listeners y Juego ---
+
+// 1. Listener para las teclas de flecha (Movimiento)
+document.addEventListener('keydown', manejarMovimientoTeclado);
+
+// 2. Listener para el botón Reiniciar
+document.getElementById('btn-reiniciar').addEventListener('click', manejarReiniciar);
+
+// 3. Listener para el botón Siguiente Nivel
+document.getElementById('btn-siguiente').addEventListener('click', manejarSiguienteNivel);
+
+
+// Inicia el juego en el nivel 0 al cargar la página
+iniciarNivel(0);
+```

@@ -52,8 +52,14 @@ export const RULE_TESTS = [
   } },
   { name: "lee '*' y '+'", fn: "crearEstado", input: ["######", "#+$ *#", "######"], run(R, lv) {
     const e = R.crearEstado(lv);
-    return (same(e?.jugador, { fila: 1, col: 1 }) && sameList(e?.cajas, [{ fila: 1, col: 2 }, { fila: 1, col: 4 }]) && sameList(e?.objetivos, [{ fila: 1, col: 1 }, { fila: 1, col: 4 }]) && (e?.mapa || [])[1] === "#.  .#")
-      || `crearEstado(${L(lv)}): '+' es jugador sobre objetivo y '*' caja sobre objetivo → jugador {fila:1,col:1}, cajas [{fila:1,col:2},{fila:1,col:4}], objetivos [{fila:1,col:1},{fila:1,col:4}], mapa fila 1 "#.  .#"; dio jugador ${P(e?.jugador)}, cajas [${(e?.cajas || []).map(P)}], objetivos [${(e?.objetivos || []).map(P)}], mapa fila 1 ${JSON.stringify((e?.mapa || [])[1])}.`;
+    // v0.1.2 (b11): el mensaje dice SOLO lo que está mal (b11: 3 reparaciones fallidas con el mensaje entero)
+    const bad = [];
+    if (!same(e?.jugador, { fila: 1, col: 1 })) bad.push(`jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio ${P(e?.jugador)}`);
+    if (!sameList(e?.cajas, [{ fila: 1, col: 2 }, { fila: 1, col: 4 }])) bad.push(`cajas: tendrían que ser [{fila:1,col:2},{fila:1,col:4}] ('*' = caja sobre objetivo también es caja) y dio [${(e?.cajas || []).map(P)}]`);
+    if (!sameList(e?.objetivos, [{ fila: 1, col: 1 }, { fila: 1, col: 4 }])) bad.push(`objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio [${(e?.objetivos || []).map(P)}]`);
+    const m1 = (e?.mapa || [])[1];
+    if (m1 !== "#.  .#") bad.push(typeof m1 === "string" ? `mapa fila 1: tendría que ser "#.  .#" (donde hay '+' o '*' el mapa tiene '.') y dio ${JSON.stringify(m1)}` : `mapa: cada fila tiene que ser un STRING (como "#.  .#"), no un array de caracteres`);
+    return !bad.length || `crearEstado(${L(lv)}): ${bad.join("; ")}.`;
   } },
 ];
 

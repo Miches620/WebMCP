@@ -1,0 +1,59 @@
+```javascript
+crearEstado(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+
+        const R = nivel.length;
+        if (R === 0) return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+        const C = nivel[0].length;
+
+        // Inicializar el mapa temporal como un array de arrays para facilitar la construcción
+        let mapaLimpio2D = Array(R).fill(null).map(() => Array(C));
+
+        // Primer recorrido: Construir el mapa limpio y encontrar objetivos
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                const char = nivel[r][c];
+                if (char === '#') {
+                    mapaLimpio2D[r][c] = '#'; // Pared
+                } else if (char === '.') {
+                    mapaLimpio2D[r][c] = '.'; // Objetivo
+                    objetivos.push({ fila: r, col: c });
+                } else if (char === ' ') {
+                    mapaLimpio2D[r][c] = ' '; // Piso vacío
+                } else {
+                    // Ignoramos caracteres de jugador/caja en el mapa limpio, tratándolos como piso.
+                    mapaLimpio2D[r][c] = ' '; 
+                }
+            }
+        }
+
+        // Segundo recorrido: Identificar entidades dinámicas (jugador y cajas)
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                const char = nivel[r][c];
+
+                // El jugador puede estar en '@' o '+'
+                if (char === '@' || char === '+') {
+                    jugador = { fila: r, col: c };
+                } 
+                // Las cajas se identifican por '$' o '*'
+                else if (char === '$' || char === '*') {
+                    cajas.push({ fila: r, col: c });
+                }
+            }
+        }
+
+        // Convertir el mapa de array de arrays a un array de strings, según el contrato
+        const mapaFinal = mapaLimpio2D.map(row => row.join(''));
+
+        return {
+            mapa: mapaFinal, // Array de strings (filas)
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    }
+```

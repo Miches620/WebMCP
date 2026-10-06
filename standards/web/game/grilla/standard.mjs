@@ -1,4 +1,8 @@
 // standard.mjs — Standard "juego de grilla" (web/game/grilla) · DRAFT v0.1.1 (06/10).
+// v0.1.2 (Boxworld b11, 5 PASS otra vez con caja y jugador invisibles): dibujo declara `looks`
+// (el tablero DIBUJADO se mira en Chromium: dibujar() pintaba con style y tapaba el CSS);
+// pantalla declara `enabled` (#btn-reiniciar vino con disabled); niveles: el reintento pide
+// solo los que faltan; la prueba de '*' y '+' dice solo lo que está mal.
 // v0.1.1 (Boxworld b10, 5 PASS pero tablero de 100 casilleros iguales): pantalla declara
 // `swatches` (cada clase se tiene que ver distinta; el motor lo prueba en Chromium); niveles
 // junta los válidos de todos los intentos, explica las cajas trabadas contra la pared y se
@@ -84,7 +88,7 @@ const size = (h) => ({ rows: h.rows || 10, cols: h.cols || 10, min: Math.max(h.m
 
 export default {
   id: "web/game/grilla",
-  version: "0.1.1",
+  version: "0.1.2",
   status: "DRAFT",
   label: "juego de grilla: empujar piezas hasta sus objetivos",
   describe: "Juego de una pantalla sobre una grilla, por archivos: juego.html, styles.css, js/niveles.js (datos verificados con solver), js/reglas.js (lógica pura probada en Node), js/dibujo.js (probado en Chromium), js/controles.js (chequeos de juego).",
@@ -109,7 +113,7 @@ export default {
   steps: [
     {
       id: "niveles", kind: "data", answer: "niveles.json", file: "js/niveles.js", cap: 4000,
-      prompt: (c) => { const z = size(c.hints); return `${c.paso}: proponé ${z.min} niveles o más como JSON, en COORDENADAS (no dibujes el mapa: el harness arma js/niveles.js).
+      prompt: (c) => { const z = size(c.hints); return `${c.paso}: proponé ${c.have ? `${Math.max(z.min - c.have, 1)} nivel(es) NUEVO(S) (ya hay ${c.have} válidos guardados: no los repitas)` : `${z.min} niveles o más`} como JSON, en COORDENADAS (no dibujes el mapa: el harness arma js/niveles.js).
 Mapa de ${z.rows} filas x ${z.cols} columnas. El borde (fila 0, fila ${z.rows - 1}, columna 0, columna ${z.cols - 1}) ya es pared: no lo listes. Todo lo que pongas va en filas 1 a ${z.rows - 2} y columnas 1 a ${z.cols - 2}.
 Formato:
 ### FILE: niveles.json
@@ -124,7 +128,7 @@ Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su
         return { items: L1.levels, reports: L1.report.filter((r) => r.ok), dropped: L1.problems };
       },
       need: (c) => size(c.hints).min,
-      missing: (have, need) => `hay ${have} niveles válidos (juntando tus respuestas anteriores) y se piden al menos ${need}: mandá ${need - have} nivel(es) NUEVO(S), distinto(s) de los que ya mandaste.`,
+      missing: (have, need) => `hay ${have} niveles válidos (juntando tus respuestas anteriores) y se piden al menos ${need}: mandá SOLO ${need - have} nivel(es) NUEVO(S). Lo más seguro: 1 o 2 cajas en el medio del mapa (filas 3 a 6, columnas 3 a 6), cada una a 1 o 2 casilleros de su objetivo, sin paredes alrededor.`,
       // dificultad creciente medible: se ordenan por cantidad de empujes que necesitó el solver
       emit: (items, reports) => {
         const order = items.map((it, i) => i).sort((a, b) => (reports[a]?.pushes ?? 99) - (reports[b]?.pushes ?? 99));
@@ -144,12 +148,16 @@ Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su
       id: "pantalla", kind: "screen", files: ["juego.html", "styles.css"], cap: 4500,
       // cómo dibuja dibujar(): un div por casillero con class="casillero <variante>"
       swatches: { container: "tablero", base: "casillero", variants: ["pared", "piso", "objetivo", "caja", "jugador"], sameAsBase: ["piso"] },
+      // b3 y b11: #btn-reiniciar vino con disabled en el HTML y nadie lo habilitaba
+      enabled: ["btn-reiniciar", "btn-siguiente"],
       prompt: (c) => `${c.paso}: escribí juego.html (SOLO el contenido de la pantalla: título, HUD con #nivel y #movimientos, #tablero, #mensaje y los botones #btn-reiniciar y #btn-siguiente; sin <html>, <head>, <script> ni <style>) y styles.css (todo el estilo de la página; #tablero es una grilla CSS de casilleros cuadrados; cada casillero es UN div con varias clases a la vez, por ejemplo class="casillero pared" o class="casillero piso objetivo caja": los selectores son .casillero.pared, .casillero.caja, etc., y cada clase se tiene que ver distinta). Respetá los CRITERIOS DE ESTILO del brief.`,
     },
     {
       id: "dibujo", kind: "render", file: "js/dibujo.js", cap: 4000, needs: ["niveles", "reglas"],
       defines: "dibujar(estado, numeroNivel)", notOwn: { names: ["nivelActual", "estado", "iniciarNivel"], owner: "js/controles.js (paso 5)" }, noListeners: true,
       call: "dibujar(Reglas.crearEstado(NIVELES[0]), 1)", probe: PROBE,
+      // b11: el CSS estaba bien pero dibujar() pintaba con style.backgroundColor y tapaba caja y jugador
+      looks: { container: "tablero", base: "casillero", variants: ["pared", "piso", "objetivo", "caja", "jugador"] },
       expect: (p) => {
         const out = [];
         if (p.cells !== p.rows * p.cols) out.push(`#tablero tiene ${p.cells} hijos y el nivel tiene ${p.rows}x${p.cols} = ${p.rows * p.cols} casilleros: un div por casillero, hijos directos de #tablero.`);

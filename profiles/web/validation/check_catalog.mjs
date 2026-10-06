@@ -15,11 +15,12 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle } from "./form_runtime.mjs";
 
-export const CATALOG_VERSION = "check_catalog v0.8";
+export const CATALOG_VERSION = "check_catalog v0.8.1";
 // v0.8 (06/10, web/game por archivos): chequeos sobre el CONTRATO del juego (NIVELES y Reglas
 // existen en la página): game_levels (al menos N niveles), moves_one_cell (de a un casillero,
 // la pared bloquea), fixed_map_size (todos los niveles del mismo tamaño y el tablero lo dibuja).
 // Cierran R3, R5 y R6 de Boxworld, que con la página sola quedaban SIN_CHEQUEO.
+// v0.8.1 (06/10, Boxworld b11): reset_restores juega tecla por tecla hasta que algo cambie.
 // v0.7.4 (05/10, Boxworld build 7): la foto de pantalla (SNAP) incluye data-*; reset_restores daba
 // "las teclas no cambian nada" en un juego que marca jugador/cajas con data-type.
 // v0.7.3 (05/10, Boxworld build 6): no_js_errors devuelve también la línea del error (errors[].line).
@@ -978,10 +979,15 @@ export async function runChecks(htmlPath, checks) {
           case "reset_restores": {
             const keys = keysFrom(c.params.keys);
             const s0 = await page.evaluate(SNAP, false);
-            for (const k of keys) { await page.keyboard.press(k); await page.waitForTimeout(120); }
-            await waitForSettle(page);
-            const s1 = await page.evaluate(SNAP, false);
-            const d1 = diffCount(s0, s1);
+            // v0.8.1 (Boxworld b11): se juega tecla por tecla hasta que algo cambie. Antes se apretaban
+            // ↑ ↓ ← → seguidas: el avatar volvía al casillero de inicio y daba FAIL falso ("las teclas
+            // no cambian nada"), tapando el bug real (reiniciar con disabled).
+            let s1 = s0, d1 = 0;
+            for (const k of [...keys, ...keys]) {
+              await page.keyboard.press(k); await page.waitForTimeout(120); await waitForSettle(page);
+              s1 = await page.evaluate(SNAP, false); d1 = diffCount(s0, s1);
+              if (d1) break;
+            }
             if (!d1) { r.detail = `las teclas (${keys.join(", ")}) no cambian nada: no hay qué reiniciar`; break; }
             const ctl = await findControl(page, c.params.click);
             if (!ctl) { r.detail = `después de jugar, ningún control visible menciona: ${c.params.click.join(" / ")}`; break; }

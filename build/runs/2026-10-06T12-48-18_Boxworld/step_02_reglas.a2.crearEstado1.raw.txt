@@ -1,0 +1,57 @@
+```javascript
+crearEstado(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+
+        const R = nivel.length;
+        if (R === 0) return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+        const C = nivel[0].length;
+
+        // Inicializar el mapa limpio con dimensiones correctas
+        // El mapa solo contendrá paredes ('#'), pisos vacíos (' ') y objetivos ('.').
+        const mapaLimpio = Array(R).fill(null).map(() => Array(C));
+
+        // Primer recorrido: Construir el mapa base y encontrar objetivos.
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                const char = nivel[r][c];
+                if (char === '#') {
+                    mapaLimpio[r][c] = '#'; // Pared
+                } else if (char === '.' || char === '+' || char === '@') {
+                    // Si es un objetivo explícito, o si el jugador comienza en una posición que debe ser considerada objetivo (+/@), 
+                    // se marca como objetivo en el mapa.
+                    mapaLimpio[r][c] = '.'; 
+                    objetivos.push({ fila: r, col: c });
+                } else {
+                    // Cualquier otro carácter (espacio, $, *, etc.) se trata como piso vacío en el mapa base.
+                    mapaLimpio[r][c] = ' '; 
+                }
+            }
+        }
+
+        // Segundo recorrido: Identificar entidades dinámicas (jugador y cajas)
+        for (let r = 0; r < R; r++) {
+            for (let c = 0; c < C; c++) {
+                const char = nivel[r][c];
+
+                // El jugador puede estar en '@' o '+'
+                if (char === '@' || char === '+') {
+                    jugador = { fila: r, col: c };
+                } 
+                // Las cajas se identifican por '$' o '*'
+                else if (char === '$' || char === '*') {
+                    cajas.push({ fila: r, col: c });
+                }
+            }
+        }
+
+        return {
+            mapa: mapaLimpio, // Solo paredes y pisos/objetivos
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    }
+```

@@ -39,7 +39,7 @@ import { runChecks } from "../profiles/web/validation/check_catalog.mjs";
 import { rulesBrief } from "../profiles/web/app/specialist_rules.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
 
-export const ENGINE_VERSION = "files_engine v0.9.1";
+export const ENGINE_VERSION = "files_engine v0.9.2";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
@@ -168,6 +168,11 @@ export function shadowProblems(code) {
 }
 
 // ---------- screen ----------
+/** ¿El elemento con ese id trae el atributo disabled en el HTML? */
+export function disabledInHtml(html, id) {
+  const m = String(html || "").match(new RegExp(`<[^>]*\\bid\\s*=\\s*["']${id}["'][^>]*>`, "i"));
+  return !!m && /\sdisabled(\s|=|>|\/)/i.test(m[0].replace(/\bid\s*=\s*["'][^"']*["']/i, ""));
+}
 export function missingIds(html, ids) {
   return ids.filter((id) => !new RegExp(`id\\s*=\\s*["']${id}["']`).test(html || ""));
 }
@@ -221,7 +226,8 @@ export async function probePage(htmlPath) {
     await page.route(/^https?:/, (r) => r.abort());
     await page.goto(pathToFileURL(htmlPath).href, { waitUntil: "load" });
     const p = await page.evaluate(() => window.__probe || null);
-    return { probe: p, errors: errs };
+    const looks = await page.evaluate(() => window.__looks || null);
+    return { probe: p, looks, errors: errs };
   } finally { await browser.close(); }
 }
 /** Problemas generales de una sonda; los específicos los agrega step.expect(probe). */
@@ -232,6 +238,8 @@ export function probeProblems({ probe: p, errors }, step) {
 }
 
 // ---------- screen: variantes que se tienen que ver distintas ----------
+// Se compara el RELLENO (color o imagen de fondo, contorno, símbolo en ::before/::after, texto).
+// Un borde o una sombra no alcanzan para distinguir una pieza (b11: la caja era piso con un brillo).
 /** Sonda: agrega al contenedor un elemento por variante (class="base variante") y mide cómo se ve. */
 export function swatchProbe({ container, base, variants }) {
   return `window.__probe = (function () {
@@ -241,7 +249,7 @@ export function swatchProbe({ container, base, variants }) {
     var V = ${JSON.stringify(variants)}, out = {};
     var look = function (el) {
       var s = getComputedStyle(el), a = getComputedStyle(el, "::after"), b = getComputedStyle(el, "::before");
-      return [s.backgroundColor, s.backgroundImage, s.borderTopColor, s.color, s.boxShadow, s.opacity, s.outlineColor, a.content, a.backgroundColor, b.content, b.backgroundColor, (el.textContent || "").trim()].join("|");
+      return [s.backgroundColor, s.backgroundImage, s.outlineStyle === "none" ? "" : s.outlineColor, a.content, a.backgroundColor, b.content, b.backgroundColor, (el.textContent || "").trim()].join("|");
     };
     var plain = document.createElement("div"); plain.className = ${JSON.stringify(base)}; box.appendChild(plain);
     out[""] = look(plain);
@@ -263,6 +271,40 @@ export function swatchProblems({ probe: p, errors }, { base, variants, sameAsBas
   if (same.length) out.push(`en styles.css se ven iguales: ${same.map((g) => g.map((v) => "." + v).join(" = ")).join("; ")}. Cada una necesita su propio color o símbolo.`);
   const desc = [...String(css).matchAll(new RegExp(`\\.${base}\\s+\\.(${variants.join("|")})\\b`, "g"))].map((m) => m[0]);
   if (out.length && desc.length) out.push(`las clases van en el MISMO elemento (class="${base} ${variants[0]}"), así que el selector es .${base}.${variants[0]} (sin espacio). Con espacio (${[...new Set(desc)].slice(0, 3).join(", ")}) busca un elemento ADENTRO de .${base} y no se aplica.`);
+  return out;
+}
+
+// ---------- render: cómo se ve lo que quedó en pantalla (v0.9.2, Boxworld b11) ----------
+// b11: styles.css estaba bien (pasó swatches) pero el código de dibujo pintaba cada celda con
+// style.backgroundColor y tapaba los colores de caja y jugador: otra vez 5 PASS con el juego
+// invisible. Ahora se mira lo dibujado, no solo el CSS.
+export function drawnLooksProbe({ container, base, variants }) {
+  return `window.__looks = (function () {
+  try {
+    var box = document.getElementById(${JSON.stringify(container)}); if (!box) return null;
+    var V = ${JSON.stringify(variants)}, out = {};
+    var look = function (el) { var s = getComputedStyle(el), a = getComputedStyle(el, "::after"), b = getComputedStyle(el, "::before");
+      return [s.backgroundColor, s.backgroundImage, s.outlineStyle === "none" ? "" : s.outlineColor, a.content, a.backgroundColor, b.content, b.backgroundColor, (el.textContent || "").trim()].join("|"); };
+    var cells = Array.prototype.slice.call(box.querySelectorAll(${JSON.stringify("." + base)}));
+    V.forEach(function (v) {
+      var withV = cells.filter(function (c) { return c.classList.contains(v); });
+      withV.sort(function (x, y) { return x.classList.length - y.classList.length; });
+      if (withV[0]) out[v] = look(withV[0]);
+    });
+    return out;
+  } catch (err) { return null; }
+})();`;
+}
+export function drawnLooksProblems(looks, { base, variants }, code = "", who = "el código") {
+  if (!looks) return [];
+  const present = variants.filter((v) => looks[v] != null);
+  const groups = {};
+  for (const v of present) (groups[looks[v]] ||= []).push(v);
+  const same = Object.values(groups).filter((g) => g.length > 1);
+  if (!same.length) return [];
+  const out = [`en lo que quedó dibujado en pantalla se ven iguales: ${same.map((g) => g.map((v) => "." + v).join(" = ")).join("; ")} (mismo color de fondo y sin símbolo).`];
+  const inline = [...new Set([...String(code).matchAll(/\.style\.(background(?:Color)?|color|border(?:Color)?)\s*=/g)].map((m) => m[1]))];
+  if (inline.length) out.push(`${who} pone colores con style.${inline.join(", style.")}: eso le gana a styles.css y tapa las clases. Sacalo: solo poné las clases (class="${base} ${variants[0]}", etc.) y que styles.css pinte.`);
   return out;
 }
 
@@ -334,14 +376,19 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
   const dataItems = () => Object.values(ctx.data).find((d) => Array.isArray(d?.items))?.items || [];
 
   // ---- un paso: hasta 3 intentos del MISMO archivo ----
-  const runStep = async (st, n, { judge, repair }) => {
+  const runStep = async (st, n, K) => {
+    const { judge, repair } = K;
     const names = answerOf(st);
     const rec = { n, task_id: st.id, kind: st.kind, files: names, attempts: [] };
     log(`[SPECIALIST] ${n}/${S.steps.length} ${names.join(" + ")}`);
     ctx.paso = `PASO ${n} de ${S.steps.length}`;
     let best = null, prev = null, problems = [];
     for (let k = 0; k < 3; k++) {
-      const user = `BRIEF:\n${brief}\n\n${S.contract}\n\n${st.prompt(ctx)}\n\n` + retryBlock(prev, problems, names);
+      ctx.have = K.count ? K.count() : 0;
+      // datos: lo válido ya quedó guardado; el reintento pide solo lo que falta (b11: los reintentos
+      // re-mandaban los 5 niveles y repetían el mismo error)
+      const retry = st.kind === "data" ? (problems.length ? `PROBLEMAS DE TU RESPUESTA ANTERIOR (los encontró el harness):\n${problems.map((p) => "- " + p).join("\n")}` : "") : retryBlock(prev, problems, names);
+      const user = `BRIEF:\n${brief}\n\n${S.contract}\n\n${st.prompt(ctx)}\n\n` + retry;
       const r = await ask(FILE_PROMPT, user, st.cap || 4000);
       writeFileSync(join(outDir, `step_${String(n).padStart(2, "0")}_${st.id}${k ? ".retry" + k : ""}.raw.txt`), r.raw, "utf8");
       let raw = r.raw;
@@ -431,6 +478,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
           return pool.length >= need ? [] : fatal([...out.dropped, st.missing(pool.length, need)]);
         },
         final,
+        count: () => pool.length,
       };
     },
     logic: (st) => {
@@ -491,6 +539,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
         if (!c[html]) out.push(`la respuesta no trajo ### FILE: ${html}.`);
         else { const miss = missingIds(c[html], S.ids || []); if (miss.length) out.push(`faltan estos ids en ${html}: ${miss.map((x) => "#" + x).join(", ")}.`); }
         if (!c[css]) out.push(`la respuesta no trajo ### FILE: ${css}.`);
+        for (const id of st.enabled || []) if (disabledInHtml(c[html], id)) out.push(`en ${html}, #${id} tiene el atributo disabled: así nunca se puede usar. Sacá disabled.`);
         if (out.length || !st.swatches || opts.check === false) return out;
         // v0.9.1 (Boxworld b10): que las variantes SE VEAN distintas. b10 pasó 5 chequeos con un
         // tablero de 100 casilleros iguales: styles.css decía ".casillero .pared" (descendiente)
@@ -515,8 +564,11 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
         if (extra.length) return extra;
         if (opts.check === false) return [];
         const dir = join(outDir, `probe_${st.id}`);
-        writeApp(dir, { ...files, [st.file]: code }, page(S.scripts.slice(0, S.scripts.indexOf(st.file) + 1), st.probe));
-        return probeProblems(await probePage(join(dir, "index.html")), st);
+        writeApp(dir, { ...files, [st.file]: code }, page(S.scripts.slice(0, S.scripts.indexOf(st.file) + 1), st.probe + (st.looks ? "\n" + drawnLooksProbe(st.looks) : "")));
+        const pr = await probePage(join(dir, "index.html"));
+        const base = probeProblems(pr, st);
+        if (base.fatal || !st.looks) return base;
+        return [...base, ...drawnLooksProblems(pr.looks, st.looks, code, st.file)];
       },
     }),
     wiring: (st) => ({

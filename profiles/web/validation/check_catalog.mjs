@@ -15,13 +15,19 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle } from "./form_runtime.mjs";
 
-export const CATALOG_VERSION = "check_catalog v0.7";
+export const CATALOG_VERSION = "check_catalog v0.7.1";
+
+// v0.7.1 (05/10, Boxworld build 4): key_changes dio PASS a "el avatar se mueve con las
+// flechas" y el avatar NO se movía: el estado cambiaba (contador 0 → 3) pero dibujar()
+// nunca se volvía a llamar; lo que cambiaba era el texto del contador y el mensaje.
+// board_changes mira solo el TABLERO (la grilla con más casilleros, o un canvas).
 
 // v0.7 (05/10, web/app y web/game): chequeos de INTERACCIÓN. Evidencia: Boxworld
 // build 3 — el juego "ganaba" con el primer movimiento, reiniciar quedaba
 // deshabilitado y el contador de movimientos se verificó con numbers_animate
 // ("cambian solos"): 5 de 8 requisitos SIN_CHEQUEO y el bug invisible.
-//   key_changes          apretar una tecla cambia la pantalla
+//   key_changes          apretar una tecla cambia la pantalla (cualquier cosa, también un texto)
+//   board_changes        (juego, v0.7.1) apretar una tecla cambia el TABLERO
 //   click_changes        hacer clic en un control cambia la pantalla
 //   counter_on_action    el número junto a una etiqueta cambia después de actuar
 //   not_won_immediately  (juego) UN movimiento no alcanza para ganar
@@ -156,6 +162,10 @@ export const CATALOG = {
   },
   key_changes: {
     describe: "Al apretar una tecla (flechas, espacio, enter o una letra) algo cambia en la pantalla. Usar para 'se mueve con las flechas / con el teclado'.",
+    params: { keys: "string[]?" },
+  },
+  board_changes: {
+    describe: "Al apretar una tecla cambia el TABLERO del juego (la grilla o el canvas: una pieza se mueve), no solo un texto o un contador. Usar para 'el avatar / jugador / la pieza se mueve con las flechas'.",
     params: { keys: "string[]?" },
   },
   click_changes: {
@@ -379,6 +389,22 @@ const LABELED_NUMBERS = (ws) => {
   }
   // el más chico: fuera los que contienen a otro que ya nombra la etiqueta
   return out.filter((x) => !out.some((y) => y !== x && x.e.contains(y.e))).map((x) => x.t);
+};
+// El tablero: dentro de <main>, el elemento con más hijos directos (≥ 9, una grilla) o el
+// <canvas> más grande. Foto de su subárbol: tag, clases, data-*, style (y píxeles si es canvas).
+const BOARD_SNAP = () => {
+  const root = document.querySelector("main") || document.body;
+  let board = null, best = 8;
+  for (const e of root.querySelectorAll("*")) if (e.children.length > best) { best = e.children.length; board = e; }
+  if (!board) {
+    const cs = [...root.querySelectorAll("canvas")].sort((a, b) => b.width * b.height - a.width * a.height);
+    board = cs[0] || null;
+  }
+  if (!board) return { found: false, lines: [] };
+  const px = (c) => { try { const u = c.toDataURL(); let h = 0; for (let i = 0; i < u.length; i += 7) h = (h * 31 + u.charCodeAt(i)) | 0; return u.length + ":" + h; } catch { return "?"; } };
+  const line = (e) => `${e.tagName}.${e.getAttribute("class") || ""}|${e.getAttributeNames().filter((n) => n.startsWith("data-")).map((n) => n + "=" + e.getAttribute(n)).join(",")}|${e.getAttribute("style") || ""}${e.tagName === "CANVAS" ? "|" + px(e) : ""}`;
+  const lines = [line(board), ...[...board.querySelectorAll("*")].map(line)];
+  return { found: true, label: board.id ? "#" + board.id : board.tagName.toLowerCase() + (board.className ? "." + String(board.className).split(" ")[0] : ""), lines };
 };
 const WIN_WORDS = ["ganaste", "ganado", "victoria", "felicitaciones", "completado", "completaste", "superado", "superaste", "nivel completo", "you win"];
 
@@ -800,6 +826,25 @@ export async function runChecks(htmlPath, checks) {
             }
             r.result = changed.length ? "PASS" : "FAIL";
             r.detail = changed.length ? `cambia la pantalla: ${changed.join(", ")}` : `ninguna tecla cambia nada (${keys.join(", ")})`;
+            break;
+          }
+          case "board_changes": {
+            const keys = keysFrom(c.params.keys);
+            const changed = [];
+            let label = null;
+            for (const k of keys) {
+              await reload();
+              const a = await page.evaluate(BOARD_SNAP);
+              if (!a.found) break;
+              label = a.label;
+              await page.keyboard.press(k);
+              await page.waitForTimeout(150); await waitForSettle(page);
+              const b = await page.evaluate(BOARD_SNAP);
+              if (diffCount(a.lines, b.lines)) changed.push(k);
+            }
+            if (!label) { r.detail = "no hay tablero (una grilla con 9 o más casilleros, o un canvas)"; break; }
+            r.result = changed.length ? "PASS" : "FAIL";
+            r.detail = changed.length ? `${label} cambia con: ${changed.join(", ")}` : `${label} no cambia con ninguna tecla (${keys.join(", ")}): puede cambiar el estado o un texto, pero el tablero no se redibuja`;
             break;
           }
           case "click_changes": {

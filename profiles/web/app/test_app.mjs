@@ -36,7 +36,10 @@ t("brief: las restricciones del usuario llegan al Specialist como reglas", rb.in
 t("brief vacío sin restricciones ni contexto", rulesBrief({}) === "");
 t("reglas de juego = reglas de app + G1–G6", GAME_SPECIALIST_RULES.startsWith(APP_SPECIALIST_RULES) && /G3\. Ganar = comparar la posición ACTUAL/.test(GAME_SPECIALIST_RULES) && /G6\./.test(GAME_SPECIALIST_RULES));
 t("app no trae reglas de juego", !/G1\./.test(APP_SPECIALIST_RULES));
-t("game: chequeo de base not_won_immediately con mensaje para Gemma", GAME_EXTRA_CHECKS[0].check.type === "not_won_immediately" && /posición ACTUAL/.test(GAME_EXTRA_CHECKS[0].problem({ detail: "con UN movimiento ya aparece la victoria" })) && /listener keydown/.test(GAME_EXTRA_CHECKS[0].problem({ detail: "ninguna tecla cambia nada" })));
+const nw = GAME_EXTRA_CHECKS.find((x) => x.check.type === "not_won_immediately"), bc = GAME_EXTRA_CHECKS.find((x) => x.check.type === "board_changes");
+t("game: chequeo de base not_won_immediately con mensaje para Gemma", nw && /posición ACTUAL/.test(nw.problem({ detail: "con UN movimiento ya aparece la victoria" })) && /listener keydown/.test(nw.problem({ detail: "ninguna tecla cambia nada" })));
+t("game: chequeo de base board_changes (b4: el contador subía y el tablero no se redibujaba)", bc && /llamá a dibujar\(\)/.test(bc.problem({ detail: "#mapa no cambia con ninguna tecla" })) && /grilla/.test(bc.problem({ detail: "no hay tablero" })));
+t("regla G5: después de mover, dibujar()", /DESPUÉS llama a dibujar\(\)/.test(GAME_SPECIALIST_RULES));
 for (const [name, B] of [["web/app", appBuild], ["web/game", gameBuild]])
   t(`${name}: cumple el contrato de build`, ["planPage", "planText", "PAGE_PLAN_VERSION", "build", "writeBaseline", "translateRequirement", "postprocessChecks", "runChecks", "normalizeCheck", "CATALOG_VERSION", "specialistSees"].every((k) => k in B));
 t("game: el principal se llama #juego; app: #principal", (await gameBuild.planPage(refined.features, { refined })).plan.sections[0].id === "juego" && (await appBuild.planPage(refined.features, { refined })).plan.sections[0].id === "principal");

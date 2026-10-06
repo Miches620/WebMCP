@@ -106,12 +106,15 @@ const PLAY = [
   { type: "counter_on_action", params: { label: ["movimientos"] } },
   { type: "not_won_immediately", params: {} },
   { type: "reset_restores", params: { click: ["reiniciar"] } },
+  { type: "board_changes", params: { keys: ["flechas"] } },
 ].map(normalizeCheck);
 const PLAY_CASES = {
-  game_ok: "PPPP",
-  game_mal: "PPFF", // gana con un movimiento; al ganar, reiniciar queda deshabilitado
-  "real_boxworld_b3/index": "PPFF",
-  sections_vacio: "FFFF", // nada responde: ninguno pasa (el esqueleto de control da FAIL → los PASS no son triviales)
+  game_ok: "PPPPP",
+  game_mal: "PPFFP", // gana con un movimiento; al ganar, reiniciar queda deshabilitado
+  "real_boxworld_b3/index": "PPFFP",
+  // v0.7.1: Boxworld b4 real — el contador sube pero dibujar() no se llama: key_changes PASS (lo engaña el texto), board_changes FAIL
+  "real_boxworld_b4/index": "PPPFF",
+  sections_vacio: "FFFFF", // nada responde: ninguno pasa (el esqueleto de control da FAIL → los PASS no son triviales)
 };
 for (const [name, exp] of Object.entries(PLAY_CASES)) {
   const r = await runChecks(S(name), PLAY);

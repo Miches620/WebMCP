@@ -59,7 +59,7 @@ t("landing no ve los chequeos de juego", !lp.includes("- not_won_immediately:") 
 t("todo tipo no-base del catálogo lo usa algún profile", Object.entries(CATALOG).filter(([, d]) => !d.base).every(([k]) => [LANDING_TRANSLATOR, APP_TRANSLATOR, GAME_TRANSLATOR].some((x) => x.catalog.includes(k))));
 const ap = buildSystemPrompt(APP_TRANSLATOR), gp = buildSystemPrompt(GAME_TRANSLATOR);
 t("app: interacción sí, landing no (sin hero/carrusel/secciones)", ap.includes("- counter_on_action:") && !ap.includes("carousel") && !ap.includes("Hero") && !ap.includes("- section_items:") && !ap.includes("not_won_immediately"));
-t("game: app + chequeos de juego, reglas 5 y 6 propias", gp.includes("- reset_restores:") && gp.includes("- not_won_immediately:") && /\n5\. Es una APP/.test(gp) && /\n6\. Es un JUEGO/.test(gp) && /\n7\. No agregues/.test(gp));
+t("game: app + chequeos de juego, reglas 5 y 6 propias", gp.includes("- reset_restores:") && gp.includes("- not_won_immediately:") && gp.includes("- board_changes:") && !ap.includes("- board_changes:") && /\n5\. Es una APP/.test(gp) && /\n6\. Es un JUEGO/.test(gp) && /\n7\. No agregues/.test(gp));
 const mini = buildSystemPrompt({ catalog: ["no_js_errors", "control_visible"], rules: [] });
 t("catálogo acotado: solo sus tipos y sin reglas de landing", !mini.includes("carousel") && !mini.includes("Hero") && /\n5\. No agregues/.test(mini));
 

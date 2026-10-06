@@ -15,18 +15,24 @@ export default {
   kind: "type",
   selectable: true,
   status: "DRAFT",
-  version: "0.1",
-  describe: "Juego de una pantalla: niveles, teclado o clics, condición de victoria, reiniciar. Hereda de web/app; Validation prueba que se pueda jugar y que no se gane solo.",
+  version: "0.2",
+  describe: "Juego de una pantalla escrito POR ARCHIVOS (juego.html, styles.css, js/niveles.js, js/reglas.js, js/dibujo.js, js/controles.js), un archivo por paso de Gemma con contrato fijo. Las reglas se prueban sin navegador; Validation prueba que se pueda jugar y que no se gane solo.",
   build: "web/game",
   borrowed: {
     from: "web/landing",
     what: ["motor del Specialist por componentes (vía web/app)"],
   },
+  // v0.2 (06/10, decisión de Miche: "dejar de pedir html autocontenidos a modelos chicos"):
+  // Specialist por archivos (specialist_files.mjs), contrato NIVELES/Reglas/dibujar, pruebas de
+  // reglas en Node con niveles del harness, chequeos game_levels / moves_one_cell / fixed_map_size.
   pending: [
-    "Chequeos de reglas que hoy quedan SIN_CHEQUEO: de a un casillero, paredes que bloquean, cantidad de niveles, próximo nivel después de ganar.",
+    "Correr con Gemma real (solo probado con LM Studio simulado).",
+    "El estilo (R8 NES 8 bits) sigue sin chequeo y Gemma lo ignoró en b2–b7.",
+    "Próximo nivel después de ganar (cambia el tablero) todavía sin chequeo.",
     "Las reglas del Specialist salen de un Sokoban: ver si sirven para otro juego (snake, memoria, tetris) antes de generalizar.",
   ],
   evidence: [
+    "Project25 Boxworld b2–b7 (05/10): con todo el juego en una respuesta (~7k tokens) cada build trajo 1–2 bugs y los reintentos completos se cortaron por length (3 de 3); b7 jugable recién con reparación de sintaxis.",
     "Project25 Boxworld build 3 (05/10): ganaba con el primer movimiento (comparaba los objetivos consigo mismos), reiniciar quedaba deshabilitado, cajas y avatar como casilleros extra de la grilla, y las restricciones (las reglas del juego) nunca llegaban al Specialist.",
   ],
 };

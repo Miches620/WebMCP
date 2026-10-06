@@ -1,7 +1,11 @@
 // build.mjs — contrato con build/run_build.mjs para el profile web/game.
-// Mismo armado que web/app (una pantalla) con reglas y chequeos de juego.
+// Plan, traductor y Validation como web/app (una pantalla); el Specialist escribe el juego
+// por archivos (specialist_files.mjs, v0.8).
 
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { makeScreenBuild } from "../app/build.mjs";
+import { buildGameFiles, baselinePage } from "./specialist_files.mjs";
 import { GAME_TRANSLATOR } from "./translator_rules.mjs";
 import { GAME_SPECIALIST_RULES } from "./specialist_rules.mjs";
 
@@ -27,4 +31,16 @@ export const GAME_EXTRA_CHECKS = [{
 }];
 
 const GAME = makeScreenBuild({ translator: GAME_TRANSLATOR, systemExtra: GAME_SPECIALIST_RULES, extraChecks: GAME_EXTRA_CHECKS, mainId: "juego" });
-export const { planPage, translateRequirement, postprocessChecks, build, writeBaseline, specialistSees } = GAME;
+export const { planPage, translateRequirement, postprocessChecks, specialistSees } = GAME;
+
+// v0.8 (06/10, decisión de Miche): el juego se escribe POR ARCHIVOS, un archivo por paso de
+// Gemma con contrato fijo (specialist_files.mjs). --legacy-components vuelve al componente
+// único de v0.7.6 (todo el juego en una respuesta).
+export function build(input, outDir, opts = {}) {
+  if (opts.legacyComponents || process.argv.includes("--legacy-components")) return GAME.build(input, outDir, opts);
+  return buildGameFiles(input, outDir, opts);
+}
+export function writeBaseline(baselineDir, input, basePlan, specialist) {
+  if (!String(specialist?.specialist_version || "").startsWith("game_files")) return GAME.writeBaseline(baselineDir, input, basePlan, specialist);
+  writeFileSync(join(baselineDir, "index.html"), baselinePage(input.refined, basePlan), "utf8");
+}

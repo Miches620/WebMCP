@@ -8,9 +8,10 @@ export const GAME_RULE = `Es un JUEGO de una pantalla:
    - "Botón reiniciar / volver a empezar" → control_visible con ["reiniciar"] y reset_restores con click = ["reiniciar"].
    - "Botón próximo / siguiente nivel" → control_visible con ["proximo", "siguiente"] (NUNCA "nivel" solo: está en toda la pantalla).
    - click_changes solo con palabras de un BOTÓN que el requisito nombra; nunca con "avatar", "caja", "jugador" o "nivel" (no son botones).
-   - "De a un casillero", "cantidad de niveles", "tamaño del mapa", "clásico X" → todavía no se pueden medir con el catálogo: "checks": [] y explicalo en "sin_chequeo".`;
+   - "Al menos N niveles" → game_levels con min = ["N"]. "Se mueve de a un casillero" → moves_one_cell. "El tamaño del mapa es fijo" → fixed_map_size.
+   - "Clásico X", estilo visual → no se pueden medir con el catálogo: "checks": [] y explicalo en "sin_chequeo".`;
 
 export const GAME_TRANSLATOR = {
-  catalog: [...APP_CATALOG, "board_changes", "not_won_immediately", "reset_restores"],
+  catalog: [...APP_CATALOG, "board_changes", "not_won_immediately", "reset_restores", "game_levels", "moves_one_cell", "fixed_map_size"],
   rules: [APP_RULE, GAME_RULE],
 };

@@ -1,0 +1,65 @@
+// test_game_files.mjs — partes deterministas del Specialist por archivos de web/game (v0.8).
+//   node profiles/web/game/test_game_files.mjs
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import {
+  gameHints, validateLevels, loadScripts, runRuleTests, RULE_TESTS, screenProblems, cleanFragment, cleanCss,
+  pageHtml, extractFile, dibujoProblems, JS_FILES, CONTRACT, IDS, baselinePage,
+} from "./specialist_files.mjs";
+
+let ok = 0, fail = 0;
+const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
+const ref = (n) => readFileSync(fileURLToPath(new URL(`../validation/fixtures/game_files_ok/${n}`, import.meta.url)), "utf8");
+
+// pistas del brief (Boxworld real)
+const h = gameHints({ features: ["El juego deberá tener al menos 5 niveles."], restricciones: ["El tamaño del mapa es 10 casilleros de largo x 10 casilleros de alto."] });
+t("gameHints: 5 niveles y mapa 10x10 desde el texto del usuario", h.minLevels === 5 && h.rows === 10 && h.cols === 10, JSON.stringify(h));
+t("gameHints: sin números → 1 nivel, sin tamaño", JSON.stringify(gameHints({})) === JSON.stringify({ minLevels: 1, cols: null, rows: null }));
+
+// niveles (casos de los builds reales: filas de largo distinto b6/b7, 1 caja y 5 objetivos b6, cajas sobre objetivos b5)
+const refN = loadScripts([ref("js/niveles.js")]).NIVELES;
+t("niveles de referencia: válidos", validateLevels(refN, h).length === 0, JSON.stringify(validateLevels(refN, h)));
+const v = validateLevels([["#####", "#@$.#", "####"], ["#####", "#@$..#", "#####"], ["####", "#@*#", "####"], ["#####", "#@$x#", "#####"]], { minLevels: 5 });
+t("faltan niveles", v.some((x) => /4 niveles y se piden al menos 5/.test(x)));
+t("filas de largo distinto (b6, b7)", v.some((x) => /nivel 1: las filas tienen largos distintos/.test(x)));
+t("cajas ≠ objetivos (b6: 1 caja, 5 objetivos)", v.some((x) => /nivel 2: tiene 1 cajas y 2 objetivos/.test(x)));
+t("todas las cajas sobre objetivos = ya ganado (b5)", v.some((x) => /nivel 3: todas las cajas empiezan sobre un objetivo/.test(x)));
+t("caracteres fuera del formato (b6 usaba 'E' para piso)", v.some((x) => /nivel 4: caracteres que no son del formato: "x"/.test(x)));
+t("tamaño pedido", validateLevels([["####", "#@$.#", "####"]], { rows: 3, cols: 5 }).some((x) => /tienen que tener 5 caracteres/.test(x)));
+
+// reglas: pruebas del harness en Node
+const good = loadScripts([ref("js/niveles.js"), ref("js/reglas.js")]);
+const rg = runRuleTests(good.Reglas, good.NIVELES);
+t("reglas de referencia: pasan todas las pruebas", rg.failed.length === 0 && rg.passed.length === RULE_TESTS.length + 5, JSON.stringify(rg.failed));
+const mutate = (from, to) => runRuleTests(loadScripts([ref("js/reglas.js").replace(from, to)]).Reglas, []).failed.map((f) => f.name);
+t("sin chequeo de lo que hay detrás de la caja → fallan 'caja contra pared' y 'caja contra caja'", mutate("if (pared(f + df, c + dc) || caja(f + df, c + dc) >= 0) return n; ", "").join() === "caja contra pared no se mueve,caja contra caja no se mueve");
+t("ganado contando cajas en vez de objetivos (b6) → detectado", mutate("return e.objetivos.every((o) => e.cajas.some((b) => b.fila === o.fila && b.col === o.col));", "return true;").includes("recién creado no está ganado"));
+t("mover que modifica el estado recibido → detectado", mutate("const n = { ...e, jugador: { ...e.jugador }, cajas: e.cajas.map((b) => ({ ...b })) };", "const n = e;").includes("mover no modifica el estado que recibe"));
+t("sin Reglas → falla el contrato", runRuleTests(undefined).failed[0].name === "contrato");
+t("la falla le dice a Gemma qué esperaba y qué dio", /tendría que dar|debería|quedó/.test(runRuleTests(loadScripts([ref("js/reglas.js").replace("n.movimientos++;", "n.movimientos += 2;")]).Reglas, []).failed[0]?.detail || ""));
+t("loadScripts: error de ejecución → mensaje, sin colgarse", /x is not defined/.test(loadScripts(["x.y = 1;"]).error || ""));
+t("loadScripts: un while(true) no cuelga (timeout)", /timed out|Script execution/.test(loadScripts(["while(true){}"]).error || ""));
+
+// pantalla
+t("screenProblems: faltan ids", /faltan estos ids en juego.html: #tablero/.test(screenProblems("<div id='nivel'></div>")[0] || ""));
+t("screenProblems: la referencia tiene todos", screenProblems(readFileSync(fileURLToPath(new URL("../validation/fixtures/game_files_ok/index.html", import.meta.url)), "utf8")).length === 0);
+t("cleanFragment: saca documento entero, <script>, <style> y <link>", cleanFragment("<!DOCTYPE html><html><head><link rel=x></head><body><div id='tablero'></div><script>x()</script><style>a{}</style></body></html>") === "<div id='tablero'></div>");
+t("cleanCss: sin @import ni url externas", !/@import|https:/.test(cleanCss("@import url(x.css);\na{background:url('https://x/y.png')}")));
+const page = pageHtml({ title: "B", fragment: "<div id=\"tablero\"></div>", features: ["R1", "R2"] });
+t("pageHtml: styles.css y los 4 js con <script src> en orden", page.includes('<link rel="stylesheet" href="styles.css">') && JS_FILES.every((f, i) => page.indexOf(`<script src="${f}">`) > (i ? page.indexOf(`<script src="${JS_FILES[i - 1]}">`) : 0)));
+t("pageHtml: main#juego con data-feature (para sections_visible)", page.includes('<main id="juego" data-feature="R1 R2">'));
+t("baselinePage: sin scripts", !baselinePage({ project_name: "B", features: ["a"] }, { header: null, footer: null, sections: [{ id: "juego", titulo: "B", features: ["R1"] }] }).includes("<script"));
+
+// respuesta
+t("extractFile: por nombre, por extensión y por fence", extractFile("### FILE: js/reglas.js\n```javascript\nA\n```", "js/reglas.js") === "A\n" && extractFile("### FILE: reglas.js\n```js\nB\n```", "js/reglas.js") === "B\n" && extractFile("```css\nC\n```", "styles.css") === "C\n");
+
+// dibujo
+t("dibujoProblems: tablero vacío (b6) → casilleros, jugador, cajas", dibujoProblems({ probe: { ok: true, cells: 0, rows: 10, cols: 10, jugador: 0, cajas: 0, nCajas: 2, pared: 0, movs: "0" }, errors: [] }).length === 4);
+t("dibujoProblems: error → se informa", /tiró un error: boom/.test(dibujoProblems({ probe: { ok: false, error: "boom" }, errors: [] })[0]));
+t("dibujoProblems: correcto → []", dibujoProblems({ probe: { ok: true, cells: 100, rows: 10, cols: 10, jugador: 1, cajas: 2, nCajas: 2, pared: 36, movs: "0" }, errors: [] }).length === 0);
+
+// contrato
+t("el contrato nombra los 6 ids y la forma del estado", IDS.every((id) => CONTRACT.includes("#" + id)) && /estado = \{ mapa/.test(CONTRACT) && /DEVUELVE UN ESTADO NUEVO/.test(CONTRACT));
+
+console.log(`\n${ok}/${ok + fail} OK`);
+if (fail) process.exit(1);

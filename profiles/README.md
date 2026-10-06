@@ -26,8 +26,12 @@ profiles/
     specialist_rules.mjs  A1–A4 (estado + dibujar(), un componente) y rulesBrief (restricciones → brief)
     test_app.mjs
   web/game/             TIPO juego — extends web/app (cadena web → web/app → web/game)
-    profile.mjs, build.mjs  reglas G1–G6 del Specialist y chequeo de base not_won_immediately
-    translator_rules.mjs    regla 6: not_won_immediately, reset_restores, "próximo" sin "nivel"
+    profile.mjs, build.mjs  build por ARCHIVOS (v0.2); --legacy-components = componente único (v0.7.6)
+    specialist_files.mjs    un archivo por paso de Gemma con contrato fijo: niveles → reglas (probadas
+                            en Node) → juego.html+styles.css → dibujo (probado en Chromium) → controles
+    translator_rules.mjs    regla 6: board_changes, not_won_immediately, reset_restores, game_levels,
+                            moves_one_cell, fixed_map_size
+    test_game_files.mjs
 ```
 
 Un tipo puede extender otro tipo: `web/game` extiende `web/app`, que extiende `web`.

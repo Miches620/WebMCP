@@ -422,7 +422,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  const STORAGE_KEY = 'michelab_pendientes_webmcp'; // clave propia: no pisa tu tablero (michelab_kanban_v4)
+  const STORAGE_KEY = 'michelab_pendientes_webmcp_0610'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
   let state = loadState() || {
  "columns": [
   {
@@ -432,61 +432,55 @@
    "isDefault": true,
    "cards": [
     {
-     "id": "p1",
-     "title": "1 · URGENTE · Hold-out de Intent Forge v0.8",
-     "desc": "[#IntentForge] Proyecto distinto al Kanban (o uno viejo que no se haya usado para ajustar), solo por consola: node intent_cli.mjs plantilla.txt. Plantilla escrita sin mostrársela a Claude antes. Si falla, solo arreglos generales. Mirar: ¿pregunta cosas útiles y sin repetir?, ¿pregunta contra restricciones?, ¿una acción por feature?, ¿respuestas como detalle y no duplicadas?, ¿algo inventado? Evidencia en evidence/intent_forge/cli_*.json.",
+     "id": "g2",
+     "title": "1 · URGENTE · web/app por archivos (si b8 anda)",
+     "desc": "[#Specialist] Misma fórmula para el Kanban: datos.js, estado.js (probado sin navegador: crear/editar/borrar/mover tarjeta), vista.js, eventos.js.",
      "priority": "urgente"
     },
     {
-     "id": "p2",
-     "title": "2 · Gate: SYSTEM_ERROR del reviewer no aprueba",
-     "desc": "[#Gate] script.js (~1574): hoy solo frenan GAP/EXCESS; un 'fetch failed' pasa como aprobado (Project23). Debe quedar 'REVISIÓN NO EJECUTADA' y pedir decisión. Antes de cualquier corrida completa.",
+     "id": "n3",
+     "title": "2 · Gate: reviewer que devuelve {} o schema incompleto aprueba",
+     "desc": "[#Gate] Hueco que quedó del gate de hoy: si el reviewer corre pero devuelve vacío / schema_complete false, pasa como aprobado. Tiene que contar como REVIEW_NOT_RUN.",
      "priority": "medio"
     },
     {
-     "id": "p3",
-     "title": "3 · Pipeline completo desde la UI",
-     "desc": "[#IntentForge] Con el refined del paso 1: TechLeader → graph → build. Ver cómo llega el refined nuevo (restricciones, features separadas) hasta Gemma.",
+     "id": "n4",
+     "title": "3 · Correr el Kanban (P23/P24) con el profile web/app",
+     "desc": "[#Specialist] web/app está hecho pero solo se probó con un juego. Correr el snapshot del Kanban con profiles=['web/app'] y ver qué rompe.",
      "priority": "medio"
     },
     {
-     "id": "p4",
-     "title": "4 · Validation: chequeos de flujo + traductor",
-     "desc": "[#Validation] crear → +1, arrastrar → cambia de columna, editar → el valor queda, borrar → −1. Arreglar params del traductor (R4 pidió campo 'tarjeta/tarea'). Casos de prueba: los bugs del Kanban v1 (editar borra etiquetas, [object HTMLDivElement], modal sin scroll, doble confirm, título no editable, + Añadir Columna muerto). Va ANTES del Specialist: sin Validation confiable no se puede medir si el Specialist mejora.",
+     "id": "n5",
+     "title": "4 · Validation: chequeos de flujo de datos para apps",
+     "desc": "[#Validation] crear → +1, arrastrar → cambia de columna, editar → el valor queda, borrar → −1. Casos: bugs del Kanban v1 (editar borra etiquetas, [object HTMLDivElement], modal sin scroll, doble confirm, título no editable, + Añadir Columna muerto). Ya existen key_changes / click_changes / counter_on_action como base.",
      "priority": "medio"
     },
     {
-     "id": "p5",
-     "title": "5 · Specialist: page plan para apps + tasksFor",
-     "desc": "[#Specialist] Project23: 1 sección con 8/9 features → 30 min y 7981/8000 tokens. Componentes de app (tablero, columna, tarjeta, modal), sin header/footer de landing. Que le lleguen las tareas de TechLeader (le llegaron 4 de 16). Se mide con el paso 4.",
+     "id": "n6",
+     "title": "5 · Transversales: estilo que el Specialist respete",
+     "desc": "[#Transversales] Las restricciones ya llegan al Specialist en app/game (hoy). Falta: el estilo (R8 'Family NES 8 bits') llega como transversal pero Gemma lo ignora en los 6 builds; y en landing las restricciones todavía no llegan.",
      "priority": "medio"
     },
     {
-     "id": "p6",
-     "title": "6 · Transversales: estilo fuera de features + Specialist lee estilo y restricciones",
-     "desc": "[#Transversales] Idea de Miche (02/10): requisitos transversales en un campo aparte que no entra al paso a paso de TechLeader y que el Specialist respeta en cada componente.",
-     "priority": "medio"
+     "id": "n7",
+     "title": "6 · Infra: TechLeader/Atomic por server.mjs + reconectar SQLite",
+     "desc": "[#Infra] TechLeader llama a LM Studio desde el navegador (CORS). /api/projects se perdió; persistProject() no lo llama nadie. Requisito para 'Proyectos'.",
+     "priority": "bajo"
     },
     {
-     "id": "p7",
-     "title": "7 · Infra: TechLeader/Atomic por server.mjs + reconectar SQLite",
-     "desc": "[#Infra] Hoy TechLeader llama a LM Studio desde el navegador (CORS). SQLite: /api/projects se perdió; persistProject() no lo llama nadie. Requisito para 'Proyectos'.",
-     "priority": "medio"
-    },
-    {
-     "id": "p8",
+     "id": "n8",
      "title": "FUTURO · Botón Proyectos (Continuar / + Feature)",
      "desc": "[#Futuro] Solo con el Specialist pulido. Lista de proyectos con estado; 'Continuar' si quedó a mitad, '+ Feature' si está terminado.",
      "priority": "bajo"
     },
     {
-     "id": "p9",
+     "id": "n9",
      "title": "FUTURO · Estado del proyecto desde datos",
-     "desc": "[#Futuro] Nombre, qué hace, features actuales = las que tienen PASS en Validation. Lo arma el código, no un LLM.",
+     "desc": "[#Futuro] Features actuales = las que tienen PASS en Validation. Lo arma el código, no un LLM.",
      "priority": "bajo"
     },
     {
-     "id": "p10",
+     "id": "n10",
      "title": "FUTURO · + Feature con regresión",
      "desc": "[#Futuro] Intent Forge delta + TechLeader delta + volver a correr la Validation de TODAS las features anteriores.",
      "priority": "bajo"
@@ -498,43 +492,124 @@
    "name": "⚙️ En Progreso",
    "isInbox": false,
    "isDefault": true,
-   "cards": []
+   "cards": [
+    {
+     "id": "n1b",
+     "title": "Boxworld con el juego por archivos (b8)",
+     "desc": "[#Specialist] node build/run_build.mjs project25_snapshot.json. Mirar en el log los 5 pasos (niveles → reglas con 'pruebas de reglas X/15' → pantalla → dibujo → controles) y cuántos reintentos pidió cada uno. Si anda: replicar la fórmula en web/app con el Kanban.",
+     "priority": "urgente"
+    }
+   ]
+  },
+  {
+   "id": "col-4",
+   "name": "✅ Hecho 05–06/10",
+   "isInbox": false,
+   "isDefault": false,
+   "cards": [
+    {
+     "id": "h14",
+     "title": "06/10 · web/game por archivos (game_files v0.8)",
+     "desc": "[#Specialist] Idea de Miche: un archivo = un paso de Gemma con contrato fijo. niveles.js (validado) → reglas.js (probado en Node con 10 niveles del harness) → juego.html+styles.css → dibujo.js (probado en Chromium) → controles.js. Reintentos solo del archivo que falla. Probado con LM Studio simulado: 7 PASS.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h13",
+     "title": "06/10 · Chequeos R3/R5/R6 + build 7",
+     "desc": "[#Validation] b7: primer Boxworld que se mueve (la reparación de sintaxis anduvo con Gemma real, 59 s). game_levels, moves_one_cell, fixed_map_size sobre el contrato. reset_restores sin falso FAIL (data-* y mensajes).",
+     "priority": "bajo"
+    },
+    {
+     "id": "h12",
+     "title": "05/10 · Reparación por función (b6)",
+     "desc": "[#Specialist] El harness ubica la función que falla (línea del error de JS, contenedor vacío, teclado o victoria) y Gemma devuelve solo esa función. b6 tenía 2 bugs de una línea; con LM Studio simulado: 3 funciones arregladas, sin reintento completo. no_js_errors da la línea. G3/G6.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h11",
+     "title": "05/10 · Reparación acotada de sintaxis + niveles Sokoban (b5)",
+     "desc": "[#Specialist] b4 y b5: UN error de sintaxis en los datos de niveles tiraba todo el JS. Ahora se corrige solo el tramo. Niveles como strings Sokoban → en b6 el JS compiló a la primera. not_won_immediately también falla si ya se gana al cargar.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h10",
+     "title": "05/10 · board_changes (b4)",
+     "desc": "[#Validation] El contador subía pero el avatar no se movía en pantalla; key_changes dio PASS falso. Nuevo chequeo que mira solo el tablero, también como chequeo de base del Specialist.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h9",
+     "title": "05/10 · Profiles web/app y web/game (b3)",
+     "desc": "[#Specialist] Decisión: juego = web/game, hijo de web/app. Plan de una pantalla (adiós segundo juego en #niveles), las restricciones (reglas del juego) llegan al Specialist por primera vez, reglas G1–G6, traductor propio. Chequeos de interacción: key_changes, click_changes, counter_on_action, not_won_immediately, reset_restores.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h8",
+     "title": "05/10 · sections_visible sin FAIL falso (b3)",
+     "desc": "[#Validation] El overlay de victoria (display:none hasta ganar) contaba como contenido roto; el reintento por ese falso problema se cortó por length.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h7",
+     "title": "05/10 · Build punto 1: tareas, código muerto, render (b2)",
+     "desc": "[#Specialist] Toda tarea del graph llega a un componente (antes 2 de 25), se llama la función anónima que nadie llamaba, components_render detecta componentes que no dibujan nada, ids repetidos.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h6",
+     "title": "05/10 · Pipeline completo desde la UI (Boxworld)",
+     "desc": "[#IntentForge] Era el paso 3 de la lista: Intent Forge → TechLeader → graph → build corrido de punta a punta.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h5",
+     "title": "05/10 · Gate del reviewer + json_loose",
+     "desc": "[#Gate] Era el paso 2: SYSTEM_ERROR ya no aprueba (reintentar revisión / aprobar sin revisión / rehacer plan). JSON de TechLeader con coma faltante → reparación + 1 reintento.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h4",
+     "title": "05/10 · Intent Forge v0.9–v1.1 (hold-out Boxworld)",
+     "desc": "[#IntentForge] Era el paso 1: proyecto nuevo, nada perdido ni inventado. Respuestas delegadas ('no lo sé'), sin preguntas repetidas, una feature no junta dos líneas. 55 tests.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h3",
+     "title": "05/10 · Refactor de profiles (otra sesión)",
+     "desc": "[#Infra] Core vs tipo de proyecto: profiles/web, web/landing, web/app. Sin cambio de conducta verificado byte a byte.",
+     "priority": "bajo"
+    }
+   ]
   },
   {
    "id": "col-3",
-   "name": "✅ Completado",
+   "name": "✅ Completado antes",
    "isInbox": false,
    "isDefault": true,
    "cards": [
     {
      "id": "p11",
-     "title": "Intent Forge v0.3/v0.4: plantilla + entrevista",
-     "desc": "[#IntentForge] Reemplaza 'mencionaste y no incluí'. Plantilla de 4 campos, hasta 10 preguntas, 'listo' corta, un 'no' queda como restricción. intent_cli.mjs reemplaza al .ps1.",
-     "priority": "bajo"
-    },
-    {
-     "id": "p12",
-     "title": "Intent Forge v0.5–v0.8 (4 corridas de Project24)",
-     "desc": "[#IntentForge] Corte por oración, features compuestas, entrevistador con faltantes, parser tolerante, temas repetidos, ítems anclados a sus líneas (adiós 'Sin login'), faltantes pendientes, sin preguntas contra restricciones, detalles duplicados. 48 tests.",
+     "title": "03–04/10 · Intent Forge v0.3–v0.8",
+     "desc": "[#IntentForge] Plantilla de 4 campos, entrevista de hasta 10 preguntas, 4 corridas de Project24.",
      "priority": "bajo"
     },
     {
      "id": "p13",
-     "title": "Fix: text_terms.mjs",
-     "desc": "[#Gate] El reviewer importaba intent_mention_check.mjs (archivado) → 500. Funciones extraídas tal cual.",
+     "title": "04/10 · Fix text_terms.mjs",
+     "desc": "[#Gate] El reviewer importaba un archivo archivado → 500.",
      "priority": "bajo"
     },
     {
      "id": "p14",
-     "title": "Evidencia Project23",
-     "desc": "[#Evidencia] claude/evidencia_project23_2026-10-03.md en el proyecto.",
+     "title": "03/10 · Evidencia Project23",
+     "desc": "[#Evidencia] claude/evidencia_project23_2026-10-03.md.",
      "priority": "bajo"
     }
    ]
   }
  ],
- "customColumnsCount": 0,
- "cardCounter": 15
+ "customColumnsCount": 1,
+ "cardCounter": 60
 };
   
   let editingColumnId = null;

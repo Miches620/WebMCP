@@ -1,0 +1,313 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Boxworld",
+  "source": "project25_snapshot.json",
+  "catalog": "check_catalog v0.7.3",
+  "profiles": {
+    "ids": [
+      "web/game"
+    ],
+    "chain": [
+      "web",
+      "web/app",
+      "web/game"
+    ],
+    "status": {
+      "web": "DRAFT",
+      "web/app": "DRAFT",
+      "web/game": "DRAFT"
+    },
+    "borrowed": [
+      {
+        "id": "web/game",
+        "from": "web/landing",
+        "what": [
+          "motor del Specialist por componentes (vía web/app)"
+        ]
+      }
+    ]
+  },
+  "artifact_loads_without_js_errors": true,
+  "sections_visible": {
+    "result": "PASS",
+    "features": {
+      "R1": "PASS",
+      "R2": "PASS",
+      "R3": "PASS",
+      "R4": "PASS",
+      "R5": "PASS",
+      "R6": "PASS",
+      "R7": "PASS"
+    },
+    "anchors": [
+      {
+        "id": "juego",
+        "features": [
+          "R1",
+          "R2",
+          "R3",
+          "R4",
+          "R5",
+          "R6",
+          "R7"
+        ],
+        "seen": 7,
+        "total": 7,
+        "ondemand": 0,
+        "ok": true
+      }
+    ],
+    "detail": "#juego: 7/7 palabras visibles"
+  },
+  "components_render": {
+    "result": "PASS",
+    "components": [
+      {
+        "id": "juego",
+        "refs": 1,
+        "empty": [],
+        "ok": true
+      }
+    ],
+    "detail": "#juego: 1/1 contenedores con contenido"
+  },
+  "summary": {
+    "requisitos": 8,
+    "PASS": 4,
+    "FAIL": 1,
+    "SIN_EVIDENCIA": 0,
+    "SIN_CHEQUEO": 3
+  },
+  "control": "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "El juego es el clásico Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "board_changes",
+          "params": {
+            "keys": [
+              "flechas"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#mapa cambia con: ArrowDown, ArrowRight",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "not_won_immediately",
+          "params": {
+            "keys": [
+              "flechas"
+            ]
+          },
+          "result": "PASS",
+          "detail": "2 movimientos de prueba, ninguno gana",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "reset_restores",
+          "params": {
+            "click": [
+              "reiniciar"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "las teclas (ArrowUp, ArrowDown, ArrowLeft, ArrowRight) no cambian nada: no hay qué reiniciar",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "El juego necesita un botón 'reiniciar' en caso de que el jugador haga un mal movimiento, además otro botón 'proximo nivel' para avanzar de niveles.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "reiniciar"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"🔄 REINICIAR NIVEL\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "proximo",
+              "siguiente"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"➡️ PRÓXIMO NIVEL\"",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "El juego deberá tener al menos 5 niveles.",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "No se puede verificar la cantidad de niveles en una única pantalla del catálogo proporcionado.",
+      "checks": []
+    },
+    {
+      "id": "R4",
+      "text": "El avatar se mueve mediante las flechas del teclado.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "board_changes",
+          "params": {
+            "keys": [
+              "flechas"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#mapa cambia con: ArrowDown, ArrowRight",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "El avatar se mueve siempre de a un casillero por vez.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "board_changes",
+          "params": {
+            "keys": [
+              "flechas"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#mapa cambia con: ArrowDown, ArrowRight",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "El tamaño del mapa es fijo, la cantidad de cajas puede variar.",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "No se pueden medir el tamaño del mapa ni la cantidad de cajas con los chequeos disponibles en el catálogo.",
+      "checks": []
+    },
+    {
+      "id": "R7",
+      "text": "El juego tiene un contador de movimientos como sistema de puntaje o tiempo límite por nivel.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "counter_on_action",
+          "params": {
+            "label": [
+              "movimientos"
+            ]
+          },
+          "result": "PASS",
+          "detail": "ArrowUp, ArrowDown, ArrowLeft, ArrowRight: \"Movimientos: 0\" → \"Movimientos: 1\"",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "text": "Estilo Family NES, 8bits",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El requisito de 'Estilo Family NES, 8bits' se refiere a un aspecto visual y no puede ser verificado con interacciones o comportamientos en una única pantalla. Este tipo de chequeo generalmente se realiza durante la revisión estética del diseño completo del juego.",
+      "checks": []
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "spa_specialist v0.7.6-componentes",
+    "tasks_assigned": {
+      "main": "juego",
+      "unmatched": [
+        "F1.2",
+        "F1.4",
+        "F1.5",
+        "F1.6",
+        "F2.4",
+        "F3.1",
+        "F3.2",
+        "F3.3",
+        "F3.4",
+        "F3.5",
+        "F3.6",
+        "F4.1.R2.1",
+        "F4.1.R2.2",
+        "F4.1.R2.3",
+        "F4.3",
+        "F4.4",
+        "F4.5",
+        "F4.6",
+        "F4.7"
+      ],
+      "by_component": {
+        "juego": [
+          "F1.1",
+          "F1.2",
+          "F1.3",
+          "F1.4",
+          "F1.5",
+          "F1.6",
+          "F2.1",
+          "F2.2",
+          "F2.3",
+          "F2.4",
+          "F3.1",
+          "F3.2",
+          "F3.3",
+          "F3.4",
+          "F3.5",
+          "F3.6",
+          "F4.1.R2.1",
+          "F4.1.R2.2",
+          "F4.1.R2.3",
+          "F4.2",
+          "F4.3",
+          "F4.4",
+          "F4.5",
+          "F4.6",
+          "F4.7"
+        ]
+      }
+    },
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "tokens",
+        "ms": 107585,
+        "finish_reason": "stop",
+        "changed": [
+          "tokens.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 2,
+        "task_id": "juego",
+        "role": "section",
+        "ms": 482924,
+        "finish_reason": "stop",
+        "changed": [
+          "html",
+          "css",
+          "js",
+          "api.js"
+        ],
+        "rejected": []
+      }
+    ]
+  }
+}

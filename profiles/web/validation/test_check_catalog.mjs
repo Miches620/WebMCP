@@ -115,7 +115,8 @@ const PLAY_CASES = {
   // v0.7.1: Boxworld b4 real — el contador sube pero dibujar() no se llama: key_changes PASS (lo engaña el texto), board_changes FAIL
   "real_boxworld_b4/index": "PPPFF",
   // v0.7.3: Boxworld b6 real — dibujar() nunca hace appendChild y mostrarMensaje() rompe al cargar
-  "real_boxworld_b6/index": "PFPFF",
+  // v0.7.4: key_changes ya no cuenta el cartel de mensaje (en b6 era lo único que cambiaba)
+  "real_boxworld_b6/index": "FFFFF",
   sections_vacio: "FFFFF", // nada responde: ninguno pasa (el esqueleto de control da FAIL → los PASS no son triviales)
 };
 for (const [name, exp] of Object.entries(PLAY_CASES)) {
@@ -130,6 +131,22 @@ const [nw] = await runChecks(S("game_ganado"), [normalizeCheck({ type: "not_won_
 if (nw.result === "FAIL" && /recién cargado/.test(nw.detail)) { ok++; console.log("✓ not_won_immediately game_ganado FAIL (ganado al cargar)"); } else { fail++; console.log(`✗ not_won_immediately game_ganado ${nw.result} ${nw.detail}`); }
 const [je] = await runChecks(S("real_boxworld_b6/index"), [normalizeCheck({ type: "no_js_errors", params: {} })]);
 if (je.result === "FAIL" && je.errors?.[0]?.line === 703) { ok++; console.log("✓ no_js_errors da la línea del error (b6: 703)"); } else { fail++; console.log(`✗ no_js_errors línea ${JSON.stringify(je.errors)}`); }
+// v0.8: chequeos sobre el contrato del juego por archivos (referencia) y sobre páginas sin contrato
+const GAMEC = [
+  { type: "game_levels", params: { min: ["5"] } },
+  { type: "moves_one_cell", params: {} },
+  { type: "fixed_map_size", params: {} },
+  { type: "not_won_immediately", params: {} },
+  { type: "reset_restores", params: { click: ["reiniciar"] } },
+  { type: "board_changes", params: {} },
+].map(normalizeCheck);
+for (const [name, exp] of Object.entries({ "game_files_ok/index": "PPPPPP", "real_boxworld_b7/index": "FFFPPP", sections_vacio: "FFFFFF" })) {
+  const r = await runChecks(S(name), GAMEC);
+  const got = r.map((x) => x.result[0]).join("");
+  if (got === exp) { ok++; console.log(`✓ juego por archivos ${name} ${got}`); }
+  else { fail++; console.log(`✗ juego por archivos ${name} esperado ${exp} dio ${got}\n    ${r.map((x) => `${x.type}: ${x.detail}`).join("\n    ")}`); }
+}
+if (normalizeCheck({ type: "game_levels", params: { min: ["5"] } })) { ok++; console.log("✓ normalizeCheck acepta un número como parámetro"); } else { fail++; console.log("✗ normalizeCheck rechazó min: ['5']"); }
 const kf = [keysFrom(["flechas"]).length === 4, keysFrom(["espacio"]).join() === "Space", keysFrom([]).length === 4, keysFrom(["arriba", "w"]).join() === "ArrowUp,w"];
 if (kf.every(Boolean)) { ok++; console.log("✓ keysFrom"); } else { fail++; console.log("✗ keysFrom", kf); }
 

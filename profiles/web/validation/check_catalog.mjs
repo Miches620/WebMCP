@@ -15,7 +15,13 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle } from "./form_runtime.mjs";
 
-export const CATALOG_VERSION = "check_catalog v0.7.3";
+export const CATALOG_VERSION = "check_catalog v0.8";
+// v0.8 (06/10, web/game por archivos): chequeos sobre el CONTRATO del juego (NIVELES y Reglas
+// existen en la página): game_levels (al menos N niveles), moves_one_cell (de a un casillero,
+// la pared bloquea), fixed_map_size (todos los niveles del mismo tamaño y el tablero lo dibuja).
+// Cierran R3, R5 y R6 de Boxworld, que con la página sola quedaban SIN_CHEQUEO.
+// v0.7.4 (05/10, Boxworld build 7): la foto de pantalla (SNAP) incluye data-*; reset_restores daba
+// "las teclas no cambian nada" en un juego que marca jugador/cajas con data-type.
 // v0.7.3 (05/10, Boxworld build 6): no_js_errors devuelve también la línea del error (errors[].line).
 
 // v0.7.2 (05/10, Boxworld build 5): not_won_immediately también falla si la victoria ya
@@ -172,6 +178,18 @@ export const CATALOG = {
     describe: "Al apretar una tecla cambia el TABLERO del juego (la grilla o el canvas: una pieza se mueve), no solo un texto o un contador. Usar para 'el avatar / jugador / la pieza se mueve con las flechas'.",
     params: { keys: "string[]?" },
   },
+  game_levels: {
+    describe: "(Juego con contrato NIVELES/Reglas) El juego trae al menos N niveles. Usar para 'al menos N niveles'; min = [\"N\"].",
+    params: { min: "string[]" },
+  },
+  moves_one_cell: {
+    describe: "(Juego con contrato NIVELES/Reglas) Cada movimiento avanza exactamente un casillero y la pared lo bloquea. Usar para 'se mueve de a un casillero'.",
+    params: {},
+  },
+  fixed_map_size: {
+    describe: "(Juego con contrato NIVELES/Reglas) Todos los niveles tienen el mismo tamaño de mapa y el tablero dibuja filas x columnas casilleros. Usar para 'el tamaño del mapa es fijo'.",
+    params: {},
+  },
   click_changes: {
     describe: "Al hacer clic en un control cuyo texto menciona X, algo cambia en la pantalla. Usar para 'botón que hace X' cuando no dice qué texto aparece.",
     params: { click: "string[]" },
@@ -202,7 +220,7 @@ export function normalizeCheck(c) {
   for (const [k, t] of Object.entries(def.params)) {
     const v = c.params?.[k];
     const list = (Array.isArray(v) ? v : typeof v === "string" ? [v] : []).map(String).map((s) => s.trim()).filter(Boolean);
-    if (t === "string[]" && !words(list).length) return null;
+    if (t === "string[]" && !words(list).length && !list.some((x) => /\d/.test(x))) return null; // v0.8: un número ("5") también vale
     if (t === "string[]?" && !list.length) continue; // opcional (v0.7)
     params[k] = list;
   }
@@ -358,13 +376,19 @@ export function keysFrom(list) {
 }
 // Foto de la pantalla (dentro de <main>, o body): tag, clases, style, disabled y, si
 // withText, el texto de las hojas. Un <canvas> entra con un resumen de sus píxeles.
+// v0.7.4: los MENSAJES (nombre tipo mensaje/estado/feedback, aria-live, role=status|alert) no
+// cuentan: "¡Nivel reiniciado!" o "movimiento inválido" cambian aunque la pantalla de juego no cambie.
 const SNAP = (withText) => {
   const root = document.querySelector("main") || document.body;
   const out = [];
+  const MSG = /mensaje|message|msg|feedback|toast|aviso|alert|notif|status/i;
+  const isMsg = (e) => !!e.closest("[aria-live], [role=status], [role=alert]") || [e, ...(function* up(x) { while ((x = x.parentElement) && x !== root) yield x; })(e)].some((x) => MSG.test(`${x.id} ${x.getAttribute("class") || ""}`));
   const px = (c) => { try { const u = c.toDataURL(); let h = 0; for (let i = 0; i < u.length; i += 7) h = (h * 31 + u.charCodeAt(i)) | 0; return u.length + ":" + h; } catch { return "?"; } };
   for (const e of root.querySelectorAll("*")) {
-    if (e.closest("script, style")) continue;
-    let line = `${e.tagName}.${e.getAttribute("class") || ""}|${e.getAttribute("style") || ""}|${e.disabled ? "disabled" : ""}`;
+    if (e.closest("script, style") || isMsg(e)) continue;
+    // v0.7.4 (Boxworld build 7): el jugador y las cajas se marcaban con data-type: sin data-* la foto no veía que se movían
+    const data = e.getAttributeNames().filter((n) => n.startsWith("data-") && !n.startsWith("data-vc-")).map((n) => n + "=" + e.getAttribute(n)).join(",");
+    let line = `${e.tagName}.${e.getAttribute("class") || ""}|${data}|${e.getAttribute("style") || ""}|${e.disabled ? "disabled" : ""}`;
     if (e.tagName === "CANVAS") line += "|" + px(e);
     if (withText && !e.children.length) line += "|" + (e.textContent || "").trim();
     out.push(line);
@@ -406,7 +430,7 @@ const BOARD_SNAP = () => {
   }
   if (!board) return { found: false, lines: [] };
   const px = (c) => { try { const u = c.toDataURL(); let h = 0; for (let i = 0; i < u.length; i += 7) h = (h * 31 + u.charCodeAt(i)) | 0; return u.length + ":" + h; } catch { return "?"; } };
-  const line = (e) => `${e.tagName}.${e.getAttribute("class") || ""}|${e.getAttributeNames().filter((n) => n.startsWith("data-")).map((n) => n + "=" + e.getAttribute(n)).join(",")}|${e.getAttribute("style") || ""}${e.tagName === "CANVAS" ? "|" + px(e) : ""}`;
+  const line = (e) => `${e.tagName}.${e.getAttribute("class") || ""}|${e.getAttributeNames().filter((n) => n.startsWith("data-") && !n.startsWith("data-vc-")).map((n) => n + "=" + e.getAttribute(n)).join(",")}|${e.getAttribute("style") || ""}${e.tagName === "CANVAS" ? "|" + px(e) : ""}`;
   const lines = [line(board), ...[...board.querySelectorAll("*")].map(line)];
   return { found: true, label: board.id ? "#" + board.id : board.tagName.toLowerCase() + (board.className ? "." + String(board.className).split(" ")[0] : ""), lines };
 };
@@ -833,6 +857,45 @@ export async function runChecks(htmlPath, checks) {
             }
             r.result = changed.length ? "PASS" : "FAIL";
             r.detail = changed.length ? `cambia la pantalla: ${changed.join(", ")}` : `ninguna tecla cambia nada (${keys.join(", ")})`;
+            break;
+          }
+          case "game_levels": {
+            const min = Number((c.params.min || []).map((x) => String(x).match(/\d+/)?.[0]).find(Boolean) || 1);
+            const n = await page.evaluate(() => (typeof NIVELES !== "undefined" && Array.isArray(NIVELES) ? NIVELES.length : -1));
+            if (n < 0) { r.detail = "la página no define NIVELES (contrato del juego)"; break; }
+            r.result = n >= min ? "PASS" : "FAIL";
+            r.detail = `${n} niveles (se piden al menos ${min})`;
+            break;
+          }
+          case "moves_one_cell": {
+            const t = await page.evaluate(() => {
+              if (typeof Reglas === "undefined") return { err: "la página no define Reglas (contrato del juego)" };
+              try {
+                const lv = ["######", "#@   #", "#    #", "######"];
+                const e = Reglas.crearEstado(lv);
+                const d = Reglas.mover(e, "derecha"), b = Reglas.mover(e, "abajo"), w = Reglas.mover(e, "izquierda");
+                const dd = Reglas.mover(d, "derecha");
+                const p = (x) => x && x.jugador ? x.jugador.fila + "," + x.jugador.col : "?";
+                return { d: p(d), b: p(b), w: p(w), dd: p(dd) };
+              } catch (err) { return { err: String(err.message || err) }; }
+            });
+            if (t.err) { r.detail = t.err; break; }
+            const ok = t.d === "1,2" && t.b === "2,1" && t.w === "1,1" && t.dd === "1,3";
+            r.result = ok ? "PASS" : "FAIL";
+            r.detail = ok ? "derecha → (1,2), otra vez → (1,3), abajo → (2,1), contra la pared se queda en (1,1)" : `desde (1,1): derecha → ${t.d} (esperado 1,2), otra vez → ${t.dd} (1,3), abajo → ${t.b} (2,1), izquierda contra la pared → ${t.w} (1,1)`;
+            break;
+          }
+          case "fixed_map_size": {
+            const t = await page.evaluate(() => {
+              if (typeof NIVELES === "undefined") return { err: "la página no define NIVELES (contrato del juego)" };
+              const dims = NIVELES.map((nv) => nv.length + "x" + Math.max(...nv.map((f) => f.length)));
+              const tab = document.getElementById("tablero");
+              return { dims: [...new Set(dims)], first: dims[0], cells: tab ? tab.children.length : -1, need: NIVELES[0].length * NIVELES[0][0].length };
+            });
+            if (t.err) { r.detail = t.err; break; }
+            const ok = t.dims.length === 1 && t.cells === t.need;
+            r.result = ok ? "PASS" : "FAIL";
+            r.detail = ok ? `todos los niveles son de ${t.first} y el tablero dibuja ${t.cells} casilleros` : `tamaños: ${t.dims.join(", ")}; el tablero dibuja ${t.cells} casilleros de ${t.need}`;
             break;
           }
           case "board_changes": {

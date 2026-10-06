@@ -23,7 +23,7 @@ export async function chatStream(url, body, { onProgress } = {}) {
     if (!res.ok) throw new Error(`LM Studio ${res.status}: ${(await res.text()).slice(0, 300)}`);
     const reader = res.body.getReader();
     const dec = new TextDecoder();
-    let buf = "", content = "", finish_reason = null, usage = null, chunks = 0;
+    let buf = "", content = "", finish_reason = null, usage = null, chunks = 0, reasoning = 0;
     for (;;) {
       const { value, done } = await reader.read();
       if (done) break;
@@ -40,12 +40,15 @@ export async function chatStream(url, body, { onProgress } = {}) {
         try { j = JSON.parse(data); } catch { continue; }
         const ch = j.choices?.[0];
         if (ch?.delta?.content) content += ch.delta.content;
+        // v0.8.2: algunos modelos "piensan" en un canal aparte; se cuenta para saber a dónde se fue el presupuesto
+        const rz = ch?.delta?.reasoning_content ?? ch?.delta?.reasoning;
+        if (typeof rz === "string") reasoning += rz.length;
         if (ch?.finish_reason) finish_reason = ch.finish_reason;
         if (j.usage) usage = j.usage;
         if (onProgress && ++chunks % 200 === 0) onProgress(content.length);
       }
     }
-    return { content, finish_reason, usage };
+    return { content, finish_reason, usage, reasoning_chars: reasoning };
   } catch (e) {
     if (e.name === "AbortError") throw new Error(`LM Studio sin respuesta durante ${IDLE_MS / 60000} min`);
     throw e;

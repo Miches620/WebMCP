@@ -27,12 +27,22 @@ import { estTokens } from "../../../build/tokens.mjs";
 import { briefText } from "../landing/specialist_spa.mjs";
 import { assignTasks, notesText, componentsFromPlan } from "../landing/components.mjs";
 import { repairSyntax } from "../landing/specialist_components.mjs";
+import { fixRedeclare } from "../specialist/encapsulation.mjs";
 import { runChecks } from "../validation/check_catalog.mjs";
 import { rulesBrief } from "../app/specialist_rules.mjs";
 import { levelsFromSpecs, nivelesJs } from "./levels.mjs";
 import { parseJsonLoose } from "../../../json_loose.mjs";
 
-export const FILES_VERSION = "game_files v0.8.1";
+export const FILES_VERSION = "game_files v0.8.2";
+// v0.8.2 (06/10, Boxworld build 9): (1) un archivo que NO compila o NO carga siempre es peor
+// que uno que carga con pruebas fallidas (b9 se quedó con el reglas.js que no compilaba porque
+// tenía "1 problema" contra 5); (2) "Identifier 'x' has already been declared" se arregla sin
+// Gemma (fixRedeclare): b9 declaró const altura dos veces en mover() y la ventana de reparación
+// no veía la primera; (3) si reglas.js no carga, dibujo y controles NO se corren (b9 gastó 11 min
+// culpándolos de "Reglas is not defined"); (4) pistas deterministas en las pruebas: si el jugador
+// queda encima de una caja, se dice por qué (en estado.mapa no hay cajas); (5) la reparación por
+// función tiene el mismo presupuesto que el archivo (b9: 4 de 6 respuestas vacías o cortadas con
+// 3000) y registra finish_reason; (6) lint de sombra: `c => c.col === c` (b9 dibujo.js).
 // v0.8.1 (06/10, Boxworld build 8 con Gemma real): (1) los niveles los propone Gemma en
 // COORDENADAS y el harness arma los strings y los prueba con un solver (Gemma no puede contar
 // caracteres: filas de 9 a 13 en un mapa de 10, 13 objetivos para 3 cajas, aun con el problema
@@ -53,7 +63,7 @@ export const CONTRACT = `CONTRATO DEL JUEGO (lo define el harness; respetalo al 
 - js/niveles.js (lo escribe el harness a partir de tus coordenadas) define: const NIVELES = [nivel1, nivel2, ...]; cada nivel es un array de strings (una fila por string, todas del mismo largo) en formato Sokoban: # pared, espacio piso, . objetivo, $ caja, * caja sobre objetivo, @ jugador, + jugador sobre objetivo.
 - js/reglas.js define: const Reglas = { crearEstado(nivel), mover(estado, direccion), ganado(estado) }. Sin DOM (no usa document ni window).
     estado = { mapa: [strings con SOLO '#', ' ' y '.'], jugador: {fila, col}, cajas: [{fila, col}], objetivos: [{fila, col}], movimientos: 0 }
-    direccion: "arriba" | "abajo" | "izquierda" | "derecha". mover DEVUELVE UN ESTADO NUEVO (no modifica el que recibe). Si el movimiento no se puede (pared, caja contra pared o contra otra caja), devuelve un estado igual con los mismos movimientos. Empujar: el jugador avanza un casillero y la caja otro en la misma dirección. ganado = TODOS los objetivos tienen una caja encima.
+    direccion: "arriba" | "abajo" | "izquierda" | "derecha". mover DEVUELVE UN ESTADO NUEVO (no modifica el que recibe). Si el movimiento no se puede (pared, caja contra pared o contra otra caja), devuelve un estado igual con los mismos movimientos. Empujar: el jugador avanza un casillero y la caja otro en la misma dirección. OJO: en estado.mapa NO hay cajas ni jugador (solo '#', ' ' y '.'): para saber si hay una caja en un casillero mirá estado.cajas; mover cambia jugador, cajas y movimientos, nunca mapa. ganado = TODOS los objetivos tienen una caja encima.
 - juego.html tiene estos ids: #tablero (la grilla), #nivel (número de nivel), #movimientos (contador), #mensaje (vacío al empezar), #btn-reiniciar, #btn-siguiente. Sin <script> ni <style>.
 - js/dibujo.js define: function dibujar(estado, numeroNivel). Vacía #tablero y crea UN div por casillero, hijos directos de #tablero, fila por fila, con clase "casillero" y además: "pared" o "piso"; "objetivo" si es objetivo; "caja" si hay caja; "jugador" si está el jugador. Pone #tablero.style.gridTemplateColumns con la cantidad de columnas. Escribe estado.movimientos en #movimientos y numeroNivel en #nivel.
 - js/controles.js: let nivelActual = 0; let estado; function iniciarNivel(i) { crea el estado con Reglas.crearEstado(NIVELES[i]), vacía #mensaje y llama a dibujar }. Un solo listener keydown en document: flechas → preventDefault, estado = Reglas.mover(estado, dir), dibujar; si Reglas.ganado(estado) → #mensaje dice "¡Nivel completado!". #btn-reiniciar → iniciarNivel(nivelActual). #btn-siguiente → si hay otro nivel, iniciarNivel(nivelActual + 1). Al final del archivo: iniciarNivel(0).`;
@@ -120,6 +130,10 @@ const same = (a, b) => !!a && !!b && a.fila === b.fila && a.col === b.col;
 const sortP = (l) => [...(l || [])].map((x) => ({ fila: x?.fila, col: x?.col })).sort((a, b) => a.fila - b.fila || a.col - b.col);
 const sameList = (a, b) => JSON.stringify(sortP(a)) === JSON.stringify(sortP(b));
 const L = (rows) => JSON.stringify(rows);
+// v0.8.2: diagnóstico determinista que se agrega al mensaje (lo que Gemma no ve sola)
+const why = (e) => (e?.jugador && (e.cajas || []).some((c) => same(c, e.jugador)))
+  ? " El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas."
+  : "";
 
 export const RULE_TESTS = [
   { name: "crearEstado lee jugador, cajas y objetivos", fn: "crearEstado", level: ["#####", "#@$.#", "#####"], run(R, lv) {
@@ -136,9 +150,9 @@ export const RULE_TESTS = [
   } },
   { name: "empujar una caja", fn: "mover", level: ["#####", "#@$.#", "#####"], run(R, lv) {
     const e = R.mover(R.crearEstado(lv), "derecha");
-    return (same(e?.jugador, { fila: 1, col: 2 }) && sameList(e?.cajas, [{ fila: 1, col: 3 }]) && e?.movimientos === 1) || `con ${L(lv)}, mover(estado, "derecha") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador ${P(e?.jugador)}, cajas [${(e?.cajas || []).map(P)}], movimientos ${e?.movimientos}.`;
+    return (same(e?.jugador, { fila: 1, col: 2 }) && sameList(e?.cajas, [{ fila: 1, col: 3 }]) && e?.movimientos === 1) || `con ${L(lv)}, mover(estado, "derecha") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador ${P(e?.jugador)}, cajas [${(e?.cajas || []).map(P)}], movimientos ${e?.movimientos}.${why(e)}`;
   } },
-  { name: "caja en el objetivo = ganado", fn: "ganado", level: ["#####", "#@$.#", "#####"], run(R, lv) {
+  { name: "caja en el objetivo = ganado", fn: "ganado", after: "mover", level: ["#####", "#@$.#", "#####"], run(R, lv) {
     return R.ganado(R.mover(R.crearEstado(lv), "derecha")) === true || `con ${L(lv)}, después de mover "derecha" la única caja está en el único objetivo: ganado tiene que ser true.`;
   } },
   { name: "mover no modifica el estado que recibe", fn: "mover", level: ["#####", "#@$.#", "#####"], run(R, lv) {
@@ -151,11 +165,11 @@ export const RULE_TESTS = [
   } },
   { name: "caja contra pared no se mueve", fn: "mover", level: ["####", "#@$#", "####"], run(R, lv) {
     const e = R.mover(R.crearEstado(lv), "derecha");
-    return (same(e?.jugador, { fila: 1, col: 1 }) && sameList(e?.cajas, [{ fila: 1, col: 2 }]) && e?.movimientos === 0) || `con ${L(lv)}, la caja tiene una pared detrás: "derecha" no mueve nada (jugador {fila:1,col:1}, caja {fila:1,col:2}, movimientos 0); quedó jugador ${P(e?.jugador)}, cajas [${(e?.cajas || []).map(P)}], movimientos ${e?.movimientos}.`;
+    return (same(e?.jugador, { fila: 1, col: 1 }) && sameList(e?.cajas, [{ fila: 1, col: 2 }]) && e?.movimientos === 0) || `con ${L(lv)}, la caja tiene una pared detrás: "derecha" no mueve nada (jugador {fila:1,col:1}, caja {fila:1,col:2}, movimientos 0); quedó jugador ${P(e?.jugador)}, cajas [${(e?.cajas || []).map(P)}], movimientos ${e?.movimientos}.${why(e)}`;
   } },
   { name: "caja contra caja no se mueve", fn: "mover", level: ["######", "#@$$.#", "######"], run(R, lv) {
     const e = R.mover(R.crearEstado(lv), "derecha");
-    return (same(e?.jugador, { fila: 1, col: 1 }) && e?.movimientos === 0) || `con ${L(lv)}, la caja tiene otra caja detrás: "derecha" no mueve nada (jugador {fila:1,col:1}, movimientos 0); quedó ${P(e?.jugador)}, movimientos ${e?.movimientos}.`;
+    return (same(e?.jugador, { fila: 1, col: 1 }) && e?.movimientos === 0) || `con ${L(lv)}, la caja tiene otra caja detrás: "derecha" no mueve nada (jugador {fila:1,col:1}, movimientos 0); quedó ${P(e?.jugador)}, movimientos ${e?.movimientos}.${why(e)}`;
   } },
   { name: "lee '*' y '+'", fn: "crearEstado", level: ["######", "#+$ *#", "######"], run(R, lv) {
     const e = R.crearEstado(lv);
@@ -172,8 +186,11 @@ export function runRuleTests(Reglas, niveles = []) {
   for (const t of RULE_TESTS) {
     let r;
     try { r = t.run(Reglas, t.level); } catch (e) { r = `${t.name}: tiró un error: ${e.message}`; }
-    if (r === true) passed.push(t.name); else failed.push({ name: t.name, fn: t.fn, detail: r });
+    if (r === true) passed.push(t.name); else failed.push({ name: t.name, fn: t.fn, after: t.after, detail: r });
   }
+  // v0.8.2: una prueba que depende de otra función (ganado después de mover) se atribuye a esa
+  // función si ella también falla (b9: se "reparó" ganado, que estaba bien, porque mover no empujaba)
+  for (const f of failed) if (f.after && failed.some((g) => g.fn === f.after && !g.after)) f.fn = f.after;
   (niveles || []).forEach((nv, i) => {
     try {
       const e = Reglas.crearEstado(nv);
@@ -235,6 +252,16 @@ export function clashes(code, others) {
   const mine = new Set(topNames(code));
   const out = [];
   for (const [file, src] of Object.entries(others)) for (const n of topNames(src)) if (mine.has(n)) out.push(`"${n}" ya está declarado en ${file}: en este archivo no lo declares (usalo o elegí otro nombre).`);
+  return out;
+}
+/**
+ * v0.8.2: parámetro de flecha que tapa a una variable de afuera y se compara consigo mismo:
+ * `estado.cajas.some(c => c.fila === r && c.col === c)` (b9 dibujo.js: nunca dibujaba cajas).
+ */
+export function shadowProblems(code) {
+  const out = [];
+  for (const m of String(code || "").matchAll(/\(?\s*([A-Za-z_$][\w$]*)\s*\)?\s*=>[^;\n]*?\b\1\.[\w$]+\s*===?\s*\1\b(?![\w$.(\[])/g))
+    out.push(`en \`${m[0].trim().replace(/^\(\s*/, "").slice(0, 80)}\` el parámetro "${m[1]}" tapa a la variable "${m[1]}" de afuera (se compara ${m[1]}.algo con el mismo ${m[1]}): renombrá el parámetro de la flecha (por ejemplo caja => caja.fila === r && caja.col === ${m[1]}).`);
   return out;
 }
 const OWN = { "js/dibujo.js": ["nivelActual", "estado", "iniciarNivel"] };
@@ -372,7 +399,7 @@ export async function buildGameFiles({ refined, tasks }, outDir, opts = {}) {
     const maxTokens = Math.max(1500, Math.min(cap, CONTEXT - promptTokens - 200));
     const t0 = Date.now();
     const data = await chatStream(LM_STUDIO_URL, { model, messages: [{ role: "system", content: system }, { role: "user", content: user }], temperature: 0, max_tokens: maxTokens });
-    return { raw: data.content || "", ms: Date.now() - t0, finish_reason: data.finish_reason ?? null, usage: data.usage ?? null, promptTokens, maxTokens };
+    return { raw: data.content || "", ms: Date.now() - t0, finish_reason: data.finish_reason ?? null, reasoning_chars: data.reasoning_chars ?? 0, usage: data.usage ?? null, promptTokens, maxTokens };
   };
   const fence = (lang, s) => "```" + lang + "\n" + (String(s || "").trim() || "(vacío)") + "\n```";
   const head = (extra = "") => `BRIEF:\n${brief}\n\n${CONTRACT}\n\n${extra}`;
@@ -381,6 +408,7 @@ export async function buildGameFiles({ refined, tasks }, outDir, opts = {}) {
    * Un paso: hasta 3 intentos del MISMO archivo. `make(prev, problems)` arma el pedido;
    * `take(raw)` extrae el contenido; `judge(content)` devuelve problemas ([] = listo).
    */
+  const FATAL = /^(error de sintaxis|al ejecutarlo|la respuesta no trajo|js\/reglas\.js tiene que definir|la página no llegó|dibujar\(.*tiró un error|no_js_errors)/;
   const step = async ({ id, files: names, cap, make, take, judge, repair }) => {
     const rec = { n: steps.length + 1, task_id: id, files: names, attempts: [] };
     log(`[SPECIALIST] ${rec.n}/5 ${names.join(" + ")}`);
@@ -390,15 +418,26 @@ export async function buildGameFiles({ refined, tasks }, outDir, opts = {}) {
       const r = await ask(FILE_PROMPT, user, cap);
       writeFileSync(join(outDir, `step_${String(rec.n).padStart(2, "0")}_${id}${k ? ".retry" + k : ""}.raw.txt`), r.raw, "utf8");
       let raw = r.raw;
-      const att = { ms: r.ms, finish_reason: r.finish_reason, prompt_tokens_est: r.promptTokens, max_tokens: r.maxTokens };
+      const att = { k, ms: r.ms, finish_reason: r.finish_reason, reasoning_chars: r.reasoning_chars, prompt_tokens_est: r.promptTokens, max_tokens: r.maxTokens };
       // archivo js con error de sintaxis → reparación por tramo (mismo mecanismo que v0.7.5)
       const jsName = names.find((n) => n.endsWith(".js"));
       if (jsName) {
-        const js = take(raw)[jsName];
+        let js = take(raw)[jsName];
         if (js) {
-          const wrapped = `### FILE: componente.js\n\`\`\`javascript\n${js}\n\`\`\``;
           let err = null; try { new vm.Script(js); } catch (e) { err = e.message; }
+          // v0.8.2: declaración repetida → arreglo determinista, sin Gemma
+          if (err && /has already been declared/.test(err)) {
+            const fr = fixRedeclare(js);
+            if (fr.fixes.length) {
+              let e2 = null; try { new vm.Script(fr.js); } catch (e) { e2 = e.message; }
+              att.redeclare_fix = fr.fixes;
+              log(`[SPECIALIST]   declaración repetida: ${fr.fixes.map((f) => `${f.name} L${f.line} ${f.action}`).join(", ")}${e2 ? ` → sigue: ${e2}` : " → compila"}`);
+              raw = raw.includes(js) ? raw.replace(js, () => fr.js) : `### FILE: ${jsName}\n\`\`\`javascript\n${fr.js}\n\`\`\``;
+              js = fr.js; err = e2;
+            }
+          }
           if (err) {
+            const wrapped = `### FILE: componente.js\n\`\`\`javascript\n${js}\n\`\`\``;
             const fx = await repairSyntax(wrapped, { id: "juego" }, ask, { write: (n, txt) => writeFileSync(join(outDir, `step_${String(rec.n).padStart(2, "0")}_${id}.fix${n}.raw.txt`), txt, "utf8") });
             att.syntax_repair = fx.rounds;
             if (fx.raw) { const fixed = extractFile(fx.raw, "componente.js"); raw = raw.replace(js, () => fixed); log(`[SPECIALIST]   reparación de sintaxis: ${fx.rounds.map((x) => `L${x.line} ${x.ok ? "✓" : "✗"}`).join(", ")} → compila`); }
@@ -416,7 +455,9 @@ export async function buildGameFiles({ refined, tasks }, outDir, opts = {}) {
       rec.attempts.push(att);
       // v0.8.1: un intento SIN archivo nunca le gana a uno con archivo (b8: niveles.js quedó vacío)
       const has = names.some((n) => content?.[n]);
-      const score = has ? problems.length : Infinity;
+      // v0.8.2: no compila / no carga / no cumple el contrato → peor que cualquier cantidad de pruebas fallidas
+      const fatal = problems.some((p) => FATAL.test(p));
+      const score = !has ? Infinity : fatal ? 1000 + problems.length : problems.length;
       if (!best || score < best.score) best = { content, problems, score };
       prev = content;
       log(`[SPECIALIST]   ${problems.length ? `✗ ${problems.length} problema(s): ${problems.slice(0, 3).join(" | ").slice(0, 300)}` : "✓"}${k ? ` (reintento ${k})` : ""} · ${Math.round(r.ms / 1000)}s`);
@@ -425,6 +466,13 @@ export async function buildGameFiles({ refined, tasks }, outDir, opts = {}) {
     rec.problems_final = best.problems;
     steps.push(rec);
     return { content: best.content, rec };
+  };
+  // v0.8.2: paso que no se corre porque falló uno anterior del que depende (no se lo culpa)
+  const skipStep = (id, names, reason) => {
+    const rec = { n: steps.length + 1, task_id: id, files: names, attempts: [], skipped: reason, problems_final: [`no se corrió: ${reason}`] };
+    log(`[SPECIALIST] ${rec.n}/5 ${names.join(" + ")} — NO se corre: ${reason}`);
+    steps.push(rec);
+    return { content: {}, rec };
   };
   const retryBlock = (prev, problems, names) => problems.length
     ? `PROBLEMAS DE TU VERSIÓN ANTERIOR (los encontró el harness):\n${problems.map((p) => "- " + p).join("\n")}\n\nTU VERSIÓN ANTERIOR:\n${names.map((n) => `### FILE: ${n}\n${fence(n.endsWith(".css") ? "css" : n.endsWith(".html") ? "html" : "javascript", prev?.[n])}`).join("\n\n")}\n\nDevolvé ${names.join(" y ")} corregido(s), completo(s).`
@@ -476,6 +524,7 @@ Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su
       if (!code) return ["la respuesta no trajo ### FILE: js/reglas.js."];
       const se = syntaxOf(code); if (se) return [`error de sintaxis: ${se}`];
       if (/\b(document|window)\./.test(code)) return ["js/reglas.js no puede usar document ni window (es lógica pura)."];
+      const sh = shadowProblems(code); if (sh.length) return sh;
       const L2 = loadScripts([files["js/niveles.js"], code]);
       if (L2.error) return [`al ejecutarlo: ${L2.error}`];
       return runRuleTests(L2.Reglas, L2.NIVELES).failed.map((f) => f.detail);
@@ -493,20 +542,20 @@ Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su
         const m = fn && findMember(code, fn);
         if (!m) break;
         const user = `${CONTRACT}\n\nPRUEBAS DEL HARNESS QUE FALLAN (${fn}):\n${failed.filter((f) => f.fn === fn).map((f) => "- " + f.detail).join("\n")}\n\nFUNCIÓN A CORREGIR (${fn}):\n${fence("javascript", m.text)}`;
-        const r = await ask(MEMBER_FIX_PROMPT, user, 3000);
-        writeFileSync(join(outDir, `step_02_reglas.${fn}${k + 1}.raw.txt`), r.raw, "utf8");
+        const r = await ask(MEMBER_FIX_PROMPT, user, 5000);
+        writeFileSync(join(outDir, `step_02_reglas.a${att.k ?? 0}.${fn}${k + 1}.raw.txt`), r.raw, "utf8");
         const got = (String(r.raw || "").match(/```(?:javascript|js)?\n([\s\S]*?)```/) || [])[1];
         const rp = replaceMember(code, m, got);
         const before = failed.length;
         let after = before;
         if (rp.ok) { const L3 = loadScripts([files["js/niveles.js"], rp.js]); after = L3.error ? Infinity : runRuleTests(L3.Reglas, L3.NIVELES).failed.length; }
-        const round = { fn, ms: r.ms, ok: rp.ok && after < before, before, after: after === Infinity ? "error" : after, ...(rp.ok ? {} : { note: rp.why }) };
+        const round = { fn, ms: r.ms, finish_reason: r.finish_reason, chars: String(r.raw || "").length, reasoning_chars: r.reasoning_chars ?? 0, ok: rp.ok && after < before, before, after: after === Infinity ? "error" : after, ...(rp.ok ? {} : { note: rp.why + (r.finish_reason === "length" ? " (cortada por largo)" : !String(r.raw || "").trim() ? " (respuesta vacía)" : "") }) };
         rounds.push(round);
         if (round.ok) code = rp.js;
       }
       if (rounds.length) {
         att.member_repair = rounds;
-        log(`[SPECIALIST]   reparación por función: ${rounds.map((r) => `${r.fn} ${r.ok ? "✓" : "✗"}`).join(", ")}`);
+        log(`[SPECIALIST]   reparación por función: ${rounds.map((r) => `${r.fn} ${r.ok ? "✓" : `✗${r.note ? ` (${r.note})` : ""}`}`).join(", ")}`);
       }
       return code !== c["js/reglas.js"] ? { "js/reglas.js": code } : null;
     },
@@ -515,6 +564,7 @@ Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su
   {
     const L2 = loadScripts([files["js/niveles.js"], files["js/reglas.js"]]);
     s2.rec.tests = runRuleTests(L2.Reglas, L2.NIVELES);
+    if (L2.error) s2.rec.tests.failed.unshift({ name: "carga", detail: `al ejecutarlo: ${L2.error}` });
     log(`[SPECIALIST]   pruebas de reglas (harness, sin navegador): ${s2.rec.tests.passed.length}/${s2.rec.tests.passed.length + s2.rec.tests.failed.length}${s2.rec.tests.failed.length ? ` · fallan: ${s2.rec.tests.failed.map((f) => f.name).join(", ")}` : ""}`);
   }
 
@@ -534,9 +584,13 @@ Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su
   fragment = cleanFragment(s3.content["juego.html"]);
   files["styles.css"] = cleanCss(s3.content["styles.css"]);
 
+  // v0.8.2: si reglas.js no carga, dibujo y controles no se pueden probar (b9: 11 min culpándolos)
+  const reglasRota = s2.rec.tests.failed.find((f) => f.name === "carga" || f.name === "contrato");
+  const upstream = reglasRota ? `js/reglas.js no carga (${reglasRota.detail.slice(0, 120)})` : null;
+
   // 4. dibujo
   const probeDir = join(outDir, "probe_dibujo");
-  const s4 = await step({
+  const s4 = upstream ? skipStep("dibujo", ["js/dibujo.js"], upstream) : await step({
     id: "dibujo", files: ["js/dibujo.js"], cap: 4000,
     make: (prev, pr) => head(`YA EXISTEN: NIVELES, Reglas (crearEstado/mover/ganado) y juego.html:\n${fence("html", fragment.slice(0, 2500))}\n\nPASO 4 de 5: escribí js/dibujo.js (function dibujar(estado, numeroNivel)).\n\n`) + retryBlock(prev, pr, ["js/dibujo.js"]),
     take: takeJs("js/dibujo.js"),
@@ -546,6 +600,7 @@ Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su
       const se = syntaxOf(code); if (se) return [`error de sintaxis: ${se}`];
       const own = topNames(code).filter((n) => OWN["js/dibujo.js"].includes(n));
       const extra = [
+        ...shadowProblems(code),
         ...clashes(code, { "js/niveles.js": files["js/niveles.js"], "js/reglas.js": files["js/reglas.js"] }),
         ...(own.length ? [`js/dibujo.js solo define dibujar(estado, numeroNivel): ${own.join(", ")} van en js/controles.js (paso 5), no acá.`] : []),
         ...(/addEventListener\s*\(/.test(code) ? ["js/dibujo.js no agrega listeners (teclado y botones van en js/controles.js)."] : []),
@@ -560,7 +615,9 @@ Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su
 
   // 5. controles
   const playDir = join(outDir, "probe_juego");
-  const s5 = await step({
+  const dibujoRoto = !upstream && (s4.rec.problems_final || []).find((p) => FATAL.test(p));
+  const up5 = upstream || (dibujoRoto ? `js/dibujo.js no funciona (${dibujoRoto.slice(0, 120)})` : null);
+  const s5 = up5 ? skipStep("controles", ["js/controles.js"], up5) : await step({
     id: "controles", files: ["js/controles.js"], cap: 4000,
     make: (prev, pr) => head(`NOTAS DEL TECHLEADER (contexto):\n${notes}\n\nYA EXISTEN: NIVELES (${N.length} niveles), Reglas, dibujar(estado, numeroNivel) y juego.html:\n${fence("html", fragment.slice(0, 2500))}\n\nPASO 5 de 5: escribí js/controles.js (estado del juego, teclado, botones y arranque).\n\n`) + retryBlock(prev, pr, ["js/controles.js"]),
     take: takeJs("js/controles.js"),
@@ -576,12 +633,13 @@ Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su
     },
   });
   files["js/controles.js"] = s5.content["js/controles.js"] || "";
+  const skipped = steps.filter((s) => s.skipped).map((s) => s.task_id);
 
   writeApp(appDir, files, pageHtml({ title, fragment, features }));
   log(`[SPECIALIST] app/: index.html, styles.css, ${JS_FILES.join(", ")}${steps.some((s) => s.problems_final.length) ? ` · quedan problemas en: ${steps.filter((s) => s.problems_final.length).map((s) => s.task_id).join(", ")}` : " · todos los pasos OK"}`);
   return {
     model, specialist_version: FILES_VERSION, files: ["index.html", "styles.css", ...JS_FILES],
-    hints, levels: s1.rec.levels, rule_tests: s2.rec.tests, order: steps.map((s) => s.task_id),
+    hints, levels: s1.rec.levels, ...(skipped.length ? { skipped, upstream: up5 } : {}), rule_tests: s2.rec.tests, order: steps.map((s) => s.task_id),
     steps: steps.map((s) => ({ ...s, ms: s.attempts.reduce((a, b) => a + b.ms, 0), finish_reason: s.attempts.at(-1)?.finish_reason, changed: s.files, rejected: s.problems_final })),
   };
 }

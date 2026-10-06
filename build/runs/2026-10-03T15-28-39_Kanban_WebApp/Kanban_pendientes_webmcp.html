@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-06c'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
+  const SEED = '2026-10-06d'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
   let state = loadState() || {
  "columns": [
   {
@@ -438,6 +438,18 @@
      "title": "1 · URGENTE · web/app por archivos (si b8 anda)",
      "desc": "[#Specialist] Misma fórmula para el Kanban: datos.js, estado.js (probado sin navegador: crear/editar/borrar/mover tarjeta), vista.js, eventos.js.",
      "priority": "urgente"
+    },
+    {
+     "id": "n11",
+     "title": "1b · El contrato de web/game es Sokoban",
+     "desc": "[#Specialist] Deuda: CONTRACT, RULE_TESTS y el solver sirven para juegos de empujar cajas. Miche: 'no quiero que MicheLab sepa hacer boxworld y nada más'. Cuando b10 ande: separar motor (pasos por archivo, pruebas, reparaciones) de la 'familia de juego' (grilla+empujar como primera familia).",
+     "priority": "medio"
+    },
+    {
+     "id": "n12",
+     "title": "1c · Niveles demasiado fáciles",
+     "desc": "[#Specialist] b9: 5 niveles resolubles pero de 2 a 8 empujes, cajas en línea al lado del objetivo. El solver ya cuenta empujes: pedir dificultad creciente medible (sin bloquear el build).",
+     "priority": "bajo"
     },
     {
      "id": "n3",
@@ -497,8 +509,8 @@
    "cards": [
     {
      "id": "g3",
-     "title": "Boxworld b9 (game_files v0.8.1)",
-     "desc": "[#Specialist] Niveles en coordenadas + solver, reparación por método en reglas.js, sin archivos vacíos, nombres repetidos entre archivos. Mirar en el log: 'niveles: N válidos y resolubles', 'pruebas de reglas X/15', 'reparación por función'.",
+     "title": "Boxworld b10 (game_files v0.8.2)",
+     "desc": "[#Specialist] Mirar en el log: 'declaración repetida … → compila', 'pruebas de reglas X/15', 'reparación por función' (ahora dice si la respuesta vino vacía o cortada), y si aparece 'NO se corre' en dibujo/controles.",
      "priority": "urgente"
     }
    ]
@@ -509,6 +521,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h16",
+     "title": "06/10 · b9 → v0.8.2",
+     "desc": "[#Specialist] b9: niveles OK (5 resolubles), pantalla OK, controles bien escritos. Se cayó por reglas.js: const altura declarado 2 veces (la reparación por tramo no veía la 1ª) y el harness eligió esa versión rota sobre 2 que cargaban. Ahora: no compila/no carga siempre pierde; declaración repetida se arregla sin Gemma; si reglas no carga, dibujo y controles no se corren; pista determinista 'el jugador quedó encima de la caja: en mapa no hay cajas'; reparación por función con presupuesto completo; lint de sombra (c => c.col === c).",
+     "priority": "bajo"
+    },
     {
      "id": "h15",
      "title": "06/10 · b8 por archivos → v0.8.1",

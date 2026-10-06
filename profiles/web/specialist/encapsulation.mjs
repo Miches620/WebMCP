@@ -378,3 +378,40 @@ export function applyTokensResponse(state, raw) {
   const t = cleanTokens(css);
   return { next: { ...state, tokens: t.css }, changed: ["tokens.css"], notes: t.dropped.length ? [`tokens: descartado ${t.dropped.join(", ")}`] : [], rejected: [] };
 }
+
+/**
+ * v0.8.2 (06/10, Boxworld b9): arreglo DETERMINISTA de "Identifier 'x' has already been declared".
+ * Gemma declaró `const altura = estado.mapa.length;` dos veces dentro de mover(); la reparación por
+ * tramo (ventana alrededor de la 2ª declaración) no veía la 1ª y Gemma solo cambió const→let.
+ * Regla: si la declaración repetida tiene el MISMO valor que la anterior, se borra; si no, pasa a
+ * asignación (`x = …`) y la anterior pasa de const a let. Se acepta solo si el resultado compila
+ * o al menos cambia de error. @returns {{js, fixes:[{name,line,action}]}}
+ */
+export function fixRedeclare(js, maxFixes = 8) {
+  let src = String(js || "");
+  const fixes = [];
+  for (let k = 0; k < maxFixes; k++) {
+    let err = null;
+    try { new vm.Script(src, { filename: "r.js" }); } catch (e) { err = e; }
+    const m = err && String(err.message).match(/Identifier '([\w$]+)' has already been declared/);
+    if (!m) break;
+    const name = m[1];
+    const lines = src.split("\n");
+    const decl = new RegExp(`^(\\s*)(const|let|var)\\s+${name.replace(/\$/g, "\\$")}\\s*=\\s*(.*?);?\\s*$`);
+    const at = Number((String(err.stack || "").match(/r\.js:(\d+)/) || [])[1]) - 1;
+    let i = at >= 0 && decl.test(lines[at] || "") ? at : -1;
+    if (i < 0) break; // no es una declaración simple de una línea: que la arregle otro mecanismo
+    let j = -1;
+    for (let p = i - 1; p >= 0; p--) if (decl.test(lines[p])) { j = p; break; }
+    if (j < 0) break;
+    const [, ind, , rhs] = lines[i].match(decl);
+    const prevRhs = lines[j].match(decl)[3];
+    let action;
+    if (rhs.trim() === prevRhs.trim()) { lines.splice(i, 1); action = "borrada (mismo valor)"; }
+    else { lines[i] = `${ind}${name} = ${rhs};`; lines[j] = lines[j].replace(/^(\s*)const\b/, "$1let"); action = "pasa a asignación"; }
+    const next = lines.join("\n");
+    fixes.push({ name, line: i + 1, action });
+    src = next;
+  }
+  return { js: src, fixes };
+}

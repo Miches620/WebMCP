@@ -2,12 +2,10 @@
 ganado: function(estado) {
         if (!estado.objetivos || estado.objetivos.length === 0) return true;
 
-        // Verifica si cada objetivo tiene al menos una caja encima (coincidencia de coordenadas).
-        return estado.objetivos.every(objetivo => {
-            const esCubierto = estado.cajas.some(caja => 
+        return estado.objetivos.every(objetivo => 
+            estado.cajas.some(caja => 
                 caja.fila === objetivo.fila && caja.col === objetivo.col
-            );
-            return esCubierto;
-        });
+            )
+        );
     }
 ```

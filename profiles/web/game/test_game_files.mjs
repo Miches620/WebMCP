@@ -5,8 +5,10 @@ import { fileURLToPath } from "node:url";
 import {
   gameHints, validateLevels, loadScripts, runRuleTests, RULE_TESTS, screenProblems, cleanFragment, cleanCss,
   pageHtml, extractFile, dibujoProblems, JS_FILES, CONTRACT, IDS, baselinePage,
-  findMember, replaceMember, topNames, clashes,
+  findMember, replaceMember, topNames, clashes, shadowProblems,
 } from "./specialist_files.mjs";
+import { fixRedeclare } from "../specialist/encapsulation.mjs";
+import vm from "node:vm";
 import { levelFromSpec, solve, levelsFromSpecs, nivelesJs } from "./levels.mjs";
 
 let ok = 0, fail = 0;
@@ -101,6 +103,23 @@ t("pruebas con 'fn': cada falla dice qué función revisar", runRuleTests(loadSc
 // v0.8.1: nombres en dos archivos (b8: dibujo.js declaraba nivelActual e iniciarNivel)
 t("topNames: const/let/function al nivel superior", topNames("let nivelActual = 0;\nfunction iniciarNivel(i) {\n  const x = 1;\n}\nconst Reglas = {};").join() === "nivelActual,iniciarNivel,Reglas");
 t("clashes: nombre ya declarado en otro archivo", clashes("let nivelActual = 0;", { "js/dibujo.js": "let nivelActual = 0;\nfunction dibujar() {}" })[0]?.includes('"nivelActual" ya está declarado en js/dibujo.js'));
+
+// v0.8.2: Boxworld b9 (reglas.js real de Gemma: const altura/ancho declarados dos veces en mover)
+const b9 = readFileSync(fileURLToPath(new URL("../validation/fixtures/real_boxworld_b9_reglas.js", import.meta.url)), "utf8");
+const compiles = (js) => { try { new vm.Script(js); return true; } catch { return false; } };
+t("b9: el reglas.js real no compila", !compiles(b9));
+const fr9 = fixRedeclare(b9);
+t("fixRedeclare: b9 compila borrando las 2 declaraciones repetidas (mismo valor)", compiles(fr9.js) && fr9.fixes.length === 2 && fr9.fixes.every((f) => /borrada/.test(f.action)), JSON.stringify(fr9.fixes));
+const fr2 = fixRedeclare("function f(a) {\n  const x = 1;\n  const x = a + 1;\n  return x;\n}");
+t("fixRedeclare: otro valor → asignación y la primera pasa a let", compiles(fr2.js) && /let x = 1;/.test(fr2.js) && /^\s*x = a \+ 1;/m.test(fr2.js) && new vm.Script(fr2.js + ";f(4)").runInNewContext() === 5);
+t("fixRedeclare: código sano no se toca", fixRedeclare("const a = 1;\nlet b = 2;").fixes.length === 0);
+const t9 = runRuleTests(loadScripts([fr9.js]).Reglas, []);
+const push9 = t9.failed.find((f) => f.name === "empujar una caja");
+t("b9: la prueba de empujar explica que el jugador quedó encima de la caja (mapa sin cajas)", push9 && /ENCIMA de una caja/.test(push9.detail) && /estado\.cajas/.test(push9.detail));
+t("b9: 'ganado después de mover' se atribuye a mover cuando mover falla", t9.failed.find((f) => f.name === "caja en el objetivo = ganado")?.fn === "mover");
+t("shadowProblems: b9 dibujo.js (c => c.fila === r && c.col === c)", shadowProblems("const tieneCaja = estado.cajas.some(c => c.fila === r && c.col === c);").length === 1);
+t("shadowProblems: comparaciones legítimas no se marcan", shadowProblems("ids.some(id => target === id); a.some((b) => b.fila === r && b.col === c); xs.find(c => c.id === c2)").length === 0);
+t("contrato: dice que en mapa no hay cajas (mirar estado.cajas)", /en estado\.mapa NO hay cajas/.test(CONTRACT));
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

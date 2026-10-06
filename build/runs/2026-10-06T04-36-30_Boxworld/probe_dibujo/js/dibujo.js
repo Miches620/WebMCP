@@ -1,0 +1,63 @@
+/**
+ * Dibuja el estado actual del juego en el tablero HTML y actualiza los contadores.
+ * @param {object} estado El objeto de estado que contiene la posición de elementos.
+ * @param {number} numeroNivel El número de nivel actual.
+ */
+function dibujar(estado, numeroNivel) {
+    const tablero = document.getElementById('tablero');
+    const movimientosDisplay = document.getElementById('movimientos');
+    const nivelDisplay = document.getElementById('nivel');
+
+    // 1. Limpiar el tablero
+    tablero.innerHTML = '';
+
+    // Establecer la plantilla de columnas (asumiendo un tamaño fijo de 10x10)
+    tablero.style.gridTemplateColumns = 'repeat(10, 1fr)';
+
+    const mapa = estado.mapa;
+    const filas = mapa.length;
+    const columnas = mapa[0].length;
+
+    // 2. Dibujar cada casillero
+    for (let r = 0; r < filas; r++) {
+        for (let c = 0; c < columnas; c++) {
+            const tipoCasillero = mapa[r][c];
+            const div = document.createElement('div');
+            div.className = 'casillero';
+
+            // Determinar el tipo base del casillero
+            if (tipoCasillero === '#') {
+                div.classList.add('pared');
+            } else if (tipoCasillero === '.') {
+                div.classList.add('objetivo');
+            } else {
+                div.classList.add('piso');
+            }
+
+            // 3. Verificar elementos dinámicos (Jugador, Cajas)
+            let esObjetivo = false;
+
+            // ¿Es objetivo?
+            if (tipoCasillero === '.') {
+                esObjetivo = true;
+            }
+
+            // Verificar si hay jugador en esta posición
+            if (estado.jugador.fila === r && estado.jugador.col === c) {
+                div.classList.add('jugador');
+            }
+
+            // Verificar si hay caja en esta posición
+            const tieneCaja = estado.cajas.some(box => box.fila === r && box.col === c);
+            if (tieneCaja) {
+                div.classList.add('caja');
+            }
+
+            tablero.appendChild(div);
+        }
+    }
+
+    // 4. Actualizar HUD
+    movimientosDisplay.textContent = `Movimientos: ${estado.movimientos}`;
+    nivelDisplay.textContent = `Nivel ${numeroNivel}`;
+}

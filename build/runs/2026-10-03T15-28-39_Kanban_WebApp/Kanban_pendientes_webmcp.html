@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-06e'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
+  const SEED = '2026-10-06f'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
   let state = loadState() || {
  "columns": [
   {
@@ -442,7 +442,7 @@
     {
      "id": "n11",
      "title": "1b · Paso 2: Validation profiles que lean el Standard",
-     "desc": "[#Validation] Partir check_catalog (63 KB, todo mezclado) en framework + profiles web → web/app → web/game. El profile ve qué Standard usó el Specialist y verifica eso (hoy moves_one_cell, game_levels y fixed_map_size nombran Reglas/NIVELES por su cuenta). Las pruebas de reglas.js las corre el motor: que sea el mismo código del Validation profile, sin duplicar.",
+     "desc": "[#Validation] Partir check_catalog (63 KB, todo mezclado) en framework + profiles web → web/app → web/game. El profile ve qué Standard usó el Specialist y verifica eso (hoy moves_one_cell, game_levels y fixed_map_size nombran Reglas/NIVELES por su cuenta). Sumar un chequeo VISUAL: b10 dio 5 PASS con el tablero vacío a la vista. Las pruebas de reglas.js las corre el motor: que sea el mismo código del Validation profile, sin duplicar.",
      "priority": "urgente"
     },
     {
@@ -515,8 +515,8 @@
    "cards": [
     {
      "id": "g3",
-     "title": "Boxworld b10 (game_files v0.8.2)",
-     "desc": "[#Specialist] Mirar en el log: 'declaración repetida … → compila', 'pruebas de reglas X/15', 'reparación por función' (ahora dice si la respuesta vino vacía o cortada), y si aparece 'NO se corre' en dibujo/controles.",
+     "title": "Boxworld b11 (motor general + Standard grilla v0.1.1)",
+     "desc": "[#Specialist] Primera corrida con el harness general. Mirar: 'Standard web/game/grilla', 'niveles: N válidos · empujes', si pantalla dice 'se ven iguales', y abrir el juego a mano: ¿se ve el tablero?",
      "priority": "urgente"
     }
    ]
@@ -527,6 +527,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h18",
+     "title": "06/10 · b10: 5 PASS, pero el tablero no se veía",
+     "desc": "[#Specialist] Mejor build hasta ahora: se mueve, empuja y gana. Pero el CSS usaba '.casillero .pared' y todo se veía igual; 4 de 5 niveles (cajas contra la pared); FAIL falso del traductor en reiniciar. Ahora: la pantalla se prueba en Chromium (cada clase se ve distinta), los niveles válidos se juntan entre intentos y se explica la caja trabada, reiniciar se chequea con reset_restores.",
+     "priority": "bajo"
+    },
     {
      "id": "h17",
      "title": "06/10 · Paso 1: Boxworld fuera del harness",

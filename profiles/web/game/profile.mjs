@@ -15,7 +15,7 @@ export default {
   kind: "type",
   selectable: true,
   status: "DRAFT",
-  version: "0.3",
+  version: "0.3.1",
   describe: "Juego de una pantalla escrito POR ARCHIVOS, un archivo por paso de Gemma. Cómo se arma (archivos, contrato, pruebas) lo declara el Standard (hoy web/game/grilla, DRAFT); el motor es general. Validation prueba que se pueda jugar y que no se gane solo.",
   build: "web/game",
   // v0.3 (06/10): el contrato, los pasos y las pruebas salieron del harness a un Standard DRAFT.

@@ -7,7 +7,9 @@ import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import S, { gameHints, validateLevels, CONTRACT, IDS, SCRIPTS } from "./standard.mjs";
 import { RULE_TESTS } from "./acceptance.mjs";
-import { levelFromSpec, solve, levelsFromSpecs, nivelesJs } from "./levels.mjs";
+import { levelFromSpec, solve, levelsFromSpecs, nivelesJs, stuckBoxes } from "./levels.mjs";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { postprocessChecks } from "../../../../profiles/web/game/build.mjs";
 import * as E from "../../../../harness/files_engine.mjs";
 import { fixRedeclare } from "../../../../profiles/web/specialist/encapsulation.mjs";
 
@@ -86,7 +88,7 @@ t("solver: nivel fácil → resoluble", solve(["#####", "#@$.#", "#####"]).solva
 t("solver: caja pegada a la pared superior y objetivo abajo → imposible", solve(levelFromSpec({ jugador: [2, 2], cajas: [[1, 3]], objetivos: [[4, 4]] }, { rows: 6, cols: 6 }).rows).solvable === false);
 t("solver: dos cajas con paredes interiores → resoluble", solve(levelFromSpec({ jugador: [1, 1], cajas: [[2, 3], [4, 4]], objetivos: [[2, 6], [6, 4]], paredes: [[3, 3], [3, 4]] }).rows).solvable === true);
 const ls = levelsFromSpecs({ niveles: [{ jugador: [1, 1], cajas: [[2, 3]], objetivos: [[2, 6]] }, { jugador: [2, 2], cajas: [[1, 3]], objetivos: [[4, 4]] }] }, { rows: 6, cols: 8, minLevels: 2 });
-t("levelsFromSpecs: el irresoluble se descarta y se avisa", ls.levels.length === 1 && ls.problems.some((p) => /nivel 2: NO se puede ganar/.test(p)) && ls.problems.some((p) => /1 niveles válidos y se piden al menos 2/.test(p)));
+t("levelsFromSpecs: el irresoluble se descarta y se avisa", ls.levels.length === 1 && ls.problems.some((p) => /nivel 2: (NO se puede ganar|la caja en \[1,3\] no puede llegar)/.test(p)) && ls.problems.some((p) => /1 niveles válidos y se piden al menos 2/.test(p)));
 t("levelsFromSpecs: JSON sin 'niveles' → problema claro", /"niveles"/.test(levelsFromSpecs({ foo: 1 }).problems[0]));
 const nj = nivelesJs(ls.levels, ls.report);
 t("nivelesJs: js/niveles.js cargable y válido para el contrato", (() => { const L = loadScripts([nj]); return Array.isArray(L.NIVELES) && L.NIVELES.length === 1 && validateLevels(L.NIVELES).length === 0; })());
@@ -130,6 +132,32 @@ t("b9: 'ganado después de mover' se atribuye a mover cuando mover falla", t9.fa
 t("shadowProblems: b9 dibujo.js (c => c.fila === r && c.col === c)", shadowProblems("const tieneCaja = estado.cajas.some(c => c.fila === r && c.col === c);").length === 1);
 t("shadowProblems: comparaciones legítimas no se marcan", shadowProblems("ids.some(id => target === id); a.some((b) => b.fila === r && b.col === c); xs.find(c => c.id === c2)").length === 0);
 t("contrato: dice que en mapa no hay cajas (mirar estado.cajas)", /en estado\.mapa NO hay cajas/.test(CONTRACT));
+
+// v0.1.1 (Boxworld b10)
+const fx = (n) => readFileSync(fileURLToPath(new URL(`../../../../profiles/web/validation/fixtures/${n}`, import.meta.url)), "utf8");
+const b10 = levelsFromSpecs(JSON.parse(fx("real_boxworld_b10_niveles.json")), { rows: 10, cols: 10, minLevels: 5 });
+t("b10: el nivel 5 se descarta diciendo POR QUÉ (cajas contra la pared, objetivo en otra línea)", b10.levels.length === 4 && b10.problems.some((p) => /nivel 5: las cajas en \[4,1\]/.test(p) && /contra la pared/.test(p)), JSON.stringify(b10.problems));
+t("stuckBoxes: caja contra la pared con su objetivo pegado a esa pared → viva; con el objetivo lejos → trabada", stuckBoxes(["#####", "#@  #", "#$  #", "#.  #", "#####"]).length === 0 && stuckBoxes(["######", "#@   #", "#$   #", "#  . #", "######"]).length === 1);
+t("solver: sigue resolviendo los niveles buenos de b10", b10.levels.every((rows) => solve(rows).solvable === true));
+const emit = step("niveles").emit(b10.levels, b10.report.filter((r) => r.ok));
+t("emit: niveles ordenados por empujes (dificultad creciente medible)", emit.reports.every((r, i, a) => !i || (a[i - 1].pushes ?? 0) <= (r.pushes ?? 0)), JSON.stringify(emit.reports.map((r) => r.pushes)));
+t("data: missing dice cuántos faltan y que sean nuevos", /mandá 1 nivel\(es\) NUEVO/.test(step("niveles").missing(4, 5)));
+const sw = step("pantalla").swatches;
+const swDir = fileURLToPath(new URL("../../../../build/runs/_test_swatch/", import.meta.url));
+const swatch = async (css) => {
+  mkdirSync(swDir, { recursive: true });
+  writeFileSync(swDir + "styles.css", css);
+  writeFileSync(swDir + "index.html", E.pageHtml({ title: "t", fragment: '<div id="tablero"></div>', scripts: [], inline: E.swatchProbe(sw), mainId: "juego" }));
+  return E.swatchProblems(await E.probePage(swDir + "index.html"), sw, css);
+};
+const swBad = await swatch(fx("real_boxworld_b10_styles.css"));
+t("pantalla b10: '.casillero .pared' (descendiente) → se ven iguales + pista del selector", swBad.length === 3 && /\.casillero\.pared \(sin espacio\)/.test(swBad[2]), JSON.stringify(swBad));
+t("pantalla b10 corregida ('.casillero.pared') → sin problemas", (await swatch(fx("real_boxworld_b10_styles.css").replace(/\.casillero \./g, ".casillero.").replace(".objetivo .caja", ".objetivo.caja"))).length === 0);
+t("pantalla: caja y jugador del mismo color → se avisa", (await swatch(".casillero{background:#888}.casillero.pared{background:#000}.casillero.objetivo::after{content:'x'}.casillero.caja{background:red}.casillero.jugador{background:red}")).some((p) => /\.caja = \.jugador/.test(p)));
+const refSw = await swatch(ref("styles.css"));
+t("referencia game_files_ok: sus clases se ven distintas", refSw.length === 0, JSON.stringify(refSw));
+t("traductor web/game: click_changes en 'reiniciar' (b10 R1, FAIL falso) → reset_restores", JSON.stringify(postprocessChecks([{ type: "click_changes", params: { click: ["reiniciar"] } }])) === JSON.stringify([{ type: "reset_restores", params: { click: ["reiniciar"] } }]) && postprocessChecks([{ type: "click_changes", params: { click: ["siguiente"] } }])[0].type === "click_changes");
+t("contrato: el número de nivel empieza en 1", /nivelActual \+ 1/.test(CONTRACT));
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

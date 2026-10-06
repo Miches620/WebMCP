@@ -73,6 +73,38 @@ export function levelFromSpec(spec, { rows = 10, cols = 10 } = {}, n = "nivel") 
 }
 
 /**
+ * v0.1.1 (06/10, Boxworld b10): casilleros VIVOS = desde donde una caja todavía puede llegar a
+ * algún objetivo (se calcula "tirando" desde los objetivos: la caja vino de x si el jugador
+ * pudo pararse detrás). b10: los 3 intentos trajeron un nivel con cajas pegadas a la pared
+ * (columna 1) y objetivos en la columna 2; el harness solo decía "NO se puede ganar".
+ * @returns {Set<number>} índices f*C+c
+ */
+export function liveSquares(rows) {
+  const R = rows.length, C = Math.max(...rows.map((r) => r.length));
+  const wall = (f, c) => f < 0 || f >= R || c < 0 || c >= C || (rows[f][c] ?? "#") === "#";
+  const live = new Set(), st = [];
+  rows.forEach((s, f) => [...s].forEach((ch, c) => { if (".*+".includes(ch)) { live.add(f * C + c); st.push([f, c]); } }));
+  const D = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+  while (st.length) {
+    const [f, c] = st.pop();
+    for (const [df, dc] of D) {
+      const bf = f - df, bc = c - dc;          // la caja estaba acá…
+      const pf = bf - df, pc = bc - dc;        // …y el jugador detrás
+      if (wall(bf, bc) || wall(pf, pc) || live.has(bf * C + bc)) continue;
+      live.add(bf * C + bc); st.push([bf, bc]);
+    }
+  }
+  return live;
+}
+/** Cajas que empiezan en un casillero desde donde no pueden llegar a ningún objetivo: [[f, c]]. */
+export function stuckBoxes(rows) {
+  const C = Math.max(...rows.map((r) => r.length));
+  const live = liveSquares(rows), out = [];
+  rows.forEach((s, f) => [...s].forEach((ch, c) => { if (ch === "$" && !live.has(f * C + c)) out.push([f, c]); }));
+  return out;
+}
+
+/**
  * ¿Se puede ganar? Búsqueda por EMPUJES: un estado = cajas + zona alcanzable del jugador
  * (representada por su casillero más chico). Poda: casilleros muertos (esquina que no es objetivo).
  * @returns {{solvable:true, pushes:number}|{solvable:false}|{solvable:null, explored:number}}
@@ -93,11 +125,8 @@ export function solve(rows, { cap = 200000, ms = 4000 } = {}) {
   const D = [-C, C, -1, 1];
   const ok = (i, d) => { const c = i % C, c2 = (i + d) % C; return Math.abs(c - c2) <= 1; };
   const dead = new Set();
-  for (let i = 0; i < R * C; i++) {
-    if (wall(i) || goals.has(i)) continue;
-    const v = wall(i - C) || wall(i + C), h = wall(i - 1) || wall(i + 1);
-    if (v && h) dead.add(i);
-  }
+  const live = liveSquares(rows);
+  for (let i = 0; i < R * C; i++) if (!wall(i) && !live.has(i)) dead.add(i);
   const won = (bx) => bx.every((b) => goals.has(b));
   if (won(boxes0)) return { solvable: true, pushes: 0 };
   const reach = (p, bs) => {
@@ -156,6 +185,11 @@ export function levelsFromSpecs(data, { rows = 10, cols = 10, minLevels = 1, cap
     const n = `nivel ${i + 1}`;
     const r = levelFromSpec(spec, { rows, cols }, n);
     if (r.problems.length) { problems.push(...r.problems); report.push({ n: i + 1, ok: false }); return; }
+    const stuck = stuckBoxes(r.rows);
+    if (stuck.length) {
+      problems.push(`${n}: ${stuck.length === 1 ? "la caja en" : "las cajas en"} ${stuck.map((p) => JSON.stringify(p)).join(", ")} no ${stuck.length === 1 ? "puede" : "pueden"} llegar a ningún objetivo: una caja contra la pared solo se mueve a lo largo de esa pared (y en una esquina no se mueve). Alejala de la pared o poné su objetivo pegado a esa misma pared.`);
+      report.push({ n: i + 1, ok: false, solvable: false, stuck }); return;
+    }
     const sv = solve(r.rows, { cap });
     if (sv.solvable === false) { problems.push(`${n}: NO se puede ganar (el harness probó todos los movimientos posibles): mové cajas, objetivos o paredes.`); report.push({ n: i + 1, ok: false, solvable: false }); return; }
     levels.push(r.rows);

@@ -1,4 +1,8 @@
-// standard.mjs — Standard "juego de grilla" (web/game/grilla) · DRAFT v0.1 (06/10).
+// standard.mjs — Standard "juego de grilla" (web/game/grilla) · DRAFT v0.1.1 (06/10).
+// v0.1.1 (Boxworld b10, 5 PASS pero tablero de 100 casilleros iguales): pantalla declara
+// `swatches` (cada clase se tiene que ver distinta; el motor lo prueba en Chromium); niveles
+// junta los válidos de todos los intentos, explica las cajas trabadas contra la pared y se
+// ordenan por empujes; el número de nivel empieza en 1.
 //
 // Qué es: la forma de trabajar que recibe el Specialist cuando el proyecto es un juego de una
 // pantalla sobre una grilla, con piezas que se empujan hacia objetivos (familia Sokoban).
@@ -25,8 +29,8 @@ export const CONTRACT = `CONTRATO DEL JUEGO (lo define el harness; respetalo al 
     estado = { mapa: [strings con SOLO '#', ' ' y '.'], jugador: {fila, col}, cajas: [{fila, col}], objetivos: [{fila, col}], movimientos: 0 }
     direccion: "arriba" | "abajo" | "izquierda" | "derecha". mover DEVUELVE UN ESTADO NUEVO (no modifica el que recibe). Si el movimiento no se puede (pared, caja contra pared o contra otra caja), devuelve un estado igual con los mismos movimientos. Empujar: el jugador avanza un casillero y la caja otro en la misma dirección. OJO: en estado.mapa NO hay cajas ni jugador (solo '#', ' ' y '.'): para saber si hay una caja en un casillero mirá estado.cajas; mover cambia jugador, cajas y movimientos, nunca mapa. ganado = TODOS los objetivos tienen una caja encima.
 - juego.html tiene estos ids: #tablero (la grilla), #nivel (número de nivel), #movimientos (contador), #mensaje (vacío al empezar), #btn-reiniciar, #btn-siguiente. Sin <script> ni <style>.
-- js/dibujo.js define: function dibujar(estado, numeroNivel). Vacía #tablero y crea UN div por casillero, hijos directos de #tablero, fila por fila, con clase "casillero" y además: "pared" o "piso"; "objetivo" si es objetivo; "caja" si hay caja; "jugador" si está el jugador. Pone #tablero.style.gridTemplateColumns con la cantidad de columnas. Escribe estado.movimientos en #movimientos y numeroNivel en #nivel.
-- js/controles.js: let nivelActual = 0; let estado; function iniciarNivel(i) { crea el estado con Reglas.crearEstado(NIVELES[i]), vacía #mensaje y llama a dibujar }. Un solo listener keydown en document: flechas → preventDefault, estado = Reglas.mover(estado, dir), dibujar; si Reglas.ganado(estado) → #mensaje dice "¡Nivel completado!". #btn-reiniciar → iniciarNivel(nivelActual). #btn-siguiente → si hay otro nivel, iniciarNivel(nivelActual + 1). Al final del archivo: iniciarNivel(0).`;
+- js/dibujo.js define: function dibujar(estado, numeroNivel). Vacía #tablero y crea UN div por casillero, hijos directos de #tablero, fila por fila, con clase "casillero" y además: "pared" o "piso"; "objetivo" si es objetivo; "caja" si hay caja; "jugador" si está el jugador. Pone #tablero.style.gridTemplateColumns con la cantidad de columnas. Escribe estado.movimientos en #movimientos y numeroNivel en #nivel (numeroNivel empieza en 1: controles llama dibujar(estado, nivelActual + 1)).
+- js/controles.js: let nivelActual = 0; let estado; function iniciarNivel(i) { nivelActual = i; crea el estado con Reglas.crearEstado(NIVELES[i]), vacía #mensaje y llama a dibujar(estado, nivelActual + 1) }. Un solo listener keydown en document: flechas → preventDefault, estado = Reglas.mover(estado, dir), dibujar; si Reglas.ganado(estado) → #mensaje dice "¡Nivel completado!". #btn-reiniciar → iniciarNivel(nivelActual). #btn-siguiente → si hay otro nivel, iniciarNivel(nivelActual + 1). Al final del archivo: iniciarNivel(0).`;
 
 // ---------- pistas del brief (números que el usuario escribió) ----------
 export function gameHints(refined = {}) {
@@ -80,7 +84,7 @@ const size = (h) => ({ rows: h.rows || 10, cols: h.cols || 10, min: Math.max(h.m
 
 export default {
   id: "web/game/grilla",
-  version: "0.1",
+  version: "0.1.1",
   status: "DRAFT",
   label: "juego de grilla: empujar piezas hasta sus objetivos",
   describe: "Juego de una pantalla sobre una grilla, por archivos: juego.html, styles.css, js/niveles.js (datos verificados con solver), js/reglas.js (lógica pura probada en Node), js/dibujo.js (probado en Chromium), js/controles.js (chequeos de juego).",
@@ -88,6 +92,7 @@ export default {
     "Boxworld b2–b7 (05/10): con todo el juego en una respuesta cada build trajo 1–2 bugs; reintentos completos cortados por length (3 de 3).",
     "Boxworld b8 (06/10): Gemma no puede contar caracteres (filas de 9 a 13 en un mapa de 10) → niveles en coordenadas + solver.",
     "Boxworld b9 (06/10, por archivos): niveles, pantalla y controles bien al primer intento; reglas.js con const repetido y mover que buscaba cajas en el mapa.",
+    "Boxworld b10 (06/10): 5 PASS / 2 FAIL, reglas 13/14, dibujo y controles al primer intento. Pero el tablero se veía vacío (styles.css con '.casillero .pared'), 4 niveles de 5 (nivel 5 con cajas contra la pared en los 3 intentos) y un FAIL falso del traductor (click_changes en reiniciar).",
   ],
   pending: [
     "Probarlo con otro juego de la familia (empujar/llegar a objetivos) antes de pensar en Governance.",
@@ -109,15 +114,24 @@ Mapa de ${z.rows} filas x ${z.cols} columnas. El borde (fila 0, fila ${z.rows - 
 Formato:
 ### FILE: niveles.json
 ${fence("json", LEVEL_FMT)}
-Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su objetivo; nada en el mismo casillero (jugador, cajas, paredes); "paredes" son solo las interiores (pocas). Dificultad creciente: el nivel 1 con 1 o 2 cajas cerca de sus objetivos, el último con 3 o 4. Ninguna caja en una esquina. El harness prueba con un solver que cada nivel se pueda ganar.`; },
+Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su objetivo; nada en el mismo casillero (jugador, cajas, paredes); "paredes" son solo las interiores (pocas). Dificultad creciente: el nivel 1 con 1 o 2 cajas cerca de sus objetivos, el último con 3 o 4. Ninguna caja en una esquina ni pegada al borde (fila 1, fila ${z.rows - 2}, columna 1, columna ${z.cols - 2}) salvo que su objetivo esté pegado a esa misma pared. El harness prueba con un solver que cada nivel se pueda ganar.`; },
       take: (raw, c) => ({ ...c, "niveles.json": c["niveles.json"] || (String(raw).match(/\{[\s\S]*"niveles"[\s\S]*\}/) || [])[0] || null }),
-      // los niveles inválidos se descartan; solo es problema si no quedan los que se piden
+      // los niveles inválidos se descartan; el motor junta los válidos de todos los intentos
       parse: (json, c) => {
         const z = size(c.hints);
-        const L1 = levelsFromSpecs(json, { rows: z.rows, cols: z.cols, minLevels: z.min });
-        return { items: L1.levels, problems: L1.levels.length >= z.min ? [] : L1.problems, js: nivelesJs(L1.levels, L1.report), summary: { valid: L1.levels.length, report: L1.report, dropped: L1.problems }, dropped: L1.problems, report: L1.report };
+        const L1 = levelsFromSpecs(json, { rows: z.rows, cols: z.cols, minLevels: 0 });
+        if (!Array.isArray(Array.isArray(json) ? json : json?.niveles)) return { error: L1.problems[0] };
+        return { items: L1.levels, reports: L1.report.filter((r) => r.ok), dropped: L1.problems };
       },
-      summaryText: (p) => `niveles: ${p.items.length} válidos y resolubles${p.report.some((r) => r.solvable === null) ? " (alguno sin decidir por el solver)" : ""}${p.dropped.length ? ` · descartados: ${p.dropped.slice(0, 3).join(" | ")}` : ""}`,
+      need: (c) => size(c.hints).min,
+      missing: (have, need) => `hay ${have} niveles válidos (juntando tus respuestas anteriores) y se piden al menos ${need}: mandá ${need - have} nivel(es) NUEVO(S), distinto(s) de los que ya mandaste.`,
+      // dificultad creciente medible: se ordenan por cantidad de empujes que necesitó el solver
+      emit: (items, reports) => {
+        const order = items.map((it, i) => i).sort((a, b) => (reports[a]?.pushes ?? 99) - (reports[b]?.pushes ?? 99));
+        const its = order.map((i) => items[i]), rps = order.map((i) => reports[i]);
+        return { items: its, reports: rps, js: nivelesJs(its, rps) };
+      },
+      summaryText: (p) => `niveles: ${p.items.length} válidos y resolubles${p.items.length < p.need ? ` (se pedían ${p.need})` : ""} · empujes: ${p.reports.map((r) => r?.pushes ?? "?").join(", ")}${p.reports.some((r) => r?.solvable === null) ? " (alguno sin decidir por el solver)" : ""}${p.dropped.length ? ` · descartados: ${p.dropped.slice(0, 3).join(" | ")}` : ""}`,
     },
     {
       id: "reglas", kind: "logic", file: "js/reglas.js", cap: 5000, needs: ["niveles"],
@@ -128,7 +142,9 @@ Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su
     },
     {
       id: "pantalla", kind: "screen", files: ["juego.html", "styles.css"], cap: 4500,
-      prompt: (c) => `${c.paso}: escribí juego.html (SOLO el contenido de la pantalla: título, HUD con #nivel y #movimientos, #tablero, #mensaje y los botones #btn-reiniciar y #btn-siguiente; sin <html>, <head>, <script> ni <style>) y styles.css (todo el estilo de la página; #tablero es una grilla CSS de casilleros cuadrados; clases .casillero .pared .piso .objetivo .caja .jugador). Respetá los CRITERIOS DE ESTILO del brief.`,
+      // cómo dibuja dibujar(): un div por casillero con class="casillero <variante>"
+      swatches: { container: "tablero", base: "casillero", variants: ["pared", "piso", "objetivo", "caja", "jugador"], sameAsBase: ["piso"] },
+      prompt: (c) => `${c.paso}: escribí juego.html (SOLO el contenido de la pantalla: título, HUD con #nivel y #movimientos, #tablero, #mensaje y los botones #btn-reiniciar y #btn-siguiente; sin <html>, <head>, <script> ni <style>) y styles.css (todo el estilo de la página; #tablero es una grilla CSS de casilleros cuadrados; cada casillero es UN div con varias clases a la vez, por ejemplo class="casillero pared" o class="casillero piso objetivo caja": los selectores son .casillero.pared, .casillero.caja, etc., y cada clase se tiene que ver distinta). Respetá los CRITERIOS DE ESTILO del brief.`,
     },
     {
       id: "dibujo", kind: "render", file: "js/dibujo.js", cap: 4000, needs: ["niveles", "reglas"],

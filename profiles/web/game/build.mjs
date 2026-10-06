@@ -34,7 +34,24 @@ export const GAME_EXTRA_CHECKS = [{
 }];
 
 const GAME = makeScreenBuild({ translator: GAME_TRANSLATOR, systemExtra: GAME_SPECIALIST_RULES, extraChecks: GAME_EXTRA_CHECKS, mainId: "juego" });
-export const { planPage, translateRequirement, postprocessChecks, specialistSees } = GAME;
+export const { planPage, translateRequirement, specialistSees } = GAME;
+
+// v0.3.1 (Boxworld b10): click_changes sobre el botón de reiniciar es un chequeo mal elegido:
+// recién cargado, reiniciar NO tiene que cambiar nada (b10 R1: FAIL falso "clic Reiniciar →
+// no cambia nada", con reset_restores PASS en el mismo requisito). Se cambia por reset_restores.
+const RESET = /reinici|reset|volver a empezar|empezar de nuevo/i;
+const words = (c) => [].concat(c?.params?.click || []).map(String);
+export function postprocessChecks(checks = []) {
+  const out = [];
+  for (const c of checks) {
+    if (c?.type === "click_changes" && words(c).some((w) => RESET.test(w))) {
+      if (!checks.some((x) => x?.type === "reset_restores") && !out.some((x) => x?.type === "reset_restores")) out.push({ type: "reset_restores", params: { click: words(c) } });
+      continue;
+    }
+    out.push(c);
+  }
+  return out;
+}
 
 // v0.8 (06/10, decisión de Miche): el juego se escribe POR ARCHIVOS, un archivo por paso de
 // Gemma. --legacy-components vuelve al componente único de v0.7.6 (todo el juego en una respuesta).

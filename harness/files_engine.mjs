@@ -39,7 +39,7 @@ import { runChecks } from "../profiles/web/validation/check_catalog.mjs";
 import { rulesBrief } from "../profiles/web/app/specialist_rules.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
 
-export const ENGINE_VERSION = "files_engine v0.9";
+export const ENGINE_VERSION = "files_engine v0.9.1";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
@@ -231,6 +231,41 @@ export function probeProblems({ probe: p, errors }, step) {
   return step.expect(p);
 }
 
+// ---------- screen: variantes que se tienen que ver distintas ----------
+/** Sonda: agrega al contenedor un elemento por variante (class="base variante") y mide cómo se ve. */
+export function swatchProbe({ container, base, variants }) {
+  return `window.__probe = (function () {
+  try {
+    var box = document.getElementById(${JSON.stringify(container)});
+    if (!box) return { ok: false, error: "no existe #${container}" };
+    var V = ${JSON.stringify(variants)}, out = {};
+    var look = function (el) {
+      var s = getComputedStyle(el), a = getComputedStyle(el, "::after"), b = getComputedStyle(el, "::before");
+      return [s.backgroundColor, s.backgroundImage, s.borderTopColor, s.color, s.boxShadow, s.opacity, s.outlineColor, a.content, a.backgroundColor, b.content, b.backgroundColor, (el.textContent || "").trim()].join("|");
+    };
+    var plain = document.createElement("div"); plain.className = ${JSON.stringify(base)}; box.appendChild(plain);
+    out[""] = look(plain);
+    V.forEach(function (v) { var d = document.createElement("div"); d.className = ${JSON.stringify(base)} + " " + v; box.appendChild(d); out[v] = look(d); });
+    return { ok: true, looks: out };
+  } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
+})();`;
+}
+/** Variantes que se ven iguales entre sí (o iguales a la base, salvo `sameAsBase`). Con pista si el CSS usa descendiente. */
+export function swatchProblems({ probe: p, errors }, { base, variants, sameAsBase = [] }, css = "") {
+  if (!p) return [`no se pudo probar cómo se ven las clases${errors.length ? `: ${errors[0]}` : ""}.`];
+  if (!p.ok) return [`no se pudo probar cómo se ven las clases: ${p.error}.`];
+  const L = p.looks, out = [];
+  const flat = variants.filter((v) => !sameAsBase.includes(v) && L[v] === L[""]);
+  if (flat.length) out.push(`en styles.css un elemento class="${base} ${flat[0]}" se ve igual que uno class="${base}" (sin variante): ${flat.map((v) => "." + v).join(", ")} no ${flat.length === 1 ? "cambia" : "cambian"} nada.`);
+  const groups = {};
+  for (const v of variants) (groups[L[v]] ||= []).push(v);
+  const same = Object.values(groups).filter((g) => g.length > 1);
+  if (same.length) out.push(`en styles.css se ven iguales: ${same.map((g) => g.map((v) => "." + v).join(" = ")).join("; ")}. Cada una necesita su propio color o símbolo.`);
+  const desc = [...String(css).matchAll(new RegExp(`\\.${base}\\s+\\.(${variants.join("|")})\\b`, "g"))].map((m) => m[0]);
+  if (out.length && desc.length) out.push(`las clases van en el MISMO elemento (class="${base} ${variants[0]}"), así que el selector es .${base}.${variants[0]} (sin espacio). Con espacio (${[...new Set(desc)].slice(0, 3).join(", ")}) busca un elemento ADENTRO de .${base} y no se aplica.`);
+  return out;
+}
+
 // ---------- wiring ----------
 export function playProblems(results) {
   const out = results.filter((r) => r.result === "FAIL").map((r) => `${r.type}: ${r.detail}`);
@@ -371,17 +406,33 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
     return null;
   };
   const KINDS = {
-    data: (st) => ({
-      judge: async (c) => {
-        const txt = c[st.answer];
-        if (!txt) return fatal([`la respuesta no trajo ### FILE: ${st.answer}.`]);
-        const pj = parseJsonLoose(txt);
-        if (!pj.ok) return fatal([`el JSON no se puede leer: ${pj.error}`]);
-        const out = st.parse(pj.data, ctx);
-        c.parsed = out;
-        return out.problems.length ? fatal(out.problems) : [];
-      },
-    }),
+    // v0.9.1 (Boxworld b10): los datos válidos de TODOS los intentos se juntan (antes cada intento
+    // empezaba de cero: b10 tuvo 4, 3 y 2 niveles válidos y se quedó con 4 de los 5 pedidos).
+    data: (st) => {
+      const pool = [], seen = new Set();
+      let last = { dropped: [] };
+      const final = () => {
+        const items = pool.map((p) => p.item), reports = pool.map((p) => p.report);
+        const em = st.emit(items, reports, ctx);
+        return { items: em.items, reports: em.reports, js: em.js, dropped: last.dropped, need: st.need(ctx), summary: { valid: em.items.length, need: st.need(ctx), report: em.reports, dropped: last.dropped } };
+      };
+      return {
+        judge: async (c) => {
+          const txt = c[st.answer];
+          if (!txt) return fatal([`la respuesta no trajo ### FILE: ${st.answer}.`]);
+          const pj = parseJsonLoose(txt);
+          if (!pj.ok) return fatal([`el JSON no se puede leer: ${pj.error}`]);
+          const out = st.parse(pj.data, ctx);
+          if (out.error) return fatal([out.error]);
+          last = out;
+          out.items.forEach((item, i) => { const k = JSON.stringify(item); if (!seen.has(k)) { seen.add(k); pool.push({ item, report: out.reports[i] }); } });
+          c.parsed = final();
+          const need = st.need(ctx);
+          return pool.length >= need ? [] : fatal([...out.dropped, st.missing(pool.length, need)]);
+        },
+        final,
+      };
+    },
     logic: (st) => {
       const acceptance = (code) => {
         const L = loadScripts([...loadedBefore(st), code], [st.global, ...(st.itemsGlobal ? [st.itemsGlobal] : [])]);
@@ -440,7 +491,13 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
         if (!c[html]) out.push(`la respuesta no trajo ### FILE: ${html}.`);
         else { const miss = missingIds(c[html], S.ids || []); if (miss.length) out.push(`faltan estos ids en ${html}: ${miss.map((x) => "#" + x).join(", ")}.`); }
         if (!c[css]) out.push(`la respuesta no trajo ### FILE: ${css}.`);
-        return out;
+        if (out.length || !st.swatches || opts.check === false) return out;
+        // v0.9.1 (Boxworld b10): que las variantes SE VEAN distintas. b10 pasó 5 chequeos con un
+        // tablero de 100 casilleros iguales: styles.css decía ".casillero .pared" (descendiente)
+        // y dibujar() pone las clases en el mismo div → ningún color se aplicaba.
+        const dir = join(outDir, `probe_${st.id}`);
+        writeApp(dir, { [css]: cleanCss(c[css]) }, page([], swatchProbe(st.swatches), cleanFragment(c[html])));
+        return swatchProblems(await probePage(join(dir, "index.html")), st.swatches, c[css]);
       },
     }),
     render: (st) => ({
@@ -489,7 +546,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
     const s = await runStep(st, n, K);
     byId[st.id] = s.rec;
     if (st.kind === "data") {
-      const parsed = s.content?.parsed;
+      const parsed = K.final();
       if (!parsed?.items?.length) throw new Error(`${st.id}: ningún dato válido después de 3 intentos (${(s.rec.problems_final || []).slice(0, 3).join(" | ")})`);
       ctx.data[st.id] = parsed;
       files[st.file] = parsed.js;

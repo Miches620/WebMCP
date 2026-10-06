@@ -1,0 +1,30 @@
+```javascript
+                 nuevaPosCajaCol += 1;
+                 break;
+         }
+
+         // Verificar si el empuje es posible:
+         // 1. La nueva posición de la caja debe estar dentro del mapa y no ser una pared.
+         let altura = estado.mapa.length;
+         const ancho = estado.mapa[0].length;
+
+         if (nuevaPosCajaFila < 0 || nuevaPosCajaFila >= altura || nuevaPosCajaCol < 0 || nuevaPosCajaCol >= ancho) {
+             return JSON.parse(JSON.stringify(estado)); // Caja contra límite
+         }
+
+
+         const celdaDetras = estado.mapa[nuevaPosCajaFila][nuevaPosCajaCol];
+
+         // 2. La posición detrás de la caja debe ser un espacio vacío o objetivo (no pared, no otra caja)
+         if (celdaDetras === '#') {
+             return JSON.parse(JSON.stringify(estado)); // Caja contra pared
+         }
+
+
+         // Verificar si hay otra caja en el destino del empuje
+         const collisionWithOtherBox = estado.cajas.some(c => c !== caja && c.fila === nuevaPosCajaFila && c.col === nuevaPosCajaCol);
+
+         if (collisionWithOtherBox) {
+             return JSON.parse(JSON.stringify(estado)); // Caja contra otra caja
+         }
+```

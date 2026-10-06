@@ -1,0 +1,107 @@
+### FILE: js/controles.js
+```javascript
+let nivelActual = 0;
+let estado;
+
+/**
+ * Inicializa el juego o un nuevo nivel específico.
+ * @param {number} i Índice del nivel a cargar.
+ */
+function iniciarNivel(i) {
+    if (!NIVELES[i]) {
+        document.getElementById('mensaje').textContent = "¡No hay más niveles!";
+        return;
+    }
+
+    // 1. Crear el estado inicial usando las reglas definidas en js/reglas.js
+    estado = Reglas.crearEstado(NIVELES[i]);
+
+    // 2. Limpiar mensajes y dibujar el tablero
+    document.getElementById('mensaje').textContent = "";
+    dibujar(estado, i);
+}
+
+/**
+ * Maneja la lógica de movimiento del jugador mediante eventos de teclado.
+ */
+function manejarTeclado(event) {
+    let direccion;
+    switch (event.key) {
+        case 'ArrowUp':
+            direccion = "arriba";
+            break;
+        case 'ArrowDown':
+            direccion = "abajo";
+            break;
+        case 'ArrowLeft':
+            direccion = "izquierda";
+            break;
+        case 'ArrowRight':
+            direccion = "derecha";
+            break;
+        default:
+            return; // No es una flecha de movimiento
+    }
+
+    event.preventDefault();
+
+    // 1. Calcular el nuevo estado con el movimiento
+    const nuevoEstado = Reglas.mover(estado, direccion);
+
+    // Si el estado cambió (es decir, se pudo mover o empujar)
+    if (nuevoEstado !== estado) {
+        estado = nuevoEstado;
+        dibujar(estado, nivelActual);
+
+        // 2. Verificar si se ganó el nivel
+        if (Reglas.ganado(estado)) {
+            document.getElementById('mensaje').textContent = "¡Nivel completado! 🎉";
+            // Deshabilitar controles de movimiento temporalmente o esperar al siguiente botón
+            window.removeEventListener('keydown', manejarTeclado); 
+        }
+    } else {
+        // Si el estado no cambió, significa que el movimiento fue inválido (pared/caja)
+        document.getElementById('mensaje').textContent = "¡No puedes moverte ahí!";
+    }
+}
+
+/**
+ * Maneja la acción de reiniciar el nivel actual.
+ */
+function reiniciarNivel() {
+    // Recrear el estado inicial del nivel sin cambiar el contador de movimientos
+    estado = Reglas.crearEstado(NIVELES[nivelActual]); 
+    dibujar(estado, nivelActual);
+    document.getElementById('mensaje').textContent = "";
+}
+
+/**
+ * Maneja la acción de avanzar al siguiente nivel.
+ */
+function siguienteNivel() {
+    const siguienteNivelIndex = nivelActual + 1;
+    if (siguienteNivelIndex < NIVELES.length) {
+        nivelActual = siguienteNivelIndex;
+        iniciarNivel(nivelActual);
+    } else {
+        document.getElementById('mensaje').textContent = "¡Has completado todos los niveles! 🎉";
+        // Deshabilitar botón de siguiente nivel si no hay más contenido
+        document.getElementById('btn-siguiente').disabled = true;
+    }
+}
+
+// --- Inicialización de Event Listeners y Juego ---
+
+// 1. Listener para el teclado (movimiento)
+window.addEventListener('keydown', manejarTeclado);
+
+// 2. Listener para el botón Reiniciar
+document.getElementById('btn-reiniciar').addEventListener('click', reiniciarNivel);
+
+// 3. Listener para el botón Siguiente Nivel
+document.getElementById('btn-siguiente').addEventListener('click', siguienteNivel);
+
+
+// Iniciar el juego cargando el nivel 0 al cargar la página
+iniciarNivel(nivelActual);
+```

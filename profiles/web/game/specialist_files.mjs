@@ -29,8 +29,18 @@ import { assignTasks, notesText, componentsFromPlan } from "../landing/component
 import { repairSyntax } from "../landing/specialist_components.mjs";
 import { runChecks } from "../validation/check_catalog.mjs";
 import { rulesBrief } from "../app/specialist_rules.mjs";
+import { levelsFromSpecs, nivelesJs } from "./levels.mjs";
+import { parseJsonLoose } from "../../../json_loose.mjs";
 
-export const FILES_VERSION = "game_files v0.8";
+export const FILES_VERSION = "game_files v0.8.1";
+// v0.8.1 (06/10, Boxworld build 8 con Gemma real): (1) los niveles los propone Gemma en
+// COORDENADAS y el harness arma los strings y los prueba con un solver (Gemma no puede contar
+// caracteres: filas de 9 a 13 en un mapa de 10, 13 objetivos para 3 cajas, aun con el problema
+// exacto); (2) un intento sin archivo nunca gana sobre uno con archivo (b8: niveles.js quedó
+// VACÍO y rompió los 3 pasos siguientes); (3) reglas que fallan pruebas → se corrige SOLO el
+// método (b8: el mismo `state` en vez de `estado` en ganado() en los 3 reintentos completos,
+// 13 min); (4) nombres declarados en dos archivos → problema (b8: dibujo.js también declaraba
+// nivelActual/iniciarNivel y controles.js rompía con "already been declared").
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
@@ -40,7 +50,7 @@ const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 export const IDS = ["tablero", "nivel", "movimientos", "mensaje", "btn-reiniciar", "btn-siguiente"];
 export const CONTRACT = `CONTRATO DEL JUEGO (lo define el harness; respetalo al pie de la letra):
 - Archivos: juego.html (solo el contenido de la pantalla), styles.css, js/niveles.js, js/reglas.js, js/dibujo.js, js/controles.js. Se cargan en ese orden con <script src> comunes: NADA de import/export ni módulos. Cada archivo define SOLO lo suyo.
-- js/niveles.js define: const NIVELES = [nivel1, nivel2, ...]; cada nivel es un array de strings (una fila por string, todas del mismo largo) en formato Sokoban: # pared, espacio piso, . objetivo, $ caja, * caja sobre objetivo, @ jugador, + jugador sobre objetivo.
+- js/niveles.js (lo escribe el harness a partir de tus coordenadas) define: const NIVELES = [nivel1, nivel2, ...]; cada nivel es un array de strings (una fila por string, todas del mismo largo) en formato Sokoban: # pared, espacio piso, . objetivo, $ caja, * caja sobre objetivo, @ jugador, + jugador sobre objetivo.
 - js/reglas.js define: const Reglas = { crearEstado(nivel), mover(estado, direccion), ganado(estado) }. Sin DOM (no usa document ni window).
     estado = { mapa: [strings con SOLO '#', ' ' y '.'], jugador: {fila, col}, cajas: [{fila, col}], objetivos: [{fila, col}], movimientos: 0 }
     direccion: "arriba" | "abajo" | "izquierda" | "derecha". mover DEVUELVE UN ESTADO NUEVO (no modifica el que recibe). Si el movimiento no se puede (pared, caja contra pared o contra otra caja), devuelve un estado igual con los mismos movimientos. Empujar: el jugador avanza un casillero y la caja otro en la misma dirección. ganado = TODOS los objetivos tienen una caja encima.
@@ -112,42 +122,42 @@ const sameList = (a, b) => JSON.stringify(sortP(a)) === JSON.stringify(sortP(b))
 const L = (rows) => JSON.stringify(rows);
 
 export const RULE_TESTS = [
-  { name: "crearEstado lee jugador, cajas y objetivos", level: ["#####", "#@$.#", "#####"], run(R, lv) {
+  { name: "crearEstado lee jugador, cajas y objetivos", fn: "crearEstado", level: ["#####", "#@$.#", "#####"], run(R, lv) {
     const e = R.crearEstado(lv);
     const ok = same(e?.jugador, { fila: 1, col: 1 }) && sameList(e?.cajas, [{ fila: 1, col: 2 }]) && sameList(e?.objetivos, [{ fila: 1, col: 3 }]) && e?.movimientos === 0;
     return ok || `crearEstado(${L(lv)}) tendría que dar jugador {fila:1,col:1}, cajas [{fila:1,col:2}], objetivos [{fila:1,col:3}], movimientos 0; dio jugador ${P(e?.jugador)}, cajas [${(e?.cajas || []).map(P)}], objetivos [${(e?.objetivos || []).map(P)}], movimientos ${e?.movimientos}.`;
   } },
-  { name: "recién creado no está ganado", level: ["#####", "#@$.#", "#####"], run(R, lv) {
+  { name: "recién creado no está ganado", fn: "ganado", level: ["#####", "#@$.#", "#####"], run(R, lv) {
     return R.ganado(R.crearEstado(lv)) === false || `ganado(crearEstado(${L(lv)})) tendría que ser false (la caja no está en el objetivo).`;
   } },
-  { name: "la pared bloquea", level: ["#####", "#@$.#", "#####"], run(R, lv) {
+  { name: "la pared bloquea", fn: "mover", level: ["#####", "#@$.#", "#####"], run(R, lv) {
     const e = R.mover(R.crearEstado(lv), "izquierda");
     return (same(e?.jugador, { fila: 1, col: 1 }) && e?.movimientos === 0) || `con ${L(lv)}, mover(estado, "izquierda") choca con la pared: el jugador sigue en {fila:1,col:1} y movimientos 0; quedó ${P(e?.jugador)} y movimientos ${e?.movimientos}.`;
   } },
-  { name: "empujar una caja", level: ["#####", "#@$.#", "#####"], run(R, lv) {
+  { name: "empujar una caja", fn: "mover", level: ["#####", "#@$.#", "#####"], run(R, lv) {
     const e = R.mover(R.crearEstado(lv), "derecha");
     return (same(e?.jugador, { fila: 1, col: 2 }) && sameList(e?.cajas, [{ fila: 1, col: 3 }]) && e?.movimientos === 1) || `con ${L(lv)}, mover(estado, "derecha") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador ${P(e?.jugador)}, cajas [${(e?.cajas || []).map(P)}], movimientos ${e?.movimientos}.`;
   } },
-  { name: "caja en el objetivo = ganado", level: ["#####", "#@$.#", "#####"], run(R, lv) {
+  { name: "caja en el objetivo = ganado", fn: "ganado", level: ["#####", "#@$.#", "#####"], run(R, lv) {
     return R.ganado(R.mover(R.crearEstado(lv), "derecha")) === true || `con ${L(lv)}, después de mover "derecha" la única caja está en el único objetivo: ganado tiene que ser true.`;
   } },
-  { name: "mover no modifica el estado que recibe", level: ["#####", "#@$.#", "#####"], run(R, lv) {
+  { name: "mover no modifica el estado que recibe", fn: "mover", level: ["#####", "#@$.#", "#####"], run(R, lv) {
     const e = R.crearEstado(lv); R.mover(e, "derecha");
     return (same(e.jugador, { fila: 1, col: 1 }) && sameList(e.cajas, [{ fila: 1, col: 2 }])) || `mover tiene que devolver un estado NUEVO: después de mover(e, "derecha"), e.jugador sigue en {fila:1,col:1} y su caja en {fila:1,col:2}; quedó ${P(e.jugador)}.`;
   } },
-  { name: "de a un casillero", level: ["######", "#@   #", "#    #", "######"], run(R, lv) {
+  { name: "de a un casillero", fn: "mover", level: ["######", "#@   #", "#    #", "######"], run(R, lv) {
     const d = R.mover(R.crearEstado(lv), "derecha"), b = R.mover(R.crearEstado(lv), "abajo");
     return (same(d?.jugador, { fila: 1, col: 2 }) && same(b?.jugador, { fila: 2, col: 1 })) || `con ${L(lv)}, "derecha" deja al jugador en {fila:1,col:2} y "abajo" en {fila:2,col:1} (un casillero por vez); quedó ${P(d?.jugador)} y ${P(b?.jugador)}.`;
   } },
-  { name: "caja contra pared no se mueve", level: ["####", "#@$#", "####"], run(R, lv) {
+  { name: "caja contra pared no se mueve", fn: "mover", level: ["####", "#@$#", "####"], run(R, lv) {
     const e = R.mover(R.crearEstado(lv), "derecha");
     return (same(e?.jugador, { fila: 1, col: 1 }) && sameList(e?.cajas, [{ fila: 1, col: 2 }]) && e?.movimientos === 0) || `con ${L(lv)}, la caja tiene una pared detrás: "derecha" no mueve nada (jugador {fila:1,col:1}, caja {fila:1,col:2}, movimientos 0); quedó jugador ${P(e?.jugador)}, cajas [${(e?.cajas || []).map(P)}], movimientos ${e?.movimientos}.`;
   } },
-  { name: "caja contra caja no se mueve", level: ["######", "#@$$.#", "######"], run(R, lv) {
+  { name: "caja contra caja no se mueve", fn: "mover", level: ["######", "#@$$.#", "######"], run(R, lv) {
     const e = R.mover(R.crearEstado(lv), "derecha");
     return (same(e?.jugador, { fila: 1, col: 1 }) && e?.movimientos === 0) || `con ${L(lv)}, la caja tiene otra caja detrás: "derecha" no mueve nada (jugador {fila:1,col:1}, movimientos 0); quedó ${P(e?.jugador)}, movimientos ${e?.movimientos}.`;
   } },
-  { name: "lee '*' y '+'", level: ["######", "#+$ *#", "######"], run(R, lv) {
+  { name: "lee '*' y '+'", fn: "crearEstado", level: ["######", "#+$ *#", "######"], run(R, lv) {
     const e = R.crearEstado(lv);
     return (same(e?.jugador, { fila: 1, col: 1 }) && sameList(e?.cajas, [{ fila: 1, col: 2 }, { fila: 1, col: 4 }]) && sameList(e?.objetivos, [{ fila: 1, col: 1 }, { fila: 1, col: 4 }]) && (e?.mapa || [])[1] === "#.  .#")
       || `crearEstado(${L(lv)}): '+' es jugador sobre objetivo y '*' caja sobre objetivo → jugador {fila:1,col:1}, cajas [{fila:1,col:2},{fila:1,col:4}], objetivos [{fila:1,col:1},{fila:1,col:4}], mapa fila 1 "#.  .#"; dio jugador ${P(e?.jugador)}, cajas [${(e?.cajas || []).map(P)}], objetivos [${(e?.objetivos || []).map(P)}], mapa fila 1 ${JSON.stringify((e?.mapa || [])[1])}.`;
@@ -162,17 +172,72 @@ export function runRuleTests(Reglas, niveles = []) {
   for (const t of RULE_TESTS) {
     let r;
     try { r = t.run(Reglas, t.level); } catch (e) { r = `${t.name}: tiró un error: ${e.message}`; }
-    if (r === true) passed.push(t.name); else failed.push({ name: t.name, detail: r });
+    if (r === true) passed.push(t.name); else failed.push({ name: t.name, fn: t.fn, detail: r });
   }
   (niveles || []).forEach((nv, i) => {
     try {
       const e = Reglas.crearEstado(nv);
-      if (Reglas.ganado(e)) failed.push({ name: `nivel ${i + 1} no empieza ganado`, detail: `ganado(crearEstado(NIVELES[${i}])) da true recién creado.` });
+      if (Reglas.ganado(e)) failed.push({ name: `nivel ${i + 1} no empieza ganado`, fn: "ganado", detail: `ganado(crearEstado(NIVELES[${i}])) da true recién creado.` });
       else passed.push(`nivel ${i + 1} no empieza ganado`);
-    } catch (e) { failed.push({ name: `nivel ${i + 1} se puede crear`, detail: `crearEstado(NIVELES[${i}]) tiró: ${e.message}` }); }
+    } catch (e) { failed.push({ name: `nivel ${i + 1} se puede crear`, fn: "crearEstado", detail: `crearEstado(NIVELES[${i}]) tiró: ${e.message}` }); }
   });
   return { passed, failed };
 }
+
+// ---------- reparación por método (v0.8.1) ----------
+function blockEndLines(lines, from) {
+  let depth = 0, seen = false, q = null, block = false;
+  for (let i = from; i < lines.length; i++) {
+    const l = lines[i];
+    for (let k = 0; k < l.length; k++) {
+      const ch = l[k], nx = l[k + 1];
+      if (block) { if (ch === "*" && nx === "/") { block = false; k++; } continue; }
+      if (q) { if (ch === "\\") { k++; continue; } if (ch === q) q = null; continue; }
+      if (ch === "/" && nx === "/") break;
+      if (ch === "/" && nx === "*") { block = true; k++; continue; }
+      if (ch === "'" || ch === '"' || ch === "`") { q = ch; continue; }
+      if (ch === "{") { depth++; seen = true; } else if (ch === "}") { depth--; if (seen && depth === 0) return i; }
+    }
+    if (q !== "`") q = null;
+  }
+  return -1;
+}
+/** Dónde está un método o función `name` (líneas 1-based): `name(…) {`, `name: function (…) {`, `function name(…) {`, `const name = …`. */
+export function findMember(js, name) {
+  const lines = String(js || "").split("\n");
+  const re = new RegExp(`^\\s*(?:async\\s+)?(?:function\\s+${name}\\s*\\(|${name}\\s*\\(|${name}\\s*:\\s*(?:async\\s*)?(?:function\\b|\\()|(?:const|let|var)\\s+${name}\\s*=)`);
+  const i = lines.findIndex((l) => re.test(l));
+  if (i < 0) return null;
+  const end = blockEndLines(lines, i);
+  return end < 0 ? null : { name, start: i + 1, end: end + 1, text: lines.slice(i, end + 1).join("\n") };
+}
+/** Reemplaza el método por la versión corregida; respeta la coma final de un literal de objeto. */
+export function replaceMember(js, m, code) {
+  let body = String(code || "").replace(/\s+$/, "");
+  if (!new RegExp(`\\b${m.name}\\b`).test(body.split("\n")[0] || "")) return { ok: false, why: `no devolvió ${m.name}` };
+  const lines = String(js).split("\n");
+  const hadComma = /}\s*,\s*$/.test(lines[m.end - 1]);
+  if (hadComma && !/,\s*$/.test(body)) body += ",";
+  if (!hadComma) body = body.replace(/,\s*$/, "");
+  const next = [...lines.slice(0, m.start - 1), body, ...lines.slice(m.end)].join("\n");
+  try { new vm.Script(next); } catch (e) { return { ok: false, why: `no compila: ${e.message}` }; }
+  return { ok: true, js: next };
+}
+export const MEMBER_FIX_PROMPT = `Corregís UNA función de js/reglas.js (lógica de un juego tipo Sokoban, sin DOM).
+Recibís el CONTRATO, las PRUEBAS DEL HARNESS QUE FALLAN y la función. Devolvé SOLO la función corregida, completa, con el mismo nombre y los mismos parámetros, en UN bloque \`\`\`javascript (con la misma forma: si era "nombre(params) {", devolvé "nombre(params) {"). Sin explicaciones.`;
+
+/** Nombres declarados al nivel superior (const/let/var/function/class al comienzo de la línea). */
+export function topNames(code) {
+  return [...String(code || "").matchAll(/^(?:const|let|var|function|class)\s+([A-Za-z_$][\w$]*)/gm)].map((m) => m[1]);
+}
+/** Nombres que este archivo declara y otro ya declaró (en scripts comunes eso rompe la página). */
+export function clashes(code, others) {
+  const mine = new Set(topNames(code));
+  const out = [];
+  for (const [file, src] of Object.entries(others)) for (const n of topNames(src)) if (mine.has(n)) out.push(`"${n}" ya está declarado en ${file}: en este archivo no lo declares (usalo o elegí otro nombre).`);
+  return out;
+}
+const OWN = { "js/dibujo.js": ["nivelActual", "estado", "iniciarNivel"] };
 
 // ---------- 3. pantalla ----------
 export function screenProblems(html) {
@@ -316,7 +381,7 @@ export async function buildGameFiles({ refined, tasks }, outDir, opts = {}) {
    * Un paso: hasta 3 intentos del MISMO archivo. `make(prev, problems)` arma el pedido;
    * `take(raw)` extrae el contenido; `judge(content)` devuelve problemas ([] = listo).
    */
-  const step = async ({ id, files: names, cap, make, take, judge }) => {
+  const step = async ({ id, files: names, cap, make, take, judge, repair }) => {
     const rec = { n: steps.length + 1, task_id: id, files: names, attempts: [] };
     log(`[SPECIALIST] ${rec.n}/5 ${names.join(" + ")}`);
     let best = null, prev = null, problems = [];
@@ -340,11 +405,19 @@ export async function buildGameFiles({ refined, tasks }, outDir, opts = {}) {
           }
         }
       }
-      const content = take(raw);
+      let content = take(raw);
       problems = await judge(content);
+      // v0.8.1: reparación acotada (por método) antes de pedir el archivo entero otra vez
+      if (problems.length && repair) {
+        const fixed = await repair(content, problems, att);
+        if (fixed) { const p2 = await judge(fixed); if (p2.length < problems.length) { content = fixed; problems = p2; } }
+      }
       att.problems = problems;
       rec.attempts.push(att);
-      if (!best || problems.length < best.problems.length) best = { content, problems };
+      // v0.8.1: un intento SIN archivo nunca le gana a uno con archivo (b8: niveles.js quedó vacío)
+      const has = names.some((n) => content?.[n]);
+      const score = has ? problems.length : Infinity;
+      if (!best || score < best.score) best = { content, problems, score };
       prev = content;
       log(`[SPECIALIST]   ${problems.length ? `✗ ${problems.length} problema(s): ${problems.slice(0, 3).join(" | ").slice(0, 300)}` : "✓"}${k ? ` (reintento ${k})` : ""} · ${Math.round(r.ms / 1000)}s`);
       if (!problems.length) break;
@@ -361,27 +434,42 @@ export async function buildGameFiles({ refined, tasks }, outDir, opts = {}) {
 
   log(`[SPECIALIST] ${FILES_VERSION}: 5 pasos chicos (un archivo por paso) · pistas del brief: ${hints.minLevels} niveles${hints.rows ? `, mapa ${hints.cols}x${hints.rows}` : ""}`);
 
-  // 1. niveles
+  // 1. niveles — Gemma propone coordenadas; el harness arma js/niveles.js y prueba cada nivel con un solver
+  const rows = hints.rows || 10, cols = hints.cols || 10, minLv = Math.max(hints.minLevels, 1);
+  const LEVEL_FMT = `{ "niveles": [ { "jugador": [fila, col], "cajas": [[fila, col], ...], "objetivos": [[fila, col], ...], "paredes": [[fila, col], ...] }, ... ] }`;
   const s1 = await step({
-    id: "niveles", files: ["js/niveles.js"], cap: 4000,
-    make: (prev, pr) => head(`PASO 1 de 5: escribí js/niveles.js con ${Math.max(hints.minLevels, 1)} niveles o más${hints.rows ? ` de ${hints.rows} filas x ${hints.cols} columnas` : ""}. Que sean resolubles y de dificultad creciente; en cada uno, tantas cajas como objetivos y al menos una caja fuera de los objetivos.\n\n`) + retryBlock(prev, pr, ["js/niveles.js"]),
-    take: takeJs("js/niveles.js"),
+    id: "niveles", files: ["niveles.json"], cap: 4000,
+    make: (prev, pr) => head(`PASO 1 de 5: proponé ${minLv} niveles o más como JSON, en COORDENADAS (no dibujes el mapa: el harness arma js/niveles.js).
+Mapa de ${rows} filas x ${cols} columnas. El borde (fila 0, fila ${rows - 1}, columna 0, columna ${cols - 1}) ya es pared: no lo listes. Todo lo que pongas va en filas 1 a ${rows - 2} y columnas 1 a ${cols - 2}.
+Formato:
+### FILE: niveles.json
+\`\`\`json
+${LEVEL_FMT}
+\`\`\`
+Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su objetivo; nada en el mismo casillero (jugador, cajas, paredes); "paredes" son solo las interiores (pocas). Dificultad creciente: el nivel 1 con 1 o 2 cajas cerca de sus objetivos, el último con 3 o 4. Ninguna caja en una esquina. El harness prueba con un solver que cada nivel se pueda ganar.\n\n`) + (pr.length ? `PROBLEMAS DE TU VERSIÓN ANTERIOR (los encontró el harness):\n${pr.map((p) => "- " + p).join("\n")}\n\nTU VERSIÓN ANTERIOR:\n${fence("json", prev?.["niveles.json"])}\n\nDevolvé niveles.json corregido, completo.` : ""),
+    take: (raw) => ({ "niveles.json": extractFile(raw, "niveles.json") || (String(raw).match(/\{[\s\S]*"niveles"[\s\S]*\}/) || [])[0] || null }),
     judge: async (c) => {
-      const code = c["js/niveles.js"];
-      if (!code) return ["la respuesta no trajo ### FILE: js/niveles.js."];
-      const se = syntaxOf(code); if (se) return [`error de sintaxis: ${se}`];
-      const L2 = loadScripts([code]);
-      if (L2.error) return [`al ejecutarlo: ${L2.error}`];
-      return validateLevels(L2.NIVELES, hints);
+      if (!c["niveles.json"]) return ["la respuesta no trajo ### FILE: niveles.json."];
+      const pj = parseJsonLoose(c["niveles.json"]);
+      if (!pj.ok) return [`el JSON no se puede leer: ${pj.error}`];
+      const L1 = levelsFromSpecs(pj.data, { rows, cols, minLevels: minLv });
+      c.levels = L1;
+      // los niveles inválidos se descartan; solo es problema si no quedan los que se piden
+      return L1.levels.length >= minLv ? [] : L1.problems;
     },
   });
-  files["js/niveles.js"] = s1.content["js/niveles.js"] || "";
-  const N = loadScripts([files["js/niveles.js"]]).NIVELES || [];
+  const L1 = s1.content?.levels || { levels: [], problems: [], report: [] };
+  s1.rec.levels = { valid: L1.levels.length, report: L1.report, dropped: L1.problems };
+  if (!L1.levels.length) throw new Error(`niveles: ningún nivel válido después de 3 intentos (${(s1.rec.problems_final || []).slice(0, 3).join(" | ")})`);
+  files["js/niveles.js"] = nivelesJs(L1.levels, L1.report);
+  writeFileSync(join(outDir, "niveles.json"), String(s1.content["niveles.json"] || ""), "utf8");
+  const N = L1.levels;
+  log(`[SPECIALIST]   niveles: ${N.length} válidos y resolubles${L1.report.some((r) => r.solvable === null) ? " (alguno sin decidir por el solver)" : ""}${L1.problems.length ? ` · descartados: ${L1.problems.slice(0, 3).join(" | ")}` : ""}`);
 
   // 2. reglas
   const s2 = await step({
     id: "reglas", files: ["js/reglas.js"], cap: 5000,
-    make: (prev, pr) => head(`NOTAS DEL TECHLEADER (contexto):\n${notes}\n\nYA EXISTE js/niveles.js con ${N.length} niveles. Ejemplo, NIVELES[0]:\n${JSON.stringify(N[0] || [], null, 1)}\n\nPASO 2 de 5: escribí js/reglas.js (const Reglas = { crearEstado, mover, ganado }). Sin DOM. El harness lo va a probar con niveles chicos propios.\n\n`) + retryBlock(prev, pr, ["js/reglas.js"]),
+    make: (prev, pr) => head(`NOTAS DEL TECHLEADER (contexto):\n${notes}\n\nYA EXISTE js/niveles.js (lo armó el harness) con ${N.length} niveles. Ejemplo, NIVELES[0]:\n${JSON.stringify(N[0] || [], null, 1)}\n\nPASO 2 de 5: escribí js/reglas.js (const Reglas = { crearEstado, mover, ganado }). Sin DOM. El harness lo va a probar con niveles chicos propios.\n\n`) + retryBlock(prev, pr, ["js/reglas.js"]),
     take: takeJs("js/reglas.js"),
     judge: async (c) => {
       const code = c["js/reglas.js"];
@@ -391,6 +479,36 @@ export async function buildGameFiles({ refined, tasks }, outDir, opts = {}) {
       const L2 = loadScripts([files["js/niveles.js"], code]);
       if (L2.error) return [`al ejecutarlo: ${L2.error}`];
       return runRuleTests(L2.Reglas, L2.NIVELES).failed.map((f) => f.detail);
+    },
+    repair: async (c, _pr, att) => {
+      let code = c["js/reglas.js"];
+      if (!code || syntaxOf(code)) return null;
+      const rounds = [];
+      for (let k = 0; k < 4; k++) {
+        const L2 = loadScripts([files["js/niveles.js"], code]);
+        if (L2.error || !L2.Reglas) break;
+        const failed = runRuleTests(L2.Reglas, L2.NIVELES).failed;
+        if (!failed.length) break;
+        const fn = failed.find((f) => f.fn && !rounds.some((r) => r.fn === f.fn && !r.ok))?.fn;
+        const m = fn && findMember(code, fn);
+        if (!m) break;
+        const user = `${CONTRACT}\n\nPRUEBAS DEL HARNESS QUE FALLAN (${fn}):\n${failed.filter((f) => f.fn === fn).map((f) => "- " + f.detail).join("\n")}\n\nFUNCIÓN A CORREGIR (${fn}):\n${fence("javascript", m.text)}`;
+        const r = await ask(MEMBER_FIX_PROMPT, user, 3000);
+        writeFileSync(join(outDir, `step_02_reglas.${fn}${k + 1}.raw.txt`), r.raw, "utf8");
+        const got = (String(r.raw || "").match(/```(?:javascript|js)?\n([\s\S]*?)```/) || [])[1];
+        const rp = replaceMember(code, m, got);
+        const before = failed.length;
+        let after = before;
+        if (rp.ok) { const L3 = loadScripts([files["js/niveles.js"], rp.js]); after = L3.error ? Infinity : runRuleTests(L3.Reglas, L3.NIVELES).failed.length; }
+        const round = { fn, ms: r.ms, ok: rp.ok && after < before, before, after: after === Infinity ? "error" : after, ...(rp.ok ? {} : { note: rp.why }) };
+        rounds.push(round);
+        if (round.ok) code = rp.js;
+      }
+      if (rounds.length) {
+        att.member_repair = rounds;
+        log(`[SPECIALIST]   reparación por función: ${rounds.map((r) => `${r.fn} ${r.ok ? "✓" : "✗"}`).join(", ")}`);
+      }
+      return code !== c["js/reglas.js"] ? { "js/reglas.js": code } : null;
     },
   });
   files["js/reglas.js"] = s2.content["js/reglas.js"] || "";
@@ -426,6 +544,13 @@ export async function buildGameFiles({ refined, tasks }, outDir, opts = {}) {
       const code = c["js/dibujo.js"];
       if (!code) return ["la respuesta no trajo ### FILE: js/dibujo.js."];
       const se = syntaxOf(code); if (se) return [`error de sintaxis: ${se}`];
+      const own = topNames(code).filter((n) => OWN["js/dibujo.js"].includes(n));
+      const extra = [
+        ...clashes(code, { "js/niveles.js": files["js/niveles.js"], "js/reglas.js": files["js/reglas.js"] }),
+        ...(own.length ? [`js/dibujo.js solo define dibujar(estado, numeroNivel): ${own.join(", ")} van en js/controles.js (paso 5), no acá.`] : []),
+        ...(/addEventListener\s*\(/.test(code) ? ["js/dibujo.js no agrega listeners (teclado y botones van en js/controles.js)."] : []),
+      ];
+      if (extra.length) return extra;
       if (opts.check === false) return [];
       writeApp(probeDir, { ...files, "js/dibujo.js": code }, pageHtml({ title, fragment, features, scripts: JS_FILES.slice(0, 3), inline: PROBE }));
       return dibujoProblems(await probeDibujo(join(probeDir, "index.html")));
@@ -443,6 +568,8 @@ export async function buildGameFiles({ refined, tasks }, outDir, opts = {}) {
       const code = c["js/controles.js"];
       if (!code) return ["la respuesta no trajo ### FILE: js/controles.js."];
       const se = syntaxOf(code); if (se) return [`error de sintaxis: ${se}`];
+      const cl = clashes(code, { "js/niveles.js": files["js/niveles.js"], "js/reglas.js": files["js/reglas.js"], "js/dibujo.js": files["js/dibujo.js"] });
+      if (cl.length) return cl;
       if (opts.check === false) return [];
       writeApp(playDir, { ...files, "js/controles.js": code }, pageHtml({ title, fragment, features }));
       return playProblems(await runChecks(join(playDir, "index.html"), PLAY));
@@ -454,7 +581,7 @@ export async function buildGameFiles({ refined, tasks }, outDir, opts = {}) {
   log(`[SPECIALIST] app/: index.html, styles.css, ${JS_FILES.join(", ")}${steps.some((s) => s.problems_final.length) ? ` · quedan problemas en: ${steps.filter((s) => s.problems_final.length).map((s) => s.task_id).join(", ")}` : " · todos los pasos OK"}`);
   return {
     model, specialist_version: FILES_VERSION, files: ["index.html", "styles.css", ...JS_FILES],
-    hints, rule_tests: s2.rec.tests, order: steps.map((s) => s.task_id),
+    hints, levels: s1.rec.levels, rule_tests: s2.rec.tests, order: steps.map((s) => s.task_id),
     steps: steps.map((s) => ({ ...s, ms: s.attempts.reduce((a, b) => a + b.ms, 0), finish_reason: s.attempts.at(-1)?.finish_reason, changed: s.files, rejected: s.problems_final })),
   };
 }

@@ -31,6 +31,7 @@ profiles/
                             en Node) → juego.html+styles.css → dibujo (probado en Chromium) → controles
     translator_rules.mjs    regla 6: board_changes, not_won_immediately, reset_restores, game_levels,
                             moves_one_cell, fixed_map_size
+    levels.mjs              niveles en coordenadas → strings Sokoban + solver (v0.8.1)
     test_game_files.mjs
 ```
 

@@ -422,7 +422,9 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  const STORAGE_KEY = 'michelab_pendientes_webmcp_0610'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
+  const STORAGE_KEY = 'michelab_pendientes_webmcp';
+  // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
+  const SEED = '2026-10-06c'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
   let state = loadState() || {
  "columns": [
   {
@@ -494,9 +496,9 @@
    "isDefault": true,
    "cards": [
     {
-     "id": "n1b",
-     "title": "Boxworld con el juego por archivos (b8)",
-     "desc": "[#Specialist] node build/run_build.mjs project25_snapshot.json. Mirar en el log los 5 pasos (niveles → reglas con 'pruebas de reglas X/15' → pantalla → dibujo → controles) y cuántos reintentos pidió cada uno. Si anda: replicar la fórmula en web/app con el Kanban.",
+     "id": "g3",
+     "title": "Boxworld b9 (game_files v0.8.1)",
+     "desc": "[#Specialist] Niveles en coordenadas + solver, reparación por método en reglas.js, sin archivos vacíos, nombres repetidos entre archivos. Mirar en el log: 'niveles: N válidos y resolubles', 'pruebas de reglas X/15', 'reparación por función'.",
      "priority": "urgente"
     }
    ]
@@ -507,6 +509,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h15",
+     "title": "06/10 · b8 por archivos → v0.8.1",
+     "desc": "[#Specialist] b8 real: Gemma no cuenta caracteres (niveles con filas de 9 a 13), bug del harness dejó niveles.js vacío (cascada en dibujo y controles), reglas.js con el mismo bug en 3 reintentos. Ahora: niveles en coordenadas verificados con solver; un intento sin archivo nunca gana; reparación por método; nombres repetidos entre archivos.",
+     "priority": "bajo"
+    },
     {
      "id": "h14",
      "title": "06/10 · web/game por archivos (game_files v0.8)",
@@ -618,9 +626,10 @@
   let draggedCard = null;
   
   function loadState() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
+    try { const st = JSON.parse(localStorage.getItem(STORAGE_KEY)); return st && st.seed === SEED ? st : null; } catch { return null; }
   }
   function saveState() {
+    state.seed = SEED;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
   

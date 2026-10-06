@@ -1,0 +1,370 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Boxworld",
+  "source": "project25_snapshot.json",
+  "catalog": "check_catalog v0.8",
+  "profiles": {
+    "ids": [
+      "web/game"
+    ],
+    "chain": [
+      "web",
+      "web/app",
+      "web/game"
+    ],
+    "status": {
+      "web": "DRAFT",
+      "web/app": "DRAFT",
+      "web/game": "DRAFT"
+    },
+    "borrowed": [
+      {
+        "id": "web/game",
+        "from": "web/landing",
+        "what": [
+          "motor del Specialist por componentes (vía web/app)"
+        ]
+      }
+    ]
+  },
+  "artifact_loads_without_js_errors": false,
+  "sections_visible": {
+    "result": "PASS",
+    "features": {
+      "R1": "PASS",
+      "R2": "PASS",
+      "R3": "PASS",
+      "R4": "PASS",
+      "R5": "PASS",
+      "R6": "PASS",
+      "R7": "PASS"
+    },
+    "anchors": [
+      {
+        "id": "juego",
+        "features": [
+          "R1",
+          "R2",
+          "R3",
+          "R4",
+          "R5",
+          "R6",
+          "R7"
+        ],
+        "seen": 7,
+        "total": 7,
+        "ondemand": 0,
+        "ok": true
+      }
+    ],
+    "detail": "#juego: 7/7 palabras visibles"
+  },
+  "components_render": {
+    "result": "NOT_APPLICABLE",
+    "components": [],
+    "detail": "ningún componente con JS nombra contenedores"
+  },
+  "summary": {
+    "requisitos": 8,
+    "PASS": 2,
+    "FAIL": 5,
+    "SIN_EVIDENCIA": 0,
+    "SIN_CHEQUEO": 1
+  },
+  "control": "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "El juego es el clásico Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "game_levels",
+          "params": {
+            "min": [
+              "Niveles"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "la página no define NIVELES (contrato del juego)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "board_changes",
+          "params": {
+            "keys": [
+              "flechas"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "no hay tablero (una grilla con 9 o más casilleros, o un canvas)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "moves_one_cell",
+          "params": {},
+          "result": "PASS",
+          "detail": "derecha → (1,2), otra vez → (1,3), abajo → (2,1), contra la pared se queda en (1,1)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "fixed_map_size",
+          "params": {},
+          "result": "FAIL",
+          "detail": "la página no define NIVELES (contrato del juego)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "click_changes",
+          "params": {
+            "click": [
+              "reiniciar"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "clic \"Reiniciar Nivel\" → no cambia nada",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "reset_restores",
+          "params": {
+            "click": [
+              "reiniciar"
+            ],
+            "keys": [
+              "flechas"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "las teclas (ArrowUp, ArrowDown, ArrowLeft, ArrowRight) no cambian nada: no hay qué reiniciar",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "El juego necesita un botón 'reiniciar' en caso de que el jugador haga un mal movimiento, además otro botón 'proximo nivel' para avanzar de niveles.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "reiniciar"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"Reiniciar Nivel\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "proximo",
+              "siguiente"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"Siguiente Nivel\"",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "El juego deberá tener al menos 5 niveles.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "game_levels",
+          "params": {
+            "min": [
+              "5"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "la página no define NIVELES (contrato del juego)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "El avatar se mueve mediante las flechas del teclado.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "board_changes",
+          "params": {
+            "keys": [
+              "flechas"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "no hay tablero (una grilla con 9 o más casilleros, o un canvas)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "El avatar se mueve siempre de a un casillero por vez.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "moves_one_cell",
+          "params": {},
+          "result": "PASS",
+          "detail": "derecha → (1,2), otra vez → (1,3), abajo → (2,1), contra la pared se queda en (1,1)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "El tamaño del mapa es fijo, la cantidad de cajas puede variar.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "fixed_map_size",
+          "params": {},
+          "result": "FAIL",
+          "detail": "la página no define NIVELES (contrato del juego)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "text": "El juego tiene un contador de movimientos como sistema de puntaje o tiempo límite por nivel.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "counter_on_action",
+          "params": {
+            "label": [
+              "movimientos",
+              "pasos"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "ArrowUp, ArrowDown, ArrowLeft, ArrowRight: \"Movimientos: 0\" → no cambia",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "text": "Estilo Family NES, 8bits",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El estilo visual 'Family NES, 8bits' no puede ser verificado con chequeos de interacción o contenido visible en la página. Este requisito se refiere a un aspecto estético que no puede ser comprobado mediante los tipos de chequeos disponibles.",
+      "checks": []
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "game_files v0.8",
+    "files": [
+      "index.html",
+      "styles.css",
+      "js/niveles.js",
+      "js/reglas.js",
+      "js/dibujo.js",
+      "js/controles.js"
+    ],
+    "rule_tests": {
+      "passed": [
+        "crearEstado lee jugador, cajas y objetivos",
+        "la pared bloquea",
+        "empujar una caja",
+        "mover no modifica el estado que recibe",
+        "de a un casillero",
+        "caja contra pared no se mueve",
+        "caja contra caja no se mueve"
+      ],
+      "failed": [
+        {
+          "name": "recién creado no está ganado",
+          "detail": "recién creado no está ganado: tiró un error: state is not defined"
+        },
+        {
+          "name": "caja en el objetivo = ganado",
+          "detail": "caja en el objetivo = ganado: tiró un error: state is not defined"
+        },
+        {
+          "name": "lee '*' y '+'",
+          "detail": "crearEstado([\"######\",\"#+$ *#\",\"######\"]): '+' es jugador sobre objetivo y '*' caja sobre objetivo → jugador {fila:1,col:1}, cajas [{fila:1,col:2},{fila:1,col:4}], objetivos [{fila:1,col:1},{fila:1,col:4}], mapa fila 1 \"#.  .#\"; dio jugador {fila:1,col:1}, cajas [{fila:1,col:2},{fila:1,col:4}], objetivos [{fila:1,col:4}], mapa fila 1 [\"#\",\" \",\" \",\" \",\" \",\"#\"]."
+        }
+      ]
+    },
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "niveles",
+        "ms": 441052,
+        "finish_reason": "stop",
+        "changed": [
+          "js/niveles.js"
+        ],
+        "rejected": [
+          "la respuesta no trajo ### FILE: js/niveles.js."
+        ]
+      },
+      {
+        "n": 2,
+        "task_id": "reglas",
+        "ms": 768468,
+        "finish_reason": "stop",
+        "changed": [
+          "js/reglas.js"
+        ],
+        "rejected": [
+          "recién creado no está ganado: tiró un error: state is not defined",
+          "caja en el objetivo = ganado: tiró un error: state is not defined",
+          "crearEstado([\"######\",\"#+$ *#\",\"######\"]): '+' es jugador sobre objetivo y '*' caja sobre objetivo → jugador {fila:1,col:1}, cajas [{fila:1,col:2},{fila:1,col:4}], objetivos [{fila:1,col:1},{fila:1,col:4}], mapa fila 1 \"#.  .#\"; dio jugador {fila:1,col:1}, cajas [{fila:1,col:2},{fila:1,col:4}], objetivos [{fila:1,col:4}], mapa fila 1 [\"#\",\" \",\" \",\" \",\" \",\"#\"]."
+        ]
+      },
+      {
+        "n": 3,
+        "task_id": "pantalla",
+        "ms": 111150,
+        "finish_reason": "stop",
+        "changed": [
+          "juego.html",
+          "styles.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 4,
+        "task_id": "dibujo",
+        "ms": 257013,
+        "finish_reason": "stop",
+        "changed": [
+          "js/dibujo.js"
+        ],
+        "rejected": [
+          "dibujar(Reglas.crearEstado(NIVELES[0]), 1) tiró un error: NIVELES is not defined."
+        ]
+      },
+      {
+        "n": 5,
+        "task_id": "controles",
+        "ms": 396877,
+        "finish_reason": "stop",
+        "changed": [
+          "js/controles.js"
+        ],
+        "rejected": [
+          "no_js_errors: NIVELES is not defined | Identifier 'nivelActual' has already been declared",
+          "board_changes: no hay tablero (una grilla con 9 o más casilleros, o un canvas)",
+          "not_won_immediately: ninguna tecla cambia nada (ArrowUp, ArrowDown, ArrowLeft, ArrowRight): no se puede jugar",
+          "reset_restores: las teclas (ArrowUp, ArrowDown, ArrowLeft, ArrowRight) no cambian nada: no hay qué reiniciar",
+          "counter_on_action: ArrowUp, ArrowDown, ArrowLeft, ArrowRight: \"Movimientos: 0\" → no cambia"
+        ]
+      }
+    ]
+  }
+}

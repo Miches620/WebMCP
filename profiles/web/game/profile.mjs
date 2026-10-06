@@ -15,7 +15,7 @@ export default {
   kind: "type",
   selectable: true,
   status: "DRAFT",
-  version: "0.2",
+  version: "0.2.1",
   describe: "Juego de una pantalla escrito POR ARCHIVOS (juego.html, styles.css, js/niveles.js, js/reglas.js, js/dibujo.js, js/controles.js), un archivo por paso de Gemma con contrato fijo. Las reglas se prueban sin navegador; Validation prueba que se pueda jugar y que no se gane solo.",
   build: "web/game",
   borrowed: {
@@ -26,7 +26,7 @@ export default {
   // Specialist por archivos (specialist_files.mjs), contrato NIVELES/Reglas/dibujar, pruebas de
   // reglas en Node con niveles del harness, chequeos game_levels / moves_one_cell / fixed_map_size.
   pending: [
-    "Correr con Gemma real (solo probado con LM Studio simulado).",
+    "Correr v0.8.1 con Gemma real (b8 con v0.8: niveles imposibles de contar, niveles.js vacío por un bug del harness, reglas con el mismo bug en 3 reintentos).",
     "El estilo (R8 NES 8 bits) sigue sin chequeo y Gemma lo ignoró en b2–b7.",
     "Próximo nivel después de ganar (cambia el tablero) todavía sin chequeo.",
     "Las reglas del Specialist salen de un Sokoban: ver si sirven para otro juego (snake, memoria, tetris) antes de generalizar.",

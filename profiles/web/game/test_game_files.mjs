@@ -5,7 +5,9 @@ import { fileURLToPath } from "node:url";
 import {
   gameHints, validateLevels, loadScripts, runRuleTests, RULE_TESTS, screenProblems, cleanFragment, cleanCss,
   pageHtml, extractFile, dibujoProblems, JS_FILES, CONTRACT, IDS, baselinePage,
+  findMember, replaceMember, topNames, clashes,
 } from "./specialist_files.mjs";
+import { levelFromSpec, solve, levelsFromSpecs, nivelesJs } from "./levels.mjs";
 
 let ok = 0, fail = 0;
 const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
@@ -60,6 +62,45 @@ t("dibujoProblems: correcto → []", dibujoProblems({ probe: { ok: true, cells: 
 
 // contrato
 t("el contrato nombra los 6 ids y la forma del estado", IDS.every((id) => CONTRACT.includes("#" + id)) && /estado = \{ mapa/.test(CONTRACT) && /DEVUELVE UN ESTADO NUEVO/.test(CONTRACT));
+
+// v0.8.1: niveles en coordenadas + solver (b8: Gemma no puede contar caracteres)
+const lv = levelFromSpec({ jugador: [1, 1], cajas: [[2, 3]], objetivos: [[2, 6]], paredes: [[4, 4]] }, { rows: 10, cols: 10 });
+t("coordenadas → 10 filas de 10, borde de paredes", lv.rows.length === 10 && lv.rows.every((r) => r.length === 10) && lv.rows[0] === "##########" && lv.rows[1] === "#@       #" && lv.rows[2] === "#  $  .  #" && lv.rows[4][4] === "#");
+t("caja sobre objetivo → '*', jugador sobre objetivo → '+'", levelFromSpec({ jugador: [1, 1], cajas: [[2, 2], [3, 3]], objetivos: [[1, 1], [2, 2]] }, { rows: 5, cols: 5 }).rows.join("|") === "#####|#+  #|# * #|#  $#|#####");
+const bad = levelFromSpec({ jugador: [0, 0], cajas: [[2, 2], [2, 2]], objetivos: [[3, 3]], paredes: [[2, 2]] }, { rows: 6, cols: 6 }, "nivel 1").problems;
+t("fuera del interior, cajas repetidas, cajas ≠ objetivos, caja sobre pared", ["fuera del interior", "dos cajas en el mismo casillero", "2 cajas y 1 objetivos", "caja sobre una pared"].every((x) => bad.some((p) => p.includes(x))), JSON.stringify(bad));
+t("todas las cajas sobre sus objetivos = ya ganado", levelFromSpec({ jugador: [1, 1], cajas: [[2, 2]], objetivos: [[2, 2]] }, { rows: 5, cols: 5 }).problems.some((p) => /ya está ganado/.test(p)));
+t("solver: nivel fácil → resoluble", solve(["#####", "#@$.#", "#####"]).solvable === true);
+t("solver: caja pegada a la pared superior y objetivo abajo → imposible", solve(levelFromSpec({ jugador: [2, 2], cajas: [[1, 3]], objetivos: [[4, 4]] }, { rows: 6, cols: 6 }).rows).solvable === false);
+t("solver: dos cajas con paredes interiores → resoluble", solve(levelFromSpec({ jugador: [1, 1], cajas: [[2, 3], [4, 4]], objetivos: [[2, 6], [6, 4]], paredes: [[3, 3], [3, 4]] }).rows).solvable === true);
+const ls = levelsFromSpecs({ niveles: [{ jugador: [1, 1], cajas: [[2, 3]], objetivos: [[2, 6]] }, { jugador: [2, 2], cajas: [[1, 3]], objetivos: [[4, 4]] }] }, { rows: 6, cols: 8, minLevels: 2 });
+t("levelsFromSpecs: el irresoluble se descarta y se avisa", ls.levels.length === 1 && ls.problems.some((p) => /nivel 2: NO se puede ganar/.test(p)) && ls.problems.some((p) => /1 niveles válidos y se piden al menos 2/.test(p)));
+t("levelsFromSpecs: JSON sin 'niveles' → problema claro", /"niveles"/.test(levelsFromSpecs({ foo: 1 }).problems[0]));
+const nj = nivelesJs(ls.levels, ls.report);
+t("nivelesJs: js/niveles.js cargable y válido para el contrato", (() => { const L = loadScripts([nj]); return Array.isArray(L.NIVELES) && L.NIVELES.length === 1 && validateLevels(L.NIVELES).length === 0; })());
+
+// v0.8.1: reparación por método de reglas.js (b8: `state` en vez de `estado` en ganado)
+const b8 = `const Reglas = {
+    crearEstado(nivel) {
+        return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+    },
+    ganado(estado) {
+        let n = 0;
+        return n === state.cajas.length;
+    },
+    mover(estado, d) { return estado; }
+};`;
+const gm = findMember(b8, "ganado");
+t("findMember: método de literal de objeto con sus líneas", gm && gm.start === 5 && gm.end === 8 && gm.text.includes("state.cajas"));
+const rpl = replaceMember(b8, gm, "ganado(estado) {\n        let n = 0;\n        return n === estado.cajas.length;\n    }");
+t("replaceMember: repone la coma del literal y compila", rpl.ok && rpl.js.includes("estado.cajas.length;\n    },") && !rpl.js.includes("state.cajas"));
+t("replaceMember: otra función o JS roto → rechazado", !replaceMember(b8, gm, "mover(e) { return e; }").ok && !replaceMember(b8, gm, "ganado(estado) { if ( }").ok);
+t("findMember: también `function x(` y `const x = (`", findMember("function dibujar(e) {\n  return 1;\n}", "dibujar")?.end === 3 && findMember("const mover = (e) => {\n  return e;\n};", "mover")?.end === 3);
+t("pruebas con 'fn': cada falla dice qué función revisar", runRuleTests(loadScripts([b8]).Reglas, []).failed.every((f) => ["crearEstado", "mover", "ganado"].includes(f.fn)));
+
+// v0.8.1: nombres en dos archivos (b8: dibujo.js declaraba nivelActual e iniciarNivel)
+t("topNames: const/let/function al nivel superior", topNames("let nivelActual = 0;\nfunction iniciarNivel(i) {\n  const x = 1;\n}\nconst Reglas = {};").join() === "nivelActual,iniciarNivel,Reglas");
+t("clashes: nombre ya declarado en otro archivo", clashes("let nivelActual = 0;", { "js/dibujo.js": "let nivelActual = 0;\nfunction dibujar() {}" })[0]?.includes('"nivelActual" ya está declarado en js/dibujo.js'));
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

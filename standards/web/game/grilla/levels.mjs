@@ -96,6 +96,25 @@ export function liveSquares(rows) {
   }
   return live;
 }
+/**
+ * v0.1.4 (Boxworld b12): ¿algún movimiento desde el inicio ya gana? b12 trajo un nivel 1 con
+ * "@$." (una flecha y listo) y el chequeo not_won_immediately del propio Standard mandó a
+ * corregir controles.js 3 veces (6 min) por un problema que era del NIVEL.
+ */
+export function winsInOneMove(rows) {
+  const at = (f, c) => (rows[f] || "")[c] ?? "#";
+  let pf = -1, pc = -1; const boxes = new Set(), goals = new Set();
+  rows.forEach((s, f) => [...s].forEach((ch, c) => { if ("@+".includes(ch)) { pf = f; pc = c; } if ("$*".includes(ch)) boxes.add(f * 1000 + c); if (".*+".includes(ch)) goals.add(f * 1000 + c); }));
+  for (const [df, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+    const f1 = pf + df, c1 = pc + dc, k1 = f1 * 1000 + c1;
+    if (at(f1, c1) === "#" || !boxes.has(k1)) continue;
+    const f2 = f1 + df, c2 = c1 + dc, k2 = f2 * 1000 + c2;
+    if (at(f2, c2) === "#" || boxes.has(k2)) continue;
+    const nb = new Set(boxes); nb.delete(k1); nb.add(k2);
+    if ([...goals].every((g) => nb.has(g))) return true;
+  }
+  return false;
+}
 /** Cajas que empiezan en un casillero desde donde no pueden llegar a ningún objetivo: [[f, c]]. */
 export function stuckBoxes(rows) {
   const C = Math.max(...rows.map((r) => r.length));
@@ -189,6 +208,10 @@ export function levelsFromSpecs(data, { rows = 10, cols = 10, minLevels = 1, cap
     if (stuck.length) {
       problems.push(`${n}: ${stuck.length === 1 ? "la caja en" : "las cajas en"} ${stuck.map((p) => JSON.stringify(p)).join(", ")} no ${stuck.length === 1 ? "puede" : "pueden"} llegar a ningún objetivo: una caja contra la pared solo se mueve a lo largo de esa pared (y en una esquina no se mueve). Alejala de la pared o poné su objetivo pegado a esa misma pared.`);
       report.push({ n: i + 1, ok: false, solvable: false, stuck }); return;
+    }
+    if (winsInOneMove(r.rows)) {
+      problems.push(`${n}: se gana con UN solo movimiento (el jugador ya está pegado a la caja y la caja pegada a su objetivo). Poné al jugador más lejos o la caja a 2 o más casilleros de su objetivo.`);
+      report.push({ n: i + 1, ok: false, oneMove: true }); return;
     }
     const sv = solve(r.rows, { cap });
     if (sv.solvable === false) { problems.push(`${n}: NO se puede ganar (el harness probó todos los movimientos posibles): mové cajas, objetivos o paredes.`); report.push({ n: i + 1, ok: false, solvable: false }); return; }

@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import S, { gameHints, validateLevels, CONTRACT, IDS, SCRIPTS } from "./standard.mjs";
 import { RULE_TESTS } from "./acceptance.mjs";
-import { levelFromSpec, solve, levelsFromSpecs, nivelesJs, stuckBoxes } from "./levels.mjs";
+import { levelFromSpec, solve, levelsFromSpecs, nivelesJs, stuckBoxes, winsInOneMove } from "./levels.mjs";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { postprocessChecks } from "../../../../profiles/web/game/build.mjs";
 import * as E from "../../../../harness/files_engine.mjs";
@@ -173,13 +173,41 @@ const drawn = async (dibujoJs, css = b11("styles.css")) => {
   return E.drawnLooksProblems(pr.looks, st.looks, dibujoJs);
 };
 const lk = await drawn(b11("js/dibujo.js"));
-t("dibujo b11: caja y jugador se ven como el piso en el tablero dibujado + pista de style.backgroundColor", lk.length === 2 && /\.piso = \.caja = \.jugador/.test(lk[0]) && /style\.backgroundColor/.test(lk[1]), JSON.stringify(lk));
+t("dibujo b11: caja y jugador se distinguen por borde y brillo (Miche lo jugó) → sin problemas", lk.length === 0, JSON.stringify(lk));
+const flatCss = b11("styles.css").replace(/\.casillero\.caja \{[^}]*\}/, ".casillero.caja { background-color: #cc9900; }").replace(/\.casillero\.jugador \{[^}]*\}/, ".casillero.jugador { background-color: #ff4500; }");
+const lk2 = await drawn(b11("js/dibujo.js"), flatCss);
+t("dibujo: si style.backgroundColor tapa TODO lo que distingue caja y jugador → se ven iguales + pista", lk2.length === 2 && /\.piso = \.caja = \.jugador/.test(lk2[0]) && /style\.backgroundColor/.test(lk2[1]), JSON.stringify(lk2));
 t("dibujo b11 sin los style → sin problemas", (await drawn(b11("js/dibujo.js").replace(/\n\s*casilla\.style\.backgroundColor = [^;]+;/g, ""))).length === 0);
 t("pantalla b11: #btn-reiniciar con disabled → problema", E.disabledInHtml(b11("index.html"), "btn-reiniciar") && !E.disabledInHtml(b11("index.html"), "btn-siguiente") && step("pantalla").enabled.includes("btn-reiniciar"));
 const b11r = runRuleTests(loadScripts([b11("js/niveles.js"), b11("js/reglas.js")]).Reglas, []);
 const plus = b11r.failed.find((f) => f.name === "lee '*' y '+'")?.detail || "";
 t("prueba de '*' y '+' (b11): dice solo lo que está mal (objetivos y mapa), no lo que está bien", /objetivos: tendrían que ser/.test(plus) && /cada fila tiene que ser un STRING/.test(plus) && !/jugador: tendría/.test(plus) && !/cajas: tendrían/.test(plus), plus);
 t("niveles: con niveles ya guardados, el pedido es solo por los que faltan", /proponé 1 nivel\(es\) NUEVO\(S\) \(ya hay 4 válidos/.test(step("niveles").prompt({ hints: { minLevels: 5, rows: 10, cols: 10 }, have: 4, paso: "PASO 1 de 5" })));
+
+// v0.1.3 (Miche jugó b11): al ganar, el avatar quedaba bloqueado
+const sc = step("controles").scenarios[0];
+const scDir = fileURLToPath(new URL("../../../../build/runs/_test_scenario/", import.meta.url));
+const playScenario = async (controlesJs, html = b11("index.html").replace(" disabled>", ">")) => {
+  mkdirSync(scDir + "js", { recursive: true });
+  for (const f of ["js/reglas.js", "js/dibujo.js"]) writeFileSync(scDir + f, b11(f));
+  writeFileSync(scDir + "styles.css", b11("styles.css"));
+  writeFileSync(scDir + "js/controles.js", controlesJs);
+  writeFileSync(scDir + "js/niveles.js", sc.files["js/niveles.js"]);
+  const frag = E.cleanFragment(html.replace(/<main[^>]*>|<\/main>/g, ""));
+  writeFileSync(scDir + "index.html", E.pageHtml({ title: "t", fragment: frag, scripts: SCRIPTS, mainId: "juego" }));
+  return E.runScenario(scDir + "index.html", sc);
+};
+const sc11 = await playScenario(b11("js/controles.js"));
+t("escenario b11: ganar y pasar de nivel → 'queda bloqueado' (el bug que encontró Miche)", sc11.length === 1 && /queda bloqueado/.test(sc11[0]) && /removeEventListener/.test(sc11[0]), JSON.stringify(sc11));
+const fixed11 = b11("js/controles.js").replace("document.removeEventListener('keydown', manejarMovimientoTeclado);", "");
+t("escenario b11 sin el removeEventListener → pasa", (await playScenario(fixed11)).length === 0, JSON.stringify(await playScenario(fixed11)));
+t("escenario: niveles de prueba válidos (se ganan con una flecha)", (() => { const L = loadScripts([sc.files["js/niveles.js"]]).NIVELES; return L.length === 2 && solve(L[0]).pushes === 1 && solve(L[1]).solvable === true; })());
+
+// v0.1.4 (Boxworld b12: nivel 1 "#  @$.   #")
+const b12n1 = ["##########", "#        #", "#        #", "#  @$.   #", "#        #", "#        #", "#        #", "#        #", "#        #", "##########"];
+t("winsInOneMove: el nivel 1 de b12 se gana con una flecha", winsInOneMove(b12n1) && !winsInOneMove(["######", "#@$ .#", "######"]) && !winsInOneMove(["#######", "#@$.$.#", "#######"]));
+t("levelsFromSpecs: un nivel que se gana con un movimiento se descarta y se dice por qué", (() => { const r = levelsFromSpecs({ niveles: [{ jugador: [3, 3], cajas: [[3, 4]], objetivos: [[3, 5]] }] }, { rows: 10, cols: 10, minLevels: 0 }); return r.levels.length === 0 && /se gana con UN solo movimiento/.test(r.problems[0]); })());
+t("los niveles de prueba del escenario siguen ganándose con una flecha (a propósito)", winsInOneMove(loadScripts([step("controles").scenarios[0].files["js/niveles.js"]]).NIVELES[0]));
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

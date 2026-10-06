@@ -1,0 +1,52 @@
+function dibujar(estado, numeroNivel) {
+    const tablero = document.getElementById('tablero');
+    const nivelSpan = document.getElementById('nivel');
+    const movimientosSpan = document.getElementById('movimientos');
+
+    // 1. Vaciar el tablero
+    tablero.innerHTML = '';
+
+    // Establecer la estructura de la cuadrícula (10 columnas fijas)
+    tablero.style.gridTemplateColumns = 'repeat(10, 1fr)';
+
+    const mapa = estado.mapa;
+    const altura = mapa.length; // Número de filas
+    const ancho = mapa[0].length; // Número de columnas (debe ser 10)
+
+    // 2. Dibujar casilleros fila por fila
+    for (let r = 0; r < altura; r++) {
+        for (let c = 0; c < ancho; c++) {
+            const celda = document.createElement('div');
+            celda.className = 'casillero';
+
+            // Determinar si es pared o piso
+            if (mapa[r][c] === '#') {
+                celda.classList.add('pared');
+            } else {
+                celda.classList.add('piso');
+            }
+
+            // 3. Verificar elementos especiales en la celda
+            let esObjetivo = mapa[r][c] === '.';
+            let hayCaja = estado.cajas.some(box => box.fila === r && box.col === c);
+            let esJugador = estado.jugador.fila === r && estado.jugador.col === c;
+
+            if (esObjetivo) {
+                celda.classList.add('objetivo');
+            }
+            if (hayCaja) {
+                celda.classList.add('caja');
+            }
+            if (esJugador) {
+                // Si el jugador está sobre un objetivo, debe tener ambas clases
+                celda.classList.add('jugador');
+            }
+
+            tablero.appendChild(celda);
+        }
+    }
+
+    // 4. Actualizar HUD
+    movimientosSpan.textContent = estado.movimientos;
+    nivelSpan.textContent = numeroNivel;
+}

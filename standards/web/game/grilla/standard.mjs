@@ -1,4 +1,8 @@
 // standard.mjs — Standard "juego de grilla" (web/game/grilla) · DRAFT v0.1.1 (06/10).
+// v0.1.4 (b12, 7 PASS): ningún nivel se gana con un solo movimiento (b12: nivel 1 "@$." hizo
+// fallar not_won_immediately y se reintentó controles 3 veces por un problema del nivel).
+// v0.1.3 (Miche jugó b11): controles declara un escenario "ganar y seguir" (al ganar, el avatar
+// quedaba bloqueado en todos los niveles; ningún chequeo jugaba más allá del nivel 1).
 // v0.1.2 (Boxworld b11, 5 PASS otra vez con caja y jugador invisibles): dibujo declara `looks`
 // (el tablero DIBUJADO se mira en Chromium: dibujar() pintaba con style y tapaba el CSS);
 // pantalla declara `enabled` (#btn-reiniciar vino con disabled); niveles: el reintento pide
@@ -88,7 +92,7 @@ const size = (h) => ({ rows: h.rows || 10, cols: h.cols || 10, min: Math.max(h.m
 
 export default {
   id: "web/game/grilla",
-  version: "0.1.2",
+  version: "0.1.4",
   status: "DRAFT",
   label: "juego de grilla: empujar piezas hasta sus objetivos",
   describe: "Juego de una pantalla sobre una grilla, por archivos: juego.html, styles.css, js/niveles.js (datos verificados con solver), js/reglas.js (lógica pura probada en Node), js/dibujo.js (probado en Chromium), js/controles.js (chequeos de juego).",
@@ -96,6 +100,8 @@ export default {
     "Boxworld b2–b7 (05/10): con todo el juego en una respuesta cada build trajo 1–2 bugs; reintentos completos cortados por length (3 de 3).",
     "Boxworld b8 (06/10): Gemma no puede contar caracteres (filas de 9 a 13 en un mapa de 10) → niveles en coordenadas + solver.",
     "Boxworld b9 (06/10, por archivos): niveles, pantalla y controles bien al primer intento; reglas.js con const repetido y mover que buscaba cajas en el mapa.",
+    "Boxworld b12 (06/10): 7 PASS / 0 FAIL, se ve y se juega; nivel 1 ganable con una flecha (y controles reintentado 3 veces por eso).",
+    "Boxworld b11 (06/10, lo jugó Miche): se veía y se podía mover y empujar; al ganar cualquier nivel el avatar quedaba bloqueado (removeEventListener del teclado). Ningún chequeo lo vio.",
     "Boxworld b10 (06/10): 5 PASS / 2 FAIL, reglas 13/14, dibujo y controles al primer intento. Pero el tablero se veía vacío (styles.css con '.casillero .pared'), 4 niveles de 5 (nivel 5 con cajas contra la pared en los 3 intentos) y un FAIL falso del traductor (click_changes en reiniciar).",
   ],
   pending: [
@@ -118,7 +124,7 @@ Mapa de ${z.rows} filas x ${z.cols} columnas. El borde (fila 0, fila ${z.rows - 
 Formato:
 ### FILE: niveles.json
 ${fence("json", LEVEL_FMT)}
-Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su objetivo; nada en el mismo casillero (jugador, cajas, paredes); "paredes" son solo las interiores (pocas). Dificultad creciente: el nivel 1 con 1 o 2 cajas cerca de sus objetivos, el último con 3 o 4. Ninguna caja en una esquina ni pegada al borde (fila 1, fila ${z.rows - 2}, columna 1, columna ${z.cols - 2}) salvo que su objetivo esté pegado a esa misma pared. El harness prueba con un solver que cada nivel se pueda ganar.`; },
+Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su objetivo; nada en el mismo casillero (jugador, cajas, paredes); "paredes" son solo las interiores (pocas). Dificultad creciente: el nivel 1 con 1 o 2 cajas cerca de sus objetivos, el último con 3 o 4. Ningún nivel se gana con un solo movimiento. Ninguna caja en una esquina ni pegada al borde (fila 1, fila ${z.rows - 2}, columna 1, columna ${z.cols - 2}) salvo que su objetivo esté pegado a esa misma pared. El harness prueba con un solver que cada nivel se pueda ganar.`; },
       take: (raw, c) => ({ ...c, "niveles.json": c["niveles.json"] || (String(raw).match(/\{[\s\S]*"niveles"[\s\S]*\}/) || [])[0] || null }),
       // los niveles inválidos se descartan; el motor junta los válidos de todos los intentos
       parse: (json, c) => {
@@ -178,6 +184,20 @@ Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su
         { type: "reset_restores", params: { click: ["reiniciar"] } },
         { type: "counter_on_action", params: { label: ["movimientos"] } },
       ],
+      // v0.1.3 (Miche jugando b11): después de ganar, el avatar quedaba bloqueado en todos los niveles.
+      // Partida corta con 2 niveles de prueba que se ganan con UNA flecha a la derecha.
+      scenarios: [{
+        id: "ganar_y_seguir", name: "ganar un nivel y pasar al siguiente",
+        files: { "js/niveles.js": 'const NIVELES = [\n  ["#####", "#@$.#", "#####"],\n  ["######", "#@ $.#", "######"]\n];\n' },
+        steps: [
+          { key: "ArrowRight" },
+          { text: "mensaje", any: ["complet", "ganaste", "ganado", "lograste", "felicit", "superado"], problem: "con NIVELES[0] = [\"#####\",\"#@$.#\",\"#####\"] una flecha a la derecha gana el nivel, pero #mensaje no dice \"¡Nivel completado!\"." },
+          { click: ["siguiente", "proximo", "próximo"] },
+          { snap: "tablero" },
+          { key: "ArrowRight" },
+          { changed: "tablero", problem: "después de ganar el nivel 1 y apretar Siguiente, la flecha derecha no mueve nada en el nivel 2: el juego queda bloqueado. No saques el listener de teclado al ganar (removeEventListener) ni lo dejes apagado: iniciarNivel() tiene que dejar el juego listo para jugar otra vez." },
+        ],
+      }],
       prompt: (c) => `NOTAS DEL TECHLEADER (contexto):\n${c.notes}\n\nYA EXISTEN: NIVELES (${c.data.niveles.items.length} niveles), Reglas, dibujar(estado, numeroNivel) y juego.html:\n${fence("html", c.fragment.slice(0, 2500))}\n\n${c.paso}: escribí js/controles.js (estado del juego, teclado, botones y arranque).`,
     },
   ],

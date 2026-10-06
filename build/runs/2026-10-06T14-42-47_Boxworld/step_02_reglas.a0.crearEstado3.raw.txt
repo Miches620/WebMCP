@@ -1,0 +1,61 @@
+```javascript
+crearEstado: function(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+    let finalMapaStringArray = [];
+
+    const R = nivel.length;
+    if (R === 0) return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+    const C = nivel[0].length;
+
+    for (let r = 0; r < R; r++) {
+        let row = '';
+        for (let c = 0; c < C; c++) {
+            const char = nivel[r][c];
+            let mapChar = ' '; // Default terrain type if not explicitly defined
+
+            // 1. Detect Entities and Objectives, and determine the underlying map character
+            if (char === '@' || char === '+') {
+                // Player location: Always an objective spot if '+' is used, or if it was originally '.'
+                jugador = { fila: r, col: c };
+                finalObjetivos.push({ fila: r, col: c });
+                mapChar = ' '; // Player occupies space, but map shows floor/space
+            } else if (char === '$' || char === '*') {
+                cajas.push({ fila: r, col: c });
+
+                if (char === '*') {
+                    // Box on objective (*): Map spot is '.'
+                    mapChar = '.'; 
+                    finalObjetivos.push({ fila: r, col: c });
+                } else { // char === '$'
+                    // Box without objective ($): Map spot is ' '
+                    mapChar = ' ';
+                }
+            } else if (char === '.') {
+                // Objective only
+                finalObjetivos.push({ fila: r, col: c });
+                mapChar = '.';
+            } else if (char === '#') {
+                mapChar = '#';
+            } else if (char === ' ') {
+                mapChar = ' ';
+            } else {
+                 // Fallback for any other character that might represent floor/space
+                mapChar = char; 
+            }
+
+            row += mapChar;
+        }
+        finalMapaStringArray.push(row);
+    }
+
+    return {
+        mapa: finalMapaStringArray,
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivos,
+        movimientos: 0
+    };
+},
+```

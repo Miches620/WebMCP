@@ -39,7 +39,7 @@ import { runChecks } from "../profiles/web/validation/check_catalog.mjs";
 import { rulesBrief } from "../profiles/web/app/specialist_rules.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
 
-export const ENGINE_VERSION = "files_engine v0.9.2";
+export const ENGINE_VERSION = "files_engine v0.9.3";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
@@ -238,8 +238,9 @@ export function probeProblems({ probe: p, errors }, step) {
 }
 
 // ---------- screen: variantes que se tienen que ver distintas ----------
-// Se compara el RELLENO (color o imagen de fondo, contorno, símbolo en ::before/::after, texto).
-// Un borde o una sombra no alcanzan para distinguir una pieza (b11: la caja era piso con un brillo).
+// Se compara lo que una persona distingue: fondo, borde, sombra, contorno, símbolo, texto.
+// (Corrección de Miche sobre b11: la caja y el jugador se veían por su borde y su brillo, y el
+// juego se podía jugar; contar solo el relleno marcaba como problema algo que no lo era.)
 /** Sonda: agrega al contenedor un elemento por variante (class="base variante") y mide cómo se ve. */
 export function swatchProbe({ container, base, variants }) {
   return `window.__probe = (function () {
@@ -249,7 +250,7 @@ export function swatchProbe({ container, base, variants }) {
     var V = ${JSON.stringify(variants)}, out = {};
     var look = function (el) {
       var s = getComputedStyle(el), a = getComputedStyle(el, "::after"), b = getComputedStyle(el, "::before");
-      return [s.backgroundColor, s.backgroundImage, s.outlineStyle === "none" ? "" : s.outlineColor, a.content, a.backgroundColor, b.content, b.backgroundColor, (el.textContent || "").trim()].join("|");
+      return [s.backgroundColor, s.backgroundImage, s.borderTopColor, s.borderTopStyle, s.boxShadow, s.outlineStyle === "none" ? "" : s.outlineColor, a.content, a.backgroundColor, b.content, b.backgroundColor, (el.textContent || "").trim()].join("|");
     };
     var plain = document.createElement("div"); plain.className = ${JSON.stringify(base)}; box.appendChild(plain);
     out[""] = look(plain);
@@ -284,7 +285,7 @@ export function drawnLooksProbe({ container, base, variants }) {
     var box = document.getElementById(${JSON.stringify(container)}); if (!box) return null;
     var V = ${JSON.stringify(variants)}, out = {};
     var look = function (el) { var s = getComputedStyle(el), a = getComputedStyle(el, "::after"), b = getComputedStyle(el, "::before");
-      return [s.backgroundColor, s.backgroundImage, s.outlineStyle === "none" ? "" : s.outlineColor, a.content, a.backgroundColor, b.content, b.backgroundColor, (el.textContent || "").trim()].join("|"); };
+      return [s.backgroundColor, s.backgroundImage, s.borderTopColor, s.borderTopStyle, s.boxShadow, s.outlineStyle === "none" ? "" : s.outlineColor, a.content, a.backgroundColor, b.content, b.backgroundColor, (el.textContent || "").trim()].join("|"); };
     var cells = Array.prototype.slice.call(box.querySelectorAll(${JSON.stringify("." + base)}));
     V.forEach(function (v) {
       var withV = cells.filter(function (c) { return c.classList.contains(v); });
@@ -305,6 +306,41 @@ export function drawnLooksProblems(looks, { base, variants }, code = "", who = "
   const out = [`en lo que quedó dibujado en pantalla se ven iguales: ${same.map((g) => g.map((v) => "." + v).join(" = ")).join("; ")} (mismo color de fondo y sin símbolo).`];
   const inline = [...new Set([...String(code).matchAll(/\.style\.(background(?:Color)?|color|border(?:Color)?)\s*=/g)].map((m) => m[1]))];
   if (inline.length) out.push(`${who} pone colores con style.${inline.join(", style.")}: eso le gana a styles.css y tapa las clases. Sacalo: solo poné las clases (class="${base} ${variants[0]}", etc.) y que styles.css pinte.`);
+  return out;
+}
+
+// ---------- wiring: escenarios (v0.9.3) ----------
+// Lo prueba Miche jugando b11: al ganar un nivel el avatar quedaba bloqueado para siempre
+// (controles.js sacaba el listener de teclado y nadie lo volvía a poner). Ningún chequeo jugaba
+// más allá del primer nivel. Un escenario es una partida corta con datos de prueba que declara
+// el Standard (p.ej. niveles chicos que se ganan con una tecla): teclas, clics y qué tiene que cambiar.
+const normTxt = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+export async function runScenario(htmlPath, sc) {
+  const browser = await chromium.launch();
+  const out = [];
+  try {
+    const page = await browser.newPage();
+    const errs = [];
+    page.on("pageerror", (e) => errs.push(e.message));
+    await page.route(/^https?:/, (r) => r.abort());
+    await page.goto(pathToFileURL(htmlPath).href, { waitUntil: "load" });
+    const snaps = {};
+    const look = (id) => page.evaluate((x) => { const e = document.getElementById(x); return e ? e.innerHTML + "|" + e.className : null; }, id);
+    for (const stp of sc.steps) {
+      if (stp.key) { await page.keyboard.press(stp.key); await page.waitForTimeout(80); }
+      else if (stp.click) {
+        const btns = page.locator("button, a, [role=button], input[type=button]").filter({ visible: true });
+        const n = await btns.count(); let hit = null;
+        for (let i = 0; i < n && !hit; i++) { const t = normTxt(await btns.nth(i).innerText().catch(() => "")); if (stp.click.some((w) => t.includes(normTxt(w)))) hit = btns.nth(i); }
+        if (!hit) { out.push(`${sc.name}: no hay un botón visible que diga ${stp.click.join(" / ")}.`); break; }
+        if (await hit.isDisabled().catch(() => false)) { out.push(`${sc.name}: el botón ${stp.click[0]} está deshabilitado en ese momento.`); break; }
+        await hit.click({ timeout: 2000 }).catch(() => {}); await page.waitForTimeout(100);
+      } else if (stp.snap) snaps[stp.snap] = await look(stp.snap);
+      else if (stp.changed) { if ((await look(stp.changed)) === snaps[stp.changed]) { out.push(`${sc.name}: ${stp.problem}`); break; } }
+      else if (stp.text) { const t = normTxt(await page.evaluate((x) => (document.getElementById(x) || {}).textContent || "", stp.text)); if (!stp.any.some((w) => t.includes(normTxt(w)))) { out.push(`${sc.name}: ${stp.problem}`); break; } }
+    }
+    if (errs.length) out.push(`${sc.name}: error de JS durante la partida: ${errs[0]}`);
+  } finally { await browser.close(); }
   return out;
 }
 
@@ -581,7 +617,15 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
         if (opts.check === false) return [];
         const dir = join(outDir, `probe_${st.id}`);
         writeApp(dir, { ...files, [st.file]: code }, page(S.scripts));
-        return playProblems(await runChecks(join(dir, "index.html"), st.play || []));
+        const pp = playProblems(await runChecks(join(dir, "index.html"), st.play || []));
+        if (pp.fatal || !st.scenarios) return pp;
+        const sp = [];
+        for (const sc of st.scenarios) {
+          const sdir = join(outDir, `probe_${st.id}_${sc.id}`);
+          writeApp(sdir, { ...files, [st.file]: code, ...sc.files }, page(S.scripts));
+          sp.push(...await runScenario(join(sdir, "index.html"), sc));
+        }
+        return [...pp, ...sp];
       },
     }),
   };

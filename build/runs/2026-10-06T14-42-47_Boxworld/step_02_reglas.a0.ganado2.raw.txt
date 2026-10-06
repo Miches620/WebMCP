@@ -1,0 +1,23 @@
+```javascript
+ganado: function(estado) {
+        if (estado.objetivos.length === 0) return true; // Caso sin objetivos
+
+        // Creamos un Set de todas las coordenadas objetivo para una búsqueda rápida
+        const objectiveCoords = new Set();
+        for (const o of estado.objetivos) {
+            objectiveCoords.add(`${o.fila},${o.col}`);
+        }
+
+        // Encontramos el conjunto único de objetivos que están cubiertos por al menos una caja
+        const coveredObjectives = new Set();
+        for (const caja of estado.cajas) {
+            const boxCoord = `${caja.fila},${caja.col}`;
+            if (objectiveCoords.has(boxCoord)) {
+                coveredObjectives.add(boxCoord);
+            }
+        }
+
+        // Ganamos si el número de objetivos cubiertos es igual al total de objetivos
+        return coveredObjectives.size === estado.objetivos.length;
+    }
+```

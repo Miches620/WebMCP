@@ -1,0 +1,50 @@
+```javascript
+crearEstado: function(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+
+    const R = nivel.length;
+    if (R === 0) return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+    const C = nivel[0].length;
+
+    // Inicializar el mapa base copiando la estructura de niveles
+    let mapaBase = nivel.map(fila => fila.split(''));
+
+    for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+            const char = nivel[r][c];
+
+            if (char === '@') {
+                jugador = { fila: r, col: c };
+                // El piso donde está el jugador es un espacio vacío en el mapa base
+                mapaBase[r][c] = ' '; 
+            } else if (char === '$' || char === '*') {
+                cajas.push({ fila: r, col: c });
+
+                // Determinar cómo debe verse la caja en el mapa base
+                if (char === '*') {
+                    // Caja sobre objetivo (*): El spot sigue siendo un objetivo '.'
+                    mapaBase[r][c] = '.'; 
+                } else { // char === '$'
+                    // Caja sin objetivo ($): Deja espacio vacío ' ' en el mapa
+                    mapaBase[r][c] = ' ';
+                }
+
+            } else if (char === '.') {
+                objetivos.push({ fila: r, col: c });
+                // Los objetivos son puntos '.' y no modifican el mapa base
+            } 
+            // Para '#', ' ', o cualquier otro carácter que ya está en mapaBase, lo dejamos como está.
+        }
+    }
+
+    return {
+        mapa: mapaBase,
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivos,
+        movimientos: 0
+    };
+},
+```

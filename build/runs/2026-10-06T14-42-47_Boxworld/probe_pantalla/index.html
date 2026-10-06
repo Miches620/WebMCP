@@ -3,12 +3,27 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>t</title>
+  <title>Boxworld</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<main id="juego">
-<div id="tablero"></div>
+<main id="juego" data-feature="R1 R2 R3 R4 R5 R6 R7">
+<h1>Boxworld</h1>
+
+<div id="hud">
+    Nivel: <span id="nivel">1</span> | Movimientos: <span id="movimientos">0</span>
+</div>
+
+<div id="tablero">
+    <!-- Los casilleros se insertarán aquí por JavaScript -->
+</div>
+
+<div id="mensaje" class="mensaje-area"></div>
+
+<div id="controles">
+    <button id="btn-reiniciar">Reiniciar Nivel</button>
+    <button id="btn-siguiente">Próximo Nivel</button>
+</div>
 </main>
 
 <script>
@@ -19,7 +34,7 @@ window.__probe = (function () {
     var V = ["pared","piso","objetivo","caja","jugador"], out = {};
     var look = function (el) {
       var s = getComputedStyle(el), a = getComputedStyle(el, "::after"), b = getComputedStyle(el, "::before");
-      return [s.backgroundColor, s.backgroundImage, s.borderTopColor, s.borderTopStyle, s.boxShadow, s.outlineStyle === "none" ? "" : s.outlineColor, a.content, a.backgroundColor, b.content, b.backgroundColor, (el.textContent || "").trim()].join("|");
+      return [s.backgroundColor, s.backgroundImage, s.outlineStyle === "none" ? "" : s.outlineColor, a.content, a.backgroundColor, b.content, b.backgroundColor, (el.textContent || "").trim()].join("|");
     };
     var plain = document.createElement("div"); plain.className = "casillero"; box.appendChild(plain);
     out[""] = look(plain);

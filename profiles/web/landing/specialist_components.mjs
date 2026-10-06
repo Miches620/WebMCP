@@ -24,13 +24,19 @@ import { estTokens } from "../../../build/tokens.mjs";
 import { briefText, apiContract } from "./specialist_spa.mjs";
 import {
   componentsFromPlan, transversalsFromPlan, initialState, assemble, assignTasks, notesText,
-  applyComponentResponse, applyTokensResponse,
+  applyComponentResponse, applyTokensResponse, parseComponentResponse, locateJsError, jsWindow, spliceLines,
 } from "./components.mjs";
 import { runChecks } from "../validation/check_catalog.mjs";
 
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 export const SPECIALIST_MODEL = "google/gemma-4-e4b";
-export const SPECIALIST_VERSION = "spa_specialist v0.7.4-componentes";
+export const SPECIALIST_VERSION = "spa_specialist v0.7.5-componentes";
+// v0.7.5 (05/10, Boxworld builds 4 y 5): el 1er componente.js de #juego (~14k caracteres)
+// traía UN error de sintaxis en los datos de los niveles (`playerStart: {…};` y
+// `walls: [[r, c] => …]`); se rechazaba entero y el reintento reescribía todo:
+// 8–9 min y en el build 5 se cortó por length → página sin JS. Ahora, antes del
+// reintento, una REPARACIÓN ACOTADA: el harness ubica la línea, le muestra a Gemma
+// ese tramo numerado y reemplaza solo esas líneas (hasta 6 rondas mientras avance).
 // v0.7.4 (05/10, web/app y web/game): el profile puede pasar briefExtra (restricciones del
 // usuario al brief), systemExtra (reglas del tipo), maxAnswer y extraChecks (chequeos de
 // base propios con su mensaje de problema). Plan sin header/footer → sin esas piezas.
@@ -104,6 +110,42 @@ function compSpec(c, comps) {
     lines.push("", others.length ? `Otras partes de la página (no las construyas): ${others.map((x) => "#" + x.id).join(", ")}` : "Es la ÚNICA pieza de la página: todo lo pedido va en este componente.");
   }
   return lines.join("\n");
+}
+
+export const FIX_PROMPT = `Corregís UN error de sintaxis en un archivo JavaScript.
+Recibís el mensaje de error y un TRAMO numerado del archivo. Devolvé SOLO ese tramo corregido: las mismas líneas, de la primera a la última, sin los números, en UN bloque \`\`\`javascript.
+Cambiá lo mínimo para que compile. Si el mismo error se repite más abajo en el tramo, corregilo también. No agregues ni saques lógica. Sin explicaciones.`;
+
+/**
+ * Reparación acotada de un componente.js con error de sintaxis (hasta `rounds` rondas).
+ * @returns {Promise<{raw:string|null, rounds:object[]}>} raw: la respuesta original con el JS corregido.
+ */
+export async function repairSyntax(raw, c, ask, { rounds: max = 6, write } = {}) {
+  const p = parseComponentResponse(raw);
+  const out = { raw: null, rounds: [] };
+  if (!p.js) return out;
+  let js = p.js;
+  for (let k = 0; k < max; k++) {
+    const e = locateJsError(js, c.id);
+    if (!e) break;
+    // tramo: 6 antes y 20 después (el mismo error suele repetirse en cada nivel/ítem de una lista)
+    const w = jsWindow(js, e.line, 6, 20);
+    const user = `ERROR: ${e.message} (línea ${e.line})\n\nTRAMO (líneas ${w.from}–${w.to}):\n\`\`\`\n${w.text}\n\`\`\`\n\nDevolvé las líneas ${w.from}–${w.to} corregidas.`;
+    const r = await ask(FIX_PROMPT, user, 3000);
+    if (write) write(k + 1, r.raw);
+    const m = String(r.raw || "").match(/\`\`\`(?:javascript|js)?\n([\s\S]*?)\`\`\`/);
+    const round = { error: e.message, line: e.line, from: w.from, to: w.to, ms: r.ms, finish_reason: r.finish_reason, ok: false };
+    out.rounds.push(round);
+    if (!m) { round.note = "sin bloque de código"; continue; }
+    const n = w.to - w.from + 1, got = m[1].replace(/\n+$/, "").split("\n").length;
+    if (got > n * 3 + 5) { round.note = `devolvió ${got} líneas para un tramo de ${n}`; continue; }
+    js = spliceLines(js, w.from, w.to, m[1]);
+    const after = locateJsError(js, c.id);
+    round.ok = !after || after.line > e.line;
+    if (!after) { out.raw = raw.replace(p.js, () => js); break; }
+    if (!round.ok) break; // sin avance: no se insiste, sigue el reintento completo
+  }
+  return out;
 }
 
 const fence = (lang, s) => "```" + lang + "\n" + (String(s || "").trim() || "(vacío)") + "\n```";
@@ -199,9 +241,9 @@ export async function buildComponents({ refined, tasks }, outDir, opts = {}) {
   const appDir = join(outDir, "app");
   const crit = transversals.length ? transversals.map((t) => `- ${t.id}: ${t.text}`).join("\n") : "(ninguno)";
 
-  const ask = async (system, user) => {
+  const ask = async (system, user, cap = maxAnswer) => {
     const promptTokens = estTokens(system) + estTokens(user);
-    const maxTokens = Math.max(1500, Math.min(maxAnswer, context - promptTokens - 200));
+    const maxTokens = Math.max(1500, Math.min(cap, context - promptTokens - 200));
     const t0 = Date.now();
     const data = await chatStream(LM_STUDIO_URL, { model, messages: [{ role: "system", content: system }, { role: "user", content: user }], temperature: 0, max_tokens: maxTokens });
     return { raw: data.content || "", ms: Date.now() - t0, finish_reason: data.finish_reason ?? null, usage: data.usage ?? null, promptTokens, maxTokens };
@@ -251,10 +293,23 @@ export async function buildComponents({ refined, tasks }, outDir, opts = {}) {
     const r1 = await ask(SYSTEM, user);
     writeFileSync(join(outDir, `${tag}.raw.txt`), r1.raw, "utf8");
     let a = applyComponentResponse(state, c, r1.raw);
+    // v0.7.5: error de sintaxis → reparación acotada antes de gastar un reintento completo
+    const fixSyntax = async (raw, base, suffix) => {
+      const fx = await repairSyntax(raw, c, ask, { write: (k, txt) => writeFileSync(join(outDir, `${tag}${suffix}.fix${k}.raw.txt`), txt, "utf8") });
+      if (fx.rounds.length) log(`[SPECIALIST]   reparación de sintaxis: ${fx.rounds.map((r) => `L${r.line} ${r.ok ? "✓" : "✗"}`).join(", ")}${fx.raw ? " → JS compila" : " → sigue con error"}`);
+      return { fx, applied: fx.raw ? applyComponentResponse(base, c, fx.raw) : null };
+    };
+    let syntaxRepair = null;
+    if (a.rejected.some((x) => x.startsWith("js: error de sintaxis"))) {
+      const { fx, applied } = await fixSyntax(r1.raw, state, "");
+      syntaxRepair = fx.rounds;
+      if (applied) a = applied;
+    }
     const step = {
       n: i + 1, task_id: c.id, role: c.kind, features: c.features.map((f) => f.id), techleader_tasks: notes.map((t) => t.id),
       ms: r1.ms, finish_reason: r1.finish_reason, usage: r1.usage, prompt_tokens_est: r1.promptTokens, max_tokens: r1.maxTokens,
       changed: a.changed, rejected: a.rejected, notes: a.notes,
+      ...(syntaxRepair ? { syntax_repair: syntaxRepair } : {}),
     };
     let candidate = a.changed.length ? a.next : state;
 
@@ -275,8 +330,14 @@ export async function buildComponents({ refined, tasks }, outDir, opts = {}) {
       guard(fixUser, c.id);
       const r2 = await ask(SYSTEM, fixUser);
       writeFileSync(join(outDir, `${tag}.retry.raw.txt`), r2.raw, "utf8");
-      const b = applyComponentResponse(candidate, c, r2.raw);
-      step.retry = { problems, ms: r2.ms, finish_reason: r2.finish_reason, changed: b.changed, rejected: b.rejected, notes: b.notes };
+      let b = applyComponentResponse(candidate, c, r2.raw);
+      let retryRepair = null;
+      if (b.rejected.some((x) => x.startsWith("js: error de sintaxis"))) {
+        const { fx, applied } = await fixSyntax(r2.raw, candidate, ".retry");
+        retryRepair = fx.rounds;
+        if (applied) b = applied;
+      }
+      step.retry = { problems, ms: r2.ms, finish_reason: r2.finish_reason, changed: b.changed, rejected: b.rejected, notes: b.notes, ...(retryRepair ? { syntax_repair: retryRepair } : {}) };
       if (b.changed.length) {
         const cand2 = b.next;
         let check2 = { problems: [], status };

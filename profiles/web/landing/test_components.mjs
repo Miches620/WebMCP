@@ -3,7 +3,8 @@
 import { autoInvoke, scopeCss, scopeSelector, cleanTokens, normalizeComponentHtml, parseComponentResponse, applyComponentResponse,
   componentsFromPlan, initialState, assemble, tasksFor, jsError, wrapJs,
   assignTasks, mainComponent, notesText, dropRootRedeclare } from "./components.mjs";
-import { duplicateIds } from "./specialist_components.mjs";
+import { duplicateIds, repairSyntax } from "./specialist_components.mjs";
+import { locateJsError, jsWindow, spliceLines } from "./components.mjs";
 
 let ok = 0, fail = 0;
 const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
@@ -127,6 +128,31 @@ st2.components.juego = { html: '<section id="juego"><p id="mensaje-juego"></p><s
 st2.components.niveles = { html: '<section id="niveles"><p id="mensaje-juego"></p><span id="nivel-actual"></span><ul id="lista"></ul></section>' };
 t("duplicateIds: detecta los ids que ya usa otro componente", duplicateIds(st2, bw[2], bw).map((d) => d.id + "@" + d.in).join() === "mensaje-juego@juego,nivel-actual@juego");
 t("duplicateIds: la raíz no cuenta", duplicateIds(initialState(bw, "B"), bw[1], bw).length === 0);
+
+// v0.7.5: reparación acotada de sintaxis (Boxworld builds 4 y 5: el error estaba en los datos de los niveles)
+const badJs = "const NIVELES = [\n  { // Nivel 1\n    inicio: { r: 9, c: 1 },\n    cajas: [{ r: 8, c: 3 }]\n  },\n  { // Nivel 2\n    inicio: { r: 9, c: 0 };\n    cajas: [{ r: 7, c: 4 }];\n  }\n];\nroot.textContent = NIVELES.length;";
+const le = locateJsError(badJs, "juego");
+t("locateJsError: línea del archivo (sin el envoltorio del harness)", le && le.line === 7 && /Unexpected token/.test(le.message), JSON.stringify(le));
+t("locateJsError: JS sano → null", locateJsError("const a = 1;", "juego") === null);
+const jw = jsWindow(badJs, 7, 2, 2);
+t("jsWindow: tramo numerado", jw.from === 5 && jw.to === 9 && jw.text.split("\n")[2].startsWith("   7| "));
+t("spliceLines: reemplaza solo ese tramo y tolera los números", spliceLines("a\nb\nc\nd", 2, 3, "   2| B\n   3| C") === "a\nB\nC\nd");
+const bwComp = componentsFromPlan({ header: null, footer: null, sections: [{ id: "juego", titulo: "B", features: [] }] }, [])[0];
+const rawBad = "### FILE: componente.html\n```html\n<section id=\"juego\"></section>\n```\n### FILE: componente.js\n```javascript\n" + badJs + "\n```";
+const asked = [];
+const fakeAsk = async (sys, user, cap) => {
+  asked.push({ user, cap });
+  const tramo = user.match(/```\n([\s\S]*?)\n```/)[1].split("\n").map((l) => l.replace(/^\s*\d+\| ?/, ""));
+  return { raw: "```javascript\n" + tramo.map((l) => l.replace(/^(\s+\w+: .*[\]}]);\s*$/, "$1,")).join("\n") + "\n```", ms: 5, finish_reason: "stop" };
+};
+const rs = await repairSyntax(rawBad, bwComp, fakeAsk);
+t("repairSyntax: arregla y devuelve la respuesta con el JS corregido", rs.raw && !locateJsError(parseComponentResponse(rs.raw).js, "juego") && rs.rounds.length >= 1 && rs.rounds[0].line === 7, JSON.stringify(rs.rounds));
+t("repairSyntax: pide solo el tramo, con tope chico de respuesta", asked.length && asked[0].cap === 3000 && /ERROR: Unexpected token/.test(asked[0].user) && /\(línea 7\)/.test(asked[0].user) && !asked[0].user.includes("<section"), asked[0]?.user);
+t("repairSyntax: el resto de la respuesta queda igual", rs.raw.startsWith("### FILE: componente.html\n```html\n<section id=\"juego\"></section>"));
+const noFix = await repairSyntax(rawBad, bwComp, async () => ({ raw: "no sé", ms: 1 }));
+t("repairSyntax: sin bloque de código → no inventa nada (sigue el reintento completo)", noFix.raw === null && noFix.rounds[0].note === "sin bloque de código");
+const sameErr = await repairSyntax(rawBad, bwComp, async (s2, u) => ({ raw: "```javascript\n" + u.match(/```\n([\s\S]*?)\n```/)[1].split("\n").map((l) => l.replace(/^\s*\d+\| ?/, "")).join("\n") + "\n```", ms: 1 }));
+t("repairSyntax: si una ronda no avanza, corta", sameErr.raw === null && sameErr.rounds.length === 1 && sameErr.rounds[0].ok === false);
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

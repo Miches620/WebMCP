@@ -1,0 +1,608 @@
+### FILE: juego.html
+```html
+<section id="juego" data-feature="R1 R2 R3 R4 R5 R6 R7">
+    <h1>Boxworld</h1>
+    <div class="game-container">
+        <!-- HUD (Heads Up Display) -->
+        <div id="hud" class="nes-panel">
+            <div class="stat-block">
+                <label>Nivel:</label>
+                <span id="nivel-display">1</span>
+            </div>
+            <div class="stat-block">
+                <label>Movimientos:</label>
+                <span id="movimiento-contador">0</span>
+            </div>
+        </div>
+
+        <!-- Grid Container (The 10x10 map) -->
+        <div id="mapa" class="grid-container">
+            <!-- El grid se llenará con JS -->
+        </div>
+
+        <!-- Controles y Botones -->
+        <div id="controles" class="nes-panel controls-group">
+            <button id="btn-reiniciar" class="btn btn-restart">🔄 Reiniciar Nivel</button>
+            <button id="btn-proximo-nivel" class="btn btn-next">➡️ Próximo Nivel</button>
+        </div>
+
+        <!-- Mensaje de estado del juego -->
+        <div id="mensaje-juego" class="nes-message hidden"></div>
+    </div>
+</section>
+```
+
+### FILE: juego.css
+```css
+/* Estilos NES/8bits generales */
+#juego {
+    max-width: 100%;
+    padding: var(--spacing-unit) * 2;
+}
+
+h1 {
+    color: #c93a3a; /* Rojo retro */
+    border-bottom: 4px solid #8b4513;
+    text-shadow: 2px 2px #000;
+    margin-top: 0;
+}
+
+/* Contenedor principal del juego */
+.game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--spacing-unit) * 2);
+    padding: var(--spacing-unit) * 2;
+    background-color: #d4c09e; /* Color base retro */
+    border: 8px solid #333;
+    box-shadow: 6px 6px 0 0 #1a1a1a;
+}
+
+/* HUD y Paneles de control (Estilo NES) */
+.nes-panel {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background-color: #8b4513; /* Marrón oscuro para el panel */
+    padding: var(--spacing-unit) * 2;
+    border: 4px solid #333;
+    box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.5);
+}
+
+.stat-block {
+    text-align: center;
+    padding: var(--spacing-unit) * 1;
+    border-right: 2px dashed #ccc;
+}
+.stat-block:last-child {
+    border-right: none;
+}
+
+#nivel-display, #movimiento-contador {
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--color-primary);
+    text-shadow: 2px 2px #000;
+}
+
+/* Grid del Mapa */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr); /* 10 columnas fijas */
+    grid-template-rows: repeat(10, 1fr);  /* 10 filas fijas */
+    width: 500px; /* Tamaño fijo para el mapa (10 * 50px) */
+    height: 500px;
+    border: 4px solid #333;
+    background-color: #a8d9a8; /* Color del piso/fondo del juego */
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Casillero individual (Grid Cell) */
+.cell {
+    border: 1px solid #333; /* Borde visible para la cuadrícula */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+/* Tipos de elementos en el casillero */
+.cell[data-type="pared"] {
+    background-color: #6b4e3c; /* Color pared oscuro */
+    border: 1px solid #333;
+}
+
+.cell[data-type="objetivo"] {
+    background-color: #ffeb3b; /* Amarillo objetivo */
+    box-shadow: inset 0 0 5px rgba(255, 255, 0, 0.8);
+}
+
+/* Elementos dinámicos (Avatar y Cajas) */
+.avatar, .box {
+    width: 90%;
+    height: 90%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em; /* Para el emoji/símbolo */
+    transition: transform var(--transition-speed) ease, background-color var(--transition-speed);
+}
+
+/* Avatar (Jugador) */
+.avatar {
+    background-color: #007bff; /* Color primario del jugador */
+    border: 2px solid #333;
+    box-shadow: 4px 4px 0 0 #1a1a1a;
+}
+
+/* Caja (Obstáculo) */
+.box {
+    background-color: #c93a3a; /* Color rojo para las cajas */
+    border: 2px solid #333;
+    box-shadow: 4px 4px 0 0 #1a1a1a;
+}
+
+/* Mensaje de juego (Win/Lose) */
+.nes-message {
+    background-color: #ffeb3b;
+    padding: var(--spacing-unit) * 2;
+    border: 4px solid #333;
+    box-shadow: 6px 6px 0 0 #1a1a1a;
+    text-align: center;
+}
+
+.hidden {
+    display: none !important;
+}
+
+
+/* Estilos de Botones (Reutilizando y adaptando el estilo base) */
+.controls-group {
+    display: flex;
+    gap: var(--spacing-unit);
+}
+
+.btn {
+    padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+    background-color: #28a745; /* Color éxito para botones de acción */
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 3px 3px 0 0 #1a1a1a; /* Sombra más oscura para el estilo retro */
+    transition: all var(--transition-speed) ease;
+}
+
+.btn:hover {
+    background-color: #218838; 
+    box-shadow: 1px 1px 0 0 #1a1a1a;
+    transform: translate(1px, 1px);
+}
+.btn:active {
+    background-color: #1e7e34;
+    box-shadow: none;
+    transform: translate(2px, 2px);
+}
+
+/* Media Query para Responsividad (Celular) */
+@media (max-width: 600px) {
+    .grid-container {
+        width: 95vw; /* Ocupar casi todo el ancho disponible */
+        height: calc(95vw * 10 / 10); /* Mantener proporción si es posible, o un tamaño fijo más pequeño */
+        max-width: 390px; /* Límite de celular */
+        max-height: 390px;
+    }
+
+    .nes-panel {
+        flex-direction: column;
+        gap: var(--spacing-unit);
+        padding: var(--spacing-unit) * 1.5;
+    }
+    
+    #controles {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: var(--spacing-unit) / 2;
+    }
+}
+```
+
+### FILE: juego.js
+```javascript
+// =============================================================================
+// ESTADO GLOBAL DEL JUEGO (A2)
+// =============================================================================
+
+const estado = {
+    levelIndex: 0,
+    maxLevel: 5,
+    mapWidth: 10,
+    mapHeight: 10,
+    playerPos: { r: 0, c: 0 },
+    boxes: [], // Array de posiciones actuales de las cajas [{r, c}]
+    walls: [], // Posiciones fijas de paredes
+    objectives: [], // Posiciones objetivo (fijas por nivel)
+    moves: 0,
+    isGameOver: false,
+};
+
+// =============================================================================
+// DATOS DE LOS NIVELES (R3)
+// Estructura: { playerStart, boxesInitial, walls, objectives }
+// Coordenadas: [fila] x [columna], donde 0 es la parte superior/izquierda.
+// =============================================================================
+
+const niveles = [
+    { // Nivel 1: Introductorio (3 cajas)
+        playerStart: { r: 9, c: 0 },
+        boxesInitial: [{ r: 8, c: 2 }, { r: 7, c: 5 }, { r: 6, c: 8 }],
+        walls: [
+            {r: 0, c: 0}, {r: 0, c: 1}, {r: 0, c: 2}, {r: 0, c: 3}, {r: 0, c: 4}, {r: 0, c: 5}, {r: 0, c: 6}, {r: 0, c: 7}, {r: 0, c: 8}, {r: 0, c: 9}
+        ],
+        objectives: [{ r: 8, c: 2 }, { r: 7, c: 5 }, { r: 6, c: 8 }]
+    },
+    { // Nivel 2: Más complejo (4 cajas)
+        playerStart: { r: 9, c: 1 };
+        boxesInitial: [{ r: 8, c: 3 }, { r: 7, c: 6 }, { r: 6, c: 1 }, { r: 5, c: 8 }];
+        walls: [
+            {r: 0, c: 0}, {r: 0, c: 9} // Solo paredes laterales
+        ],
+        objectives: [{ r: 8, c: 3 }, { r: 7, c: 6 }, { r: 6, c: 1 }, { r: 5, c: 8 }]
+    },
+    { // Nivel 3: Bloqueado (2 cajas)
+        playerStart: { r: 9, c: 0 };
+        boxesInitial: [{ r: 7, c: 4 }, { r: 6, c: 5 }];
+        walls: [
+            // Paredes que fuerzan el movimiento central
+            {r: 1, c: 0}, {r: 1, c: 1}, {r: 1, c: 2}, {r: 1, c: 3}, {r: 1, c: 4}, {r: 1, c: 5}, {r: 1, c: 6}, {r: 1, c: 7}, {r: 1, c: 8}, {r: 1, c: 9}
+        ],
+        objectives: [{ r: 7, c: 4 }, { r: 6, c: 5 }]
+    },
+    { // Nivel 4: Difícil (5 cajas)
+        playerStart: { r: 9, c: 0 };
+        boxesInitial: [
+            { r: 8, c: 1 }, { r: 7, c: 3 }, { r: 6, c: 2 }, { r: 5, c: 4 }, { r: 4, c: 6 }
+        ];
+        walls: [
+            {r: 0, c: 0}, {r: 0, c: 9}
+        ],
+        objectives: [
+            { r: 8, c: 1 }, { r: 7, c: 3 }, { r: 6, c: 2 }, { r: 5, c: 4 }, { r: 4, c: 6 }
+        ]
+    },
+    { // Nivel 5: Final (4 cajas)
+        playerStart: { r: 9, c: 0 };
+        boxesInitial: [
+            { r: 8, c: 2 }, { r: 7, c: 5 }, { r: 6, c: 1 }, { r: 5, c: 8 }
+        ];
+        walls: [
+            // Paredes que limitan el movimiento a un área específica
+            {r: 0, c: 0}, {r: 0, c: 9}
+        ],
+        objectives: [
+            { r: 8, c: 2 }, { r: 7, c: 5 }, { r: 6, c: 1 }, { r: 5, c: 8 }
+        ]
+    }
+];
+
+// =============================================================================
+// FUNCIONES DE UTILIDAD Y LÓGICA DEL JUEGO
+// =============================================================================
+
+/**
+ * Inicializa el estado del juego para un nuevo nivel.
+ */
+function resetEstadoNivel(levelIndex) {
+    const levelData = niveles[levelIndex];
+    if (!levelData) return false;
+
+    estado.playerPos = { ...levelData.playerStart };
+    // Clonar las posiciones iniciales de las cajas para evitar mutaciones directas
+    estado.boxes = JSON.parse(JSON.stringify(levelData.boxesInitial)); 
+    estado.walls = levelData.walls;
+    estado.objectives = levelData.objectives;
+    estado.moves = 0;
+    estado.isGameOver = false;
+
+    return true;
+}
+
+/**
+ * Verifica si una coordenada (r, c) está dentro de los límites del mapa y no es una pared.
+ * @param {number} r - Fila (row).
+ * @param {number} c - Columna (col).
+ * @returns {boolean} True si la posición es válida para moverse.
+ */
+function isValidMove(r, c) {
+    if (r < 0 || r >= estado.mapHeight || c < 0 || c >= estado.mapWidth) {
+        return false; // Fuera de límites
+    }
+    // Chequear si es una pared fija
+    const isWall = estado.walls.some(wall => wall.r === r && wall.c === c);
+    if (isWall) return false;
+
+    // Chequear si ya está ocupado por otra caja (el jugador puede estar sobre un objetivo, pero no debe colisionar con una caja en movimiento).
+    const isBoxOccupied = estado.boxes.some(box => box.r === r && box.c === c);
+    return true;
+}
+
+/**
+ * Intenta mover al avatar a la nueva posición (nextR, nextC).
+ * Implementa la lógica de colisión y empuje.
+ * @param {number} direction - Dirección del movimiento: 0=Arriba, 1=Derecha, 2=Abajo, 3=Izquierda.
+ * @returns {boolean} True si el movimiento fue exitoso (y se actualizó el estado).
+ */
+function attemptMove(direction) {
+    if (estado.isGameOver) return false;
+
+    let nextR = estado.playerPos.r;
+    let nextC = estado.playerPos.c;
+
+    // Calcular la posición deseada del jugador
+    switch (direction) {
+        case 0: nextR--; break; // Arriba
+        case 1: nextC++; break; // Derecha
+        case 2: nextR++; break; // Abajo
+        case 3: nextC--; break; // Izquierda
+    }
+
+    // 1. Validación de movimiento básico (paredes/límites)
+    if (!isValidMove(nextR, nextC)) {
+        return false;
+    }
+
+    // 2. Chequear colisión con cajas
+    const collidingBoxIndex = estado.boxes.findIndex(box => box.r === nextR && box.c === nextC);
+
+    if (collidingBoxIndex !== -1) {
+        // Colisión detectada: Intentar empujar la caja
+        const boxToPush = estado.boxes[collidingBoxIndex];
+        let pushR = boxToPush.r;
+        let pushC = boxToPush.c;
+
+        // Calcular la posición donde debe ir la caja (detrás del jugador)
+        switch (direction) {
+            case 0: pushR--; break; // Arriba
+            case 1: pushC++; break; // Derecha
+            case 2: pushR++; break; // Abajo
+            case 3: pushC--; break; // Izquierda
+        }
+
+        // Validación de empuje: ¿Es el destino del box válido? (No pared, no fuera de límites)
+        if (isValidMove(pushR, pushC)) {
+            // Chequear si la posición objetivo está ocupada por otra caja.
+            const targetOccupiedByOtherBox = estado.boxes.some((box, index) => 
+                index !== collidingBoxIndex && box.r === pushR && box.c === pushC
+            );
+
+            if (!targetOccupiedByOtherBox) {
+                // ¡Empuje exitoso! Actualizar el estado de la caja y del jugador.
+                estado.boxes[collidingBoxIndex] = { r: pushR, c: pushC };
+                estado.playerPos = { r: nextR, c: nextC };
+                estado.moves++; // Incremento de movimiento (F3.5)
+                return true;
+            }
+        }
+        // Si el empuje falla (pared o caja), no se mueve nada.
+        return false;
+
+    } else {
+        // 3. Movimiento libre exitoso (no colisiona con cajas ni paredes)
+        estado.playerPos = { r: nextR, c: nextC };
+        estado.moves++; // Incremento de movimiento (F3.5)
+        return true;
+    }
+}
+
+/**
+ * Verifica si todas las cajas están en sus posiciones objetivo.
+ * @returns {boolean} True si el nivel se ha superado.
+ */
+function checkWinCondition() {
+    if (estado.boxes.length !== estado.objectives.length) return false;
+
+    let allMatched = true;
+    for (let i = 0; i < estado.boxes.length; i++) {
+        const boxPos = estado.boxes[i];
+        const objectivePos = estado.objectives[i];
+
+        if (boxPos.r !== objectivePos.r || boxPos.c !== objectivePos.c) {
+            allMatched = false;
+            break;
+        }
+    }
+    return allMatched;
+}
+
+
+// =============================================================================
+// RENDERIZADO Y MANEJO DE EVENTOS (A3, A4)
+// =============================================================================
+
+/**
+ * Renderiza el estado actual del juego en el DOM.
+ */
+function dibujar() {
+    const mapaEl = document.getElementById('mapa');
+    if (!mapaEl) return;
+
+    // Limpiar y reconstruir la grilla (F1.6)
+    mapaEl.innerHTML = ''; 
+    
+    // Crear todos los casilleros de 10x10
+    for (let r = 0; r < estado.mapHeight; r++) {
+        for (let c = 0; c < estado.mapWidth; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.setAttribute('data-row', r);
+            cell.setAttribute('data-col', c);
+
+            // Determinar el tipo de casillero (Pared, Objetivo)
+            let type = '';
+            if (estado.walls.some(w => w.r === r && w.c === c)) {
+                type = 'pared';
+            } else if (estado.objectives.some(o => o.r === r && o.c === c)) {
+                type = 'objetivo';
+            }
+
+            cell.setAttribute('data-type', type);
+            mapaEl.appendChild(cell);
+        }
+    }
+
+    // 1. Renderizar elementos dinámicos (Cajas, Avatar)
+    const cells = mapaEl.querySelectorAll('.cell');
+    cells.forEach(cell => {
+        // Limpiar contenido de la celda antes de dibujar el estado actual
+        cell.innerHTML = ''; 
+        
+        const r = parseInt(cell.getAttribute('data-row'));
+        const c = parseInt(cell.getAttribute('data-col'));
+
+        let elementToPlace = null;
+        let elementType = '';
+
+        // Chequear si hay una caja en esta posición
+        const boxAtPos = estado.boxes.find(box => box.r === r && box.c === c);
+        if (boxAtPos) {
+            elementToPlace = document.createElement('div');
+            elementToPlace.className = 'box';
+            elementToPlace.innerHTML = '📦'; // Emoji para caja
+            elementType = 'box';
+        }
+
+        // Chequear si el jugador está en esta posición
+        const playerAtPos = estado.playerPos;
+        if (r === playerAtPos.r && c === playerAtPos.c) {
+            elementToPlace = document.createElement('div');
+            elementToPlace.className = 'avatar';
+            elementToPlace.innerHTML = '👤'; // Emoji para jugador
+            elementType = 'player';
+        }
+
+        if (elementToPlace) {
+             // Si hay caja y el jugador está en la misma posición, el jugador tiene prioridad visualmente.
+             // Pero dado que las cajas no pueden superponerse con el avatar, esto es seguro.
+            cell.appendChild(elementToPlace);
+        }
+    });
+
+    // 2. Actualizar HUD (F3.2)
+    document.getElementById('nivel-display').textContent = estado.levelIndex + 1;
+    document.getElementById('movimiento-contador').textContent = estado.moves;
+
+    // 3. Verificar condición de victoria y actualizar mensaje
+    const winMessageEl = document.getElementById('mensaje-juego');
+    if (checkWinCondition()) {
+        estado.isGameOver = true;
+        winMessageEl.className = 'nes-message';
+        winMessageEl.style.backgroundColor = '#28a745'; // Verde éxito
+        winMessageEl.innerHTML = `🎉 ¡Nivel ${estado.levelIndex + 1} superado! 🎉<br>Movimientos: ${estado.moves}.`;
+        winMessageEl.classList.remove('hidden');
+    } else if (estado.isGameOver) {
+         // Si el juego terminó por otro motivo (ej. error de lógica), mostrar mensaje de fallo aquí.
+    } else {
+        winMessageEl.className = 'nes-message hidden';
+    }
+
+    // Habilitar/deshabilitar botones según el estado
+    document.getElementById('btn-proximo-nivel').disabled = !estado.isGameOver;
+    document.getElementById('btn-reiniciar').disabled = false; // Siempre activo para reiniciar el nivel actual
+}
+
+
+/**
+ * Maneja la lógica de avance al siguiente nivel (F4.7).
+ */
+function nextLevel() {
+    if (estado.levelIndex >= estado.maxLevel - 1) {
+        alert("¡Has completado todos los niveles! ¡Excelente trabajo!");
+        return;
+    }
+
+    const nextIndex = estado.levelIndex + 1;
+    resetEstadoNivel(nextIndex);
+    dibujar();
+}
+
+
+/**
+ * Maneja la lógica de reinicio del nivel actual (F4.4).
+ */
+function restartLevel() {
+    if (!confirm("¿Estás seguro de que quieres reiniciar el nivel? Se perderán los movimientos actuales.")) {
+        return;
+    }
+    resetEstadoNivel(estado.levelIndex);
+    dibujar();
+}
+
+
+/**
+ * Maneja la entrada del teclado (R4, R5).
+ */
+function handleKeyDown(event) {
+    if (estado.isGameOver) return;
+
+    let direction = -1; // 0:Arriba, 1:Derecha, 2:Abajo, 3:Izquierda
+    
+    switch (event.key) {
+        case 'ArrowUp':
+            direction = 0; break;
+        case 'ArrowDown':
+            direction = 2; break;
+        case 'ArrowLeft':
+            direction = 3; break;
+        case 'ArrowRight':
+            direction = 1; break;
+        default:
+            return; // Ignorar otras teclas
+    }
+
+    event.preventDefault(); // Prevenir scroll del navegador
+
+    // Intentar mover y actualizar el estado si es exitoso
+    const success = attemptMove(direction);
+    if (success) {
+        dibujar(); // Redibujar solo si hubo un movimiento válido
+    } else {
+        console.log("Movimiento inválido o bloqueado.");
+    }
+}
+
+
+/**
+ * Inicialización principal de la aplicación (A3).
+ */
+function iniciar() {
+    // 1. Configurar Listeners de Eventos
+    document.addEventListener('keydown', handleKeyDown);
+
+    document.getElementById('btn-reiniciar').addEventListener('click', restartLevel);
+    document.getElementById('btn-proximo-nivel').addEventListener('click', nextLevel);
+
+    // 2. Inicializar el estado y dibujar la primera escena (F4.5)
+    if (resetEstadoNivel(estado.levelIndex)) {
+        dibujar();
+    } else {
+        document.getElementById('mensaje-juego').innerHTML = "Error al cargar los niveles del juego.";
+        document.getElementById('mensaje-juego').classList.remove('hidden');
+    }
+}
+
+// Llamada de inicialización (A3)
+iniciar();
+```
+
+### APPEND: api.js
+```javascript
+// No se requiere window.api para este componente, ya que toda la lógica es local y simulada en el estado global.
+```

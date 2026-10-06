@@ -15,7 +15,10 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle } from "./form_runtime.mjs";
 
-export const CATALOG_VERSION = "check_catalog v0.7.1";
+export const CATALOG_VERSION = "check_catalog v0.7.2";
+
+// v0.7.2 (05/10, Boxworld build 5): not_won_immediately también falla si la victoria ya
+// se ve recién cargada la página (3 de 5 niveles tenían las cajas sobre los objetivos).
 
 // v0.7.1 (05/10, Boxworld build 4): key_changes dio PASS a "el avatar se mueve con las
 // flechas" y el avatar NO se movía: el estado cambiaba (contador 0 → 3) pero dibujar()
@@ -406,6 +409,7 @@ const BOARD_SNAP = () => {
   const lines = [line(board), ...[...board.querySelectorAll("*")].map(line)];
   return { found: true, label: board.id ? "#" + board.id : board.tagName.toLowerCase() + (board.className ? "." + String(board.className).split(" ")[0] : ""), lines };
 };
+const WIN_AT_LOAD = ["ganaste", "victoria", "felicitaciones", "nivel completado", "nivel superado", "superaste"];
 const WIN_WORDS = ["ganaste", "ganado", "victoria", "felicitaciones", "completado", "completaste", "superado", "superaste", "nivel completo", "you win"];
 
 // components_render, paso 1 (página SIN JavaScript, o sea el HTML tal como lo escribió
@@ -884,6 +888,11 @@ export async function runChecks(htmlPath, checks) {
           case "not_won_immediately": {
             const keys = keysFrom(c.params.keys);
             const won = [], moved = [];
+            // v0.7.2 (Boxworld build 5): niveles cuyas cajas EMPIEZAN sobre los objetivos → ganado al cargar.
+            // Al cargar solo cuentan palabras inequívocas ("completado" suelto puede ser "niveles completados: 0").
+            const loadText = norm(await page.evaluate(() => document.body.innerText));
+            const atLoad = WIN_AT_LOAD.find((x) => loadText.includes(x));
+            if (atLoad) { r.detail = `recién cargado ya aparece la victoria ("${atLoad}"): el nivel empieza resuelto`; break; }
             for (const k of keys) {
               await reload();
               const a = await page.evaluate(SNAP, true);

@@ -210,6 +210,36 @@ export function dropRootRedeclare(js, id) {
 }
 
 export const wrapJs = (id, js) => `(function (root) {\n  if (!root) return;\n${autoInvoke(js).js}\n})(document.getElementById(${JSON.stringify(id)}));`;
+/**
+ * v0.7.5 (Boxworld builds 4 y 5): dónde está el error de sintaxis de un componente.js,
+ * en líneas DEL ARCHIVO (sin el envoltorio del harness). null si no hay error.
+ * @returns {{message:string, line:number}|null}
+ */
+export function locateJsError(js, id = "x") {
+  const src = String(js || "");
+  const pre = dropRootRedeclare(src, id).js; // reemplaza línea por línea: los números no cambian
+  const wrapped = `(function (root) {\n  if (!root) return;\n${pre}\n})(null);`;
+  try { new vm.Script(wrapped, { filename: "c.js" }); return null; } catch (e) {
+    const m = String(e.stack || "").match(/c\.js:(\d+)/);
+    const line = m ? Math.max(1, Math.min(src.split("\n").length, Number(m[1]) - 2)) : 1;
+    return { message: e.message, line };
+  }
+}
+
+/** Ventana de líneas numeradas alrededor de `line` (1-based): {from, to, text}. */
+export function jsWindow(js, line, before = 8, after = 4) {
+  const lines = String(js || "").split("\n");
+  const from = Math.max(1, line - before), to = Math.min(lines.length, line + after);
+  return { from, to, text: lines.slice(from - 1, to).map((l, i) => `${String(from + i).padStart(4)}| ${l}`).join("\n") };
+}
+
+/** Reemplaza las líneas from..to (1-based, inclusive) por `replacement`. */
+export function spliceLines(js, from, to, replacement) {
+  const lines = String(js || "").split("\n");
+  const rep = String(replacement || "").replace(/\n+$/, "").split("\n").map((l) => l.replace(/^\s{0,4}\d+\|\s?/, ""));
+  return [...lines.slice(0, from - 1), ...rep, ...lines.slice(to)].join("\n");
+}
+
 export function jsError(src, filename = "componente.js") {
   try { new vm.Script(String(src || ""), { filename }); return null; } catch (e) { return e.message; }
 }

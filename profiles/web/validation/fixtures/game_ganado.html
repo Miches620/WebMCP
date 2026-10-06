@@ -1,0 +1,62 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>juego ganado al cargar (Boxworld b5: cajas sobre los objetivos)</title>
+<style>#tablero{display:grid;grid-template-columns:repeat(6,32px)}#tablero div{width:32px;height:32px;border:1px solid #333}.pared{background:#840}.caja{background:#e44}.objetivo{outline:2px solid #4e4}.jugador{background:#4ce}</style></head><body>
+<main id="app">
+<section id="juego" data-feature="R1 R2 R3"><h2>Mini cajas</h2>
+<p>Movimientos: <span id="movs">0</span></p>
+<div id="tablero"></div>
+<p id="estado" aria-live="polite"></p>
+<button id="reiniciar">Reiniciar nivel</button>
+</section>
+</main>
+<script data-component="juego">
+(function (root) {
+  if (!root) return;
+  // nivel: # pared, . piso, $ caja, * objetivo, @ jugador. La caja está a 2 pasos del objetivo.
+  const NIVEL = ["######", "#....#", "#@$.*#", "#....#", "######"];
+  let st;
+  function iniciar() {
+    st = { movs: 0, ganado: true, cajas: [], objetivos: [], jugador: null };
+    NIVEL.forEach((fila, r) => [...fila].forEach((ch, c) => {
+      if (ch === "$") st.cajas.push({ r, c });
+      if (ch === "*") st.objetivos.push({ r, c });
+      if (ch === "@") st.jugador = { r, c };
+    }));
+    dibujar();
+  }
+  const pared = (r, c) => NIVEL[r][c] === "#";
+  const cajaEn = (r, c) => st.cajas.findIndex((b) => b.r === r && b.c === c);
+  function dibujar() {
+    const t = root.querySelector("#tablero"); t.innerHTML = "";
+    NIVEL.forEach((fila, r) => [...fila].forEach((ch, c) => {
+      const d = document.createElement("div");
+      if (pared(r, c)) d.className = "pared";
+      if (st.objetivos.some((o) => o.r === r && o.c === c)) d.classList.add("objetivo");
+      if (cajaEn(r, c) >= 0) d.classList.add("caja");
+      if (st.jugador.r === r && st.jugador.c === c) d.classList.add("jugador");
+      t.appendChild(d);
+    }));
+    root.querySelector("#movs").textContent = st.movs;
+    root.querySelector("#estado").textContent = st.ganado ? "¡Nivel completado!" : "";
+  }
+  function mover(dr, dc) {
+    if (st.ganado) return;
+    const r = st.jugador.r + dr, c = st.jugador.c + dc;
+    if (pared(r, c)) return;
+    const i = cajaEn(r, c);
+    if (i >= 0) {
+      if (pared(r + dr, c + dc) || cajaEn(r + dr, c + dc) >= 0) return;
+      st.cajas[i] = { r: r + dr, c: c + dc };
+    }
+    st.jugador = { r, c }; st.movs++;
+    st.ganado = st.objetivos.every((o) => cajaEn(o.r, o.c) >= 0);
+    dibujar();
+  }
+  document.addEventListener("keydown", (e) => {
+    const d = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
+    if (d) { e.preventDefault(); mover(...d); }
+  });
+  root.querySelector("#reiniciar").addEventListener("click", iniciar);
+  iniciar();
+})(document.getElementById("juego"));
+</script>
+</body></html>

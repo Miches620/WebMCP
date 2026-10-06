@@ -124,6 +124,8 @@ for (const [name, exp] of Object.entries(PLAY_CASES)) {
 }
 const [cc] = await runChecks(S("real_boxworld_b3/index"), [normalizeCheck({ type: "click_changes", params: { click: ["reiniciar"] } })]);
 if (cc.result === "PASS") { ok++; console.log("✓ click_changes b3 PASS"); } else { fail++; console.log(`✗ click_changes b3 ${cc.result} ${cc.detail}`); }
+const [nw] = await runChecks(S("game_ganado"), [normalizeCheck({ type: "not_won_immediately", params: {} })]);
+if (nw.result === "FAIL" && /recién cargado/.test(nw.detail)) { ok++; console.log("✓ not_won_immediately game_ganado FAIL (ganado al cargar)"); } else { fail++; console.log(`✗ not_won_immediately game_ganado ${nw.result} ${nw.detail}`); }
 const kf = [keysFrom(["flechas"]).length === 4, keysFrom(["espacio"]).join() === "Space", keysFrom([]).length === 4, keysFrom(["arriba", "w"]).join() === "ArrowUp,w"];
 if (kf.every(Boolean)) { ok++; console.log("✓ keysFrom"); } else { fail++; console.log("✗ keysFrom", kf); }
 

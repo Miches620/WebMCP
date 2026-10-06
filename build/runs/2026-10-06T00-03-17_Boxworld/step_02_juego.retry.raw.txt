@@ -1,0 +1,534 @@
+### FILE: componente.html
+```html
+<section data-feature="R1 R2 R3 R4 R5 R6 R7" id="juego">
+    <h1>Boxworld</h1>
+    <div class="game-container">
+        <!-- HUD (Heads Up Display) -->
+        <div id="hud" class="nes-panel">
+            <div class="stat-block">
+                <label>Nivel:</label>
+                <span id="nivel-display">1</span>
+            </div>
+            <div class="stat-block">
+                <label>Movimientos:</label>
+                <span id="movimiento-contador">0</span>
+            </div>
+        </div>
+
+        <!-- Grid Container (The 10x10 map) -->
+        <div id="mapa" class="grid-container">
+            <!-- El grid se llenará con JS -->
+        </div>
+
+        <!-- Controles y Botones -->
+        <div id="controles" class="nes-panel controls-group">
+            <button id="btn-reiniciar" class="btn btn-restart">🔄 Reiniciar Nivel</button>
+            <button id="btn-proximo-nivel" class="btn btn-next">➡️ Próximo Nivel</button>
+        </div>
+
+        <!-- Mensaje de estado del juego -->
+        <div id="mensaje-juego" class="nes-message hidden"></div>
+    </div>
+</section>
+```
+
+### FILE: componente.css
+```css
+#juego {
+    max-width: 100%;
+    padding: var(--spacing-unit) * 2;
+}
+#juego h1 {
+    color: #c93a3a; 
+    border-bottom: 4px solid #8b4513;
+    text-shadow: 2px 2px #000;
+    margin-top: 0;
+}
+#juego .game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--spacing-unit) * 2);
+    padding: var(--spacing-unit) * 2;
+    background-color: #d4c09e; 
+    border: 8px solid #333;
+    box-shadow: 6px 6px 0 0 #1a1a1a;
+}
+#juego .nes-panel {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background-color: #8b4513; 
+    padding: var(--spacing-unit) * 2;
+    border: 4px solid #333;
+    box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.5);
+}
+#juego .stat-block {
+    text-align: center;
+    padding: var(--spacing-unit) * 1;
+    border-right: 2px dashed #ccc;
+}
+#juego .stat-block:last-child {
+    border-right: none;
+}
+#juego #nivel-display, #juego #movimiento-contador {
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--color-primary);
+    text-shadow: 2px 2px #000;
+}
+#juego .grid-container {
+    display: grid;
+    /* Grid de 10x10 */
+    grid-template-columns: repeat(10, 1fr); 
+    grid-template-rows: repeat(10, 1fr);  
+    width: 500px; /* Fijo para mantener la proporción en escritorio */
+    height: 500px;
+    border: 4px solid #333;
+    background-color: #a8d9a8; 
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+#juego .cell {
+    border: 1px solid #333; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    position: relative; /* Necesario para posicionar elementos dentro */
+}
+/* Tipos de casilleros (F1.5) */
+#juego .cell[data-type="pared"] {
+    background-color: #6b4e3c; 
+    border: 1px solid #333;
+}
+#juego .cell[data-type="objetivo"] {
+    background-color: #ffeb3b; 
+    box-shadow: inset 0 0 5px rgba(255, 255, 0, 0.8);
+}
+/* Elementos móviles (Avatar y Caja) */
+#juego .avatar, #juego .box {
+    width: 90%;
+    height: 90%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em; 
+    transition: transform var(--transition-speed) ease, background-color var(--transition-speed);
+    position: absolute; /* Permite que el elemento ocupe solo su espacio dentro del cell */
+}
+#juego .avatar {
+    background-color: #007bff; 
+    border: 2px solid #333;
+    box-shadow: 4px 4px 0 0 #1a1a1a;
+}
+#juego .box {
+    background-color: #c93a3a; 
+    border: 2px solid #333;
+    box-shadow: 4px 4px 0 0 #1a1a1a;
+}
+/* Mensaje de estado del juego */
+#juego .nes-message {
+    background-color: #ffeb3b;
+    padding: var(--spacing-unit) * 2;
+    border: 4px solid #333;
+    box-shadow: 6px 6px 0 0 #1a1a1a;
+    text-align: center;
+}
+#juego .hidden {
+    display: none !important;
+}
+/* Controles y Botones */
+#juego .controls-group {
+    display: flex;
+    gap: var(--spacing-unit);
+}
+#juego .btn {
+    padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+    background-color: #28a745; 
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 3px 3px 0 0 #1a1a1a; 
+    transition: all var(--transition-speed) ease;
+}
+#juego .btn:hover {
+    background-color: #218838; 
+    box-shadow: 1px 1px 0 0 #1a1a1a;
+    transform: translate(1px, 1px);
+}
+#juego .btn:active {
+    background-color: #1e7e34;
+    box-shadow: none;
+    transform: translate(2px, 2px);
+}
+@media (max-width: 600px) {
+/* Ajustes responsivos ya proporcionados */
+#juego .grid-container {
+        width: 95vw; 
+        height: calc(95vw * 10 / 10); 
+        max-width: 390px; 
+        max-height: 390px;
+    }
+#juego .nes-panel {
+        flex-direction: column;
+        gap: var(--spacing-unit);
+        padding: var(--spacing-unit) * 1.5;
+    }
+#juego #controles {
+        flex-direction: column;
+        align-items: stretch;
+    }
+#juego .btn {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: var(--spacing-unit) / 2;
+    }
+}
+```
+
+### FILE: componente.js
+```javascript
+// ==================================================
+// ESTADO GLOBAL DEL JUEGO (A2, G1)
+// ==================================================
+const estado = {
+    nivelActual: 0,
+    maxNivel: 5, // Mínimo 5 niveles requeridos
+    movimientos: 0,
+    mapa: [], // Mapa de datos 10x10 (tipo de casillero)
+    playerPos: { x: 0, y: 0 },
+    boxes: [], // Array de posiciones de las cajas [{x, y}, ...]
+    objectives: [], // Array de objetivos [{x, y}, ...]
+    isGameOver: false,
+};
+
+// ==================================================
+// DATOS DE LOS NIVELES (R3, R4.2)
+// 10x10 Grid
+// Formato: { playerStart: {x, y}, boxes: [{x, y}], objectives: [{x, y}] }
+// El mapa se construye en función de estos puntos.
+// ==================================================
+const niveles = [
+    { // Nivel 1 (Fácil)
+        playerStart: { x: 1, y: 9 },
+        boxes: [{ x: 2, y: 8 }, { x: 3, y: 7 }],
+        objectives: [{ x: 1, y: 6 }, { x: 2, y: 5 }]
+    },
+    { // Nivel 2 (Medio)
+        playerStart: { x: 9, y: 0 },
+        boxes: [{ x: 7, y: 1 }, { x: 8, y: 2 }],
+        objectives: [{ x: 6, y: 3 }, { x: 7, y: 4 }]
+    },
+    { // Nivel 3 (Difícil)
+        playerStart: { x: 1, y: 9 },
+        boxes: [{ x: 2, y: 8 }, { x: 3, y: 7 }, { x: 4, y: 6 }],
+        objectives: [{ x: 1, y: 5 }, { x: 2, y: 4 }, { x: 3, y: 3 }]
+    },
+    { // Nivel 4 (Muy Difícil)
+        playerStart: { x: 8, y: 0 },
+        boxes: [{ x: 7, y: 1 }, { x: 6, y: 2 }],
+        objectives: [{ x: 5, y: 3 }, { x: 6, y: 4 }]
+    },
+    { // Nivel 5 (Final)
+        playerStart: { x: 0, y: 9 },
+        boxes: [{ x: 1, y: 8 }, { x: 2, y: 7 }, { x: 3, y: 6 }],
+        objectives: [{ x: 0, y: 5 }, { x: 1, y: 4 }, { x: 2, y: 3 }]
+    }
+];
+
+// ==================================================
+// UTILIDADES DE JUEGO Y LÓGICA (F2.1 - F3.6)
+// ==================================================
+
+/**
+ * Genera el mapa de datos para un nivel dado.
+ * @param {object} levelData Datos del nivel.
+ * @returns {Array<Array<string>>} Mapa 10x10 con tipos ('floor', 'wall', 'objective').
+ */
+function generarMapa(levelData) {
+    const map = Array(10).fill(0).map(() => Array(10).fill('floor'));
+
+    // Marcar objetivos (F3.3)
+    levelData.objectives.forEach(({ x, y }) => {
+        if (y >= 0 && y < 10 && x >= 0 && x < 10) {
+            map[y][x] = 'objective';
+        }
+    });
+
+    // Marcar cajas iniciales como obstáculos fijos en el mapa de datos
+    levelData.boxes.forEach(({ x, y }) => {
+        if (y >= 0 && y < 10 && x >= 0 && x < 10) {
+            map[y][x] = 'box_start'; // Usamos un tipo temporal para saber dónde están las cajas
+        }
+    });
+
+    // Nota: En este ejemplo, asumimos que el mapa es mayormente piso y solo los objetivos son especiales.
+    return map;
+}
+
+
+/**
+ * Carga e inicializa el estado del juego para un nivel específico (F4.5).
+ */
+function loadLevel(levelIndex) {
+    if (levelIndex < 0 || levelIndex >= niveles.length) {
+        console.error("Nivel fuera de rango.");
+        return;
+    }
+
+    const levelData = niveles[levelIndex];
+    
+    // Resetear estado y cargar datos del nivel
+    estado.nivelActual = levelIndex + 1;
+    estado.movimientos = 0;
+    estado.isGameOver = false;
+    estado.mapa = generarMapa(levelData);
+
+    // Copia profunda de las posiciones iniciales (G2, F4.4)
+    estado.playerPos = { ...levelData.playerStart };
+    estado.boxes = levelData.boxes.map(b => ({ ...b }));
+    estado.objectives = levelData.objectives.map(o => ({ ...o }));
+
+    // Actualizar UI y dibujar la escena (F1.6)
+    dibujar();
+}
+
+
+/**
+ * Intenta mover al jugador en la dirección dada, manejando colisiones y empujes (R4, R5, F2.1-F2.4).
+ * @param {number} dx Cambio en X (-1, 0, 1)
+ * @param {number} dy Cambio en Y (-1, 0, 1)
+ * @returns {boolean} True si el movimiento fue exitoso y el estado cambió.
+ */
+function intentarMover(dx, dy) {
+    if (estado.isGameOver) return false;
+
+    const currentX = estado.playerPos.x;
+    const currentY = estado.playerPos.y;
+    const nextX = currentX + dx;
+    const nextY = currentY + dy;
+
+    // 1. Validación de límites y paredes (F2.2)
+    if (nextX < 0 || nextX >= 10 || nextY < 0 || nextY >= 10) {
+        return false; // Fuera del mapa
+    }
+    if (estado.mapa[nextY][nextX] === 'pared') {
+        return false; // Colisión con pared
+    }
+
+    let boxCollision = estado.boxes.some(box => 
+        box.x === nextX && box.y === nextY
+    );
+
+    // 2. Detección de colisión con cajas (F2.3)
+    if (!boxCollision) {
+        // Movimiento simple y exitoso
+        estado.playerPos = { x: nextX, y: nextY };
+        return true;
+    }
+
+    // 3. Lógica de empuje (Pushing) (F2.4)
+    const boxToPushIndex = estado.boxes.findIndex(box => 
+        box.x === nextX && box.y === nextY
+    );
+    if (boxToPushIndex === -1) return false; // No debería pasar
+
+    // Calcular la posición detrás de la caja (donde el jugador viene)
+    const pushBehindX = currentX - dx;
+    const pushBehindY = currentY - dy;
+
+    // Verificar si el espacio detrás es válido y está vacío (no pared, no box)
+    if (pushBehindX < 0 || pushBehindX >= 10 || pushBehindY < 0 || pushBehindY >= 10) {
+        return false; // No hay espacio para empujar en esa dirección
+    }
+
+    // Verificar si el espacio detrás está ocupado por otra caja o pared (debe estar vacío)
+    const isSpaceBehindOccupied = estado.boxes.some((box, index) => 
+        index !== boxToPushIndex && box.x === pushBehindX && box.y === pushBehindY
+    );
+
+    if (!isSpaceBehindOccupied && estado.mapa[pushBehindY][pushBehindX] !== 'pared') {
+        // ¡Empuje exitoso!
+        const box = estado.boxes[boxToPushIndex];
+        
+        // 1. Mover la caja a la posición detrás del jugador
+        estado.boxes[boxToPushIndex].x = pushBehindX;
+        estado.boxes[boxToPushIndex].y = pushBehindY;
+
+        // 2. Mover al jugador a la antigua posición de la caja
+        estado.playerPos = { x: nextX, y: nextY };
+        return true;
+    }
+
+    return false; // Colisión con caja, pero no se pudo empujar
+}
+
+
+/**
+ * Verifica si todas las cajas están en sus objetivos (F3.4).
+ * @returns {boolean} True si el nivel está superado.
+ */
+function verificarVictoria() {
+    if (estado.boxes.length === 0) return false;
+
+    // Compara la posición actual de cada caja con los objetivos definidos
+    const boxesInObjectives = estado.boxes.every(box => {
+        return estado.objectives.some(objective => 
+            objective.x === box.x && objective.y === box.y
+        );
+    });
+
+    if (boxesInObjectives) {
+        mostrarMensaje("¡Nivel superado! 🎉", 'success');
+        estado.isGameOver = true;
+        return true;
+    }
+    return false;
+}
+
+
+/**
+ * Actualiza el contador de movimientos y verifica la victoria (F3.5, F3.6).
+ * @returns {boolean} True si se ganó el nivel.
+ */
+function finalizarMovimiento() {
+    if (!estado.isGameOver) {
+        estado.movimientos++; // Incremento del contador en acción exitosa (F3.5)
+        const victoria = verificarVictoria();
+        return victoria;
+    }
+    return false;
+}
+
+
+// ==================================================
+// MANEJADORES DE EVENTOS Y UI
+// ==================================================
+
+/**
+ * Maneja el movimiento del jugador basado en las teclas de flecha (R4, R5).
+ */
+function handleKeyDown(event) {
+    let dx = 0;
+    let dy = 0;
+
+    switch (event.key) {
+        case 'ArrowUp':
+            dy = -1;
+            break;
+        case 'ArrowDown':
+            dy = 1;
+            break;
+        case 'ArrowLeft':
+            dx = -1;
+            break;
+        case 'ArrowRight':
+            dx = 1;
+            break;
+        default:
+            return; // Ignorar otras teclas
+    }
+
+    event.preventDefault();
+
+    // Intentar mover y actualizar estado si es exitoso
+    const movedSuccessfully = intentarMover(dx, dy);
+
+    if (movedSuccessfully) {
+        // Si se movió el jugador o una caja, contamos el movimiento
+        finalizarMovimiento(); 
+        dibujar(); // Redibujar para reflejar los cambios de posición
+    } else if (!estado.isGameOver) {
+        mostrarMensaje("¡No puedes moverte ahí! Es un obstáculo o pared.", 'error');
+    }
+}
+
+/**
+ * Reinicia el nivel actual al estado inicial (F4.3, F4.4).
+ */
+function reiniciarNivel() {
+    // Volver a cargar los datos del nivel sin cambiar de índice
+    loadLevel(estado.nivelActual - 1); 
+    mostrarMensaje("Nivel reiniciado. ¡Inténtalo de nuevo!", 'warning');
+}
+
+/**
+ * Avanza al siguiente nivel (F4.6, F4.7).
+ */
+function proximoNivel() {
+    if (estado.nivelActual >= estado.maxNivel) {
+        mostrarMensaje("¡Has completado todos los niveles! 🏆", 'success');
+        return;
+    }
+
+    const nextLevelIndex = estado.nivelActual; // El índice es el nivel actual - 1
+    loadLevel(nextLevelIndex);
+    mostrarMensaje(`Preparándote para el Nivel ${estado.nivelActual + 1}...`, 'info');
+}
+
+
+/**
+ * Muestra un mensaje temporal en la interfaz de usuario.
+ */
+function mostrarMensaje(texto, tipo) {
+    const msgElement = document.getElementById('mensaje-juego');
+    msgElement.textContent = texto;
+    msgElement.classList.remove('hidden', 'success', 'error', 'warning', 'info');
+    msgElement.classList.add(tipo);
+
+    // Ocultar el mensaje después de 3 segundos
+    setTimeout(() => {
+        msgElement.classList.add('hidden');
+        msgElement.classList.remove(tipo);
+    }, 3000);
+}
+
+
+/**
+ * Dibuja la escena completa basándose en el estado actual (A2, F1.6).
+ */
+function dibujar() {
+    const mapaContainer = document.getElementById('mapa');
+    // Limpiar el contenedor antes de redibujar
+    mapaContainer.innerHTML = '';
+
+    // 1. Actualizar HUD (F3.2)
+    document.getElementById('nivel-display').textContent = estado.nivelActual;
+    document.getElementById('movimiento-contador').textContent = estado.movimientos;
+
+    // 2. Renderizar la Grilla y los elementos (F1.2, F1.6)
+    for (let y = 0; y < 10; y++) {
+        for (let x = 0; x < 10; x++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.setAttribute('data-x', x);
+            cell.setAttribute('data-y', y);
+
+            // Determinar el tipo de casillero (F1.5)
+            let type = estado.mapa[y][x];
+            if (type === 'box_start') {
+                type = 'objetivo'; // Los puntos iniciales de caja son objetivos
+            }
+            cell.setAttribute('data-type', type);
+
+            // Crear el contenedor para los elementos móviles dentro del cell
+            const contentWrapper = document.createElement('div');
+            contentWrapper.className = 'elementos-en-celda';
+            cell.appendChild(contentWrapper);
+        }
+    }
+
+    // 3. Colocar Avatar y Cajas (F1.3, F1.4)
+    const placeElement = (element, x, y, className) => {
+        const cell = document.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`);
+        if (cell) {
+            // Limpiar cualquier elemento anterior en esta celda antes de colocar el nuevo
+            const wrapper = cell.querySelector('.elementos-en-celda');
+            wrapper.innerHTML = ''; 
+
+            const elementDiv = document.createElement('div');
+            elementDiv.className = className;
+            

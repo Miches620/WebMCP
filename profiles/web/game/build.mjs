@@ -19,7 +19,9 @@ export const GAME_EXTRA_CHECKS = [{
     : `${r.detail}. Después de CADA movimiento (y de reiniciar o cambiar de nivel) llamá a dibujar() para redibujar la grilla desde el estado.`,
 }, {
   check: { type: "not_won_immediately", params: {} },
-  problem: (r) => /ninguna tecla/.test(r.detail)
+  problem: (r) => /recién cargado/.test(r.detail)
+    ? `${r.detail}. En cada nivel, al menos una caja tiene que empezar FUERA de los objetivos (en el formato de strings: $ y . en casilleros distintos).`
+    : /ninguna tecla/.test(r.detail)
     ? `${r.detail}. El juego tiene que responder a las flechas (un listener keydown en document) y la grilla tiene que dibujarse desde el estado.`
     : `${r.detail}. La victoria tiene que comparar la posición ACTUAL de cada pieza con sus objetivos, guardados aparte; con el nivel recién cargado o después de un solo movimiento no se puede estar ganando.`,
 }];

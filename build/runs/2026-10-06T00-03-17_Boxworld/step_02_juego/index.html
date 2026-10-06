@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Boxworld</title>
+  <style>
+/* ===== tokens.css (global) ===== */
+:root {
+    
+    --color-primary: #007bff; 
+    --color-secondary: #ffc107; 
+    --color-background: #e6e6fa; 
+    --color-text: #333; 
+    --color-border: #8b4513; 
+    --color-success: #28a745; 
+
+    
+    --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    --spacing-unit: 8px;
+    --radius-sm: 4px; 
+    --shadow-block: 2px 2px 0 0 var(--color-border);
+
+    
+    --transition-speed: 0.15s;
+}
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-background);
+    font-family: var(--font-family);
+    color: var(--color-text);
+    line-height: 1.6;
+}
+.container {
+    max-width: 900px; 
+    margin: 0 auto;
+    padding: calc(var(--spacing-unit) * 2);
+}
+h1, h2, h3 {
+    color: var(--color-primary);
+    border-bottom: 3px solid var(--color-border);
+    padding-bottom: calc(var(--spacing-unit) / 2);
+    margin-top: calc(var(--spacing-unit) * 2);
+    margin-bottom: calc(var(--spacing-unit) * 1.5);
+}
+p {
+    margin-bottom: var(--spacing-unit);
+}
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--color-primary);
+    transition: color var(--transition-speed);
+}
+a:hover {
+    color: var(--color-secondary);
+    border-bottom: 2px solid var(--color-secondary);
+}
+.btn {
+    display: inline-block;
+    padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    
+    box-shadow: 3px 3px 0 0 var(--color-border);
+    transition: all var(--transition-speed) ease;
+    margin-right: calc(var(--spacing-unit) / 2);
+}
+.btn:hover {
+    background-color: #0056b3; 
+    
+    box-shadow: 1px 1px 0 0 var(--color-border);
+    transform: translate(1px, 1px);
+}
+.btn:active {
+    background-color: #003d82;
+    
+    box-shadow: none;
+    transform: translate(2px, 2px);
+}
+
+/* ===== componente #juego ===== */
+#juego {
+    max-width: 100%;
+    padding: var(--spacing-unit) * 2;
+}
+#juego h1 {
+    color: #c93a3a; 
+    border-bottom: 4px solid #8b4513;
+    text-shadow: 2px 2px #000;
+    margin-top: 0;
+}
+#juego .game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--spacing-unit) * 2);
+    padding: var(--spacing-unit) * 2;
+    background-color: #d4c09e; 
+    border: 8px solid #333;
+    box-shadow: 6px 6px 0 0 #1a1a1a;
+}
+#juego .nes-panel {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background-color: #8b4513; 
+    padding: var(--spacing-unit) * 2;
+    border: 4px solid #333;
+    box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.5);
+}
+#juego .stat-block {
+    text-align: center;
+    padding: var(--spacing-unit) * 1;
+    border-right: 2px dashed #ccc;
+}
+#juego .stat-block:last-child {
+    border-right: none;
+}
+#juego #nivel-display, #juego #movimiento-contador {
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--color-primary);
+    text-shadow: 2px 2px #000;
+}
+#juego .grid-container {
+    display: grid;
+    
+    grid-template-columns: repeat(10, 1fr); 
+    grid-template-rows: repeat(10, 1fr);  
+    width: 500px; 
+    height: 500px;
+    border: 4px solid #333;
+    background-color: #a8d9a8; 
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+#juego .cell {
+    border: 1px solid #333; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    position: relative; 
+}
+#juego .cell[data-type="pared"] {
+    background-color: #6b4e3c; 
+    border: 1px solid #333;
+}
+#juego .cell[data-type="objetivo"] {
+    background-color: #ffeb3b; 
+    box-shadow: inset 0 0 5px rgba(255, 255, 0, 0.8);
+}
+#juego .avatar, #juego .box {
+    width: 90%;
+    height: 90%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em; 
+    transition: transform var(--transition-speed) ease, background-color var(--transition-speed);
+    position: absolute; 
+}
+#juego .avatar {
+    background-color: #007bff; 
+    border: 2px solid #333;
+    box-shadow: 4px 4px 0 0 #1a1a1a;
+}
+#juego .box {
+    background-color: #c93a3a; 
+    border: 2px solid #333;
+    box-shadow: 4px 4px 0 0 #1a1a1a;
+}
+#juego .nes-message {
+    background-color: #ffeb3b;
+    padding: var(--spacing-unit) * 2;
+    border: 4px solid #333;
+    box-shadow: 6px 6px 0 0 #1a1a1a;
+    text-align: center;
+}
+#juego .hidden {
+    display: none !important;
+}
+#juego .controls-group {
+    display: flex;
+    gap: var(--spacing-unit);
+}
+#juego .btn {
+    padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+    background-color: #28a745; 
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 3px 3px 0 0 #1a1a1a; 
+    transition: all var(--transition-speed) ease;
+}
+#juego .btn:hover {
+    background-color: #218838; 
+    box-shadow: 1px 1px 0 0 #1a1a1a;
+    transform: translate(1px, 1px);
+}
+#juego .btn:active {
+    background-color: #1e7e34;
+    box-shadow: none;
+    transform: translate(2px, 2px);
+}
+@media (max-width: 600px) {
+#juego .grid-container {
+        width: 95vw; 
+        height: calc(95vw * 10 / 10); 
+        max-width: 390px; 
+        max-height: 390px;
+    }
+#juego .nes-panel {
+        flex-direction: column;
+        gap: var(--spacing-unit);
+        padding: var(--spacing-unit) * 1.5;
+    }
+#juego #controles {
+        flex-direction: column;
+        align-items: stretch;
+    }
+#juego .btn {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: var(--spacing-unit) / 2;
+    }
+}
+
+  </style>
+</head>
+<body>
+
+  <main id="app">
+  <section data-feature="R1 R2 R3 R4 R5 R6 R7" id="juego">
+      <h1>Boxworld</h1>
+      <div class="game-container">
+          <!-- HUD (Heads Up Display) -->
+          <div id="hud" class="nes-panel">
+              <div class="stat-block">
+                  <label>Nivel:</label>
+                  <span id="nivel-display">1</span>
+              </div>
+              <div class="stat-block">
+                  <label>Movimientos:</label>
+                  <span id="movimiento-contador">0</span>
+              </div>
+          </div>
+  
+          <!-- Grid Container (The 10x10 map) -->
+          <div id="mapa" class="grid-container">
+              <!-- El grid se llenará con JS -->
+          </div>
+  
+          <!-- Controles y Botones -->
+          <div id="controles" class="nes-panel controls-group">
+              <button id="btn-reiniciar" class="btn btn-restart">🔄 Reiniciar Nivel</button>
+              <button id="btn-proximo-nivel" class="btn btn-next">➡️ Próximo Nivel</button>
+          </div>
+  
+          <!-- Mensaje de estado del juego -->
+          <div id="mensaje-juego" class="nes-message hidden"></div>
+      </div>
+  </section>
+  </main>
+
+<script data-file="api.js">
+// Capa de datos SIMULADA (backend mock). Los componentes usan solo window.api.
+window.api = window.api || {};
+
+// No se requiere window.api para este componente, ya que toda la lógica es local y simulada en el estado global.
+
+
+</script>
+
+</body>
+</html>

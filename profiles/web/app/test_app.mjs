@@ -39,6 +39,8 @@ t("app no trae reglas de juego", !/G1\./.test(APP_SPECIALIST_RULES));
 const nw = GAME_EXTRA_CHECKS.find((x) => x.check.type === "not_won_immediately"), bc = GAME_EXTRA_CHECKS.find((x) => x.check.type === "board_changes");
 t("game: chequeo de base not_won_immediately con mensaje para Gemma", nw && /posición ACTUAL/.test(nw.problem({ detail: "con UN movimiento ya aparece la victoria" })) && /listener keydown/.test(nw.problem({ detail: "ninguna tecla cambia nada" })));
 t("game: chequeo de base board_changes (b4: el contador subía y el tablero no se redibujaba)", bc && /llamá a dibujar\(\)/.test(bc.problem({ detail: "#mapa no cambia con ninguna tecla" })) && /grilla/.test(bc.problem({ detail: "no hay tablero" })));
+t("regla G2: niveles en formato Sokoban de strings y al menos una caja fuera del objetivo", /formato clásico de Sokoban/.test(GAME_SPECIALIST_RULES) && /al menos una caja NO está sobre un objetivo/.test(GAME_SPECIALIST_RULES));
+t("game: 'ganado al cargar' tiene su propio mensaje para Gemma", /FUERA de los objetivos/.test(nw.problem({ detail: "recién cargado ya aparece la victoria" })));
 t("regla G5: después de mover, dibujar()", /DESPUÉS llama a dibujar\(\)/.test(GAME_SPECIALIST_RULES));
 for (const [name, B] of [["web/app", appBuild], ["web/game", gameBuild]])
   t(`${name}: cumple el contrato de build`, ["planPage", "planText", "PAGE_PLAN_VERSION", "build", "writeBaseline", "translateRequirement", "postprocessChecks", "runChecks", "normalizeCheck", "CATALOG_VERSION", "specialistSees"].every((k) => k in B));

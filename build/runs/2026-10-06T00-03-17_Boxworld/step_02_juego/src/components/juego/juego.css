@@ -1,0 +1,148 @@
+#juego {
+    max-width: 100%;
+    padding: var(--spacing-unit) * 2;
+}
+#juego h1 {
+    color: #c93a3a; 
+    border-bottom: 4px solid #8b4513;
+    text-shadow: 2px 2px #000;
+    margin-top: 0;
+}
+#juego .game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--spacing-unit) * 2);
+    padding: var(--spacing-unit) * 2;
+    background-color: #d4c09e; 
+    border: 8px solid #333;
+    box-shadow: 6px 6px 0 0 #1a1a1a;
+}
+#juego .nes-panel {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background-color: #8b4513; 
+    padding: var(--spacing-unit) * 2;
+    border: 4px solid #333;
+    box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.5);
+}
+#juego .stat-block {
+    text-align: center;
+    padding: var(--spacing-unit) * 1;
+    border-right: 2px dashed #ccc;
+}
+#juego .stat-block:last-child {
+    border-right: none;
+}
+#juego #nivel-display, #juego #movimiento-contador {
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--color-primary);
+    text-shadow: 2px 2px #000;
+}
+#juego .grid-container {
+    display: grid;
+    
+    grid-template-columns: repeat(10, 1fr); 
+    grid-template-rows: repeat(10, 1fr);  
+    width: 500px; 
+    height: 500px;
+    border: 4px solid #333;
+    background-color: #a8d9a8; 
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+#juego .cell {
+    border: 1px solid #333; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    position: relative; 
+}
+#juego .cell[data-type="pared"] {
+    background-color: #6b4e3c; 
+    border: 1px solid #333;
+}
+#juego .cell[data-type="objetivo"] {
+    background-color: #ffeb3b; 
+    box-shadow: inset 0 0 5px rgba(255, 255, 0, 0.8);
+}
+#juego .avatar, #juego .box {
+    width: 90%;
+    height: 90%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em; 
+    transition: transform var(--transition-speed) ease, background-color var(--transition-speed);
+    position: absolute; 
+}
+#juego .avatar {
+    background-color: #007bff; 
+    border: 2px solid #333;
+    box-shadow: 4px 4px 0 0 #1a1a1a;
+}
+#juego .box {
+    background-color: #c93a3a; 
+    border: 2px solid #333;
+    box-shadow: 4px 4px 0 0 #1a1a1a;
+}
+#juego .nes-message {
+    background-color: #ffeb3b;
+    padding: var(--spacing-unit) * 2;
+    border: 4px solid #333;
+    box-shadow: 6px 6px 0 0 #1a1a1a;
+    text-align: center;
+}
+#juego .hidden {
+    display: none !important;
+}
+#juego .controls-group {
+    display: flex;
+    gap: var(--spacing-unit);
+}
+#juego .btn {
+    padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+    background-color: #28a745; 
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 3px 3px 0 0 #1a1a1a; 
+    transition: all var(--transition-speed) ease;
+}
+#juego .btn:hover {
+    background-color: #218838; 
+    box-shadow: 1px 1px 0 0 #1a1a1a;
+    transform: translate(1px, 1px);
+}
+#juego .btn:active {
+    background-color: #1e7e34;
+    box-shadow: none;
+    transform: translate(2px, 2px);
+}
+@media (max-width: 600px) {
+#juego .grid-container {
+        width: 95vw; 
+        height: calc(95vw * 10 / 10); 
+        max-width: 390px; 
+        max-height: 390px;
+    }
+#juego .nes-panel {
+        flex-direction: column;
+        gap: var(--spacing-unit);
+        padding: var(--spacing-unit) * 1.5;
+    }
+#juego #controles {
+        flex-direction: column;
+        align-items: stretch;
+    }
+#juego .btn {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: var(--spacing-unit) / 2;
+    }
+}

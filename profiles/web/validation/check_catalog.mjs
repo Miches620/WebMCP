@@ -15,7 +15,8 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle } from "./form_runtime.mjs";
 
-export const CATALOG_VERSION = "check_catalog v0.7.2";
+export const CATALOG_VERSION = "check_catalog v0.7.3";
+// v0.7.3 (05/10, Boxworld build 6): no_js_errors devuelve también la línea del error (errors[].line).
 
 // v0.7.2 (05/10, Boxworld build 5): not_won_immediately también falla si la victoria ya
 // se ve recién cargada la página (3 de 5 niveles tenían las cajas sobre los objetivos).
@@ -470,12 +471,12 @@ export async function runChecks(htmlPath, checks) {
   const url = pathToFileURL(resolve(htmlPath)).href;
   const browser = await chromium.launch();
   const page = await browser.newPage();
-  const ctx = { dialogs: [], pageErrors: [] };
-  page.on("pageerror", (e) => ctx.pageErrors.push(e.message));
+  const ctx = { dialogs: [], pageErrors: [], pageStacks: [] };
+  page.on("pageerror", (e) => { ctx.pageErrors.push(e.message); ctx.pageStacks.push({ message: e.message, stack: String(e.stack || "") }); });
   page.on("dialog", (d) => { ctx.dialogs.push(d.message()); d.dismiss().catch(() => {}); });
   await page.addInitScript(INIT);
   await page.route(/^https?:/, (r) => r.abort());
-  const reload = async () => { ctx.pageErrors.length = 0; await page.goto(url, { waitUntil: "load" }); await waitForSettle(page); };
+  const reload = async () => { ctx.pageErrors.length = 0; ctx.pageStacks.length = 0; await page.goto(url, { waitUntil: "load" }); await waitForSettle(page); };
 
   const out = [];
   try {
@@ -489,6 +490,8 @@ export async function runChecks(htmlPath, checks) {
           case "no_js_errors":
             r.result = ctx.pageErrors.length ? "FAIL" : "PASS";
             r.detail = ctx.pageErrors.join(" | ").slice(0, 200) || "sin excepciones";
+            // v0.7.3: dónde (línea del index.html) para que el harness ubique la función que falla
+            r.errors = ctx.pageStacks.map((x) => ({ message: x.message, line: Number((x.stack.match(/\.html:(\d+):\d+/) || [])[1]) || null }));
             break;
           case "text_visible": {
             const body = await page.evaluate(() => document.body.innerText);

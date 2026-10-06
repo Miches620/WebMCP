@@ -114,6 +114,8 @@ const PLAY_CASES = {
   "real_boxworld_b3/index": "PPFFP",
   // v0.7.1: Boxworld b4 real — el contador sube pero dibujar() no se llama: key_changes PASS (lo engaña el texto), board_changes FAIL
   "real_boxworld_b4/index": "PPPFF",
+  // v0.7.3: Boxworld b6 real — dibujar() nunca hace appendChild y mostrarMensaje() rompe al cargar
+  "real_boxworld_b6/index": "PFPFF",
   sections_vacio: "FFFFF", // nada responde: ninguno pasa (el esqueleto de control da FAIL → los PASS no son triviales)
 };
 for (const [name, exp] of Object.entries(PLAY_CASES)) {
@@ -126,6 +128,8 @@ const [cc] = await runChecks(S("real_boxworld_b3/index"), [normalizeCheck({ type
 if (cc.result === "PASS") { ok++; console.log("✓ click_changes b3 PASS"); } else { fail++; console.log(`✗ click_changes b3 ${cc.result} ${cc.detail}`); }
 const [nw] = await runChecks(S("game_ganado"), [normalizeCheck({ type: "not_won_immediately", params: {} })]);
 if (nw.result === "FAIL" && /recién cargado/.test(nw.detail)) { ok++; console.log("✓ not_won_immediately game_ganado FAIL (ganado al cargar)"); } else { fail++; console.log(`✗ not_won_immediately game_ganado ${nw.result} ${nw.detail}`); }
+const [je] = await runChecks(S("real_boxworld_b6/index"), [normalizeCheck({ type: "no_js_errors", params: {} })]);
+if (je.result === "FAIL" && je.errors?.[0]?.line === 703) { ok++; console.log("✓ no_js_errors da la línea del error (b6: 703)"); } else { fail++; console.log(`✗ no_js_errors línea ${JSON.stringify(je.errors)}`); }
 const kf = [keysFrom(["flechas"]).length === 4, keysFrom(["espacio"]).join() === "Space", keysFrom([]).length === 4, keysFrom(["arriba", "w"]).join() === "ArrowUp,w"];
 if (kf.every(Boolean)) { ok++; console.log("✓ keysFrom"); } else { fail++; console.log("✗ keysFrom", kf); }
 

@@ -34,7 +34,7 @@ t("esqueleto de control: una sección, sin header/footer", (base.match(/<section
 const rb = rulesBrief(refined);
 t("brief: las restricciones del usuario llegan al Specialist como reglas", rb.includes("REGLAS DEL USUARIO") && rb.includes("todas las cajas ocupan todos los objetivos") && rb.includes("CONTEXTO DEL USUARIO"));
 t("brief vacío sin restricciones ni contexto", rulesBrief({}) === "");
-t("reglas de juego = reglas de app + G1–G6", GAME_SPECIALIST_RULES.startsWith(APP_SPECIALIST_RULES) && /G3\. Ganar = comparar la posición ACTUAL/.test(GAME_SPECIALIST_RULES) && /G6\./.test(GAME_SPECIALIST_RULES));
+t("reglas de juego = reglas de app + G1–G6", GAME_SPECIALIST_RULES.startsWith(APP_SPECIALIST_RULES) && /G3\. Ganar = TODOS los objetivos ocupados/.test(GAME_SPECIALIST_RULES) && /G6\./.test(GAME_SPECIALIST_RULES));
 t("app no trae reglas de juego", !/G1\./.test(APP_SPECIALIST_RULES));
 const nw = GAME_EXTRA_CHECKS.find((x) => x.check.type === "not_won_immediately"), bc = GAME_EXTRA_CHECKS.find((x) => x.check.type === "board_changes");
 t("game: chequeo de base not_won_immediately con mensaje para Gemma", nw && /posición ACTUAL/.test(nw.problem({ detail: "con UN movimiento ya aparece la victoria" })) && /listener keydown/.test(nw.problem({ detail: "ninguna tecla cambia nada" })));

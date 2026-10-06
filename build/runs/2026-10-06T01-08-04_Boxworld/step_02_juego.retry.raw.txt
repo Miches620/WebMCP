@@ -1,0 +1,112 @@
+### FILE: componente.html
+```html
+<section data-feature="R1 R2 R3 R4 R5 R6 R7" id="juego">
+    <div class="game-header">
+        <h2 style="font-size: 1.5em; border-bottom: none;">Boxworld Puzzle</h2>
+        <div class="hud">
+            <div>Nivel: <span id="nivel-actual">1</span> / <span id="total-niveles">5</span></div>
+            <div>Movimientos: <span id="contador-movimientos">0</span></div>
+        </div>
+    </div >
+
+    <div class="game-board-container">
+        <!-- El grid 10x10 se renderizará aquí -->
+        <div id="grid" class="grid-10x10">
+            <!-- Los casilleros individuales irán aquí -->
+        </div>
+    </div >
+
+    <div class="game-controls">
+        <button id="btn-reiniciar" class="btn" disabled>🔄 Reiniciar Nivel</button>
+        <button id="btn-proximo-nivel" class="btn">➡️ Próximo Nivel</button>
+    </div>
+
+    <!-- Corregido: Añadimos un h3 dentro del overlay para que el JS pueda acceder a él -->
+    <div id="mensaje-juego" class="message-overlay hidden">
+        <h3></h3>
+    </div>
+</section>
+```
+
+### FILE: componente.css
+```css
+#juego {
+    max-width: 100%;
+    padding: var(--spacing-unit) * 2;
+    background-color: #c9d4e3; 
+    border: 8px solid #6b7a8f;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+}
+#juego .game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-unit) * 2;
+    padding: calc(var(--spacing-unit) / 2) 0;
+}
+#juego .game-header h2 {
+    color: #8b4513; 
+    border-bottom: none;
+    margin: 0;
+    font-size: 1.8em;
+}
+#juego .hud div {
+    display: inline-block;
+    margin-right: calc(var(--spacing-unit) * 3);
+    font-weight: bold;
+    color: #a52a2a; 
+    text-shadow: 1px 1px #000;
+}
+#juego .game-board-container {
+    display: flex;
+    justify-content: center;
+    margin: var(--spacing-unit) * 2 0;
+}
+#juego .grid-10x10 {
+    display: grid;
+    
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    width: 400px; 
+    height: 400px; 
+    border: 4px solid #333;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+}
+#juego .tile {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #333; 
+    box-sizing: border-box;
+    /* Estilo NES/8bits para los tiles */
+    image-rendering: pixelated;
+}
+#juego .tile.floor {
+    background-color: #c0d9b5; /* Verde claro, piso */
+}
+#juego .tile.wall {
+    background-color: #6b7a8f; /* Gris oscuro, pared */
+    border: 2px solid #333;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+}
+#juego .tile.objective {
+    background-color: #ff69b4; /* Rosa fuerte, objetivo */
+    border: 2px solid #8b0000;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
+}
+#juego .tile.box {
+    background-color: #a0522d; /* Marrón, caja */
+    border: 2px solid #6b4221;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
+}
+#juego .tile.player {
+    background-color: #ff4500; /* Naranja rojizo, jugador */
+    border: 2px solid #cc3700;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
+}
+#juego .message-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);

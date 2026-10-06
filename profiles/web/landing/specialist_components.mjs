@@ -25,12 +25,20 @@ import { briefText, apiContract } from "./specialist_spa.mjs";
 import {
   componentsFromPlan, transversalsFromPlan, initialState, assemble, assignTasks, notesText,
   applyComponentResponse, applyTokensResponse, parseComponentResponse, locateJsError, jsWindow, spliceLines,
+  topLevelFunctions, functionAt, functionsUsingId, wrapJs, jsError,
 } from "./components.mjs";
 import { runChecks } from "../validation/check_catalog.mjs";
 
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 export const SPECIALIST_MODEL = "google/gemma-4-e4b";
-export const SPECIALIST_VERSION = "spa_specialist v0.7.5-componentes";
+export const SPECIALIST_VERSION = "spa_specialist v0.7.6-componentes";
+// v0.7.6 (05/10, Boxworld build 6): el JS compiló pero tenía dos bugs de UNA línea cada uno
+// (dibujar() creaba los casilleros y nunca hacía appendChild; mostrarMensaje() pisaba el <h3>
+// con textContent y después lo buscaba → null). El reintento completo se cortó por length.
+// Con esas dos líneas corregidas a mano el tablero anda. Ahora, antes del reintento completo,
+// REPARACIÓN POR FUNCIÓN: el harness ubica la función (línea del error de JS en el index.html,
+// o la que nombra el contenedor vacío, o la del teclado / la victoria según el chequeo que
+// falló), Gemma devuelve SOLO esa función y el harness la reemplaza (hasta 4 rondas).
 // v0.7.5 (05/10, Boxworld builds 4 y 5): el 1er componente.js de #juego (~14k caracteres)
 // traía UN error de sintaxis en los datos de los niveles (`playerStart: {…};` y
 // `walls: [[r, c] => …]`); se rechazaba entero y el reintento reescribía todo:
@@ -148,6 +156,59 @@ export async function repairSyntax(raw, c, ask, { rounds: max = 6, write } = {})
   return out;
 }
 
+export const FUNC_FIX_PROMPT = `Corregís UNA función de un componente web (HTML + JS) que ya se ejecutó en un navegador.
+Recibís el PROBLEMA que encontró el harness, el HTML del componente y la función.
+Devolvé SOLO la función corregida, completa, en UN bloque \`\`\`javascript, con el mismo nombre y los mismos parámetros.
+Cambiá lo mínimo para resolver el problema. Podés llamar a las otras funciones del archivo. Sin explicaciones.`;
+
+/** Línea (1-based) del componente.js que corresponde a una línea del index.html ensamblado. */
+export function htmlLineToJs(html, id, htmlLine) {
+  const lines = String(html || "").split("\n");
+  const s = lines.findIndex((l) => l.includes(`<script data-component="${id}">`));
+  return s < 0 || !htmlLine ? null : htmlLine - (s + 1) - 2;
+}
+
+/**
+ * Qué función reparar para cada problema de ejecución (en orden: error de JS, contenedor
+ * vacío, chequeos del profile). Devuelve [{fn:{name,start,end}, problem}] sin repetir función.
+ */
+export function runtimeTargets(js, check, html, id) {
+  const fns = topLevelFunctions(js);
+  const out = [];
+  const add = (fn, problem) => { if (fn && problem && !out.some((x) => x.fn.name === fn.name)) out.push({ fn, problem }); };
+  for (const e of check.jsErrors || []) {
+    const l = htmlLineToJs(html, id, e.line);
+    const fn = l ? functionAt(js, l) : null;
+    add(fn, `al cargar la página hay un error de JavaScript DENTRO de esta función: "${e.message}" (línea ${l} del archivo). Revisá que cada elemento que buscás exista en el HTML del componente y no lo borres antes de usarlo.`);
+  }
+  const prefer = (list, re) => list.find((f) => re.test(f.name)) || list[0];
+  for (const ref of check.render && !check.render.ok ? check.render.empty : []) {
+    const id2 = ref.replace(/^[#.]/, "");
+    add(prefer(functionsUsingId(js, id2), /dibuj|render|draw|pint|grid|tabler/i), `después de cargar, ${ref} sigue VACÍO: esta función tiene que crear sus elementos y agregarlos adentro de ${ref} (appendChild), uno por casillero.`);
+  }
+  for (const x of check.extra || []) {
+    if (x.result !== "FAIL") continue;
+    if (x.type === "board_changes" && !/no hay tablero/.test(x.detail || "")) {
+      const kd = String(js).match(/addEventListener\(\s*['"]keydown['"]\s*,\s*([A-Za-z_$][\w$]*)/);
+      add(fns.find((f) => kd && f.name === kd[1]) || prefer(fns.filter((f) => /key|tecla|mov/i.test(f.name)), /key|tecla/i), x.problem);
+    }
+    if (x.type === "not_won_immediately" && !/ninguna tecla/.test(x.detail || ""))
+      add(prefer(fns.filter((f) => /win|gan|victori|complet|superad|check/i.test(f.name)), /win|gan/i), x.problem);
+  }
+  return out;
+}
+
+/** Reemplaza una función de primer nivel por su versión corregida, si compila y es la misma función. */
+export function replaceFunction(js, fn, code) {
+  const body = String(code || "").replace(/\n+$/, "");
+  const head = body.match(/^(?:async\s+)?function\s+([A-Za-z_$][\w$]*)|^(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=/m);
+  if (!head || (head[1] || head[2]) !== fn.name) return { ok: false, why: `no devolvió la función ${fn.name}` };
+  const lines = String(js).split("\n");
+  const next = [...lines.slice(0, fn.start - 1), body, ...lines.slice(fn.end)].join("\n");
+  const err = jsError(wrapJs("x", next));
+  return err ? { ok: false, why: `no compila: ${err}` } : { ok: true, js: next };
+}
+
 const fence = (lang, s) => "```" + lang + "\n" + (String(s || "").trim() || "(vacío)") + "\n```";
 
 /** Chequeos de base de UN componente sobre la página ensamblada. Devuelve la lista de problemas. */
@@ -180,7 +241,12 @@ export async function componentProblems(htmlPath, c, comps, state, prev = {}, ex
     const miss = comps.filter((x) => x.kind === "section" && !html.includes(`href="#${x.id}"`)).map((x) => "#" + x.id);
     if (miss.length) problems.push(`el <nav> no enlaza: ${miss.join(", ")} (cada sección necesita un <a href="#id">)`);
   }
-  return { problems, status: { js: js.result, scroll: scroll.result }, render: rc || null };
+  return {
+    problems, status: { js: js.result, scroll: scroll.result }, render: rc || null,
+    // v0.7.6: para la reparación por función
+    jsErrors: js.result === "FAIL" && prev.js !== "FAIL" ? js.errors || [] : [],
+    extra: mine.map((x, i) => ({ type: x.check.type, result: ext[i]?.result, detail: ext[i]?.detail, problem: ext[i]?.result === "FAIL" ? x.problem(ext[i]) : null })),
+  };
 }
 
 /** ids (sin contar la raíz) de este componente que ya aparecen en el HTML de otro. */
@@ -318,6 +384,36 @@ export async function buildComponents({ refined, tasks }, outDir, opts = {}) {
     if (opts.check !== false) {
       writeSrc(join(outDir, tag), candidate, comps);
       check = await componentProblems(join(outDir, tag, "index.html"), c, comps, candidate, status, opts.extraChecks || []);
+    }
+    // v0.7.6: el JS compila pero falla al ejecutarse → reparación por función antes del reintento completo
+    if (opts.check !== false && !a.rejected.length && candidate !== state && check.problems.length && (candidate.components[c.id].js || "").trim()) {
+      const rounds = [];
+      for (let k = 0; k < 4 && check.problems.length; k++) {
+        const js0 = candidate.components[c.id].js;
+        const html = readFileSync(join(outDir, tag, "index.html"), "utf8");
+        const target = runtimeTargets(js0, check, html, c.id).find((t) => !rounds.some((r) => r.fn === t.fn.name && !r.ok));
+        if (!target) break;
+        const lines = js0.split("\n");
+        const others = topLevelFunctions(js0).map((f) => f.name).filter((n) => n !== target.fn.name);
+        const user = `PROBLEMA:\n${target.problem}\n\nHTML DEL COMPONENTE:\n${fence("html", String(candidate.components[c.id].html).slice(0, 3000))}\n\nOTRAS FUNCIONES DEL ARCHIVO: ${others.join(", ") || "(ninguna)"}\n\nFUNCIÓN A CORREGIR (${target.fn.name}):\n${fence("javascript", lines.slice(target.fn.start - 1, target.fn.end).join("\n"))}`;
+        const r = await ask(FUNC_FIX_PROMPT, user, 3500);
+        writeFileSync(join(outDir, `${tag}.fn${k + 1}.raw.txt`), r.raw, "utf8");
+        const code = (String(r.raw || "").match(/\`\`\`(?:javascript|js)?\n([\s\S]*?)\`\`\`/) || [])[1];
+        const rep = replaceFunction(js0, target.fn, code);
+        const round = { fn: target.fn.name, problem: target.problem.slice(0, 160), ms: r.ms, finish_reason: r.finish_reason, ok: false };
+        rounds.push(round);
+        if (!rep.ok) { round.note = rep.why; continue; }
+        const cand2 = { ...candidate, components: { ...candidate.components, [c.id]: { ...candidate.components[c.id], js: rep.js.replace(/\n*$/, "\n") } } };
+        writeSrc(join(outDir, tag), cand2, comps);
+        const check2 = await componentProblems(join(outDir, tag, "index.html"), c, comps, cand2, status, opts.extraChecks || []);
+        round.problems_after = check2.problems.length;
+        if (check2.problems.length <= check.problems.length) { round.ok = true; candidate = cand2; check = check2; }
+        else writeSrc(join(outDir, tag), candidate, comps); // se descarta: deja la versión anterior en disco
+      }
+      if (rounds.length) {
+        step.fn_repair = rounds;
+        log(`[SPECIALIST]   reparación por función: ${rounds.map((r) => `${r.fn} ${r.ok ? "✓" : "✗"}`).join(", ")} → ${check.problems.length ? `quedan ${check.problems.length} problemas` : "sin problemas"}`);
+      }
     }
     const problems = [...a.rejected, ...(a.changed.includes("html") ? [] : ["la respuesta no trajo componente.html"]), ...check.problems];
     if (problems.length) {

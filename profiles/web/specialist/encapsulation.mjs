@@ -240,6 +240,52 @@ export function spliceLines(js, from, to, replacement) {
   return [...lines.slice(0, from - 1), ...rep, ...lines.slice(to)].join("\n");
 }
 
+/**
+ * v0.7.6: funciones de PRIMER NIVEL de un componente.js con sus líneas (1-based, inclusive).
+ * Reconoce `function f(…) {`, `async function f(…) {` y `const f = (…) => {` / `= function (…) {`
+ * al comienzo de la línea. El final se busca contando llaves y saltando strings y comentarios.
+ */
+export function topLevelFunctions(js) {
+  const lines = String(js || "").split("\n");
+  const head = /^(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(|^(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:function\b|\([^)]*\)\s*=>|[A-Za-z_$][\w$]*\s*=>)/;
+  const out = [];
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(head);
+    if (!m) continue;
+    const end = blockEnd(lines, i);
+    if (end < 0) continue;
+    out.push({ name: m[1] || m[2], start: i + 1, end: end + 1 });
+    i = end;
+  }
+  return out;
+}
+function blockEnd(lines, from) {
+  let depth = 0, seen = false, q = null, block = false;
+  for (let i = from; i < lines.length; i++) {
+    const l = lines[i];
+    for (let k = 0; k < l.length; k++) {
+      const ch = l[k], nx = l[k + 1];
+      if (block) { if (ch === "*" && nx === "/") { block = false; k++; } continue; }
+      if (q) { if (ch === "\\") { k++; continue; } if (ch === q) q = null; continue; }
+      if (ch === "/" && nx === "/") break;
+      if (ch === "/" && nx === "*") { block = true; k++; continue; }
+      if (ch === "'" || ch === '"' || ch === "`") { q = ch; continue; }
+      if (ch === "{") { depth++; seen = true; }
+      else if (ch === "}") { depth--; if (seen && depth === 0) return i; }
+    }
+    if (q !== "`") q = null; // strings comunes no cruzan líneas
+  }
+  return -1;
+}
+/** La función de primer nivel que contiene la línea `line`, o null. */
+export const functionAt = (js, line) => topLevelFunctions(js).find((f) => f.start <= line && line <= f.end) || null;
+/** Funciones de primer nivel que nombran un id (`'grid'`, `"#grid"`). */
+export function functionsUsingId(js, id) {
+  const lines = String(js || "").split("\n");
+  const re = new RegExp(`['"\`]#?${String(id).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}['"\`\\s.:\\[]`);
+  return topLevelFunctions(js).filter((f) => lines.slice(f.start - 1, f.end).some((l) => re.test(l)));
+}
+
 export function jsError(src, filename = "componente.js") {
   try { new vm.Script(String(src || ""), { filename }); return null; } catch (e) { return e.message; }
 }

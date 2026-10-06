@@ -3,7 +3,10 @@
 import { autoInvoke, scopeCss, scopeSelector, cleanTokens, normalizeComponentHtml, parseComponentResponse, applyComponentResponse,
   componentsFromPlan, initialState, assemble, tasksFor, jsError, wrapJs,
   assignTasks, mainComponent, notesText, dropRootRedeclare } from "./components.mjs";
-import { duplicateIds, repairSyntax } from "./specialist_components.mjs";
+import { duplicateIds, repairSyntax, runtimeTargets, replaceFunction, htmlLineToJs } from "./specialist_components.mjs";
+import { topLevelFunctions, functionAt, functionsUsingId } from "./components.mjs";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { locateJsError, jsWindow, spliceLines } from "./components.mjs";
 
 let ok = 0, fail = 0;
@@ -153,6 +156,26 @@ const noFix = await repairSyntax(rawBad, bwComp, async () => ({ raw: "no sé", m
 t("repairSyntax: sin bloque de código → no inventa nada (sigue el reintento completo)", noFix.raw === null && noFix.rounds[0].note === "sin bloque de código");
 const sameErr = await repairSyntax(rawBad, bwComp, async (s2, u) => ({ raw: "```javascript\n" + u.match(/```\n([\s\S]*?)\n```/)[1].split("\n").map((l) => l.replace(/^\s*\d+\| ?/, "")).join("\n") + "\n```", ms: 1 }));
 t("repairSyntax: si una ronda no avanza, corta", sameErr.raw === null && sameErr.rounds.length === 1 && sameErr.rounds[0].ok === false);
+
+// v0.7.6: reparación por función (Boxworld build 6 real)
+const b6 = readFileSync(fileURLToPath(new URL("../validation/fixtures/real_boxworld_b6/index.html", import.meta.url)), "utf8");
+const b6js = b6.match(/<script data-component="juego">\n\(function \(root\) \{\n  if \(!root\) return;\n([\s\S]*?)\n\}\)\(document/)[1];
+const fns = topLevelFunctions(b6js);
+t("topLevelFunctions: las 11 funciones de b6 con sus líneas", fns.length === 11 && fns.find((f) => f.name === "dibujar").start === 338 && fns.find((f) => f.name === "dibujar").end === 412, fns.map((f) => f.name).join());
+t("topLevelFunctions: flechas y llaves dentro de strings no confunden", topLevelFunctions("const f = (a) => {\n  const s = '}';\n  return `${a}}`;\n};\nfunction g() { return 1; }").map((f) => `${f.name}:${f.start}-${f.end}`).join() === "f:1-4,g:5-5");
+t("htmlLineToJs: línea 703 del index.html → 429 del componente.js", htmlLineToJs(b6, "juego", 703) === 429);
+t("functionAt / functionsUsingId", functionAt(b6js, 429).name === "mostrarMensaje" && functionsUsingId(b6js, "grid").map((f) => f.name).join() === "dibujar");
+const tg = runtimeTargets(b6js, {
+  jsErrors: [{ message: "Cannot set properties of null (setting 'textContent')", line: 703 }],
+  render: { id: "juego", ok: false, empty: ["#grid"] },
+  extra: [{ type: "not_won_immediately", result: "FAIL", detail: "con UN movimiento ya aparece la victoria", problem: "gana con un movimiento" }],
+}, b6, "juego");
+t("runtimeTargets: error de JS → su función; #grid vacío → la que lo dibuja; victoria → la que la calcula", tg.map((x) => x.fn.name).join() === "mostrarMensaje,dibujar,checkWinCondition", tg.map((x) => x.fn.name).join());
+const dib = fns.find((f) => f.name === "dibujar");
+const fixedDib = b6js.split("\n").slice(dib.start - 1, dib.end).join("\n").replace("tile.dataset.col = c;\n", "tile.dataset.col = c;\n            gridElement.appendChild(tile);\n");
+const rf = replaceFunction(b6js, dib, fixedDib);
+t("replaceFunction: reemplaza solo esa función y compila", rf.ok && rf.js.includes("gridElement.appendChild(tile);") && topLevelFunctions(rf.js).length === 11);
+t("replaceFunction: otra función o JS roto → rechazado", !replaceFunction(b6js, dib, "function otra() {}").ok && !replaceFunction(b6js, dib, "function dibujar() { if ( }").ok);
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

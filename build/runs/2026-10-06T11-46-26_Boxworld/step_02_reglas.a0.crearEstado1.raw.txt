@@ -1,0 +1,67 @@
+```javascript
+crearEstado: function(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+    let mapaBaseArray = [];
+
+    // 1. First pass: Identify all entities and determine objective locations
+    for (let r = 0; r < nivel.length; r++) {
+        for (let c = 0; c < nivel[r].length; c++) {
+            const char = nivel[r][c];
+
+            if (char === '@') {
+                jugador = { fila: r, col: c };
+            } else if (char === '$' || char === '*') {
+                // Boxes are at these coordinates
+                cajas.push({ fila: r, col: c });
+            } 
+            
+            // Objectives detection: Marked by '.', '*', or '+'
+            if (char === '.' || char === '*' || char === '+') {
+                objetivos.push({ fila: r, col: c });
+            }
+        }
+    }
+
+    // 2. Second pass: Build the map array (mapa) containing only '#', ' ', and '.'
+    for (let r = 0; r < nivel.length; r++) {
+        const rowChars = [];
+        for (let c = 0; c < nivel[r].length; c++) {
+            const char = nivel[r][c];
+
+            if (char === '#') {
+                rowChars.push('#');
+            } else if (char === ' ') {
+                // Floor space
+                rowChars.push(' ');
+            } else if (char === '.') {
+                // Explicit objective marker
+                rowChars.push('.');
+            } else if (char === '*') {
+                // Box on objective -> Objective spot remains '.' in the map
+                rowChars.push('.');
+            } else if (char === '+') {
+                // Player on objective -> Objective spot remains '.' in the map
+                rowChars.push('.');
+            } else if (char === '@' || char === '$') {
+                // Player or Box starting position, but not explicitly marked as an objective location 
+                // by '.', '*', or '+'. It reverts to a regular floor space ' '.
+                rowChars.push(' ');
+            } else {
+                 // Fallback for any unhandled character
+                rowChars.push(' ');
+            }
+        }
+        mapaBaseArray.push(rowChars);
+    }
+
+    return {
+        mapa: mapaBaseArray, 
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivos,
+        movimientos: 0
+    };
+}
+```

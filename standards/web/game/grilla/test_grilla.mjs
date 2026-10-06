@@ -1,19 +1,29 @@
-// test_game_files.mjs — partes deterministas del Specialist por archivos de web/game (v0.8).
-//   node profiles/web/game/test_game_files.mjs
+// test_grilla.mjs — Standard "juego de grilla" (DRAFT) corriendo sobre el motor general.
+//   node standards/web/game/grilla/test_grilla.mjs
+// Antes: profiles/web/game/test_game_files.mjs (game_files v0.8–v0.8.2). Mismos casos, ahora
+// el contrato/pruebas/sonda salen del Standard y los jueces del motor (harness/files_engine.mjs).
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import {
-  gameHints, validateLevels, loadScripts, runRuleTests, RULE_TESTS, screenProblems, cleanFragment, cleanCss,
-  pageHtml, extractFile, dibujoProblems, JS_FILES, CONTRACT, IDS, baselinePage,
-  findMember, replaceMember, topNames, clashes, shadowProblems,
-} from "./specialist_files.mjs";
-import { fixRedeclare } from "../specialist/encapsulation.mjs";
 import vm from "node:vm";
+import S, { gameHints, validateLevels, CONTRACT, IDS, SCRIPTS } from "./standard.mjs";
+import { RULE_TESTS } from "./acceptance.mjs";
 import { levelFromSpec, solve, levelsFromSpecs, nivelesJs } from "./levels.mjs";
+import * as E from "../../../../harness/files_engine.mjs";
+import { fixRedeclare } from "../../../../profiles/web/specialist/encapsulation.mjs";
+
+const { cleanFragment, cleanCss, extractFile, findMember, replaceMember, topNames, clashes, shadowProblems } = E;
+const step = (id) => S.steps.find((s) => s.id === id);
+const loadScripts = (codes) => E.loadScripts(codes, ["NIVELES", "Reglas"]);
+const runRuleTests = (R, niveles = []) => E.runAcceptance(R, niveles, step("reglas"));
+const dibujoProblems = (x) => E.probeProblems(x, step("dibujo"));
+const screenProblems = (html) => { const m = E.missingIds(html, IDS); return m.length ? [`faltan estos ids en juego.html: ${m.map((x) => "#" + x).join(", ")}.`] : []; };
+const JS_FILES = SCRIPTS;
+const pageHtml = (o) => E.pageHtml({ scripts: SCRIPTS, mainId: S.mainId, ...o });
+const baselinePage = (r, p) => E.baselinePage(r, p, S);
 
 let ok = 0, fail = 0;
 const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
-const ref = (n) => readFileSync(fileURLToPath(new URL(`../validation/fixtures/game_files_ok/${n}`, import.meta.url)), "utf8");
+const ref = (n) => readFileSync(fileURLToPath(new URL(`../../../../profiles/web/validation/fixtures/game_files_ok/${n}`, import.meta.url)), "utf8");
 
 // pistas del brief (Boxworld real)
 const h = gameHints({ features: ["El juego deberá tener al menos 5 niveles."], restricciones: ["El tamaño del mapa es 10 casilleros de largo x 10 casilleros de alto."] });
@@ -46,7 +56,7 @@ t("loadScripts: un while(true) no cuelga (timeout)", /timed out|Script execution
 
 // pantalla
 t("screenProblems: faltan ids", /faltan estos ids en juego.html: #tablero/.test(screenProblems("<div id='nivel'></div>")[0] || ""));
-t("screenProblems: la referencia tiene todos", screenProblems(readFileSync(fileURLToPath(new URL("../validation/fixtures/game_files_ok/index.html", import.meta.url)), "utf8")).length === 0);
+t("screenProblems: la referencia tiene todos", screenProblems(readFileSync(fileURLToPath(new URL("../../../../profiles/web/validation/fixtures/game_files_ok/index.html", import.meta.url)), "utf8")).length === 0);
 t("cleanFragment: saca documento entero, <script>, <style> y <link>", cleanFragment("<!DOCTYPE html><html><head><link rel=x></head><body><div id='tablero'></div><script>x()</script><style>a{}</style></body></html>") === "<div id='tablero'></div>");
 t("cleanCss: sin @import ni url externas", !/@import|https:/.test(cleanCss("@import url(x.css);\na{background:url('https://x/y.png')}")));
 const page = pageHtml({ title: "B", fragment: "<div id=\"tablero\"></div>", features: ["R1", "R2"] });
@@ -105,7 +115,7 @@ t("topNames: const/let/function al nivel superior", topNames("let nivelActual = 
 t("clashes: nombre ya declarado en otro archivo", clashes("let nivelActual = 0;", { "js/dibujo.js": "let nivelActual = 0;\nfunction dibujar() {}" })[0]?.includes('"nivelActual" ya está declarado en js/dibujo.js'));
 
 // v0.8.2: Boxworld b9 (reglas.js real de Gemma: const altura/ancho declarados dos veces en mover)
-const b9 = readFileSync(fileURLToPath(new URL("../validation/fixtures/real_boxworld_b9_reglas.js", import.meta.url)), "utf8");
+const b9 = readFileSync(fileURLToPath(new URL("../../../../profiles/web/validation/fixtures/real_boxworld_b9_reglas.js", import.meta.url)), "utf8");
 const compiles = (js) => { try { new vm.Script(js); return true; } catch { return false; } };
 t("b9: el reglas.js real no compila", !compiles(b9));
 const fr9 = fixRedeclare(b9);

@@ -1,0 +1,116 @@
+```javascript
+mover: function(estado, direccion) {
+        // Calcular dimensiones del mapa
+        const height = estado.mapa.length;
+        if (height === 0) return estado;
+        const width = estado.mapa[0].length;
+
+        let jugadorActual = estado.jugador;
+        // Creamos una copia mutable del array de cajas para asegurar inmutabilidad
+        let nuevasCajas = [...estado.cajas]; 
+        let nuevaPosicionJugador = { ...jugadorActual };
+        let movimientoExitoso = false;
+
+        // 1. Calcular la posición objetivo del jugador (sin considerar cajas)
+        let nextPlayerRow = jugadorActual.fila;
+        let nextPlayerCol = jugadorActual.col;
+
+        switch (direccion) {
+            case "arriba":
+                nextPlayerRow -= 1;
+                break;
+            case "abajo":
+                nextPlayerRow += 1;
+                break;
+            case "izquierda":
+                nextPlayerCol -= 1;
+                break;
+            case "derecha":
+                nextPlayerCol += 1;
+                break;
+        }
+
+        // 2. Validación de límites y paredes (usando el mapa base)
+        if (nextPlayerRow < 0 || nextPlayerRow >= height || nextPlayerCol < 0 || nextPlayerCol >= width) {
+            return estado; // Fuera de límites
+        }
+
+        // Verificar si la nueva posición es una pared ('#')
+        if (estado.mapa[nextPlayerRow][nextPlayerCol] === '#') {
+            return estado; // Colisión con pared
+        }
+
+        // 3. Comprobar colisiones con cajas
+        const cajaEnDestino = nuevasCajas.some(caja => caja.fila === nextPlayerRow && caja.col === nextPlayerCol);
+
+        if (!cajaEnDestino) {
+            // Movimiento simple (el destino está vacío o es objetivo)
+            nuevaPosicionJugador = { fila: nextPlayerRow, col: nextPlayerCol };
+            movimientoExitoso = true;
+        } else {
+            // El destino tiene una caja. Intentar empujar.
+            let cajaAEmpujarIndex = nuevasCajas.findIndex(caja => caja.fila === nextPlayerRow && caja.col === nextPlayerCol);
+
+            if (cajaAEmpujarIndex === -1) {
+                return estado; 
+            }
+            
+            // Usamos la copia de cajas para obtener los datos originales
+            const cajaOriginal = nuevasCajas[cajaAEmpujarIndex];
+
+            // Calcular la posición donde iría la caja después de ser empujada
+            let boxNextRow = cajaOriginal.fila;
+            let boxNextCol = cajaOriginal.col;
+
+            switch (direccion) {
+                case "arriba":
+                    boxNextRow -= 1;
+                    break;
+                case "abajo":
+                    boxNextRow += 1;
+                    break;
+                case "izquierda":
+                    boxNextCol -= 1;
+                    break;
+                case "derecha":
+                    boxNextCol += 1;
+                    break;
+            }
+
+            // Validación de la posición final de la caja: debe estar dentro, no ser pared y no tener otra caja.
+            if (boxNextRow >= 0 && boxNextRow < height && boxNextCol >= 0 && boxNextCol < width) {
+                const destinoCajaEsPared = estado.mapa[boxNextRow][boxNextCol] === '#';
+                
+                // Verificar si hay otra caja en la posición de destino (excluyendo la caja que estamos moviendo)
+                const hayOtraCajaEnDestino = nuevasCajas.some((c, index) => 
+                    index !== cajaAEmpujarIndex && c.fila === boxNextRow && c.col === boxNextCol
+                );
+
+                if (!destinoCajaEsPared && !hayOtraCajaEnDestino) {
+                    // ¡Éxito al empujar!
+                    nuevaPosicionJugador = { fila: nextPlayerRow, col: nextPlayerCol }; // El jugador se mueve a la caja original
+                    movimientoExitoso = true;
+
+                    // Actualizar la posición de la caja en el nuevo estado (la copia)
+                    const nuevaCajaActualizada = { ...cajaOriginal, fila: boxNextRow, col: boxNextCol };
+                    nuevaCajas[cajaAEmpujarIndex] = nuevaCajaActualizada;
+                }
+            }
+        }
+
+        if (movimientoExitoso) {
+            // Crear el estado final actualizado
+            const nuevoEstadoFinal = {
+                mapa: estado.mapa, // El mapa no cambia
+                jugador: nuevaPosicionJugador,
+                cajas: nuevasCajas, // Usamos la copia modificada
+                objetivos: estado.objetivos,
+                movimientos: estado.movimientos + 1
+            };
+            return nuevoEstadoFinal;
+        } else {
+            // Movimiento fallido, devolver el estado original (referencia)
+            return estado;
+        }
+    }
+```

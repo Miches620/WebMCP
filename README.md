@@ -51,7 +51,9 @@ Un snapshot de antes del 05/10 no declara tipo: agregale `--profile web/landing`
 | raíz | **Core**: `server.mjs` (API), `index.html` + `script.js` (UI y orquestación), `intent_brief.mjs` (Intent Forge), `techleader_prompt.mjs`, `atomic_engine_v5.js`, `plan_stage_check.mjs`, `completeness_reviewer3.mjs`, `review_gate.mjs`, `validation_profile_role_dependencies.mjs` |
 | `context/` | `ProjectStage.md`: etapas (PROTOTYPE / MVP / FINAL) y criterio que reciben TechLeader y el reviewer |
 | `build/` | **Core del build**: `run_build.mjs` (plan → Specialist → traducción → Validation con control → Evidence), `lm_stream.mjs`, `tokens.mjs` |
-| `profiles/` | **Validation Profiles + Standards por tipo**: `web` (plataforma), `web/landing`, `web/app`, `web/game`. Ver [`profiles/README.md`](profiles/README.md) |
+| `harness/` | **Motor general por archivos** (`files_engine.mjs`): corre los pasos que declara un Standard. No nombra ningún dominio (lo vigila `test_files_engine.mjs`) |
+| `standards/` | **Standards** (lo que recibe el Specialist para un tipo de proyecto): hoy `web/game/grilla` (DRAFT). Ver [`standards/README.md`](standards/README.md) |
+| `profiles/` | **Tipos de proyecto** (`web` plataforma, `web/landing`, `web/app`, `web/game`): plan, traductor, Validation y qué Standard usa cada uno. Ver [`profiles/README.md`](profiles/README.md) |
 | `pilot/`, `experiments/` | Piloto del formulario (30/09) y experimentos del reviewer y del traductor |
 | `evidence/`, `build/runs/` | Salidas de cada corrida (evidencia) |
 | `_archivo/` | Versiones anteriores, fuera de git |

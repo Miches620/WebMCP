@@ -1,0 +1,24 @@
+```javascript
+ganado: function(estado) {
+        // Si no hay objetivos, asumimos que el juego nunca se puede ganar por esta condición o ya está ganado si es un nivel trivial. 
+        if (estado.objetivos.length === 0) return false;
+
+        // Crear un set de coordenadas objetivo para búsqueda rápida
+        const objetivosSet = new Set();
+        estado.objetivos.forEach(obj => objectivesSet.add(`${obj.fila},${obj.col}`));
+
+        // Contar cuántos objetivos únicos han sido cubiertos por una caja
+        const objetivosCubiertos = new Set();
+
+        for (const caja of estado.cajas) {
+            const boxCoord = `${caja.fila},${caja.col}`;
+            
+            if (objetivosSet.has(boxCoord)) {
+                objetivosCubiertos.add(boxCoord);
+            }
+        }
+
+        // Se ha ganado si el número de objetivos cubiertos es igual al total de objetivos.
+        return objetivosCubiertos.size === estado.objetivos.length;
+    }
+```

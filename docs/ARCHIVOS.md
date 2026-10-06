@@ -38,7 +38,9 @@ Evidence por requisito: PASS / FAIL / SIN_EVIDENCIA / SIN_CHEQUEO   (build/runs/
 | `server.mjs` | Servidor HTTP (puerto 3000): sirve la UI y expone la API. |
 | `index.html` | UI: chat único (Intent Forge + decisiones), refined_prompt fijo, panel de razonamiento, lista de tareas y preview. |
 | `script.js` | Orquestación en el navegador: fases del chat, TechLeader, grafo, validaciones y reintentos. |
-| `profiles/` | **Validation Profiles + Standards por tipo de artefacto (05/10).** `registry.mjs` resuelve el tipo declarado (`refined_prompt.profiles`). Ver [`profiles/README.md`](../profiles/README.md). |
+| `harness/files_engine.mjs` | **Motor general del Specialist por archivos (06/10, files_engine v0.9).** Corre los pasos de un Standard; clases de paso `data` (JSON → .js que arma el Standard), `logic` (lógica pura cargada en Node + pruebas de aceptación del Standard + reparación por función), `screen` (HTML + CSS con los ids del Standard), `render` (sonda en Chromium del Standard), `wiring` (chequeos de interacción). Reintentos solo del archivo que falla, `fixRedeclare`, reparación de sintaxis por tramo, no-carga siempre pierde, pasos con `needs` que no se corren si lo de arriba está roto. Tests: `node harness/test_files_engine.mjs` (incluye "el motor no nombra ningún dominio"). |
+| `standards/` | **Standards por id (06/10).** `registry.mjs` (`getStandard`, falla fuerte). `web/game/grilla/` DRAFT v0.1: `standard.mjs` (contrato, pasos con su pedido, sonda, chequeos), `acceptance.mjs` (pruebas de `reglas.js`), `levels.mjs` (coordenadas → strings + solver), `test_grilla.mjs`. |
+| `profiles/` | **Tipos de proyecto (05/10).** `registry.mjs` resuelve el tipo declarado (`refined_prompt.profiles`). Ver [`profiles/README.md`](../profiles/README.md). |
 | `techleader_prompt.mjs` | System prompt de TechLeader; los roles y el rol de ejemplo salen del profile. |
 | `test_profiles.mjs` | 24 tests del registro de profiles, TechLeader, role_dependencies, Atomizer y traductor sin profile (fallan fuerte). |
 | `test_role_dependencies.mjs` | Corre los 8 tests de role_dependencies (el auto-arranque del módulo no dispara en Windows). |

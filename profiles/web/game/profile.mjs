@@ -15,9 +15,11 @@ export default {
   kind: "type",
   selectable: true,
   status: "DRAFT",
-  version: "0.2.1",
-  describe: "Juego de una pantalla escrito POR ARCHIVOS (juego.html, styles.css, js/niveles.js, js/reglas.js, js/dibujo.js, js/controles.js), un archivo por paso de Gemma con contrato fijo. Las reglas se prueban sin navegador; Validation prueba que se pueda jugar y que no se gane solo.",
+  version: "0.3",
+  describe: "Juego de una pantalla escrito POR ARCHIVOS, un archivo por paso de Gemma. Cómo se arma (archivos, contrato, pruebas) lo declara el Standard (hoy web/game/grilla, DRAFT); el motor es general. Validation prueba que se pueda jugar y que no se gane solo.",
   build: "web/game",
+  // v0.3 (06/10): el contrato, los pasos y las pruebas salieron del harness a un Standard DRAFT.
+  standard: "web/game/grilla",
   borrowed: {
     from: "web/landing",
     what: ["motor del Specialist por componentes (vía web/app)"],
@@ -26,7 +28,7 @@ export default {
   // Specialist por archivos (specialist_files.mjs), contrato NIVELES/Reglas/dibujar, pruebas de
   // reglas en Node con niveles del harness, chequeos game_levels / moves_one_cell / fixed_map_size.
   pending: [
-    "Correr v0.8.1 con Gemma real (b8 con v0.8: niveles imposibles de contar, niveles.js vacío por un bug del harness, reglas con el mismo bug en 3 reintentos).",
+    "Validation profile web/game que LEA el Standard (hoy check_catalog nombra Reglas/NIVELES por su cuenta: moves_one_cell, game_levels, fixed_map_size).",
     "El estilo (R8 NES 8 bits) sigue sin chequeo y Gemma lo ignoró en b2–b7.",
     "Próximo nivel después de ganar (cambia el tablero) todavía sin chequeo.",
     "Las reglas del Specialist salen de un Sokoban: ver si sirven para otro juego (snake, memoria, tetris) antes de generalizar.",

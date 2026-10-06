@@ -26,13 +26,23 @@ profiles/
     specialist_rules.mjs  A1–A4 (estado + dibujar(), un componente) y rulesBrief (restricciones → brief)
     test_app.mjs
   web/game/             TIPO juego — extends web/app (cadena web → web/app → web/game)
-    profile.mjs, build.mjs  build por ARCHIVOS (v0.2); --legacy-components = componente único (v0.7.6)
-    specialist_files.mjs    un archivo por paso de Gemma con contrato fijo: niveles → reglas (probadas
-                            en Node) → juego.html+styles.css → dibujo (probado en Chromium) → controles
+    profile.mjs, build.mjs  build por ARCHIVOS con el motor general (harness/files_engine.mjs) y el
+                            Standard que declara el profile (standard: "web/game/grilla", DRAFT);
+                            --legacy-components = componente único (v0.7.6)
     translator_rules.mjs    regla 6: board_changes, not_won_immediately, reset_restores, game_levels,
                             moves_one_cell, fixed_map_size
-    levels.mjs              niveles en coordenadas → strings Sokoban + solver (v0.8.1)
-    test_game_files.mjs
+```
+
+Fuera de profiles/ (06/10, esquema de Miche: Harness → Standard → Validation profile):
+
+```
+harness/files_engine.mjs     motor GENERAL por archivos (pasos data/logic/screen/render/wiring,
+                             reintentos, reparaciones, elegir intento, no culpar pasos de abajo).
+                             No nombra ningún dominio: lo vigila harness/test_files_engine.mjs
+standards/registry.mjs       Standards por id
+standards/web/game/grilla/   Standard DRAFT "juego de grilla": contrato, pasos con su pedido,
+                             pruebas de aceptación (acceptance.mjs), solver (levels.mjs), sonda
+                             del dibujo, chequeos de juego; test_grilla.mjs
 ```
 
 Un tipo puede extender otro tipo: `web/game` extiende `web/app`, que extiende `web`.

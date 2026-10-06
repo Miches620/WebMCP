@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-06d'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
+  const SEED = '2026-10-06e'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
   let state = loadState() || {
  "columns": [
   {
@@ -441,13 +441,19 @@
     },
     {
      "id": "n11",
-     "title": "1b · El contrato de web/game es Sokoban",
-     "desc": "[#Specialist] Deuda: CONTRACT, RULE_TESTS y el solver sirven para juegos de empujar cajas. Miche: 'no quiero que MicheLab sepa hacer boxworld y nada más'. Cuando b10 ande: separar motor (pasos por archivo, pruebas, reparaciones) de la 'familia de juego' (grilla+empujar como primera familia).",
+     "title": "1b · Paso 2: Validation profiles que lean el Standard",
+     "desc": "[#Validation] Partir check_catalog (63 KB, todo mezclado) en framework + profiles web → web/app → web/game. El profile ve qué Standard usó el Specialist y verifica eso (hoy moves_one_cell, game_levels y fixed_map_size nombran Reglas/NIVELES por su cuenta). Las pruebas de reglas.js las corre el motor: que sea el mismo código del Validation profile, sin duplicar.",
+     "priority": "urgente"
+    },
+    {
+     "id": "n13",
+     "title": "1c · Paso 3: skills del Role web/game",
+     "desc": "[#Skills] 3 o 4 fichas cortas, cada una nacida de un error real (b8: state/estado; b9: cajas buscadas en el mapa, variable tapada). DRAFT: se mide con y sin skill. La pista 'en estado.mapa no hay cajas' sale del contrato y va acá. Solo entra en el paso que corresponde (16k de contexto).",
      "priority": "medio"
     },
     {
      "id": "n12",
-     "title": "1c · Niveles demasiado fáciles",
+     "title": "1d · Niveles demasiado fáciles",
      "desc": "[#Specialist] b9: 5 niveles resolubles pero de 2 a 8 empujes, cajas en línea al lado del objetivo. El solver ya cuenta empujes: pedir dificultad creciente medible (sin bloquear el build).",
      "priority": "bajo"
     },
@@ -521,6 +527,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h17",
+     "title": "06/10 · Paso 1: Boxworld fuera del harness",
+     "desc": "[#Arquitectura] Esquema de Miche: Harness → Standard → Validation profile. harness/files_engine.mjs (motor general, no nombra ningún dominio: lo vigila un test) + standards/web/game/grilla (Standard DRAFT: contrato, 5 pasos, pruebas, solver, sonda). Con LM Studio simulado la app sale idéntica a v0.8.2.",
+     "priority": "bajo"
+    },
     {
      "id": "h16",
      "title": "06/10 · b9 → v0.8.2",

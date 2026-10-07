@@ -37,7 +37,7 @@ import { runChecks } from "../profiles/web/validation/check_catalog.mjs";
 import { rulesBrief } from "../profiles/web/app/specialist_rules.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
 
-export const ENGINE_VERSION = "files_engine v0.9.4";
+export const ENGINE_VERSION = "files_engine v0.9.5";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
@@ -272,6 +272,11 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
   const ctx = { hints, notes, fragment: "", data: {}, files, total: S.steps.length, paso: "" };
   const steps = [];
   const byId = {};
+  // opts.skills = { role, status, list: [{ id, kinds, text }] } (lo arma el profile con el Role)
+  const skillsFor = (kind) => {
+    const mine = (opts.skills?.list || []).filter((x) => x.kinds.includes(kind));
+    return mine.length ? `HABILIDADES (lo que sabe hacer un programador con experiencia en este tipo de proyecto):\n${mine.map((x) => `- ${x.text}`).join("\n")}` : "";
+  };
   const page = (scripts, inline = "", fr = ctx.fragment) => pageHtml({ title, fragment: fr, features, scripts, inline, mainId: S.mainId });
 
   const ask = async (system, user, cap) => {
@@ -304,7 +309,9 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
       // datos: lo válido ya quedó guardado; el reintento pide solo lo que falta (b11: los reintentos
       // re-mandaban los 5 niveles y repetían el mismo error)
       const retry = st.kind === "data" ? (problems.length ? `PROBLEMAS DE TU RESPUESTA ANTERIOR (los encontró el harness):\n${problems.map((p) => "- " + p).join("\n")}` : "") : retryBlock(prev, problems, names);
-      const user = `BRIEF:\n${brief}\n\n${S.contract}\n\n${st.prompt(ctx)}\n\n` + retry;
+      // v0.9.5 (paso 3): Skills del Role para ESTA clase de paso (opts.skills; sin --skills el pedido no cambia)
+      const sk = skillsFor(st.kind);
+      const user = `BRIEF:\n${brief}\n\n${S.contract}\n\n${sk ? sk + "\n\n" : ""}${st.prompt(ctx)}\n\n` + retry;
       const r = await ask(FILE_PROMPT, user, st.cap || 4000);
       writeFileSync(join(outDir, `step_${String(n).padStart(2, "0")}_${st.id}${k ? ".retry" + k : ""}.raw.txt`), r.raw, "utf8");
       let raw = r.raw;
@@ -391,7 +398,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
           out.items.forEach((item, i) => { const k = JSON.stringify(item); if (!seen.has(k)) { seen.add(k); pool.push({ item, report: out.reports[i] }); } });
           c.parsed = final();
           const need = st.need(ctx);
-          return pool.length >= need ? [] : fatal([...out.dropped, st.missing(pool.length, need)]);
+          return pool.length >= need ? [] : fatal([...out.dropped, st.missing(pool.length, need, ctx)]);
         },
         final,
         count: () => pool.length,
@@ -426,7 +433,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
             const fn = failed.find((f) => f.fn && !rounds.some((r) => r.fn === f.fn && !r.ok))?.fn;
             const m = fn && findMember(code, fn);
             if (!m) break;
-            const user = `${S.contract}\n\nPRUEBAS DEL HARNESS QUE FALLAN (${fn}):\n${failed.filter((f) => f.fn === fn).map((f) => "- " + f.detail).join("\n")}\n\nFUNCIÓN A CORREGIR (${fn}):\n${fence("javascript", m.text)}`;
+            const user = `${S.contract}\n\n${skillsFor("logic") ? skillsFor("logic") + "\n\n" : ""}PRUEBAS DEL HARNESS QUE FALLAN (${fn}):\n${failed.filter((f) => f.fn === fn).map((f) => "- " + f.detail).join("\n")}\n\nFUNCIÓN A CORREGIR (${fn}):\n${fence("javascript", m.text)}`;
             const r = await ask(memberFixPrompt(st.file, st.label || "lógica pura, sin DOM"), user, st.cap || 5000);
             writeFileSync(join(outDir, `step_${String(steps.length + 1).padStart(2, "0")}_${st.id}.a${att.k ?? 0}.${fn}${k + 1}.raw.txt`), r.raw, "utf8");
             const got = (String(r.raw || "").match(/```(?:javascript|js)?\n([\s\S]*?)```/) || [])[1];
@@ -515,6 +522,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
     }),
   };
 
+  if (opts.skills) log(`[SPECIALIST] Skills del Role ${opts.skills.role} (${opts.skills.status}): ${opts.skills.list.map((x) => x.id).join(", ")}`);
   log(`[SPECIALIST] ${ENGINE_VERSION} · Standard ${S.id} v${S.version} (${S.status}): ${S.steps.length} pasos chicos (un archivo por paso)${S.hintsText ? ` · ${S.hintsText(hints)}` : ""}`);
   const out = {};
   for (const [i, st] of S.steps.entries()) {
@@ -555,6 +563,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
   const firstLogic = S.steps.find((s) => s.kind === "logic");
   return {
     model, specialist_version: ENGINE_VERSION, standard: { id: S.id, version: S.version, status: S.status },
+    skills: opts.skills ? { role: opts.skills.role, status: opts.skills.status, ids: opts.skills.list.map((x) => x.id) } : null,
     files: ["index.html", "styles.css", ...S.scripts],
     hints, data: Object.fromEntries(Object.entries(ctx.data).map(([k, v]) => [k, v.summary])),
     rule_tests: firstLogic ? out.acceptance?.[firstLogic.id] : undefined, acceptance: out.acceptance,

@@ -15,11 +15,13 @@ export default {
   kind: "type",
   selectable: true,
   status: "DRAFT",
-  version: "0.3.1",
+  version: "0.4",
   describe: "Juego de una pantalla escrito POR ARCHIVOS, un archivo por paso de Gemma. Cómo se arma (archivos, contrato, pruebas) lo declara el Standard (hoy web/game/grilla, DRAFT); el motor es general. Validation prueba que se pueda jugar y que no se gane solo.",
   build: "web/game",
   // v0.3 (06/10): el contrato, los pasos y las pruebas salieron del harness a un Standard DRAFT.
   standard: "web/game/grilla",
+  // paso 3 (07/10): Role del Specialist, con sus Skills DRAFT (roles/web-game/). Se usan con --skills.
+  role: "web-game",
   borrowed: {
     from: "web/landing",
     what: ["motor del Specialist por componentes (vía web/app)"],

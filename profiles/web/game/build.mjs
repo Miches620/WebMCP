@@ -9,6 +9,7 @@ import { makeScreenBuild } from "../app/build.mjs";
 import { buildFiles, baselinePage } from "../../../harness/files_engine.mjs";
 import { getStandard } from "../../../standards/registry.mjs";
 import profile from "./profile.mjs";
+import { loadRole } from "../../../roles/registry.mjs";
 import { GAME_TRANSLATOR } from "./translator_rules.mjs";
 import { GAME_SPECIALIST_RULES } from "./specialist_rules.mjs";
 
@@ -69,7 +70,14 @@ export function postprocessChecks(checks = [], _id, text = "") {
 // Gemma. --legacy-components vuelve al componente único de v0.7.6 (todo el juego en una respuesta).
 export function build(input, outDir, opts = {}) {
   if (opts.legacyComponents || process.argv.includes("--legacy-components")) return GAME.build(input, outDir, opts);
-  return buildFiles(input, outDir, { ...opts, standard: getStandard(profile.standard) });
+  return (async () => {
+    // paso 3 (07/10): --skills suma las Skills del Role (DRAFT) a cada paso de su clase. Sin el
+    // flag el pedido a Gemma es idéntico al de antes (así se mide con y sin).
+    const withSkills = opts.skills ?? process.argv.includes("--skills");
+    const role = withSkills ? await loadRole(profile.role) : null;
+    const skills = role ? { role: role.id, status: role.status, list: role.skills } : null;
+    return buildFiles(input, outDir, { ...opts, skills, standard: getStandard(profile.standard) });
+  })();
 }
 export function writeBaseline(baselineDir, input, basePlan, specialist) {
   if (!specialist?.standard) return GAME.writeBaseline(baselineDir, input, basePlan, specialist);

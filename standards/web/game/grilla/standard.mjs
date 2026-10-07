@@ -136,7 +136,8 @@ Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su
         return { items: L1.levels, reports: L1.report.filter((r) => r.ok), dropped: L1.problems };
       },
       need: (c) => size(c.hints).min,
-      missing: (have, need) => `hay ${have} niveles válidos (juntando tus respuestas anteriores) y se piden al menos ${need}: mandá SOLO ${need - have} nivel(es) NUEVO(S). Lo más seguro: 1 o 2 cajas en el medio del mapa (filas 3 a 6, columnas 3 a 6), cada una a 1 o 2 casilleros de su objetivo, sin paredes alrededor.`,
+      missing: (have, need, c) => { const z = size(c?.hints || {}); const lo = 3, hiR = z.rows - 4, hiC = z.cols - 4; // 10x10 → 3 a 6 (igual que en b14: así Boxworld sin skills = b14)
+        return `hay ${have} niveles válidos (juntando tus respuestas anteriores) y se piden al menos ${need}: mandá SOLO ${need - have} nivel(es) NUEVO(S). Lo más seguro: 1 o 2 cajas en el medio del mapa (filas ${lo} a ${hiR}, columnas ${lo} a ${hiC}), cada una a 1 o 2 casilleros de su objetivo, sin paredes alrededor.`; },
       // dificultad creciente medible: se ordenan por cantidad de empujes que necesitó el solver
       emit: (items, reports) => {
         const order = items.map((it, i) => i).sort((a, b) => (reports[a]?.pushes ?? 99) - (reports[b]?.pushes ?? 99));

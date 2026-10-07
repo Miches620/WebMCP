@@ -228,5 +228,8 @@ const r2b14 = postprocessChecks([{ type: "control_visible", params: { text: ["re
 t("traductor web/game: R2 de b14 ('proximo nivel') suma game_scenario", r2b14.some((x) => x.type === "game_scenario") && r2b14.length === 3);
 t("traductor web/game: un requisito sin 'próximo nivel' no suma game_scenario", !postprocessChecks([{ type: "board_changes", params: {} }], "R4", "El avatar se mueve mediante las flechas del teclado.").some((x) => x.type === "game_scenario"));
 
+// paso 3: la sugerencia del nivel que falta sale del tamaño del mapa (10x10: filas 3 a 6, como en b14; 8x8: 3 a 4)
+t("niveles: 'lo más seguro' según el tamaño del mapa", /filas 3 a 6, columnas 3 a 6/.test(step("niveles").missing(4, 5, { hints: { rows: 10, cols: 10 } })) && /filas 3 a 4, columnas 3 a 4/.test(step("niveles").missing(1, 4, { hints: { rows: 8, cols: 8 } })));
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

@@ -226,7 +226,7 @@ const evidence = {
   summary: { requisitos: coverage.length, PASS: count("PASS"), FAIL: count("FAIL"), SIN_EVIDENCIA: count("SIN_EVIDENCIA"), SIN_CHEQUEO: count("SIN_CHEQUEO") },
   control: "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
   coverage,
-  specialist: specialist && { model: specialist.model, version: specialist.specialist_version, standard: specialist.standard, tasks_assigned: specialist.tasks_assigned, files: specialist.files, rule_tests: specialist.rule_tests, steps: specialist.steps.map(({ n, task_id, role, ms, finish_reason, chars, changed, rejected, error, no_change, contract_retry, contract }) => ({ n, task_id, role, ms, finish_reason, chars, changed, rejected, error, no_change, contract_retry, contract_missing: contract?.missing })) },
+  specialist: specialist && { model: specialist.model, version: specialist.specialist_version, standard: specialist.standard, skills: specialist.skills || null, tasks_assigned: specialist.tasks_assigned, files: specialist.files, rule_tests: specialist.rule_tests, steps: specialist.steps.map(({ n, task_id, role, ms, finish_reason, chars, changed, rejected, error, no_change, contract_retry, contract }) => ({ n, task_id, role, ms, finish_reason, chars, changed, rejected, error, no_change, contract_retry, contract_missing: contract?.missing })) },
 };
 writeFileSync(join(outDir, "evidence.json"), JSON.stringify(evidence, null, 2));
 

@@ -209,5 +209,19 @@ t("winsInOneMove: el nivel 1 de b12 se gana con una flecha", winsInOneMove(b12n1
 t("levelsFromSpecs: un nivel que se gana con un movimiento se descarta y se dice por qué", (() => { const r = levelsFromSpecs({ niveles: [{ jugador: [3, 3], cajas: [[3, 4]], objetivos: [[3, 5]] }] }, { rows: 10, cols: 10, minLevels: 0 }); return r.levels.length === 0 && /se gana con UN solo movimiento/.test(r.problems[0]); })());
 t("los niveles de prueba del escenario siguen ganándose con una flecha (a propósito)", winsInOneMove(loadScripts([step("controles").scenarios[0].files["js/niveles.js"]]).NIVELES[0]));
 
+// v0.1.5 (Miche jugando b12: al ganar, el tablero se estiraba)
+const stb = step("pantalla").stable;
+const stDir = fileURLToPath(new URL("../../../../build/runs/_test_stable/", import.meta.url));
+const stable = async (css, html) => {
+  mkdirSync(stDir, { recursive: true });
+  writeFileSync(stDir + "styles.css", css);
+  writeFileSync(stDir + "index.html", E.pageHtml({ title: "t", fragment: E.cleanFragment(html.replace(/<main[^>]*>|<\/main>/g, "")), scripts: [], inline: E.stableProbe(stb), mainId: "juego" }));
+  return E.stableProblems((await E.probePage(stDir + "index.html")).probe, stb);
+};
+const st12 = await stable(fx("real_boxworld_b12/styles.css"), fx("real_boxworld_b12/index.html"));
+t("pantalla b12: con el mensaje largo el tablero se estira y aparecen huecos → problema con la pista", st12.length === 1 && /cambia de tamaño/.test(st12[0]) && /huecos/.test(st12[0]), JSON.stringify(st12));
+t("pantalla b12 con #tablero { width: max-content } → estable", (await stable(fx("real_boxworld_b12/styles.css").replace("#tablero {", "#tablero { width: max-content; margin: 0 auto;"), fx("real_boxworld_b12/index.html"))).length === 0);
+t("pantalla b11 (tablero de 600px fijos) → estable", (await stable(b11("styles.css"), b11("index.html"))).length === 0);
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

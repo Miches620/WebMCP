@@ -13,7 +13,12 @@ import { planPage as planApp, planText } from "./page_plan.mjs";
 import { APP_TRANSLATOR } from "./translator_rules.mjs";
 import { APP_SPECIALIST_RULES, rulesBrief } from "./specialist_rules.mjs";
 
-export { runChecks, normalizeCheck, CATALOG_VERSION } from "../validation/check_catalog.mjs";
+// paso 2 (06/10): Validation profile de este tipo = cadena web → web/app (no el catálogo entero)
+import { validationFor, CATALOG_VERSION } from "../validation/check_catalog.mjs";
+export { CATALOG_VERSION };
+const V = validationFor(["web", "web/app"]);
+export const { runChecks, normalizeCheck } = V;
+export const validationProfile = V.ids;
 export { planText, PAGE_PLAN_VERSION } from "./page_plan.mjs";
 
 // Una sola pantalla con todo el juego/app adentro: Boxworld build 3 usó 7117 de 8000

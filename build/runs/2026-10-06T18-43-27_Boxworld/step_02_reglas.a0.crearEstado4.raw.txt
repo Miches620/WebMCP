@@ -1,0 +1,69 @@
+```javascript
+crearEstado: function(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+        let mapaSimplificado = [];
+
+        const rows = nivel.length;
+        if (rows === 0) return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+        const cols = nivel[0].length;
+
+        let playerFound = false; // Flag to ensure only one player location is recorded
+
+        // Recorrer el nivel para identificar elementos y construir el mapa base
+        for (let r = 0; r < rows; r++) {
+            let filaActualChars = [];
+            for (let c = 0; c < cols; c++) {
+                const char = nivel[r][c];
+                let mapChar = ' '; // Default assumption for the simplified map
+
+                // --- Entity Detection and Collection ---
+                
+                // Player detection: @ or +
+                if (char === '@' || char === '+') {
+                    if (!playerFound) {
+                        jugador = { fila: r, col: c };
+                        playerFound = true;
+                    }
+                }
+
+                // Crate detection: $, *
+                if (char === '$' || char === '*') {
+                    cajas.push({ fila: r, col: c });
+                }
+
+                // Objective detection: ., +, *
+                if (char === '.' || char === '+' || char === '*') {
+                    objetivos.push({ fila: r, col: c });
+                }
+                
+                // --- Map Construction Logic (Priority: Wall > Objective > Floor) ---
+                
+                if (char === '#') {
+                    mapChar = '#'; // Pared
+                } else if (char === '.' || char === '+' || char === '*') { 
+                    // If it's an objective marker, the map must show '.'
+                    mapChar = '.'; 
+                } else if (char === '$' || char === '@' || char === ' ') { 
+                    // Crate, Player, or Empty space occupy floor space in the simplified map.
+                    mapChar = ' ';
+                } else {
+                    // Catch all for safety/unknown characters
+                    mapChar = ' ';
+                }
+
+                filaActualChars.push(mapChar);
+            }
+            mapaSimplificado.push(filaActualChars.join(''));
+        }
+
+        return {
+            mapa: mapaSimplificado,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+```

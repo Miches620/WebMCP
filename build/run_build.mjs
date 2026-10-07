@@ -181,8 +181,18 @@ const renderGate = (id) => {
   const bad = (render.components || []).filter((x) => !x.ok && featuresOf(x.id).includes(id));
   return bad.length ? { type: "components_render", gate: true, result: "FAIL", detail: bad.map((x) => `#${x.id}: su JS no dibujó nada (${x.empty.slice(0, 4).join(", ")} vacíos)`).join("; ") } : null;
 };
+// Paso 2 (06/10): chequeos que el Validation profile del tipo corre SIEMPRE (web/game: que las
+// piezas se distingan a la vista y que el tablero no se deforme). Los que son compuerta hacen
+// FAIL los requisitos anclados en la pantalla; los demás quedan informados en la evidencia.
+const always = B.validationAlways?.length ? await B.runChecks(artifact, B.validationAlways.map(({ gate, ...c }) => c)) : [];
+always.forEach((x, k) => { x.gate = !!B.validationAlways[k].gate; });
+const anchoredIds = new Set((visibility.anchors || []).flatMap((a) => a.features || []));
+const alwaysGate = (id) => {
+  const bad = always.filter((x) => x.gate && x.result === "FAIL");
+  return bad.length && anchoredIds.has(id) ? { type: bad.map((x) => x.type).join("+"), gate: true, result: "FAIL", detail: bad.map((x) => x.detail).join(" | ").slice(0, 300) } : null;
+};
 for (const r of reqChecks) {
-  const gates = [visGate(r.id), renderGate(r.id)].filter(Boolean);
+  const gates = [visGate(r.id), renderGate(r.id), alwaysGate(r.id)].filter(Boolean);
   const gate = gates[0] || null;
   if (!r.checks.length) {
     coverage.push(gate ? { id: r.id, text: r.text, verdict: "FAIL", reason: gates.some((g) => g.type === "components_render") ? "sin chequeos del traductor, pero su componente no dibujó nada" : "sin chequeos del traductor, pero su pieza no se ve", checks: gates }
@@ -212,6 +222,7 @@ const evidence = {
   artifact_loads_without_js_errors: smoke[0].result === "PASS",
   sections_visible: { result: visibility.result, features: visibility.features || {}, anchors: visibility.anchors || [], detail: visibility.detail },
   components_render: { result: render.result, components: render.components || [], detail: render.detail },
+  validation: { profile: B.validationProfile || null, standard: specialist?.standard || null, always: always.map(({ type, result, detail, gate }) => ({ type, result, detail, gate })) },
   summary: { requisitos: coverage.length, PASS: count("PASS"), FAIL: count("FAIL"), SIN_EVIDENCIA: count("SIN_EVIDENCIA"), SIN_CHEQUEO: count("SIN_CHEQUEO") },
   control: "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
   coverage,
@@ -223,6 +234,8 @@ log("\n=== Cobertura por requisito (Validation) ===");
 log(`carga sin errores de JS: ${evidence.artifact_loads_without_js_errors ? "sí" : "NO — " + smoke[0].detail}`);
 log(`componentes que dibujan algo: ${render.result === "PASS" ? "todos" : render.result === "FAIL" ? "NO — " + (render.components || []).filter((x) => !x.ok).map((x) => `#${x.id} (${x.empty.slice(0, 3).join(", ")} vacíos)`).join("; ") : render.detail}`);
 log(`piezas visibles al llegar con el scroll: ${visibility.result === "PASS" ? "todas" : visibility.result === "FAIL" ? "NO — " + visibility.detail.split("; ").filter((p) => p.endsWith("✗")).join("; ") : visibility.detail}`);
+if (B.validationProfile) log(`Validation profile: ${B.validationProfile.join(" → ")}${specialist?.standard ? ` · Standard ${specialist.standard.id} v${specialist.standard.version}` : ""}`);
+for (const x of always) log(`${x.gate ? "compuerta" : "informa"} ${x.type}: ${x.result}${x.result === "PASS" ? "" : " — " + x.detail}`);
 for (const c of coverage) {
   log(`${c.verdict.padEnd(11)} ${c.id} ${c.text.slice(0, 70)}`);
   for (const x of c.checks.filter((x) => x.result !== "PASS")) log(`             ✗ ${x.type}: ${x.detail}`);

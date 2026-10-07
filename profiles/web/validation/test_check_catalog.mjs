@@ -1,7 +1,9 @@
 // test_check_catalog.mjs — el catálogo sobre los fixtures del piloto, con chequeos escritos a mano.
 //   node validation/test_check_catalog.mjs
 import { fileURLToPath } from "node:url";
-import { runChecks, normalizeCheck, keysFrom } from "./check_catalog.mjs";
+import { runChecks, normalizeCheck, keysFrom, validationFor, VALIDATION_PROFILES } from "./check_catalog.mjs";
+import GRILLA from "../../../standards/web/game/grilla/standard.mjs";
+import { readFileSync } from "node:fs";
 
 const F = (n) => fileURLToPath(new URL(`../../../pilot/fixtures/${n}.html`, import.meta.url));
 const CHECKS = [
@@ -141,11 +143,41 @@ const GAMEC = [
   { type: "board_changes", params: {} },
 ].map(normalizeCheck);
 for (const [name, exp] of Object.entries({ "game_files_ok/index": "PPPPPP", "real_boxworld_b7/index": "FFFPPP", sections_vacio: "FFFFFF" })) {
-  const r = await runChecks(S(name), GAMEC);
+  // paso 2: los chequeos del contrato leen el Standard que siguió el Specialist
+  const r = await runChecks(S(name), GAMEC, { env: { standard: GRILLA } });
   const got = r.map((x) => x.result[0]).join("");
   if (got === exp) { ok++; console.log(`✓ juego por archivos ${name} ${got}`); }
   else { fail++; console.log(`✗ juego por archivos ${name} esperado ${exp} dio ${got}\n    ${r.map((x) => `${x.type}: ${x.detail}`).join("\n    ")}`); }
 }
+// ---- paso 2 (06/10): Validation profiles por tipo, leyendo el Standard ----
+const t2 = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
+{
+  const sinStd = await runChecks(S("game_files_ok/index"), GAMEC.slice(0, 3));
+  t2("sin Standard, los chequeos del contrato dan NOT_APPLICABLE (no se inventa un contrato)", sinStd.every((x) => x.result === "NOT_APPLICABLE" && /sin Standard/.test(x.detail)), sinStd.map((x) => x.detail).join(" | "));
+  const game = validationFor(["web", "web/app", "web/game"], { standard: GRILLA });
+  const land = validationFor(["web", "web/landing"]);
+  t2("validationFor: web/game tiene lo de web + web/app + web/game y no lo de landing", ["no_js_errors", "key_changes", "board_changes", "game_scenario"].every((x) => game.catalog[x]) && !game.catalog.carousel);
+  t2("validationFor: web/landing no tiene chequeos de juego", land.catalog.carousel && !land.catalog.board_changes && !land.catalog.game_levels);
+  // el profile de juego no nombra el contrato de Boxworld: lo lee del Standard
+  const src = readFileSync(fileURLToPath(new URL("../game/validation.mjs", import.meta.url)), "utf8").replace(/\/\/.*$/gm, "");
+  // identificadores del contrato (no las palabras "tablero" o "mensaje" en un texto para el traductor)
+  const hits = [...new Set(src.match(/\b(NIVELES|Reglas|crearEstado|mover)\b|["'#](tablero|mensaje|btn-[a-z]+)["']/g) || [])];
+  t2("el Validation profile web/game no nombra el contrato (NIVELES, Reglas, #tablero…): lo lee del Standard", hits.length === 0, hits.join(", "));
+  const G = (n, checks) => game.runChecks(S(n), checks.map(game.normalizeCheck));
+  const [s11] = await G("real_boxworld_b11/index", [{ type: "game_scenario", params: {} }]);
+  t2("game_scenario b11 (al ganar quedaba bloqueado, lo encontró Miche) → FAIL", s11.result === "FAIL" && /queda bloqueado/.test(s11.detail), s11.detail);
+  const [s12, l12, k12] = await G("real_boxworld_b12/index", [{ type: "game_scenario", params: {} }, { type: "layout_stable", params: {} }, { type: "looks_distinct", params: {} }]);
+  t2("game_scenario b12 → PASS", s12.result === "PASS", s12.detail);
+  t2("layout_stable b12 (con el mensaje largo el tablero se estiraba) → FAIL", l12.result === "FAIL" && /huecos/.test(l12.detail), l12.detail);
+  t2("looks_distinct b12 → PASS", k12.result === "PASS", k12.detail);
+  const [k11] = await G("real_boxworld_b11/index", [{ type: "looks_distinct", params: {} }]);
+  t2("looks_distinct b11 (caja y jugador por borde y brillo; Miche lo jugó) → PASS", k11.result === "PASS", k11.detail);
+  const [okS, okL] = await G("game_files_ok/index", [{ type: "game_scenario", params: {} }, { type: "layout_stable", params: {} }]);
+  t2("referencia game_files_ok: escenario y layout PASS", okS.result === "PASS" && okL.result === "PASS", okS.detail + " | " + okL.detail);
+  const base = await G("sections_vacio", [{ type: "game_scenario", params: {} }, { type: "looks_distinct", params: {} }, { type: "layout_stable", params: {} }]);
+  t2("esqueleto vacío: los 3 chequeos nuevos no pasan (discriminan)", base.every((x) => x.result !== "PASS"), base.map((x) => x.result + " " + x.detail).join(" | "));
+}
+
 if (normalizeCheck({ type: "game_levels", params: { min: ["5"] } })) { ok++; console.log("✓ normalizeCheck acepta un número como parámetro"); } else { fail++; console.log("✗ normalizeCheck rechazó min: ['5']"); }
 const kf = [keysFrom(["flechas"]).length === 4, keysFrom(["espacio"]).join() === "Space", keysFrom([]).length === 4, keysFrom(["arriba", "w"]).join() === "ArrowUp,w"];
 if (kf.every(Boolean)) { ok++; console.log("✓ keysFrom"); } else { fail++; console.log("✗ keysFrom", kf); }

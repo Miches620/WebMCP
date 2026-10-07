@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-06i'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
+  const SEED = '2026-10-07a'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
   let state = loadState() || {
  "columns": [
   {
@@ -437,12 +437,6 @@
      "id": "g2",
      "title": "1 · URGENTE · web/app por archivos (si b8 anda)",
      "desc": "[#Specialist] Misma fórmula para el Kanban: datos.js, estado.js (probado sin navegador: crear/editar/borrar/mover tarjeta), vista.js, eventos.js.",
-     "priority": "urgente"
-    },
-    {
-     "id": "n11",
-     "title": "1b · Paso 2: Validation profiles que lean el Standard",
-     "desc": "[#Validation] Partir check_catalog (63 KB, todo mezclado) en framework + profiles web → web/app → web/game. El profile ve qué Standard usó el Specialist y verifica eso (hoy moves_one_cell, game_levels y fixed_map_size nombran Reglas/NIVELES por su cuenta). Llevar el escenario 'ganar y seguir' a Validation (R2). Sumar un chequeo VISUAL: b10 dio 5 PASS con el tablero vacío a la vista. Las pruebas de reglas.js las corre el motor: que sea el mismo código del Validation profile, sin duplicar.",
      "priority": "urgente"
     },
     {
@@ -515,8 +509,8 @@
    "cards": [
     {
      "id": "g3",
-     "title": "Boxworld b13 (motor v0.9.3 + grilla v0.1.4)",
-     "desc": "[#Specialist] Confirmar que b12 no fue suerte: mismo resultado con escenarios y sin niveles de un movimiento. Después: paso 2 (Validation profiles).",
+     "title": "Boxworld b14 con Validation por tipo",
+     "desc": "[#Validation] Primera corrida real con los Validation profiles. Mirar en el log: 'Validation profile: web → web/app → web/game · Standard …', las líneas 'compuerta looks_distinct' e 'informa layout_stable', y si R2 trae game_scenario.",
      "priority": "urgente"
     }
    ]
@@ -527,6 +521,18 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h22",
+     "title": "07/10 · Paso 2: Validation profiles por tipo",
+     "desc": "[#Validation] check_catalog (63 KB) → framework + un Validation profile por tipo (web, web/landing, web/app, web/game), cada build usa solo su cadena. web/game LEE el Standard (no nombra NIVELES/Reglas/#tablero). Nuevos: game_scenario, looks_distinct (compuerta), layout_stable. Mismos resultados que antes en los fixtures; b11 y b12 ahora dan FAIL donde correspondía.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h21",
+     "title": "06/10 · b13: 7 PASS / 0 FAIL otra vez",
+     "desc": "[#Specialist] Los 5 pasos OK. Ningún error de Gemma fue nuevo: todos tenían su chequeo y se corrigieron en 1–2 reintentos (incluido el bloqueo al ganar y el tablero que se estiraba). Niveles con 2 a 20 empujes. n=2 builds seguidos.",
+     "priority": "bajo"
+    },
     {
      "id": "h20",
      "title": "06/10 · b12: 7 PASS / 0 FAIL, se ve y se juega",

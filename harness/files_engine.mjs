@@ -27,8 +27,6 @@
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import vm from "node:vm";
-import { chromium } from "playwright";
-import { pathToFileURL } from "node:url";
 import { chatStream } from "../build/lm_stream.mjs";
 import { estTokens } from "../build/tokens.mjs";
 import { briefText } from "../profiles/web/landing/specialist_spa.mjs";
@@ -39,7 +37,7 @@ import { runChecks } from "../profiles/web/validation/check_catalog.mjs";
 import { rulesBrief } from "../profiles/web/app/specialist_rules.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
 
-export const ENGINE_VERSION = "files_engine v0.9.3";
+export const ENGINE_VERSION = "files_engine v0.9.4";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
@@ -215,133 +213,15 @@ function writeApp(dir, files, page) {
   writeFileSync(join(dir, "index.html"), page, "utf8");
 }
 
-// ---------- render: sonda en Chromium ----------
-/** Abre la página y devuelve window.__probe (lo arma la sonda que declara el Standard). */
-export async function probePage(htmlPath) {
-  const browser = await chromium.launch();
-  try {
-    const page = await browser.newPage();
-    const errs = [];
-    page.on("pageerror", (e) => errs.push(e.message));
-    await page.route(/^https?:/, (r) => r.abort());
-    await page.goto(pathToFileURL(htmlPath).href, { waitUntil: "load" });
-    const p = await page.evaluate(() => window.__probe || null);
-    const looks = await page.evaluate(() => window.__looks || null);
-    return { probe: p, looks, errors: errs };
-  } finally { await browser.close(); }
-}
+// ---------- herramientas de página: viven en Validation (paso 2); el motor las usa ----------
+export { probePage, swatchProbe, swatchProblems, stableProbe, stableProblems, drawnLooksProbe, drawnLooksProblems, runScenario } from "../profiles/web/validation/page_tools.mjs";
+import { probePage, swatchProbe, swatchProblems, stableProbe, stableProblems, drawnLooksProbe, drawnLooksProblems, runScenario } from "../profiles/web/validation/page_tools.mjs";
+
 /** Problemas generales de una sonda; los específicos los agrega step.expect(probe). */
 export function probeProblems({ probe: p, errors }, step) {
   if (!p) return fatal([`la página no llegó a probar ${step.call}${errors.length ? `: ${errors[0]}` : ""}.`]);
   if (!p.ok) return fatal([`${step.call} tiró un error: ${p.error}.`]);
   return step.expect(p);
-}
-
-// ---------- screen: variantes que se tienen que ver distintas ----------
-// Se compara lo que una persona distingue: fondo, borde, sombra, contorno, símbolo, texto.
-// (Corrección de Miche sobre b11: la caja y el jugador se veían por su borde y su brillo, y el
-// juego se podía jugar; contar solo el relleno marcaba como problema algo que no lo era.)
-/** Sonda: agrega al contenedor un elemento por variante (class="base variante") y mide cómo se ve. */
-export function swatchProbe({ container, base, variants }) {
-  return `window.__probe = (function () {
-  try {
-    var box = document.getElementById(${JSON.stringify(container)});
-    if (!box) return { ok: false, error: "no existe #${container}" };
-    var V = ${JSON.stringify(variants)}, out = {};
-    var look = function (el) {
-      var s = getComputedStyle(el), a = getComputedStyle(el, "::after"), b = getComputedStyle(el, "::before");
-      return [s.backgroundColor, s.backgroundImage, s.borderTopColor, s.borderTopStyle, s.boxShadow, s.outlineStyle === "none" ? "" : s.outlineColor, a.content, a.backgroundColor, b.content, b.backgroundColor, (el.textContent || "").trim()].join("|");
-    };
-    var plain = document.createElement("div"); plain.className = ${JSON.stringify(base)}; box.appendChild(plain);
-    out[""] = look(plain);
-    V.forEach(function (v) { var d = document.createElement("div"); d.className = ${JSON.stringify(base)} + " " + v; box.appendChild(d); out[v] = look(d); });
-    return { ok: true, looks: out };
-  } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
-})();`;
-}
-/** Variantes que se ven iguales entre sí (o iguales a la base, salvo `sameAsBase`). Con pista si el CSS usa descendiente. */
-export function swatchProblems({ probe: p, errors }, { base, variants, sameAsBase = [] }, css = "") {
-  if (!p) return [`no se pudo probar cómo se ven las clases${errors.length ? `: ${errors[0]}` : ""}.`];
-  if (!p.ok) return [`no se pudo probar cómo se ven las clases: ${p.error}.`];
-  const L = p.looks, out = [];
-  const flat = variants.filter((v) => !sameAsBase.includes(v) && L[v] === L[""]);
-  if (flat.length) out.push(`en styles.css un elemento class="${base} ${flat[0]}" se ve igual que uno class="${base}" (sin variante): ${flat.map((v) => "." + v).join(", ")} no ${flat.length === 1 ? "cambia" : "cambian"} nada.`);
-  const groups = {};
-  for (const v of variants) (groups[L[v]] ||= []).push(v);
-  const same = Object.values(groups).filter((g) => g.length > 1);
-  if (same.length) out.push(`en styles.css se ven iguales: ${same.map((g) => g.map((v) => "." + v).join(" = ")).join("; ")}. Cada una necesita su propio color o símbolo.`);
-  const desc = [...String(css).matchAll(new RegExp(`\\.${base}\\s+\\.(${variants.join("|")})\\b`, "g"))].map((m) => m[0]);
-  if (out.length && desc.length) out.push(`las clases van en el MISMO elemento (class="${base} ${variants[0]}"), así que el selector es .${base}.${variants[0]} (sin espacio). Con espacio (${[...new Set(desc)].slice(0, 3).join(", ")}) busca un elemento ADENTRO de .${base} y no se aplica.`);
-  return out;
-}
-
-// ---------- render: cómo se ve lo que quedó en pantalla (v0.9.2, Boxworld b11) ----------
-// b11: styles.css estaba bien (pasó swatches) pero el código de dibujo pintaba cada celda con
-// style.backgroundColor y tapaba los colores de caja y jugador: otra vez 5 PASS con el juego
-// invisible. Ahora se mira lo dibujado, no solo el CSS.
-export function drawnLooksProbe({ container, base, variants }) {
-  return `window.__looks = (function () {
-  try {
-    var box = document.getElementById(${JSON.stringify(container)}); if (!box) return null;
-    var V = ${JSON.stringify(variants)}, out = {};
-    var look = function (el) { var s = getComputedStyle(el), a = getComputedStyle(el, "::after"), b = getComputedStyle(el, "::before");
-      return [s.backgroundColor, s.backgroundImage, s.borderTopColor, s.borderTopStyle, s.boxShadow, s.outlineStyle === "none" ? "" : s.outlineColor, a.content, a.backgroundColor, b.content, b.backgroundColor, (el.textContent || "").trim()].join("|"); };
-    var cells = Array.prototype.slice.call(box.querySelectorAll(${JSON.stringify("." + base)}));
-    V.forEach(function (v) {
-      var withV = cells.filter(function (c) { return c.classList.contains(v); });
-      withV.sort(function (x, y) { return x.classList.length - y.classList.length; });
-      if (withV[0]) out[v] = look(withV[0]);
-    });
-    return out;
-  } catch (err) { return null; }
-})();`;
-}
-export function drawnLooksProblems(looks, { base, variants }, code = "", who = "el código") {
-  if (!looks) return [];
-  const present = variants.filter((v) => looks[v] != null);
-  const groups = {};
-  for (const v of present) (groups[looks[v]] ||= []).push(v);
-  const same = Object.values(groups).filter((g) => g.length > 1);
-  if (!same.length) return [];
-  const out = [`en lo que quedó dibujado en pantalla se ven iguales: ${same.map((g) => g.map((v) => "." + v).join(" = ")).join("; ")} (mismo color de fondo y sin símbolo).`];
-  const inline = [...new Set([...String(code).matchAll(/\.style\.(background(?:Color)?|color|border(?:Color)?)\s*=/g)].map((m) => m[1]))];
-  if (inline.length) out.push(`${who} pone colores con style.${inline.join(", style.")}: eso le gana a styles.css y tapa las clases. Sacalo: solo poné las clases (class="${base} ${variants[0]}", etc.) y que styles.css pinte.`);
-  return out;
-}
-
-// ---------- wiring: escenarios (v0.9.3) ----------
-// Lo prueba Miche jugando b11: al ganar un nivel el avatar quedaba bloqueado para siempre
-// (controles.js sacaba el listener de teclado y nadie lo volvía a poner). Ningún chequeo jugaba
-// más allá del primer nivel. Un escenario es una partida corta con datos de prueba que declara
-// el Standard (p.ej. niveles chicos que se ganan con una tecla): teclas, clics y qué tiene que cambiar.
-const normTxt = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-export async function runScenario(htmlPath, sc) {
-  const browser = await chromium.launch();
-  const out = [];
-  try {
-    const page = await browser.newPage();
-    const errs = [];
-    page.on("pageerror", (e) => errs.push(e.message));
-    await page.route(/^https?:/, (r) => r.abort());
-    await page.goto(pathToFileURL(htmlPath).href, { waitUntil: "load" });
-    const snaps = {};
-    const look = (id) => page.evaluate((x) => { const e = document.getElementById(x); return e ? e.innerHTML + "|" + e.className : null; }, id);
-    for (const stp of sc.steps) {
-      if (stp.key) { await page.keyboard.press(stp.key); await page.waitForTimeout(80); }
-      else if (stp.click) {
-        const btns = page.locator("button, a, [role=button], input[type=button]").filter({ visible: true });
-        const n = await btns.count(); let hit = null;
-        for (let i = 0; i < n && !hit; i++) { const t = normTxt(await btns.nth(i).innerText().catch(() => "")); if (stp.click.some((w) => t.includes(normTxt(w)))) hit = btns.nth(i); }
-        if (!hit) { out.push(`${sc.name}: no hay un botón visible que diga ${stp.click.join(" / ")}.`); break; }
-        if (await hit.isDisabled().catch(() => false)) { out.push(`${sc.name}: el botón ${stp.click[0]} está deshabilitado en ese momento.`); break; }
-        await hit.click({ timeout: 2000 }).catch(() => {}); await page.waitForTimeout(100);
-      } else if (stp.snap) snaps[stp.snap] = await look(stp.snap);
-      else if (stp.changed) { if ((await look(stp.changed)) === snaps[stp.changed]) { out.push(`${sc.name}: ${stp.problem}`); break; } }
-      else if (stp.text) { const t = normTxt(await page.evaluate((x) => (document.getElementById(x) || {}).textContent || "", stp.text)); if (!stp.any.some((w) => t.includes(normTxt(w)))) { out.push(`${sc.name}: ${stp.problem}`); break; } }
-    }
-    if (errs.length) out.push(`${sc.name}: error de JS durante la partida: ${errs[0]}`);
-  } finally { await browser.close(); }
-  return out;
 }
 
 // ---------- wiring ----------
@@ -582,7 +462,12 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
         // y dibujar() pone las clases en el mismo div → ningún color se aplicaba.
         const dir = join(outDir, `probe_${st.id}`);
         writeApp(dir, { [css]: cleanCss(c[css]) }, page([], swatchProbe(st.swatches), cleanFragment(c[html])));
-        return swatchProblems(await probePage(join(dir, "index.html")), st.swatches, c[css]);
+        const swp = swatchProblems(await probePage(join(dir, "index.html")), st.swatches, c[css]);
+        if (swp.length || !st.stable) return swp;
+        // v0.9.4 (Boxworld b12): la grilla no se puede deformar cuando otro elemento cambia su texto
+        const sdir = join(outDir, `probe_${st.id}_estable`);
+        writeApp(sdir, { [css]: cleanCss(c[css]) }, page([], stableProbe(st.stable), cleanFragment(c[html])));
+        return stableProblems((await probePage(join(sdir, "index.html"))).probe, st.stable);
       },
     }),
     render: (st) => ({

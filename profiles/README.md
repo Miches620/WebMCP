@@ -9,7 +9,9 @@ profiles/
   registry.mjs          qué profiles existen y cómo se combinan (navegador + Node)
   web/                  PLATAFORMA web
     profile.mjs         roles, reglas por rol del Atomizer, reglas de role_dependencies
-    validation/         catálogo de chequeos (Chromium), traductor (reglas comunes), fixtures
+    validation/         Validation FRAMEWORK (framework.mjs: cómo se valida), profile "web" (validation_web.mjs),
+                        lib.mjs, page_tools.mjs (también lo usa el harness), traductor, fixtures;
+                        check_catalog.mjs junta todos (compatibilidad)
     specialist/         encapsulado de componentes (CSS/HTML/JS), window.api, html_dom
   web/landing/          TIPO landing (página de secciones)
     profile.mjs         datos del tipo
@@ -18,19 +20,23 @@ profiles/
     specialist_components.mjs, components.mjs   Specialist v0.7 por componentes
     specialist_spa.mjs, file_diet.mjs           Specialist v0.6.1 (--legacy)
     translator_rules.mjs, check_postprocess.mjs reglas 5-6 del traductor, anclaje de sección
+    validation.mjs      Validation profile web/landing: secciones, carrusel, scroll, animaciones
   web/app/              TIPO app de UNA pantalla (base de web/game)
     profile.mjs         datos del tipo (borrowed: motor del Specialist por componentes de landing)
     build.mjs           contrato + makeScreenBuild(cfg) que reusa web/game
     page_plan.mjs       plan determinista: un componente principal, sin header/footer; estilo → transversal
     translator_rules.mjs  regla 5: lo que el usuario puede HACER (key_changes, click_changes, counter_on_action)
     specialist_rules.mjs  A1–A4 (estado + dibujar(), un componente) y rulesBrief (restricciones → brief)
+    validation.mjs        Validation profile web/app: teclas, clics, contadores
     test_app.mjs
   web/game/             TIPO juego — extends web/app (cadena web → web/app → web/game)
     profile.mjs, build.mjs  build por ARCHIVOS con el motor general (harness/files_engine.mjs) y el
                             Standard que declara el profile (standard: "web/game/grilla", DRAFT);
                             --legacy-components = componente único (v0.7.6)
     translator_rules.mjs    regla 6: board_changes, not_won_immediately, reset_restores, game_levels,
-                            moves_one_cell, fixed_map_size
+                            moves_one_cell, fixed_map_size, game_scenario
+    validation.mjs          Validation profile web/game: LEE el Standard (env.standard.validation);
+                            game_scenario, looks_distinct y layout_stable (estos dos, siempre)
 ```
 
 Fuera de profiles/ (06/10, esquema de Miche: Harness → Standard → Validation profile):

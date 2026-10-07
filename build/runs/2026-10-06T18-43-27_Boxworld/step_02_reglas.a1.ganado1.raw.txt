@@ -1,0 +1,17 @@
+```javascript
+ganado: function(estado) {
+    // Validación de entrada y manejo del caso sin objetivos.
+    if (!estado || !estado.objetivos) return false; 
+    
+    // Si no hay objetivos, se considera ganado (vacuamente verdadero).
+    if (estado.objetivos.length === 0) return true;
+
+    // Verifica si CADA objetivo tiene al menos una caja encima.
+    return estado.objetivos.every(obj => {
+        // Comprueba si existe alguna caja en las coordenadas del objetivo actual.
+        return estado.cajas.some(box => 
+            box.fila === obj.fila && box.col === obj.col
+        );
+    });
+}
+```

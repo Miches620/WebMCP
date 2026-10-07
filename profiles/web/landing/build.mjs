@@ -18,7 +18,12 @@ import { LANDING_TRANSLATOR } from "./translator_rules.mjs";
 import { translateRequirement as translateWeb } from "../validation/check_translator.mjs";
 
 export { planPage, planText, PAGE_PLAN_VERSION } from "./page_plan.mjs";
-export { runChecks, normalizeCheck, CATALOG_VERSION } from "../validation/check_catalog.mjs";
+// paso 2 (06/10): Validation profile de este tipo = cadena web → web/landing (no el catálogo entero)
+import { validationFor, CATALOG_VERSION } from "../validation/check_catalog.mjs";
+export { CATALOG_VERSION };
+const V = validationFor(["web", "web/landing"]);
+export const { runChecks, normalizeCheck } = V;
+export const validationProfile = V.ids;
 
 export const translateRequirement = (text, opts = {}) => translateWeb(text, { ...opts, translator: LANDING_TRANSLATOR });
 

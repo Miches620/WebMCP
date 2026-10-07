@@ -12,7 +12,14 @@ import profile from "./profile.mjs";
 import { GAME_TRANSLATOR } from "./translator_rules.mjs";
 import { GAME_SPECIALIST_RULES } from "./specialist_rules.mjs";
 
-export { runChecks, normalizeCheck, CATALOG_VERSION } from "../validation/check_catalog.mjs";
+// paso 2 (06/10): Validation profile web → web/app → web/game, que LEE el Standard que declara el
+// profile (el mismo que siguió el Specialist). No copia el contrato: lo lee.
+import { validationFor, CATALOG_VERSION } from "../validation/check_catalog.mjs";
+export { CATALOG_VERSION };
+const V = validationFor(["web", "web/app", "web/game"], { standard: getStandard(profile.standard) });
+export const { runChecks, normalizeCheck } = V;
+export const validationProfile = V.ids;
+export const validationAlways = V.always;
 export { planText, PAGE_PLAN_VERSION } from "../app/page_plan.mjs";
 
 // Chequeo de base del Specialist (con reintento): Boxworld build 3 "ganaba" con el

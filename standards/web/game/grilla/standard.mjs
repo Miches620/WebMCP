@@ -1,4 +1,6 @@
 // standard.mjs — Standard "juego de grilla" (web/game/grilla) · DRAFT v0.1.1 (06/10).
+// v0.1.5 (Miche jugando b12): pantalla declara `stable`: el tablero no puede cambiar de tamaño
+// cuando #mensaje tiene un texto largo (al ganar se estiraba y quedaban franjas).
 // v0.1.4 (b12, 7 PASS): ningún nivel se gana con un solo movimiento (b12: nivel 1 "@$." hizo
 // fallar not_won_immediately y se reintentó controles 3 veces por un problema del nivel).
 // v0.1.3 (Miche jugó b11): controles declara un escenario "ganar y seguir" (al ganar, el avatar
@@ -90,9 +92,9 @@ const LEVEL_FMT = `{ "niveles": [ { "jugador": [fila, col], "cajas": [[fila, col
 const fence = (lang, s) => "```" + lang + "\n" + s + "\n```";
 const size = (h) => ({ rows: h.rows || 10, cols: h.cols || 10, min: Math.max(h.minLevels || 1, 1) });
 
-export default {
+const STANDARD = {
   id: "web/game/grilla",
-  version: "0.1.4",
+  version: "0.1.5",
   status: "DRAFT",
   label: "juego de grilla: empujar piezas hasta sus objetivos",
   describe: "Juego de una pantalla sobre una grilla, por archivos: juego.html, styles.css, js/niveles.js (datos verificados con solver), js/reglas.js (lógica pura probada en Node), js/dibujo.js (probado en Chromium), js/controles.js (chequeos de juego).",
@@ -156,7 +158,9 @@ Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su
       swatches: { container: "tablero", base: "casillero", variants: ["pared", "piso", "objetivo", "caja", "jugador"], sameAsBase: ["piso"] },
       // b3 y b11: #btn-reiniciar vino con disabled en el HTML y nadie lo habilitaba
       enabled: ["btn-reiniciar", "btn-siguiente"],
-      prompt: (c) => `${c.paso}: escribí juego.html (SOLO el contenido de la pantalla: título, HUD con #nivel y #movimientos, #tablero, #mensaje y los botones #btn-reiniciar y #btn-siguiente; sin <html>, <head>, <script> ni <style>) y styles.css (todo el estilo de la página; #tablero es una grilla CSS de casilleros cuadrados; cada casillero es UN div con varias clases a la vez, por ejemplo class="casillero pared" o class="casillero piso objetivo caja": los selectores son .casillero.pared, .casillero.caja, etc., y cada clase se tiene que ver distinta). Respetá los CRITERIOS DE ESTILO del brief.`,
+      // b12 (lo vio Miche): con el mensaje largo de victoria el tablero se estiraba y aparecían franjas
+      stable: { container: "tablero", base: "casillero", cell: "piso", cols: 10, columns: "repeat(10, 1fr)", changing: "mensaje", text: "¡Nivel completado! Presioná 'Próximo Nivel' para continuar con el siguiente desafío del juego." },
+      prompt: (c) => `${c.paso}: escribí juego.html (SOLO el contenido de la pantalla: título, HUD con #nivel y #movimientos, #tablero, #mensaje y los botones #btn-reiniciar y #btn-siguiente; sin <html>, <head>, <script> ni <style>) y styles.css (todo el estilo de la página; #tablero es una grilla CSS de casilleros cuadrados; cada casillero es UN div con varias clases a la vez, por ejemplo class="casillero pared" o class="casillero piso objetivo caja": los selectores son .casillero.pared, .casillero.caja, etc., y cada clase se tiene que ver distinta; #tablero mide lo que miden sus casilleros y no se estira aunque #mensaje tenga un texto largo). Respetá los CRITERIOS DE ESTILO del brief.`,
     },
     {
       id: "dibujo", kind: "render", file: "js/dibujo.js", cap: 4000, needs: ["niveles", "reglas"],
@@ -202,3 +206,19 @@ Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su
     },
   ],
 };
+
+// ---------- qué lee el Validation profile web/game (paso 2, 06/10) ----------
+// Validation no copia el Standard: lo lee. Acá se dice dónde está cada cosa del contrato, y se
+// reusan los mismos escenarios y las mismas medidas visuales que usa el Specialist al construir.
+const step = (id) => STANDARD.steps.find((s) => s.id === id);
+STANDARD.validation = {
+  levels: { global: "NIVELES" },
+  logic: { global: "Reglas", create: "crearEstado", move: "mover", pos: "jugador", dirs: { right: "derecha", down: "abajo", left: "izquierda" },
+    // nivel de prueba: el jugador en (1,1) con piso a la derecha y abajo
+    probe: ["######", "#@   #", "#    #", "######"] },
+  board: "tablero",
+  scenarios: step("controles").scenarios,
+  looks: step("dibujo").looks,
+  stable: { container: "tablero", changing: "mensaje", text: step("pantalla").stable.text },
+};
+export default STANDARD;

@@ -1,0 +1,97 @@
+let nivelActual = 0;
+let estado;
+
+/**
+ * Inicializa el juego o reinicia un nivel específico.
+ * @param {number} i - El índice del nivel a cargar (0-based).
+ */
+function iniciarNivel(i) {
+    if (!NIVELES[i]) {
+        document.getElementById('mensaje').textContent = "¡Fin de los niveles! Has completado el juego.";
+        return;
+    }
+
+    nivelActual = i;
+    estado = Reglas.crearEstado(NIVELES[i]);
+    
+    // Limpiar mensajes y dibujar la escena inicial
+    document.getElementById('mensaje').textContent = "";
+    dibujar(estado, nivelActual + 1);
+}
+
+/**
+ * Maneja el movimiento del avatar basado en las teclas presionadas.
+ * @param {KeyboardEvent} e - El evento de teclado.
+ */
+function manejarMovimientoTeclado(e) {
+    e.preventDefault();
+    let direccion;
+
+    switch (e.key) {
+        case 'ArrowUp':
+            direccion = "arriba";
+            break;
+        case 'ArrowDown':
+            direccion = "abajo";
+            break;
+        case 'ArrowLeft':
+            direccion = "izquierda";
+            break;
+        case 'ArrowRight':
+            direccion = "derecha";
+            break;
+        default:
+            return; // No es una flecha de movimiento
+    }
+
+    // 1. Calcular el nuevo estado después del intento de movimiento
+    const nuevoEstado = Reglas.mover(estado, direccion);
+
+    // 2. Actualizar el estado global
+    estado = nuevoEstado;
+
+    // 3. Redibujar la escena con el nuevo estado
+    dibujar(estado, nivelActual + 1);
+
+    // 4. Verificar si se ganó el nivel
+    if (Reglas.ganado(estado)) {
+        document.getElementById('mensaje').textContent = "¡Nivel completado! Presiona 'Próximo Nivel' para continuar.";
+    } else if (nuevoEstado.movimientos > estado.movimientos) {
+         // Solo mostrar mensaje si hubo un movimiento real y no fue el reinicio
+        document.getElementById('mensaje').textContent = "";
+    }
+}
+
+/**
+ * Maneja la lógica del botón 'Reiniciar Nivel'.
+ */
+function manejarReiniciar() {
+    iniciarNivel(nivelActual);
+}
+
+/**
+ * Maneja la lógica del botón 'Próximo Nivel'.
+ */
+function manejarSiguiente() {
+    if (nivelActual < NIVELES.length - 1) {
+        const siguienteNivelIndex = nivelActual + 1;
+        iniciarNivel(siguienteNivelIndex);
+    } else {
+        document.getElementById('mensaje').textContent = "¡Has completado todos los niveles!";
+    }
+}
+
+// --- Listeners de Eventos ---
+
+// Listener para el teclado (Flechas)
+document.addEventListener('keydown', manejarMovimientoTeclado);
+
+// Listener para el botón Reiniciar
+document.getElementById('btn-reiniciar').addEventListener('click', manejarReiniciar);
+
+// Listener para el botón Siguiente Nivel
+document.getElementById('btn-siguiente').addEventListener('click', manejarSiguiente);
+
+
+// --- Inicialización del Juego ---
+iniciarNivel(0);

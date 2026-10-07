@@ -1,0 +1,69 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado, numeroNivel) {
+    const tablero = document.getElementById('tablero');
+    const movimientosDisplay = document.getElementById('movimientos');
+    const nivelDisplay = document.getElementById('nivel');
+
+    // 1. Limpiar el tablero
+    tablero.innerHTML = '';
+
+    const mapa = estado.mapa;
+    if (mapa.length === 0) return;
+
+    const numFilas = mapa.length;
+    const numColumnas = mapa[0].length;
+
+    // Establecer la plantilla de columnas del tablero
+    tablero.style.gridTemplateColumns = `repeat(${numColumnas}, 1fr)`;
+
+    // 2. Dibujar cada casillero
+    for (let r = 0; r < numFilas; r++) {
+        for (let c = 0; c < numColumnas; c++) {
+            const celda = document.createElement('div');
+            celda.className = 'casillero';
+
+            // Determinar el tipo base del casillero
+            const simbolo = mapa[r][c];
+            if (simbolo === '#') {
+                celda.classList.add('pared');
+            } else if (simbolo === '.') {
+                celda.classList.add('objetivo');
+            } else {
+                // ' ' o '.' si no es objetivo, pero el contrato dice que solo hay #, ' ', '.' en estado.mapa
+                celda.classList.add('piso');
+            }
+
+            // 3. Aplicar clases de entidades (Jugador, Caja)
+            let tieneClase = false;
+
+            // Verificar si es objetivo (ya lo hicimos arriba, pero por seguridad)
+            if (simbolo === '.') {
+                celda.classList.add('objetivo');
+            } else if (simbolo === ' ') {
+                 celda.classList.remove('objetivo'); // Asegurarse de que el piso normal no tenga clase objetivo si el mapa lo permite
+            }
+
+
+            // Verificar jugador
+            if (estado.jugador.fila === r && estado.jugador.col === c) {
+                celda.classList.add('jugador');
+                tieneClase = true;
+            }
+
+            // Verificar cajas
+            const hayCajaEnCelda = estado.cajas.some(p => p.fila === r && p.col === c);
+            if (hayCajaEnCelda) {
+                celda.classList.add('caja');
+                tieneClase = true;
+            }
+
+            tablero.appendChild(celda);
+        }
+    }
+
+    // 4. Actualizar HUD
+    movimientosDisplay.textContent = `Movimientos: ${estado.movimientos}`;
+    nivelDisplay.textContent = `Nivel ${numeroNivel}`;
+}
+```

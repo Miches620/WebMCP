@@ -1,0 +1,103 @@
+### FILE: js/controles.js
+```javascript
+let nivelActual = 0;
+let estado;
+
+/**
+ * Inicializa el juego o reinicia un nivel específico.
+ * @param {number} i - El índice del nivel a cargar (0-based).
+ */
+function iniciarNivel(i) {
+    nivelActual = i;
+    // Creamos el nuevo estado usando las reglas definidas en js/reglas.js
+    estado = Reglas.crearEstado(NIVELES[i]);
+
+    // Limpiar mensaje y dibujar la escena inicial
+    document.getElementById('mensaje').textContent = "¡Bienvenido a Boxworld! Usa las flechas para moverte.";
+    dibujar(estado, nivelActual + 1);
+}
+
+/**
+ * Maneja el movimiento del jugador basado en las teclas presionadas.
+ * @param {KeyboardEvent} event - El evento de teclado.
+ */
+function manejarMovimientoTeclado(event) {
+    // Solo procesar si se presiona una flecha y no es un evento de preventDefault ya llamado
+    if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+        return;
+    }
+
+    event.preventDefault();
+
+    let direccion = '';
+    switch (event.key) {
+        case 'ArrowUp':
+            direccion = "arriba";
+            break;
+        case 'ArrowDown':
+            direccion = "abajo";
+            break;
+        case 'ArrowLeft':
+            direccion = "izquierda";
+            break;
+        case 'ArrowRight':
+            direccion = "derecha";
+            break;
+    }
+
+    // 1. Calcular el nuevo estado con el movimiento (Reglas.mover devuelve un NUEVO estado)
+    const nuevoEstado = Reglas.mover(estado, direccion);
+
+    // Solo actualizamos si hubo un movimiento válido o empuje exitoso
+    if (nuevoEstado !== estado) {
+        estado = nuevoEstado;
+        dibujar(estado, nivelActual + 1);
+
+        // 2. Verificar condición de victoria
+        if (Reglas.ganado(estado)) {
+            document.getElementById('mensaje').textContent = "¡Nivel completado! Presiona Siguiente Nivel.";
+            // Deshabilitar controles hasta que el usuario avance o reinicie
+            document.removeEventListener('keydown', manejarMovimientoTeclado);
+        } else {
+             // Re-habilitar el listener si no se ha ganado
+             document.addEventListener('keydown', manejarMovimientoTeclado);
+        }
+    }
+}
+
+/**
+ * Maneja la lógica del botón 'Reiniciar Nivel'.
+ */
+function reiniciarNivel() {
+    iniciarNivel(nivelActual);
+}
+
+/**
+ * Maneja la lógica del botón 'Siguiente Nivel'.
+ */
+function siguienteNivel() {
+    // Verificar si existe el nivel siguiente en el array NIVELES
+    if (nivelActual + 1 < NIVELES.length) {
+        iniciarNivel(nivelActual + 1);
+    } else {
+        document.getElementById('mensaje').textContent = "¡Felicidades! Has completado todos los niveles.";
+        // Deshabilitar el botón de siguiente nivel si no hay más contenido
+        document.getElementById('btn-siguiente').disabled = true;
+    }
+}
+
+// --- Inicialización y Event Listeners ---
+
+// 1. Listener para las teclas de flecha (Movimiento)
+document.addEventListener('keydown', manejarMovimientoTeclado);
+
+// 2. Listener para el botón Reiniciar
+document.getElementById('btn-reiniciar').addEventListener('click', reiniciarNivel);
+
+// 3. Listener para el botón Siguiente Nivel
+document.getElementById('btn-siguiente').addEventListener('click', siguienteNivel);
+
+
+// Iniciar el juego cargando el nivel 0 al arrancar la página
+iniciarNivel(0);
+```

@@ -223,5 +223,10 @@ t("pantalla b12: con el mensaje largo el tablero se estira y aparecen huecos →
 t("pantalla b12 con #tablero { width: max-content } → estable", (await stable(fx("real_boxworld_b12/styles.css").replace("#tablero {", "#tablero { width: max-content; margin: 0 auto;"), fx("real_boxworld_b12/index.html"))).length === 0);
 t("pantalla b11 (tablero de 600px fijos) → estable", (await stable(b11("styles.css"), b11("index.html"))).length === 0);
 
+// paso 2 (b14): "próximo nivel" en el requisito → game_scenario aunque el traductor no lo elija
+const r2b14 = postprocessChecks([{ type: "control_visible", params: { text: ["reiniciar"] } }, { type: "control_visible", params: { text: ["proximo", "siguiente"] } }], "R2", "El juego necesita un botón 'reiniciar' en caso de que el jugador haga un mal movimiento, además otro botón 'proximo nivel' para avanzar de niveles.");
+t("traductor web/game: R2 de b14 ('proximo nivel') suma game_scenario", r2b14.some((x) => x.type === "game_scenario") && r2b14.length === 3);
+t("traductor web/game: un requisito sin 'próximo nivel' no suma game_scenario", !postprocessChecks([{ type: "board_changes", params: {} }], "R4", "El avatar se mueve mediante las flechas del teclado.").some((x) => x.type === "game_scenario"));
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

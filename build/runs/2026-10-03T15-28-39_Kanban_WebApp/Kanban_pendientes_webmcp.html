@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-07c'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
+  const SEED = '2026-10-07d'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
   let state = loadState() || {
  "columns": [
   {
@@ -509,8 +509,8 @@
    "cards": [
     {
      "id": "g3",
-     "title": "Paso 3: medir las 6 Skills (3 corridas)",
-     "desc": "[#Skills] Role web-game con 6 Skills DRAFT (roles/web-game/skills). Correr: Boxworld --skills, Depósito sin, Depósito --skills (Boxworld sin = b14). Comparar con node build/compare_runs.mjs. Se quedan las Skills cuyo error baja.",
+     "title": "Paso 3: repetir el experimento de Skills",
+     "desc": "[#Skills] Role web-game con 6 Skills DRAFT (roles/web-game/skills). 1er intento (07/10) no midió las Skills: bug del lint (comentario con 'window'), skill de grilla v1 dañina, Depósito cortado en niveles. Arreglado; repetir las 3 corridas (Boxworld sin = b14). Comparar con node build/compare_runs.mjs. Se quedan las Skills cuyo error baja.",
      "priority": "urgente"
     }
    ]
@@ -521,6 +521,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h24",
+     "title": "07/10 · 1er experimento de Skills: peor, y por qué",
+     "desc": "[#Skills] Boxworld --skills 2 PASS (tablero de 28 px). Causas: bug nuestro (lint vio 'window' en un comentario), skill grilla v1 dañina (max-content con celdas sin tamaño), cascada. Depósito: cortado en niveles (JSON sin la última llave, formato perdido, corchetes de más). Todo arreglado + chequeo de celdas que no se ven.",
+     "priority": "bajo"
+    },
     {
      "id": "h23",
      "title": "07/10 · b14: Validation por tipo anda; b14 = b13",

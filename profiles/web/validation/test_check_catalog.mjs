@@ -172,6 +172,8 @@ const t2 = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${nam
   t2("looks_distinct b12 → PASS", k12.result === "PASS", k12.detail);
   const [k11] = await G("real_boxworld_b11/index", [{ type: "looks_distinct", params: {} }]);
   t2("looks_distinct b11 (caja y jugador por borde y brillo; Miche lo jugó) → PASS", k11.result === "PASS", k11.detail);
+  const [k15] = await G("real_boxworld_b15_skills/index", [{ type: "looks_distinct", params: {} }]);
+  t2("looks_distinct b15 (tablero de 28 px, injugable según Miche) → FAIL (compuerta)", k15.result === "FAIL" && /no se ve/.test(k15.detail), k15.detail);
   const [okS, okL] = await G("game_files_ok/index", [{ type: "game_scenario", params: {} }, { type: "layout_stable", params: {} }]);
   t2("referencia game_files_ok: escenario y layout PASS", okS.result === "PASS" && okL.result === "PASS", okS.detail + " | " + okL.detail);
   const base = await G("sections_vacio", [{ type: "game_scenario", params: {} }, { type: "looks_distinct", params: {} }, { type: "layout_stable", params: {} }]);

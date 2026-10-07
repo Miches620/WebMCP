@@ -37,7 +37,7 @@ import { runChecks } from "../profiles/web/validation/check_catalog.mjs";
 import { rulesBrief } from "../profiles/web/app/specialist_rules.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
 
-export const ENGINE_VERSION = "files_engine v0.9.5";
+export const ENGINE_VERSION = "files_engine v0.9.6";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
@@ -146,6 +146,10 @@ export function replaceMember(js, m, code) {
 }
 
 // ---------- lints generales ----------
+/** El código sin comentarios (para lints que buscan palabras: un comentario no es código). */
+export function stripComments(code) {
+  return String(code || "").replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1");
+}
 /** Nombres declarados al nivel superior (const/let/var/function/class al comienzo de la línea). */
 export function topNames(code) {
   return [...String(code || "").matchAll(/^(?:const|let|var|function|class)\s+([A-Za-z_$][\w$]*)/gm)].map((m) => m[1]);
@@ -389,7 +393,8 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
       return {
         judge: async (c) => {
           const txt = c[st.answer];
-          if (!txt) return fatal([`la respuesta no trajo ### FILE: ${st.answer}.`]);
+          // v0.9.6 (Depósito): sin el archivo pedido, Gemma escribió otro (js/niveles.js con strings): se le recuerda el formato
+          if (!txt) return fatal([`la respuesta no trajo ### FILE: ${st.answer}.${st.answerHint ? ` ${st.answerHint}` : ""}`]);
           const pj = parseJsonLoose(txt);
           if (!pj.ok) return fatal([`el JSON no se puede leer: ${pj.error}`]);
           const out = st.parse(pj.data, ctx);
@@ -414,12 +419,16 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
         judge: async (c) => {
           const code = c[st.file];
           const b = jsBasics(st, code); if (b) return b;
-          if (st.pure && /\b(document|window)\./.test(code)) return [`${st.file} no puede usar document ni window (es lógica pura).`];
+          // v0.9.6 (Boxworld --skills): el comentario "No utiliza DOM ni window." daba este problema en los 3
+          // intentos y tapaba el error real (state is not defined): se mira el código sin comentarios
+          if (st.pure && /\b(document|window)\./.test(stripComments(code))) return [`${st.file} no puede usar document ni window (es lógica pura).`];
           const sh = shadowProblems(code); if (sh.length) return sh;
           const a = acceptance(code);
           if (a.error) return fatal([`al ejecutarlo: ${a.error}`]);
           const failed = a.result.failed;
-          return failed.some((f) => f.name === "contrato") ? fatal(failed.map((f) => f.detail)) : failed.map((f) => f.detail);
+          // v0.9.6: si una prueba TIRA un error (no un resultado distinto: el código se rompe), lo de abajo
+          // no se puede probar (Boxworld --skills: controles se reintentó 3 veces por "state is not defined")
+          return failed.some((f) => f.name === "contrato" || /tiró( un error)?:/.test(f.detail)) ? fatal(failed.map((f) => f.detail)) : failed.map((f) => f.detail);
         },
         repair: async (c, _pr, att) => {
           let code = c[st.file];

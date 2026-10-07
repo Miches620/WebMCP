@@ -59,7 +59,7 @@ export function stableProbe({ container, base, cell, cols, rows = 2, columns, ch
     box.style.gridTemplateColumns = ${JSON.stringify(columns)};
     for (var i = 0; i < ${cols * rows}; i++) { var d = document.createElement("div"); d.className = ${JSON.stringify(base + " " + cell)}; box.appendChild(d); }
     var m = function () { var c = box.children, a = c[0].getBoundingClientRect(), b = c[1].getBoundingClientRect(), r = box.getBoundingClientRect();
-      return { w: Math.round(r.width), h: Math.round(r.height), cell: Math.round(a.width), gap: Math.round(b.left - a.right) }; };
+      return { w: Math.round(r.width), h: Math.round(r.height), cell: Math.round(Math.min(a.width, a.height)), gap: Math.round(b.left - a.right) }; };
     var before = m(); msg.textContent = ${JSON.stringify(text)}; var after = m();
     return { ok: true, before: before, after: after };
   } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
@@ -69,6 +69,9 @@ export function stableProblems(p, { container, changing }) {
   if (!p || !p.ok) return [];
   const { before: a, after: b } = p;
   const out = [];
+  // v0.9.6 (Boxworld --skills): con width: max-content y celdas SIN tamaño, la grilla se encogió a 28 px
+  // y el juego quedó minúsculo (injugable, lo vio Miche). Una celda de menos de 12 px no se ve.
+  if (a.cell < 12) out.push(`en styles.css las celdas de #${container} miden ${a.cell}px de ancho: no se ven. Dales ancho y alto fijos (por ejemplo 40px) en la clase de la celda; #${container} con width: max-content toma el tamaño de sus celdas.`);
   if (Math.abs(a.w - b.w) > 2 || Math.abs(a.h - b.h) > 2 || b.gap > a.gap + 1)
     out.push(`en styles.css #${container} cambia de tamaño cuando #${changing} tiene un texto largo (ancho ${a.w}px → ${b.w}px${b.gap > a.gap + 1 ? `, aparecen huecos de ${b.gap}px entre celdas` : ""}): la grilla se estira al ancho de la pantalla. Dale a #${container} el tamaño de sus celdas (width: max-content, o columnas del mismo ancho fijo que las celdas) y que el texto largo baje de línea sin ensanchar la pantalla (max-width en #${changing}).`);
   return out;
@@ -101,6 +104,7 @@ export function drawnLooksProbe({ container, base, variants }) {
     var look = function (el) { var s = getComputedStyle(el), a = getComputedStyle(el, "::after"), b = getComputedStyle(el, "::before");
       return [s.backgroundColor, s.backgroundImage, s.borderTopColor, s.borderTopStyle, s.boxShadow, s.outlineStyle === "none" ? "" : s.outlineColor, a.content, a.backgroundColor, b.content, b.backgroundColor, (el.textContent || "").trim()].join("|"); };
     var cells = Array.prototype.slice.call(box.querySelectorAll(${JSON.stringify("." + base)}));
+    if (cells[0]) { var rc = cells[0].getBoundingClientRect(); out.__size = Math.round(Math.min(rc.width, rc.height)); }
     V.forEach(function (v) {
       var withV = cells.filter(function (c) { return c.classList.contains(v); });
       withV.sort(function (x, y) { return x.classList.length - y.classList.length; });
@@ -112,6 +116,8 @@ export function drawnLooksProbe({ container, base, variants }) {
 }
 export function drawnLooksProblems(looks, { base, variants }, code = "", who = "el código") {
   if (!looks) return [];
+  // v0.9.6: celdas de menos de 12 px no se ven (Boxworld --skills: tablero de 28 px)
+  if (looks.__size != null && looks.__size < 12) return [`las celdas .${base} miden ${looks.__size}px: el tablero es tan chico que no se ve. Dales ancho y alto fijos (por ejemplo 40px).`];
   const present = variants.filter((v) => looks[v] != null);
   const groups = {};
   for (const v of present) (groups[looks[v]] ||= []).push(v);
@@ -170,7 +176,7 @@ export function stableRealProbe({ container, changing, text }) {
     var box = document.getElementById(${JSON.stringify(container)}), msg = document.getElementById(${JSON.stringify(changing)});
     if (!box || !msg || box.children.length < 2) return { ok: false, error: "falta #${container} con celdas o #${changing}" };
     var m = function () { var c = box.children, a = c[0].getBoundingClientRect(), b = c[1].getBoundingClientRect(), r = box.getBoundingClientRect();
-      return { w: Math.round(r.width), h: Math.round(r.height), cell: Math.round(a.width), gap: Math.round(b.left - a.right) }; };
+      return { w: Math.round(r.width), h: Math.round(r.height), cell: Math.round(Math.min(a.width, a.height)), gap: Math.round(b.left - a.right) }; };
     var before = m(); msg.textContent = ${JSON.stringify(text)}; var after = m();
     return { ok: true, before: before, after: after };
   } catch (err) { return { ok: false, error: String(err && err.message || err) }; }

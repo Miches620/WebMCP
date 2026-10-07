@@ -14,5 +14,8 @@ check("coma faltante entre propiedades en líneas distintas (caso TechLeader P25
 });
 check("coma colgante y comentarios", () => assert(parseJsonLoose('{\n// plan\n"fases": [1,2,],\n}').ok));
 check("irreparable → ok:false con el error original", () => { const r = parseJsonLoose('{"fases": [ {"id": "F1" "name": "x"} ]}'); assert(!r.ok && /JSON|Expected|Unexpected/.test(r.error)); });
+// v0.2 (07/10, Depósito): Gemma cortó la última llave del JSON (dentro de un fence)
+check("falta el cierre final (\"]\" y \"}\") → se cierra lo que quedó abierto", () => { const r = parseJsonLoose('### FILE: niveles.json\n```json\n{ "niveles": [\n  { "jugador": [3, 1], "cajas": [[1, 2]] },\n  { "jugador": [1, 1], "cajas": [[2, 4]] }\n]\n```'); assert(r.ok, r.error); assert(r.data.niveles.length === 2); });
+check("una llave dentro de un string no confunde el cierre", () => { const r = parseJsonLoose('{"a": "texto con { y [", "b": [1, 2'); assert(r.ok, r.error); assert(r.data.a === "texto con { y [" && r.data.b.length === 2); });
 console.log(`\n${ok}/${ok + fail} tests OK`);
 if (fail) process.exit(1);

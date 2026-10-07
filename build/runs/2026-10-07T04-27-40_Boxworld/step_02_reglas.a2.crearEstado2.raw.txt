@@ -1,0 +1,54 @@
+```javascript
+crearEstado: function(nivel) {
+        const filas = nivel.length;
+        if (filas === 0) return null;
+        const columnas = nivel[0].length;
+
+        let jugadorPos = { fila: -1, col: -1 };
+        let cajasList = [];
+        let objetivosList = [];
+        // El mapa debe ser un array de strings.
+        let mapaArray = []; 
+
+        for (let r = 0; r < filas; r++) {
+            let currentRowString = "";
+            for (let c = 0; c < columnas; c++) {
+                const char = nivel[r][c];
+                let mapChar = ' '; // Default floor space for the map
+
+                if (char === '#') {
+                    mapChar = '#';
+                } else if (char === '@') {
+                    jugadorPos = { fila: r, col: c };
+                    // El jugador no define el mapa base.
+                    mapChar = ' '; 
+                } else if (char === '$' || char === '*') {
+                    cajasList.push({ fila: r, col: c });
+                    // La caja no define el mapa base.
+                    mapChar = ' '; 
+                } else if (char === '.') {
+                    objetivosList.push({ fila: r, col: c });
+                    mapChar = '.'; // Objetivo persiste en el mapa
+                } else if (char === '+') {
+                    // Jugador sobre objetivo. Esto cuenta como un objetivo.
+                    objetivosList.push({ fila: r, col: c });
+                    mapChar = '.'; 
+                } else {
+                    // Espacio vacío ' ', o cualquier otro carácter de piso que no sea objetivo ni pared.
+                    mapChar = ' ';
+                }
+
+                currentRowString += mapChar;
+            }
+            mapaArray.push(currentRowString);
+        }
+
+        return {
+            mapa: mapaArray, // Array de strings con '#', ' ', '.'
+            jugador: jugadorPos,
+            cajas: cajasList,
+            objetivos: objetivosList,
+            movimientos: 0
+        };
+    },
+```

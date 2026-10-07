@@ -1,4 +1,6 @@
 // standard.mjs — Standard "juego de grilla" (web/game/grilla) · DRAFT v0.1.1 (06/10).
+// v0.1.6 (Depósito y Boxworld --skills, 07/10): si falta niveles.json se recuerda el formato;
+// coordenadas con un nivel de corchetes de más se aceptan; JSON sin la última llave se repara.
 // v0.1.5 (Miche jugando b12): pantalla declara `stable`: el tablero no puede cambiar de tamaño
 // cuando #mensaje tiene un texto largo (al ganar se estiraba y quedaban franjas).
 // v0.1.4 (b12, 7 PASS): ningún nivel se gana con un solo movimiento (b12: nivel 1 "@$." hizo
@@ -94,7 +96,7 @@ const size = (h) => ({ rows: h.rows || 10, cols: h.cols || 10, min: Math.max(h.m
 
 const STANDARD = {
   id: "web/game/grilla",
-  version: "0.1.5",
+  version: "0.1.6",
   status: "DRAFT",
   label: "juego de grilla: empujar piezas hasta sus objetivos",
   describe: "Juego de una pantalla sobre una grilla, por archivos: juego.html, styles.css, js/niveles.js (datos verificados con solver), js/reglas.js (lógica pura probada en Node), js/dibujo.js (probado en Chromium), js/controles.js (chequeos de juego).",
@@ -121,6 +123,7 @@ const STANDARD = {
   steps: [
     {
       id: "niveles", kind: "data", answer: "niveles.json", file: "js/niveles.js", cap: 4000,
+      answerHint: "Respondé SOLO con ### FILE: niveles.json, un JSON en COORDENADAS como el del formato (no escribas js/niveles.js ni dibujes el mapa).",
       prompt: (c) => { const z = size(c.hints); return `${c.paso}: proponé ${c.have ? `${Math.max(z.min - c.have, 1)} nivel(es) NUEVO(S) (ya hay ${c.have} válidos guardados: no los repitas)` : `${z.min} niveles o más`} como JSON, en COORDENADAS (no dibujes el mapa: el harness arma js/niveles.js).
 Mapa de ${z.rows} filas x ${z.cols} columnas. El borde (fila 0, fila ${z.rows - 1}, columna 0, columna ${z.cols - 1}) ya es pared: no lo listes. Todo lo que pongas va en filas 1 a ${z.rows - 2} y columnas 1 a ${z.cols - 2}.
 Formato:

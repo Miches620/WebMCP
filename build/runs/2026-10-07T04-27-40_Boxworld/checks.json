@@ -1,0 +1,227 @@
+[
+  {
+    "id": "R1",
+    "text": "El juego es el clásico Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel.",
+    "checks": [
+      {
+        "type": "board_changes",
+        "params": {
+          "keys": [
+            "flechas"
+          ]
+        },
+        "covers": "El avatar se mueve con las flechas."
+      },
+      {
+        "type": "moves_one_cell",
+        "params": {},
+        "covers": "Se mueve de a un casillero."
+      },
+      {
+        "type": "fixed_map_size",
+        "params": {},
+        "covers": "El tamaño del mapa es fijo."
+      },
+      {
+        "type": "click_changes",
+        "params": {
+          "click": [
+            "avatar"
+          ]
+        },
+        "covers": "Al hacer clic en el avatar, algo cambia en la pantalla (por ejemplo, se mueve)."
+      },
+      {
+        "type": "not_won_immediately",
+        "params": {
+          "keys": [
+            "flechas"
+          ]
+        },
+        "covers": "Con un solo movimiento no aparece un mensaje de victoria ni se completa el nivel."
+      },
+      {
+        "type": "control_visible",
+        "params": {
+          "text": [
+            "reiniciar",
+            "volver a empezar"
+          ]
+        },
+        "covers": "Botón para reiniciar / volver a empezar."
+      },
+      {
+        "type": "reset_restores",
+        "params": {
+          "click": [
+            "reiniciar"
+          ],
+          "keys": [
+            "flechas"
+          ]
+        },
+        "covers": "El botón reiniciar vuelve la pantalla al estado del inicio después de jugar con las flechas."
+      },
+      {
+        "type": "game_scenario",
+        "params": {},
+        "covers": "Se juegan las partidas cortas que declara el Standard (por ejemplo, ganar un nivel y pasar al siguiente)."
+      }
+    ],
+    "dropped": [
+      {
+        "type": "game_levels",
+        "params": {
+          "min": [
+            "N"
+          ]
+        },
+        "covers": "El juego tiene al menos N niveles."
+      }
+    ],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R2",
+    "text": "El juego necesita un botón 'reiniciar' en caso de que el jugador haga un mal movimiento, además otro botón 'proximo nivel' para avanzar de niveles.",
+    "checks": [
+      {
+        "type": "control_visible",
+        "params": {
+          "text": [
+            "reiniciar"
+          ]
+        },
+        "covers": "botón reiniciar / volver a empezar"
+      },
+      {
+        "type": "control_visible",
+        "params": {
+          "text": [
+            "proximo",
+            "siguiente"
+          ]
+        },
+        "covers": "botón próximo / siguiente nivel"
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R3",
+    "text": "El juego deberá tener al menos 5 niveles.",
+    "checks": [
+      {
+        "type": "game_levels",
+        "params": {
+          "min": [
+            "5"
+          ]
+        },
+        "covers": "El juego tendrá al menos 5 niveles."
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R4",
+    "text": "El avatar se mueve mediante las flechas del teclado.",
+    "checks": [
+      {
+        "type": "board_changes",
+        "params": {
+          "keys": [
+            "flechas"
+          ]
+        },
+        "covers": "El avatar se mueve con las flechas del teclado."
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R5",
+    "text": "El avatar se mueve siempre de a un casillero por vez.",
+    "checks": [
+      {
+        "type": "moves_one_cell",
+        "params": {},
+        "covers": "El avatar se mueve siempre de a un casillero por vez."
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R6",
+    "text": "El tamaño del mapa es fijo, la cantidad de cajas puede variar.",
+    "checks": [
+      {
+        "type": "fixed_map_size",
+        "params": {},
+        "covers": "El tamaño del mapa es fijo"
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R7",
+    "text": "El juego tiene un contador de movimientos como sistema de puntaje o tiempo límite por nivel.",
+    "checks": [
+      {
+        "type": "counter_on_action",
+        "params": {
+          "label": [
+            "movimientos"
+          ]
+        },
+        "covers": "El contador de movimientos cambia al usar la app."
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R8",
+    "text": "Estilo Family NES, 8bits",
+    "checks": [],
+    "dropped": [],
+    "sin_chequeo": "El estilo visual 'Clásico X' (en este caso, 'Family NES', 8bits) no se puede verificar con los chequeos del catálogo ya que es un aspecto estético y no una interacción o comportamiento de la aplicación.",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  }
+]

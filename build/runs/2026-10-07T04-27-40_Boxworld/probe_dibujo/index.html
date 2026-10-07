@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Boxworld</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main id="juego" data-feature="R1 R2 R3 R4 R5 R6 R7">
+<div id="game-container">
+    <h1>Boxworld</h1>
+
+    <div class="hud-panel">
+        <div id="nivel">Nivel 1</div>
+        <div id="movimientos">Movimientos: 0</div>
+    </div>
+
+    <div id="tablero" class="grid-board">
+        <!-- Los casilleros se insertarán aquí por JavaScript -->
+    </div>
+
+    <div id="mensaje" class="message-box">¡Bienvenido a Boxworld! Usa las flechas para moverte.</div>
+
+    <div class="controls">
+        <button id="btn-reiniciar">Reiniciar Nivel</button>
+        <button id="btn-siguiente">Próximo Nivel</button>
+    </div>
+</div>
+</main>
+<script src="js/niveles.js"></script>
+<script src="js/reglas.js"></script>
+<script src="js/dibujo.js"></script>
+<script>
+window.__probe = (function () {
+  try {
+    var e = Reglas.crearEstado(NIVELES[0]); dibujar(e, 1);
+    var t = document.getElementById("tablero");
+    return { ok: true, cells: t.children.length, rows: e.mapa.length, cols: e.mapa[0].length,
+      jugador: t.querySelectorAll(".jugador").length, cajas: t.querySelectorAll(".caja").length, nCajas: e.cajas.length,
+      pared: t.querySelectorAll(".pared").length, movs: (document.getElementById("movimientos") || {}).textContent || "" };
+  } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
+})();
+window.__looks = (function () {
+  try {
+    var box = document.getElementById("tablero"); if (!box) return null;
+    var V = ["pared","piso","objetivo","caja","jugador"], out = {};
+    var look = function (el) { var s = getComputedStyle(el), a = getComputedStyle(el, "::after"), b = getComputedStyle(el, "::before");
+      return [s.backgroundColor, s.backgroundImage, s.borderTopColor, s.borderTopStyle, s.boxShadow, s.outlineStyle === "none" ? "" : s.outlineColor, a.content, a.backgroundColor, b.content, b.backgroundColor, (el.textContent || "").trim()].join("|"); };
+    var cells = Array.prototype.slice.call(box.querySelectorAll(".casillero"));
+    V.forEach(function (v) {
+      var withV = cells.filter(function (c) { return c.classList.contains(v); });
+      withV.sort(function (x, y) { return x.classList.length - y.classList.length; });
+      if (withV[0]) out[v] = look(withV[0]);
+    });
+    return out;
+  } catch (err) { return null; }
+})();
+</script>
+</body>
+</html>

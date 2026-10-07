@@ -13,6 +13,8 @@ const isInt = (x) => Number.isInteger(x);
 
 /** Normaliza un punto: [f, c] o {fila, col}. null si no sirve. */
 function pt(p) {
+  // v0.1.6 (Depósito, Gemma): "jugador": [[1, 2]] → [1, 2] (un nivel de corchetes de más)
+  while (Array.isArray(p) && p.length === 1 && Array.isArray(p[0])) p = p[0];
   if (Array.isArray(p) && p.length === 2 && isInt(p[0]) && isInt(p[1])) return [p[0], p[1]];
   if (p && typeof p === "object" && isInt(p.fila) && isInt(p.col)) return [p.fila, p.col];
   return null;
@@ -28,7 +30,9 @@ export function levelFromSpec(spec, { rows = 10, cols = 10 } = {}, n = "nivel") 
   if (!spec || typeof spec !== "object") return { problems: [`${n}: no es un objeto {jugador, cajas, objetivos, paredes}.`] };
   const inside = ([f, c]) => f >= 1 && f <= rows - 2 && c >= 1 && c <= cols - 2;
   const list = (name) => {
-    const raw = spec[name] ?? [];
+    let raw = spec[name] ?? [];
+    // "cajas": [[[2, 3], [5, 3]]] → [[2, 3], [5, 3]] (Depósito, Gemma: un nivel de corchetes de más)
+    while (Array.isArray(raw) && raw.length === 1 && Array.isArray(raw[0]) && Array.isArray(raw[0][0])) raw = raw[0];
     if (!Array.isArray(raw)) { problems.push(`${n}: "${name}" tiene que ser una lista de [fila, col].`); return []; }
     const pts = raw.map(pt);
     if (pts.some((p) => !p)) problems.push(`${n}: "${name}" tiene elementos que no son [fila, col] con números enteros.`);

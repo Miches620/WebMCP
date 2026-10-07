@@ -4,7 +4,7 @@
 // proyecto vive en un Standard (standards/…); acá se prueba con un Standard de juguete.
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { loadScripts, runAcceptance, fatal, playProblems, probeProblems, pageHtml, missingIds } from "./files_engine.mjs";
+import { loadScripts, runAcceptance, fatal, playProblems, probeProblems, pageHtml, missingIds, stripComments } from "./files_engine.mjs";
 import { STANDARDS, getStandard } from "../standards/registry.mjs";
 
 let ok = 0, fail = 0;
@@ -43,6 +43,9 @@ t("registro: id desconocido → falla fuerte", (() => { try { getStandard("web/g
 const KINDS = ["data", "logic", "screen", "render", "wiring"];
 t("cada paso de cada Standard usa una clase que el motor conoce", Object.values(STANDARDS).every((s) => s.steps.every((st) => KINDS.includes(st.kind))));
 t("cada 'needs' apunta a un paso anterior", Object.values(STANDARDS).every((s) => s.steps.every((st, i) => (st.needs || []).every((n) => s.steps.slice(0, i).some((p) => p.id === n)))));
+
+// v0.9.6: un comentario no es código (b15: "No utiliza DOM ni window." bloqueó 3 intentos)
+t("stripComments: saca comentarios de bloque y de línea, deja strings con //", !/window/.test(stripComments("/**\n * No utiliza DOM ni window.\n */\nconst a = 1; // ni window.x")) && /"http:\/\/x"/.test(stripComments('const u = "http://x";')));
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

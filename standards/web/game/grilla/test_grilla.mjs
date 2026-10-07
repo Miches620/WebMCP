@@ -162,13 +162,15 @@ t("contrato: el número de nivel empieza en 1", /nivelActual \+ 1/.test(CONTRACT
 // v0.1.2 (Boxworld b11: CSS bien, pero dibujar() pintaba con style; reiniciar con disabled)
 const b11 = (n) => fx(`real_boxworld_b11/${n}`);
 const looksDir = fileURLToPath(new URL("../../../../build/runs/_test_looks/", import.meta.url));
-const drawn = async (dibujoJs, css = b11("styles.css")) => {
+const drawn = async (dibujoJs, css = b11("styles.css"), fragHtml = null) => {
   mkdirSync(looksDir + "js", { recursive: true });
   for (const f of ["js/niveles.js", "js/reglas.js"]) writeFileSync(looksDir + f, b11(f));
   writeFileSync(looksDir + "js/dibujo.js", dibujoJs);
   writeFileSync(looksDir + "styles.css", css);
   const st = step("dibujo");
-  writeFileSync(looksDir + "index.html", E.pageHtml({ title: "t", fragment: '<div id="tablero"></div><div id="nivel"></div><div id="movimientos"></div>', scripts: SCRIPTS.slice(0, 3), inline: st.probe + "\n" + E.drawnLooksProbe(st.looks), mainId: "juego" }));
+  // el fragmento REAL de la pantalla (el CSS puede depender de sus clases: b11 usa .game-board)
+  const frag = E.cleanFragment((fragHtml || b11("index.html")).replace(/<main[^>]*>|<\/main>/g, ""));
+  writeFileSync(looksDir + "index.html", E.pageHtml({ title: "t", fragment: frag, scripts: SCRIPTS.slice(0, 3), inline: st.probe + "\n" + E.drawnLooksProbe(st.looks), mainId: "juego" }));
   const pr = await E.probePage(looksDir + "index.html");
   return E.drawnLooksProblems(pr.looks, st.looks, dibujoJs);
 };
@@ -230,6 +232,24 @@ t("traductor web/game: un requisito sin 'próximo nivel' no suma game_scenario",
 
 // paso 3: la sugerencia del nivel que falta sale del tamaño del mapa (10x10: filas 3 a 6, como en b14; 8x8: 3 a 4)
 t("niveles: 'lo más seguro' según el tamaño del mapa", /filas 3 a 6, columnas 3 a 6/.test(step("niveles").missing(4, 5, { hints: { rows: 10, cols: 10 } })) && /filas 3 a 4, columnas 3 a 4/.test(step("niveles").missing(1, 4, { hints: { rows: 8, cols: 8 } })));
+
+// v0.1.6 (07/10: Depósito y Boxworld --skills)
+{
+  const { parseJsonLoose } = await import("../../../../json_loose.mjs");
+  const a0 = parseJsonLoose(fx("real_deposito_niveles_a0.txt")), a2 = parseJsonLoose(fx("real_deposito_niveles_a2.txt"));
+  t("Depósito intento 1: JSON sin la última llave → se repara y se lee", a0.ok && a0.data.niveles.length === 4, a0.error);
+  const l2 = a2.ok && levelsFromSpecs(a2.data, { rows: 8, cols: 8, minLevels: 0 });
+  t("Depósito intento 3: coordenadas con corchetes de más ([[1,2]], [[[2,3],[5,3]]]) → se leen (y se juzgan como niveles)", l2 && l2.levels.length >= 1 && !l2.problems.some((p) => /tiene que ser \[fila, col\]|no son \[fila, col\]/.test(p)), JSON.stringify(l2?.problems?.slice(0, 2)));
+  t("niveles: si falta niveles.json, el problema recuerda el formato", /SOLO con ### FILE: niveles\.json/.test(step("niveles").answerHint));
+  // b15 (Boxworld --skills): celdas sin tamaño → tablero de 28 px
+  const b15 = (n) => fx(`real_boxworld_b15_skills/${n}`);
+  const st15 = await stable(b15("styles.css"), b15("index.html"));
+  t("pantalla b15: celdas sin tamaño → 'no se ven' (el tablero quedó de 28 px)", st15.some((p) => /miden \d+px de ancho: no se ven/.test(p)), JSON.stringify(st15));
+  const lk15 = await drawn(fx("real_boxworld_b12/js/dibujo.js"), b15("styles.css"), b15("index.html"));
+  t("dibujo con el CSS de b15: las celdas dibujadas no se ven → problema", lk15.length === 1 && /no se ve/.test(lk15[0]), JSON.stringify(lk15));
+  const r15 = runRuleTests(loadScripts([b15("js/niveles.js"), b15("js/reglas.js")]).Reglas, []);
+  t("reglas b15: el código tiene `state.mapa` (lo que la skill quería evitar) y las pruebas lo muestran", r15.failed.some((f) => /state is not defined/.test(f.detail)));
+}
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

@@ -1,0 +1,57 @@
+```javascript
+crearEstado: function(nivel) {
+        const filas = nivel.length;
+        if (filas === 0) return null;
+        const columnas = nivel[0].length;
+
+        let jugadorPos = { fila: -1, col: -1 };
+        let cajasList = [];
+        let objetivosList = [];
+        // El mapa debe ser un array de strings.
+        let mapaGrid = []; 
+
+        for (let r = 0; r < filas; r++) {
+            let rowString = '';
+            for (let c = 0; c < columnas; c++) {
+                const char = nivel[r][c];
+                let mapChar = ' '; // Por defecto, es piso
+
+                // Determinar el carácter del mapa base primero: # o .
+                if (char === '#') {
+                    mapChar = '#';
+                } else if (char === '.' || char === '+' || char === '*') { 
+                    mapChar = '.'; // Si hay un objetivo, el mapa siempre muestra punto.
+                }
+
+                // Identificar y registrar objetos movibles/puntos de interés
+                let isBox = (char === '$' || char === '*');
+                let isPlayer = (char === '@');
+                let isObjectiveMarker = (char === '.' || char === '+' || char === '*');
+
+                if (isPlayer) {
+                    jugadorPos = { fila: r, col: c };
+                } 
+                
+                if (isBox) {
+                    cajasList.push({ fila: r, col: c });
+                } 
+                
+                // Los objetivos se marcan por ., +, o *
+                if (isObjectiveMarker) {
+                    objetivosList.push({ fila: r, col: c });
+                }
+
+                rowString += mapChar;
+            }
+            mapaGrid[r] = rowString;
+        }
+
+        return {
+            mapa: mapaGrid, // Array de strings
+            jugador: jugadorPos,
+            cajas: cajasList,
+            objetivos: objetivosList,
+            movimientos: 0
+        };
+    },
+```

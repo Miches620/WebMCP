@@ -1,0 +1,385 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Deposito",
+  "source": "project26_deposito_snapshot.json",
+  "catalog": "check_catalog v0.9",
+  "profiles": {
+    "ids": [
+      "web/game"
+    ],
+    "chain": [
+      "web",
+      "web/app",
+      "web/game"
+    ],
+    "status": {
+      "web": "DRAFT",
+      "web/app": "DRAFT",
+      "web/game": "DRAFT"
+    },
+    "borrowed": [
+      {
+        "id": "web/game",
+        "from": "web/landing",
+        "what": [
+          "motor del Specialist por componentes (vía web/app)"
+        ]
+      }
+    ]
+  },
+  "artifact_loads_without_js_errors": true,
+  "sections_visible": {
+    "result": "PASS",
+    "features": {
+      "R1": "PASS",
+      "R2": "PASS",
+      "R3": "PASS",
+      "R4": "PASS",
+      "R5": "PASS",
+      "R6": "PASS",
+      "R7": "PASS"
+    },
+    "anchors": [
+      {
+        "id": "juego",
+        "features": [
+          "R1",
+          "R2",
+          "R3",
+          "R4",
+          "R5",
+          "R6",
+          "R7"
+        ],
+        "seen": 9,
+        "total": 9,
+        "ondemand": 0,
+        "ok": true
+      }
+    ],
+    "detail": "#juego: 9/9 palabras visibles"
+  },
+  "components_render": {
+    "result": "NOT_APPLICABLE",
+    "components": [],
+    "detail": "ningún componente con JS nombra contenedores"
+  },
+  "validation": {
+    "profile": [
+      "web",
+      "web/app",
+      "web/game"
+    ],
+    "standard": {
+      "id": "web/game/grilla",
+      "version": "0.1.6",
+      "status": "DRAFT"
+    },
+    "always": [
+      {
+        "type": "looks_distinct",
+        "result": "PASS",
+        "detail": "se distinguen: pared, piso, objetivo, caja, jugador",
+        "gate": true
+      },
+      {
+        "type": "layout_stable",
+        "result": "PASS",
+        "detail": "#tablero igual (328px) con un texto largo en #mensaje",
+        "gate": false
+      }
+    ]
+  },
+  "summary": {
+    "requisitos": 8,
+    "PASS": 7,
+    "FAIL": 0,
+    "SIN_EVIDENCIA": 0,
+    "SIN_CHEQUEO": 1
+  },
+  "control": "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "El juego es un puzzle de depósito: el operario empuja cajas hasta las marcas pintadas en el piso del depósito.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "board_changes",
+          "params": {
+            "keys": [
+              "flechas"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#tablero cambia con: ArrowUp, ArrowDown, ArrowLeft, ArrowRight",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "moves_one_cell",
+          "params": {},
+          "result": "PASS",
+          "detail": "derecha → (1,2), otra vez → (1,3), abajo → (2,1), contra la pared se queda en (1,1)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "fixed_map_size",
+          "params": {},
+          "result": "PASS",
+          "detail": "todos los niveles son de 8x8 y el tablero dibuja 64 casilleros",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "game_levels",
+          "params": {
+            "min": [
+              "al menos 1"
+            ]
+          },
+          "result": "PASS",
+          "detail": "4 niveles (se piden al menos 1)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "El juego tiene un botón 'reiniciar' para volver a empezar el nivel y un botón 'siguiente nivel' para pasar al próximo.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "reiniciar"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"Reiniciar\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "siguiente",
+              "próximo"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"Siguiente Nivel\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "reset_restores",
+          "params": {
+            "click": [
+              "reiniciar"
+            ]
+          },
+          "result": "PASS",
+          "detail": "jugar cambió 2 elementos; \"Reiniciar\" los volvió todos al inicio",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "game_scenario",
+          "params": {},
+          "result": "PASS",
+          "detail": "ganar un nivel y pasar al siguiente: OK",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "El juego tiene al menos 4 niveles.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "game_levels",
+          "params": {
+            "min": [
+              "4"
+            ]
+          },
+          "result": "PASS",
+          "detail": "4 niveles (se piden al menos 4)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "El operario se mueve con las flechas del teclado.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "board_changes",
+          "params": {
+            "keys": [
+              "flechas"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#tablero cambia con: ArrowUp, ArrowDown, ArrowLeft, ArrowRight",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "El operario avanza de a un casillero por vez.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "moves_one_cell",
+          "params": {},
+          "result": "PASS",
+          "detail": "derecha → (1,2), otra vez → (1,3), abajo → (2,1), contra la pared se queda en (1,1)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "El mapa del depósito es de 8 casilleros de largo x 8 casilleros de alto en todos los niveles.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "fixed_map_size",
+          "params": {},
+          "result": "PASS",
+          "detail": "todos los niveles son de 8x8 y el tablero dibuja 64 casilleros",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "text": "El juego muestra un contador de movimientos.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "counter_on_action",
+          "params": {
+            "label": [
+              "movimientos"
+            ]
+          },
+          "result": "PASS",
+          "detail": "ArrowUp, ArrowDown, ArrowLeft, ArrowRight: \"Movimientos: 0\" → \"Movimientos: 4\"",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "text": "Estilo Game Boy: pantalla con una paleta de 4 tonos de verde.",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El estilo visual 'clásico' y la paleta de colores no se pueden verificar con los chequeos del catálogo proporcionados.",
+      "checks": []
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "files_engine v0.9.6",
+    "standard": {
+      "id": "web/game/grilla",
+      "version": "0.1.6",
+      "status": "DRAFT"
+    },
+    "skills": {
+      "role": "web-game",
+      "status": "DRAFT",
+      "ids": [
+        "botones-habilitados",
+        "flecha-sin-tapar",
+        "grilla-que-no-se-estira",
+        "nombres-del-contrato",
+        "piezas-aparte-del-mapa",
+        "siempre-jugable"
+      ]
+    },
+    "files": [
+      "index.html",
+      "styles.css",
+      "js/niveles.js",
+      "js/reglas.js",
+      "js/dibujo.js",
+      "js/controles.js"
+    ],
+    "rule_tests": {
+      "passed": [
+        "crearEstado lee jugador, cajas y objetivos",
+        "recién creado no está ganado",
+        "la pared bloquea",
+        "empujar una caja",
+        "caja en el objetivo = ganado",
+        "mover no modifica el estado que recibe",
+        "de a un casillero",
+        "caja contra pared no se mueve",
+        "caja contra caja no se mueve",
+        "lee '*' y '+'",
+        "nivel 1 no empieza ganado",
+        "nivel 2 no empieza ganado",
+        "nivel 3 no empieza ganado",
+        "nivel 4 no empieza ganado"
+      ],
+      "failed": []
+    },
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "niveles",
+        "ms": 234198,
+        "finish_reason": "stop",
+        "changed": [
+          "niveles.json"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 2,
+        "task_id": "reglas",
+        "ms": 486632,
+        "finish_reason": "stop",
+        "changed": [
+          "js/reglas.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 3,
+        "task_id": "pantalla",
+        "ms": 104439,
+        "finish_reason": "stop",
+        "changed": [
+          "juego.html",
+          "styles.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 4,
+        "task_id": "dibujo",
+        "ms": 139314,
+        "finish_reason": "stop",
+        "changed": [
+          "js/dibujo.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 5,
+        "task_id": "controles",
+        "ms": 83890,
+        "finish_reason": "stop",
+        "changed": [
+          "js/controles.js"
+        ],
+        "rejected": []
+      }
+    ]
+  }
+}

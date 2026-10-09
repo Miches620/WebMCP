@@ -1,0 +1,58 @@
+```javascript
+crearEstado: function(nivel) {
+        let jugadorPos = null;
+        let cajasIniciales = [];
+        let objetivosIniciales = [];
+        let mapaBase = [];
+
+        for (let r = 0; r < nivel.length; r++) {
+            const filaString = nivel[r];
+            let rowMap = '';
+            for (let c = 0; c < filaString.length; c++) {
+                const char = filaString[c];
+
+                // 1. Determine map character based on underlying tile type
+                let mapChar = ' '; // Default floor/empty space
+
+                if (char === '#') {
+                    mapChar = '#';
+                } else if (char === '.') {
+                    // Explicit objective floor spot
+                    mapChar = '.';
+                } else if (char === '+' || char === '*') {
+                    // Player on Objective or Box on Objective. Underlying spot is objective.
+                    mapChar = '.'; 
+                }
+
+                rowMap += mapChar;
+
+
+                // 2. Track positions and objects based on character type
+                if (char === '@' || char === '+') {
+                    if (!jugadorPos) { // Assuming only one player start point matters
+                        jugadorPos = { r: r, c: c };
+                    }
+                }
+
+                // Boxes are '$' or '*'
+                if (char === '$' || char === '*') {
+                    cajasIniciales.push({ r: r, c: c });
+                }
+
+                // Objectives are '.', '+', or '*'
+                if (char === '.' || char === '+' || char === '*') {
+                    objetivosIniciales.push({ r: r, c: c });
+                }
+            }
+            mapaBase.push(rowMap);
+        }
+
+        return {
+            mapa: mapaBase,
+            jugador: jugadorPos,
+            cajas: cajasIniciales,
+            objetivos: objetivosIniciales,
+            movimientos: 0
+        };
+    },
+```

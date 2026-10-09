@@ -1,0 +1,937 @@
+{
+  "input": {
+    "source": "project25_snapshot.json",
+    "refined": {
+      "project_name": "Boxworld",
+      "objetivo": "Juego Boxworld en html autocontenido",
+      "features": [
+        "El juego es el clásico Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel.",
+        "El juego necesita un botón 'reiniciar' en caso de que el jugador haga un mal movimiento, además otro botón 'proximo nivel' para avanzar de niveles.",
+        "El juego deberá tener al menos 5 niveles.",
+        "El avatar se mueve mediante las flechas del teclado.",
+        "El avatar se mueve siempre de a un casillero por vez.",
+        "El tamaño del mapa es fijo, la cantidad de cajas puede variar.",
+        "El juego tiene un contador de movimientos como sistema de puntaje o tiempo límite por nivel.",
+        "Estilo Family NES, 8bits"
+      ],
+      "criterios_holdout": [
+        "Se puede jugar el Boxworld con un avatar que se mueve mediante las flechas del teclado y empuja cajas hacia objetivos fijos en cada nivel",
+        "Se pueden pasar a la siguiente fase si todas las cajas ocupan sus posiciones objetivo",
+        "El tamaño del mapa es 10 casilleros de largo x 10 casilleros de alto",
+        "El juego tiene un contador de movimientos como sistema de puntaje o tiempo límite por nivel",
+        "El juego solo puede reiniciar el nivel si el usuario considera que su último movimiento volvió irresoluble el nivel, la forma de reiniciar dicho nivel es mediante el botón 'reiniciar nivel'",
+        "El juego no ofrece ninguna forma de ayuda o indicación para resolver los niveles"
+      ],
+      "restricciones": [
+        "Las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador",
+        "El avatar no puede atravesar paredes ni cajas, al situarse al lado de una caja, si la misma no cuenta con ninguna pared que impida su movimiento en una dirección concreta, el avatar podrá empujarla en dicha dirección.",
+        "El nivel se considera superado cuando todas las cajas ocupan todos los objetivos del nivel.",
+        "El tamaño del mapa es 10 casilleros de largo x 10 casilleros de alto.",
+        "El juego solo puede reiniciar el nivel si el usuario considera que su último movimiento volvió irresoluble el nivel, la forma de reiniciar dicho nivel es mediante el botón 'reiniciar nivel'.",
+        "El juego no ofrece ninguna forma de ayuda o indicación para resolver los niveles."
+      ],
+      "estilo": [
+        "Estilo Family NES, 8bits"
+      ],
+      "contexto": [
+        "Juego Boxworld en html autocontenido",
+        "¿El avatar puede atravesar cajas para empujarlas desde atrás? → no, el avatar no puede atravesar cajas ni paredes"
+      ],
+      "brief": {
+        "version": "intent_brief v0.9",
+        "lines": [
+          {
+            "id": "L1",
+            "field": "construir",
+            "text": "Juego Boxworld en html autocontenido"
+          },
+          {
+            "id": "L2",
+            "field": "hacer",
+            "text": "el clasico boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel"
+          },
+          {
+            "id": "L3",
+            "field": "hacer",
+            "text": "El juego necesita un boton 'reiniciar' en caso de que el jugador haga un mal movimiento, ademas otro boton 'proximo nivel' para avanzar de niveles"
+          },
+          {
+            "id": "L4",
+            "field": "hacer",
+            "text": "El juego debera tener al menos 5 niveles"
+          },
+          {
+            "id": "L5",
+            "field": "ver",
+            "text": "estilo family nes, 8bits"
+          },
+          {
+            "id": "L6",
+            "field": "no",
+            "text": "las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador"
+          },
+          {
+            "id": "L7",
+            "field": "respuesta",
+            "text": "solo moverse en el sentido que le indiquen las flechas del teclado",
+            "pregunta": "¿El avatar puede realizar movimientos específicos, como saltar o girar?"
+          },
+          {
+            "id": "L8",
+            "field": "respuesta",
+            "text": "el avatar debera empujar y acomodar las cajas hacia los objetivos",
+            "pregunta": "¿Cuál es el proceso para pasar de un nivel a otro?"
+          },
+          {
+            "id": "L9",
+            "field": "respuesta",
+            "text": "el nivel se considera superado cuando todas las cajas ocupan todos los objetivos del nivel",
+            "pregunta": "¿Me contás sobre esto: los objetivos que deben alcanzarse en cada nivel?"
+          },
+          {
+            "id": "L10",
+            "field": "respuesta",
+            "text": "el tamaño del mapa si, la cantidad de cajas puede variar",
+            "pregunta": "¿El tamaño del mapa y la cantidad de cajas por nivel es fijo en todos los niveles?"
+          },
+          {
+            "id": "L11",
+            "field": "respuesta",
+            "text": "el avatar se desplaza mediante las flechas del teclado, se mueve siempre de a un casillero por vez, no puede atravesar paredes ni cajas, al situarse al lado de una caja, si la misma no cuenta con ninguna pared que impida su movimiento en una direccion concreta, el avatar podra empujarla en dicha direccion",
+            "pregunta": "¿El proceso exacto de cómo se mueve el avatar?"
+          },
+          {
+            "id": "L12",
+            "field": "respuesta",
+            "text": "contador de movimientos",
+            "pregunta": "¿El juego tiene algún sistema de puntaje o tiempo límite por nivel?"
+          },
+          {
+            "id": "L13",
+            "field": "respuesta",
+            "text": "10 casilleros de largo x 10 casilleros de alto",
+            "pregunta": "¿Podés indicar el tamaño exacto del mapa que tendrá cada nivel?"
+          },
+          {
+            "id": "L14",
+            "field": "respuesta",
+            "text": "el juego solo puede reiniciar el nivel si el usuario considera que su ultimo movimiento volvio irresoluble el nivel, la forma de reiniciar dicho nivel es mediante el boton 'reiniciar nivel'",
+            "pregunta": "¿El juego reinicia automáticamente después de un mal movimiento o desde dónde comienza la partida?"
+          },
+          {
+            "id": "L15",
+            "field": "respuesta",
+            "text": "no",
+            "pregunta": "¿El juego ofrece alguna forma de ayuda o indicación para resolver los niveles?"
+          },
+          {
+            "id": "L16",
+            "field": "respuesta",
+            "text": "no, el avatar no puede atravesar cajas ni paredes",
+            "pregunta": "¿El avatar puede atravesar cajas para empujarlas desde atrás?"
+          }
+        ],
+        "items": [
+          {
+            "de": [
+              "L1"
+            ],
+            "tipo": "contexto",
+            "texto": "Juego Boxworld en html autocontenido"
+          },
+          {
+            "de": [
+              "L2"
+            ],
+            "tipo": "feature",
+            "texto": "El juego es el clásico Boxworld, donde el jugador utiliza un avatar para acomodar cajas en posiciones fijadas en cada nivel."
+          },
+          {
+            "de": [
+              "L3"
+            ],
+            "tipo": "feature",
+            "texto": "El juego necesita un botón 'reiniciar' en caso de que el jugador haga un mal movimiento, además otro botón 'proximo nivel' para avanzar de niveles."
+          },
+          {
+            "de": [
+              "L4"
+            ],
+            "tipo": "feature",
+            "texto": "El juego deberá tener al menos 5 niveles."
+          },
+          {
+            "de": [
+              "L5"
+            ],
+            "tipo": "estilo",
+            "texto": "Estilo Family NES, 8bits"
+          },
+          {
+            "de": [
+              "L6"
+            ],
+            "tipo": "restriccion",
+            "texto": "Las cajas no pueden salir del diseño del mapa del nivel, las cajas no pueden superponerse entre ellas, las cajas no pueden superponerse con el avatar del jugador"
+          },
+          {
+            "de": [
+              "L7"
+            ],
+            "tipo": "feature",
+            "texto": "El avatar se mueve mediante las flechas del teclado."
+          },
+          {
+            "de": [
+              "L8"
+            ],
+            "tipo": "feature",
+            "texto": "El avatar se mueve siempre de a un casillero por vez."
+          },
+          {
+            "de": [
+              "L9"
+            ],
+            "tipo": "restriccion",
+            "texto": "El avatar no puede atravesar paredes ni cajas, al situarse al lado de una caja, si la misma no cuenta con ninguna pared que impida su movimiento en una dirección concreta, el avatar podrá empujarla en dicha dirección."
+          },
+          {
+            "de": [
+              "L10"
+            ],
+            "tipo": "restriccion",
+            "texto": "El nivel se considera superado cuando todas las cajas ocupan todos los objetivos del nivel."
+          },
+          {
+            "de": [
+              "L11"
+            ],
+            "tipo": "feature",
+            "texto": "El tamaño del mapa es fijo, la cantidad de cajas puede variar."
+          },
+          {
+            "de": [
+              "L12"
+            ],
+            "tipo": "feature",
+            "texto": "El juego tiene un contador de movimientos como sistema de puntaje o tiempo límite por nivel."
+          },
+          {
+            "de": [
+              "L13"
+            ],
+            "tipo": "restriccion",
+            "texto": "El tamaño del mapa es 10 casilleros de largo x 10 casilleros de alto."
+          },
+          {
+            "de": [
+              "L14"
+            ],
+            "tipo": "restriccion",
+            "texto": "El juego solo puede reiniciar el nivel si el usuario considera que su último movimiento volvió irresoluble el nivel, la forma de reiniciar dicho nivel es mediante el botón 'reiniciar nivel'."
+          },
+          {
+            "de": [
+              "L15"
+            ],
+            "tipo": "restriccion",
+            "texto": "El juego no ofrece ninguna forma de ayuda o indicación para resolver los niveles."
+          },
+          {
+            "de": [
+              "L16"
+            ],
+            "tipo": "contexto",
+            "texto": "¿El avatar puede atravesar cajas para empujarlas desde atrás? → no, el avatar no puede atravesar cajas ni paredes",
+            "auto": true
+          }
+        ],
+        "repairs": 2,
+        "preguntas": [
+          "¿El avatar puede realizar movimientos específicos, como saltar o girar?",
+          "¿Cuál es el proceso para pasar de un nivel a otro?",
+          "¿Me contás sobre esto: los objetivos que deben alcanzarse en cada nivel?",
+          "¿El tamaño del mapa y la cantidad de cajas por nivel es fijo en todos los niveles?",
+          "¿El proceso exacto de cómo se mueve el avatar?",
+          "¿El juego tiene algún sistema de puntaje o tiempo límite por nivel?",
+          "¿Podés indicar el tamaño exacto del mapa que tendrá cada nivel?",
+          "¿El juego reinicia automáticamente después de un mal movimiento o desde dónde comienza la partida?",
+          "¿El juego ofrece alguna forma de ayuda o indicación para resolver los niveles?",
+          "¿El avatar puede atravesar cajas para empujarlas desde atrás?"
+        ]
+      },
+      "project_stage": "PROTOTYPE",
+      "profiles": [
+        "web/game"
+      ],
+      "exclusiones": []
+    },
+    "tasks": [
+      {
+        "id": "F1.1",
+        "role": "Frontend",
+        "task": "Establecer la estructura base del entorno de juego (HTML/CSS)",
+        "description": "Crear el contenedor principal autocontenido (viewport) y aplicar los estilos CSS necesarios para delimitar el área de juego, asegurando que sea un lienzo listo para recibir el mapa.",
+        "depends_on": []
+      },
+      {
+        "id": "F1.2",
+        "role": "Frontend",
+        "task": "Implementar la estructura del grid 10x10",
+        "description": "Generar y aplicar el layout CSS para una cuadrícula fija de 10x10 que servirá como base visual para el mapa, sin colocar aún contenido específico.",
+        "depends_on": [
+          "F1.1"
+        ]
+      },
+      {
+        "id": "F1.3",
+        "role": "Frontend",
+        "task": "Definir la representación visual del Avatar",
+        "description": "Crear el componente HTML y CSS estático que representará al avatar inicial, definiendo su apariencia base dentro de las coordenadas del mapa.",
+        "depends_on": []
+      },
+      {
+        "id": "F1.4",
+        "role": "Frontend",
+        "task": "Definir la representación visual de las cajas (Obstáculos)",
+        "description": "Crear el componente HTML y CSS estático para representar las cajas o bloques de obstáculos fijos en el nivel.",
+        "depends_on": []
+      },
+      {
+        "id": "F1.5",
+        "role": "Frontend",
+        "task": "Definir la representación visual de elementos estáticos del nivel",
+        "description": "Implementar los estilos y estructura HTML para cualquier otro elemento fijo del entorno (ej. paredes, puntos de inicio/fin) que no sea el avatar ni una caja.",
+        "depends_on": []
+      },
+      {
+        "id": "F1.6",
+        "role": "Frontend",
+        "task": "Ensamblar y renderizar la escena inicial completa",
+        "description": "Integrar los componentes definidos (Grid, Avatar, Cajas, Elementos Estáticos) dentro del contenedor principal para mostrar el mapa fijo de 10x10 en su estado visual inicial.",
+        "depends_on": [
+          "F1.2",
+          "F1.3",
+          "F1.4",
+          "F1.5"
+        ]
+      },
+      {
+        "id": "F2.1",
+        "role": "Frontend",
+        "task": "Implementar el manejo de eventos del teclado para mover al Avatar",
+        "description": "Desarrollar los listeners de evento (flechas) y la lógica inicial para calcular la nueva posición deseada del Avatar en el grid, sin validar colisiones aún.",
+        "depends_on": [
+          "F1.3",
+          "F1.6"
+        ]
+      },
+      {
+        "id": "F2.2",
+        "role": "Frontend",
+        "task": "Implementar la validación de colisión del Avatar con paredes y límites del mapa",
+        "description": "Integrar la lógica para que, tras calcular el movimiento (F2.1), se valide si la nueva posición choca contra las paredes o los bordes definidos por el grid.",
+        "depends_on": [
+          "F1.2",
+          "F1.5",
+          "F2.1"
+        ]
+      },
+      {
+        "id": "F2.3",
+        "role": "Frontend",
+        "task": "Implementar la detección de colisión del Avatar con cajas (Obstáculos)",
+        "description": "Desarrollar la lógica para detectar si el movimiento propuesto del Avatar resulta en una colisión con alguna caja, identificando su posición y tipo.",
+        "depends_on": [
+          "F1.4",
+          "F2.1"
+        ]
+      },
+      {
+        "id": "F2.4",
+        "role": "Frontend",
+        "task": "Implementar la lógica de empuje de cajas (Pushing)",
+        "description": "Desarrollar el algoritmo que, al detectar una colisión con una caja (F2.3), verifique si la dirección de movimiento permite mover tanto al Avatar como a la caja adyacente, actualizando las posiciones de ambos elementos.",
+        "depends_on": [
+          "F2.2",
+          "F2.3"
+        ]
+      },
+      {
+        "id": "F3.1",
+        "role": "Frontend",
+        "task": "Implementar el estado de gestión del contador de movimientos.",
+        "description": "Establecer la variable de estado global para llevar la cuenta de los movimientos realizados en el nivel, inicializándola a cero.",
+        "depends_on": []
+      },
+      {
+        "id": "F3.2",
+        "role": "Frontend",
+        "task": "Renderizar y actualizar el contador de movimientos en la interfaz de usuario.",
+        "description": "Crear el componente visible para mostrar el conteo actual de movimientos, asegurando que se actualice reactivamente con el estado del juego.",
+        "depends_on": [
+          "F3.1"
+        ]
+      },
+      {
+        "id": "F3.3",
+        "role": "Frontend",
+        "task": "Definir y almacenar el estado objetivo fijo de todas las cajas (Obstáculos).",
+        "description": "Implementar la estructura de datos que mapea la posición ideal (target) para cada caja del nivel, determinando el estado de éxito.",
+        "depends_on": [
+          "F1.4"
+        ]
+      },
+      {
+        "id": "F3.4",
+        "role": "Frontend",
+        "task": "Desarrollar la lógica de verificación de posición de cajas para determinar el éxito del nivel.",
+        "description": "Crear una función que itere sobre todas las cajas y compare su posición actual con sus posiciones objetivo definidas en F3.3, devolviendo un booleano de éxito/fracaso.",
+        "depends_on": [
+          "F1.4",
+          "F3.3"
+        ]
+      },
+      {
+        "id": "F3.5",
+        "role": "Frontend",
+        "task": "Integrar el incremento del contador en la acción de empuje exitoso.",
+        "description": "Modificar la lógica de empuje (pushing) para que, tras un movimiento o empuje exitoso, se incremente el estado del contador y se notifique a la UI.",
+        "depends_on": [
+          "F2.4",
+          "F3.1"
+        ]
+      },
+      {
+        "id": "F3.6",
+        "role": "Frontend",
+        "task": "Implementar la lógica de detección del fin de nivel y su respuesta visual.",
+        "description": "Conectar el resultado de la verificación de cajas (F3.4) para determinar si se ha completado el nivel, mostrando mensajes de éxito o fracaso al usuario.",
+        "depends_on": [
+          "F3.4"
+        ]
+      },
+      {
+        "id": "F4.1.R2.1",
+        "role": "Frontend",
+        "task": "Estilizar la interfaz de usuario del mapa con estilo NES/8bits",
+        "description": "Aplicar el estilo gráfico y paleta de colores NES/8bits a los elementos visuales del mapa (bordes, tileset visible, contenedores) para asegurar consistencia.",
+        "depends_on": []
+      },
+      {
+        "id": "F4.1.R2.2",
+        "role": "Frontend",
+        "task": "Estilizar elementos interactivos (botones, sliders) con estilo NES/8bits",
+        "description": "Aplicar el estilo gráfico y paleta de colores NES/8bits a todos los componentes de interacción del usuario (botones, menús desplegables, sliders, etc.).",
+        "depends_on": []
+      },
+      {
+        "id": "F4.1.R2.3",
+        "role": "Frontend",
+        "task": "Aplicar estilo gráfico a textos y HUDs con estilo NES/8bits",
+        "description": "Asegurar que todos los elementos de texto, indicadores de estado (HUD), fuentes y tipografía adopten consistentemente el estilo visual NES/8bits.",
+        "depends_on": []
+      },
+      {
+        "id": "F4.2",
+        "role": "Frontend",
+        "task": "Definir la estructura de datos para gestionar múltiples niveles del juego.",
+        "description": "Crear y estructurar el código que contendrá los datos (mapa, obstáculos iniciales, estados objetivo) para al menos 5 niveles predefinidos. Esta estructura debe permitir acceder a un nivel por índice o ID.",
+        "depends_on": []
+      },
+      {
+        "id": "F4.3",
+        "role": "Frontend",
+        "task": "Implementar la funcionalidad y UI del botón 'Reiniciar'.",
+        "description": "Añadir el elemento de interfaz de usuario (botón) para 'Reiniciar' en la vista principal del juego.",
+        "depends_on": []
+      },
+      {
+        "id": "F4.4",
+        "role": "Frontend",
+        "task": "Desarrollar la lógica de restauración de estado al presionar 'Reiniciar'.",
+        "description": "Implementar el manejador de eventos para el botón 'Reiniciar', que debe restaurar el estado del nivel actual (posición, cajas, contador) a su configuración inicial antes de cualquier movimiento.",
+        "depends_on": [
+          "F3.3",
+          "F3.4"
+        ]
+      },
+      {
+        "id": "F4.5",
+        "role": "Frontend",
+        "task": "Implementar la función central para cargar y renderizar un nivel específico.",
+        "description": "Crear una función reutilizable que tome un índice de nivel (definido en F4.2) y sea capaz de inicializar el estado del juego, re-renderizando el mapa con la configuración completa de ese nuevo nivel.",
+        "depends_on": [
+          "F4.2"
+        ]
+      },
+      {
+        "id": "F4.6",
+        "role": "Frontend",
+        "task": "Implementar la funcionalidad y UI del botón 'Próximo Nivel'.",
+        "description": "Añadir el elemento de interfaz de usuario (botón) para 'Próximo Nivel' en la vista principal del juego.",
+        "depends_on": []
+      },
+      {
+        "id": "F4.7",
+        "role": "Frontend",
+        "task": "Desarrollar la lógica de transición a nivel siguiente.",
+        "description": "Implementar el manejador de eventos para 'Próximo Nivel'. Esta lógica debe validar si hay un siguiente nivel disponible, incrementar el índice y llamar a la función de carga de niveles (F4.5) para pasar al contenido subsiguiente.",
+        "depends_on": [
+          "F4.2",
+          "F4.5"
+        ]
+      }
+    ],
+    "holdout": {
+      "forbidden": [
+        "Se puede jugar el Boxworld con un avatar que se mueve mediante las flechas del teclado y empuja cajas hacia objetivos fijos en cada nivel",
+        "Se pueden pasar a la siguiente fase si todas las cajas ocupan sus posiciones objetivo"
+      ],
+      "repeated_in_features": [
+        "El tamaño del mapa es 10 casilleros de largo x 10 casilleros de alto",
+        "El juego tiene un contador de movimientos como sistema de puntaje o tiempo límite por nivel",
+        "El juego solo puede reiniciar el nivel si el usuario considera que su último movimiento volvió irresoluble el nivel, la forma de reiniciar dicho nivel es mediante el botón 'reiniciar nivel'",
+        "El juego no ofrece ninguna forma de ayuda o indicación para resolver los niveles"
+      ]
+    }
+  },
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "specialist_version": "files_engine v0.9.6",
+    "standard": {
+      "id": "web/game/grilla",
+      "version": "0.1.6",
+      "status": "DRAFT"
+    },
+    "skills": null,
+    "files": [
+      "index.html",
+      "styles.css",
+      "js/niveles.js",
+      "js/reglas.js",
+      "js/dibujo.js",
+      "js/controles.js"
+    ],
+    "hints": {
+      "minLevels": 5,
+      "cols": 10,
+      "rows": 10
+    },
+    "data": {
+      "niveles": {
+        "valid": 5,
+        "need": 5,
+        "report": [
+          {
+            "n": 1,
+            "ok": true,
+            "solvable": true,
+            "pushes": 2
+          },
+          {
+            "n": 2,
+            "ok": true,
+            "solvable": true,
+            "pushes": 6
+          },
+          {
+            "n": 3,
+            "ok": true,
+            "solvable": true,
+            "pushes": 8
+          },
+          {
+            "n": 4,
+            "ok": true,
+            "solvable": true,
+            "pushes": 10
+          },
+          {
+            "n": 5,
+            "ok": true,
+            "solvable": true,
+            "pushes": 20
+          }
+        ],
+        "dropped": []
+      }
+    },
+    "rule_tests": {
+      "passed": [
+        "crearEstado lee jugador, cajas y objetivos",
+        "recién creado no está ganado",
+        "la pared bloquea",
+        "empujar una caja",
+        "caja en el objetivo = ganado",
+        "mover no modifica el estado que recibe",
+        "de a un casillero",
+        "caja contra pared no se mueve",
+        "caja contra caja no se mueve",
+        "lee '*' y '+'",
+        "nivel 1 no empieza ganado",
+        "nivel 2 no empieza ganado",
+        "nivel 3 no empieza ganado",
+        "nivel 4 no empieza ganado",
+        "nivel 5 no empieza ganado"
+      ],
+      "failed": []
+    },
+    "acceptance": {
+      "reglas": {
+        "passed": [
+          "crearEstado lee jugador, cajas y objetivos",
+          "recién creado no está ganado",
+          "la pared bloquea",
+          "empujar una caja",
+          "caja en el objetivo = ganado",
+          "mover no modifica el estado que recibe",
+          "de a un casillero",
+          "caja contra pared no se mueve",
+          "caja contra caja no se mueve",
+          "lee '*' y '+'",
+          "nivel 1 no empieza ganado",
+          "nivel 2 no empieza ganado",
+          "nivel 3 no empieza ganado",
+          "nivel 4 no empieza ganado",
+          "nivel 5 no empieza ganado"
+        ],
+        "failed": []
+      }
+    },
+    "order": [
+      "niveles",
+      "reglas",
+      "pantalla",
+      "dibujo",
+      "controles"
+    ],
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "niveles",
+        "kind": "data",
+        "files": [
+          "niveles.json"
+        ],
+        "attempts": [
+          {
+            "k": 0,
+            "ms": 121802,
+            "finish_reason": "stop",
+            "reasoning_chars": 2366,
+            "prompt_tokens_est": 1920,
+            "max_tokens": 4000,
+            "problems": [
+              "nivel 1: las cajas en [3,5], [6,5] no pueden llegar a ningún objetivo: una caja contra la pared solo se mueve a lo largo de esa pared (y en una esquina no se mueve). Alejala de la pared o poné su objetivo pegado a esa misma pared.",
+              "nivel 2: el jugador está sobre una pared.",
+              "nivel 3: hay un objetivo sobre una pared.",
+              "nivel 4: las cajas en [2,5], [4,5], [5,5], [6,5] no pueden llegar a ningún objetivo: una caja contra la pared solo se mueve a lo largo de esa pared (y en una esquina no se mueve). Alejala de la pared o poné su objetivo pegado a esa misma pared.",
+              "nivel 5: las cajas en [2,3], [3,5], [5,3], [6,5] no pueden llegar a ningún objetivo: una caja contra la pared solo se mueve a lo largo de esa pared (y en una esquina no se mueve). Alejala de la pared o poné su objetivo pegado a esa misma pared.",
+              "hay 0 niveles válidos (juntando tus respuestas anteriores) y se piden al menos 5: mandá SOLO 5 nivel(es) NUEVO(S). Lo más seguro: 1 o 2 cajas en el medio del mapa (filas 3 a 6, columnas 3 a 6), cada una a 1 o 2 casilleros de su objetivo, sin paredes alrededor."
+            ]
+          },
+          {
+            "k": 1,
+            "ms": 96490,
+            "finish_reason": "stop",
+            "reasoning_chars": 3302,
+            "prompt_tokens_est": 2276,
+            "max_tokens": 4000,
+            "problems": []
+          }
+        ],
+        "problems_final": [],
+        "broken": false,
+        "data": {
+          "valid": 5,
+          "need": 5,
+          "report": [
+            {
+              "n": 1,
+              "ok": true,
+              "solvable": true,
+              "pushes": 2
+            },
+            {
+              "n": 2,
+              "ok": true,
+              "solvable": true,
+              "pushes": 6
+            },
+            {
+              "n": 3,
+              "ok": true,
+              "solvable": true,
+              "pushes": 8
+            },
+            {
+              "n": 4,
+              "ok": true,
+              "solvable": true,
+              "pushes": 10
+            },
+            {
+              "n": 5,
+              "ok": true,
+              "solvable": true,
+              "pushes": 20
+            }
+          ],
+          "dropped": []
+        },
+        "ms": 218292,
+        "finish_reason": "stop",
+        "changed": [
+          "niveles.json"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 2,
+        "task_id": "reglas",
+        "kind": "logic",
+        "files": [
+          "js/reglas.js"
+        ],
+        "attempts": [
+          {
+            "k": 0,
+            "ms": 172116,
+            "finish_reason": "stop",
+            "reasoning_chars": 3197,
+            "prompt_tokens_est": 2327,
+            "max_tokens": 5000,
+            "member_repair": [
+              {
+                "fn": "crearEstado",
+                "ms": 134265,
+                "finish_reason": "stop",
+                "chars": 1908,
+                "reasoning_chars": 6041,
+                "ok": true,
+                "before": 15,
+                "after": 8
+              },
+              {
+                "fn": "ganado",
+                "ms": 91239,
+                "finish_reason": "stop",
+                "chars": 974,
+                "reasoning_chars": 5252,
+                "ok": false,
+                "before": 8,
+                "after": 8
+              },
+              {
+                "fn": "crearEstado",
+                "ms": 225922,
+                "finish_reason": "stop",
+                "chars": 2521,
+                "reasoning_chars": 11226,
+                "ok": true,
+                "before": 8,
+                "after": 7
+              },
+              {
+                "fn": "crearEstado",
+                "ms": 197029,
+                "finish_reason": "stop",
+                "chars": 2521,
+                "reasoning_chars": 10790,
+                "ok": false,
+                "before": 7,
+                "after": 7
+              }
+            ],
+            "problems": [
+              "recién creado no está ganado: tiró un error: state is not defined",
+              "caja en el objetivo = ganado: tiró un error: state is not defined",
+              "crearEstado(NIVELES[0]) tiró: state is not defined",
+              "crearEstado(NIVELES[1]) tiró: state is not defined",
+              "crearEstado(NIVELES[2]) tiró: state is not defined",
+              "crearEstado(NIVELES[3]) tiró: state is not defined",
+              "crearEstado(NIVELES[4]) tiró: state is not defined"
+            ]
+          },
+          {
+            "k": 1,
+            "ms": 256585,
+            "finish_reason": "stop",
+            "reasoning_chars": 4323,
+            "prompt_tokens_est": 4999,
+            "max_tokens": 5000,
+            "member_repair": [
+              {
+                "fn": "ganado",
+                "ms": 115355,
+                "finish_reason": "stop",
+                "chars": 599,
+                "reasoning_chars": 8368,
+                "ok": true,
+                "before": 7,
+                "after": 0
+              }
+            ],
+            "problems": []
+          }
+        ],
+        "problems_final": [],
+        "broken": false,
+        "tests": {
+          "passed": [
+            "crearEstado lee jugador, cajas y objetivos",
+            "recién creado no está ganado",
+            "la pared bloquea",
+            "empujar una caja",
+            "caja en el objetivo = ganado",
+            "mover no modifica el estado que recibe",
+            "de a un casillero",
+            "caja contra pared no se mueve",
+            "caja contra caja no se mueve",
+            "lee '*' y '+'",
+            "nivel 1 no empieza ganado",
+            "nivel 2 no empieza ganado",
+            "nivel 3 no empieza ganado",
+            "nivel 4 no empieza ganado",
+            "nivel 5 no empieza ganado"
+          ],
+          "failed": []
+        },
+        "ms": 428701,
+        "finish_reason": "stop",
+        "changed": [
+          "js/reglas.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 3,
+        "task_id": "pantalla",
+        "kind": "screen",
+        "files": [
+          "juego.html",
+          "styles.css"
+        ],
+        "attempts": [
+          {
+            "k": 0,
+            "ms": 108405,
+            "finish_reason": "stop",
+            "reasoning_chars": 1267,
+            "prompt_tokens_est": 1821,
+            "max_tokens": 4500,
+            "problems": [
+              "en juego.html, #btn-reiniciar tiene el atributo disabled: así nunca se puede usar. Sacá disabled."
+            ]
+          },
+          {
+            "k": 1,
+            "ms": 161944,
+            "finish_reason": "stop",
+            "reasoning_chars": 2167,
+            "prompt_tokens_est": 3198,
+            "max_tokens": 4500,
+            "problems": [
+              "en styles.css #tablero cambia de tamaño cuando #mensaje tiene un texto largo (ancho 490px → 851px, aparecen huecos de 42px entre celdas): la grilla se estira al ancho de la pantalla. Dale a #tablero el tamaño de sus celdas (width: max-content, o columnas del mismo ancho fijo que las celdas) y que el texto largo baje de línea sin ensanchar la pantalla (max-width en #mensaje)."
+            ]
+          },
+          {
+            "k": 2,
+            "ms": 167361,
+            "finish_reason": "stop",
+            "reasoning_chars": 2246,
+            "prompt_tokens_est": 3283,
+            "max_tokens": 4500,
+            "problems": []
+          }
+        ],
+        "problems_final": [],
+        "broken": false,
+        "ms": 437710,
+        "finish_reason": "stop",
+        "changed": [
+          "juego.html",
+          "styles.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 4,
+        "task_id": "dibujo",
+        "kind": "render",
+        "files": [
+          "js/dibujo.js"
+        ],
+        "attempts": [
+          {
+            "k": 0,
+            "ms": 71899,
+            "finish_reason": "stop",
+            "reasoning_chars": 1745,
+            "prompt_tokens_est": 1840,
+            "max_tokens": 4000,
+            "problems": [
+              "en `c => c.fila === r && c.col === c` el parámetro \"c\" tapa a la variable \"c\" de afuera (se compara c.algo con el mismo c): renombrá el parámetro de la flecha (por ejemplo p => p.fila === r && p.col === c)."
+            ]
+          },
+          {
+            "k": 1,
+            "ms": 82387,
+            "finish_reason": "stop",
+            "reasoning_chars": 1521,
+            "prompt_tokens_est": 2695,
+            "max_tokens": 4000,
+            "problems": []
+          }
+        ],
+        "problems_final": [],
+        "broken": false,
+        "ms": 154286,
+        "finish_reason": "stop",
+        "changed": [
+          "js/dibujo.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 5,
+        "task_id": "controles",
+        "kind": "wiring",
+        "files": [
+          "js/controles.js"
+        ],
+        "attempts": [
+          {
+            "k": 0,
+            "ms": 114593,
+            "finish_reason": "stop",
+            "reasoning_chars": 2299,
+            "prompt_tokens_est": 2446,
+            "max_tokens": 4000,
+            "problems": [
+              "ganar un nivel y pasar al siguiente: después de ganar el nivel 1 y apretar Siguiente, la flecha derecha no mueve nada en el nivel 2: el juego queda bloqueado. No saques el listener de teclado al ganar (removeEventListener) ni lo dejes apagado: iniciarNivel() tiene que dejar el juego listo para jugar otra vez."
+            ]
+          },
+          {
+            "k": 1,
+            "ms": 162220,
+            "finish_reason": "stop",
+            "reasoning_chars": 4816,
+            "prompt_tokens_est": 3625,
+            "max_tokens": 4000,
+            "problems": []
+          }
+        ],
+        "problems_final": [],
+        "broken": false,
+        "ms": 276813,
+        "finish_reason": "stop",
+        "changed": [
+          "js/controles.js"
+        ],
+        "rejected": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,63 @@
+```javascript
+crearEstado: function(nivel) {
+        let jugadorPos = null;
+        let cajasIniciales = [];
+        let objetivosIniciales = [];
+        let mapaBase = [];
+
+        // 1. Identificar posiciones y construir el mapa base (solo #, ' ', '.')
+        for (let fila = 0; fila < nivel.length; fila++) {
+            const filaString = nivel[fila];
+            let filaMapaChars = []; // Array temporal para caracteres de la fila
+
+            for (let col = 0; col < filaString.length; col++) {
+                const char = filaString[col];
+                let mapChar = '';
+
+                if (char === '#') {
+                    mapChar = '#';
+                } else if (char === '.') {
+                    // Objetivo de piso
+                    objetivosIniciales.push({ fila: fila, col: col });
+                    mapChar = '.';
+                } else if (char === '@') {
+                    // Jugador inicial
+                    jugadorPos = { fila: fila, col: col };
+                    mapChar = ' '; // El jugador no se dibuja en el mapa base
+                } else if (char === '$' || char === '*') {
+                    // Caja. '*' también marca caja sobre objetivo.
+                    cajasIniciales.push({ fila: fila, col: col });
+                    mapChar = ' '; // La caja no se dibuja en el mapa base
+
+                    if (char === '*') {
+                        // Si es caja sobre objetivo (*), registramos también el objetivo.
+                        objetivosIniciales.push({ fila: fila, col: col });
+                    }
+                } else if (char === '+') {
+                    // Jugador sobre objetivo. Registra jugador y objetivo.
+                    jugadorPos = { fila: fila, col: col };
+                    objetivosIniciales.push({ fila: fila, col: col }); 
+                    mapChar = ' ';
+                } else if (char === ' ') {
+                    // Espacio vacío
+                    mapChar = ' ';
+                } else {
+                     // Carácter desconocido o no mapeado
+                     mapChar = char;
+                }
+                filaMapaChars.push(mapChar);
+            }
+            // FIX: Convertir el array de caracteres en una cadena para el estado del mapa
+            mapaBase.push(filaMapaChars.join(''));
+        }
+
+        // 2. Crear el estado inicial
+        return {
+            mapa: mapaBase,
+            jugador: jugadorPos,
+            cajas: cajasIniciales,
+            objetivos: objetivosIniciales,
+            movimientos: 0
+        };
+    },
+```

@@ -1,0 +1,155 @@
+### FILE: juego.html
+```html
+<div class="container">
+    <h1>Depósito Puzzle</h1>
+
+    <div class="hud-container">
+        <div id="nivel" class="info-box">Nivel: 1</div>
+        <div id="movimientos" class="info-box">Movimientos: 0</div>
+    </div>
+
+    <div id="tablero" class="grid-board">
+        <!-- Los casilleros se insertarán aquí por JavaScript -->
+    </div>
+
+    <div id="mensaje" class="message-area">¡Empieza a moverte!</div>
+
+    <div class="controls">
+        <button id="btn-reiniciar">Reiniciar</button>
+        <button id="btn-siguiente">Siguiente Nivel</button>
+    </div>
+</div>
+```
+
+### FILE: styles.css
+```css
+/* Paleta de colores Game Boy (tonos de verde) */
+/* Fondo general y elementos base */
+body {
+    font-family: monospace, sans-serif;
+    background-color: #c0d4c0; /* Verde claro suave para el fondo del juego */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    margin: 0;
+}
+
+.container {
+    width: max-content; /* Evita que el contenedor se estire por el mensaje */
+    max-width: 95vw;
+    text-align: center;
+}
+
+h1 {
+    color: #386641; /* Verde oscuro para títulos */
+    margin-bottom: 20px;
+}
+
+/* HUD (Nivel y Movimientos) */
+.hud-container {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.info-box {
+    background-color: #a3c9a3; /* Verde medio para el fondo de info */
+    padding: 8px 15px;
+    border: 2px solid #6b8e6b; /* Borde verde más oscuro */
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+/* Tablero (Grid) */
+.grid-board {
+    display: grid;
+    /* Las columnas se definirán dinámicamente en JS, pero establecemos un ancho base */
+    width: fit-content; /* Permite que el tablero mida su contenido */
+    border: 4px solid #386641;
+    background-color: #a0b9a0; /* Fondo general del área de juego */
+}
+
+/* Estilo base para cada casillero */
+.casillero {
+    width: 40px;
+    height: 40px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1em; /* Para emojis o texto */
+}
+
+/* Clases de fondo del casillero (Piso, Pared) */
+.casillero.piso {
+    background-color: #c0d4c0; /* Piso base */
+    border: 1px solid rgba(56, 102, 65, 0.3);
+}
+
+.casillero.pared {
+    background-color: #6b8e6b; /* Verde más oscuro para paredes sólidas */
+    border: 1px solid #4a694a;
+}
+
+/* Objetivos y Cajas (Elementos superpuestos) */
+.objetivo::after {
+    content: '🎯'; /* Emoji objetivo */
+    font-size: 20px;
+    position: absolute;
+    z-index: 1;
+    color: #8fbc8f; /* Verde más claro para el objetivo */
+}
+
+.caja::before {
+    content: '📦'; /* Emoji caja */
+    font-size: 24px;
+    position: absolute;
+    z-index: 3;
+    /* Asegura que la caja se vea sobre cualquier fondo */
+    text-shadow: 1px 1px 0 #386641;
+}
+
+.jugador::before {
+    content: '🧑'; /* Emoji jugador */
+    font-size: 28px;
+    position: absolute;
+    z-index: 5;
+    /* Asegura que el jugador se vea sobre cualquier fondo */
+    text-shadow: 1px 1px 0 #386641;
+}
+
+/* Estilos de superposición (si hay caja o jugador) */
+.casillero.objetivo.caja::before {
+    content: '📦'; /* Caja sobre objetivo */
+}
+
+.casillero.objetivo.jugador::before {
+    content: '🧑'; /* Jugador sobre objetivo */
+}
+
+/* Mensaje y Controles */
+.message-area {
+    background-color: #e0f2e0; /* Fondo muy claro para el mensaje */
+    border: 2px solid #6b8e6b;
+    padding: 10px;
+    margin: 20px 0;
+    min-height: 30px; /* Para mantener la altura visible */
+}
+
+.controls button {
+    background-color: #4a7c4a; /* Verde botón más oscuro */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s;
+}
+
+.controls button:hover {
+    background-color: #386641; /* Verde más oscuro al pasar el ratón */
+}
+```

@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-07d'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
+  const SEED = '2026-10-08a'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
   let state = loadState() || {
  "columns": [
   {
@@ -509,8 +509,8 @@
    "cards": [
     {
      "id": "g3",
-     "title": "Paso 3: repetir el experimento de Skills",
-     "desc": "[#Skills] Role web-game con 6 Skills DRAFT (roles/web-game/skills). 1er intento (07/10) no midió las Skills: bug del lint (comentario con 'window'), skill de grilla v1 dañina, Depósito cortado en niveles. Arreglado; repetir las 3 corridas (Boxworld sin = b14). Comparar con node build/compare_runs.mjs. Se quedan las Skills cuyo error baja.",
+     "title": "Paso 3b: confirmar que las Skills ayudan",
+     "desc": "[#Skills] Con temperature 0 cualquier texto agregado cambia la salida. Para separar efecto de Skill vs. azar: 1) corrida placebo (bloque de texto neutro del mismo largo), 2) un 3er juego de la familia grilla. Re-medir nombres-del-contrato v2. Si se confirma, las 5 Skills que bajaron su error pasan de DRAFT a candidatas.",
      "priority": "urgente"
     }
    ]
@@ -521,6 +521,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h25",
+     "title": "08/10 · 2º experimento de Skills: mejor en los dos juegos",
+     "desc": "[#Skills] Boxworld: sin 25 min 6/1, con 17 min 6/1 (el FAIL de los dos era falso: click_changes sobre el avatar, arreglado → 7/0). Depósito: sin 2/5 (59 problemas, cascada por jugador sin declarar), con 7/0 (11 problemas). 5 Skills bajaron su error; nombres-del-contrato sin efecto → v2. 1 corrida por condición: falta control.",
+     "priority": "bajo"
+    },
     {
      "id": "h24",
      "title": "07/10 · 1er experimento de Skills: peor, y por qué",

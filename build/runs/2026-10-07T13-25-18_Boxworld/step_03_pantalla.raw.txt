@@ -1,0 +1,160 @@
+### FILE: juego.html
+```html
+<div class="game-container">
+    <h1>Boxworld</h1>
+    <div class="hud">
+        <div id="nivel">Nivel 1</div>
+        <div id="movimientos">Movimientos: 0</div>
+    </div>
+
+    <div id="tablero" class="grid-board">
+        <!-- Los casilleros se insertarán aquí por JavaScript -->
+    </div>
+
+    <div id="mensaje" class="message-area">¡Acomoda las cajas!</div>
+
+    <div class="controls">
+        <button id="btn-reiniciar">Reiniciar Nivel</button>
+        <button id="btn-siguiente">Siguiente Nivel</button>
+    </div>
+</div>
+```
+
+### FILE: styles.css
+```css
+/* Estilos generales y tipografía 8bit/NES */
+body {
+    font-family: 'Press Start 2P', monospace; /* Usando una fuente que simule el estilo retro */
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+}
+
+/* Contenedor principal del juego */
+.game-container {
+    width: max-content; /* Permite que el contenido determine el ancho, evitando estiramientos innecesarios */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1 {
+    font-size: 2em;
+    color: #ffcc00; /* Color de acento retro */
+    margin-bottom: 15px;
+    text-shadow: 3px 3px #8b4513; /* Efecto sombra para el título */
+}
+
+/* HUD (Head Up Display) */
+.hud {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 600px; /* Limitar el ancho del HUD */
+    margin-bottom: 20px;
+}
+
+#nivel, #movimientos {
+    padding: 8px 15px;
+    background-color: #333;
+    border: 4px solid #666;
+    box-shadow: inset 0 -3px 0 #222;
+}
+
+/* Tablero de juego (Grid) */
+.grid-board {
+    display: grid;
+    /* Las columnas se definirán dinámicamente en JS, pero establecemos un ancho base para el contenedor */
+    width: fit-content; /* Asegura que el tablero no se estire más allá de sus celdas */
+    border: 4px solid #8b4513;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Estilo base del casillero (celda) */
+.casillero {
+    width: 40px; /* Tamaño fijo de la celda */
+    height: 40px;
+    box-sizing: border-box;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Clases de tipo de terreno */
+.pared {
+    background-color: #8b4513; /* Marrón oscuro para paredes */
+    border: 2px solid #6d3a0f;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.piso {
+    background-color: #c9b47e; /* Color de piso neutro */
+}
+
+/* Objetivos y Cajas */
+.objetivo::after {
+    content: '⭐'; /* Emoji para objetivo */
+    font-size: 20px;
+    text-shadow: 1px 1px #ffcc00;
+}
+
+.caja {
+    background-color: #a0522d; /* Marrón caja */
+    border: 3px solid #6b3e24;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.7);
+}
+
+/* Caja sobre objetivo (combinación) */
+.caja.objetivo {
+    background-color: #a0522d;
+    border: 3px solid #6b3e24;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.7);
+}
+
+/* Jugador */
+.jugador {
+    background-color: #ff0000; /* Rojo brillante para el jugador */
+    border: 3px solid #cc0000;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+}
+
+/* Mensaje de estado del juego */
+.message-area {
+    min-height: 30px; /* Asegura que el espacio no colapse */
+    padding: 10px;
+    margin-top: 20px;
+    background-color: #2c2c2c;
+    border: 2px solid #ffcc00;
+    width: max-content; /* Importante para que no se estire */
+}
+
+/* Controles y Botones */
+.controls {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+}
+
+button {
+    padding: 10px 20px;
+    font-family: 'Press Start 2P', monospace;
+    background-color: #4CAF50; /* Verde retro */
+    border: none;
+    cursor: pointer;
+    box-shadow: 3px 3px #2e7d32;
+    transition: all 0.1s ease;
+}
+
+button:hover {
+    background-color: #5cb85c;
+}
+
+button:active {
+    transform: translateY(3px);
+    box-shadow: 0 0 3px #2e7d32;
+}
+```

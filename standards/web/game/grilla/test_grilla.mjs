@@ -251,5 +251,8 @@ t("niveles: 'lo más seguro' según el tamaño del mapa", /filas 3 a 6, columnas
   t("reglas b15: el código tiene `state.mapa` (lo que la skill quería evitar) y las pruebas lo muestran", r15.failed.some((f) => /state is not defined/.test(f.detail)));
 }
 
+// 08/10: click_changes con "avatar" (FAIL falso en R1, Boxworld sin y con Skills) → se saca
+t("traductor web/game: click_changes en 'avatar' no es un botón → se saca; en 'siguiente' queda", !postprocessChecks([{ type: "click_changes", params: { click: ["avatar"] } }, { type: "board_changes", params: {} }], "R1", "x").some((x) => x.type === "click_changes") && postprocessChecks([{ type: "click_changes", params: { click: ["siguiente"] } }], "R2", "x")[0].type === "click_changes");
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

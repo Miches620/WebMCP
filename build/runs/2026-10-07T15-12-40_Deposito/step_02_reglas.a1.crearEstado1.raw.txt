@@ -1,0 +1,53 @@
+```javascript
+crearEstado(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+        let mapaLimpio = [];
+
+        for (let r = 0; r < nivel.length; r++) {
+            let filaString = '';
+            for (let c = 0; c < nivel[r].length; c++) {
+                const char = nivel[r][c];
+                let cleanChar = char;
+
+                // Component Detection
+                if (char === '@' || char === '+') {
+                    jugador = { fila: r, col: c };
+                } else if (char === '$' || char === '*') {
+                    cajas.push({ fila: r, col: c });
+                } 
+                
+                // Objectives are at ., *, or +
+                if (char === '.' || char === '*' || char === '+') {
+                    objetivos.push({ fila: r, col: c });
+                }
+
+                // Map Cleaning Logic: The map must only contain '#', ' ', and '.'.
+                if (char === '#') {
+                    cleanChar = '#';
+                } else if (char === '.' || char === '*' || char === '+') {
+                    // Objective spot remains '.' in the clean map, regardless of boxes/player on it.
+                    cleanChar = '.'; 
+                } else if (char === ' ' || char === '@' || char === '$') {
+                    // Player start, empty floor, or box location are treated as open space (' ') 
+                    cleanChar = ' '; 
+                } else {
+                     // Fallback for safety
+                     cleanChar = ' ';
+                }
+
+                filaString += cleanChar;
+            }
+            mapaLimpio.push(filaString);
+        }
+
+        return {
+            mapa: mapaLimpio,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    }
+```

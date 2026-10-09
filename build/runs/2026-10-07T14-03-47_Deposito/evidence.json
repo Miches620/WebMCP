@@ -1,0 +1,408 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Deposito",
+  "source": "project26_deposito_snapshot.json",
+  "catalog": "check_catalog v0.9",
+  "profiles": {
+    "ids": [
+      "web/game"
+    ],
+    "chain": [
+      "web",
+      "web/app",
+      "web/game"
+    ],
+    "status": {
+      "web": "DRAFT",
+      "web/app": "DRAFT",
+      "web/game": "DRAFT"
+    },
+    "borrowed": [
+      {
+        "id": "web/game",
+        "from": "web/landing",
+        "what": [
+          "motor del Specialist por componentes (vía web/app)"
+        ]
+      }
+    ]
+  },
+  "artifact_loads_without_js_errors": true,
+  "sections_visible": {
+    "result": "PASS",
+    "features": {
+      "R1": "PASS",
+      "R2": "PASS",
+      "R3": "PASS",
+      "R4": "PASS",
+      "R5": "PASS",
+      "R6": "PASS",
+      "R7": "PASS"
+    },
+    "anchors": [
+      {
+        "id": "juego",
+        "features": [
+          "R1",
+          "R2",
+          "R3",
+          "R4",
+          "R5",
+          "R6",
+          "R7"
+        ],
+        "seen": 7,
+        "total": 7,
+        "ondemand": 0,
+        "ok": true
+      }
+    ],
+    "detail": "#juego: 7/7 palabras visibles"
+  },
+  "components_render": {
+    "result": "NOT_APPLICABLE",
+    "components": [],
+    "detail": "ningún componente con JS nombra contenedores"
+  },
+  "validation": {
+    "profile": [
+      "web",
+      "web/app",
+      "web/game"
+    ],
+    "standard": {
+      "id": "web/game/grilla",
+      "version": "0.1.6",
+      "status": "DRAFT"
+    },
+    "always": [
+      {
+        "type": "looks_distinct",
+        "result": "PASS",
+        "detail": "se distinguen: pared, piso, objetivo",
+        "gate": true
+      },
+      {
+        "type": "layout_stable",
+        "result": "FAIL",
+        "detail": "#tablero 324px → 800px con un texto largo en #mensaje; huecos de 60px entre celdas",
+        "gate": false
+      }
+    ]
+  },
+  "summary": {
+    "requisitos": 8,
+    "PASS": 2,
+    "FAIL": 5,
+    "SIN_EVIDENCIA": 0,
+    "SIN_CHEQUEO": 1
+  },
+  "control": "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "El juego es un puzzle de depósito: el operario empuja cajas hasta las marcas pintadas en el piso del depósito.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "board_changes",
+          "params": {
+            "keys": [
+              "flechas"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "#tablero no cambia con ninguna tecla (ArrowUp, ArrowDown, ArrowLeft, ArrowRight): puede cambiar el estado o un texto, pero el tablero no se redibuja",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "El juego tiene un botón 'reiniciar' para volver a empezar el nivel y un botón 'siguiente nivel' para pasar al próximo.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "reiniciar"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"Reiniciar\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "siguiente",
+              "próximo"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"Siguiente Nivel\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "reset_restores",
+          "params": {
+            "click": [
+              "reiniciar"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "las teclas (ArrowUp, ArrowDown, ArrowLeft, ArrowRight) no cambian nada: no hay qué reiniciar",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "game_scenario",
+          "params": {},
+          "result": "FAIL",
+          "detail": "ganar un nivel y pasar al siguiente: con NIVELES[0] = [\"#####\",\"#@$.#\",\"#####\"] una flecha a la derecha gana el nivel, pero #mensaje no dice \"¡Nivel completado!\".",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "El juego tiene al menos 4 niveles.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "game_levels",
+          "params": {
+            "min": [
+              "4"
+            ]
+          },
+          "result": "PASS",
+          "detail": "4 niveles (se piden al menos 4)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "El operario se mueve con las flechas del teclado.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "board_changes",
+          "params": {
+            "keys": [
+              "flechas"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "#tablero no cambia con ninguna tecla (ArrowUp, ArrowDown, ArrowLeft, ArrowRight): puede cambiar el estado o un texto, pero el tablero no se redibuja",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "El operario avanza de a un casillero por vez.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "moves_one_cell",
+          "params": {},
+          "result": "FAIL",
+          "detail": "desde (1,1): derecha → undefined,undefined (esperado 1,2), otra vez → undefined,undefined (1,3), abajo → undefined,undefined (2,1), izquierda contra la pared → undefined,undefined (1,1)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "El mapa del depósito es de 8 casilleros de largo x 8 casilleros de alto en todos los niveles.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "fixed_map_size",
+          "params": {},
+          "result": "PASS",
+          "detail": "todos los niveles son de 8x8 y el tablero dibuja 64 casilleros",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "text": "El juego muestra un contador de movimientos.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "counter_on_action",
+          "params": {
+            "label": [
+              "movimientos"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "ArrowUp, ArrowDown, ArrowLeft, ArrowRight: \"Movimientos: 0\" → no cambia",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "text": "Estilo Game Boy: pantalla con una paleta de 4 tonos de verde.",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El requisito solicita un estilo visual específico (paleta de 4 tonos de verde), pero este aspecto no puede ser verificado mediante interacciones o comportamientos en la pantalla, sino a través del diseño y estilización CSS que no se refleja en el catálogo proporcionado.",
+      "checks": []
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "files_engine v0.9.6",
+    "standard": {
+      "id": "web/game/grilla",
+      "version": "0.1.6",
+      "status": "DRAFT"
+    },
+    "skills": null,
+    "files": [
+      "index.html",
+      "styles.css",
+      "js/niveles.js",
+      "js/reglas.js",
+      "js/dibujo.js",
+      "js/controles.js"
+    ],
+    "rule_tests": {
+      "passed": [
+        "recién creado no está ganado",
+        "nivel 1 no empieza ganado",
+        "nivel 2 no empieza ganado",
+        "nivel 3 no empieza ganado",
+        "nivel 4 no empieza ganado"
+      ],
+      "failed": [
+        {
+          "name": "crearEstado lee jugador, cajas y objetivos",
+          "fn": "crearEstado",
+          "detail": "crearEstado([\"#####\",\"#@$.#\",\"#####\"]) tendría que dar jugador {fila:1,col:1}, cajas [{fila:1,col:2}], objetivos [{fila:1,col:3}], movimientos 0; dio jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], objetivos [{fila:undefined,col:undefined}], movimientos 0."
+        },
+        {
+          "name": "la pared bloquea",
+          "fn": "mover",
+          "detail": "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"izquierda\") choca con la pared: el jugador sigue en {fila:1,col:1} y movimientos 0; quedó {fila:undefined,col:undefined} y movimientos 0."
+        },
+        {
+          "name": "empujar una caja",
+          "fn": "mover",
+          "detail": "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"derecha\") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], movimientos 1. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas."
+        },
+        {
+          "name": "caja en el objetivo = ganado",
+          "fn": "mover",
+          "after": "mover",
+          "detail": "con [\"#####\",\"#@$.#\",\"#####\"], después de mover \"derecha\" la única caja está en el único objetivo: ganado tiene que ser true."
+        },
+        {
+          "name": "mover no modifica el estado que recibe",
+          "fn": "mover",
+          "detail": "mover tiene que devolver un estado NUEVO: después de mover(e, \"derecha\"), e.jugador sigue en {fila:1,col:1} y su caja en {fila:1,col:2}; quedó {fila:undefined,col:undefined}."
+        },
+        {
+          "name": "de a un casillero",
+          "fn": "mover",
+          "detail": "con [\"######\",\"#@   #\",\"#    #\",\"######\"], \"derecha\" deja al jugador en {fila:1,col:2} y \"abajo\" en {fila:2,col:1} (un casillero por vez); quedó {fila:undefined,col:undefined} y {fila:undefined,col:undefined}."
+        },
+        {
+          "name": "caja contra pared no se mueve",
+          "fn": "mover",
+          "detail": "con [\"####\",\"#@$#\",\"####\"], la caja tiene una pared detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, caja {fila:1,col:2}, movimientos 0); quedó jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], movimientos 0. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas."
+        },
+        {
+          "name": "caja contra caja no se mueve",
+          "fn": "mover",
+          "detail": "con [\"######\",\"#@$$.#\",\"######\"], la caja tiene otra caja detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, movimientos 0); quedó {fila:undefined,col:undefined}, movimientos 0. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas."
+        },
+        {
+          "name": "lee '*' y '+'",
+          "fn": "crearEstado",
+          "detail": "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; cajas: tendrían que ser [{fila:1,col:2},{fila:1,col:4}] ('*' = caja sobre objetivo también es caja) y dio [{fila:undefined,col:undefined},{fila:undefined,col:undefined}]; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa: cada fila tiene que ser un STRING (como \"#.  .#\"), no un array de caracteres."
+        }
+      ]
+    },
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "niveles",
+        "ms": 201187,
+        "finish_reason": "stop",
+        "changed": [
+          "niveles.json"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 2,
+        "task_id": "reglas",
+        "ms": 645295,
+        "finish_reason": "stop",
+        "changed": [
+          "js/reglas.js"
+        ],
+        "rejected": [
+          "crearEstado([\"#####\",\"#@$.#\",\"#####\"]) tendría que dar jugador {fila:1,col:1}, cajas [{fila:1,col:2}], objetivos [{fila:1,col:3}], movimientos 0; dio jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], objetivos [{fila:undefined,col:undefined}], movimientos 0.",
+          "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"izquierda\") choca con la pared: el jugador sigue en {fila:1,col:1} y movimientos 0; quedó {fila:undefined,col:undefined} y movimientos 0.",
+          "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"derecha\") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], movimientos 1. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+          "con [\"#####\",\"#@$.#\",\"#####\"], después de mover \"derecha\" la única caja está en el único objetivo: ganado tiene que ser true.",
+          "mover tiene que devolver un estado NUEVO: después de mover(e, \"derecha\"), e.jugador sigue en {fila:1,col:1} y su caja en {fila:1,col:2}; quedó {fila:undefined,col:undefined}.",
+          "con [\"######\",\"#@   #\",\"#    #\",\"######\"], \"derecha\" deja al jugador en {fila:1,col:2} y \"abajo\" en {fila:2,col:1} (un casillero por vez); quedó {fila:undefined,col:undefined} y {fila:undefined,col:undefined}.",
+          "con [\"####\",\"#@$#\",\"####\"], la caja tiene una pared detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, caja {fila:1,col:2}, movimientos 0); quedó jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], movimientos 0. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+          "con [\"######\",\"#@$$.#\",\"######\"], la caja tiene otra caja detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, movimientos 0); quedó {fila:undefined,col:undefined}, movimientos 0. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+          "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; cajas: tendrían que ser [{fila:1,col:2},{fila:1,col:4}] ('*' = caja sobre objetivo también es caja) y dio [{fila:undefined,col:undefined},{fila:undefined,col:undefined}]; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa: cada fila tiene que ser un STRING (como \"#.  .#\"), no un array de caracteres."
+        ]
+      },
+      {
+        "n": 3,
+        "task_id": "pantalla",
+        "ms": 359437,
+        "finish_reason": "stop",
+        "changed": [
+          "juego.html",
+          "styles.css"
+        ],
+        "rejected": [
+          "en styles.css #tablero cambia de tamaño cuando #mensaje tiene un texto largo (ancho 404px → 800px, aparecen huecos de 40px entre celdas): la grilla se estira al ancho de la pantalla. Dale a #tablero el tamaño de sus celdas (width: max-content, o columnas del mismo ancho fijo que las celdas) y que el texto largo baje de línea sin ensanchar la pantalla (max-width en #mensaje)."
+        ]
+      },
+      {
+        "n": 4,
+        "task_id": "dibujo",
+        "ms": 339521,
+        "finish_reason": "stop",
+        "changed": [
+          "js/dibujo.js"
+        ],
+        "rejected": [
+          "hay 0 casilleros con clase \"jugador\"; tiene que haber 1.",
+          "hay 0 casilleros con clase \"caja\" y el estado tiene 2 cajas."
+        ]
+      },
+      {
+        "n": 5,
+        "task_id": "controles",
+        "ms": 312656,
+        "finish_reason": "stop",
+        "changed": [
+          "js/controles.js"
+        ],
+        "rejected": [
+          "board_changes: #tablero no cambia con ninguna tecla (ArrowUp, ArrowDown, ArrowLeft, ArrowRight): puede cambiar el estado o un texto, pero el tablero no se redibuja",
+          "not_won_immediately: ninguna tecla cambia nada (ArrowUp, ArrowDown, ArrowLeft, ArrowRight): no se puede jugar",
+          "reset_restores: las teclas (ArrowUp, ArrowDown, ArrowLeft, ArrowRight) no cambian nada: no hay qué reiniciar",
+          "counter_on_action: ArrowUp, ArrowDown, ArrowLeft, ArrowRight: \"Movimientos: 0\" → no cambia",
+          "ganar un nivel y pasar al siguiente: con NIVELES[0] = [\"#####\",\"#@$.#\",\"#####\"] una flecha a la derecha gana el nivel, pero #mensaje no dice \"¡Nivel completado!\"."
+        ]
+      }
+    ]
+  }
+}

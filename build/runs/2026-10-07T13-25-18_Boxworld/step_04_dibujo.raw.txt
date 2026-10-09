@@ -1,0 +1,65 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado, numeroNivel) {
+    const tablero = document.getElementById('tablero');
+    const nivelDisplay = document.getElementById('nivel');
+    const movimientosDisplay = document.getElementById('movimientos');
+
+    // 1. Vaciar el tablero
+    tablero.innerHTML = '';
+
+    const numColumnas = estado.mapa[0].length;
+    
+    // 4. Establecer las columnas del grid
+    tablero.style.gridTemplateColumns = `repeat(${numColumnas}, 1fr)`;
+
+    // Iterar sobre el mapa (filas y columnas)
+    for (let r = 0; r < estado.mapa.length; r++) {
+        for (let c = 0; c < numColumnas; c++) {
+            const celda = document.createElement('div');
+            celda.className = 'casillero';
+
+            // Determinar el tipo base del casillero
+            const tileType = estado.mapa[r][c];
+            if (tileType === '#') {
+                celda.classList.add('pared');
+                celda.style.backgroundColor = '#808080'; // Color de pared por defecto
+            } else if (tileType === '.') {
+                celda.classList.add('objetivo');
+            } else {
+                // Piso o objetivo sin caja encima
+                celda.classList.add('piso');
+            }
+
+            let hasBox = false;
+            let isPlayer = false;
+
+            // 2. Verificar si hay una caja en esta posición
+            const boxAtPos = estado.cajas.find(box => box.fila === r && box.col === c);
+            if (boxAtPos) {
+                celda.classList.add('caja');
+                hasBox = true;
+            }
+
+            // 3. Verificar si el jugador está en esta posición
+            const playerAtPos = estado.jugador.fila === r && estado.jugador.col === c;
+            if (playerAtPos) {
+                celda.classList.add('jugador');
+                isPlayer = true;
+            }
+
+            // Si hay caja y jugador, el jugador debe estar encima de la caja visualmente
+            // Aunque en el estado no se maneja esto explícitamente, si el jugador está ahí, lo pintamos por encima.
+            if (hasBox && isPlayer) {
+                celda.classList.add('jugador'); // Asegura que 'jugador' tenga prioridad de clase
+            }
+
+            tablero.appendChild(celda);
+        }
+    }
+
+    // 5. Actualizar el contador de movimientos y nivel
+    movimientosDisplay.textContent = `Movimientos: ${estado.movimientos}`;
+    nivelDisplay.textContent = `Nivel ${numeroNivel}`;
+}
+```

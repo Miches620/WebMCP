@@ -2,6 +2,21 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Experimento de Skills, 2ª vuelta (08/10): con Skills, mejor en los dos juegos**
+- *Corridas (Gemma real, mismo código, solo cambia `--skills`):*
+
+| | min | intentos (niv/regl/pant/dib/ctrl) | problemas | Validation |
+|---|---|---|---|---|
+| Boxworld sin | 25,3 | 2/2/3/2/2 | 17 | 6 PASS / 1 FAIL |
+| Boxworld con | 17,4 | 2/3/1/1/1 | 16 | 6 PASS / 1 FAIL |
+| Depósito sin | 31,0 | 3/3/3/3/3 | 59 | 2 PASS / 5 FAIL |
+| Depósito con | 17,5 | 3/2/1/2/1 | 11 | 7 PASS / 0 FAIL |
+
+- *Por Skill (veces que apareció su error, sin → con):* `botones-habilitados` Boxworld 1→0; `flecha-sin-tapar` Boxworld 1→0; `grilla-que-no-se-estira` v2 Boxworld 1→0, Depósito 3→0; `piezas-aparte-del-mapa` Depósito 9→0; `siempre-jugable` Boxworld 1→0; **`nombres-del-contrato` Boxworld 7→7: sin efecto** (v2: deja de nombrar la palabra prohibida `state`; hipótesis: nombrarla la sugería). Quedó anotado en cada Skill (`medicion`).
+- *El FAIL de los dos Boxworld* era falso: el traductor puso `click_changes` con "avatar" en R1 (el avatar no es un botón). Ahora el postproceso de web/game saca `click_changes` cuyas palabras son piezas del juego (avatar, jugador, caja…). Con eso, los dos Boxworld quedan 7/0.
+- *Cuidado con la lectura:* es 1 corrida por condición y con `temperature 0`: cualquier texto agregado al pedido cambia la respuesta de Gemma ("efecto mariposa"), así que parte de la mejora podría venir de cambiar el pedido y no del contenido de las Skills. Para separarlo: una corrida "placebo" (mismo largo de texto, sin contenido útil) y un 3er juego.
+- *Lo que sí es claro:* en Depósito sin Skills, `crearEstado` devolvía el jugador indefinido y los 3 reintentos de reglas, dibujo y controles cayeron en cascada (59 problemas); con Skills, 11 problemas y 7 PASS. En Boxworld, las Skills de pantalla, dibujo y controles dejaron esos pasos en 1 intento.
+
 **Primer experimento de Skills (07/10): salió peor, y por qué → files_engine v0.9.6, grilla v0.1.6, json_loose v0.2**
 - *Boxworld con `--skills` (b15):* 2 PASS / 5 FAIL (b14 sin Skills: 7 / 0). Tablero de 28 px, injugable (Miche). Tres causas, y solo una es de las Skills:
   1. **Bug del harness:** `reglas.js` traía el comentario "No utiliza DOM ni window." y el lint de lógica pura buscaba `window.` en el texto con comentarios: los 3 intentos se rechazaron por eso y nunca se reportó el error real (`state.mapa` en `mover`). → el lint mira el código sin comentarios (`stripComments`).

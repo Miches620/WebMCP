@@ -1,0 +1,94 @@
+### FILE: js/controles.js
+```javascript
+let nivelActual = 0;
+let estado;
+
+/**
+ * Inicializa el juego en un nivel específico.
+ * @param {number} i - Índice del nivel a cargar (0-based).
+ */
+function iniciarNivel(i) {
+    if (!NIVELES[i]) {
+        console.error("Nivel no encontrado:", i);
+        return;
+    }
+
+    nivelActual = i;
+    estado = Reglas.crearEstado(NIVELES[i]);
+
+    // Limpiar mensaje y dibujar el estado inicial
+    document.getElementById('mensaje').textContent = "¡Empieza a moverte!";
+    dibujar(estado, nivelActual + 1);
+}
+
+/**
+ * Maneja la lógica de movimiento del jugador al presionar flechas.
+ */
+function manejarMovimientoTeclado(event) {
+    let dir;
+    switch (event.key) {
+        case 'ArrowUp':
+            dir = "arriba";
+            break;
+        case 'ArrowDown':
+            dir = "abajo";
+            break;
+        case 'ArrowLeft':
+            dir = "izquierda";
+            break;
+        case 'ArrowRight':
+            dir = "derecha";
+            break;
+        default:
+            return; // No es una flecha de movimiento
+    }
+
+    event.preventDefault();
+
+    // 1. Calcular el nuevo estado después del intento de movimiento
+    const nuevoEstado = Reglas.mover(estado, dir);
+    estado = nuevoEstado;
+
+    // 2. Dibujar el nuevo estado
+    dibujar(estado, nivelActual + 1);
+
+    // 3. Verificar si se ganó el nivel
+    if (Reglas.ganado(estado)) {
+        document.getElementById('mensaje').textContent = "¡Nivel completado! 🎉";
+    } else if (nuevoEstado.movimientos > estado.movimientos) {
+         // Solo actualizamos el mensaje de movimiento si realmente hubo un cambio
+         document.getElementById('mensaje').textContent = ""; 
+    }
+}
+
+/**
+ * Configura los listeners de eventos para botones y teclado.
+ */
+function configurarListeners() {
+    const btnReiniciar = document.getElementById('btn-reiniciar');
+    const btnSiguiente = document.getElementById('btn-siguiente');
+
+    // Listener de Teclado (Flechas)
+    document.addEventListener('keydown', manejarMovimientoTeclado);
+
+    // Botón Reiniciar
+    btnReiniciar.addEventListener('click', () => {
+        iniciarNivel(nivelActual);
+    });
+
+    // Botón Siguiente Nivel
+    btnSiguiente.addEventListener('click', () => {
+        if (nivelActual < NIVELES.length - 1) {
+            const siguienteNivelIndex = nivelActual + 1;
+            iniciarNivel(siguienteNivelIndex);
+        } else {
+            document.getElementById('mensaje').textContent = "¡Has completado todos los niveles! 🎉";
+            btnSiguiente.disabled = true;
+        }
+    });
+}
+
+// Inicialización del juego al cargar el script
+configurarListeners();
+iniciarNivel(0);
+```

@@ -1,0 +1,51 @@
+```javascript
+crearEstado: function(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+        let mapaSimplificado = [];
+
+        const rows = nivel.length;
+        if (rows === 0) return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+        const cols = nivel[0].length;
+
+        // Recorrer el nivel para identificar elementos y construir el mapa base
+        for (let r = 0; r < rows; r++) {
+            let filaActualChars = [];
+            for (let c = 0; c < cols; c++) {
+                const char = nivel[r][c];
+                let mapChar = ' '; // Default assumption for the simplified map
+
+                if (char === '@') {
+                    jugador = { fila: r, col: c };
+                    mapChar = ' '; 
+                } else if (char === '$' || char === '*') {
+                    cajas.push({ fila: r, col: c });
+                    mapChar = ' '; // Caja sobre objetivo o caja simple se representa como espacio vacío en el mapa base
+                } else if (char === '.') {
+                    objetivos.push({ fila: r, col: c });
+                    mapChar = '.'; // Objetivo fijo
+                } else if (char === '#') {
+                    mapChar = '#'; // Pared
+                } else if (char === ' ') {
+                    mapChar = ' '; // Piso vacío
+                } 
+                // Manejo de '+' (jugador sobre objetivo) o cualquier otro carácter complejo que no afecte la estructura base del mapa.
+                else {
+                    mapChar = ' ';
+                }
+
+                filaActualChars.push(mapChar);
+            }
+            mapaSimplificado.push(filaActualChars.join(''));
+        }
+
+        return {
+            mapa: mapaSimplificado,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+```

@@ -1,0 +1,379 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Deposito",
+  "source": "project26_deposito_snapshot.json",
+  "catalog": "check_catalog v0.9",
+  "profiles": {
+    "ids": [
+      "web/game"
+    ],
+    "chain": [
+      "web",
+      "web/app",
+      "web/game"
+    ],
+    "status": {
+      "web": "DRAFT",
+      "web/app": "DRAFT",
+      "web/game": "DRAFT"
+    },
+    "borrowed": [
+      {
+        "id": "web/game",
+        "from": "web/landing",
+        "what": [
+          "motor del Specialist por componentes (vía web/app)"
+        ]
+      }
+    ]
+  },
+  "artifact_loads_without_js_errors": false,
+  "sections_visible": {
+    "result": "PASS",
+    "features": {
+      "R1": "PASS",
+      "R2": "PASS",
+      "R3": "PASS",
+      "R4": "PASS",
+      "R5": "PASS",
+      "R6": "PASS",
+      "R7": "PASS"
+    },
+    "anchors": [
+      {
+        "id": "juego",
+        "features": [
+          "R1",
+          "R2",
+          "R3",
+          "R4",
+          "R5",
+          "R6",
+          "R7"
+        ],
+        "seen": 16,
+        "total": 16,
+        "ondemand": 0,
+        "ok": true
+      }
+    ],
+    "detail": "#juego: 16/16 palabras visibles"
+  },
+  "components_render": {
+    "result": "NOT_APPLICABLE",
+    "components": [],
+    "detail": "ningún componente con JS nombra contenedores"
+  },
+  "validation": {
+    "profile": [
+      "web",
+      "web/app",
+      "web/game"
+    ],
+    "standard": {
+      "id": "web/game/grilla",
+      "version": "0.1.6",
+      "status": "DRAFT"
+    },
+    "always": [
+      {
+        "type": "looks_distinct",
+        "result": "PASS",
+        "detail": "se distinguen: ",
+        "gate": true
+      },
+      {
+        "type": "layout_stable",
+        "result": "FAIL",
+        "detail": "no se pudo medir: falta #tablero con celdas o #mensaje",
+        "gate": false
+      }
+    ]
+  },
+  "summary": {
+    "requisitos": 8,
+    "PASS": 1,
+    "FAIL": 6,
+    "SIN_EVIDENCIA": 0,
+    "SIN_CHEQUEO": 1
+  },
+  "control": "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "El juego es un puzzle de depósito: el operario empuja cajas hasta las marcas pintadas en el piso del depósito.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "board_changes",
+          "params": {
+            "keys": [
+              "flechas"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "no hay tablero (una grilla con 9 o más casilleros, o un canvas)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "moves_one_cell",
+          "params": {},
+          "result": "FAIL",
+          "detail": "la página no define Reglas (contrato del Standard web/game/grilla)",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "fixed_map_size",
+          "params": {},
+          "result": "FAIL",
+          "detail": "tamaños: 8x8; el tablero dibuja 0 casilleros de 64",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "game_levels",
+          "params": {
+            "min": [
+              "al menos 1"
+            ]
+          },
+          "result": "PASS",
+          "detail": "4 niveles (se piden al menos 1)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "El juego tiene un botón 'reiniciar' para volver a empezar el nivel y un botón 'siguiente nivel' para pasar al próximo.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "reiniciar"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"Reiniciar Nivel\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "siguiente",
+              "próximo"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"Siguiente Nivel\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "reset_restores",
+          "params": {
+            "click": [
+              "reiniciar"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "las teclas (ArrowUp, ArrowDown, ArrowLeft, ArrowRight) no cambian nada: no hay qué reiniciar",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "game_scenario",
+          "params": {},
+          "result": "FAIL",
+          "detail": "ganar un nivel y pasar al siguiente: con NIVELES[0] = [\"#####\",\"#@$.#\",\"#####\"] una flecha a la derecha gana el nivel, pero #mensaje no dice \"¡Nivel completado!\". | ganar un nivel y pasar al siguiente: error de JS durante la partida: Unexpected token ','",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "El juego tiene al menos 4 niveles.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "game_levels",
+          "params": {
+            "min": [
+              "4"
+            ]
+          },
+          "result": "PASS",
+          "detail": "4 niveles (se piden al menos 4)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "El operario se mueve con las flechas del teclado.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "board_changes",
+          "params": {
+            "keys": [
+              "flechas"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "no hay tablero (una grilla con 9 o más casilleros, o un canvas)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "El operario avanza de a un casillero por vez.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "moves_one_cell",
+          "params": {},
+          "result": "FAIL",
+          "detail": "la página no define Reglas (contrato del Standard web/game/grilla)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "El mapa del depósito es de 8 casilleros de largo x 8 casilleros de alto en todos los niveles.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "fixed_map_size",
+          "params": {},
+          "result": "FAIL",
+          "detail": "tamaños: 8x8; el tablero dibuja 0 casilleros de 64",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "text": "El juego muestra un contador de movimientos.",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "counter_on_action",
+          "params": {
+            "label": [
+              "movimientos"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "ArrowUp, ArrowDown, ArrowLeft, ArrowRight: \"Movimientos: 0\" → no cambia",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "text": "Estilo Game Boy: pantalla con una paleta de 4 tonos de verde.",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El estilo visual 'clásico' y la paleta de colores no se pueden verificar con los chequeos del catálogo proporcionados.",
+      "checks": []
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "files_engine v0.9.6",
+    "standard": {
+      "id": "web/game/grilla",
+      "version": "0.1.6",
+      "status": "DRAFT"
+    },
+    "skills": {
+      "role": "web-game",
+      "status": "PLACEBO",
+      "ids": [
+        "placebo-1",
+        "placebo-2",
+        "placebo-3",
+        "placebo-4",
+        "placebo-5",
+        "placebo-6"
+      ]
+    },
+    "files": [
+      "index.html",
+      "styles.css",
+      "js/niveles.js",
+      "js/reglas.js",
+      "js/dibujo.js",
+      "js/controles.js"
+    ],
+    "rule_tests": {
+      "passed": [],
+      "failed": [
+        {
+          "name": "carga",
+          "detail": "al ejecutarlo: Unexpected token ','"
+        }
+      ]
+    },
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "niveles",
+        "ms": 263536,
+        "finish_reason": "stop",
+        "changed": [
+          "niveles.json"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 2,
+        "task_id": "reglas",
+        "ms": 546763,
+        "finish_reason": "stop",
+        "changed": [
+          "js/reglas.js"
+        ],
+        "rejected": [
+          "error de sintaxis: Unexpected token ','"
+        ]
+      },
+      {
+        "n": 3,
+        "task_id": "pantalla",
+        "ms": 456477,
+        "finish_reason": "stop",
+        "changed": [
+          "juego.html",
+          "styles.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 4,
+        "task_id": "dibujo",
+        "ms": 0,
+        "changed": [
+          "js/dibujo.js"
+        ],
+        "rejected": [
+          "no se corrió: js/reglas.js no funciona (error de sintaxis: Unexpected token ',')"
+        ]
+      },
+      {
+        "n": 5,
+        "task_id": "controles",
+        "ms": 0,
+        "changed": [
+          "js/controles.js"
+        ],
+        "rejected": [
+          "no se corrió: js/reglas.js no funciona (error de sintaxis: Unexpected token ',')"
+        ]
+      }
+    ]
+  }
+}

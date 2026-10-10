@@ -1,0 +1,86 @@
+```javascript
+mover(estado, direccion) {
+    // 1. Calcular la posición objetivo del jugador
+    let nextPlayerR = estado.jugador.fila;
+    let nextPlayerC = estado.jugador.col;
+
+    switch (direccion) {
+        case "arriba":
+            nextPlayerR -= 1;
+            break;
+        case "abajo":
+            nextPlayerR += 1;
+            break;
+        case "izquierda":
+            nextPlayerC -= 1;
+            break;
+        case "derecha":
+            nextPlayerC += 1;
+            break;
+    }
+
+    // Función auxiliar para verificar si una coordenada está ocupada por una caja
+    const estaOcupadoPorCaja = (r, c) => {
+        return estado.cajas.some(box => box.fila === r && box.col === c);
+    };
+
+    // 2. Validación de movimiento básico (pared o fuera de límites)
+    if (nextPlayerR < 0 || nextPlayerR >= estado.mapa.length ||
+        nextPlayerC < 0 || nextPlayerC >= estado.mapa[0].length ||
+        estado.mapa[nextPlayerR][nextPlayerC] === '#') {
+        return { ...estado, movimientos: estado.movimientos }; // No hay cambio de estado
+    }
+
+    // Caso A: Movimiento simple (el destino no tiene caja)
+    if (!estaOcupadoPorCaja(nextPlayerR, nextPlayerC)) {
+        const nuevoEstado = {
+            mapa: [...estado.mapa],
+            jugador: { fila: nextPlayerR, col: nextPlayerC },
+            cajas: estado.cajas.map(box => ({ ...box })), // Copiar cajas para asegurar inmutabilidad
+            objetivos: [...estado.objetivos],
+            movimientos: estado.movimientos + 1
+        };
+        return nuevoEstado;
+    }
+
+    // Caso B: Intento de empuje (el destino tiene caja)
+    const boxToPush = estado.cajas.find(box => box.fila === nextPlayerR && box.col === nextPlayerC);
+
+    if (!boxToPush) {
+        return { ...estado, movimientos: estado.movimientos }; // No debería pasar si estaOcupadoPorCaja es true
+    }
+
+    // Calcular la posición final donde se empujará la caja (detrás de ella)
+    let pushTargetR = boxToPush.fila;
+    let pushTargetC = boxToPush.col;
+
+    switch (direccion) {
+        case "arriba":
+            pushTargetR -= 1;
+            break;
+        case "abajo":
+            pushTargetR += 1;
+            break;
+        case "izquierda":
+            pushTargetC -= 1;
+            break;
+        case "derecha":
+            pushTargetC += 1;
+            break;
+    }
+
+    // Validación de empuje: ¿Es el destino del empuje válido?
+    const esPushValido = (
+        pushTargetR >= 0 && pushTargetR < estado.mapa.length &&
+        pushTargetC >= 0 && pushTargetC < estado.mapa[0].length &&
+        estado.mapa[pushTargetR][pushTargetC] !== '#' && // No choca con pared
+        !estaOcupadoPorCaja(pushTargetR, pushTargetC)    // No choca con otra caja
+    );
+
+    if (esPushValido) {
+        // ¡Movimiento exitoso de empuje! Crear nuevo estado.
+        const nuevasCajas = [];
+        for (const box of estado.cajas) {
+            let newBox = { ...box }; // Copiar la caja actual
+            if (box.fila === nextPlayerR && box.col === nextPlayerC) {
+                //

@@ -1,0 +1,667 @@
+{
+  "input": {
+    "source": "project27_invernadero_snapshot.json",
+    "refined": {
+      "project_name": "Invernadero",
+      "objetivo": "Juego de invernadero en el navegador: un jardinero empuja macetas hasta los canteros",
+      "features": [
+        "El juego es un puzzle de invernadero: el jardinero empuja macetas hasta los canteros de tierra del invernadero.",
+        "El juego tiene un botón 'reiniciar' para volver a empezar el nivel y un botón 'siguiente nivel' para pasar al próximo.",
+        "El juego tiene al menos 5 niveles.",
+        "El jardinero se mueve con las flechas del teclado.",
+        "El jardinero avanza de a un casillero por vez.",
+        "El mapa del invernadero es de 9 casilleros de largo x 9 casilleros de alto en todos los niveles.",
+        "El juego muestra un contador de movimientos.",
+        "Estilo cálido: paleta de tonos tierra (marrón, terracota, verde oliva y crema)."
+      ],
+      "criterios_holdout": [
+        "Se puede jugar moviendo al jardinero con las flechas y empujando macetas hasta los canteros",
+        "Cuando todas las macetas están sobre un cantero se puede pasar al siguiente nivel"
+      ],
+      "restricciones": [
+        "El jardinero no puede atravesar paredes ni macetas; si empuja una maceta y detrás hay pared u otra maceta, no se mueve nada.",
+        "Las macetas no pueden salir del mapa ni superponerse entre ellas.",
+        "El nivel se supera cuando todas las macetas están sobre un cantero.",
+        "El mapa del invernadero es de 9 casilleros de largo x 9 casilleros de alto."
+      ],
+      "estilo": [
+        "Estilo cálido: paleta de tonos tierra (marrón, terracota, verde oliva y crema)."
+      ],
+      "contexto": [
+        "Juego de invernadero para jugar en el navegador"
+      ],
+      "project_stage": "PROTOTYPE",
+      "profiles": [
+        "web/game"
+      ],
+      "exclusiones": []
+    },
+    "tasks": [
+      {
+        "id": "F1.1",
+        "role": "Frontend",
+        "task": "Establecer la estructura base del entorno de juego (HTML/CSS)",
+        "description": "Crear el contenedor principal autocontenido (viewport) y aplicar los estilos CSS necesarios para delimitar el área de juego, asegurando que sea un lienzo listo para recibir el mapa.",
+        "depends_on": []
+      },
+      {
+        "id": "F1.2",
+        "role": "Frontend",
+        "task": "Implementar la estructura del grid 9x9",
+        "description": "Generar y aplicar el layout CSS para una cuadrícula fija de 9x9 que servirá como base visual para el mapa, sin colocar aún contenido específico.",
+        "depends_on": [
+          "F1.1"
+        ]
+      },
+      {
+        "id": "F1.3",
+        "role": "Frontend",
+        "task": "Definir la representación visual del Jardinero",
+        "description": "Crear el componente HTML y CSS estático que representará al jardinero inicial, definiendo su apariencia base dentro de las coordenadas del mapa.",
+        "depends_on": []
+      },
+      {
+        "id": "F1.4",
+        "role": "Frontend",
+        "task": "Definir la representación visual de las macetas (Obstáculos)",
+        "description": "Crear el componente HTML y CSS estático para representar las macetas que el jardinero empuja en el nivel.",
+        "depends_on": []
+      },
+      {
+        "id": "F1.5",
+        "role": "Frontend",
+        "task": "Definir la representación visual de elementos estáticos del nivel",
+        "description": "Implementar los estilos y estructura HTML para cualquier otro elemento fijo del entorno (ej. paredes, puntos de inicio/fin) que no sea el jardinero ni una maceta.",
+        "depends_on": []
+      },
+      {
+        "id": "F1.6",
+        "role": "Frontend",
+        "task": "Ensamblar y renderizar la escena inicial completa",
+        "description": "Integrar los componentes definidos (Grid, Jardinero, Macetas, Elementos Estáticos) dentro del contenedor principal para mostrar el mapa fijo de 9x9 en su estado visual inicial.",
+        "depends_on": [
+          "F1.2",
+          "F1.3",
+          "F1.4",
+          "F1.5"
+        ]
+      },
+      {
+        "id": "F2.1",
+        "role": "Frontend",
+        "task": "Implementar el manejo de eventos del teclado para mover al Jardinero",
+        "description": "Desarrollar los listeners de evento (flechas) y la lógica inicial para calcular la nueva posición deseada del Jardinero en el grid, sin validar colisiones aún.",
+        "depends_on": [
+          "F1.3",
+          "F1.6"
+        ]
+      },
+      {
+        "id": "F2.2",
+        "role": "Frontend",
+        "task": "Implementar la validación de colisión del Jardinero con paredes y límites del mapa",
+        "description": "Integrar la lógica para que, tras calcular el movimiento (F2.1), se valide si la nueva posición choca contra las paredes o los bordes definidos por el grid.",
+        "depends_on": [
+          "F1.2",
+          "F1.5",
+          "F2.1"
+        ]
+      },
+      {
+        "id": "F2.3",
+        "role": "Frontend",
+        "task": "Implementar la detección de colisión del Jardinero con macetas (Obstáculos)",
+        "description": "Desarrollar la lógica para detectar si el movimiento propuesto del Jardinero resulta en una colisión con alguna maceta, identificando su posición y tipo.",
+        "depends_on": [
+          "F1.4",
+          "F2.1"
+        ]
+      },
+      {
+        "id": "F2.4",
+        "role": "Frontend",
+        "task": "Implementar la lógica de empuje de macetas (Pushing)",
+        "description": "Desarrollar el algoritmo que, al detectar una colisión con una maceta (F2.3), verifique si la dirección de movimiento permite mover tanto al Jardinero como a la maceta adyacente, actualizando las posiciones de ambos elementos.",
+        "depends_on": [
+          "F2.2",
+          "F2.3"
+        ]
+      },
+      {
+        "id": "F3.1",
+        "role": "Frontend",
+        "task": "Implementar el estado de gestión del contador de movimientos.",
+        "description": "Establecer la variable de estado global para llevar la cuenta de los movimientos realizados en el nivel, inicializándola a cero.",
+        "depends_on": []
+      },
+      {
+        "id": "F3.2",
+        "role": "Frontend",
+        "task": "Renderizar y actualizar el contador de movimientos en la interfaz de usuario.",
+        "description": "Crear el componente visible para mostrar el conteo actual de movimientos, asegurando que se actualice reactivamente con el estado del juego.",
+        "depends_on": [
+          "F3.1"
+        ]
+      },
+      {
+        "id": "F3.3",
+        "role": "Frontend",
+        "task": "Definir y almacenar el estado objetivo fijo de todas las macetas (Obstáculos).",
+        "description": "Implementar la estructura de datos que mapea la posición ideal (target) para cada maceta del nivel, determinando el estado de éxito.",
+        "depends_on": [
+          "F1.4"
+        ]
+      },
+      {
+        "id": "F3.4",
+        "role": "Frontend",
+        "task": "Desarrollar la lógica de verificación de posición de macetas para determinar el éxito del nivel.",
+        "description": "Crear una función que itere sobre todas las macetas y compare su posición actual con sus posiciones objetivo definidas en F3.3, devolviendo un booleano de éxito/fracaso.",
+        "depends_on": [
+          "F1.4",
+          "F3.3"
+        ]
+      },
+      {
+        "id": "F3.5",
+        "role": "Frontend",
+        "task": "Integrar el incremento del contador en la acción de empuje exitoso.",
+        "description": "Modificar la lógica de empuje (pushing) para que, tras un movimiento o empuje exitoso, se incremente el estado del contador y se notifique a la UI.",
+        "depends_on": [
+          "F2.4",
+          "F3.1"
+        ]
+      },
+      {
+        "id": "F3.6",
+        "role": "Frontend",
+        "task": "Implementar la lógica de detección del fin de nivel y su respuesta visual.",
+        "description": "Conectar el resultado de la verificación de macetas (F3.4) para determinar si se ha completado el nivel, mostrando mensajes de éxito o fracaso al usuario.",
+        "depends_on": [
+          "F3.4"
+        ]
+      },
+      {
+        "id": "F4.1.R2.1",
+        "role": "Frontend",
+        "task": "Estilizar la interfaz de usuario del mapa con estilo tonos tierra",
+        "description": "Aplicar el estilo gráfico y paleta de colores tonos tierra a los elementos visuales del mapa (bordes, tileset visible, contenedores) para asegurar consistencia.",
+        "depends_on": []
+      },
+      {
+        "id": "F4.1.R2.2",
+        "role": "Frontend",
+        "task": "Estilizar elementos interactivos (botones, sliders) con estilo tonos tierra",
+        "description": "Aplicar el estilo gráfico y paleta de colores tonos tierra a todos los componentes de interacción del usuario (botones, menús desplegables, sliders, etc.).",
+        "depends_on": []
+      },
+      {
+        "id": "F4.1.R2.3",
+        "role": "Frontend",
+        "task": "Aplicar estilo gráfico a textos y HUDs con estilo tonos tierra",
+        "description": "Asegurar que todos los elementos de texto, indicadores de estado (HUD), fuentes y tipografía adopten consistentemente el estilo visual tonos tierra.",
+        "depends_on": []
+      },
+      {
+        "id": "F4.2",
+        "role": "Frontend",
+        "task": "Definir la estructura de datos para gestionar múltiples niveles del juego.",
+        "description": "Crear y estructurar el código que contendrá los datos (mapa, obstáculos iniciales, estados objetivo) para al menos 5 niveles predefinidos. Esta estructura debe permitir acceder a un nivel por índice o ID.",
+        "depends_on": []
+      },
+      {
+        "id": "F4.3",
+        "role": "Frontend",
+        "task": "Implementar la funcionalidad y UI del botón 'Reiniciar'.",
+        "description": "Añadir el elemento de interfaz de usuario (botón) para 'Reiniciar' en la vista principal del juego.",
+        "depends_on": []
+      },
+      {
+        "id": "F4.4",
+        "role": "Frontend",
+        "task": "Desarrollar la lógica de restauración de estado al presionar 'Reiniciar'.",
+        "description": "Implementar el manejador de eventos para el botón 'Reiniciar', que debe restaurar el estado del nivel actual (posición, macetas, contador) a su configuración inicial antes de cualquier movimiento.",
+        "depends_on": [
+          "F3.3",
+          "F3.4"
+        ]
+      },
+      {
+        "id": "F4.5",
+        "role": "Frontend",
+        "task": "Implementar la función central para cargar y renderizar un nivel específico.",
+        "description": "Crear una función reutilizable que tome un índice de nivel (definido en F4.2) y sea capaz de inicializar el estado del juego, re-renderizando el mapa con la configuración completa de ese nuevo nivel.",
+        "depends_on": [
+          "F4.2"
+        ]
+      },
+      {
+        "id": "F4.6",
+        "role": "Frontend",
+        "task": "Implementar la funcionalidad y UI del botón 'Próximo Nivel'.",
+        "description": "Añadir el elemento de interfaz de usuario (botón) para 'Próximo Nivel' en la vista principal del juego.",
+        "depends_on": []
+      },
+      {
+        "id": "F4.7",
+        "role": "Frontend",
+        "task": "Desarrollar la lógica de transición a nivel siguiente.",
+        "description": "Implementar el manejador de eventos para 'Próximo Nivel'. Esta lógica debe validar si hay un siguiente nivel disponible, incrementar el índice y llamar a la función de carga de niveles (F4.5) para pasar al contenido subsiguiente.",
+        "depends_on": [
+          "F4.2",
+          "F4.5"
+        ]
+      }
+    ],
+    "holdout": {
+      "forbidden": [
+        "Se puede jugar moviendo al jardinero con las flechas y empujando macetas hasta los canteros",
+        "Cuando todas las macetas están sobre un cantero se puede pasar al siguiente nivel"
+      ],
+      "repeated_in_features": []
+    }
+  },
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "specialist_version": "files_engine v0.9.6",
+    "standard": {
+      "id": "web/game/grilla",
+      "version": "0.1.6",
+      "status": "DRAFT"
+    },
+    "skills": null,
+    "files": [
+      "index.html",
+      "styles.css",
+      "js/niveles.js",
+      "js/reglas.js",
+      "js/dibujo.js",
+      "js/controles.js"
+    ],
+    "hints": {
+      "minLevels": 5,
+      "cols": 9,
+      "rows": 9
+    },
+    "data": {
+      "niveles": {
+        "valid": 5,
+        "need": 5,
+        "report": [
+          {
+            "n": 1,
+            "ok": true,
+            "solvable": true,
+            "pushes": 2
+          },
+          {
+            "n": 1,
+            "ok": true,
+            "solvable": true,
+            "pushes": 2
+          },
+          {
+            "n": 2,
+            "ok": true,
+            "solvable": true,
+            "pushes": 3
+          },
+          {
+            "n": 3,
+            "ok": true,
+            "solvable": true,
+            "pushes": 3
+          },
+          {
+            "n": 4,
+            "ok": true,
+            "solvable": true,
+            "pushes": 4
+          }
+        ],
+        "dropped": [
+          "nivel 2: el jugador está sobre una pared."
+        ]
+      }
+    },
+    "rule_tests": {
+      "passed": [
+        "crearEstado lee jugador, cajas y objetivos",
+        "recién creado no está ganado",
+        "la pared bloquea",
+        "empujar una caja",
+        "caja en el objetivo = ganado",
+        "mover no modifica el estado que recibe",
+        "de a un casillero",
+        "caja contra pared no se mueve",
+        "caja contra caja no se mueve",
+        "lee '*' y '+'",
+        "nivel 1 no empieza ganado",
+        "nivel 2 no empieza ganado",
+        "nivel 3 no empieza ganado",
+        "nivel 4 no empieza ganado",
+        "nivel 5 no empieza ganado"
+      ],
+      "failed": []
+    },
+    "acceptance": {
+      "reglas": {
+        "passed": [
+          "crearEstado lee jugador, cajas y objetivos",
+          "recién creado no está ganado",
+          "la pared bloquea",
+          "empujar una caja",
+          "caja en el objetivo = ganado",
+          "mover no modifica el estado que recibe",
+          "de a un casillero",
+          "caja contra pared no se mueve",
+          "caja contra caja no se mueve",
+          "lee '*' y '+'",
+          "nivel 1 no empieza ganado",
+          "nivel 2 no empieza ganado",
+          "nivel 3 no empieza ganado",
+          "nivel 4 no empieza ganado",
+          "nivel 5 no empieza ganado"
+        ],
+        "failed": []
+      }
+    },
+    "order": [
+      "niveles",
+      "reglas",
+      "pantalla",
+      "dibujo",
+      "controles"
+    ],
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "niveles",
+        "kind": "data",
+        "files": [
+          "niveles.json"
+        ],
+        "attempts": [
+          {
+            "k": 0,
+            "ms": 130924,
+            "finish_reason": "stop",
+            "reasoning_chars": 3457,
+            "prompt_tokens_est": 1746,
+            "max_tokens": 4000,
+            "problems": [
+              "nivel 5: hay un objetivo sobre una pared.",
+              "hay 4 niveles válidos (juntando tus respuestas anteriores) y se piden al menos 5: mandá SOLO 1 nivel(es) NUEVO(S). Lo más seguro: 1 o 2 cajas en el medio del mapa (filas 3 a 5, columnas 3 a 5), cada una a 1 o 2 casilleros de su objetivo, sin paredes alrededor."
+            ]
+          },
+          {
+            "k": 1,
+            "ms": 72707,
+            "finish_reason": "stop",
+            "reasoning_chars": 3077,
+            "prompt_tokens_est": 1877,
+            "max_tokens": 4000,
+            "problems": [
+              "nivel 1: NO se puede ganar (el harness probó todos los movimientos posibles): mové cajas, objetivos o paredes.",
+              "nivel 2: la caja en [7,4] no puede llegar a ningún objetivo: una caja contra la pared solo se mueve a lo largo de esa pared (y en una esquina no se mueve). Alejala de la pared o poné su objetivo pegado a esa misma pared.",
+              "hay 4 niveles válidos (juntando tus respuestas anteriores) y se piden al menos 5: mandá SOLO 1 nivel(es) NUEVO(S). Lo más seguro: 1 o 2 cajas en el medio del mapa (filas 3 a 5, columnas 3 a 5), cada una a 1 o 2 casilleros de su objetivo, sin paredes alrededor."
+            ]
+          },
+          {
+            "k": 2,
+            "ms": 60557,
+            "finish_reason": "stop",
+            "reasoning_chars": 2859,
+            "prompt_tokens_est": 1968,
+            "max_tokens": 4000,
+            "problems": []
+          }
+        ],
+        "problems_final": [],
+        "broken": false,
+        "data": {
+          "valid": 5,
+          "need": 5,
+          "report": [
+            {
+              "n": 1,
+              "ok": true,
+              "solvable": true,
+              "pushes": 2
+            },
+            {
+              "n": 1,
+              "ok": true,
+              "solvable": true,
+              "pushes": 2
+            },
+            {
+              "n": 2,
+              "ok": true,
+              "solvable": true,
+              "pushes": 3
+            },
+            {
+              "n": 3,
+              "ok": true,
+              "solvable": true,
+              "pushes": 3
+            },
+            {
+              "n": 4,
+              "ok": true,
+              "solvable": true,
+              "pushes": 4
+            }
+          ],
+          "dropped": [
+            "nivel 2: el jugador está sobre una pared."
+          ]
+        },
+        "ms": 264188,
+        "finish_reason": "stop",
+        "changed": [
+          "niveles.json"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 2,
+        "task_id": "reglas",
+        "kind": "logic",
+        "files": [
+          "js/reglas.js"
+        ],
+        "attempts": [
+          {
+            "k": 0,
+            "ms": 155637,
+            "finish_reason": "stop",
+            "reasoning_chars": 3634,
+            "prompt_tokens_est": 2155,
+            "max_tokens": 5000,
+            "member_repair": [
+              {
+                "fn": "crearEstado",
+                "ms": 277977,
+                "finish_reason": "stop",
+                "chars": 2788,
+                "reasoning_chars": 15256,
+                "ok": true,
+                "before": 10,
+                "after": 1
+              },
+              {
+                "fn": "crearEstado",
+                "ms": 209244,
+                "finish_reason": "stop",
+                "chars": 2331,
+                "reasoning_chars": 9615,
+                "ok": false,
+                "before": 1,
+                "after": 3
+              }
+            ],
+            "problems": [
+              "crearEstado([\"######\",\"#+$ *#\",\"######\"]): mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#    #\"."
+            ]
+          },
+          {
+            "k": 1,
+            "ms": 264798,
+            "finish_reason": "stop",
+            "reasoning_chars": 7356,
+            "prompt_tokens_est": 4287,
+            "max_tokens": 5000,
+            "member_repair": [
+              {
+                "fn": "crearEstado",
+                "ms": 229932,
+                "finish_reason": "stop",
+                "chars": 2411,
+                "reasoning_chars": 10716,
+                "ok": true,
+                "before": 3,
+                "after": 0
+              }
+            ],
+            "problems": []
+          }
+        ],
+        "problems_final": [],
+        "broken": false,
+        "tests": {
+          "passed": [
+            "crearEstado lee jugador, cajas y objetivos",
+            "recién creado no está ganado",
+            "la pared bloquea",
+            "empujar una caja",
+            "caja en el objetivo = ganado",
+            "mover no modifica el estado que recibe",
+            "de a un casillero",
+            "caja contra pared no se mueve",
+            "caja contra caja no se mueve",
+            "lee '*' y '+'",
+            "nivel 1 no empieza ganado",
+            "nivel 2 no empieza ganado",
+            "nivel 3 no empieza ganado",
+            "nivel 4 no empieza ganado",
+            "nivel 5 no empieza ganado"
+          ],
+          "failed": []
+        },
+        "ms": 420435,
+        "finish_reason": "stop",
+        "changed": [
+          "js/reglas.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 3,
+        "task_id": "pantalla",
+        "kind": "screen",
+        "files": [
+          "juego.html",
+          "styles.css"
+        ],
+        "attempts": [
+          {
+            "k": 0,
+            "ms": 98931,
+            "finish_reason": "stop",
+            "reasoning_chars": 861,
+            "prompt_tokens_est": 1647,
+            "max_tokens": 4500,
+            "problems": [
+              "en styles.css las celdas de #tablero miden 2px de ancho: no se ven. Dales ancho y alto fijos (por ejemplo 40px) en la clase de la celda; #tablero con width: max-content toma el tamaño de sus celdas."
+            ]
+          },
+          {
+            "k": 1,
+            "ms": 165869,
+            "finish_reason": "stop",
+            "reasoning_chars": 2201,
+            "prompt_tokens_est": 3083,
+            "max_tokens": 4500,
+            "problems": []
+          }
+        ],
+        "problems_final": [],
+        "broken": false,
+        "ms": 264800,
+        "finish_reason": "stop",
+        "changed": [
+          "juego.html",
+          "styles.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 4,
+        "task_id": "dibujo",
+        "kind": "render",
+        "files": [
+          "js/dibujo.js"
+        ],
+        "attempts": [
+          {
+            "k": 0,
+            "ms": 62302,
+            "finish_reason": "stop",
+            "reasoning_chars": 1689,
+            "prompt_tokens_est": 1672,
+            "max_tokens": 4000,
+            "problems": [
+              "en `c => c.fila === r && c.col === c` el parámetro \"c\" tapa a la variable \"c\" de afuera (se compara c.algo con el mismo c): renombrá el parámetro de la flecha (por ejemplo p => p.fila === r && p.col === c)."
+            ]
+          },
+          {
+            "k": 1,
+            "ms": 59212,
+            "finish_reason": "stop",
+            "reasoning_chars": 1033,
+            "prompt_tokens_est": 2437,
+            "max_tokens": 4000,
+            "problems": []
+          }
+        ],
+        "problems_final": [],
+        "broken": false,
+        "ms": 121514,
+        "finish_reason": "stop",
+        "changed": [
+          "js/dibujo.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 5,
+        "task_id": "controles",
+        "kind": "wiring",
+        "files": [
+          "js/controles.js"
+        ],
+        "attempts": [
+          {
+            "k": 0,
+            "ms": 79706,
+            "finish_reason": "stop",
+            "reasoning_chars": 1883,
+            "prompt_tokens_est": 2288,
+            "max_tokens": 4000,
+            "problems": []
+          }
+        ],
+        "problems_final": [],
+        "broken": false,
+        "ms": 79706,
+        "finish_reason": "stop",
+        "changed": [
+          "js/controles.js"
+        ],
+        "rejected": []
+      }
+    ]
+  }
+}

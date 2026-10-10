@@ -2,6 +2,14 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Control de las Skills (09/10): placebo + 3er juego (Invernadero)**
+- *Por qué:* la 2ª vuelta mostró mejora, pero con `temperature 0` cualquier texto agregado cambia la salida. Hay que ver si mejora por lo que dicen las Skills o solo por agregar texto.
+- *Placebo (`--placebo`):* `roles/web-game/placebo/` tiene 6 fichas, una por Skill (`par:`), en el mismo paso, con el mismo encabezado "HABILIDADES" y largo parecido (±15%). El texto es de estilo (comillas, sangría, camelCase) y no toca ningún error conocido. `loadRole(id, { placebo: true })` las carga con status PLACEBO; `compare_runs` muestra la columna como "placebo".
+  - Lectura: si placebo ≈ con Skills, la mejora era el efecto mariposa. Si placebo ≈ sin, la mejora es de las Skills.
+  - Ojo: la corrida "con" del 08/10 usó `nombres-del-contrato` v1. La v2 se mide en el 3er juego.
+- *3er juego:* `build/snapshots/project27_invernadero_snapshot.json`. Misma familia (empujar piezas en grilla), otro tema (jardinero, macetas, canteros), otro tamaño (9x9) y otra paleta (tonos tierra), con al menos 5 niveles. Se corre sin y con Skills.
+- *Traductor web/game:* `click_changes` se queda solo si nombra un botón (siguiente, reiniciar, botón…). Antes había una lista de piezas (avatar, operario, caja…), o sea Boxworld y Depósito metidos en el profile; con "jardinero" o "maceta" se volvía a romper. Tests: grilla 92, roles 11.
+
 **Experimento de Skills, 2ª vuelta (08/10): con Skills, mejor en los dos juegos**
 - *Corridas (Gemma real, mismo código, solo cambia `--skills`):*
 

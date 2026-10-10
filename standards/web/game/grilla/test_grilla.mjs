@@ -252,6 +252,7 @@ t("niveles: 'lo más seguro' según el tamaño del mapa", /filas 3 a 6, columnas
 }
 
 // 08/10: click_changes con "avatar" (FAIL falso en R1, Boxworld sin y con Skills) → se saca
+t("traductor web/game: click_changes en una pieza de otro juego ('jardinero', 'la maceta') también se saca", !postprocessChecks([{ type: "click_changes", params: { click: ["jardinero"] } }, { type: "click_changes", params: { click: ["la maceta"] } }], "R1", "x").some((x) => x.type === "click_changes") && postprocessChecks([{ type: "click_changes", params: { click: ["botón siguiente nivel"] } }], "R2", "x")[0]?.type === "click_changes");
 t("traductor web/game: click_changes en 'avatar' no es un botón → se saca; en 'siguiente' queda", !postprocessChecks([{ type: "click_changes", params: { click: ["avatar"] } }, { type: "board_changes", params: {} }], "R1", "x").some((x) => x.type === "click_changes") && postprocessChecks([{ type: "click_changes", params: { click: ["siguiente"] } }], "R2", "x")[0].type === "click_changes");
 
 console.log(`\n${ok}/${ok + fail} OK`);

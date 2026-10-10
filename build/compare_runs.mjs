@@ -25,7 +25,7 @@ for (const d of dirs) {
   const problems = steps.flatMap((s) => (s.attempts || []).flatMap((a) => a.problems || []));
   const hits = Object.fromEntries(role.skills.map((s) => [s.id, s.detects ? problems.filter((p) => s.detects.test(p)).length : null]));
   rows.push({
-    run: basename(d), project: b.input?.refined?.project_name || "?", skills: sp.skills ? "con" : "sin",
+    run: basename(d), project: b.input?.refined?.project_name || "?", skills: !sp.skills ? "sin" : sp.skills.status === "PLACEBO" ? "placebo" : "con",
     min: Math.round(steps.reduce((a, s) => a + (s.ms || 0), 0) / 600) / 100,
     attempts: steps.map((s) => `${s.task_id}:${(s.attempts || []).length}`).join(" "),
     problems: problems.length, hits,

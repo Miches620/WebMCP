@@ -1,0 +1,357 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Invernadero",
+  "source": "project27_invernadero_snapshot.json",
+  "catalog": "check_catalog v0.9",
+  "profiles": {
+    "ids": [
+      "web/game"
+    ],
+    "chain": [
+      "web",
+      "web/app",
+      "web/game"
+    ],
+    "status": {
+      "web": "DRAFT",
+      "web/app": "DRAFT",
+      "web/game": "DRAFT"
+    },
+    "borrowed": [
+      {
+        "id": "web/game",
+        "from": "web/landing",
+        "what": [
+          "motor del Specialist por componentes (vía web/app)"
+        ]
+      }
+    ]
+  },
+  "artifact_loads_without_js_errors": true,
+  "sections_visible": {
+    "result": "PASS",
+    "features": {
+      "R1": "PASS",
+      "R2": "PASS",
+      "R3": "PASS",
+      "R4": "PASS",
+      "R5": "PASS",
+      "R6": "PASS",
+      "R7": "PASS"
+    },
+    "anchors": [
+      {
+        "id": "juego",
+        "features": [
+          "R1",
+          "R2",
+          "R3",
+          "R4",
+          "R5",
+          "R6",
+          "R7"
+        ],
+        "seen": 8,
+        "total": 8,
+        "ondemand": 0,
+        "ok": true
+      }
+    ],
+    "detail": "#juego: 8/8 palabras visibles"
+  },
+  "components_render": {
+    "result": "NOT_APPLICABLE",
+    "components": [],
+    "detail": "ningún componente con JS nombra contenedores"
+  },
+  "validation": {
+    "profile": [
+      "web",
+      "web/app",
+      "web/game"
+    ],
+    "standard": {
+      "id": "web/game/grilla",
+      "version": "0.1.6",
+      "status": "DRAFT"
+    },
+    "always": [
+      {
+        "type": "looks_distinct",
+        "result": "PASS",
+        "detail": "se distinguen: pared, piso, objetivo, caja, jugador",
+        "gate": true
+      },
+      {
+        "type": "layout_stable",
+        "result": "PASS",
+        "detail": "#tablero igual (402px) con un texto largo en #mensaje",
+        "gate": false
+      }
+    ]
+  },
+  "summary": {
+    "requisitos": 8,
+    "PASS": 7,
+    "FAIL": 1,
+    "SIN_EVIDENCIA": 0,
+    "SIN_CHEQUEO": 0
+  },
+  "control": "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "El juego es un puzzle de invernadero: el jardinero empuja macetas hasta los canteros de tierra del invernadero.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "board_changes",
+          "params": {
+            "keys": [
+              "flechas"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#tablero cambia con: ArrowDown, ArrowLeft, ArrowRight",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "El juego tiene un botón 'reiniciar' para volver a empezar el nivel y un botón 'siguiente nivel' para pasar al próximo.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "reiniciar"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"Reiniciar Nivel\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "siguiente",
+              "próximo"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"Siguiente Nivel\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "reset_restores",
+          "params": {
+            "click": [
+              "reiniciar"
+            ]
+          },
+          "result": "PASS",
+          "detail": "jugar cambió 3 elementos; \"Reiniciar Nivel\" los volvió todos al inicio",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "game_scenario",
+          "params": {},
+          "result": "PASS",
+          "detail": "ganar un nivel y pasar al siguiente: OK",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "El juego tiene al menos 5 niveles.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "game_levels",
+          "params": {
+            "min": [
+              "5"
+            ]
+          },
+          "result": "PASS",
+          "detail": "5 niveles (se piden al menos 5)",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "El jardinero se mueve con las flechas del teclado.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "board_changes",
+          "params": {
+            "keys": [
+              "flechas"
+            ]
+          },
+          "result": "PASS",
+          "detail": "#tablero cambia con: ArrowDown, ArrowLeft, ArrowRight",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "El jardinero avanza de a un casillero por vez.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "board_changes",
+          "params": {},
+          "result": "PASS",
+          "detail": "#tablero cambia con: ArrowDown, ArrowLeft, ArrowRight",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "El mapa del invernadero es de 9 casilleros de largo x 9 casilleros de alto en todos los niveles.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "fixed_map_size",
+          "params": {},
+          "result": "PASS",
+          "detail": "todos los niveles son de 9x9 y el tablero dibuja 81 casilleros",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "text": "El juego muestra un contador de movimientos.",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "counter_on_action",
+          "params": {
+            "label": [
+              "movimientos"
+            ]
+          },
+          "result": "PASS",
+          "detail": "ArrowUp, ArrowDown, ArrowLeft, ArrowRight: \"Movimientos: 0\" → \"Movimientos: 3\"",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "text": "Estilo cálido: paleta de tonos tierra (marrón, terracota, verde oliva y crema).",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "no_horizontal_scroll",
+          "params": {},
+          "result": "FAIL",
+          "detail": "390px: desborda 26px; 1280px: ok",
+          "baseline": "PASS"
+        }
+      ]
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "files_engine v0.9.6",
+    "standard": {
+      "id": "web/game/grilla",
+      "version": "0.1.6",
+      "status": "DRAFT"
+    },
+    "skills": null,
+    "files": [
+      "index.html",
+      "styles.css",
+      "js/niveles.js",
+      "js/reglas.js",
+      "js/dibujo.js",
+      "js/controles.js"
+    ],
+    "rule_tests": {
+      "passed": [
+        "crearEstado lee jugador, cajas y objetivos",
+        "recién creado no está ganado",
+        "la pared bloquea",
+        "empujar una caja",
+        "caja en el objetivo = ganado",
+        "mover no modifica el estado que recibe",
+        "de a un casillero",
+        "caja contra pared no se mueve",
+        "caja contra caja no se mueve",
+        "lee '*' y '+'",
+        "nivel 1 no empieza ganado",
+        "nivel 2 no empieza ganado",
+        "nivel 3 no empieza ganado",
+        "nivel 4 no empieza ganado",
+        "nivel 5 no empieza ganado"
+      ],
+      "failed": []
+    },
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "niveles",
+        "ms": 264188,
+        "finish_reason": "stop",
+        "changed": [
+          "niveles.json"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 2,
+        "task_id": "reglas",
+        "ms": 420435,
+        "finish_reason": "stop",
+        "changed": [
+          "js/reglas.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 3,
+        "task_id": "pantalla",
+        "ms": 264800,
+        "finish_reason": "stop",
+        "changed": [
+          "juego.html",
+          "styles.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 4,
+        "task_id": "dibujo",
+        "ms": 121514,
+        "finish_reason": "stop",
+        "changed": [
+          "js/dibujo.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 5,
+        "task_id": "controles",
+        "ms": 79706,
+        "finish_reason": "stop",
+        "changed": [
+          "js/controles.js"
+        ],
+        "rejected": []
+      }
+    ]
+  }
+}

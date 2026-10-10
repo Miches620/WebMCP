@@ -25,5 +25,11 @@ t("cada Skill detecta el texto real del problema que la originó (y solo ese)", 
 t("parseSkill: sin frontmatter → error claro", (() => { try { parseSkill("hola", "x.md"); return false; } catch (e) { return /SKILL_FORMAT/.test(e.message); } })());
 t("loadRole: Role desconocido → falla fuerte", await (async () => { try { await loadRole("web-snake"); return false; } catch (e) { return /ROLE_UNKNOWN/.test(e.message); } })());
 
+// placebo (09/10): una ficha de control por Skill, mismo paso, largo parecido, y sin pistas
+const pl = await loadRole("web-game", { placebo: true });
+t("placebo: una ficha por Skill, con su par", pl.status === "PLACEBO" && pl.skills.length === r.skills.length && r.skills.every((s) => pl.skills.filter((p) => p.pair === s.id).length === 1));
+t("placebo: mismo paso y largo parecido (±15%) que su Skill", pl.skills.every((p) => { const s = r.skills.find((x) => x.id === p.pair); return s && p.kinds.join() === s.kinds.join() && Math.abs(p.text.length - s.text.length) <= s.text.length * 0.15; }), pl.skills.map((p) => p.id + ":" + p.text.length).join(" "));
+t("placebo: no toca ningún error conocido (ninguna Skill lo detecta, no nombra disabled/estado/caja/flecha/tamaño)", pl.skills.every((p) => r.skills.every((s) => !s.detects.test(p.text)) && !/disabled|estado|state|caja|mapa|=>|tama|ancho|ganar|nivel|par[aá]metro/i.test(p.text)));
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

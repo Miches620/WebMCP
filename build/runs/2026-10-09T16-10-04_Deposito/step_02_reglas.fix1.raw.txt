@@ -1,0 +1,28 @@
+```javascript
+           };
+        }
+      }
+
+    // Si no se pudo mover ni empujar (colisión con pared o caja contra otra caja)
+    return { ...estado, movimientos: estado.movimientos };
+  },
+
+  /**
+   * Verifica si todas las cajas están sobre un objetivo.
+   * @param {object} estado - El estado actual del juego.
+   * @returns {boolean} True si el nivel está ganado.
+   */
+  ganado: function(estado) {
+    if (estado.objetivos.length === 0) {
+      return true; // No hay objetivos, se considera ganado por defecto
+    }
+
+    const cajasEnObjetivo = estado.cajas.every(caja => {
+      // Comprueba si la caja está en alguna de las coordenadas objetivo
+      return estado.objetivos.some(obj => obj.fila === caja.fila && obj.col === caja.col);
+    });
+
+    return cajasEnObjetivo;
+  }
+};
+```

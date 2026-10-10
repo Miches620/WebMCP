@@ -17,17 +17,20 @@ export function parseSkill(md, file = "") {
   const meta = Object.fromEntries(m[1].split("\n").filter((l) => l.includes(":")).map((l) => [l.slice(0, l.indexOf(":")).trim(), l.slice(l.indexOf(":") + 1).trim()]));
   const kinds = String(meta.pasos || "").split(",").map((x) => x.trim()).filter(Boolean);
   if (!meta.id || !kinds.length) throw new Error(`SKILL_FORMAT: ${file} necesita id y pasos`);
-  return { id: meta.id, status: meta.status || "DRAFT", kinds, evidence: meta.evidencia || "", detects: meta.detecta ? new RegExp(meta.detecta, "i") : null, text: m[2].trim() };
+  return { id: meta.id, status: meta.status || "DRAFT", kinds, pair: meta.par || null, evidence: meta.evidencia || "", detects: meta.detecta ? new RegExp(meta.detecta, "i") : null, text: m[2].trim() };
 }
 
-/** Carga un Role con sus Skills. Falla fuerte si no existe. */
-export async function loadRole(id) {
+/** Carga un Role con sus Skills. Falla fuerte si no existe.
+ *  { placebo: true } (09/10): carga las fichas de control (texto neutro, mismo paso y largo que
+ *  cada Skill) para separar el efecto de la Skill del "efecto mariposa" de agregar texto. */
+export async function loadRole(id, { placebo = false } = {}) {
   const dir = join(here, id);
   if (!existsSync(join(dir, "role.mjs"))) throw new Error(`ROLE_UNKNOWN: "${id}"`);
   const role = (await import(new URL(`./${id}/role.mjs`, import.meta.url))).default;
-  const sdir = join(dir, role.skillsDir || "skills");
+  const sdir = join(dir, placebo ? role.placeboDir || "placebo" : role.skillsDir || "skills");
+  if (placebo && !existsSync(sdir)) throw new Error(`ROLE_NO_PLACEBO: "${id}" no tiene fichas de control`);
   const skills = existsSync(sdir) ? readdirSync(sdir).filter((f) => f.endsWith(".md")).sort().map((f) => parseSkill(readFileSync(join(sdir, f), "utf8"), f)) : [];
-  return { ...role, skills };
+  return placebo ? { ...role, status: "PLACEBO", skills } : { ...role, skills };
 }
 
 /** Texto que recibe un paso: solo las Skills de su clase. "" si no hay. */

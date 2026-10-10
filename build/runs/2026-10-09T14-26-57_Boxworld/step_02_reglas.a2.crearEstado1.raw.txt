@@ -1,0 +1,60 @@
+```javascript
+crearEstado: function(nivel) {
+  let jugador = null;
+  let cajas = [];
+  let objetivos = [];
+  let mapa = [];
+
+  for (let r = 0; r < nivel.length; r++) {
+    let filaActual = "";
+    for (let c = 0; c < nivel[r].length; c++) {
+      const char = nivel[r][c];
+      let mapChar = " "; // Default empty space
+
+      if (char === '#') {
+        mapChar = "#";
+      } else if (char === '@') {
+        jugador = { fila: r, col: c };
+        mapChar = " ";
+      } else if (char === '$' || char === '*') {
+        // Es una caja. '*' puede ser también objetivo.
+        cajas.push({ fila: r, col: c });
+
+        // Determinar el carácter del mapa para la ubicación de la caja
+        if (char === '.' || char === '+' || char === '*') {
+          mapChar = ".";
+        } else {
+          mapChar = " ";
+        }
+
+        // Si es un marcador objetivo, también lo contamos como objetivo.
+        if (char === '.' || char === '+' || char === '*') {
+          objetivos.push({ fila: r, col: c });
+        }
+      } else if (char === '.') {
+        // Objetivo puro
+        objetivos.push({ fila: r, col: c });
+        mapChar = ".";
+      } else if (char === '+') {
+        // Marcador de objetivo
+        objetivos.push({ fila: r, col: c });
+        mapChar = ".";
+      } else {
+        // Espacio vacío estándar (' ')
+        mapChar = " ";
+      }
+
+      filaActual += mapChar;
+    }
+    mapa.push(filaActual);
+  }
+
+  return {
+    mapa: mapa,
+    jugador: jugador,
+    cajas: cajas,
+    objetivos: objetivos,
+    movimientos: 0
+  };
+},
+```

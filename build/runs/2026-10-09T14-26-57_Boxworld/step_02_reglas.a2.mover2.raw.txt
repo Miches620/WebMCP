@@ -1,0 +1,116 @@
+```javascript
+mover: function(estado, direccion) {
+  // Crear un estado base para devolverlo en caso de fallo o no movimiento
+  const fallbackState = JSON.parse(JSON.stringify(estado));
+
+  let jugadorActual = estado.jugador;
+  let nuevaPosicionJugador = { fila: jugadorActual.fila, col: jugadorActual.col };
+
+  // 1. Calcular la posición objetivo del jugador (sin considerar cajas)
+  switch (direccion) {
+    case "arriba":
+      nuevaPosicionJugador.fila -= 1;
+      break;
+    case "abajo":
+      nuevaPosicionJugador.fila += 1;
+      break;
+    case "izquierda":
+      nuevaPosicionJugador.col -= 1;
+      break;
+    case "derecha":
+      nuevaPosicionJugador.col += 1;
+      break;
+  }
+
+  // Dimensiones del mapa
+  const maxRow = estado.mapa.length - 1;
+  const maxCol = estado.mapa[0].length - 1;
+
+  // Verificar límites y paredes del mapa base
+  if (nuevaPosicionJugador.fila < 0 || nuevaPosicionJugador.fila > maxRow ||
+    nuevaPosicionJugador.col < 0 || nuevaPosicionJugador.col > maxCol) {
+    return fallbackState; // Fuera de límites
+  }
+
+  // Verificar si la casilla objetivo es una pared ('#')
+  if (estado.mapa[nuevaPosicionJugador.fila][nuevaPosicionJugador.col] === "#") {
+    return fallbackState; // Colisión con pared
+  }
+
+  let cajaEnDestino = null;
+  // Verificar si hay alguna caja en la posición objetivo del jugador
+  cajaEnDestino = estado.cajas.find(c => 
+    c.fila === nuevaPosicionJugador.fila && c.col === nuevaPosicionJugador.col
+  );
+
+  let nuevoEstado;
+
+  if (!cajaEnDestino) {
+    // Caso 1: Movimiento a un espacio vacío o objetivo (sin cajas)
+    nuevoEstado = JSON.parse(JSON.stringify(estado));
+    nuevoEstado.jugador = nuevaPosicionJugador;
+    nuevoEstado.movimientos += 1;
+
+  } else {
+    // Caso 2: Colisión con una caja, intentar empujar
+    const direccionArray = ["arriba", "abajo", "izquierda", "derecha"];
+    let pushRow = cajaEnDestino.fila;
+    let pushCol = cajaEnDestino.col;
+
+    // Calcular la posición donde debe ir la caja (detrás del jugador)
+    switch (direccion) {
+      case "arriba":
+        pushRow -= 1;
+        break;
+      case "abajo":
+        pushRow += 1;
+        break;
+      case "izquierda":
+        pushCol -= 1;
+        break;
+      case "derecha":
+        pushCol += 1;
+        break;
+    }
+
+    // Verificar si el empuje es posible:
+    // 2a. ¿Está la posición de empuje dentro de límites?
+    if (pushRow < 0 || pushRow > maxRow || pushCol < 0 || pushCol > maxCol) {
+      return fallbackState; // Empujar fuera de límites
+    }
+
+    // 2b. ¿Es el destino del empuje una pared o está ocupado por otra caja?
+    if (estado.mapa[pushRow][pushCol] === "#") {
+      return fallbackState; // Colisión con pared al intentar empujar
+    }
+
+    const cajaBloqueadora = estado.cajas.find(c => 
+        // Comparamos coordenadas para saber si es otra caja
+        !(c.fila === cajaEnDestino.fila && c.col === cajaEnDestino.col) && 
+        c.fila === pushRow && c.col === pushCol
+    );
+
+    if (cajaBloqueadora) {
+      return fallbackState; // Colisión con otra caja al intentar empujar
+    }
+
+    // Empuje exitoso: Crear nuevo estado
+    nuevoEstado = JSON.parse(JSON.stringify(estado));
+    
+    // 1. Mover jugador a la posición de la caja
+    nuevoEstado.jugador = { fila: cajaEnDestino.fila, col: cajaEnDestino.col };
+
+    // 2. Actualizar cajas (filtrar la vieja posición y añadir la nueva)
+    let nuevasCajas = estado.cajas.filter(c => 
+        !(c.fila === cajaEnDestino.fila && c.col === cajaEnDestino.col)
+    );
+    nuevasCajas.push({ fila: pushRow, col: pushCol });
+    nuevoEstado.cajas = nuevasCajas;
+
+    // 3. Incrementar movimientos
+    nuevoEstado.movimientos += 1;
+  }
+
+  return nuevoEstado;
+}
+```

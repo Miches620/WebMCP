@@ -1,0 +1,63 @@
+/**
+ * Dibuja el estado actual del juego en el tablero HTML.
+ * @param {object} estado - El objeto de estado que contiene la información del mapa, jugador y cajas.
+ * @param {number} numeroNivel - El número de nivel actual (para mostrarlo).
+ */
+function dibujar(estado, numeroNivel) {
+    const tablero = document.getElementById('tablero');
+    const movimientosDisplay = document.getElementById('movimientos');
+    const nivelDisplay = document.getElementById('nivel');
+
+    // 1. Limpiar el tablero
+    tablero.innerHTML = '';
+
+    // Establecer la plantilla de columnas (9x9)
+    tablero.style.gridTemplateColumns = 'repeat(9, 1fr)';
+
+    // 2. Dibujar cada casillero
+    for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+            const casilla = document.createElement('div');
+            casilla.className = 'casillero';
+
+            // Determinar el tipo de piso/pared del mapa base
+            // CORRECCIÓN: Usar estado.mapa en lugar de estado.map
+            const tipoMapa = estado.mapa[r][c]; 
+            if (tipoMapa === '#') {
+                casilla.classList.add('pared');
+                casilla.style.backgroundColor = '#8B4513'; // Marrón oscuro para pared
+            } else if (tipoMapa === '.') {
+                casilla.classList.add('piso', 'objetivo');
+                casilla.style.backgroundColor = '#A0522D'; // Terracota más claro para objetivo
+            } else {
+                // Espacio vacío (' ')
+                casilla.classList.add('piso');
+                casilla.style.backgroundColor = '#F4A460'; // Crema/Naranja suave para piso normal
+            }
+
+            let esCaja = false;
+            let esJugador = false;
+
+            // Verificar si hay una caja en esta posición
+            for (const caja of estado.cajas) {
+                if (caja.fila === r && caja.col === c) {
+                    casilla.classList.add('caja');
+                    esCaja = true;
+                    break;
+                }
+            }
+
+            // Verificar si el jugador está en esta posición
+            if (estado.jugador.fila === r && estado.jugador.col === c) {
+                casilla.classList.add('jugador');
+                esJugador = true;
+            }
+
+            tablero.appendChild(casilla);
+        }
+    }
+
+    // 3. Actualizar el HUD (Head-Up Display)
+    movimientosDisplay.textContent = `Movimientos: ${estado.movimientos}`;
+    nivelDisplay.textContent = `Nivel ${numeroNivel}`;
+}

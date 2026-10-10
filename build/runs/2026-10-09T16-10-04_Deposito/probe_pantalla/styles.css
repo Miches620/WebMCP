@@ -1,0 +1,134 @@
+body {
+  font-family: sans-serif;
+  background-color: #c8e6c9; /* Verde claro de Game Boy */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+}
+
+.contenedor-juego {
+  width: fit-content;
+  max-width: 800px;
+  background-color: #a5d6a7; /* Verde medio de Game Boy */
+  border: 10px solid #4caf50; /* Borde más oscuro */
+  padding: 20px;
+  box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+h1 {
+  text-align: center;
+  color: #388e3c; /* Verde oscuro para el título */
+  margin-bottom: 20px;
+}
+
+/* Panel de información (Nivel y Movimientos) */
+.panel-info {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  border-bottom: 2px solid #66bb6a;
+  margin-bottom: 15px;
+}
+
+.contador-grupo {
+  font-size: 1.2em;
+  color: #388e3c;
+}
+
+/* Tablero de juego */
+.contenedor-tablero {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr); /* 8 columnas fijas */
+  width: max-content; /* Ajusta el ancho al contenido del grid */
+  aspect-ratio: 1 / 1; /* Asegura que sea cuadrado */
+  border: 2px solid #388e3c;
+  margin-bottom: 20px;
+}
+
+/* Estilo base del casillero */
+.casillero {
+  width: 40px; /* Ancho fijo corregido */
+  height: 40px; /* Alto fijo corregido */
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Clases de tipo de terreno */
+.casillero.pared {
+  background-color: #69f0ae; /* Verde más claro para pared */
+  border: 1px solid #388e3c;
+}
+
+.casillero.piso {
+  background-color: #a5d6a7; /* Color base del piso */
+  border: 1px solid #4caf50;
+}
+
+/* Objetivos (Marcas) */
+.casillero.objetivo {
+  background-color: #8bc34a; /* Verde objetivo más brillante */
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Cajas (Contenido) */
+.casillero.caja {
+  background-color: #ffeb3b; /* Amarillo para caja */
+  border: 2px solid #fbc02d;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+/* Jugador (Contenido) */
+.casillero.jugador {
+  background-color: #ff9800; /* Naranja para el operario */
+  border: 2px solid #e65100;
+  box-shadow: 0 0 10px rgba(255, 152, 0, 0.7);
+}
+
+/* Combinaciones de clases (Ejemplo: Caja sobre Objetivo) */
+.casillero.objetivo.caja {
+    background-color: #b3e5fc; /* Azul claro para caja en objetivo */
+    border: 2px solid #4fc3f7;
+}
+
+/* Mensaje de juego */
+.panel-mensaje {
+  min-height: 60px;
+  padding: 10px;
+  background-color: #e8f5e9; /* Fondo muy claro para el mensaje */
+  border: 2px solid #4caf50;
+  text-align: center;
+  max-width: 394px; /* Limita el ancho del mensaje para que no estire la grilla */
+}
+
+/* Controles y botones */
+.controles-botones {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 1em;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.2s;
+}
+
+#btn-reiniciar {
+  background-color: #ffcc80; /* Naranja suave */
+  color: #333;
+}
+
+#btn-siguiente {
+  background-color: #a5d6a7; /* Verde de fondo */
+  color: #388e3c;
+}
+
+button:hover {
+    opacity: 0.9;
+}

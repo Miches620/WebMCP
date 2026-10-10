@@ -1,0 +1,61 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado, numeroNivel) {
+    const tablero = document.getElementById('tablero');
+    const nivelDisplay = document.getElementById('nivel');
+    const movimientosDisplay = document.getElementById('movimientos');
+
+    // 1. Limpiar el tablero
+    tablero.innerHTML = '';
+
+    // Configurar la cuadrícula (9 columnas)
+    tablero.style.gridTemplateColumns = 'repeat(9, 1fr)';
+
+    const mapa = estado.mapa;
+    const filas = mapa.length; // Debe ser 9
+    const columnas = mapa[0].length; // Debe ser 9
+
+    // 2. Dibujar cada casillero
+    for (let r = 0; r < filas; r++) {
+        for (let c = 0; c < columnas; c++) {
+            const casilla = document.createElement('div');
+            casilla.className = 'casillero';
+
+            // Determinar la clase base: pared o piso
+            if (mapa[r][c] === '#') {
+                casilla.classList.add('pared');
+            } else {
+                casilla.classList.add('piso');
+            }
+
+            let clasesAdicionales = [];
+
+            // Verificar si es un objetivo
+            const esObjetivo = estado.objetivos.some(obj => obj.fila === r && obj.col === c);
+            if (esObjetivo) {
+                clasesAdicionales.push('objetivo');
+            }
+
+            // Verificar si hay una caja en esta posición
+            const hayCaja = estado.cajas.some(box => box.fila === r && box.col === c);
+            if (hayCaja) {
+                clasesAdicionales.push('caja');
+            }
+
+            // Verificar si el jugador está en esta posición
+            const esJugador = estado.jugador.fila === r && estado.jugador.col === c;
+            if (esJugador) {
+                clasesAdicionales.push('jugador');
+            }
+
+            // Aplicar clases adicionales
+            casilla.classList.add(...clasesAdicionales);
+            tablero.appendChild(casilla);
+        }
+    }
+
+    // 3. Actualizar HUD
+    movimientosDisplay.textContent = estado.movimientos;
+    nivelDisplay.textContent = numeroNivel;
+}
+```

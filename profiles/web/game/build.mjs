@@ -48,7 +48,10 @@ export const { planPage, translateRequirement, specialistSees } = GAME;
 // recién cargado, reiniciar NO tiene que cambiar nada (b10 R1: FAIL falso "clic Reiniciar →
 // no cambia nada", con reset_restores PASS en el mismo requisito). Se cambia por reset_restores.
 const RESET = /reinici|reset|volver a empezar|empezar de nuevo/i;
-const PIECE = /^(el |la |un |una )?(avatar|jugador|personaje|operario|caja|cajas|pieza|piezas|nivel|niveles|tablero|mapa)$/i;
+// 09/10: en web/game lo único clickeable son los botones del Standard (reiniciar, siguiente).
+// Un click_changes que no nombra un botón (avatar, jardinero, maceta…) se saca: sin lista de piezas
+// por juego (lista de piezas = Boxworld/Depósito metidos en el profile).
+const CONTROL = /bot[oó]n|siguiente|pr[oó]ximo|reinici|reset|empezar|btn/i;
 const words = (c) => [].concat(c?.params?.click || []).map(String);
 // paso 2 (b14): "próximo / siguiente nivel" en el texto del requisito → game_scenario aunque el
 // traductor no lo haya elegido (b14: Qwen lo puso en R1 y no en R2, que es el que lo pide). Lo
@@ -60,7 +63,7 @@ export function postprocessChecks(checks = [], _id, text = "") {
   for (const c of checks) {
     // 08/10 (Boxworld sin y con Skills): click_changes con "avatar" → FAIL falso en R1 las dos veces. El
     // avatar, el jugador o una caja no son botones: ese chequeo no aplica y se saca (no se reemplaza).
-    if (c?.type === "click_changes" && words(c).length && words(c).every((w) => PIECE.test(w))) continue;
+    if (c?.type === "click_changes" && words(c).length && !words(c).some((w) => CONTROL.test(w))) continue;
     if (c?.type === "click_changes" && words(c).some((w) => RESET.test(w))) {
       if (!checks.some((x) => x?.type === "reset_restores") && !out.some((x) => x?.type === "reset_restores")) out.push({ type: "reset_restores", params: { click: words(c) } });
       continue;
@@ -77,8 +80,10 @@ export function build(input, outDir, opts = {}) {
   return (async () => {
     // paso 3 (07/10): --skills suma las Skills del Role (DRAFT) a cada paso de su clase. Sin el
     // flag el pedido a Gemma es idéntico al de antes (así se mide con y sin).
-    const withSkills = opts.skills ?? process.argv.includes("--skills");
-    const role = withSkills ? await loadRole(profile.role) : null;
+    // --placebo (09/10): control. Mismo lugar y largo, texto neutro (roles/web-game/placebo).
+    const placebo = opts.placebo ?? process.argv.includes("--placebo");
+    const withSkills = placebo || (opts.skills ?? process.argv.includes("--skills"));
+    const role = withSkills ? await loadRole(profile.role, { placebo }) : null;
     const skills = role ? { role: role.id, status: role.status, list: role.skills } : null;
     return buildFiles(input, outDir, { ...opts, skills, standard: getStandard(profile.standard) });
   })();

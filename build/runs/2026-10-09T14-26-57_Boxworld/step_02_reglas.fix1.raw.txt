@@ -1,0 +1,29 @@
+```javascript
+    let cajaEnDestino = null;
+    // Verificar si hay alguna caja en la posición objetivo del jugador
+    cajaEnDestino = estado.cajas.find(c => 
+      c.row === nuevaPosicionJugador.row && c.col === nuevaPosicionJugador.col
+    );
+
+    var nuevoEstado;
+
+    if (!cajaEnDestino) {
+      // Caso 1: Movimiento a un espacio vacío o objetivo (sin cajas)
+      nuevoEstado = JSON.parse(JSON.stringify(estado));
+      nuevoEstado.jugador = nuevaPosicionJugador;
+      nuevoEstado.movimientos += 1;
+
+    } else {
+      // Caso 2: Colisión con una caja, intentar empujar
+      const direccionArray = ["arriba", "abajo", "izquierda", "derecha"];
+      let pushRow = cajaEnDestino.row;
+      let pushCol = cajaEnDestino.col;
+
+      // Calcular la posición donde debe ir la caja (detrás del jugador)
+      switch (direccion) {
+        case "arriba":
+          pushRow -= 1;
+          break;
+        case "abajo":
+          pushRow += 1;
+```

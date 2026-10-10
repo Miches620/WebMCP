@@ -1,0 +1,188 @@
+const Reglas = {
+  /**
+   * Crea el estado inicial del juego a partir de un nivel dado.
+   * @param {string[]} nivel - Array de strings que representan el mapa.
+   * @returns {object} El estado inicial del juego.
+   */
+  crearEstado: function(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+    let mapa = [];
+
+    for (let r = 0; r < nivel.length; r++) {
+      let filaActual = "";
+      for (let c = 0; c < nivel[r].length; c++) {
+        const char = nivel[r][c];
+        if (char === '@') {
+          jugador = { row: r, col: c };
+          filaActual += " "; // El jugador ocupa un espacio vacío en el mapa base
+        } else if (char === '$' || char === '*') {
+          cajas.push({ row: r, col: c });
+          // Usamos ' $ ' para mapear la caja y mantener el ancho del grid
+          filaActual += " $"; 
+        } else if (char === '.') {
+          objetivos.push({ row: r, col: c });
+          filaActual += ".";
+        } else if (char === '#') {
+          filaActual += "#";
+        } else {
+          // Espacio vacío ' '
+          filaActual += " ";
+        }
+      }
+      mapa.push(filaActual);
+    }
+
+    return {
+      mapa: mapa,
+      jugador: jugador,
+      cajas: cajas,
+      objetivos: objetivos,
+      movimientos: 0
+    };
+  },
+
+  /**
+   * Intenta mover al jugador en la dirección especificada. Maneja colisiones y empujes.
+   * @param {object} estado - El estado actual del juego.
+   * @param {"arriba" | "abajo" | "izquierda" | "derecha"} direccion - Dirección de movimiento.
+   * @returns {object} Un nuevo estado (o el original si el movimiento falla).
+   */
+  mover: function(estado, direccion) {
+    let nuevoEstado = null;
+
+    let jugadorActual = estado.jugador;
+    let nuevaPosicionJugador = { row: jugadorActual.row, col: jugadorActual.col };
+
+    // 1. Calcular la posición objetivo del jugador (sin considerar cajas)
+    switch (direccion) {
+      case "arriba":
+        nuevaPosicionJugador.row -= 1;
+        break;
+      case "abajo":
+        nuevaPosicionJugador.row += 1;
+        break;
+      case "izquierda":
+        nuevaPosicionJugador.col -= 1;
+        break;
+      case "derecha":
+        nuevaPosicionJugador.col += 1;
+        break;
+    }
+
+    // Verificar límites y paredes del mapa base (solo '#')
+    const maxRow = estado.mapa.length - 1;
+    const maxCol = estado.mapa[0].length - 1;
+
+    if (nuevaPosicionJugador.row < 0 || nuevaPosicionJugador.row > maxRow ||
+      nuevaPosicionJugador.col < 0 || nuevaPosicionJugador.col > maxCol) {
+      return estado; // Fuera de límites
+    }
+
+    // Verificar si la casilla objetivo es una pared ('#')
+    if (estado.mapa[nuevaPosicionJugador.row][nuevaPosicionJugador.col] === "#") {
+      return estado; // Colisión con pared
+    }
+
+    let cajaEnDestino = null;
+    // Verificar si hay alguna caja en la posición objetivo del jugador
+    cajaEnDestino = estado.cajas.find(c => 
+      c.row === nuevaPosicionJugador.row && c.col === nuevaPosicionJugador.col
+    );
+
+    if (!cajaEnDestino) {
+      // Caso 1: Movimiento a un espacio vacío o objetivo (sin cajas)
+      nuevoEstado = JSON.parse(JSON.stringify(estado));
+      nuevoEstado.jugador = nuevaPosicionJugador;
+      nuevoEstado.movimientos += 1;
+
+    } else {
+      // Caso 2: Colisión con una caja, intentar empujar
+      const direccionArray = ["arriba", "abajo", "izquierda", "derecha"];
+      let pushRow = cajaEnDestino.row;
+      let pushCol = cajaEnDestino.col;
+
+      // Calcular la posición donde debe ir la caja (detrás del jugador)
+      switch (direccion) {
+        case "arriba":
+          pushRow -= 1;
+          break;
+        case "abajo":
+          pushRow += 1;
+          break;
+        case "izquierda":
+          pushCol -= 1;
+          break;
+        case "derecha":
+          pushCol += 1;
+          break;
+      }
+
+      // Verificar si el empuje es posible:
+      // 2a. ¿Está la posición de empuje dentro de límites?
+      if (pushRow < 0 || pushRow > maxRow || pushCol < 0 || pushCol > maxCol) {
+        return estado; // Empujar fuera de límites
+      }
+
+      // 2b. ¿Es el destino del empuje una pared o está ocupado por otra caja?
+      if (estado.mapa[pushRow][pushCol] === "#") {
+        return estado; // Colisión con pared al intentar empujar
+      }
+
+      const cajaBloqueadora = estado.cajas.find(c => 
+          c !== cajaEnDestino && c.row === pushRow && c.col === pushCol
+      );
+
+      if (cajaBloqueadora) {
+        return estado; // Colisión con otra caja al intentar empujar
+      }
+
+      // Empuje exitoso: Crear nuevo estado
+      nuevoEstado = JSON.parse(JSON.stringify(estado));
+      
+      // 1. Mover jugador a la posición de la caja
+      nuevoEstado.jugador = { row: cajaEnDestino.row, col: cajaEnDestino.col };
+
+      // 2. Actualizar cajas (la que se mueve y el resto)
+      let nuevasCajas = [];
+      for (const c of estado.cajas) {
+        if (c === cajaEnDestino) {
+          // La caja empujada va a la nueva posición
+          nuevasCajas.push({ row: pushRow, col: pushCol });
+        } else {
+          // Las demás cajas permanecen igual
+          nuevasCajas.push(c);
+        }
+      }
+      nuevoEstado.cajas = nuevasCajas;
+
+      // 3. Incrementar movimientos
+      nuevoEstado.movimientos += 1;
+    }
+
+    return nuevoEstado;
+  },
+
+  /**
+   * Verifica si todas las posiciones objetivo tienen una caja encima.
+   * @param {object} estado - El estado actual del juego.
+   * @returns {boolean} True si el nivel está ganado, False en caso contrario.
+   */
+  ganado: function(estado) {
+    if (!estado.objetivos || estado.objetivos.length === 0) {
+      return true; // No hay objetivos que cumplir
+    }
+
+    // Crear un Set de coordenadas (string "fila,col") donde están las cajas
+    const cajaCoords = new Set();
+    for (const c of estado.cajas) {
+        cajaCoords.add(`${c.row},${c.col}`);
+    }
+
+    // Verificar si cada objetivo está cubierto por una caja
+    return estado.objetivos.every(obj => 
+      cajaCoords.has(`${obj.row},${obj.col}`)
+    );
+  }
+};

@@ -1,0 +1,112 @@
+```javascript
+mover: function(estado, direccion) {
+    // Crear una copia profunda del estado para asegurar la inmutabilidad en caso de fallo o éxito parcial
+    const nuevoEstadoBase = JSON.parse(JSON.stringify(estado)); 
+
+    const jugador = estado.jugador;
+    let nuevaPosJugador = { ...jugador };
+
+    // 1. Calcular la posición objetivo del jugador (P_new)
+    switch (direccion) {
+        case "arriba":
+            nuevaPosJugador.fila -= 1;
+            break;
+        case "abajo":
+            nuevaPosJugador.fila += 1;
+            break;
+        case "izquierda":
+            nuevaPosJugador.col -= 1;
+            break;
+        case "derecha":
+            nuevaPosJugador.col += 1;
+            break;
+    }
+
+    const filas = estado.mapa.length;
+    const columnas = state.mapa[0].length;
+
+    // Validación de límites para P_new
+    if (nuevaPosJugador.fila < 0 || nuevaPosJugador.fila >= filas ||
+        nuevaPosJugador.col < 0 || nuevaPosJugador.col >= columnas) {
+        return estado; // Fuera de límites, devuelve el estado original sin modificar
+    }
+
+    // Verificar si P_new es una pared
+    if (estado.mapa[nuevaPosJugador.fila][nuevaPosJugador.col] === '#') {
+        return estado; // Colisión con pared, devuelve el estado original sin modificar
+    }
+
+    // 2. Comprobar colisiones en P_new
+    const cajaEnPNew = estado.cajas.some(c => c.fila === nuevaPosJugador.fila && c.col === nuevaPosJugador.col);
+
+    if (!cajaEnPNew) {
+        // Caso 1: Movimiento simple (a un espacio vacío o objetivo)
+        return {
+            ...estado,
+            jugador: nuevaPosJugador,
+            movimientos: estado.movimientos + 1
+        };
+
+    } else {
+        // Caso 2: Intento de empujar una caja (B)
+        const boxToPushCoords = { fila: nuevaPosJugador.fila, col: nuevaPosJugador.col };
+        let cajaAEmpujar = null; // Solo necesitamos saber que existe y dónde está
+
+        // Calcular la posición objetivo de la caja (B_target)
+        let posObjetivoCaja = { ...boxToPushCoords };
+        switch (direccion) {
+            case "arriba":
+                posObjetivoCaja.fila -= 1;
+                break;
+            case "abajo":
+                posObjetivoCaja.fila += 1;
+                break;
+            case "izquierda":
+                posObjetivoCaja.col -= 1;
+                break;
+            case "derecha":
+                posObjetivoCaja.col += 1;
+                break;
+        }
+
+        // Validación de B_target: Límites, Paredes o Colisión con otra caja
+        if (posObjetivoCaja.fila < 0 || posObjetivoCaja.fila >= filas ||
+            posObjetivoCaja.col < 0 || posObjetivoCaja.col >= columnas) {
+            return estado; // B_target fuera de límites
+        }
+
+        if (estado.mapa[posObjetivoCaja.fila][posObjetivoCaja.col] === '#') {
+            return estado; // B_target contra pared
+        }
+
+        // Verificar si hay otra caja en B_target
+        const colisionOtraCaja = estado.cajas.some(c => 
+            // Comprueba que la caja NO sea la que estamos empujando Y esté en la posición objetivo de la caja
+            !(c.fila === boxToPushCoords.fila && c.col === boxToPushCoords.col) && 
+            c.fila === posObjetivoCaja.fila && c.col === posObjetivoCaja.col
+        );
+
+        if (colisionOtraCaja) {
+            return estado; // B_target contra otra caja
+        }
+
+        // Movimiento exitoso de empuje:
+        const nuevasCajas = estado.cajas.map(c => {
+            // Si esta caja es la que está en P_new (la que se va a mover)
+            if (c.fila === boxToPushCoords.fila && c.col === boxToPushCoords.col) {
+                return posObjetivoCaja; // Mover la caja empujada
+            }
+            return c; // Dejar el resto de cajas quietas
+        });
+
+        const nuevoEstado = {
+            ...estado,
+            jugador: nuevaPosJugador,
+            movimientos: estado.movimientos + 1,
+            cajas: nuevasCajas
+        };
+
+        return nuevoEstado;
+    }
+}
+```

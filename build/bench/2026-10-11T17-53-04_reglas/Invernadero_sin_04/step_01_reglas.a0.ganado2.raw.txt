@@ -1,0 +1,20 @@
+```javascript
+ganado: function(estado) {
+    // Si no hay objetivos, el juego no puede estar ganado por definición.
+    if (estado.objetivos.length === 0) return false;
+
+    // Crear un set de coordenadas caja para búsqueda rápida
+    const cajasSet = new Set();
+    estado.cajas.forEach(box => cajasSet.add(`${box.fila},${box.col}`));
+
+    // Verificar si cada objetivo tiene una caja encima
+    for (const obj of estado.objetivos) {
+        if (!cajasSet.has(`${obj.fila},${obj.col}`)) {
+            return false; // Al menos un objetivo no tiene caja
+        }
+    }
+
+    // Si el bucle termina, significa que todos los objetivos tienen una caja encima.
+    return true;
+}
+```

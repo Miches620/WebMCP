@@ -1,0 +1,86 @@
+```javascript
+mover(estado, direccion) {
+    // Clonamos el estado para asegurar inmutabilidad
+    const nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+    let jugadorPos = { ...estado.jugador };
+    let nuevaJugadorPos = { ...jugadorPos };
+
+    // 1. Calcular la posición objetivo del jugador
+    let dR, dC;
+    switch (direccion) {
+        case "arriba": dR = -1; dC = 0; break;
+        case "abajo": dR = 1; dC = 0; break;
+        case "izquierda": dR = 0; dC = -1; break;
+        case "derecha": dR = 0; dC = 1; break;
+    }
+
+    nuevaJugadorPos.fila += dR;
+    nuevaJugadorPos.col += dC;
+
+    // 2. Validar la posición del jugador (Límites y Paredes)
+    if (nuevaJugadorPos.fila < 0 || nuevaJugadorPos.fila >= Reglas.FILAS ||
+        nuevaJugadorPos.col < 0 || nuevaJugadorPos.col >= Reglas.COLUMNAS ||
+        nuevoEstado.mapa[nuevaJugadorPos.fila][nuevaJugadorPos.col] === '#') {
+        return nuevoEstado; // Colisión con pared o fuera de límites
+    }
+
+    // 3. Determinar si hay una caja en la posición objetivo del jugador
+    const cajaEnDestino = nuevoEstado.cajas.some(c => c.fila === nuevaJugadorPos.fila && c.col === nuevaJugadorPos.col);
+
+    if (!cajaEnDestino) {
+        // Caso A: Mover a un espacio vacío o objetivo (sin cajas involucradas)
+        const nuevoEstadoMovimiento = JSON.parse(JSON.stringify(nuevoEstado));
+        nuevoEstadoMovimiento.jugador = nuevaJugadorPos;
+        return nuevoEstadoMovimiento; // Movimiento exitoso, movimientos no cambian
+    } else {
+        // Caso B: Intentar empujar una caja
+        const cajaAEmpujar = nuevoEstado.cajas.find(c => c.fila === nuevaJugadorPos.fila && c.col === nuevaJugadorPos.col);
+
+        // Calcular la posición donde irá la caja (detrás del jugador)
+        let nuevaCajaPos = { 
+            fila: nuevaJugadorPos.fila + dR, 
+            col: nuevaJugadorPos.col + dC 
+        };
+
+        // Validar el destino de la caja
+        const esColisionPared = nuevaCajaPos.fila < 0 || nuevaCajaPos.fila >= Reglas.FILAS ||
+                                 nuevaCajaPos.col < 0 || nuevaCajaPos.col >= Reglas.COLUMNAS ||
+                                 nuevoEstado.mapa[nuevaCajaPos.fila][nuevaCajaPos.col] === '#';
+
+        // Verificar si el destino de la caja está ocupado por otra caja (y no es ella misma)
+        const hayOtraCaja = nuevoEstado.cajas.some(c => 
+            (c !== cajaAEmpujar) && c.fila === nuevaCajaPos.fila && c.col === nuevaCajaPos.col
+        );
+
+        if (esColisionPared || hayOtraCaja) {
+            return nuevoEstado; // Empuje fallido: pared o otra caja bloquea el movimiento
+        } else {
+            // Movimiento exitoso de empuje
+            const nuevoEstadoEmpujado = JSON.parse(JSON.stringify(nuevoEstado));
+
+            // 1. Actualizar posición del jugador
+            nuevoEstadoEmpujado.jugador = nuevaJugadorPos;
+
+            // 2. Reconstruir la lista de cajas para asegurar que el jugador no quede encima de ninguna caja
+            const nuevasCajas = [];
+            let cajaEncontrada = false;
+            for (const caja of nuevoEstado.cajas) {
+                if (caja === cajaAEmpujar && !cajaEncontrada) {
+                    // Esta es la caja que se mueve
+                    nuevasCajas.push(nuevaCajaPos);
+                    cajaEncontrada = true;
+                } else {
+                    // Otras cajas permanecen en su lugar
+                    nuevasCajas.push({ ...caja }); 
+                }
+            }
+            nuevoEstadoEmpujado.cajas = nuevasCajas;
+
+            // 3. Incrementar movimientos
+            nuevoEstadoEmpujado.movimientos += 1;
+            return nuevoEstadoEmpujado;
+        }
+    }
+}
+```

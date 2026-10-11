@@ -1,0 +1,110 @@
+```javascript
+mover: function(estado, direccion) {
+        // Clonamos el estado para asegurar inmutabilidad
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        const dr = { "arriba": -1, "abajo": 1, "izquierda": 0, "derecha": 0 }[direccion];
+        const dc = { "arriba": 0, "abajo": 0, "izquierda": -1, "derecha": 1 }[direccion];
+
+        let jugadorActual = estado.jugador;
+        let nuevoJugadorPos = { fila: jugadorActual.fila + dr, col: jugadorActual.col + dc };
+
+        // --- Validación de movimiento básico (Fuera de límites o Pared) ---
+        const filas = estado.mapa.length;
+        const columnas = state.mapa[0].length;
+
+        if (nuevoJugadorPos.fila < 0 || nuevoJugadorPos.fila >= filas ||
+            nuevoJugadorPos.col < 0 || nuevoJugadorPos.col >= columnas) {
+            return estado; // Fuera de límites
+        }
+
+        // Verificar si el destino es una pared
+        if (estado.mapa[nuevoJugadorPos.fila][nuevoJugadorPos.col] === '#') {
+            return estado;
+        }
+
+        let cajaEnDestino = null;
+        let cajasAfectadasCoords = []; // Almacena las coordenadas de la caja que se va a mover
+        let movimientoValido = true;
+
+        // --- 1. Verificar si el destino es una caja ---
+        for (const c of estado.cajas) {
+            if (c.fila === nuevoJugadorPos.fila && c.col === nuevoJugadorPos.col) {
+                cajaEnDestino = c;
+                break;
+            }
+        }
+
+        if (cajaEnDestino) {
+            // Intentar empujar la caja
+            let destinoCaja = { fila: nuevoJugadorPos.fila + dr, col: nuevoJugadorPos.col + dc };
+
+            // 1a. Verificar si el espacio detrás de la caja es válido y no contiene otra caja
+            if (destinoCaja.fila < 0 || destinoCaja.fila >= filas ||
+                destinoCaja.col < 0 || destinoCaja.col >= columnas) {
+                return estado; // La caja choca contra el borde del mapa
+            }
+
+            // Verificar si el espacio detrás es una pared o está ocupado por otra caja
+            if (estado.mapa[destinoCaja.fila][destinoCaja.col] === '#') {
+                return estado; // Choca contra la pared
+            }
+
+            const hayOtraCajaDetras = estado.cajas.some(c => 
+                // Comparamos coordenadas para asegurar que no es la caja actual
+                !(c.fila === cajaEnDestino.fila && c.col === cajaEnDestino.col) && 
+                c.fila === destinoCaja.fila && c.col === destinoCaja.col
+            );
+
+            if (hayOtraCajaDetras) {
+                return estado; // Choca contra otra caja
+            }
+
+            // Si llegamos aquí, el empuje es posible.
+            cajasAfectadasCoords = [{ fila: nuevoJugadorPos.fila, col: nuevoJugadorPos.col }];
+            movimientoValido = true;
+
+        } else {
+            // 2. El destino no tiene caja (es espacio libre o objetivo)
+            movimientoValido = true;
+        }
+
+
+        if (!movimientoValido) {
+             return estado; // No se pudo mover/empujar
+        }
+
+        // --- Aplicar el movimiento y actualizar el estado ---
+
+        nuevoEstado.jugador = nuevoJugadorPos;
+        nuevoEstado.movimientos += 1;
+
+        let nuevasCajas = [];
+        if (cajasAfectadasCoords.length > 0) {
+            // Mover la caja o cajas
+            const destinoCaja = { fila: nuevoJugadorPos.fila + dr, col: nuevoJugadorPos.col + dc };
+
+            for (const caja of estado.cajas) {
+                let esLaCajaMovida = false;
+                // Verificamos si esta caja coincide con la posición inicial de las cajas afectadas
+                if (caja.fila === cajaEnDestino.fila && caja.col === cajaEnDestino.col) {
+                    nuevasCajas.push({ 
+                        fila: destinoCaja.fila, 
+                        col: destinoCaja.col 
+                    });
+                    esLaCajaMovida = true;
+                } else {
+                    // Otras cajas permanecen en su lugar
+                    nuevasCajas.push(caja);
+                }
+            }
+            nuevoEstado.cajas = nuevasCajas;
+        } else {
+             // Si no hay movimiento de caja, las cajas se mantienen igual (ya clonadas)
+             // Pero para ser explícitos y evitar posibles errores si el deep clone fallara en algún punto:
+             nuevoEstado.cajas = JSON.parse(JSON.stringify(estado.cajas));
+        }
+
+        return nuevoEstado;
+    },
+```

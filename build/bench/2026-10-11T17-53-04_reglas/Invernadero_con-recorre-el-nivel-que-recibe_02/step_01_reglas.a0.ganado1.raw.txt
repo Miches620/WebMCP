@@ -1,0 +1,24 @@
+```javascript
+ganado: function(estado) {
+        const objetivos = estado.objetivos;
+        const cajas = estado.cajas;
+
+        if (objetivos.length === 0 || cajas.length === 0) {
+            return false; // No hay nada que cubrir o no hay macetas
+        }
+
+        // Crear un set de coordenadas objetivo para búsqueda rápida
+        const objetivosSet = new Set(objetivos.map(o => `${o.fila},${o.col}`));
+
+        // Verificar si cada caja está sobre un objetivo
+        let cubiertas = 0;
+        for (const caja of cajas) {
+            if (objetivosSet.has(`${caja.fila},${caja.col}`)) {
+                cubiertas++;
+            }
+        }
+
+        // El nivel se supera si el número de macetas sobre objetivos es igual al total de objetivos.
+        return cubiertas === objetivos.length;
+    }
+```

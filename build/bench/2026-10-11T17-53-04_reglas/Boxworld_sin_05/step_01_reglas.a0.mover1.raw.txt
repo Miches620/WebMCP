@@ -1,0 +1,102 @@
+```javascript
+mover: function(estado, direccion) {
+        const MAX_SIZE = 10;
+
+        // Función auxiliar para obtener la nueva posición (r, c)
+        let newPlayerPos = { ...estado.jugador };
+        switch (direccion) {
+            case "arriba":
+                newPlayerPos.fila -= 1;
+                break;
+            case "abajo":
+                newPlayerPos.fila += 1;
+                break;
+            case "izquierda":
+                newPlayerPos.col -= 1;
+                break;
+            case "derecha":
+                newPlayerPos.col += 1;
+                break;
+        }
+
+        // 1. Validación de límites y paredes (Mapa)
+        if (newPlayerPos.fila < 0 || newPlayerPos.fila >= MAX_SIZE ||
+            newPlayerPos.col < 0 || newPlayerPos.col >= MAX_SIZE ||
+            estado.mapa[newPlayerPos.fila][newPlayerPos.col] === '#') {
+            // Movimiento inválido: fuera de límites o contra pared
+            return { ...estado, movimientos: estado.movimientos };
+        }
+
+        let newCajas = [...estado.cajas];
+        let playerMovedSuccessfully = false;
+
+        // 2. Verificar colisión con cajas
+        const collidingBoxIndex = newCajas.findIndex(box => 
+            box.fila === newPlayerPos.fila && box.col === newPlayerPos.col
+        );
+
+        if (collidingBoxIndex !== -1) {
+            // Hay una caja en el destino del jugador, intentar empujar
+            const box = newCajas[collidingBoxIndex];
+            let pushTarget = { ...box };
+
+            // Calcular la posición objetivo de la caja
+            switch (direccion) {
+                case "arriba":
+                    pushTarget.fila -= 1;
+                    break;
+                case "abajo":
+                    pushTarget.fila += 1;
+                    break;
+                case "izquierda":
+                    pushTarget.col -= 1;
+                    break;
+                case "derecha":
+                    pushTarget.col += 1;
+                    break;
+            }
+
+            // Validación de empuje: ¿Es el destino del box válido?
+            const isPushTargetValid = (
+                pushTarget.fila >= 0 && pushTarget.fila < MAX_SIZE &&
+                pushTarget.col >= 0 && pushTarget.col < MAX_SIZE &&
+                estado.mapa[pushTarget.fila][pushTarget.col] !== '#'
+            );
+
+            // Verificar si el destino del box está ocupado por otra caja o es inválido
+            let targetOccupiedByBox = false;
+            for (let i = 0; i < newCajas.length; i++) {
+                if (i !== collidingBoxIndex && newCajas[i].fila === pushTarget.fila && newCajas[i].col === pushTarget.col) {
+                    targetOccupiedByBox = true;
+                    break;
+                }
+            }
+
+            // Condición de éxito del empuje: Debe ser válido y no estar ocupado por otra caja
+            if (isPushTargetValid && !targetOccupiedByBox) {
+                // ¡Empuje exitoso! Actualizar la posición de la caja.
+                newCajas[collidingBoxIndex] = pushTarget;
+                playerMovedSuccessfully = true;
+            } else {
+                // Empuje fallido (pared o otra caja), el jugador no se mueve.
+                return { ...estado, movimientos: estado.movimientos };
+            }
+
+        } else {
+            // No hay colisión con cajas, solo movimiento del jugador.
+            playerMovedSuccessfully = true;
+        }
+
+
+        // 3. Construir y devolver el nuevo estado (Inmutabilidad)
+        const newState = {
+            mapa: estado.mapa, // El mapa no cambia en este modelo de estado
+            jugador: newPlayerPos,
+            cajas: newCajas,
+            objetivos: estado.objetivos,
+            movimientos: state.movimientos + (playerMovedSuccessfully ? 1 : 0)
+        };
+
+        return newState;
+    }
+```

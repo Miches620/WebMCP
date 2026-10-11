@@ -1,0 +1,45 @@
+```javascript
+crearEstado: function(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+        let nuevoMapa = [];
+
+        // Iteramos sobre las filas y columnas para recolectar coordenadas y construir el mapa limpio.
+        for (let r = 0; r < 8; r++) {
+            let tempRowArray = []; // Array temporal de caracteres para la fila actual
+            
+            for (let c = 0; c < 8; c++) {
+                const char = nivel[r][c];
+                
+                // Determinar el carácter que va en el mapa limpio.
+                // @ y $ se reemplazan por ' ', ya que no deben aparecer en estado.mapa.
+                let mapChar = char;
+                if (char === '@' || char === '$') {
+                    mapChar = ' '; 
+                }
+
+                tempRowArray.push(mapChar);
+
+                // Recolectar coordenadas basadas en el carácter ORIGINAL del nivel.
+                if (char === '@') {
+                    jugador = { row: r, col: c };
+                } else if (char === '$') {
+                    cajas.push({ row: r, col: c });
+                } else if (char === '.') {
+                    objetivos.push({ row: r, col: c });
+                }
+            }
+            // Almacenar la fila como una cadena de caracteres en nuevoMapa.
+            nuevoMapa.push(tempRowArray.join('')); 
+        }
+
+        return {
+            mapa: nuevoMapa, // Mapa de caracteres (solo #, ' ', .)
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+```

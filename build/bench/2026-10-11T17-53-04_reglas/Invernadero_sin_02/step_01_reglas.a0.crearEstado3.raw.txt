@@ -1,0 +1,46 @@
+```javascript
+crearEstado: function(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+
+        const numRows = nivel.length;
+        if (numRows === 0) return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+
+        // Inicializamos el nuevo mapa para asegurar que solo contenga '#', ' ', y '.'
+        let nuevoMapa = [];
+
+        for (let r = 0; r < numRows; r++) {
+            let filaActual = '';
+            for (let c = 0; c < nivel[r].length; c++) {
+                const char = nivel[r][c];
+                
+                // Determinamos el carácter que va en el mapa: @ y $ se reemplazan por espacio.
+                let mapaChar = char;
+                if (char === '@' || char === '$') {
+                    mapaChar = ' '; 
+                }
+
+                filaActual += mapaChar;
+
+                // Lógica de detección de elementos permanece basada en el nivel original
+                if (char === '@') {
+                    jugador = { fila: r, col: c };
+                } else if (char === '$') {
+                    cajas.push({ fila: r, col: c });
+                } else if (char === '.') {
+                    objetivos.push({ fila: r, col: c });
+                }
+            }
+            nuevoMapa.push(filaActual);
+        }
+
+        return {
+            mapa: nuevoMapa,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+```

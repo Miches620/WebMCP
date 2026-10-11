@@ -1,0 +1,85 @@
+```javascript
+mover: function(estado, direccion) {
+        const jugador = estado.jugador;
+        let nuevaPosJugador = { ...jugador };
+
+        // 1. Calcular la posición objetivo del jugador (P_next)
+        switch (direccion) {
+            case "arriba":
+                nuevaPosJugador.fila -= 1;
+                break;
+            case "abajo":
+                nuevaPosJugador.fila += 1;
+                break;
+            case "izquierda":
+                nuevaPosJugador.col -= 1;
+                break;
+            case "derecha":
+                nuevaPosJugador.col += 1;
+                break;
+        }
+
+        const { filas, columnas } = this._getDimensiones(estado);
+
+        // 2. Validación de colisión básica (límites y paredes) para P_next
+        if (nuevaPosJugador.fila < 0 || nuevaPosJugador.fila >= filas ||
+            nuevaPosJugador.col < 0 || nuevaPosJugador.col >= columnas ||
+            estado.mapa[nuevaPosJugador.fila][nuevaPosJugador.col] === '#') {
+            return { ...estado, movimientos: estado.movimientos }; // Colisión con pared o límite
+        }
+
+        // 3. Verificar si la nueva posición está ocupada por una caja (C1)
+        const hayCajaEnDestino = estado.cajas.some(c => c.fila === nuevaPosJugador.fila && c.col === nuevaPosJugador.col);
+
+        if (!hayCajaEnDestino) {
+            // Movimiento simple (sin cajas involucradas)
+            return this._crearEstadoMovidoSimple(estado, nuevaPosJugador);
+        } else {
+            // Hay caja en destino: intentar empujar
+            const cajaAEmpujar = estado.cajas.find(c => c.fila === nuevaPosJugador.fila && c.col === nuevaPosJugador.col);
+
+            // Calcular la posición objetivo de la caja (C1_next)
+            let posCajaDestino = { ...cajaAEmpujar };
+            switch (direccion) {
+                case "arriba":
+                    posCajaDestino.fila -= 1;
+                    break;
+                case "abajo":
+                    posCajaDestino.fila += 1;
+                    break;
+                case "izquierda":
+                    posCajaDestino.col -= 1;
+                    break;
+                case "derecha":
+                    posCajaDestino.col += 1;
+                    break;
+            }
+
+            // Validación de empuje:
+            const { filas: f, columnas: c } = this._getDimensiones(estado);
+
+            // a) ¿El destino final de la caja está fuera de límites o es una pared?
+            if (posCajaDestino.fila < 0 || posCajaDestino.fila >= f ||
+                posCajaDestino.col < 0 || posCajaDestino.col >= c ||
+                estado.mapa[posCajaDestino.fila][posCajaDestino.col] === '#') {
+                return { ...estado, movimientos: estado.movimientos }; // Empuje fallido (pared o límite)
+            }
+
+            // b) ¿El destino final de la caja está ocupado por otra cosa? (Otra caja).
+            const hayOcupacionDestino = estado.cajas.some(c => 
+                c !== cajaAEmpujar && // Excluir la caja que estamos moviendo
+                c.fila === posCajaDestino.fila && 
+                c.col === posCajaDestino.col
+            );
+
+            if (hayOcupacionDestino) {
+                 return { ...estado, movimientos: estado.movimientos }; // Empuje fallido (otra caja)
+            }
+
+
+            // 4. Movimiento exitoso de empuje
+            const nuevoEstado = this._crearEstadoEmpujado(estado, nuevaPosJugador, cajaAEmpujar, posCajaDestino);
+            return nuevoEstado;
+        }
+    }
+```

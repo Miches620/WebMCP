@@ -1,0 +1,37 @@
+```javascript
+crearEstado(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+
+        // 1. Identificar posiciones clave y construir el mapa base (sin @ o $)
+        const nuevoMapa = nivel.map(fila => fila.split(''));
+
+        for (let r = 0; r < nivel.length; r++) {
+            const filaString = nivel[r];
+            for (let c = 0; c < filaString.length; c++) {
+                const char = filaString[c];
+                if (char === '@') {
+                    jugador = { fila: r, col: c };
+                    // El mapa base solo contiene '#', ' ', '.'
+                    nuevoMapa[r][c] = ' '; 
+                } else if (char === '$') {
+                    cajas.push({ fila: r, col: c });
+                    nuevoMapa[r][c] = ' '; // Las cajas no se dibujan en el mapa base
+                } else if (char === '.') {
+                    objetivos.push({ fila: r, col: c });
+                    // Los objetivos sí deben permanecer visibles en el mapa base
+                    nuevoMapa[r][c] = '.'; 
+                }
+            }
+        }
+
+        return {
+            mapa: nuevoMapa, // Array de arrays de caracteres
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    }
+```

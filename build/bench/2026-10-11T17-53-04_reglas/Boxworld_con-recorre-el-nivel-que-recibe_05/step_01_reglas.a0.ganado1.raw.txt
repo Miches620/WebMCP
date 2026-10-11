@@ -1,0 +1,24 @@
+```javascript
+ganado: function(estado) {
+        if (!estado || !estado.objetivos) return false; // Manejo de estado inválido o sin objetivos definidos
+
+        // Si no hay objetivos, la condición se cumple vacuamente (todos los 0 objetivos están cubiertos).
+        if (estado.objetivos.length === 0) return true;
+
+        // Crear un set de coordenadas caja para búsqueda rápida: "fila,col"
+        const cajasSet = new Set(estado.cajas.map(box => `${box.fila},${box.col}`));
+
+        // Verificar si CADA objetivo tiene una caja encima.
+        for (const objetivo of estado.objetivos) {
+            const objectiveKey = `${objetivo.fila},${objetivo.col}`;
+            
+            // Si no hay ninguna caja en la ubicación del objetivo, el nivel no está ganado.
+            if (!cajasSet.has(objectiveKey)) {
+                return false; 
+            }
+        }
+
+        // Si todos los objetivos han sido revisados y cada uno tiene una caja encima, se ha ganado.
+        return true;
+    },
+```

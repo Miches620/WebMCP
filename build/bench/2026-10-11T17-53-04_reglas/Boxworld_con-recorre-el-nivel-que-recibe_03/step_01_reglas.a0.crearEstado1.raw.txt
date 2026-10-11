@@ -1,0 +1,53 @@
+```javascript
+crearEstado: function(nivel) {
+        const filas = nivel.length;
+        if (filas === 0) return null;
+        const columnas = nivel[0].length;
+
+        let jugadorPos = null;
+        let cajasCoords = [];
+        let objetivosCoords = [];
+        let mapaStrings = []; // Array to hold strings for the map
+
+        for (let r = 0; r < filas; r++) {
+            let currentRowString = '';
+            for (let c = 0; c < columnas; c++) {
+                const char = nivel[r][c];
+                
+                // Track coordinates
+                if (char === '@') {
+                    jugadorPos = { fila: r, col: c };
+                } else if (char === '$') {
+                    cajasCoords.push({ fila: r, col: c });
+                } else if (char === '.') {
+                    objetivosCoords.push({ fila: r, col: c });
+                }
+
+                // Determine the character for the map string based on rules: 
+                // Map only contains #, ' ', '.'
+                let mapChar;
+                if (char === '#') {
+                    mapChar = '#';
+                } else if (char === '.') {
+                    mapChar = '.';
+                } else if (char === '@' || char === '$') {
+                    // Player and boxes are treated as empty space ' ' in the map.
+                    mapChar = ' '; 
+                } else {
+                    // Regular floor space ' '.
+                    mapChar = char; 
+                }
+                currentRowString += mapChar;
+            }
+            mapaStrings.push(currentRowString);
+        }
+
+        return {
+            mapa: mapaStrings, // Array of strings
+            jugador: jugadorPos,
+            cajas: cajasCoords,
+            objetivos: objetivosCoords,
+            movimientos: 0
+        };
+    },
+```

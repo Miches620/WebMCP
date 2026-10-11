@@ -1,0 +1,49 @@
+```javascript
+crearEstado(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+    const altura = nivel.length;
+    const ancho = nivel[0].length;
+
+    // Usamos un buffer temporal (array de arrays de caracteres) para construir el mapa, 
+    // ya que necesitamos reemplazar caracteres sin modificar la estructura original del nivel.
+    let mapaBuffer = Array(altura).fill(null).map(() => Array(ancho));
+
+    for (let r = 0; r < altura; r++) {
+        const filaString = nivel[r];
+        for (let c = 0; c < filaString.length; c++) {
+            const char = filaString[c];
+            let mapChar = char;
+
+            if (char === '@') {
+                jugador = { fila: r, col: c };
+                mapChar = ' '; // El jugador no se dibuja en el mapa base
+            } else if (char === '$') {
+                cajas.push({ fila: r, col: c });
+                mapChar = ' '; // La caja no se dibuja en el mapa base
+            } else if (char === '.') {
+                objetivos.push({ fila: r, col: c });
+                // Los objetivos sí deben permanecer visibles
+                mapChar = '.'; 
+            } else {
+                // Paredes ('#') y pisos vacíos (' ') mantienen su carácter original
+                mapChar = char;
+            }
+
+            mapaBuffer[r][c] = mapChar;
+        }
+    }
+
+    // Convertimos el buffer de caracteres a un array de strings, cumpliendo con el contrato.
+    const mapaFinal = mapaBuffer.map(row => row.join(''));
+
+    return {
+        mapa: mapaFinal, 
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivos,
+        movimientos: 0
+    };
+}
+```

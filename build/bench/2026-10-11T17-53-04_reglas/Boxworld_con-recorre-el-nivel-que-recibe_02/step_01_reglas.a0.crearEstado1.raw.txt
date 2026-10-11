@@ -1,0 +1,49 @@
+```javascript
+crearEstado: function(nivel) {
+        const filas = nivel.length;
+        if (filas === 0) return null;
+
+        let jugador = { fila: -1, col: -1 };
+        let cajas = [];
+        let objetivos = [];
+        let mapa = [];
+
+        for (let r = 0; r < filas; r++) {
+            let rowString = '';
+            const currentRow = nivel[r];
+            
+            for (let c = 0; c < currentRow.length; c++) {
+                const char = currentRow[c];
+                let displayChar = char;
+
+                if (char === '#') {
+                    displayChar = '#';
+                } else if (char === '.') {
+                    objetivos.push({ fila: r, col: c });
+                    displayChar = '.';
+                } else if (char === '@') {
+                    jugador = { fila: r, col: c };
+                    // El mapa solo debe contener '#', ' ', '.'
+                    displayChar = ' '; 
+                } else if (char === '$') {
+                    cajas.push({ fila: r, col: c });
+                    // El mapa solo debe contener '#', ' ', '.'
+                    displayChar = ' '; 
+                } else if (char === ' ') {
+                    displayChar = ' ';
+                }
+
+                rowString += displayChar;
+            }
+            mapa.push(rowString);
+        }
+
+        return {
+            mapa: mapa,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+```

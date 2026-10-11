@@ -1,0 +1,109 @@
+```javascript
+mover: function(estado, direccion) {
+        // Clonamos el estado para asegurar inmutabilidad
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        const jugador = estado.jugador;
+        let nextR = jugador.fila;
+        let nextC = jugador.col;
+
+        switch (direccion) {
+            case "arriba":
+                nextR -= 1;
+                break;
+            case "abajo":
+                nextR += 1;
+                break;
+            case "izquierda":
+                nextC -= 1;
+                break;
+            case "derecha":
+                nextC += 1;
+                break;
+        }
+
+        // --- 1. Comprobar si el movimiento es posible (sin cajas) ---
+        if (!Reglas._esValidoMovimiento(estado, nextR, nextC)) {
+            return estado; // Movimiento inválido: pared o fuera de límites
+        }
+
+        // Si no hay cajas en la posición objetivo, solo movemos al jugador.
+        let cajaEnDestino = false;
+        for (const caja of estado.cajas) {
+            if (caja.fila === nextR && caja.col === nextC) {
+                cajaEnDestino = true;
+                break;
+            }
+        }
+
+        if (!cajaEnDestino) {
+            // Movimiento simple del jugador
+            nuevoEstado.jugador = { fila: nextR, col: nextC };
+            nuevoEstado.movimientos += 1;
+            return nuevoEstado;
+        } else {
+            // --- 2. Intentar empujar una caja ---
+
+            // Encontrar la caja que está en el destino (nextR, nextC)
+            let cajaAEmpujar = estado.cajas.find(c => c.fila === nextR && c.col === nextC);
+
+            if (!cajaAEmpujar) {
+                return estado; // No debería pasar si cajaEnDestino es true
+            }
+
+            // Calcular la posición donde irá la caja (detrás del jugador)
+            let pushR = nextR;
+            let pushC = nextC;
+
+            switch (direccion) {
+                case "arriba":
+                    pushR -= 1;
+                    break;
+                case "abajo":
+                    pushR += 1;
+                    break;
+                case "izquierda":
+                    pushC -= 1;
+                    break;
+                case "derecha":
+                    pushC += 1;
+                    break;
+            }
+
+            // Comprobar si el espacio de empuje es válido (no pared, no fuera de límites)
+            if (!Reglas._esValidoMovimiento(estado, pushR, pushC)) {
+                return estado; // La caja está contra una pared o límite. No se mueve nada.
+            }
+
+            // Comprobar si el espacio de empuje contiene otra caja (colisión secundaria)
+            let hayOtraCaja = false;
+            for (const caja of estado.cajas) {
+                if (caja !== cajaAEmpujar && caja.fila === pushR && caja.col === pushC) {
+                    hayOtraCaja = true;
+                    break;
+                }
+            }
+
+            if (hayOtraCaja) {
+                return estado; // La caja está bloqueada por otra caja. No se mueve nada.
+            }
+
+            // --- 3. Movimiento exitoso de empuje ---
+            nuevoEstado.jugador = { fila: nextR, col: nextC };
+            nuevoEstado.movimientos += 1;
+
+            // Actualizar la posición de la caja empujada
+            let nuevasCajas = estado.cajas.map(c => ({ ...c })); // Clonar el array y los objetos
+            for (let i = 0; i < nuevasCajas.length; i++) {
+                if (nuevasCajas[i].fila === cajaAEmpujar.fila && nuevasCajas[i].col === cajaAEmpujar.col) {
+                    // Encontramos la caja a empujar, actualizamos su posición
+                    nuevasCajas[i] = { fila: pushR, col: pushC };
+                    break;
+                }
+            }
+            nuevoEstado.cajas = nuevasCajas;
+
+            return nuevoEstado;
+        }
+    }
+```

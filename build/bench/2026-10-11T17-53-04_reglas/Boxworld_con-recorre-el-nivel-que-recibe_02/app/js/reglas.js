@@ -1,0 +1,156 @@
+const Reglas = {
+    /**
+     * Crea el estado inicial del juego a partir de un nivel dado.
+     * @param {string[]} nivel - Array de strings que representan el mapa del nivel.
+     * @returns {object} El estado inicial del juego.
+     */
+crearEstado: function(nivel) {
+        const filas = nivel.length;
+        if (filas === 0) return null;
+
+        let jugador = { fila: -1, col: -1 };
+        let cajas = [];
+        let objetivos = [];
+        let mapa = [];
+
+        for (let r = 0; r < filas; r++) {
+            let rowString = '';
+            const currentRow = nivel[r];
+            
+            for (let c = 0; c < currentRow.length; c++) {
+                const char = currentRow[c];
+                let displayChar = char;
+
+                if (char === '#') {
+                    displayChar = '#';
+                } else if (char === '.') {
+                    objetivos.push({ fila: r, col: c });
+                    displayChar = '.';
+                } else if (char === '@') {
+                    jugador = { fila: r, col: c };
+                    // El mapa solo debe contener '#', ' ', '.'
+                    displayChar = ' '; 
+                } else if (char === '$') {
+                    cajas.push({ fila: r, col: c });
+                    // El mapa solo debe contener '#', ' ', '.'
+                    displayChar = ' '; 
+                } else if (char === ' ') {
+                    displayChar = ' ';
+                }
+
+                rowString += displayChar;
+            }
+            mapa.push(rowString);
+        }
+
+        return {
+            mapa: mapa,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+
+    /**
+     * Verifica si el estado actual ha sido ganado (todas las cajas cubren un objetivo).
+     * @param {object} estado - El estado del juego.
+     * @returns {boolean} True si se ganó, False en caso contrario.
+     */
+    ganado: function(estado) {
+        if (!estado || !estado.objetivos || estado.objetivos.length === 0) return false;
+
+        const objetivosCubiertos = new Set();
+        
+        for (const caja of estado.cajas) {
+            // Comprueba si la posición de la caja coincide con algún objetivo
+            if (estado.objetivos.some(obj => obj.fila === caja.fila && obj.col === caja.col)) {
+                // Usamos una clave única para el set: "r,c"
+                const key = `${caja.fila},${caja.col}`;
+                objetivosCubiertos.add(key);
+            }
+        }
+
+        return objetivosCubiertos.size === estado.objetivos.length;
+    },
+
+    /**
+     * Intenta mover al jugador en la dirección dada, manejando colisiones y empujes de cajas.
+     * @param {object} estado - El estado actual del juego.
+     * @param {"arriba" | "abajo" | "izquierda" | "derecha"} direccion - Dirección deseada.
+     * @returns {object} Un nuevo estado (o el original si no hay movimiento).
+     */
+    mover: function(estado, direccion) {
+        // 1. Crear un estado base para la respuesta (copia profunda de lo que podría cambiar)
+        const nuevoEstado = JSON.parse(JSON.stringify(estado));
+        let { fila: r, col: c } = estado.jugador;
+
+        let dr = 0, dc = 0;
+        if (direccion === "arriba") { dr = -1; }
+        else if (direccion === "abajo") { dr = 1; }
+        else if (direccion === "izquierda") { dc = -1; }
+        else if (direccion === "derecha") { dc = 1; }
+
+        const newR = r + dr;
+        const newC = c + dc;
+
+        // --- Validación de límites y paredes ---
+        if (newR < 0 || newR >= estado.mapa.length || newC < 0 || newC >= estado.mapa[0].length) {
+            return nuevoEstado; // Fuera de límites
+        }
+        if (estado.mapa[newR][newC] === '#') {
+            return nuevoEstado; // Colisión con pared
+        }
+
+        // 2. Verificar si el destino está ocupado por una caja
+        const boxEnDestino = estado.cajas.find(box => box.fila === newR && box.col === newC);
+
+        if (!boxEnDestino) {
+            // Caso A: Destino libre (piso o objetivo). Solo se mueve el jugador.
+            nuevoEstado.jugador = { fila: newR, col: newC };
+            nuevoEstado.movimientos++;
+            return nuevoEstado;
+        } else {
+            // Caso B: Destino ocupado por una caja. Intentar empujar.
+
+            // Calcular la posición donde debe ir la caja (detrás de ella)
+            const pushTargetR = newR + dr;
+            const pushTargetC = newC + dc;
+
+            // 2a. Validación del Empuje: ¿Es el destino final válido?
+            if (pushTargetR < 0 || pushTargetR >= estado.mapa.length || pushTargetC < 0 || pushTargetC >= estado.mapa[0].length) {
+                return nuevoEstado; // El empuje sale del mapa
+            }
+
+            // Validación de pared en el destino final
+            if (estado.mapa[pushTargetR][pushTargetC] === '#') {
+                return nuevoEstado; // La caja choca contra una pared
+            }
+
+            // 2b. Verificar si hay otra caja bloqueando el empuje
+            const boxBloqueadora = estado.cajas.some(box => 
+                !(box.fila === newR && box.col === newC) && // No es la caja que estamos moviendo
+                (box.fila === pushTargetR && box.col === pushTargetC)
+            );
+
+            if (boxBloqueadora) {
+                return nuevoEstado; // El empuje choca contra otra caja
+            }
+
+            // 3. Empuje exitoso: Actualizar estado
+            nuevoEstado.jugador = { fila: newR, col: newC };
+            nuevoEstado.movimientos++;
+
+            // Mover la caja (boxEnDestino) a la nueva posición de empuje
+            const cajasActualizadas = estado.cajas.map(box => {
+                if (box.fila === newR && box.col === newC) {
+                    return { fila: pushTargetR, col: pushTargetC }; // La caja se mueve
+                }
+                return box; // Otras cajas permanecen
+            });
+            nuevoEstado.cajas = cajasActualizadas;
+
+            return nuevoEstado;
+        }
+    }
+};

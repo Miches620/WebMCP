@@ -1,0 +1,95 @@
+```javascript
+mover: function(estado, direccion) {
+    // Aseguramos que trabajaremos con copias para mantener la inmutabilidad del estado original
+    const { jugador, cajas } = estado;
+    let nuevaPosicionJugador = { ...jugador };
+    let nuevasCajas = [...cajas]; // Copia superficial de la lista de cajas
+    let nuevosMovimientos = estado.movimientos;
+
+    // 1. Calcular la dirección y el destino inicial del jugador
+    let dr, dc;
+    switch (direccion) {
+        case "arriba": dr = -1; dc = 0; break;
+        case "abajo": dr = 1; dc = 0; break;
+        case "izquierda": dr = 0; dc = -1; break;
+        case "derecha": dr = 0; dc = 1; break;
+    }
+
+    let destinoJugador = { fila: jugador.fila + dr, col: jugador.col + dc };
+
+    // Dimensiones del mapa
+    const filas = estado.mapa.length;
+    const columnas = state.mapa[0].length;
+
+    // 2. Verificar límites y paredes para el destino del jugador
+    if (destinoJugador.fila < 0 || destinoJugador.fila >= filas || 
+        destinoJugador.col < 0 || destinoJugador.col >= columnas) {
+        return { ...estado, movimientos: estado.movimientos }; // Fuera de límites
+    }
+
+    // Verificar si el destino del jugador es una pared (usando el mapa base)
+    if (estado.mapa[destinoJugador.fila][destinoJugador.col] === '#') {
+        return { ...estado, movimientos: estado.movimientos }; // Colisión con pared
+    }
+
+    // 3. Verificar si hay cajas en la posición destino del jugador
+    const cajaEnDestino = cajas.some(c => c.fila === destinoJugador.fila && c.col === destinoJugador.col);
+
+    if (!cajaEnDestino) {
+        // Caso A: Movimiento simple (sin empujar nada)
+        nuevaPosicionJugador = destinoJugador;
+        return { 
+            ...estado, 
+            jugador: nuevaPosicionJugador, // Nuevo objeto de posición
+            movimientos: estado.movimientos + 1 
+        };
+    } else {
+        // Caso B: Intento de empujar una caja
+        const cajaAEmpujar = cajas.find(c => c.fila === destinoJugador.fila && c.col === destinoJugador.col);
+
+        // Calcular la posición donde iría la caja (detrás del jugador)
+        let destinoCaja = { fila: cajaAEmpujar.fila + dr, col: cajaAEmpujar.col + dc };
+
+        // Verificar si el movimiento de empuje es posible
+        const fueraDeLímitesCaja = destinoCaja.fila < 0 || destinoCaja.fila >= filas || 
+                                   destinoCaja.col < 0 || destinoCaja.col >= columnas;
+        
+        // Colisión con pared en el destino de la caja
+        const paredEnDestinoCaja = estado.mapa[destinoCaja.fila][destinoCaja.col] === '#';
+
+        // ¿Hay otra caja bloqueando el camino? (Excluyendo la caja que estamos empujando)
+        const otraCajaBloqueando = cajas.some(c => 
+            (c !== cajaAEmpujar) && c.fila === destinoCaja.fila && c.col === destinoCaja.col
+        );
+
+        if (fueraDeLímitesCaja || paredEnDestinoCaja || otraCajaBloqueando) {
+            // Empuje fallido: no se mueve nada, ni el jugador ni la caja.
+            return { ...estado, movimientos: estado.movimientos }; 
+        } else {
+            // ¡Empuje exitoso!
+
+            // Reconstruir la lista de cajas para reflejar el movimiento
+            let nuevasCajasActualizadas = [];
+            for (const c of cajas) {
+                if (c.fila === cajaAEmpujar.fila && c.col === cajaAEmpujar.col) {
+                    // Esta es la caja que se mueve, usamos un nuevo objeto para el destino
+                    nuevasCajasActualizadas.push({ fila: destinoCaja.fila, col: destinoCaja.col });
+                } else {
+                    // Otras cajas permanecen en su lugar (referencia original)
+                    nuevasCajasActualizadas.push(c);
+                }
+            }
+
+            // El jugador ocupa la posición de la caja original
+            nuevaPosicionJugador = { fila: cajaAEmpujar.fila, col: cajaAEmpujar.col };
+
+            return { 
+                ...estado, 
+                jugador: nuevaPosicionJugador, // Nuevo objeto de posición
+                cajas: nuevasCajasActualizadas, // Nueva lista de cajas
+                movimientos: estado.movimientos + 1 
+            };
+        }
+    }
+}
+```

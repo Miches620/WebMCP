@@ -1,0 +1,81 @@
+```javascript
+mover: function(estado, direccion) {
+        // Clonamos el estado para asegurar inmutabilidad
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        const jugadorPos = estado.jugador;
+        let nuevaFila = jugadorPos.fila;
+        let nuevaCol = jugadorPos.col;
+
+        // Determinar dimensiones del mapa dinámicamente
+        const R = estado.mapa.length;
+        if (R === 0) return estado;
+        const C = estado.mapa[0].length;
+
+        // 1. Calcular la posición objetivo del jugador (sin considerar colisiones)
+        switch (direccion) {
+            case "arriba":
+                nuevaFila -= 1;
+                break;
+            case "abajo":
+                nuevaFila += 1;
+                break;
+            case "izquierda":
+                nuevaCol -= 1;
+                break;
+            case "derecha":
+                nuevaCol += 1;
+                break;
+        }
+
+        // Verificar límites del mapa (dinámico)
+        if (nuevaFila < 0 || nuevaFila >= R || nuevaCol < 0 || nuevaCol >= C) {
+            return estado; // Fuera de límites
+        }
+
+        // Verificar pared en la posición objetivo
+        if (estado.mapa[nuevaFila][nuevaCol] === '#') {
+            return estado; // Colisión con pared
+        }
+
+        let cajaImpactada = null;
+        let indiceCajaImpactada = -1;
+
+        // 2. Verificar si hay una caja en la posición objetivo
+        for (let i = 0; i < estado.cajas.length; i++) {
+            const caja = estado.cajas[i];
+            if (caja.fila === nuevaFila && caja.col === nuevaCol) {
+                cajaImpactada = caja;
+                indiceCajaImpactada = i;
+                break;
+            }
+        }
+
+        // 3. Manejar el movimiento
+        if (!cajaImpactada) {
+            // Caso A: Movimiento simple (a piso o objetivo)
+            nuevoEstado.jugador = { fila: nuevaFila, col: nuevaCol };
+            nuevoEstado.movimientos += 1;
+            return nuevoEstado;
+        } else {
+            // Caso B: Intento de empuje de caja
+            let pushTargetFila = cajaImpactada.fila;
+            let pushTargetCol = cajaImpactada.col;
+
+            // Calcular la posición final deseada para la caja (detrás del jugador)
+            switch (direccion) {
+                case "arriba":
+                    pushTargetFila -= 1;
+                    break;
+                case "abajo":
+                    pushTargetFila += 1;
+                    break;
+                case "izquierda":
+                    pushTargetCol -= 1;
+                    break;
+                case "derecha":
+                    pushTargetCol += 1;
+                    break;
+            }
+
+            // Verificar si el empuje

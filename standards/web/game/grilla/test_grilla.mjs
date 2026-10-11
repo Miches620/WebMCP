@@ -261,5 +261,22 @@ t("niveles: 'lo más seguro' según el tamaño del mapa", /filas 3 a 6, columnas
 t("traductor web/game: click_changes en una pieza de otro juego ('jardinero', 'la maceta') también se saca", !postprocessChecks([{ type: "click_changes", params: { click: ["jardinero"] } }, { type: "click_changes", params: { click: ["la maceta"] } }], "R1", "x").some((x) => x.type === "click_changes") && postprocessChecks([{ type: "click_changes", params: { click: ["botón siguiente nivel"] } }], "R2", "x")[0]?.type === "click_changes");
 t("traductor web/game: click_changes en 'avatar' no es un botón → se saca; en 'siguiente' queda", !postprocessChecks([{ type: "click_changes", params: { click: ["avatar"] } }, { type: "board_changes", params: {} }], "R1", "x").some((x) => x.type === "click_changes") && postprocessChecks([{ type: "click_changes", params: { click: ["siguiente"] } }], "R2", "x")[0].type === "click_changes");
 
+// "pruebas primero" (11/10, experimento): ejemplos como datos
+{
+  const X = (await import("./examples.mjs"));
+  const pe = X.parseExamples({ ejemplos: [
+    { nombre: "empujar", nivel: ["#####", "#@$.#", "#####"], flechas: ["derecha"], espera: { jugador: [1, 2], cajas: [[1, 3]], movimientos: 1, ganado: true } },
+    { nombre: "mal", nivel: ["#####", "#@$.#", "#####"], flechas: ["izquierda"], espera: { movimientos: 1 } },
+    { nombre: "sin espera", nivel: ["###", "#@#", "###"], flechas: [], espera: {} },
+    { nombre: "largos", nivel: ["####", "#@$.#", "####"], espera: { movimientos: 0 } },
+    { nombre: "flecha rara", nivel: ["#####", "#@$.#", "#####"], flechas: ["saltar"], espera: { movimientos: 0 } },
+  ] });
+  t("ejemplos: forma inválida se descarta con el porqué (sin espera, largos, flecha rara)", pe.items.length === 2 && pe.dropped.length === 3 && /no dice nada/.test(pe.dropped[0]) && /largos distintos/.test(pe.dropped[1]) && /flechas/.test(pe.dropped[2]), JSON.stringify(pe.dropped));
+  const RG = loadScripts([ref("js/reglas.js")], ["Reglas"]).Reglas, SK = loadScripts([X.SKELETON], ["Reglas"]).Reglas;
+  t("ejemplos: el correcto pasa en la referencia; el de expectativa equivocada falla con lo que esperaba y lo que dio", X.runExample(RG, pe.items[0]) === true && /esperaba movimientos 1 y dio 0/.test(X.runExample(RG, pe.items[1])));
+  t("ejemplos: el esqueleto que no hace nada falla los dos (rojo)", pe.items.every((x) => X.runExample(SK, x) !== true));
+  t("ejemplos: el Standard los declara (examples.step = reglas)", S.examples?.step === "reglas" && typeof S.examples.run === "function");
+}
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

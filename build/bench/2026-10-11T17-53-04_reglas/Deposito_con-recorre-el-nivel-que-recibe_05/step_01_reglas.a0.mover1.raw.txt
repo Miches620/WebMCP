@@ -1,0 +1,74 @@
+```javascript
+mover: function(estado, direccion) {
+        // Clonar el estado para asegurar inmutabilidad. Usamos deep copy.
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+        nuevoEstado.movimientos = estado.movimientos;
+
+        const filas = estado.mapa.length;
+        if (filas === 0) return estado;
+        const columnas = estado.mapa[0].length;
+
+        const jugadorPosActual = estado.jugador;
+        // Calcular la posición potencial del jugador
+        const nuevaJugadorPos = this._getNewPos(jugadorPosActual, direccion);
+
+        // 1. Verificar si el movimiento del jugador es posible (pared/límite)
+        if (this._isInvalidPos(nuevaJugadorPos, filas, columnas)) {
+            return nuevoEstado; // No se mueve nada, devolvemos la copia inicial
+        }
+
+        let cajaEnfrentada = null;
+        let indiceCajaEnfrentada = -1;
+
+        // 2. Verificar si el jugador está intentando empujar una caja en su destino
+        for (let i = 0; i < estado.cajas.length; i++) {
+            const cajaPos = estado.cajas[i];
+            if (cajaPos.fila === nuevaJugadorPos.fila && cajaPos.col === nuevaJugadorPos.col) {
+                cajaEnfrentada = cajaPos;
+                indiceCajaEnfrentada = i;
+                break;
+            }
+        }
+
+        // Caso A: El jugador se mueve a un espacio vacío (no hay cajas delante)
+        if (!cajaEnfrentada) {
+            // Movimiento exitoso a un espacio libre.
+            nuevoEstado.jugador = nuevaJugadorPos;
+            nuevoEstado.movimientos += 1;
+            return nuevoEstado;
+        }
+
+        // Caso B: El jugador intenta empujar una caja (cajaEnfrentada existe)
+        const nuevaCajaPos = this._getNewPos(cajaEnfrentada, direccion);
+
+        // 2.1 Verificar si el destino de la caja es válido (pared/límite)
+        if (this._isInvalidPos(nuevaCajaPos, filas, columnas)) {
+            return nuevoEstado; // La caja no puede moverse contra una pared o límite
+        }
+
+        // 2.2 Verificar si el destino de la caja está ocupado por otra caja
+        let colisionConOtraCaja = false;
+        for (let i = 0; i < estado.cajas.length; i++) {
+            if (i !== indiceCajaEnfrentada) { // No comparamos con sí misma
+                const cajaPos = estado.cajas[i];
+                if (cajaPos.fila === nuevaCajaPos.fila && cajaPos.col === nuevaCajaPos.col) {
+                    colisionConOtraCaja = true;
+                    break;
+                }
+            }
+        }
+
+        if (colisionConOtraCaja) {
+            return nuevoEstado; // La caja no puede moverse contra otra caja
+        }
+
+        // 3. Movimiento exitoso de empuje
+        nuevoEstado.jugador = nuevaJugadorPos;
+        nuevoEstado.movimientos += 1;
+
+        // Actualizar la posición de la caja empujada en el nuevo estado clonado
+        nuevoEstado.cajas[indiceCajaEnfrentada] = nuevaCajaPos;
+
+        return nuevoEstado;
+    }
+```

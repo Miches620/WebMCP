@@ -1,0 +1,118 @@
+```javascript
+mover: function(estado, direccion) {
+    const jugador = estado.jugador;
+    let nuevaFila = jugador.fila;
+    let nuevaCol = jugador.col;
+
+    // 1. Calcular la posición objetivo del jugador
+    switch (direccion) {
+        case "arriba":
+            nuevaFila -= 1;
+            break;
+        case "abajo":
+            nuevaFila += 1;
+            break;
+        case "izquierda":
+            nuevaCol -= 1;
+            break;
+        case "derecha":
+            nuevaCol += 1;
+            break;
+    }
+
+    // Función auxiliar para verificar si una coordenada está dentro del mapa y no es pared.
+    const isValidCoord = (r, c) => {
+        const height = estado.mapa.length;
+        if (height === 0) return false;
+        const width = estado.mapa[0].length;
+
+        if (r < 0 || r >= height || c < 0 || c >= width) return false; // Fuera de límites
+        return estado.mapa[r][c] !== '#'; // No es pared
+    };
+
+    // --- Verificación de colisión y movimiento ---
+
+    // A. Si el destino del jugador está fuera de límites o es una pared, no se mueve nada.
+    if (!isValidCoord(nuevaFila, nuevaCol)) {
+        return estado; 
+    }
+
+    let estadoNuevo = { 
+        mapa: [...estado.mapa], 
+        jugador: { ...jugador }, 
+        cajas: JSON.parse(JSON.stringify(estado.cajas)), // Deep copy de cajas
+        objetivos: [...estado.objetivos], 
+        movimientos: estado.movimientos
+    };
+
+    // B. Verificar si el destino del jugador está ocupado por una caja (Push attempt)
+    let boxToPushIndex = -1;
+    for (let i = 0; i < state.cajas.length; i++) {
+        const box = state.cajas[i];
+        if (box.fila === nuevaFila && box.col === nuevaCol) {
+            boxToPushIndex = i;
+            break;
+        }
+    }
+
+    // Caso 1: Intento de empuje (Box collision)
+    if (boxToPushIndex !== -1) {
+        const cajaOriginal = state.cajas[boxToPushIndex];
+        let destinoEmpujadoFila = cajaOriginal.fila;
+        let destinoEmpujadoCol = cajaOriginal.col;
+
+        // Calcular la posición final del empuje (un paso más allá de la caja)
+        switch (direccion) {
+            case "arriba":
+                destinoEmpujadoFila -= 1;
+                break;
+            case "abajo":
+                destinoEmpujadoFila += 1;
+                break;
+            case "izquierda":
+                destinoEmpujadoCol -= 1;
+                break;
+            case "derecha":
+                destinoEmpujadoCol += 1;
+                break;
+        }
+
+        // Verificar si el destino del empuje es válido (no pared, no fuera de límites)
+        if (!isValidCoord(destinoEmpujadoFila, destinoEmpujadoCol)) {
+            return estado; // Empuje fallido: la caja está contra una pared o límite.
+        }
+
+        // Verificar si el destino del empuje está ocupado por otra cosa (otra caja u obstáculo)
+        let collisionWithOtherBox = false;
+        for (let i = 0; i < state.cajas.length; i++) {
+            if (i !== boxToPushIndex && state.cajas[i].fila === destinoEmpujadoFila && state.cajas[i].col === destinoEmpujadoCol) {
+                collisionWithOtherBox = true;
+                break;
+            }
+        }
+
+        // Si el empuje es exitoso:
+        if (!collisionWithOtherBox) {
+            // 1. Actualizar la posición de la caja en el nuevo estado
+            estadoNuevo.cajas[boxToPushIndex] = { fila: destinoEmpujadoFila, col: destinoEmpujadoCol };
+
+            // 2. Mover al jugador a donde estaba la caja
+            estadoNuevo.jugador = { fila: nuevaFila, col: nuevaCol };
+
+            // 3. Incrementar movimientos
+            estadoNuevo.movimientos = estado.movimientos + 1;
+            return estadoNuevo;
+        } else {
+            return estado; // Empuje fallido: otra caja bloquea el camino.
+        }
+
+    } 
+    // Caso 2: Movimiento simple (No hay cajas en la posición objetivo)
+    else {
+        // Si es un movimiento válido y no empuja nada, se mueve el jugador.
+        estadoNuevo.jugador = { fila: nuevaFila, col: nuevaCol };
+        estadoNuevo.movimientos = estado.movimientos + 1;
+        return estadoNuevo;
+    }
+}
+```

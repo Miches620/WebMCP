@@ -1,0 +1,46 @@
+```javascript
+crearEstado: function(nivel) {
+    let jugadorPos = null;
+    let cajasIniciales = [];
+    let objetivosIniciales = [];
+    
+    const R = nivel.length;
+    if (R === 0) return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+
+    const C = nivel[0].length;
+    let nuevoMapa = [];
+
+    for (let r = 0; r < R; r++) {
+        let filaChars = [];
+        for (let c = 0; c < C; c++) {
+            const char = nivel[r][c];
+            let mapaChar = char;
+
+            if (char === '@') {
+                jugadorPos = { fila: r, col: c };
+                mapaChar = ' '; // El jugador no se dibuja en el mapa base
+            } else if (char === '$') {
+                cajasIniciales.push({ fila: r, col: c });
+                mapaChar = ' '; // La caja no se dibuja en el mapa base
+            } else if (char === '.') {
+                objetivosIniciales.push({ fila: r, col: c });
+                // '.' permanece como '.', ya que es un carácter permitido
+            } 
+            // Si char es '#' o ' ', mapaChar mantiene su valor original
+
+            filaChars.push(mapaChar);
+        }
+        nuevoMapa.push(filaChars.join(''));
+    }
+
+    const estado = {
+        mapa: nuevoMapa,
+        jugador: jugadorPos,
+        cajas: cajasIniciales,
+        objetivos: objetivosIniciales,
+        movimientos: 0
+    };
+
+    return estado;
+},
+```

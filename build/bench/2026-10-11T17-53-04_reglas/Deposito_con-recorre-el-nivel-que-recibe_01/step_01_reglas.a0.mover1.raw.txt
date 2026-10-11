@@ -1,0 +1,108 @@
+```javascript
+mover: function(estado, direccion) {
+        const jugador = estado.jugador;
+        let nuevaFilaJugador = jugador.fila;
+        let nuevaColJugador = jugador.col;
+
+        // 1. Calcular la posición objetivo del jugador
+        switch (direccion) {
+            case "arriba":
+                nuevaFilaJugador -= 1;
+                break;
+            case "abajo":
+                nuevaFilaJugador += 1;
+                break;
+            case "izquierda":
+                nuevaColJugador -= 1;
+                break;
+            case "derecha":
+                nuevaColJugador += 1;
+                break;
+        }
+
+        // Verificar si el movimiento del jugador es posible (pared o fuera de límites)
+        const filas = estado.mapa.length;
+        const columnas = state.mapa[0].length;
+
+        if (nuevaFilaJugador < 0 || nuevaFilaJugador >= filas ||
+            nuevaColJugador < 0 || nuevaColJugador >= columnas ||
+            estado.mapa[nuevaFilaJugador][nuevaColJugador] === '#') {
+            // Colisión con pared o límite, no hay movimiento.
+            return JSON.parse(JSON.stringify(estado));
+        }
+
+        let nuevoEstado = JSON.parse(JSON.stringify(estado)); // Copia profunda del estado actual
+
+        // 2. Verificar si hay cajas en la posición objetivo
+        const cajaEnFrente = estado.cajas.some(caja =>
+            caja.fila === nuevaFilaJugador && caja.col === nuevaColJugador
+        );
+
+        if (!cajaEnFrente) {
+            // Caso 1: Movimiento libre (no hay cajas en el camino).
+            nuevoEstado.jugador = { fila: nuevaFilaJugador, col: nuevaColJugador };
+            nuevoEstado.movimientos = estado.movimientos + 1; // Incrementamos movimientos
+            return nuevoEstado;
+        } else {
+            // Caso 2: Hay al menos una caja delante. Intentar empujar.
+
+            const direccionCoords = {
+                "arriba": -1, "abajo": 1, "izquierda": 0, "derecha": 0
+            };
+            let dr, dc;
+            switch (direccion) {
+                case "arriba": [dr, dc] = [-1, 0]; break;
+                case "abajo": [dr, dc] = [1, 0]; break;
+                case "izquierda": [dr, dc] = [0, -1]; break;
+                case "derecha": [dr, dc] = [0, 1]; break;
+            }
+
+            // Identificar la caja que está en el camino (la primera encontrada)
+            let cajaAEmpujarIndex = estado.cajas.findIndex(c =>
+                c.fila === nuevaFilaJugador && c.col === nuevaColJugador
+            );
+            const cajaAEmpujar = estado.cajas[cajaAEmpujarIndex];
+
+            // Calcular la posición objetivo de la caja (un paso más allá)
+            let nuevaFilaCaja = cajaAEmpujar.fila + dr;
+            let nuevaColCaja = cajaAEmpujar.col + dc;
+
+            // Verificar si el espacio detrás de la caja es válido para empujarla
+            const filasMapa = estado.mapa.length;
+            const columnasMapa = state.mapa[0].length;
+
+            if (nuevaFilaCaja < 0 || nuevaFilaCaja >= filasMapa ||
+                nuevaColCaja < 0 || nuevaColCaja >= columnasMapa ||
+                estado.mapa[nuevaFilaCaja][nuevaColCaja] === '#') {
+                // La caja choca contra una pared o límite, no se mueve nada.
+                return JSON.parse(JSON.stringify(estado));
+            }
+
+            // Verificar si el espacio detrás de la caja está ocupado por otra caja
+            const hayOtraCajaDetras = estado.cajas.some((caja, index) => {
+                if (index === cajaAEmpujarIndex) return false; // No es ella misma
+                return caja.fila === nuevaFilaCaja && caja.col === nuevaColCaja;
+            });
+
+            if (hayOtraCajaDetras) {
+                // La caja choca contra otra caja, no se mueve nada.
+                return JSON.parse(JSON.stringify(estado));
+            }
+
+            // ¡Movimiento exitoso! Actualizar el estado.
+
+            // 1. Mover al jugador a la posición de la caja
+            nuevoEstado.jugador = { fila: nuevaFilaJugador, col: nuevaColJugador };
+
+            // 2. Mover la caja
+            const nuevasCajas = [...estado.cajas];
+            nuevasCajas[cajaAEmpujarIndex] = { fila: nuevaFilaCaja, col: nuevaColCaja };
+            nuevoEstado.cajas = nuevasCajas;
+
+            // 3. Incrementar movimientos
+            nuevoEstado.movimientos = estado.movimientos + 1;
+
+            return nuevoEstado;
+        }
+    }
+```

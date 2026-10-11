@@ -1,0 +1,50 @@
+```javascript
+crearEstado: function(nivel) {
+        const filas = nivel.length;
+        if (filas === 0) return null;
+        const columnas = nivel[0].length;
+
+        let mapa = [];
+        let jugador = { fila: -1, col: -1 };
+        let cajas = [];
+        let objetivos = [];
+
+        for (let i = 0; i < filas; i++) {
+            let rowString = '';
+            for (let j = 0; j < columnas; j++) {
+                const char = nivel[i][j];
+                if (char === '#') {
+                    rowString += '#';
+                } else if (char === '.') {
+                    rowString += '.';
+                    objetivos.push({ fila: i, col: j });
+                } else if (char === ' ') {
+                    rowString += ' ';
+                } else {
+                    // Ignoramos @ y $ para el mapa base, reemplazándolos por espacio
+                    rowString += ' '; 
+                }
+            }
+            mapa.push(rowString);
+        }
+
+        for (let i = 0; i < filas; i++) {
+            for (let j = 0; j < columnas; j++) {
+                const char = nivel[i][j];
+                if (char === '@') {
+                    jugador = { fila: i, col: j };
+                } else if (char === '$') {
+                    cajas.push({ fila: i, col: j });
+                }
+            }
+        }
+
+        return {
+            mapa: mapa,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+```

@@ -1,0 +1,117 @@
+```javascript
+mover: function(estado, direccion) {
+        // Crear una copia profunda de los datos del estado para asegurar la inmutabilidad en caso de fallo o éxito.
+        const nuevoEstadoBase = {
+            mapa: [...estado.mapa],
+            jugador: { ...estado.jugador },
+            cajas: estado.cajas.map(c => ({...c})),
+            objetivos: state.objetivos.map(o => ({...o})),
+            movimientos: estado.movimientos
+        };
+
+        const jugador = nuevoEstadoBase.jugador;
+        let nuevaPosJugador = { ...jugador };
+
+        // 1. Calcular la posición objetivo del jugador (P_new)
+        switch (direccion) {
+            case "arriba":
+                nuevaPosJugador.fila -= 1;
+                break;
+            case "abajo":
+                nuevaPosJugador.fila += 1;
+                break;
+            case "izquierda":
+                nuevaPosJugador.col -= 1;
+                break;
+            case "derecha":
+                nuevaPosJugador.col += 1;
+                break;
+        }
+
+        const filas = estado.mapa.length;
+        const columnas = state.mapa[0].length;
+
+        // Validación de límites y paredes para P_new
+        if (nuevaPosJugador.fila < 0 || nuevaPosJugador.fila >= filas ||
+            nuevaPosJugador.col < 0 || nuevaPosJugador.col >= columnas) {
+            return nuevoEstadoBase; // Fuera de límites
+        }
+
+        // Verificar si P_new es una pared
+        if (estado.mapa[nuevaPosJugador.fila][nuevaPosJugador.col] === '#') {
+            return nuevoEstadoBase; // Colisión con pared
+        }
+
+        // 2. Comprobar colisiones en P_new
+        const cajaEnPNew = estado.cajas.some(c => c.fila === nuevaPosJugador.fila && c.col === nuevaPosJugador.col);
+
+        if (!cajaEnPNew) {
+            // Caso 1: Movimiento simple (a un espacio vacío o objetivo)
+            const nuevoEstado = {
+                ...nuevoEstadoBase,
+                jugador: nuevaPosJugador,
+                movimientos: estado.movimientos + 1
+            };
+            return nuevoEstado;
+
+        } else {
+            // Caso 2: Intento de empujar una caja (B)
+            const cajaAEmpujar = estado.cajas.find(c => c.fila === nuevaPosJugador.fila && c.col === nuevaPosJugador.col);
+            let posCajaOriginal = { ...cajaAEmpujar };
+
+            // Calcular la posición objetivo de la caja (B_target)
+            let posObjetivoCaja = { ...posCajaOriginal };
+            switch (direccion) {
+                case "arriba":
+                    posObjetivoCaja.fila -= 1;
+                    break;
+                case "abajo":
+                    posObjetivoCaja.fila += 1;
+                    break;
+                case "izquierda":
+                    posObjetivoCaja.col -= 1;
+                    break;
+                case "derecha":
+                    posObjetivoCaja.col += 1;
+                    break;
+            }
+
+            // Validación de B_target: Límites, Paredes o Colisión con otra caja
+            if (posObjetivoCaja.fila < 0 || posObjetivoCaja.fila >= filas ||
+                posObjetivoCaja.col < 0 || posObjetivoCaja.col >= columnas) {
+                return nuevoEstadoBase; // B_target fuera de límites
+            }
+
+            if (estado.mapa[posObjetivoCaja.fila][posObjetivoCaja.col] === '#') {
+                return nuevoEstadoBase; // B_target contra pared
+            }
+
+            // Verificar si hay otra caja en B_target
+            const colisionOtraCaja = estado.cajas.some(c => 
+                c !== cajaAEmpujar && c.fila === posObjetivoCaja.fila && c.col === posObjetivoCaja.col
+            );
+
+            if (colisionOtraCaja) {
+                return nuevoEstadoBase; // B_target contra otra caja
+            }
+
+            // Movimiento exitoso de empuje:
+            const cajasActualizadas = estado.cajas.map(c => {
+                // Usamos la referencia para identificar la caja que se mueve
+                if (c === cajaAEmpujar) {
+                    return posObjetivoCaja; // Mover la caja empujada
+                }
+                return c; // Dejar el resto de cajas quietas
+            });
+
+            const nuevoEstado = {
+                ...nuevoEstadoBase,
+                jugador: nuevaPosJugador,
+                cajas: cajasActualizadas,
+                movimientos: estado.movimientos + 1
+            };
+
+            return nuevoEstado;
+        }
+    }
+```

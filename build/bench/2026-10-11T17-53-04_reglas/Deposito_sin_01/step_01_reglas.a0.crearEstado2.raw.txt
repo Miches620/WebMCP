@@ -1,0 +1,42 @@
+```javascript
+crearEstado: function(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+    let mapaInicial = [];
+
+    for (let r = 0; r < nivel.length; r++) {
+        const rowString = nivel[r];
+        if (typeof rowString !== 'string') continue; // Maneja filas no válidas o indefinidas
+
+        let nuevaFila = [];
+        for (let c = 0; c < rowString.length; c++) {
+            const char = rowString[c];
+
+            if (char === '@') {
+                jugador = { fila: r, col: c };
+                nuevaFila.push(' '); // El mapa solo muestra piso/paredes/objetivos
+            } else if (char === '$') {
+                cajas.push({ fila: r, col: c });
+                nuevaFila.push(' ');
+            } else if (char === '.') {
+                objetivos.push({ fila: r, col: c });
+                nuevaFila.push('.');
+            } else if (char === '#') {
+                nuevaFila.push('#');
+            } else { // ' ' o cualquier otro carácter de piso
+                nuevaFila.push(' ');
+            }
+        }
+        mapaInicial.push(nuevaFila.join(''));
+    }
+
+    return {
+        mapa: mapaInicial,
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivos,
+        movimientos: 0
+    };
+},
+```

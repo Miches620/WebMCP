@@ -1,0 +1,24 @@
+```javascript
+ganado: function(estado) {
+        // Si no hay objetivos, la condición se cumple vacuamente.
+        if (estado.objetivos.length === 0) return true;
+
+        // 1. Crear un set de coordenadas objetivo que deben ser cubiertos
+        const objetivosSet = new Set();
+        estado.objetivos.forEach(obj => objetivosSet.add(`${obj.fila},${obj.col}`));
+
+        // 2. Crear un set de coordenadas donde hay cajas (la cobertura)
+        const cajasSet = new Set();
+        estado.cajas.forEach(box => cajasSet.add(`${box.fila},${box.col}`));
+
+        // 3. Verificar si cada objetivo tiene al menos una caja encima
+        for (const objCoord of objetivosSet) {
+            if (!cajasSet.has(objCoord)) {
+                return false; // Encontramos un objetivo sin cobertura de caja
+            }
+        }
+
+        // Si todos los objetivos fueron revisados y están cubiertos, se gana.
+        return true;
+    }
+```

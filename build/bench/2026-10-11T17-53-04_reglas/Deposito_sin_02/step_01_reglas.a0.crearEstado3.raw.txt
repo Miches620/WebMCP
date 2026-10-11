@@ -1,0 +1,54 @@
+```javascript
+crearEstado: function(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+        let nuevoMapa = [];
+
+        const H = nivel.length;
+        if (H === 0) return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+
+        // Asumimos que todas las filas tienen la misma longitud si el nivel es válido.
+        const W = nivel[0].length; 
+
+        // Iteramos sobre las filas y columnas para recolectar coordenadas y construir el mapa limpio.
+        for (let r = 0; r < H; r++) {
+            let tempRowArray = []; // Array temporal de caracteres para la fila actual
+            const currentRow = nivel[r];
+
+            if (!currentRow) continue; // Seguridad adicional si alguna fila está ausente
+
+            for (let c = 0; c < W; c++) {
+                const char = currentRow[c];
+                
+                // Determinar el carácter que va en el mapa limpio.
+                // @ y $ se reemplazan por ' ', ya que no deben aparecer en estado.mapa.
+                let mapChar = char;
+                if (char === '@' || char === '$') {
+                    mapChar = ' '; 
+                }
+
+                tempRowArray.push(mapChar);
+
+                // Recolectar coordenadas basadas en el carácter ORIGINAL del nivel.
+                if (char === '@') {
+                    jugador = { fila: r, col: c };
+                } else if (char === '$') {
+                    cajas.push({ fila: r, col: c });
+                } else if (char === '.') {
+                    objetivos.push({ fila: r, col: c });
+                }
+            }
+            // Almacenar la fila como una cadena de caracteres en nuevoMapa.
+            nuevoMapa.push(tempRowArray.join('')); 
+        }
+
+        return {
+            mapa: nuevoMapa, // Mapa de caracteres (solo #, ' ', .)
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+```

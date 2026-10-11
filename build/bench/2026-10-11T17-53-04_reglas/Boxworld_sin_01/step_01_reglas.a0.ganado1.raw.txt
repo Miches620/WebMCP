@@ -1,0 +1,26 @@
+```javascript
+ganado: function(estado) {
+        if (estado.objetivos.length === 0) return true;
+
+        let objetivosCubiertosCount = 0;
+        const totalObjectives = estado.objetivos.length;
+
+        // Iteramos sobre cada objetivo para verificar si está cubierto por una caja.
+        for (const objetivo of estado.objetivos) {
+            const targetFila = objetivo.fila;
+            const targetCol = objetivo.col;
+
+            // Verificamos si existe al menos una caja en las coordenadas del objetivo.
+            const isCovered = estado.cajas.some(caja => 
+                caja.fila === targetFila && caja.col === targetCol
+            );
+
+            if (isCovered) {
+                objetivosCubiertosCount++;
+            }
+        }
+
+        // Ganamos si el número de objetivos cubiertos es igual al total de objetivos.
+        return objetivosCubiertosCount === totalObjectives;
+    }
+```

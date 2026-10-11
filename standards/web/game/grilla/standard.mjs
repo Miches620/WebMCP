@@ -31,6 +31,7 @@
 
 import { RULE_TESTS, LEVEL_TESTS } from "./acceptance.mjs";
 import { levelsFromSpecs, nivelesJs } from "./levels.mjs";
+import { examplesPrompt, parseExamples, runExample, SKELETON } from "./examples.mjs";
 
 export const IDS = ["tablero", "nivel", "movimientos", "mensaje", "btn-reiniciar", "btn-siguiente"];
 export const SCRIPTS = ["js/niveles.js", "js/reglas.js", "js/dibujo.js", "js/controles.js"];
@@ -115,6 +116,9 @@ const STANDARD = {
     "Niveles demasiado fáciles (b9: 2 a 8 empujes): dificultad creciente medible con el solver.",
     "La pista 'en estado.mapa no hay cajas' es una skill, no contrato.",
   ],
+  // "pruebas primero" (11/10, EXPERIMENTO, docs/DISENO_pruebas_primero.md): ejemplos que escribe Gemma
+  // como datos, para la lógica. Lo usa build/examples_bench.mjs; todavía no es un paso del build.
+  examples: { step: "reglas", answer: "ejemplos.json", prompt: examplesPrompt, parse: parseExamples, run: runExample, skeleton: SKELETON },
   mainId: "juego",
   defaultTitle: "Juego",
   ids: IDS,

@@ -1,0 +1,35 @@
+```javascript
+crearEstado: function(nivel) {
+        const filas = nivel.length;
+        if (filas === 0) return null;
+
+        let jugadorPos = null;
+        let cajasIniciales = [];
+        let objetivos = []; // Renamed variable to 'objetivos'
+
+        // Recorrer el mapa para encontrar posiciones iniciales
+        for (let r = 0; r < filas; r++) {
+            for (let c = 0; c < nivel[r].length; c++) {
+                const char = nivel[r][c];
+                if (char === '@') {
+                    jugadorPos = { fila: r, col: c };
+                } else if (char === '$') {
+                    cajasIniciales.push({ fila: r, col: c });
+                } else if (char === '.') {
+                    objetivos.push({ fila: r, col: c }); // Use 'objetivos'
+                }
+            }
+        }
+
+        // El mapa en el estado solo debe contener '#', ' ', '.'
+        const mapaLimpiado = nivel.map(fila => fila.replace(/[@$]/g, ' '));
+
+        return {
+            mapa: mapaLimpiado,
+            jugador: jugadorPos,
+            cajas: cajasIniciales,
+            objetivos: objetivos, // Use the correct variable name here
+            movimientos: 0
+        };
+    },
+```

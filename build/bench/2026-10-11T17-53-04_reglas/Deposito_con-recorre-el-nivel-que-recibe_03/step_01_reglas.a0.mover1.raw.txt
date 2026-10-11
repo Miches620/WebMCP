@@ -1,0 +1,78 @@
+```javascript
+mover: function(estado, direccion) {
+    const filas = estado.mapa.length;
+    if (filas === 0) return { ...estado }; // No se puede mover
+
+    const columnas = estado.mapa[0].length;
+
+    // Función auxiliar para obtener coordenadas objetivo
+    const getTargetCoords = (r, c, dir) => {
+        switch (dir) {
+            case "arriba": return { r: r - 1, c: c };
+            case "abajo": return { r: r + 1, c: c };
+            case "izquierda": return { r: r, c: c - 1 };
+            case "derecha": return { r: r, c: c + 1 };
+        }
+    };
+
+    // 1. Calcular la posición objetivo del jugador (sin considerar cajas)
+    let newPlayer = getTargetCoords(estado.jugador.fila, estado.jugador.col, direccion);
+
+    // Verificar límites y paredes en el destino del jugador
+    if (newPlayer.r < 0 || newPlayer.r >= filas || newPlayer.c < 0 || newPlayer.c >= columnas) {
+        return { ...estado }; // Fuera de límites
+    }
+    if (estado.mapa[newPlayer.r][newPlayer.c] === '#') {
+        return { ...estado }; // Colisión con pared
+    }
+
+    // 2. Verificar si hay cajas en el destino del jugador
+    const cajaEnDestino = estado.cajas.find(c => c.fila === newPlayer.r && c.col === newPlayer.c);
+
+    if (!cajaEnDestino) {
+        // Caso A: Movimiento libre (no hay caja delante)
+        return {
+            mapa: estado.mapa,
+            jugador: newPlayer,
+            cajas: [...estado.cajas], // Copia de las cajas sin cambios
+            objetivos: [...estado.objetivos],
+            movimientos: estado.movimientos + 1
+        };
+    } else {
+        // Caso B: Hay una caja delante. Intentar empujar.
+        const boxTarget = getTargetCoords(cajaEnDestino.fila, cajaEnDestino.col, direccion);
+
+        // Verificar si el espacio detrás de la caja es válido para moverse
+        if (boxTarget.r < 0 || boxTarget.r >= filas || boxTarget.c < 0 || boxTarget.c >= columnas) {
+            return { ...estado }; // La caja está pegada al borde del mapa
+        }
+
+        // Verificar si el espacio detrás de la caja es una pared o está ocupado por otra caja
+        if (estado.mapa[boxTarget.r][boxTarget.c] === '#') {
+            return { ...estado }; // Colisión con pared detrás de la caja
+        }
+
+        const hayOtraCajaDetras = estado.cajas.some(c => 
+            c !== cajaEnDestino && c.fila === boxTarget.r && c.col === boxTarget.c
+        );
+
+        if (hayOtraCajaDetras) {
+            return { ...estado }; // Colisión con otra caja detrás de la caja objetivo
+        }
+
+        // Movimiento exitoso: Empuje
+        const newBoxes = estado.cajas.map(c => 
+            c === cajaEnDestino ? boxTarget : c
+        );
+
+        // Crear el nuevo estado
+        return {
+            mapa: estado.mapa,
+            jugador: newPlayer, // El jugador ocupa la posición original de la caja
+            cajas: newBoxes,    // La caja se mueve a boxTarget
+            objetivos: [...estado.objetivos],
+            movimientos: estado.movimientos + 1
+        };
+    }
+}
+```

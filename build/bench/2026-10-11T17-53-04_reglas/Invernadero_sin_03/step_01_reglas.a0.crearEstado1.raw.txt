@@ -1,0 +1,59 @@
+```javascript
+crearEstado(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+
+        const R = nivel.length;
+        if (R === 0) {
+            return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+        }
+        // Asumimos que todas las filas tienen la misma longitud
+        const C = nivel[0].length;
+
+        // 1. Identificar posiciones clave y construir el mapa base (sin $, @)
+        for (let r = 0; r < R; r++) {
+            const row = nivel[r];
+            if (!row) continue; // Seguridad si alguna fila es nula/indefinida
+
+            for (let c = 0; c < C; c++) {
+                const char = row[c];
+                if (char === '@') {
+                    jugador = { fila: r, col: c };
+                } else if (char === '$') {
+                    cajas.push({ fila: r, col: c });
+                } else if (char === '.') {
+                    objetivos.push({ fila: r, col: c });
+                }
+            }
+        }
+
+        // 2. Crear el mapa de estado (solo #, ' ', '.')
+        const mapaEstado = [];
+        for (let r = 0; r < R; r++) {
+            mapaEstado[r] = [];
+            const row = nivel[r];
+            if (!row) continue;
+
+            for (let c = 0; c < C; c++) {
+                const char = row[c];
+                if (char === '#') {
+                    mapaEstado[r][c] = '#'; // Pared
+                } else if (char === '.') {
+                    mapaEstado[r][c] = '.'; // Objetivo
+                } else {
+                    // Esto cubre ' ', '$', y '@' que se convierten en piso vacío.
+                    mapaEstado[r][c] = ' '; 
+                }
+            }
+        }
+
+        return {
+            mapa: mapaEstado,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    }
+```

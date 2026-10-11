@@ -2,6 +2,15 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**"Pruebas primero", experimento 1: ¿sirven los ejemplos de Gemma como compuerta? (11/10)**
+- *Diseño:* `docs/DISENO_pruebas_primero.md`. TDD como orden de pasos. Gemma escribe EJEMPLOS como datos (nivel chico + flechas + lo que espera) y el harness los convierte en pruebas. No escribe código de prueba.
+- *Standard:* `standards/web/game/grilla/examples.mjs` declara el formato, el pedido, el validador (descarta con el porqué: sin `espera`, filas de largos distintos, flechas que no existen), el corredor y el esqueleto que no hace nada (rojo). Queda en `S.examples`. **Todavía no es un paso del build.**
+- *Medidor:* `build/examples_bench.mjs --k 5 --bank <carpetas> <run_dir> …`. Es general: lee `S.examples`. Por muestra mide:
+  1. **¿Correctos?** Se corren contra la lógica de referencia (`fixtures/game_files_ok/js/reglas.js`, que pasa todas las pruebas del harness).
+  2. **¿Atrapan errores?** Se corren contra un banco de versiones de `reglas.js` (las de los bancos por paso y de los builds), con el veredicto del harness recalculado con el Standard actual. Da 4 casilleros: rota y la atrapa / **rota y se le escapa** / **buena y la rechaza** / buena y la deja pasar. Se calcula con todos los ejemplos válidos (como se usaría de verdad) y solo con los correctos (el techo).
+- *Límite conocido:* con este formato el rojo casi nunca descarta nada (el esqueleto devuelve `{}`, así que cualquier `espera` falla). Lo que de verdad mide si un ejemplo es flojo es el banco.
+- Probado con un LM falso (ejemplos buenos, uno con la expectativa mal y dos con mala forma) y un banco de 3 versiones (buena, `state` sin declarar, tamaño fijo). Tests: grilla 99.
+
 **Banco, 3ª corrida (11/10): las primeras respuestas buenas; se descarta nombres-del-contrato**
 - *Corrida:* reglas, grilla v0.1.7 (sin `+`/`*`), k=5, 3 juegos, solo la 1ª respuesta. Condiciones: `sin`, `con:recorre-el-nivel-que-recibe` y `con:recorre…+nombres-del-contrato`.
 

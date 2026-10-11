@@ -1,0 +1,117 @@
+```javascript
+mover: function(estado, direccion) {
+    // Crear una copia profunda del estado para asegurar inmutabilidad si el movimiento falla o tiene éxito.
+    const newState = JSON.parse(JSON.stringify(estado));
+    let { jugador, cajas } = estado;
+
+    // Determinar dimensiones del mapa (asumiendo que el mapa es rectangular)
+    const numRows = estado.mapa.length;
+    if (numRows === 0) return state; // Manejo de caso borde si el mapa está vacío
+    const numCols = estado.mapa[0].length;
+
+    // 1. Calcular la posición objetivo del jugador (sin considerar obstáculos aún)
+    let nextPr = jugador.row;
+    let nextPc = jugador.col;
+
+    switch (direccion) {
+        case "arriba":
+            nextPr -= 1;
+            break;
+        case "abajo":
+            nextPr += 1;
+            break;
+        case "izquierda":
+            nextPc -= 1;
+            break;
+        case "derecha":
+            nextPc += 1;
+            break;
+    }
+
+    // Verificar límites del mapa (Boundaries)
+    if (nextPr < 0 || nextPr >= numRows || nextPc < 0 || nextPc >= numCols) {
+        return estado; // No se mueve, devuelve el estado original
+    }
+
+    // 2. Verificar colisión con paredes
+    if (estado.mapa[nextPr][nextPc] === '#') {
+        return estado; // Colisión pared, devuelve el estado original
+    }
+
+    let cajaEnDestino = null;
+    let cajaIndex = -1;
+
+    // 3. Verificar colisión con cajas y encontrar la caja objetivo
+    for (let i = 0; i < cajas.length; i++) {
+        const c = cajas[i];
+        if (c.row === nextPr && c.col === nextPc) {
+            cajaEnDestino = c;
+            cajaIndex = i;
+            break;
+        }
+    }
+
+    // Caso A: Movimiento simple (solo jugador)
+    if (!cajaEnDestino) {
+        return {
+            ...estado,
+            jugador: { row: nextPr, col: nextPc },
+            movimientos: estado.movimientos + 1
+        };
+    } else {
+        // Caso B: Colisión con caja: Intentar empujar
+
+        // Calcular la posición objetivo para la caja (detrás de donde quiere ir el jugador)
+        let pushPr = nextPr;
+        let pushPc = nextPc;
+
+        switch (direccion) {
+            case "arriba":
+                pushPr -= 1;
+                break;
+            case "abajo":
+                pushPr += 1;
+                break;
+            case "izquierda":
+                pushPc -= 1;
+                break;
+            case "derecha":
+                pushPc += 1;
+                break;
+        }
+
+        // Verificar si el espacio detrás de la caja es válido (no pared, no fuera de límites)
+        if (pushPr < 0 || pushPr >= numRows || pushPc < 0 || pushPc >= numCols || estado.mapa[pushPr][pushPc] === '#') {
+            return estado; // Colisión pared detrás de caja o fuera de límites
+        }
+
+        // Verificar si el espacio detrás de la caja está ocupado por otra caja
+        let hayOtraCajaDetras = false;
+        for (const c of cajas) {
+            // Comparamos con todas las cajas, excepto la que estamos intentando mover (cajaDestino)
+            if (c !== cajaDestino && c.row === pushPr && c.col === pushPc) {
+                hayOtraCajaDetras = true;
+                break;
+            }
+        }
+
+        if (hayOtraCajaDetras) {
+            return estado; // Colisión otra caja detrás de caja
+        }
+
+        // Movimiento exitoso: Empujar la caja y al jugador
+        const nuevaCajas = [...cajas];
+        
+        // 1. Actualizar la posición de la caja empujada
+        nuevaCajas[cajaIndex] = { row: pushPr, col: pushPc };
+
+        // 2. Crear el nuevo estado
+        return {
+            ...estado,
+            jugador: { row: nextPr, col: nextPc }, // El jugador se mueve al lugar de la caja
+            cajas: nuevaCajas,
+            movimientos: estado.movimientos + 1
+        };
+    }
+}
+```

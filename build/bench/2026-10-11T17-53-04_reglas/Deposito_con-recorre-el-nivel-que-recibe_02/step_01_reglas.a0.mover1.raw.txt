@@ -1,0 +1,96 @@
+```javascript
+mover: function(estado, direccion) {
+        const { jugador, cajas } = estado;
+        let nuevaPosicionJugador = { ...jugador };
+        let nuevasCajas = [...cajas];
+        let nuevosMovimientos = estado.movimientos;
+
+        // 1. Calcular la posición objetivo del jugador (sin considerar empuje)
+        let dr, dc;
+        switch (direccion) {
+            case "arriba":
+                dr = -1; dc = 0; break;
+            case "abajo":
+                dr = 1; dc = 0; break;
+            case "izquierda":
+                dr = 0; dc = -1; break;
+            case "derecha":
+                dr = 0; dc = 1; break;
+        }
+
+        let posibleR = jugador.fila + dr;
+        let posibleC = jugador.col + dc;
+
+        // Verificar límites y paredes en la posición objetivo del jugador
+        const filas = estado.mapa.length;
+        const columnas = state.mapa[0].length;
+
+        if (posibleR < 0 || posibleR >= filas || posibleC < 0 || posibleC >= columnas) {
+            // Fuera de límites
+            return { ...estado, movimientos: estado.movimientos };
+        }
+        if (estado.mapa[posibleR][posibleC] === '#') {
+            // Colisión con pared
+            return { ...estado, movimientos: estado.movimientos };
+        }
+
+        // 2. Verificar si la posición objetivo está ocupada por una caja
+        const boxIndex = cajas.findIndex(box => box.fila === posibleR && box.col === posibleC);
+
+        if (boxIndex === -1) {
+            // Caso A: El espacio es libre (piso o objetivo). Solo el jugador se mueve.
+            nuevaPosicionJugador = { fila: posibleR, col: posibleC };
+            return { 
+                ...estado, 
+                jugador: nuevaPosicionJugador, 
+                movimientos: estado.movimientos + 1 
+            };
+        } else {
+            // Caso B: El espacio objetivo está ocupado por una caja (Empuje)
+
+            const box = cajas[boxIndex];
+            let posibleR_caja = posibleR + dr;
+            let posibleC_caja = posibleC + dc;
+
+            // Verificar si el destino del empuje es válido para la caja
+            if (posibleR_caja < 0 || posibleR_caja >= filas || posibleC_caja < 0 || posibleC_caja >= columnas) {
+                // La caja choca contra un límite. No se mueve nada.
+                return { ...estado, movimientos: estado.movimientos };
+            }
+
+            // Verificar si el destino del empuje es una pared o está ocupado por otra caja
+            if (estado.mapa[posibleR_caja][posibleC_caja] === '#') {
+                // La caja choca contra una pared. No se mueve nada.
+                return { ...estado, movimientos: estado.movimientos };
+            }
+
+            let collisionWithOtherBox = false;
+            for (const otherBox of cajas) {
+                if (otherBox !== box && otherBox.fila === posibleR_caja && otherBox.col === posibleC_caja) {
+                    collisionWithOtherBox = true;
+                    break;
+                }
+            }
+
+            if (collisionWithOtherBox) {
+                // La caja choca contra otra caja. No se mueve nada.
+                return { ...estado, movimientos: estado.movimientos };
+            }
+
+            // Empuje exitoso: 
+            // 1. El jugador va a la posición de la caja.
+            nuevaPosicionJugador = { fila: posibleR, col: posibleC };
+            
+            // 2. La caja se mueve a la nueva posición (posibleR_caja, posibleC_caja).
+            const updatedCajas = [...cajas];
+            updatedCajas[boxIndex] = { fila: posibleR_caja, col: posibleC_caja };
+
+            return { 
+                ...estado, 
+                jugador: nuevaPosicionJugador, 
+                cajas: updatedCajas, 
+                movimientos: estado.movimientos + 1 
+            };
+        }
+    }
+```

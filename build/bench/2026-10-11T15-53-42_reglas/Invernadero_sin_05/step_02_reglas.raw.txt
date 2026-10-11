@@ -1,0 +1,148 @@
+### FILE: js/reglas.js
+```javascript
+const Reglas = {
+    /**
+     * Crea el estado inicial del juego a partir de un nivel dado.
+     * @param {string[]} nivel - Array de strings que representan el mapa 9x9.
+     * @returns {object} El estado inicial del juego.
+     */
+    crearEstado: function(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const char = nivel[r][c];
+                if (char === '@') {
+                    jugador = { fila: r, col: c };
+                } else if (char === '$') {
+                    cajas.push({ fila: r, col: c });
+                } else if (char === '.') {
+                    objetivos.push({ fila: r, col: c });
+                }
+            }
+        }
+
+        return {
+            mapa: nivel,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+
+    /**
+     * Verifica si todas las macetas están sobre un objetivo.
+     * @param {object} estado - El estado actual del juego.
+     * @returns {boolean} True si el nivel está ganado.
+     */
+    ganado: function(estado) {
+        if (estado.objetivos.length === 0 || estado.cajas.length === 0) return false;
+
+        // Crear un set de coordenadas objetivo para búsqueda rápida
+        const objetivosSet = new Set(estado.objetivos.map(o => `${o.fila},${o.col}`));
+
+        // Contar cuántas cajas están sobre objetivos
+        let cubiertas = 0;
+        for (const caja of estado.cajas) {
+            if (objetivosSet.has(`${caja.fila},${caja.col}`)) {
+                cubiertas++;
+            }
+        }
+
+        // Si el número de cajas sobre objetivos es igual al total de objetivos, se ganó.
+        return cubiertas === estado.objetivos.length;
+    },
+
+    /**
+     * Mueve el jugador y/o empuja macetas según la dirección dada.
+     * @param {object} estado - El estado actual del juego (inmutable).
+     * @param {"arriba" | "abajo" | "izquierda" | "derecha"} direccion - Dirección de movimiento.
+     * @returns {object} Un nuevo estado que contiene el resultado del movimiento.
+     */
+    mover: function(estado, direccion) {
+        const jugador = estado.jugador;
+        let nuevaPosicionJugador = null;
+        let nuevasCajas = [...estado.cajas];
+        let movimientosIncrementados = 0;
+
+        // Función auxiliar para calcular la posición objetivo
+        const getTargetCoords = (r, c, dir) => {
+            switch (dir) {
+                case "arriba": return { r: r - 1, c: c };
+                case "abajo": return { r: r + 1, c: c };
+                case "izquierda": return { r: r, c: c - 1 };
+                case "derecha": return { r: r, c: c + 1 };
+            }
+        };
+
+        // Función auxiliar para verificar si una posición es válida (dentro de límites y no pared)
+        const isValidSpot = (r, c) => {
+            if (r < 0 || r >= 9 || c < 0 || c >= 9) return false;
+            return estado.mapa[r][c] !== '#';
+        };
+
+        // 1. Calcular la posición objetivo del jugador
+        const targetPlayer = getTargetCoords(jugador.fila, jugador.col, direccion);
+
+        if (!isValidSpot(targetPlayer.r, targetPlayer.c)) {
+            return { ...estado, movimientos: estado.movimientos }; // Colisión con pared o fuera de límites
+        }
+
+        // 2. Verificar si hay cajas en la posición objetivo
+        const cajaEnTarget = estado.cajas.some(c => c.fila === targetPlayer.r && c.col === targetPlayer.c);
+
+        if (!cajaEnTarget) {
+            // Caso A: Movimiento simple (el espacio está vacío o es un objetivo)
+            nuevaPosicionJugador = targetPlayer;
+            movimientosIncrementados = 1;
+        } else {
+            // Caso B: Intento de empujar una caja
+            const cajaAEmpujar = estado.cajas.find(c => c.fila === targetPlayer.r && c.col === targetPlayer.c);
+
+            // Calcular la posición detrás de la caja (donde debe ir la caja)
+            const targetCaja = getTargetCoords(cajaAEmpujar.fila, cajaAEmpujar.col, direccion);
+
+            // Verificar si el espacio detrás es válido y no está ocupado por otra cosa
+            if (isValidSpot(targetCaja.r, targetCaja.c)) {
+                const hayOtraCajaDetras = nuevasCajas.some(c => c !== cajaAEmpujar && c.fila === targetCaja.r && c.col === targetCaja.c);
+
+                if (!hayOtraCajaDetras) {
+                    // Empuje exitoso: 
+                    // 1. El jugador se mueve a la posición de la caja.
+                    nuevaPosicionJugador = { fila: cajaAEmpujar.fila, col: cajaAEmpujar.col };
+
+                    // 2. La caja se mueve detrás del jugador.
+                    const nuevaCajaMovida = { ...cajaAEmpujar, fila: targetCaja.r, col: targetCaja.c };
+                    
+                    // Crear el nuevo array de cajas reemplazando la posición antigua por la nueva
+                    nuevasCajas = nuevasCajas.map(c => 
+                        (c.fila === cajaAEmpujar.fila && c.col === cajaAEmpujar.col) ? newCajaMovida : c
+                    );
+
+                    movimientosIncrementados = 1;
+                } else {
+                    // Fallo de empuje: hay otra caja detrás. No se mueve nada.
+                    return { ...estado, movimientos: estado.movimientos };
+                }
+            } else {
+                // Fallo de empuje: la pared o límite está detrás de la caja. No se mueve nada.
+                return { ...estado, movimientos: estado.movimientos };
+            }
+        }
+
+        // Crear y devolver el nuevo estado inmutable
+        const nuevoEstado = {
+            mapa: estado.mapa, // El mapa no cambia
+            jugador: nuevaPosicionJugador,
+            cajas: nuevasCajas,
+            objetivos: estado.objetivos,
+            movimientos: estado.movimientos + movimientosIncrementados
+        };
+
+        return nuevoEstado;
+    }
+};
+```

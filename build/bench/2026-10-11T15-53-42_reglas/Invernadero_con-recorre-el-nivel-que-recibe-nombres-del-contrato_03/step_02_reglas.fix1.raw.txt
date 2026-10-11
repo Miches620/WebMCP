@@ -1,0 +1,21 @@
+```javascript
+        // Verificar si cada objetivo está cubierto por alguna caja
+        let todosCubiertos = true;
+        for (const objCoord of objetivosCubiertos) {
+            let encontrado = false;
+            for (const caja of estado.cajas) {
+                if (caja.fila + ',' + caja.col === objCoord) {
+                    encontrado = true;
+                    break;
+                }
+            }
+            if (!encontrado) {
+                todosCubiertos = false;
+                break;
+            }
+        }
+
+        return todosCubiertos;
+    }
+};
+```

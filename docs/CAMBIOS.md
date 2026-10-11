@@ -2,6 +2,22 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Banco, 3ª corrida (11/10): las primeras respuestas buenas; se descarta nombres-del-contrato**
+- *Corrida:* reglas, grilla v0.1.7 (sin `+`/`*`), k=5, 3 juegos, solo la 1ª respuesta. Condiciones: `sin`, `con:recorre-el-nivel-que-recibe` y `con:recorre…+nombres-del-contrato`.
+
+| de 15 muestras | sin | con recorre | con recorre + nombres |
+|---|---|---|---|
+| **bien al 1er intento** | 0 | **3** | 2 |
+| rotas | 15 | 9 | 10 |
+| tamaño fijo | 11 | 0 | 0 |
+| variable sin declarar | 5 | 6 | 9 |
+| mapa que no es string | 1 | 4 | 8 |
+| problemas (promedio) | 9,5 | 4,6 | 6,3 |
+
+- *recorre-el-nivel-que-recibe:* se confirma. El error de tamaño fijo baja de 11 a 0, y aparecen las **primeras 3 respuestas que pasan todas las pruebas sin reparar** (las 3 en Boxworld).
+- *nombres-del-contrato v2:* no ayuda. Con ella hay más variables sin declarar (`state`: 4 → 8) y una respuesta buena menos. Con 15 muestras la diferencia puede ser ruido, pero no hay nada a favor después de 3 mediciones (v1: 7→7; v2: peor). → **Descartada.** Se conserva con su evidencia en `roles/web-game/descartadas/`, junto con su placebo.
+- *El punto flojo que sigue: nombres que se cambian a mitad de camino.* Depósito no pasó ninguna: en 4 de 5, la función auxiliar de `mover` devuelve `{r, c}` y el resto del código lee `.fila` y `.col` → `undefined`. Junto con `state`/`estado`, `objectivesSet`/`objetivos` y `objectivos`, es siempre lo mismo: Gemma mezcla nombres en inglés y en español, o se inventa uno y después usa otro.
+
 **Banco, 2ª corrida (11/10): la Skill recorre-el-nivel-que-recibe sirve**
 - *Corrida:* reglas, k=5, `sin` vs `con:recorre-el-nivel-que-recibe` (solo esa Skill), 3 juegos, solo la 1ª respuesta (~2,7 min por muestra).
 

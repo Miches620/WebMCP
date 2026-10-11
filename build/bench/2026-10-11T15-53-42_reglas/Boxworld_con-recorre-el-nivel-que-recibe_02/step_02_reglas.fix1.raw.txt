@@ -1,0 +1,28 @@
+```javascript
+        let cajaAEmpujar = null;
+        let cajasActualizadas = [...estado.cajas];
+        let jugadorMovido = false;
+
+        // 2. Verificar colisiones y determinar si hay un empuje posible
+        const esCajaEnPos = (r, c) => {
+            return estado.cajas.some(caja => caja.fila === r && caja.col === c);
+        };
+
+        if (esCajaEnPos(nr, nc)) {
+            // Intentar empujar una caja
+            const cajaOriginal = estado.cajas.find(caja => caja.fila === nr && caja.col === nc);
+            if (!cajaOriginal) return nuevoEstado; // No debería pasar
+
+            let boxNextR = nr;
+            let boxNextC = nc;
+
+            // Calcular la posición donde iría la caja después del empuje
+            switch (direccion) {
+                case "arriba":
+                    boxNextR -= 1; break;
+                case "abajo":
+                    boxNextR += 1; break;
+                case "izquierda":
+                    boxNextC -= 1; break;
+                case "derecha":
+```

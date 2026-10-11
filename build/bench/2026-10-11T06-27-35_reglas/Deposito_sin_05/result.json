@@ -1,0 +1,55 @@
+{
+  "case": "Deposito",
+  "cond": "sin",
+  "i": 5,
+  "ref": "ZN-3397",
+  "ms": 157432,
+  "ok_first": false,
+  "fatal_first": false,
+  "ok_final": false,
+  "broken": false,
+  "problems_first": [
+    "crearEstado([\"#####\",\"#@$.#\",\"#####\"]) tendría que dar jugador {fila:1,col:1}, cajas [{fila:1,col:2}], objetivos [{fila:1,col:3}], movimientos 0; dio jugador {fila:undefined,col:1}, cajas [{fila:undefined,col:2}], objetivos [{fila:undefined,col:3}], movimientos 0.",
+    "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"izquierda\") choca con la pared: el jugador sigue en {fila:1,col:1} y movimientos 0; quedó {fila:undefined,col:1} y movimientos 0.",
+    "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"derecha\") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador {fila:undefined,col:2}, cajas [{fila:undefined,col:3}], movimientos 1.",
+    "mover tiene que devolver un estado NUEVO: después de mover(e, \"derecha\"), e.jugador sigue en {fila:1,col:1} y su caja en {fila:1,col:2}; quedó {fila:undefined,col:1}.",
+    "con [\"######\",\"#@   #\",\"#    #\",\"######\"], \"derecha\" deja al jugador en {fila:1,col:2} y \"abajo\" en {fila:2,col:1} (un casillero por vez); quedó {fila:undefined,col:2} y {fila:undefined,col:1}.",
+    "con [\"####\",\"#@$#\",\"####\"], la caja tiene una pared detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, caja {fila:1,col:2}, movimientos 0); quedó jugador {fila:undefined,col:1}, cajas [{fila:undefined,col:2}], movimientos 0.",
+    "con [\"######\",\"#@$$.#\",\"######\"], la caja tiene otra caja detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, movimientos 0); quedó {fila:undefined,col:1}, movimientos 0.",
+    "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; cajas: tendrían que ser [{fila:1,col:2},{fila:1,col:4}] ('*' = caja sobre objetivo también es caja) y dio [{fila:undefined,col:2},{fila:undefined,col:4}]; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#    #\"."
+  ],
+  "problems_final": [
+    "crearEstado([\"#####\",\"#@$.#\",\"#####\"]) tendría que dar jugador {fila:1,col:1}, cajas [{fila:1,col:2}], objetivos [{fila:1,col:3}], movimientos 0; dio jugador {fila:undefined,col:1}, cajas [{fila:undefined,col:2}], objetivos [{fila:undefined,col:3}], movimientos 0.",
+    "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"izquierda\") choca con la pared: el jugador sigue en {fila:1,col:1} y movimientos 0; quedó {fila:undefined,col:1} y movimientos 0.",
+    "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"derecha\") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador {fila:undefined,col:2}, cajas [{fila:undefined,col:3}], movimientos 1.",
+    "mover tiene que devolver un estado NUEVO: después de mover(e, \"derecha\"), e.jugador sigue en {fila:1,col:1} y su caja en {fila:1,col:2}; quedó {fila:undefined,col:1}.",
+    "con [\"######\",\"#@   #\",\"#    #\",\"######\"], \"derecha\" deja al jugador en {fila:1,col:2} y \"abajo\" en {fila:2,col:1} (un casillero por vez); quedó {fila:undefined,col:2} y {fila:undefined,col:1}.",
+    "con [\"####\",\"#@$#\",\"####\"], la caja tiene una pared detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, caja {fila:1,col:2}, movimientos 0); quedó jugador {fila:undefined,col:1}, cajas [{fila:undefined,col:2}], movimientos 0.",
+    "con [\"######\",\"#@$$.#\",\"######\"], la caja tiene otra caja detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, movimientos 0); quedó {fila:undefined,col:1}, movimientos 0.",
+    "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; cajas: tendrían que ser [{fila:1,col:2},{fila:1,col:4}] ('*' = caja sobre objetivo también es caja) y dio [{fila:undefined,col:2},{fila:undefined,col:4}]; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#    #\"."
+  ],
+  "wrong_files": [],
+  "member_repair": [],
+  "tests": {
+    "passed": 6,
+    "failed": [
+      "crearEstado lee jugador, cajas y objetivos",
+      "la pared bloquea",
+      "empujar una caja",
+      "mover no modifica el estado que recibe",
+      "de a un casillero",
+      "caja contra pared no se mueve",
+      "caja contra caja no se mueve",
+      "lee '*' y '+'"
+    ]
+  },
+  "skill_hits": {
+    "botones-habilitados": 0,
+    "flecha-sin-tapar": 0,
+    "grilla-que-no-se-estira": 0,
+    "nombres-del-contrato": 0,
+    "piezas-aparte-del-mapa": 0,
+    "recorre-el-nivel-que-recibe": 0,
+    "siempre-jugable": 0
+  }
+}

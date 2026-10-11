@@ -1,0 +1,179 @@
+const Reglas = {
+    /**
+     * Crea el estado inicial del juego a partir de un nivel dado.
+     * @param {string[]} nivel - Array de strings que representan el mapa del nivel.
+     * @returns {object} El estado inicial del juego.
+     */
+    crearEstado: function(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+        let mapaTemporal = [];
+
+        // 1. Parsear el nivel para encontrar posiciones y construir el mapa base
+        for (let r = 0; r < nivel.length; r++) {
+            let filaActual = nivel[r].split('');
+            let filaString = '';
+            for (let c = 0; c < filaActual.length; c++) {
+                const char = filaActual[c];
+
+                if (char === '@') {
+                    jugador = { fila: r, col: c };
+                    filaString += ' '; // El jugador no se dibuja en el mapa base
+                } else if (char === '$') {
+                    cajas.push({ fila: r, col: c });
+                    filaString += ' '; // La caja no se dibuja en el mapa base
+                } else if (char === '.') {
+                    objetivos.push({ fila: r, col: c });
+                    filaString += '.';
+                } else if (char === '#') {
+                    filaString += '#';
+                } else {
+                    // Espacio vacío ' '
+                    filaString += ' ';
+                }
+            }
+            mapaTemporal.push(filaString);
+        }
+
+        return {
+            mapa: mapaTemporal,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+
+    /**
+     * Verifica si todas las macetas están sobre un objetivo.
+     * @param {object} estado - El estado actual del juego.
+     * @returns {boolean} True si el nivel está ganado.
+     */
+    ganado: function(estado) {
+        if (estado.objetivos.length === 0 || estado.cajas.length === 0) return false;
+
+        const cajasEnObjetivo = state.cajas.every(box => {
+            return state.objetivos.some(obj => obj.fila === box.fila && obj.col === box.col);
+        });
+
+        return cajasEnObjetivo;
+    },
+
+    /**
+     * Intenta mover el estado del juego según la dirección dada.
+     * @param {object} estado - El estado actual (inmutable).
+     * @param {string} direccion - "arriba", "abajo", "izquierda" o "derecha".
+     * @returns {object} Un nuevo estado, o el estado original si el movimiento es inválido.
+     */
+    mover: function(estado, direccion) {
+        const { jugador, cajas } = estado;
+        let nuevaPosicionJugador = { ...jugador };
+        let nuevasCajas = [...cajas];
+        let nuevosMovimientos = estado.movimientos;
+
+        // 1. Calcular la posición objetivo del jugador (P_new)
+        switch (direccion) {
+            case "arriba":
+                nuevaPosicionJugador.fila -= 1;
+                break;
+            case "abajo":
+                nuevaPosicionJugador.fila += 1;
+                break;
+            case "izquierda":
+                nuevaPosicionJugador.col -= 1;
+                break;
+            case "derecha":
+                nuevaPosicionJugador.col += 1;
+                break;
+        }
+
+        const { fila: r, col: c } = nuevaPosicionJugador;
+        const mapa = estado.mapa;
+        const alturaMapa = mapa.length;
+        const anchoMapa = mapa[0].length;
+
+        // Validación de límites y paredes (P_new)
+        if (r < 0 || r >= alturaMapa || c < 0 || c >= anchoMapa || mapa[r][c] === '#') {
+            return { ...estado }; // Colisión con pared o límite
+        }
+
+        // 2. Verificar si la posición objetivo está ocupada por una caja
+        const cajaEnPosicionObjetivo = cajas.some(box => box.fila === r && box.col === c);
+
+        if (!cajaEnPosicionObjetivo) {
+            // Caso A: Movimiento simple (P_new es espacio vacío o objetivo)
+            return Reglas._crearNuevoEstado(estado, nuevaPosicionJugador, nuevasCajas, nuevosMovimientos + 1);
+        } else {
+            // Caso B: Intento de empuje. Encontrar la caja a mover y su destino (B_push)
+
+            // Identificar qué caja es la que está en P_new
+            const indiceCaja = cajas.findIndex(box => box.fila === r && box.col === c);
+            if (indiceCaja === -1) {
+                // Esto no debería pasar si cajaEnPosicionObjetivo es true, pero por seguridad.
+                return { ...estado };
+            }
+
+            const cajaAEmpujar = cajas[indiceCaja];
+            let posicionDestinoEmpuje = { ...cajaAEmpujar };
+
+            // Calcular el destino de la caja (B_push)
+            switch (direccion) {
+                case "arriba":
+                    posicionDestinoEmpuje.fila -= 1;
+                    break;
+                case "abajo":
+                    posicionDestinoEmpuje.fila += 1;
+                    break;
+                case "izquierda":
+                    posicionDestinoEmpuje.col -= 1;
+                    break;
+                case "derecha":
+                    posicionDestinoEmpuje.col += 1;
+                    break;
+            }
+
+            // Validación del destino de la caja (B_push)
+            const { fila: r2, col: c2 } = posicionDestinoEmpuje;
+
+            // 1. ¿Está fuera de límites o es pared?
+            if (r2 < 0 || r2 >= alturaMapa || c2 < 0 || c2 >= anchoMapa || mapa[r2][c2] === '#') {
+                return { ...estado }; // Colisión con pared/límite al empujar
+            }
+
+            // 2. ¿Está el destino de la caja ocupado por otra caja?
+            const hayOtraCajaEnDestino = cajas.some((box, index) => 
+                index !== indiceCaja && box.fila === r2 && box.col === c2
+            );
+
+            if (hayOtraCajaEnDestino) {
+                return { ...estado }; // Colisión con otra caja al empujar
+            }
+
+            // Movimiento exitoso: Empuje
+            const nuevasCajasActualizadas = [...cajas];
+            // 1. Actualizar la posición de la caja empujada
+            nuevasCajasActualizadas[indiceCaja] = posicionDestinoEmpuje;
+            // 2. El jugador se mueve a donde estaba la caja
+            return Reglas._crearNuevoEstado(estado, nuevaPosicionJugador, nuevasCajasActualizadas, nuevosMovimientos + 1);
+        }
+    },
+
+    /**
+     * Constructor interno para crear un nuevo estado de forma inmutable.
+     * @param {object} estado - Estado original.
+     * @param {object} newPlayerPos - Nueva posición del jugador.
+     * @param {Array<object>} newBoxes - Array de nuevas posiciones de las cajas.
+     * @param {number} newMoves - Nuevo contador de movimientos.
+     * @returns {object} El nuevo estado.
+     */
+    _crearNuevoEstado: function(estado, newPlayerPos, newBoxes, newMoves) {
+        return {
+            mapa: [...estado.mapa], // Copia profunda del mapa (aunque solo son strings)
+            jugador: newPlayerPos,
+            cajas: newBoxes,
+            objetivos: estado.objetivos, // Los objetivos no cambian
+            movimientos: newMoves
+        };
+    }
+};

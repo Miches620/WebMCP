@@ -1,0 +1,162 @@
+### FILE: js/reglas.js
+```javascript
+const Reglas = {
+    /**
+     * Crea el estado inicial del juego a partir de un nivel dado.
+     * @param {string[]} nivel - Array de strings que representan el mapa del nivel.
+     * @returns {{mapa: string[], jugador: {fila: number, col: number}, cajas: {fila: number, col: number}[], objetivos: {fila: number, col: number}[], movimientos: number}} El estado inicial.
+     */
+    crearEstado(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+
+        for (let y = 0; y < nivel.length; y++) {
+            for (let x = 0; x < nivel[y].length; x++) {
+                const tile = nivel[y][x];
+                if (tile === '@') {
+                    jugador = { fila: y, col: x };
+                } else if (tile === '$' || tile === '*') {
+                    cajas.push({ fila: y, col: x });
+                } else if (tile === '.') {
+                    objetivos.push({ fila: y, col: x });
+                }
+            }
+        }
+
+        return {
+            mapa: nivel,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+
+    /**
+     * Mueve el estado del juego según la dirección y las reglas de colisión.
+     * @param {object} estado - El estado actual del juego.
+     * @param {"arriba" | "abajo" | "izquierda" | "derecha"} direccion - Dirección del movimiento deseado.
+     * @returns {object} Un nuevo estado o el estado original si el movimiento es inválido.
+     */
+    mover(estado, direccion) {
+        const p = estado.jugador;
+        let nuevaCajas = [...estado.cajas];
+        let nuevoJugador = { ...p };
+        let nuevosMovimientos = estado.movimientos;
+
+        // 1. Calcular la posición objetivo del jugador (P_target)
+        let pyTarget = p.fila;
+        let pxTarget = p.col;
+
+        switch (direccion) {
+            case "arriba":
+                pyTarget -= 1;
+                break;
+            case "abajo":
+                pyTarget += 1;
+                break;
+            case "izquierda":
+                pxTarget -= 1;
+                break;
+            case "derecha":
+                pxTarget += 1;
+                break;
+        }
+
+        // Verificar límites y paredes para P_target
+        if (pyTarget < 0 || pyTarget >= estado.mapa.length || pxTarget < 0 || pxTarget >= estado.mapa[0].length) {
+            return { ...estado }; // Fuera de límites
+        }
+        if (estado.mapa[pyTarget][pxTarget] === '#') {
+            return { ...estado }; // Colisión con pared
+        }
+
+        // 2. Verificar si hay una caja en P_target
+        const boxIndex = nuevaCajas.findIndex(box => box.fila === pyTarget && box.col === pxTarget);
+
+        if (boxIndex === -1) {
+            // Caso A: No hay caja, movimiento simple del jugador
+            nuevoJugador = { fila: pyTarget, col: pxTarget };
+            nuevosMovimientos++;
+            return { ...estado, jugador: nuevoJugador, movimientos: nuevosMovimientos };
+        } else {
+            // Caso B: Hay una caja en P_target. Intentar empujar.
+
+            // Calcular la posición objetivo de la caja (B_target)
+            let bYTarget = pyTarget;
+            let bXTarget = pxTarget;
+
+            switch (direccion) {
+                case "arriba":
+                    bYTarget -= 1;
+                    break;
+                case "abajo":
+                    bYTarget += 1;
+                    break;
+                case "izquierda":
+                    bXTarget -= 1;
+                    break;
+                case "derecha":
+                    bXTarget += 1;
+                    break;
+            }
+
+            // Verificar límites y paredes para B_target
+            if (bYTarget < 0 || bYTarget >= estado.mapa.length || bXTarget < 0 || bXTarget >= estado.mapa[0].length) {
+                return { ...estado }; // Caja contra pared/límite
+            }
+            if (estado.mapa[bYTarget][bXTarget] === '#') {
+                return { ...estado }; // Caja contra pared
+            }
+
+            // Verificar si hay otra caja en B_target
+            const boxCollision = nuevaCajas.some(box => box.fila === bYTarget && box.col === bXTarget);
+            if (boxCollision) {
+                return { ...estado }; // Colisión con otra caja
+            }
+
+            // Movimiento exitoso: Empuje de caja
+            nuevoJugador = { fila: pyTarget, col: pxTarget };
+            nuevosMovimientos++;
+
+            // Actualizar cajas: la caja se mueve a B_target
+            let nuevasCajasActualizadas = [...nuevaCajas];
+            const boxToMove = nuevasCajasActualizadas[boxIndex];
+            
+            // Reemplazar la posición de la caja movida
+            nuevasCajasActualizadas[boxIndex] = { fila: bYTarget, col: bXTarget };
+
+            return { 
+                ...estado, 
+                jugador: nuevoJugador, 
+                cajas: nuevasCajasActualizadas, 
+                movimientos: nuevosMovimientos 
+            };
+        }
+    },
+
+    /**
+     * Determina si el nivel ha sido completado (todas las cajas están sobre objetivos).
+     * @param {object} estado - El estado actual del juego.
+     * @returns {boolean} True si todas las cajas cubren un objetivo, False en caso contrario.
+     */
+    ganado(estado) {
+        if (estado.objetivos.length === 0) return true; // No hay objetivos que cubrir
+
+        let objetivosCubiertos = new Set();
+        const cajaCoords = estado.cajas.map(box => `${box.fila},${box.col}`);
+
+        for (const objetivo of estado.objetivos) {
+            const coord = `${objetivo.fila},${objetivo.col}`;
+            if (!cajaCoords.includes(coord)) {
+                return false; // Hay un objetivo sin caja encima
+            }
+            objetivosCubiertos.add(coord);
+        }
+
+        // Si el número de objetivos cubiertos es igual al total de objetivos, se ha ganado.
+        return objetivosCubiertos.size === estado.objetivos.length;
+    }
+};
+```

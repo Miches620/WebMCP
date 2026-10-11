@@ -57,7 +57,10 @@ export function levelFromSpec(spec, { rows = 10, cols = 10 } = {}, n = "nivel") 
   if (jug && B.has(key(...jug))) problems.push(`${n}: el jugador está sobre una caja.`);
   if (cajas.some((p) => W.has(key(...p)))) problems.push(`${n}: hay una caja sobre una pared.`);
   if (objetivos.some((p) => W.has(key(...p)))) problems.push(`${n}: hay un objetivo sobre una pared.`);
-  if (cajas.length && cajas.every((p) => G.has(key(...p)))) problems.push(`${n}: todas las cajas empiezan sobre un objetivo (ya está ganado).`);
+  // v0.1.7 (banco 11/10, decisión de Miche): ningún nivel empieza con una caja o el jugador sobre un
+  // objetivo. Así NIVELES nunca tiene '*' ni '+' y reglas no tiene que leerlos (fallaba 15/15).
+  if (cajas.some((p) => G.has(key(...p)))) problems.push(`${n}: una caja empieza sobre un objetivo; ponela en otro casillero (ninguna caja empieza sobre un objetivo).`);
+  if (jug && G.has(key(...jug))) problems.push(`${n}: el jugador empieza sobre un objetivo; ponelo en otro casillero.`);
   if (problems.length || !jug) return { problems };
   const rowsOut = [];
   for (let f = 0; f < rows; f++) {
@@ -67,8 +70,8 @@ export function levelFromSpec(spec, { rows = 10, cols = 10 } = {}, n = "nivel") 
       const border = f === 0 || c === 0 || f === rows - 1 || c === cols - 1;
       const isJ = jug[0] === f && jug[1] === c;
       if (border || W.has(k)) s += "#";
-      else if (B.has(k)) s += G.has(k) ? "*" : "$";
-      else if (isJ) s += G.has(k) ? "+" : "@";
+      else if (B.has(k)) s += "$";
+      else if (isJ) s += "@";
       else s += G.has(k) ? "." : " ";
     }
     rowsOut.push(s);
@@ -234,8 +237,8 @@ export function nivelesJs(levels, report = []) {
     return `  // Nivel ${i + 1}${note ? ` — ${note}` : ""}\n  [\n${rows.map((s) => `    ${JSON.stringify(s)}`).join(",\n")}\n  ]`;
   });
   return `// js/niveles.js — lo escribe el harness a partir de los niveles que propuso el Specialist
-// (coordenadas → strings Sokoban: # pared, espacio piso, . objetivo, $ caja, * caja sobre
-// objetivo, @ jugador, + jugador sobre objetivo). Cada nivel fue verificado con un solver.
+// (coordenadas → strings: # pared, espacio piso, . objetivo, $ caja, @ jugador; ningún nivel
+// empieza con una caja o el jugador sobre un objetivo). Cada nivel fue verificado con un solver.
 const NIVELES = [
 ${lines.join(",\n")}
 ];

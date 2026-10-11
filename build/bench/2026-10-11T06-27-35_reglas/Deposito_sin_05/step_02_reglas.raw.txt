@@ -1,0 +1,162 @@
+### FILE: js/reglas.js
+```javascript
+const Reglas = {
+    /**
+     * Crea un estado inicial a partir de la representación del nivel (Sokoban).
+     * @param {string[]} nivel - Array de strings que representan el mapa 8x8.
+     * @returns {object} Estado inicial del juego.
+     */
+    crearEstado: function(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+        let mapaNuevo = [];
+
+        for (let r = 0; r < nivel.length; r++) {
+            let filaActual = '';
+            for (let c = 0; c < nivel[r].length; c++) {
+                const char = nivel[r][c];
+                if (char === '@') {
+                    jugador = { row: r, col: c };
+                    filaActual += ' '; // El jugador ocupa espacio vacío en el mapa base
+                } else if (char === '$' || char === '*') {
+                    cajas.push({ row: r, col: c });
+                    filaActual += ' '; // Las cajas ocupan espacio vacío en el mapa base
+                } else if (char === '.') {
+                    objetivos.push({ row: r, col: c });
+                    filaActual += '.';
+                } else if (char === '#') {
+                    filaActual += '#';
+                } else {
+                    // Espacio vacío o cualquier otro carácter que no sea pared/obj/caja inicial
+                    filaActual += ' ';
+                }
+            }
+            mapaNuevo.push(filaActual);
+        }
+
+        return {
+            mapa: mapaNuevo,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+
+    /**
+     * Mueve el estado del juego según la dirección dada.
+     * @param {object} estado - El estado actual del juego.
+     * @param {"arriba" | "abajo" | "izquierda" | "derecha"} direccion - Dirección de movimiento.
+     * @returns {object} Un nuevo estado inmutable o el estado original si no hay movimiento.
+     */
+    mover: function(estado, direccion) {
+        // Clonamos el estado para asegurar la inmutabilidad
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        const dr = { "arriba": -1, "abajo": 1, "izquierda": 0, "derecha": 0 };
+        const dc = { "arriba": 0, "abajo": 0, "izquierda": -1, "derecha": 1 };
+
+        let r_nueva = estado.jugador.row + dr[direccion];
+        let c_nueva = estado.jugador.col + dc[direccion];
+
+        // 1. Validación de límites y paredes en el destino del jugador
+        if (r_nueva < 0 || r_nueva >= 8 || c_nueva < 0 || c_nueva >= 8) {
+            return nuevoEstado; // Fuera de límites
+        }
+        if (estado.mapa[r_nueva][c_nueva] === '#') {
+            return nuevoEstado; // Colisión con pared
+        }
+
+        let cajaAEmpujar = null;
+        let indiceCaja = -1;
+
+        // 2. Comprobar si el destino es una caja
+        for (let i = 0; i < estado.cajas.length; i++) {
+            const c = estado.cajas[i];
+            if (c.row === r_nueva && c.col === c_nueva) {
+                cajaAEmpujar = c;
+                indiceCaja = i;
+                break;
+            }
+        }
+
+        // 3. Manejo de movimiento
+        if (!cajaAEmpujar) {
+            // Caso A: Movimiento a un espacio vacío (no caja, no pared)
+            nuevoEstado.jugador = { row: r_nueva, col: c_nueva };
+            nuevoEstado.movimientos += 1;
+            return nuevoEstado;
+        } else {
+            // Caso B: Intento de empujar una caja
+            let r_destinoEmpuje = r_nueva + dr[direccion];
+            let c_destinoEmpuje = c_nueva + dc[direccion];
+
+            // Validación del destino final (detrás de la caja)
+            if (r_destinoEmpuje < 0 || r_destinoEmpuje >= 8 || c_destinoEmpuje < 0 || c_destinoEmpuje >= 8) {
+                return nuevoEstado; // Empujar fuera de límites
+            }
+
+            // Comprobar si el destino final es una pared o está ocupado por otra caja
+            if (estado.mapa[r_destinoEmpuje][c_destinoEmpuje] === '#') {
+                return nuevoEstado; // Colisión con pared al empujar
+            }
+
+            let colisionConOtraCaja = false;
+            for (let i = 0; i < estado.cajas.length; i++) {
+                if (i !== indiceCaja && estado.cajas[i].row === r_destinoEmpuje && estado.cajas[i].col === c_destinoEmpuje) {
+                    colisionConOtraCaja = true;
+                    break;
+                }
+            }
+
+            if (colisionConOtraCaja) {
+                return nuevoEstado; // Colisión con otra caja al empujar
+            }
+
+            // Movimiento exitoso de la caja y el jugador
+            nuevoEstado.jugador = { row: r_nueva, col: c_nueva };
+            
+            // Actualizar cajas: mover la caja empujada
+            let nuevasCajas = [...estado.cajas];
+            nuevasCajas[indiceCaja] = { row: r_destinoEmpuje, col: c_destinoEmpuje };
+            nuevoEstado.cajas = nuevasCajas;
+
+            nuevoEstado.movimientos += 1;
+            return nuevoEstado;
+        }
+    },
+
+    /**
+     * Verifica si todas las cajas están sobre un objetivo.
+     * @param {object} estado - El estado actual del juego.
+     * @returns {boolean} True si el nivel está ganado, False en caso contrario.
+     */
+    ganado: function(estado) {
+        if (estado.objetivos.length === 0) return true; // No hay objetivos que cumplir
+
+        const cajasEnObjetivo = estado.cajas.every(caja => {
+            return estado.objetivos.some(obj => caja.row === obj.row && caja.col === obj.col);
+        });
+
+        // Verificamos si el número de cajas es igual al número de objetivos Y todas están en un objetivo.
+        if (estado.cajas.length !== estado.objetivos.length) {
+            return false;
+        }
+
+        // Si hay la misma cantidad y todas las coordenadas coinciden con algún objetivo, se considera ganado.
+        const cajaCoords = new Set(estado.cajas.map(c => `${c.row},${c.col}`));
+        const objetivoCoords = new Set(estado.objetivos.map(o => `${o.row},${o.col}`));
+
+        // Comprobamos que cada coordenada de caja esté en el set de objetivos
+        for (const coord of cajaCoords) {
+            if (!objetivoCoords.has(coord)) {
+                return false;
+            }
+        }
+        
+        // Si todos los objetivos están cubiertos por cajas, y hay la misma cantidad, es ganado.
+        return true;
+    }
+};
+```

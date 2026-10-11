@@ -40,6 +40,7 @@ t("faltan niveles", v.some((x) => /4 niveles y se piden al menos 5/.test(x)));
 t("filas de largo distinto (b6, b7)", v.some((x) => /nivel 1: las filas tienen largos distintos/.test(x)));
 t("cajas ≠ objetivos (b6: 1 caja, 5 objetivos)", v.some((x) => /nivel 2: tiene 1 cajas y 2 objetivos/.test(x)));
 t("todas las cajas sobre objetivos = ya ganado (b5)", v.some((x) => /nivel 3: todas las cajas empiezan sobre un objetivo/.test(x)));
+t("v0.1.7: '*' o '+' en NIVELES → problema", v.some((x) => /nivel 3: empieza con una caja o el jugador sobre un objetivo/.test(x)));
 t("caracteres fuera del formato (b6 usaba 'E' para piso)", v.some((x) => /nivel 4: caracteres que no son del formato: "x"/.test(x)));
 t("tamaño pedido", validateLevels([["####", "#@$.#", "####"]], { rows: 3, cols: 5 }).some((x) => /tienen que tener 5 caracteres/.test(x)));
 
@@ -80,10 +81,13 @@ t("el contrato nombra los 6 ids y la forma del estado", IDS.every((id) => CONTRA
 // v0.8.1: niveles en coordenadas + solver (b8: Gemma no puede contar caracteres)
 const lv = levelFromSpec({ jugador: [1, 1], cajas: [[2, 3]], objetivos: [[2, 6]], paredes: [[4, 4]] }, { rows: 10, cols: 10 });
 t("coordenadas → 10 filas de 10, borde de paredes", lv.rows.length === 10 && lv.rows.every((r) => r.length === 10) && lv.rows[0] === "##########" && lv.rows[1] === "#@       #" && lv.rows[2] === "#  $  .  #" && lv.rows[4][4] === "#");
-t("caja sobre objetivo → '*', jugador sobre objetivo → '+'", levelFromSpec({ jugador: [1, 1], cajas: [[2, 2], [3, 3]], objetivos: [[1, 1], [2, 2]] }, { rows: 5, cols: 5 }).rows.join("|") === "#####|#+  #|# * #|#  $#|#####");
+// v0.1.7 (banco 11/10, decisión de Miche): ningún nivel empieza con caja o jugador sobre un objetivo
+const over = levelFromSpec({ jugador: [1, 1], cajas: [[2, 2], [3, 3]], objetivos: [[1, 1], [2, 2]] }, { rows: 5, cols: 5 });
+t("caja o jugador sobre un objetivo al empezar → nivel descartado con el porqué (no hay '*' ni '+')", !over.rows && over.problems.some((p) => /una caja empieza sobre un objetivo/.test(p)) && over.problems.some((p) => /el jugador empieza sobre un objetivo/.test(p)), JSON.stringify(over.problems));
+t("niveles válidos: solo # . $ @ y espacio", levelFromSpec({ jugador: [1, 1], cajas: [[2, 2]], objetivos: [[3, 3]] }, { rows: 5, cols: 5 }).rows.join("|") === "#####|#@  #|# $ #|#  .#|#####");
 const bad = levelFromSpec({ jugador: [0, 0], cajas: [[2, 2], [2, 2]], objetivos: [[3, 3]], paredes: [[2, 2]] }, { rows: 6, cols: 6 }, "nivel 1").problems;
 t("fuera del interior, cajas repetidas, cajas ≠ objetivos, caja sobre pared", ["fuera del interior", "dos cajas en el mismo casillero", "2 cajas y 1 objetivos", "caja sobre una pared"].every((x) => bad.some((p) => p.includes(x))), JSON.stringify(bad));
-t("todas las cajas sobre sus objetivos = ya ganado", levelFromSpec({ jugador: [1, 1], cajas: [[2, 2]], objetivos: [[2, 2]] }, { rows: 5, cols: 5 }).problems.some((p) => /ya está ganado/.test(p)));
+t("todas las cajas sobre sus objetivos = descartado (v0.1.7: una sola ya alcanza)", levelFromSpec({ jugador: [1, 1], cajas: [[2, 2]], objetivos: [[2, 2]] }, { rows: 5, cols: 5 }).problems.some((p) => /una caja empieza sobre un objetivo/.test(p)));
 t("solver: nivel fácil → resoluble", solve(["#####", "#@$.#", "#####"]).solvable === true);
 t("solver: caja pegada a la pared superior y objetivo abajo → imposible", solve(levelFromSpec({ jugador: [2, 2], cajas: [[1, 3]], objetivos: [[4, 4]] }, { rows: 6, cols: 6 }).rows).solvable === false);
 t("solver: dos cajas con paredes interiores → resoluble", solve(levelFromSpec({ jugador: [1, 1], cajas: [[2, 3], [4, 4]], objetivos: [[2, 6], [6, 4]], paredes: [[3, 3], [3, 4]] }).rows).solvable === true);
@@ -182,8 +186,10 @@ t("dibujo: si style.backgroundColor tapa TODO lo que distingue caja y jugador �
 t("dibujo b11 sin los style → sin problemas", (await drawn(b11("js/dibujo.js").replace(/\n\s*casilla\.style\.backgroundColor = [^;]+;/g, ""))).length === 0);
 t("pantalla b11: #btn-reiniciar con disabled → problema", E.disabledInHtml(b11("index.html"), "btn-reiniciar") && !E.disabledInHtml(b11("index.html"), "btn-siguiente") && step("pantalla").enabled.includes("btn-reiniciar"));
 const b11r = runRuleTests(loadScripts([b11("js/niveles.js"), b11("js/reglas.js")]).Reglas, []);
-const plus = b11r.failed.find((f) => f.name === "lee '*' y '+'")?.detail || "";
-t("prueba de '*' y '+' (b11): dice solo lo que está mal (objetivos y mapa), no lo que está bien", /objetivos: tendrían que ser/.test(plus) && /cada fila tiene que ser un STRING/.test(plus) && !/jugador: tendría/.test(plus) && !/cajas: tendrían/.test(plus), plus);
+// v0.1.7: la prueba de '*' y '+' se sacó; lo que quedaba de ella (mapa = strings) sigue (b11 tenía arrays de caracteres)
+const mapaP = b11r.failed.find((f) => f.name === "mapa sin cajas ni jugador")?.detail || "";
+t("prueba del mapa (b11): un mapa de arrays de caracteres → 'tiene que ser un STRING'", /cada fila tiene que ser un STRING/.test(mapaP), mapaP);
+t("ya no hay prueba de '*' y '+'", !b11r.failed.concat(b11r.passed.map((n) => ({ name: n }))).some((f) => /'\*'/.test(f.name)));
 t("niveles: con niveles ya guardados, el pedido es solo por los que faltan", /proponé 1 nivel\(es\) NUEVO\(S\) \(ya hay 4 válidos/.test(step("niveles").prompt({ hints: { minLevels: 5, rows: 10, cols: 10 }, have: 4, paso: "PASO 1 de 5" })));
 
 // v0.1.3 (Miche jugó b11): al ganar, el avatar quedaba bloqueado

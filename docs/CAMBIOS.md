@@ -2,6 +2,28 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Banco, 2ª corrida (11/10): la Skill recorre-el-nivel-que-recibe sirve**
+- *Corrida:* reglas, k=5, `sin` vs `con:recorre-el-nivel-que-recibe` (solo esa Skill), 3 juegos, solo la 1ª respuesta (~2,7 min por muestra).
+
+| muestras con… (de 15) | sin | con la Skill |
+|---|---|---|
+| tamaño fijo (`Cannot read properties of undefined`) | 9 | **0** |
+| variable sin declarar (`state is not defined`…) | 5 | 7 |
+| no lee `+` y `*` | 6 | 15 |
+| rotas (no carga / tira error) | 13 | 7 |
+| problemas (promedio) | 9,1 | 5,3 |
+
+- *Lectura:* la Skill hace lo que dice en los 3 juegos: el error de tamaño fijo desaparece (9 → 0), con 5 referencias distintas por juego. Es la primera Skill con evidencia de ese tipo.
+- *Lo que queda al descubierto:* `+` y `*` falla en las 15. Sin la Skill no se veía porque la función se rompía antes. Variable sin declarar: 7 de 15 (lo que intentaba `nombres-del-contrato`).
+- *Bien al 1er intento:* sigue 0/15 en las dos condiciones. Si se resuelven `+`/`*` y la variable sin declarar, "con" pasaría en unas 8 de 15 (las que hoy tienen solo el problema de `+`/`*`).
+- *Decisión de Miche: que el harness no use `+` ni `*` → Standard web/game/grilla v0.1.7.* El modelo propone y el sistema controla: si el formato no los tiene, reglas no tiene que leerlos.
+  - `levelFromSpec` descarta el nivel si una caja o el jugador empiezan sobre un objetivo, y dice por qué. El paso de niveles lo pide ("ninguna caja ni el jugador empiezan sobre un objetivo"). `validateLevels` marca `*`/`+` si aparecen.
+  - El contrato ya no los nombra: el formato es `# . $ @` y espacio.
+  - Se sacó la prueba "lee `*` y `+`". De ella queda lo que sí importa: el mapa son strings con solo `#`, ` ` y `.` (prueba nueva "mapa sin cajas ni jugador").
+  - Costo: no hay niveles que empiecen con una caja ya acomodada.
+  - Las entradas fijas del banco (niveles de los 3 builds "sin") no tienen `*` ni `+`: siguen sirviendo.
+  - Tests: grilla 95, catálogo 53, app 20, motor 18, roles 11, profiles 30.
+
 **Banco por paso, 1ª corrida: reglas (11/10) → files_engine v0.9.8, step_bench v0.2, Skill candidata**
 - *Corrida:* reglas, k=5, sin/con (todas las Skills), entradas fijas de los 3 builds "sin" (Boxworld, Depósito, Invernadero) = 30 muestras, con reparación por función (~10 min por muestra).
 

@@ -10,7 +10,7 @@
 // v0.1.2 (Boxworld b11, 5 PASS otra vez con caja y jugador invisibles): dibujo declara `looks`
 // (el tablero DIBUJADO se mira en Chromium: dibujar() pintaba con style y tapaba el CSS);
 // pantalla declara `enabled` (#btn-reiniciar vino con disabled); niveles: el reintento pide
-// solo los que faltan; la prueba de '*' y '+' dice solo lo que está mal.
+// solo los que faltan; la prueba de '*' y '+' dice solo lo que está mal (v0.1.7: '*' y '+' ya no existen).
 // v0.1.1 (Boxworld b10, 5 PASS pero tablero de 100 casilleros iguales): pantalla declara
 // `swatches` (cada clase se tiene que ver distinta; el motor lo prueba en Chromium); niveles
 // junta los válidos de todos los intentos, explica las cajas trabadas contra la pared y se
@@ -36,7 +36,7 @@ export const IDS = ["tablero", "nivel", "movimientos", "mensaje", "btn-reiniciar
 export const SCRIPTS = ["js/niveles.js", "js/reglas.js", "js/dibujo.js", "js/controles.js"];
 export const CONTRACT = `CONTRATO DEL JUEGO (lo define el harness; respetalo al pie de la letra):
 - Archivos: juego.html (solo el contenido de la pantalla), styles.css, js/niveles.js, js/reglas.js, js/dibujo.js, js/controles.js. Se cargan en ese orden con <script src> comunes: NADA de import/export ni módulos. Cada archivo define SOLO lo suyo.
-- js/niveles.js (lo escribe el harness a partir de tus coordenadas) define: const NIVELES = [nivel1, nivel2, ...]; cada nivel es un array de strings (una fila por string, todas del mismo largo) en formato Sokoban: # pared, espacio piso, . objetivo, $ caja, * caja sobre objetivo, @ jugador, + jugador sobre objetivo.
+- js/niveles.js (lo escribe el harness a partir de tus coordenadas) define: const NIVELES = [nivel1, nivel2, ...]; cada nivel es un array de strings (una fila por string, todas del mismo largo) con estos caracteres: # pared, espacio piso, . objetivo, $ caja, @ jugador. Al empezar, ninguna caja ni el jugador están sobre un objetivo (por eso no hay otros caracteres).
 - js/reglas.js define: const Reglas = { crearEstado(nivel), mover(estado, direccion), ganado(estado) }. Sin DOM (no usa document ni window).
     estado = { mapa: [strings con SOLO '#', ' ' y '.'], jugador: {fila, col}, cajas: [{fila, col}], objetivos: [{fila, col}], movimientos: 0 }
     direccion: "arriba" | "abajo" | "izquierda" | "derecha". mover DEVUELVE UN ESTADO NUEVO (no modifica el que recibe). Si el movimiento no se puede (pared, caja contra pared o contra otra caja), devuelve un estado igual con los mismos movimientos. Empujar: el jugador avanza un casillero y la caja otro en la misma dirección. OJO: en estado.mapa NO hay cajas ni jugador (solo '#', ' ' y '.'): para saber si hay una caja en un casillero mirá estado.cajas; mover cambia jugador, cajas y movimientos, nunca mapa. ganado = TODOS los objetivos tienen una caja encima.
@@ -68,6 +68,8 @@ export function validateLevels(niveles, { minLevels = 1, rows = null, cols = nul
     const all = nv.join("");
     const bad = [...new Set(all.replace(/[#.$*@+ ]/g, ""))];
     if (bad.length) out.push(`${n}: caracteres que no son del formato: ${bad.map((c) => JSON.stringify(c)).join(" ")} (piso = espacio).`);
+    // v0.1.7: '*' y '+' ya no se usan (ninguna caja ni el jugador empiezan sobre un objetivo)
+    if (/[*+]/.test(all)) out.push(`${n}: empieza con una caja o el jugador sobre un objetivo ('*' o '+'); ningún nivel empieza así.`);
     const players = (all.match(/[@+]/g) || []).length;
     if (players !== 1) out.push(`${n}: tiene ${players} jugadores (@ o +); tiene que haber exactamente 1.`);
     const boxes = (all.match(/[$*]/g) || []).length, goals = (all.match(/[.*+]/g) || []).length;
@@ -96,7 +98,7 @@ const size = (h) => ({ rows: h.rows || 10, cols: h.cols || 10, min: Math.max(h.m
 
 const STANDARD = {
   id: "web/game/grilla",
-  version: "0.1.6",
+  version: "0.1.7",
   status: "DRAFT",
   label: "juego de grilla: empujar piezas hasta sus objetivos",
   describe: "Juego de una pantalla sobre una grilla, por archivos: juego.html, styles.css, js/niveles.js (datos verificados con solver), js/reglas.js (lógica pura probada en Node), js/dibujo.js (probado en Chromium), js/controles.js (chequeos de juego).",
@@ -129,7 +131,7 @@ Mapa de ${z.rows} filas x ${z.cols} columnas. El borde (fila 0, fila ${z.rows - 
 Formato:
 ### FILE: niveles.json
 ${fence("json", LEVEL_FMT)}
-Reglas: en cada nivel tantas cajas como objetivos; ninguna caja empieza sobre su objetivo; nada en el mismo casillero (jugador, cajas, paredes); "paredes" son solo las interiores (pocas). Dificultad creciente: el nivel 1 con 1 o 2 cajas cerca de sus objetivos, el último con 3 o 4. Ningún nivel se gana con un solo movimiento. Ninguna caja en una esquina ni pegada al borde (fila 1, fila ${z.rows - 2}, columna 1, columna ${z.cols - 2}) salvo que su objetivo esté pegado a esa misma pared. El harness prueba con un solver que cada nivel se pueda ganar.`; },
+Reglas: en cada nivel tantas cajas como objetivos; ninguna caja ni el jugador empiezan sobre un objetivo; nada en el mismo casillero (jugador, cajas, paredes); "paredes" son solo las interiores (pocas). Dificultad creciente: el nivel 1 con 1 o 2 cajas cerca de sus objetivos, el último con 3 o 4. Ningún nivel se gana con un solo movimiento. Ninguna caja en una esquina ni pegada al borde (fila 1, fila ${z.rows - 2}, columna 1, columna ${z.cols - 2}) salvo que su objetivo esté pegado a esa misma pared. El harness prueba con un solver que cada nivel se pueda ganar.`; },
       take: (raw, c) => ({ ...c, "niveles.json": c["niveles.json"] || (String(raw).match(/\{[\s\S]*"niveles"[\s\S]*\}/) || [])[0] || null }),
       // los niveles inválidos se descartan; el motor junta los válidos de todos los intentos
       parse: (json, c) => {

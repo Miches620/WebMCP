@@ -188,7 +188,14 @@ t("pantalla b11: #btn-reiniciar con disabled → problema", E.disabledInHtml(b11
 const b11r = runRuleTests(loadScripts([b11("js/niveles.js"), b11("js/reglas.js")]).Reglas, []);
 // v0.1.7: la prueba de '*' y '+' se sacó; lo que quedaba de ella (mapa = strings) sigue (b11 tenía arrays de caracteres)
 const mapaP = b11r.failed.find((f) => f.name === "mapa sin cajas ni jugador")?.detail || "";
-t("prueba del mapa (b11): un mapa de arrays de caracteres → 'tiene que ser un STRING'", /cada fila tiene que ser un STRING/.test(mapaP), mapaP);
+// v0.1.8: fila string o array de caracteres; lo que se mira es el contenido
+{
+  const T = RULE_TESTS.find((x) => x.name === "mapa sin cajas ni jugador");
+  const fake = (row) => ({ crearEstado: () => ({ mapa: ["######", row, "######"] }) });
+  t("prueba del mapa v0.1.8: array de caracteres bien armado → pasa; string bien → pasa", T.run(fake([..."#   .#"]), T.input) === true && T.run(fake("#   .#"), T.input) === true);
+  t("prueba del mapa v0.1.8: con '@' y '$' adentro (string o array) → falla diciendo qué dio", /dio "#@\$ \.#"/.test(T.run(fake([..."#@$ .#"]), T.input)) && /dio "#@\$ \.#"/.test(T.run(fake("#@$ .#"), T.input)));
+  t("prueba del mapa v0.1.8: filas que no son texto → mensaje claro", /string \(como "#   \.#"\) o un array de caracteres/.test(T.run(fake([1, 2, 3]), T.input)));
+}
 t("ya no hay prueba de '*' y '+'", !b11r.failed.concat(b11r.passed.map((n) => ({ name: n }))).some((f) => /'\*'/.test(f.name)));
 t("niveles: con niveles ya guardados, el pedido es solo por los que faltan", /proponé 1 nivel\(es\) NUEVO\(S\) \(ya hay 4 válidos/.test(step("niveles").prompt({ hints: { minLevels: 5, rows: 10, cols: 10 }, have: 4, paso: "PASO 1 de 5" })));
 
@@ -269,11 +276,20 @@ t("traductor web/game: click_changes en 'avatar' no es un botón → se saca; en
     { nombre: "empujar", ...L5, flechas: ["derecha"], espera: { jugador: [1, 2], cajas: [[1, 3]], movimientos: 1, ganado: true } },
     { nombre: "mal", ...L5, flechas: ["izquierda"], espera: { movimientos: 1 } },
     { nombre: "sin espera", ...L5, flechas: [], espera: {} },
-    { nombre: "caja afuera", "tamaño": [3, 5], jugador: [1, 1], cajas: [[2, 2]], objetivos: [[1, 3]], espera: { movimientos: 0 } },
+    { nombre: "caja en el borde", jugador: [1, 1], cajas: [[0, 2]], objetivos: [[1, 3]], espera: { movimientos: 0 } },
     { nombre: "flecha rara", ...L5, flechas: ["saltar"], espera: { movimientos: 0 } },
   ] });
   t("ejemplos v0.2 (coordenadas): el harness arma el nivel", pe.items[0]?.nivel.join("|") === "#####|#@$.#|#####", JSON.stringify(pe.items[0]?.nivel));
-  t("ejemplos: forma inválida se descarta con el porqué (sin espera, caja fuera del interior, flecha rara)", pe.items.length === 2 && pe.dropped.length === 3 && /no dice nada/.test(pe.dropped[0]) && /fuera del interior/.test(pe.dropped[1]) && /flechas/.test(pe.dropped[2]), JSON.stringify(pe.dropped));
+  // v0.3: sin exigir cantidades; el tamaño sale de las posiciones (también las de "espera")
+const p3 = X.parseExamples({ ejemplos: [
+  { nombre: "piso libre sin cajas", jugador: [1, 1], cajas: [], objetivos: [], paredes: [], flechas: ["derecha"], espera: { jugador: [1, 2], movimientos: 1 } },
+  { nombre: "caja sobre objetivo", jugador: [1, 1], cajas: [[1, 2]], objetivos: [[1, 2]], espera: { movimientos: 0 } },
+  { nombre: "ganado sin objetivos", jugador: [1, 1], cajas: [[1, 2]], objetivos: [], espera: { ganado: true } },
+  { nombre: "ganado sin objetivos + jugador", jugador: [1, 1], cajas: [], objetivos: [], flechas: ["abajo"], espera: { jugador: [2, 1], ganado: false } },
+] });
+t("ejemplos v0.3: un ejemplo sin cajas vale; el nivel llega hasta la posición esperada; sin objetivos se ignora 'ganado' (no el ejemplo)", p3.items.length === 2 && p3.items[1].espera.ganado === undefined && p3.items[1].espera.jugador && p3.items[0].nivel.join("|") === "####|#@ #|####", JSON.stringify(p3));
+t("ejemplos v0.3: caja sobre objetivo y 'ganado' sin objetivos se descartan con el porqué", /mismo casillero/.test(p3.dropped[0]) && /no dice nada/.test(p3.dropped[1]), JSON.stringify(p3.dropped));
+  t("ejemplos: forma inválida se descarta con el porqué (sin espera, caja fuera del interior, flecha rara)", pe.items.length === 2 && pe.dropped.length === 3 && /no dice nada/.test(pe.dropped[0]) && /fila 0 o la columna 0/.test(pe.dropped[1]) && /flechas/.test(pe.dropped[2]), JSON.stringify(pe.dropped));
   const RG = loadScripts([ref("js/reglas.js")], ["Reglas"]).Reglas, SK = loadScripts([X.SKELETON], ["Reglas"]).Reglas;
   t("ejemplos: el correcto pasa en la referencia; el de expectativa equivocada falla con lo que esperaba y lo que dio", X.runExample(RG, pe.items[0]) === true && /esperaba movimientos 1 y dio 0/.test(X.runExample(RG, pe.items[1])));
   t("ejemplos: el esqueleto que no hace nada falla los dos (rojo)", pe.items.every((x) => X.runExample(SK, x) !== true));

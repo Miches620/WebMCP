@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-12b'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
+  const SEED = '2026-10-12c'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
   let state = loadState() || {
  "columns": [
   {
@@ -435,8 +435,8 @@
    "cards": [
     {
      "id": "p32",
-     "title": "Pruebas primero: examples_bench v0.2 (coordenadas)",
-     "desc": "[#TDD] v0.1: 103/115 ejemplos descartados (Gemma no dibuja niveles) y bug del medidor (sin ejemplos = rechaza todo). v0.2 en coordenadas. Volver a correr el mismo comando. Señal de v0.1: 1 ejemplo correcto atrapa 76% de las rotas con 0 falsas alarmas.",
+     "title": "Pruebas primero: examples v0.3 + cómo filtrar ejemplos mal",
+     "desc": "[#TDD] Retro v0.3: válidos 18 → 89/100, correctos 73 (82%). El 18% que queda son errores de simulación de Gemma (dónde termina la caja tras 2 flechas). Correr examples_bench v0.3. Después: ¿cómo se filtran los ejemplos mal sin tener una referencia? (ideas: acuerdo entre varias muestras, ejemplos de una sola flecha, el Specialist puede 'disputar' un ejemplo).",
      "priority": "urgente"
     },
     {
@@ -527,8 +527,8 @@
    "cards": [
     {
      "id": "g3",
-     "title": "Reglas: mapa como array de caracteres (16 quedan a 1 prueba)",
-     "desc": "[#Standard] Con el arreglo de variables sin declarar (v0.9.9), retro: con recorre 9 → 13 de 30 bien. En 16 muestras queda solo 'mapa sin cajas ni jugador': 10 devuelven el mapa como array de caracteres (en el juego anda igual: mapa[f][c]), 5 dejan @ y $ en el mapa, 1 pisa objetivos. Decidir: ¿la prueba acepta array de caracteres si el contenido está bien?",
+     "title": "Reglas: medir hacia adelante v0.9.9 + v0.1.8",
+     "desc": "[#Benchmark] Retro: con recorre 10/30 → 16/30 bien al 1er intento (arreglo de variables + mapa flexible). Confirmarlo con una corrida nueva: --step reglas --k 5 --conds sin,con:recorre-el-nivel-que-recibe (sin reparación, ~1 h).",
      "priority": "urgente"
     }
    ]

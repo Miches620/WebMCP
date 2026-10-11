@@ -99,7 +99,7 @@ const size = (h) => ({ rows: h.rows || 10, cols: h.cols || 10, min: Math.max(h.m
 
 const STANDARD = {
   id: "web/game/grilla",
-  version: "0.1.7",
+  version: "0.1.8",
   status: "DRAFT",
   label: "juego de grilla: empujar piezas hasta sus objetivos",
   describe: "Juego de una pantalla sobre una grilla, por archivos: juego.html, styles.css, js/niveles.js (datos verificados con solver), js/reglas.js (lógica pura probada en Node), js/dibujo.js (probado en Chromium), js/controles.js (chequeos de juego).",

@@ -2,6 +2,20 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Ejemplos v0.3 y prueba del mapa más flexible (12/10, grilla v0.1.8)**
+- *examples_bench, 2ª corrida (v0.2, en coordenadas):* 82 de 100 ejemplos se descartaron igual, y 5 de los 18 válidos tenían la expectativa mal. Revisando los descartes, **casi ninguno era un ejemplo malo**: el validador usaba las reglas de un nivel jugable.
+  - 47: cantidad de cajas distinta de la de objetivos, o sin cajas. Un ejemplo de "moverse a un piso libre" no necesita cajas.
+  - 25: posiciones en el borde. El `tamaño` que puso Gemma no coincidía con sus coordenadas.
+- *examples v0.3:*
+  - Sin `tamaño`: el harness arma el nivel justo para que entren todas las posiciones, las del nivel y las de `espera`, con un borde de pared alrededor.
+  - No exige cantidades; solo que nada se pise.
+  - Sin objetivos, se ignora la parte `ganado`, no el ejemplo entero.
+- *Retro con las mismas 14 respuestas de Gemma:* válidos **18 → 89 de 100**; correctos 13 → **73** (82 % de los válidos); las 14 muestras tienen al menos un ejemplo correcto. Las expectativas equivocadas que quedan (16) son de **simulación**: Gemma calcula mal dónde termina una caja o el jugador después de dos flechas. Eso no lo arregla el formato. Antes de usar los ejemplos como compuerta hay que resolver cómo se filtran.
+- *grilla v0.1.8, decisión de Miche:* la prueba "mapa sin cajas ni jugador" acepta cada fila como string **o como array de caracteres**. En el juego se lee igual (`mapa[f][c]`). Lo que se mira es el contenido: sin `@` ni `$`, con los objetivos.
+- *Retro de reglas (75 primeras respuestas, arreglo de variables + v0.1.8):* con recorre **10/30 → 16/30** bien. El cambio del mapa sumó 3, no 10: varias de esas respuestas con array también tenían otro error.
+- Ojo: el banco de examples_bench se recalcula con las pruebas actuales. Con v0.1.8 cambian los veredictos de "buena" o "rota", así que la próxima corrida no se compara número a número con las anteriores.
+- Tests: grilla 104.
+
 **Arreglo determinista de variables sin declarar (12/10, files_engine v0.9.9, decisión de Miche)**
 - *Por qué:* con `--repair`, lo que la reparación por función no arregla es `state` adentro de `mover(estado, …)` (8 de 9 reparaciones de mover fallan). Igual que `fixRedeclare`, lo arregla el harness sin Gemma.
 - *Qué (`harness/undeclared.mjs`, general):* si las pruebas dicen "X is not defined", X no está declarado en ningún lado y lo usa una función que tiene **un solo** nombre propio (parámetro o declaración local) que es su traducción, se renombra X solo en esa función y solo como identificador. Hay dos formas de encontrar la traducción:

@@ -52,9 +52,13 @@ export const RULE_TESTS = [
   } },
   // v0.1.7 (banco 11/10): la prueba de '*' y '+' se sacó (ningún nivel empieza con caja o jugador sobre
   // un objetivo). De ella queda lo que sí importa: el mapa son strings con solo '#', ' ' y '.'.
+  // v0.1.8 (12/10, decisión de Miche): una fila puede ser string o array de caracteres. En el juego se
+  // lee igual (mapa[f][c]); en el banco 10 de 16 respuestas que fallaban solo esto eran arrays bien armados.
+  // Lo que importa es el CONTENIDO: sin cajas ni jugador, con los objetivos.
   { name: "mapa sin cajas ni jugador", fn: "crearEstado", input: ["######", "#@$ .#", "######"], run(R, lv) {
-    const m1 = (R.crearEstado(lv)?.mapa || [])[1];
-    return m1 === "#   .#" || (typeof m1 === "string" ? `crearEstado(${L(lv)}): mapa fila 1 tendría que ser "#   .#" (en el mapa no hay cajas ni jugador: solo '#', ' ' y '.') y dio ${JSON.stringify(m1)}.` : `crearEstado(${L(lv)}): mapa: cada fila tiene que ser un STRING (como "#   .#"), no un array de caracteres.`);
+    const raw = (R.crearEstado(lv)?.mapa || [])[1];
+    const m1 = Array.isArray(raw) && raw.every((ch) => typeof ch === "string" && ch.length === 1) ? raw.join("") : raw;
+    return m1 === "#   .#" || (typeof m1 === "string" ? `crearEstado(${L(lv)}): mapa fila 1 tendría que ser "#   .#" (en el mapa no hay cajas ni jugador: solo '#', ' ' y '.') y dio ${JSON.stringify(m1)}.` : `crearEstado(${L(lv)}): mapa: cada fila tiene que ser un string (como "#   .#") o un array de caracteres; dio ${JSON.stringify(raw)}.`);
   } },
 ];
 

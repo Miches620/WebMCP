@@ -2,6 +2,40 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Arreglo determinista de variables sin declarar (12/10, files_engine v0.9.9, decisión de Miche)**
+- *Por qué:* con `--repair`, lo que la reparación por función no arregla es `state` adentro de `mover(estado, …)` (8 de 9 reparaciones de mover fallan). Igual que `fixRedeclare`, lo arregla el harness sin Gemma.
+- *Qué (`harness/undeclared.mjs`, general):* si las pruebas dicen "X is not defined", X no está declarado en ningún lado y lo usa una función que tiene **un solo** nombre propio (parámetro o declaración local) que es su traducción, se renombra X solo en esa función y solo como identificador. Hay dos formas de encontrar la traducción:
+  - un **alias del Standard**: `S.aliases`, en grilla `estado: ["state"]`, `objetivos: ["goals", "objectives"]`…;
+  - **casi el mismo nombre**: distancia de edición ≤ 2, con 6 letras o más (`objectivos` → `objetivos`).
+
+  No toca textos, comentarios ni `e.state`. Con dos candidatos no adivina. El cambio se queda solo si bajan las pruebas que fallan. Corre antes de juzgar, en todos los intentos (como `fixRedeclare`), así que el banco lo cuenta dentro del "1er intento". El banco anota `arreglos` por muestra.
+- *Evidencia retrospectiva* (las 75 primeras respuestas de reglas de los bancos 2 y 3, con las pruebas de grilla v0.1.7): mejora 23 de 75 y pasan todo:
+
+| | sin | con recorre | con recorre + nombres |
+|---|---|---|---|
+| bien antes | 1/30 | 9/30 | 2/15 |
+| bien con el arreglo | 3/30 | **13/30** | 3/15 |
+
+- *Lo que queda después del arreglo:* en 16 muestras falta **una sola** prueba, "mapa sin cajas ni jugador": en 10, `mapa` es un array de caracteres en vez de strings; en 5 deja `@` y `$` en el mapa; en 1 pisa los objetivos.
+- Tests: motor 22 (4 nuevos).
+
+**Dos lecturas del 11/10: la reparación cambia el resultado; los ejemplos dibujados no sirven (examples v0.2)**
+- *Banco de reglas con `--repair` (k=5, 3 juegos):*
+
+| de 15 | sin | con recorre-el-nivel-que-recibe |
+|---|---|---|
+| bien al 1er intento | 0 | 3 |
+| **bien al final (con reparación)** | **10** | 7 |
+| min por muestra | 7,7 | 5,4 |
+
+  - La reparación por función **arregla sola el error de tamaño fijo** (crearEstado: 21 de 24 reparaciones bien). Por eso "sin" termina bien en 10 de 15.
+  - Con la Skill, lo que queda es `state is not defined` adentro de `mover` (parámetro `estado`, cuerpo con `state.mapa`). La reparación de `mover` falla en 8 de 9 intentos: es la función más larga. 6 de las 8 muestras que no llegan terminan con ese error.
+  - Lectura: la Skill ahorra un 30 % del tiempo y da respuestas buenas al primer intento, pero **no mejora el resultado final**. 10/15 contra 7/15 puede ser ruido. Lo que importa en el pipeline es el final, no el primer intento. Para mejorar el final hay que atacar lo que la reparación no puede arreglar.
+- *Ejemplos de Gemma (examples_bench v0.1, k=5, banco de 149 versiones: 43 buenas y 106 rotas):*
+  - **103 de 115 ejemplos se descartaron por forma**: filas de largos distintos (45), distinta cantidad de `$` y `.` (23). De los 12 válidos, 6 tenían la expectativa corrida en una posición. Es lo mismo que pasó con los niveles en b8: **Gemma no puede dibujar ni contar caracteres.**
+  - Bug del medidor: una muestra sin ejemplos válidos contaba como "rechaza todo" y llenaba las falsas alarmas (43/43 en 6 muestras). Sin esas 6, con un solo ejemplo correcto por muestra: atrapa 484 de 636 rotas (76 %) y **0 falsas alarmas**. Es una señal: hasta un ejemplo bueno sirve como compuerta.
+  - → **examples v0.2:** el ejemplo va en coordenadas (`tamaño`, `jugador`, `cajas`, `objetivos`, `paredes`), igual que `niveles.json`, y el harness arma el nivel con `levelFromSpec`. examples_bench v0.2 cuenta aparte las muestras "sin compuerta". Tests: grilla 100.
+
 **"Pruebas primero", experimento 1: ¿sirven los ejemplos de Gemma como compuerta? (11/10)**
 - *Diseño:* `docs/DISENO_pruebas_primero.md`. TDD como orden de pasos. Gemma escribe EJEMPLOS como datos (nivel chico + flechas + lo que espera) y el harness los convierte en pruebas. No escribe código de prueba.
 - *Standard:* `standards/web/game/grilla/examples.mjs` declara el formato, el pedido, el validador (descarta con el porqué: sin `espera`, filas de largos distintos, flechas que no existen), el corredor y el esqueleto que no hace nada (rojo). Queda en `S.examples`. **Todavía no es un paso del build.**

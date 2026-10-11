@@ -8,6 +8,8 @@
 //      buena/rota (falsa alarma), buena/buena.
 // Rojo: un ejemplo que pasa sobre el esqueleto que no hace nada no prueba nada y se descarta.
 // El formato de los ejemplos y cómo se corren los declara el Standard (S.examples); este script es general.
+// v0.2 (11/10): una muestra sin ejemplos válidos NO es una compuerta (antes contaba como "rechaza todo"
+// y llenaba las falsas alarmas: 43/43 en 6 muestras). Se cuenta aparte.
 //
 //   node build/examples_bench.mjs --k 5 --bank build\bench\<carpeta> [--bank ...] <run_dir> [<run_dir> ...]
 //   (--ref <archivo.js> para otra lógica de referencia; --out <dir> para retomar)
@@ -65,7 +67,7 @@ if (!okN || okN === bank.length) console.log("[EJEMPLOS] ojo: el banco tiene sol
 
 const outRoot = flag("--out") || join("build", "bench", `${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}_ejemplos`);
 mkdirSync(outRoot, { recursive: true });
-writeFileSync(join(outRoot, "bench.json"), JSON.stringify({ version: "examples_bench v0.1", standard: { id: S.id, version: S.version }, k: K, temperature: TEMP, ref: refPath, bank: bank.map((v) => ({ id: v.id, harnessOk: v.harnessOk })), cases: runDirs }, null, 2));
+writeFileSync(join(outRoot, "bench.json"), JSON.stringify({ version: "examples_bench v0.2", standard: { id: S.id, version: S.version }, k: K, temperature: TEMP, ref: refPath, bank: bank.map((v) => ({ id: v.id, harnessOk: v.harnessOk })), cases: runDirs }, null, 2));
 
 const runOn = (G, items) => items.map((ex) => (G ? X.run(G, ex) : "no carga"));
 const results = [];
@@ -97,8 +99,9 @@ for (let i = 0; i < K; i++) for (const c of cases) {
     const correct = items.filter((_, j) => onRef[j] === true);
     // 2. ¿atrapan errores? contra el banco (compuerta = TODOS los ejemplos que pasaron el rojo)
     const gate = (list) => {
+      if (!list.length) return null; // sin ejemplos no hay compuerta
       const m = { rota_rota: 0, rota_pasa: 0, buena_rota: 0, buena_buena: 0 };
-      for (const v of bank) { const ok = list.length > 0 && runOn(v.G, list).every((x) => x === true); m[`${v.harnessOk ? "buena" : "rota"}_${ok ? (v.harnessOk ? "buena" : "pasa") : "rota"}`]++; }
+      for (const v of bank) { const ok = runOn(v.G, list).every((x) => x === true); m[`${v.harnessOk ? "buena" : "rota"}_${ok ? (v.harnessOk ? "buena" : "pasa") : "rota"}`]++; }
       return m;
     };
     r = { case: name, i: i + 1, ref: REFS[i], ms: Date.now() - t0, propuestos: parsed.items.length + parsed.dropped.length, descartados: parsed.dropped, flojos: weak, validos: items.length, incorrectos: wrong, correctos: correct.length, compuerta: gate(items), compuerta_solo_correctos: gate(correct) };
@@ -107,7 +110,7 @@ for (let i = 0; i < K; i++) for (const c of cases) {
   }
   writeFileSync(rf, JSON.stringify(r, null, 2));
   results.push(r);
-  console.log(`[EJEMPLOS] ${name} #${i + 1}: ${r.error ? `ERROR ${r.error.slice(0, 100)}` : `${r.validos} válidos (${r.correctos} correctos, ${r.incorrectos.length} con la expectativa mal) · escapan ${r.compuerta.rota_pasa}/${bank.length - okN} rotas · falsas alarmas ${r.compuerta.buena_rota}/${okN}`} · ${Math.round(r.ms / 1000)}s`);
+  console.log(`[EJEMPLOS] ${name} #${i + 1}: ${r.error ? `ERROR ${r.error.slice(0, 100)}` : `${r.validos} válidos (${r.correctos} correctos, ${r.incorrectos.length} con la expectativa mal) · ${r.compuerta ? `escapan ${r.compuerta.rota_pasa}/${bank.length - okN} rotas · falsas alarmas ${r.compuerta.buena_rota}/${okN}` : "sin compuerta"}`} · ${Math.round(r.ms / 1000)}s`);
 }
 
 // ---- resumen ----
@@ -121,8 +124,9 @@ const rows = [`\n| ejemplos de Gemma | total |\n|---|---|`,
   `| válidos | ${sum((r) => r.validos)} |`,
   `| **con la expectativa equivocada** (fallan en la referencia) | ${sum((r) => r.incorrectos.length)} de ${sum((r) => r.validos)} |`,
   `| muestras con TODOS los ejemplos correctos | ${ok.filter((r) => !r.incorrectos.length).length}/${ok.length} |`];
-const g = (k, key) => sum((r) => r[k][key]);
-rows.push(`\n| como compuerta (${bank.length} versiones × ${ok.length} muestras) | todos los válidos | solo los correctos |\n|---|---|---|`);
+const g = (k, key) => sum((r) => r[k]?.[key] || 0);
+const nG = (k) => ok.filter((r) => r[k]).length;
+rows.push(`\n| como compuerta (${bank.length} versiones; muestras con al menos un ejemplo: ${nG("compuerta")} y ${nG("compuerta_solo_correctos")}) | todos los válidos | solo los correctos |\n|---|---|---|`);
 for (const [key, label] of [["rota_rota", "rota y la atrapa"], ["rota_pasa", "**rota y se le escapa**"], ["buena_rota", "**buena y la rechaza** (falsa alarma)"], ["buena_buena", "buena y la deja pasar"]])
   rows.push(`| ${label} | ${g("compuerta", key)} | ${g("compuerta_solo_correctos", key)} |`);
 const freq = {};

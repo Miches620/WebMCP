@@ -36,8 +36,9 @@ import { fixRedeclare } from "../profiles/web/specialist/encapsulation.mjs";
 import { runChecks } from "../profiles/web/validation/check_catalog.mjs";
 import { rulesBrief } from "../profiles/web/app/specialist_rules.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
+import { fixUndeclared, undefinedNames } from "./undeclared.mjs";
 
-export const ENGINE_VERSION = "files_engine v0.9.8";
+export const ENGINE_VERSION = "files_engine v0.9.9";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
@@ -360,6 +361,8 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
       lastWrong = names.some((x) => !content[x]) ? [...String(raw).matchAll(/###\s*(?:FILE|APPEND):\s*([\w./\-]+)/g)].map((m) => m[1]).filter((f) => !names.some((x) => x === f || f.endsWith("/" + x.split("/").pop()))) : [];
       if (lastWrong.length) att.wrong_files = lastWrong;
       if (st.take) content = st.take(raw, content);
+      // v0.9.9: arreglos deterministas de la clase de paso (sin Gemma), antes de juzgar
+      if (K.fix) content = (await K.fix(content, att)) || content;
       problems = await judge(content);
       att.first_problems = [...problems]; // v0.9.7 (banco por paso): lo que dio la respuesta de Gemma, antes de reparar
       att.first_fatal = !!problems.fatal;
@@ -430,7 +433,27 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
         if (L.error) return { error: L.error };
         return { result: runAcceptance(L[st.global], st.itemsGlobal ? L[st.itemsGlobal] : [], st) };
       };
+      // v0.9.9 (banco --repair 11/10): `state is not defined` con el parámetro `estado` → se renombra solo
+      // en esa función, sin Gemma (harness/undeclared.mjs). Se queda solo si quedan menos pruebas fallando.
+      const fix = async (c, att) => {
+        const code = c[st.file];
+        if (!code || syntaxOf(code)) return null;
+        const failTexts = (a) => (a.error ? [a.error] : a.result.failed.map((f) => f.detail));
+        const a = acceptance(code);
+        const names = undefinedNames(failTexts(a));
+        if (!names.length) return null;
+        const members = (st.functions || []).map((f) => findMember(code, f)).filter(Boolean);
+        const r = fixUndeclared(code, names, members, S.aliases || {});
+        if (!r.fixes.length || syntaxOf(r.code)) return null;
+        const a2 = acceptance(r.code);
+        const n = (x) => (x.error ? Infinity : x.result.failed.length);
+        if (n(a2) >= n(a)) return null;
+        att.undeclared_fix = r.fixes;
+        log(`[SPECIALIST]   variable sin declarar: ${r.fixes.map((f) => `${f.name} → ${f.to} en ${f.fn} (${f.count}×, ${f.why})`).join(", ")} · pruebas que fallan ${n(a) === Infinity ? "no carga" : n(a)} → ${n(a2)}`);
+        return { ...c, [st.file]: r.code };
+      };
       return {
+        fix,
         judge: async (c) => {
           const code = c[st.file];
           const b = jsBasics(st, code); if (b) return b;

@@ -116,6 +116,9 @@ const STANDARD = {
     "Niveles demasiado fáciles (b9: 2 a 8 empujes): dificultad creciente medible con el solver.",
     "La pista 'en estado.mapa no hay cajas' es una skill, no contrato.",
   ],
+  // 12/10: traducciones que usa el arreglo determinista de variables sin declarar (harness/undeclared.mjs).
+  // Nombres del contrato → cómo los escribe Gemma cuando se pasa al inglés (banco de reglas: state 4–8 de 15).
+  aliases: { estado: ["state", "gameState"], nivel: ["level"], direccion: ["direction"], jugador: ["player"], cajas: ["boxes"], objetivos: ["goals", "targets", "objectives"], mapa: ["map", "grid"] },
   // "pruebas primero" (11/10, EXPERIMENTO, docs/DISENO_pruebas_primero.md): ejemplos que escribe Gemma
   // como datos, para la lógica. Lo usa build/examples_bench.mjs; todavía no es un paso del build.
   examples: { step: "reglas", answer: "ejemplos.json", prompt: examplesPrompt, parse: parseExamples, run: runExample, skeleton: SKELETON },

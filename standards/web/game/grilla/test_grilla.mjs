@@ -264,14 +264,16 @@ t("traductor web/game: click_changes en 'avatar' no es un botón → se saca; en
 // "pruebas primero" (11/10, experimento): ejemplos como datos
 {
   const X = (await import("./examples.mjs"));
+  const L5 = { "tamaño": [3, 5], jugador: [1, 1], cajas: [[1, 2]], objetivos: [[1, 3]], paredes: [] };
   const pe = X.parseExamples({ ejemplos: [
-    { nombre: "empujar", nivel: ["#####", "#@$.#", "#####"], flechas: ["derecha"], espera: { jugador: [1, 2], cajas: [[1, 3]], movimientos: 1, ganado: true } },
-    { nombre: "mal", nivel: ["#####", "#@$.#", "#####"], flechas: ["izquierda"], espera: { movimientos: 1 } },
-    { nombre: "sin espera", nivel: ["###", "#@#", "###"], flechas: [], espera: {} },
-    { nombre: "largos", nivel: ["####", "#@$.#", "####"], espera: { movimientos: 0 } },
-    { nombre: "flecha rara", nivel: ["#####", "#@$.#", "#####"], flechas: ["saltar"], espera: { movimientos: 0 } },
+    { nombre: "empujar", ...L5, flechas: ["derecha"], espera: { jugador: [1, 2], cajas: [[1, 3]], movimientos: 1, ganado: true } },
+    { nombre: "mal", ...L5, flechas: ["izquierda"], espera: { movimientos: 1 } },
+    { nombre: "sin espera", ...L5, flechas: [], espera: {} },
+    { nombre: "caja afuera", "tamaño": [3, 5], jugador: [1, 1], cajas: [[2, 2]], objetivos: [[1, 3]], espera: { movimientos: 0 } },
+    { nombre: "flecha rara", ...L5, flechas: ["saltar"], espera: { movimientos: 0 } },
   ] });
-  t("ejemplos: forma inválida se descarta con el porqué (sin espera, largos, flecha rara)", pe.items.length === 2 && pe.dropped.length === 3 && /no dice nada/.test(pe.dropped[0]) && /largos distintos/.test(pe.dropped[1]) && /flechas/.test(pe.dropped[2]), JSON.stringify(pe.dropped));
+  t("ejemplos v0.2 (coordenadas): el harness arma el nivel", pe.items[0]?.nivel.join("|") === "#####|#@$.#|#####", JSON.stringify(pe.items[0]?.nivel));
+  t("ejemplos: forma inválida se descarta con el porqué (sin espera, caja fuera del interior, flecha rara)", pe.items.length === 2 && pe.dropped.length === 3 && /no dice nada/.test(pe.dropped[0]) && /fuera del interior/.test(pe.dropped[1]) && /flechas/.test(pe.dropped[2]), JSON.stringify(pe.dropped));
   const RG = loadScripts([ref("js/reglas.js")], ["Reglas"]).Reglas, SK = loadScripts([X.SKELETON], ["Reglas"]).Reglas;
   t("ejemplos: el correcto pasa en la referencia; el de expectativa equivocada falla con lo que esperaba y lo que dio", X.runExample(RG, pe.items[0]) === true && /esperaba movimientos 1 y dio 0/.test(X.runExample(RG, pe.items[1])));
   t("ejemplos: el esqueleto que no hace nada falla los dos (rojo)", pe.items.every((x) => X.runExample(SK, x) !== true));

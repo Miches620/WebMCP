@@ -7,6 +7,12 @@
 // sirven como compuerta (¿son correctos? ¿atrapan los errores que atrapa el harness?). No entra en
 // los builds hasta tener esa evidencia.
 
+import { levelFromSpec } from "./levels.mjs";
+
+// v0.2 (11/10, 1ª corrida): con el nivel DIBUJADO como strings, 103 de 115 ejemplos se descartaron
+// (filas de largos distintos, '$' ≠ '.') y 6 de 12 tenían la posición esperada corrida en uno. Es lo
+// mismo que pasó con los niveles en b8: Gemma no cuenta caracteres. → el ejemplo va en COORDENADAS
+// (como niveles.json) y el harness arma el nivel con levelFromSpec.
 const DIRS = ["arriba", "abajo", "izquierda", "derecha"];
 const P = (o) => (o && typeof o === "object" ? `{fila:${o.fila},col:${o.col}}` : String(o));
 const pt = (x) => Array.isArray(x) && x.length === 2 && x.every(Number.isInteger) ? { fila: x[0], col: x[1] }
@@ -17,14 +23,14 @@ const sameList = (a, b) => JSON.stringify(sortP(a)) === JSON.stringify(sortP(b))
 
 export const EXAMPLE_FMT = `{ "ejemplos": [
   { "nombre": "empujar una caja a la derecha",
-    "nivel": ["#####", "#@$.#", "#####"],
+    "tamaño": [3, 5], "jugador": [1, 1], "cajas": [[1, 2]], "objetivos": [[1, 3]], "paredes": [],
     "flechas": ["derecha"],
     "espera": { "jugador": [1, 2], "cajas": [[1, 3]], "movimientos": 1, "ganado": true } }
 ] }`;
 
 /** Pedido del paso "pruebas" (no ve código: solo brief + contrato). */
 export const examplesPrompt = (c) => `PASO DE PRUEBAS (antes de escribir el código): escribí entre 6 y 10 EJEMPLOS de cómo tiene que funcionar js/reglas.js, como JSON. No escribas código.
-Cada ejemplo: un "nivel" CHICO (3 a 6 filas, todas del mismo largo, borde de '#', exactamente un '@', tantas '$' como '.'), las "flechas" que se aprietan en orden (puede ser ninguna: []) y lo que "espera" después: cualquiera de jugador [fila, col], cajas [[fila, col], ...], movimientos (número) y ganado (true o false). Las filas y columnas empiezan en 0.
+Cada ejemplo es un nivel CHICO en COORDENADAS (no lo dibujes: el harness lo arma): "tamaño" [filas, columnas] entre 3 y 7; el borde ya es pared, así que todo va en filas 1 a filas-2 y columnas 1 a columnas-2; "jugador" [fila, col], "cajas" y "objetivos" (la misma cantidad; ninguna caja ni el jugador empiezan sobre un objetivo) y "paredes" interiores (puede ser []). Después, las "flechas" que se aprietan en orden (puede ser ninguna: []) y lo que "espera" al final: cualquiera de jugador [fila, col], cajas [[fila, col], ...], movimientos (número) y ganado (true o false). Las filas y columnas empiezan en 0.
 Cubrí: estado recién creado, moverse a un piso libre, chocar contra una pared, empujar una caja, caja contra pared o contra otra caja (no se mueve nada y movimientos no cambia), y ganar.
 Formato:
 ### FILE: ejemplos.json
@@ -40,13 +46,11 @@ export function parseExamples(json) {
   list.forEach((ex, i) => {
     const n = `ejemplo ${i + 1}${ex?.nombre ? ` (${String(ex.nombre).slice(0, 50)})` : ""}`;
     const bad = (why) => dropped.push(`${n}: ${why}`);
-    const nv = ex?.nivel;
-    if (!Array.isArray(nv) || nv.length < 3 || nv.length > 8 || !nv.every((f) => typeof f === "string")) return bad("el nivel tiene que ser un array de 3 a 8 strings.");
-    if (new Set(nv.map((f) => f.length)).size !== 1) return bad("las filas del nivel tienen largos distintos.");
-    const all = nv.join("");
-    if (/[^#.$@ ]/.test(all)) return bad(`caracteres que no son del formato: ${[...new Set(all.replace(/[#.$@ ]/g, ""))].join(" ")}.`);
-    if ((all.match(/@/g) || []).length !== 1) return bad("tiene que haber exactamente un '@'.");
-    if ((all.match(/\$/g) || []).length !== (all.match(/\./g) || []).length) return bad("tantas '$' como '.'.");
+    const sz = ex?.["tamaño"] ?? ex?.tamano;
+    if (!Array.isArray(sz) || sz.length !== 2 || !sz.every((v) => Number.isInteger(v) && v >= 3 && v <= 8)) return bad('"tamaño" tiene que ser [filas, columnas] entre 3 y 8.');
+    const lv = levelFromSpec({ jugador: ex.jugador, cajas: ex.cajas, objetivos: ex.objetivos, paredes: ex.paredes || [] }, { rows: sz[0], cols: sz[1] }, "el nivel");
+    if (!lv.rows) return bad(lv.problems.join(" "));
+    const nv = lv.rows;
     const fl = ex.flechas ?? [];
     if (!Array.isArray(fl) || !fl.every((d) => DIRS.includes(d))) return bad(`"flechas" tiene que ser una lista de ${DIRS.join(", ")}.`);
     const e = ex.espera || {};

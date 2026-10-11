@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-11d'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
+  const SEED = '2026-10-12b'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
   let state = loadState() || {
  "columns": [
   {
@@ -435,8 +435,8 @@
    "cards": [
     {
      "id": "p32",
-     "title": "Pruebas primero: correr examples_bench",
-     "desc": "[#TDD] Después de la corrida con --repair (no en paralelo: comparten LM Studio). node build/examples_bench.mjs --k 5 --bank (las 4 carpetas de build/bench de reglas) --bank build/runs <3 run_dirs>. Mirar: ejemplos con la expectativa equivocada y, como compuerta, rotas que se escapan y buenas que rechaza. Si da bien → Standard web/app por archivos con pasos contrato + pruebas.",
+     "title": "Pruebas primero: examples_bench v0.2 (coordenadas)",
+     "desc": "[#TDD] v0.1: 103/115 ejemplos descartados (Gemma no dibuja niveles) y bug del medidor (sin ejemplos = rechaza todo). v0.2 en coordenadas. Volver a correr el mismo comando. Señal de v0.1: 1 ejemplo correcto atrapa 76% de las rotas con 0 falsas alarmas.",
      "priority": "urgente"
     },
     {
@@ -527,8 +527,8 @@
    "cards": [
     {
      "id": "g3",
-     "title": "Reglas: nombres que cambian a mitad de camino",
-     "desc": "[#Benchmark] Siguiente punto flojo de reglas: state/estado, {r,c} vs .fila/.col, objectivesSet/objetivos (Depósito 0/5 por {r,c}). Opciones: (a) el harness lo arregla solo cuando el renombre es seguro (como fixRedeclare), (b) Skill en positivo, (c) medir con --repair para ver cuánto ya arregla la reparación por función. A decidir con Miche.",
+     "title": "Reglas: mapa como array de caracteres (16 quedan a 1 prueba)",
+     "desc": "[#Standard] Con el arreglo de variables sin declarar (v0.9.9), retro: con recorre 9 → 13 de 30 bien. En 16 muestras queda solo 'mapa sin cajas ni jugador': 10 devuelven el mapa como array de caracteres (en el juego anda igual: mapa[f][c]), 5 dejan @ y $ en el mapa, 1 pisa objetivos. Decidir: ¿la prueba acepta array de caracteres si el contenido está bien?",
      "priority": "urgente"
     }
    ]

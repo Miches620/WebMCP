@@ -114,7 +114,7 @@ for (let i = 0; i < K; i++) {                    // muestra afuera, condición a
         r = {
           case: c.name, cond, i: i + 1, ref: REFS[i], ms: Date.now() - t0,
           ok_first: firstP.length === 0, fatal_first: !!a0.first_fatal, ok_final: rec.problems_final.length === 0, broken: !!rec.broken,
-          problems_first: firstP, problems_final: rec.problems_final, wrong_files: a0.wrong_files || [],
+          problems_first: firstP, problems_final: rec.problems_final, wrong_files: a0.wrong_files || [], arreglos: { undeclared: a0.undeclared_fix || [], redeclare: a0.redeclare_fix || [] },
           member_repair: (rec.attempts || []).flatMap((a) => a.member_repair || []).map((m) => ({ fn: m.fn, ok: m.ok })),
           tests: rec.tests ? { passed: rec.tests.passed.length, failed: rec.tests.failed.map((f) => f.name) } : null,
           skill_hits: role ? Object.fromEntries(role.skills.map((s) => [s.id, s.detects ? firstP.filter((p) => s.detects.test(p)).length : 0])) : {},

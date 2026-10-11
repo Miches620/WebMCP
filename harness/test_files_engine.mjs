@@ -6,6 +6,8 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { loadScripts, runAcceptance, fatal, playProblems, probeProblems, pageHtml, missingIds, stripComments, buildFiles, extractFile } from "./files_engine.mjs";
 import { mkdtempSync } from "node:fs";
+import { fixUndeclared, undefinedNames, isDeclared } from "./undeclared.mjs";
+import { findMember as fm } from "./files_engine.mjs";
 import { tmpdir } from "node:os";
 import { join as pjoin } from "node:path";
 import { STANDARDS, getStandard } from "../standards/registry.mjs";
@@ -57,6 +59,27 @@ t("banco: faltan las respuestas del paso de datos → BENCH_FROZEN (sin llamar a
 
 // v0.9.8 (banco 11/10): un bloque con nombre de OTRO archivo del proyecto no se toma por extensión
 t("extractFile: js/dibujo.js no pasa por js/reglas.js; un nombre desconocido .js sí", extractFile("### FILE: js/dibujo.js\n```javascript\nD\n```", "js/reglas.js", ["js/reglas.js", "js/dibujo.js"]) === null && extractFile("### FILE: js/logica.js\n```javascript\nL\n```", "js/reglas.js", ["js/reglas.js", "js/dibujo.js"]) === "L\n" && extractFile("### FILE: js/dibujo.js\n```javascript\nD\n```", "js/reglas.js") === "D\n");
+
+// v0.9.9 (banco --repair 11/10): variable sin declarar que es la traducción de un parámetro
+{
+  const AL = { estado: ["state"], objetivos: ["objectives"] };
+  const code = `const Reglas = {
+  crearEstado(nivel) { return { mapa: nivel }; },
+  mover: function(estado, direccion) {
+    const msg = "state is not defined"; // state en un comentario
+    const x = estado.state;
+    return { ...estado, mapa: state.mapa, t: \`\${state.mapa.length}\` };
+  },
+  ganado(estado) { const objetivos = estado.objetivos; return objectivos.every(Boolean); },
+};`;
+  const mem = ["crearEstado", "mover", "ganado"].map((n) => fm(code, n)).filter(Boolean);
+  const r = fixUndeclared(code, undefinedNames(["la pared bloquea: tiró un error: state is not defined", "x: objectivos is not defined"]), mem, AL);
+  t("undeclared: state → estado solo en mover (código y template), no en textos, comentarios ni e.state", r.fixes.some((f) => f.name === "state" && f.to === "estado" && f.fn === "mover" && f.count === 2) && /mapa: estado\.mapa/.test(r.code) && /\$\{estado\.mapa\.length\}/.test(r.code) && /"state is not defined"/.test(r.code) && /\/\/ state en un comentario/.test(r.code) && /estado\.state/.test(r.code), JSON.stringify(r.fixes));
+  t("undeclared: objectivos → objetivos por casi igual (local de ganado)", r.fixes.some((f) => f.name === "objectivos" && f.to === "objetivos" && f.why === "casi igual") && /return objetivos\.every/.test(r.code));
+  t("undeclared: si está declarado en algún lado, no se toca", fixUndeclared("const state = 1;\n" + code, ["state"], mem, AL).fixes.every((f) => f.name !== "state") && isDeclared("function f(a, state) {}", "state"));
+  const two = `const R = {\n  mover(estado, state2) { return state.x; },\n};`;
+  t("undeclared: con dos candidatos no adivina", fixUndeclared(two, ["state"], [fm(two, "mover")], { estado: ["state"], state2: ["state"] }).fixes.length === 0);
+}
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

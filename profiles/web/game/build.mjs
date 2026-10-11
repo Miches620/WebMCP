@@ -84,7 +84,8 @@ export function build(input, outDir, opts = {}) {
     const placebo = opts.placebo ?? process.argv.includes("--placebo");
     const withSkills = placebo || (opts.skills ?? process.argv.includes("--skills"));
     const role = withSkills ? await loadRole(profile.role, { placebo }) : null;
-    const skills = role ? { role: role.id, status: role.status, list: role.skills } : null;
+    // banco (11/10): opts.skills puede traer ya un subconjunto ({ role, status, list }) para medir una Skill sola
+    const skills = opts.skills?.list ? opts.skills : role ? { role: role.id, status: role.status, list: role.skills } : null;
     return buildFiles(input, outDir, { ...opts, skills, standard: getStandard(profile.standard) });
   })();
 }

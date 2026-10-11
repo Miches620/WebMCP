@@ -1,0 +1,100 @@
+```javascript
+mover(estado, direccion) {
+    const jugador = estado.jugador;
+    let nuevaFila = jugador.fila;
+    let nuevaCol = jugador.col;
+
+    // 1. Calcular la posición objetivo del jugador
+    switch (direccion) {
+        case "arriba":
+            nuevaFila -= 1;
+            break;
+        case "abajo":
+            nuevaFila += 1;
+            break;
+        case "izquierda":
+            nuevaCol -= 1;
+            break;
+        case "derecha":
+            nuevaCol += 1;
+            break;
+    }
+
+    // Verificar si el movimiento es posible (dentro de límites y no pared)
+    const maxFila = estado.mapa.length - 1;
+    const maxCol = estado.mapa[0].length - 1;
+
+    if (nuevaFila < 0 || nuevaFila > maxFila || nuevaCol < 0 || nuevaCol > maxCol || estado.mapa[nuevaFila][nuevaCol] === '#') {
+        return { ...estado }; // Movimiento imposible: devuelve el estado original
+    }
+
+    // Verificar si hay una caja en la posición objetivo del jugador
+    const boxEnDestino = estado.cajas.some(box => 
+        box.fila === nuevaFila && box.col === nuevaCol
+    );
+
+    if (!boxEnDestino) {
+        // Caso 1: Movimiento simple (sin cajas en el camino)
+        return {
+            mapa: estado.mapa,
+            jugador: { fila: nuevaFila, col: nuevaCol },
+            cajas: [...estado.cajas], // Copia superficial de la lista de cajas
+            objetivos: [...estado.objetivos],
+            movimientos: estado.movimientos + 1
+        };
+    } else {
+        // Caso 2: Intento de empujar una caja
+        const boxAEmpujar = estado.cajas.find(box => 
+            box.fila === nuevaFila && box.col === nuevaCol
+        );
+
+        let destinoCajaFila = nuevaFila;
+        let destinoCajaCol = nuevaCol;
+
+        // Calcular la posición donde debe ir la caja (detrás del jugador)
+        switch (direccion) {
+            case "arriba":
+                destinoCajaFila -= 1;
+                break;
+            case "abajo":
+                destinoCajaFila += 1;
+                break;
+            case "izquierda":
+                destinoCajaCol -= 1;
+                break;
+            case "derecha":
+                destinoCajaCol += 1;
+                break;
+        }
+
+        // Verificar si el destino de la caja es válido (dentro, no pared)
+        const boxDestinoValido = 
+            destinoCajaFila >= 0 && destinoCajaFila <= maxFila && 
+            destinoCajaCol >= 0 && destinoCajaCol <= maxCol && 
+            estado.mapa[destinoCajaFila][destinoCajaCol] !== '#';
+
+        // Verificar si el destino de la caja está ocupado por otra caja (ni la misma)
+        const boxDestinoOcupado = estado.cajas.some(box => 
+            box !== boxAEmpujar && box.fila === destinoCajaFila && box.col === destinoCajaCol
+        );
+
+        if (boxDestinoValido && !boxDestinoOcupado) {
+            // Empuje exitoso: el jugador se mueve, la caja se mueve
+            const nuevasCajas = estado.cajas.map(box => 
+                (box === boxAEmpujar) ? { fila: destinoCajaFila, col: destinoCajaCol } : box
+            );
+
+            return {
+                mapa: estado.mapa,
+                jugador: { fila: nuevaFila, col: nuevaCol },
+                cajas: nuevasCajas, // Array actualizado con la caja movida
+                objetivos: [...estado.objetivos],
+                movimientos: estado.movimientos + 1
+            };
+        } else {
+            // Empuje fallido (contra pared o contra otra caja)
+            return { ...estado }; // Devuelve el estado original sin cambios ni incremento de movimientos
+        }
+    }
+}
+```

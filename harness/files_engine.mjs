@@ -37,7 +37,7 @@ import { runChecks } from "../profiles/web/validation/check_catalog.mjs";
 import { rulesBrief } from "../profiles/web/app/specialist_rules.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
 
-export const ENGINE_VERSION = "files_engine v0.9.6";
+export const ENGINE_VERSION = "files_engine v0.9.8";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
@@ -235,16 +235,21 @@ export function playProblems(results) {
 }
 
 // ---------- respuesta ----------
-export function extractFile(raw, name) {
+/** others (v0.9.8): archivos del proyecto que NO son este. Un bloque con nombre de otro archivo no se
+ *  toma "por extensión" (banco 11/10: Gemma escribió js/dibujo.js en el paso de reglas y el harness lo
+ *  juzgó como reglas.js: "no puede usar document"). */
+export function extractFile(raw, name, others = []) {
   const r = String(raw || "");
   const re = new RegExp("###\\s*(?:FILE|APPEND):\\s*([\\w./\\-]+)[^\\n]*\\n+```[\\w-]*\\n([\\s\\S]*?)```", "g");
   const ext = name.split(".").pop();
   let m, byExt = null;
   while ((m = re.exec(r))) {
     if (m[1] === name || m[1].endsWith("/" + name.split("/").pop())) return m[2];
-    if (!byExt && m[1].endsWith("." + ext)) byExt = m[2];
+    const isOther = others.some((o) => o !== name && (m[1] === o || m[1].endsWith("/" + o.split("/").pop())));
+    if (!byExt && !isOther && m[1].endsWith("." + ext)) byExt = m[2];
   }
   if (byExt) return byExt;
+  if (others.length && /###\s*(?:FILE|APPEND):/.test(r)) return null; // trajo otros archivos con nombre: no se adivina
   const lang = ext === "js" ? "(?:javascript|js)" : ext;
   const f = r.match(new RegExp("```" + lang + "\\n([\\s\\S]*?)```"));
   return f ? f[1] : null;
@@ -289,7 +294,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
     const promptTokens = estTokens(system) + estTokens(user);
     const maxTokens = Math.max(1500, Math.min(cap, CONTEXT - promptTokens - 200));
     const t0 = Date.now();
-    const data = await chatStream(LM_STUDIO_URL, { model, messages: [{ role: "system", content: system }, { role: "user", content: user }], temperature: 0, max_tokens: maxTokens });
+    const data = await chatStream(LM_STUDIO_URL, { model, messages: [{ role: "system", content: system }, { role: "user", content: user }], temperature: opts.temperature ?? 0, max_tokens: maxTokens });
     return { raw: data.content || "", ms: Date.now() - t0, finish_reason: data.finish_reason ?? null, reasoning_chars: data.reasoning_chars ?? 0, usage: data.usage ?? null, promptTokens, maxTokens };
   };
   const fence = (lang, s) => "```" + lang + "\n" + (String(s || "").trim() || "(vacío)") + "\n```";
@@ -297,6 +302,9 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
     ? `PROBLEMAS DE TU VERSIÓN ANTERIOR (los encontró el harness):\n${problems.map((p) => "- " + p).join("\n")}\n\nTU VERSIÓN ANTERIOR:\n${names.map((n) => `### FILE: ${n}\n${fence(langOf(n), prev?.[n])}`).join("\n\n")}\n\nDevolvé ${names.join(" y ")} corregido(s), completo(s).`
     : "";
   const answerOf = (st) => st.answer ? [st.answer] : st.files || [st.file];
+  const known = [...new Set(["styles.css", ...S.scripts, ...S.steps.flatMap((x) => answerOf(x))])];
+  let lastWrong = [];
+  const wrongNote = (st) => lastWrong.length ? ` Trajiste ${lastWrong.join(" y ")}: ese archivo es de otro paso. En este paso escribí SOLO ${answerOf(st).join(" y ")}.` : "";
   const loadedBefore = (st) => S.scripts.slice(0, S.scripts.indexOf(st.file)).map((f) => files[f]);
   const dataItems = () => Object.values(ctx.data).find((d) => Array.isArray(d?.items))?.items || [];
 
@@ -308,21 +316,23 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
     log(`[SPECIALIST] ${n}/${S.steps.length} ${names.join(" + ")}`);
     ctx.paso = `PASO ${n} de ${S.steps.length}`;
     let best = null, prev = null, problems = [];
-    for (let k = 0; k < 3; k++) {
+    for (let k = 0; k < (opts.bench?.maxAttempts || 3); k++) {
       ctx.have = K.count ? K.count() : 0;
       // datos: lo válido ya quedó guardado; el reintento pide solo lo que falta (b11: los reintentos
       // re-mandaban los 5 niveles y repetían el mismo error)
       const retry = st.kind === "data" ? (problems.length ? `PROBLEMAS DE TU RESPUESTA ANTERIOR (los encontró el harness):\n${problems.map((p) => "- " + p).join("\n")}` : "") : retryBlock(prev, problems, names);
       // v0.9.5 (paso 3): Skills del Role para ESTA clase de paso (opts.skills; sin --skills el pedido no cambia)
       const sk = skillsFor(st.kind);
-      const user = `BRIEF:\n${brief}\n\n${S.contract}\n\n${sk ? sk + "\n\n" : ""}${st.prompt(ctx)}\n\n` + retry;
+      // banco (v0.9.8): la línea neutra va ADELANTE; el pedido del paso sigue siendo lo último que lee Gemma
+      // (11/10: con la línea al final, en Invernadero escribió js/dibujo.js las 5 veces)
+      const user = (opts.bench?.prefix ? `${opts.bench.prefix}\n\n` : "") + `BRIEF:\n${brief}\n\n${S.contract}\n\n${sk ? sk + "\n\n" : ""}${st.prompt(ctx)}\n\n` + retry;
       const r = await ask(FILE_PROMPT, user, st.cap || 4000);
       writeFileSync(join(outDir, `step_${String(n).padStart(2, "0")}_${st.id}${k ? ".retry" + k : ""}.raw.txt`), r.raw, "utf8");
       let raw = r.raw;
       const att = { k, ms: r.ms, finish_reason: r.finish_reason, reasoning_chars: r.reasoning_chars, prompt_tokens_est: r.promptTokens, max_tokens: r.maxTokens };
       const jsName = names.find((x) => x.endsWith(".js"));
       if (jsName) {
-        let js = extractFile(raw, jsName);
+        let js = extractFile(raw, jsName, known);
         if (js) {
           let err = syntaxOf(js);
           // declaración repetida → arreglo determinista, sin Gemma (b9: const altura dos veces)
@@ -345,10 +355,15 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
           }
         }
       }
-      let content = Object.fromEntries(names.map((x) => [x, extractFile(raw, x)]));
+      let content = Object.fromEntries(names.map((x) => [x, extractFile(raw, x, known)]));
+      // v0.9.8: si trajo OTRO archivo del proyecto en vez del pedido, el problema lo dice
+      lastWrong = names.some((x) => !content[x]) ? [...String(raw).matchAll(/###\s*(?:FILE|APPEND):\s*([\w./\-]+)/g)].map((m) => m[1]).filter((f) => !names.some((x) => x === f || f.endsWith("/" + x.split("/").pop()))) : [];
+      if (lastWrong.length) att.wrong_files = lastWrong;
       if (st.take) content = st.take(raw, content);
       problems = await judge(content);
-      if (problems.length && repair) {
+      att.first_problems = [...problems]; // v0.9.7 (banco por paso): lo que dio la respuesta de Gemma, antes de reparar
+      att.first_fatal = !!problems.fatal;
+      if (problems.length && repair && !opts.bench?.noRepair) {
         const fixed = await repair(content, problems, att);
         if (fixed) { const p2 = await judge(fixed); if (scoreOf(true, p2) < scoreOf(true, problems)) { content = fixed; problems = p2; } }
       }
@@ -375,7 +390,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
 
   // ---- jueces generales por clase de paso ----
   const jsBasics = (st, code) => {
-    if (!code) return fatal([`la respuesta no trajo ### FILE: ${st.file}.`]);
+    if (!code) return fatal([`la respuesta no trajo ### FILE: ${st.file}.${wrongNote(st)}`]);
     const se = syntaxOf(code); if (se) return fatal([`error de sintaxis: ${se}`]);
     return null;
   };
@@ -394,7 +409,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
         judge: async (c) => {
           const txt = c[st.answer];
           // v0.9.6 (Depósito): sin el archivo pedido, Gemma escribió otro (js/niveles.js con strings): se le recuerda el formato
-          if (!txt) return fatal([`la respuesta no trajo ### FILE: ${st.answer}.${st.answerHint ? ` ${st.answerHint}` : ""}`]);
+          if (!txt) return fatal([`la respuesta no trajo ### FILE: ${st.answer}.${wrongNote(st)}${st.answerHint ? ` ${st.answerHint}` : ""}`]);
           const pj = parseJsonLoose(txt);
           if (!pj.ok) return fatal([`el JSON no se puede leer: ${pj.error}`]);
           const out = st.parse(pj.data, ctx);
@@ -468,7 +483,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
       judge: async (c) => {
         const out = [];
         const [html, css] = st.files;
-        if (!c[html]) out.push(`la respuesta no trajo ### FILE: ${html}.`);
+        if (!c[html]) out.push(`la respuesta no trajo ### FILE: ${html}.${wrongNote(st)}`);
         else { const miss = missingIds(c[html], S.ids || []); if (miss.length) out.push(`faltan estos ids en ${html}: ${miss.map((x) => "#" + x).join(", ")}.`); }
         if (!c[css]) out.push(`la respuesta no trajo ### FILE: ${css}.`);
         for (const id of st.enabled || []) if (disabledInHtml(c[html], id)) out.push(`en ${html}, #${id} tiene el atributo disabled: así nunca se puede usar. Sacá disabled.`);
@@ -534,8 +549,35 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
   if (opts.skills) log(`[SPECIALIST] Skills del Role ${opts.skills.role} (${opts.skills.status}): ${opts.skills.list.map((x) => x.id).join(", ")}`);
   log(`[SPECIALIST] ${ENGINE_VERSION} · Standard ${S.id} v${S.version} (${S.status}): ${S.steps.length} pasos chicos (un archivo por paso)${S.hintsText ? ` · ${S.hintsText(hints)}` : ""}`);
   const out = {};
+  // v0.9.7 (10/10, banco por paso): opts.bench = { step, frozen: { files, fragment, raws }, maxAttempts, prefix, noRepair }.
+  // Los pasos de antes NO se piden a Gemma: se cargan de un build anterior (entradas fijas); se corre
+  // solo `step` y se corta. Así la diferencia entre muestras viene solo del pedido de ese paso.
+  const benchAt = opts.bench ? S.steps.findIndex((x) => x.id === opts.bench.step) : -1;
+  if (opts.bench && benchAt < 0) throw new Error(`BENCH_STEP: "${opts.bench.step}" no es un paso del Standard ${S.id} (${S.steps.map((x) => x.id).join(", ")})`);
   for (const [i, st] of S.steps.entries()) {
     const n = i + 1;
+    if (opts.bench && i > benchAt) break;
+    if (opts.bench && i < benchAt) {
+      const fz = opts.bench.frozen || {};
+      if (st.kind === "data") {
+        // los datos se rearman con TODAS las respuestas crudas de ese paso (el pool junta intentos);
+        // el .js que se usa es el del build congelado, tal cual
+        const K = KINDS.data(st);
+        let pr = [];
+        for (const raw of fz.raws?.[st.id] || []) pr = await K.judge({ [st.answer]: extractFile(raw, st.answer) });
+        const parsed = K.final();
+        if (!parsed?.items?.length) throw new Error(`BENCH_FROZEN: las respuestas de ${st.id} del build congelado no dan datos válidos (${[...pr].slice(0, 2).join(" | ")})`);
+        ctx.data[st.id] = parsed; files[st.file] = fz.files?.[st.file] || parsed.js;
+      } else if (st.kind === "screen") {
+        if (!fz.fragment) throw new Error("BENCH_FROZEN: falta el fragmento HTML (index.html del build congelado)");
+        ctx.fragment = fz.fragment; files[st.files[1]] = fz.files?.[st.files[1]] || "";
+      } else {
+        if (!fz.files?.[st.file]) throw new Error(`BENCH_FROZEN: falta ${st.file} en el build congelado`);
+        files[st.file] = fz.files[st.file];
+      }
+      byId[st.id] = { broken: false, files: answerOf(st), problems_final: [] };
+      continue;
+    }
     const broken = (st.needs || []).map((id) => byId[id]).find((r) => r?.broken);
     if (broken) { byId[st.id] = skipStep(st, n, `${broken.files.join(" + ")} no funciona (${String(broken.problems_final[0] || "").slice(0, 120)})`).rec; continue; }
     const kind = KINDS[st.kind];
@@ -545,6 +587,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
     byId[st.id] = s.rec;
     if (st.kind === "data") {
       const parsed = K.final();
+      if (!parsed?.items?.length && opts.bench) { s.rec.data = { valid: 0 }; break; } // banco: sin datos = muestra rota, no error
       if (!parsed?.items?.length) throw new Error(`${st.id}: ningún dato válido después de 3 intentos (${(s.rec.problems_final || []).slice(0, 3).join(" | ")})`);
       ctx.data[st.id] = parsed;
       files[st.file] = parsed.js;

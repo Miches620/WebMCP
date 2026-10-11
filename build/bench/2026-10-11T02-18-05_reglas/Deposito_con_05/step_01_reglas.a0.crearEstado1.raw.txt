@@ -1,0 +1,70 @@
+```javascript
+crearEstado(nivel) {
+    let jugador = null;
+    let cajas = [];
+    // Usamos un Set para asegurar que cada objetivo se registre solo una vez, independientemente del marcador (* o +).
+    let objetivosSet = new Set(); 
+    let mapaBase = [];
+
+    const R = nivel.length;
+    if (R === 0) return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+    // Asumimos que el nivel es rectangular y todos los strings tienen la misma longitud.
+    const C = nivel[0].length;
+
+    for (let r = 0; r < R; r++) {
+        let filaActual = [];
+        for (let c = 0; c < C; c++) {
+            const tile = nivel[r][c];
+            let mapTile = ' '; // Valor por defecto para el mapa base
+
+            // 1. Identificar Objetivo: . , * o +
+            if (tile === '.' || tile === '*' || tile === '+') {
+                objetivosSet.add(`${r},${c}`);
+            }
+
+            // 2. Identificar Caja: $, *, o +
+            if (tile === '$' || tile === '*' || tile === '+') {
+                cajas.push({ fila: r, col: c });
+            }
+
+            // 3. Determinar el contenido del mapa base
+            if (tile === '#') {
+                mapTile = '#';
+            } else if (tile === '@') {
+                jugador = { fila: r, col: c };
+                mapTile = ' '; // El jugador no se dibuja en el mapa base
+            } 
+            // Si es un marcador de caja o jugador, el espacio en el mapa base es vacío.
+            else if (tile === '$' || tile === '*' || tile === '+') {
+                 mapTile = ' ';
+            }
+            // Si era un objetivo marcado con '.', debe permanecer como '.' en el mapa base.
+            else if (tile === '.') {
+                mapTile = '.';
+            } 
+            // Cualquier otro carácter es espacio vacío (' ')
+            else {
+                mapTile = ' ';
+            }
+
+            filaActual.push(mapTile);
+        }
+        mapaBase.push(filaActual);
+    }
+
+    // Convertir el Set de coordenadas a un array de objetos {fila, col}
+    let objetivosArray = [];
+    for (const coord of objetivosSet) {
+        const [rStr, cStr] = coord.split(',');
+        objetivosArray.push({ fila: parseInt(rStr), col: parseInt(cStr) });
+    }
+
+    return {
+        mapa: mapaBase,
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivosArray,
+        movimientos: 0
+    };
+}
+```

@@ -1,0 +1,109 @@
+```javascript
+mover: function(estado, direccion) {
+        // Clonar el estado para asegurar que solo se devuelva un nuevo objeto en caso de éxito.
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        const R = estado.mapa.length;
+        if (R === 0) return estado;
+        const C = estado.mapa[0].length;
+
+        let r_j = estado.jugador.fila;
+        let c_j = estado.jugador.col;
+        let r_next, c_next;
+
+        // 1. Calcular la posición objetivo del jugador (r_next, c_next)
+        switch (direccion) {
+            case "arriba":
+                r_next = r_j - 1; c_next = c_j; break;
+            case "abajo":
+                r_next = r_j + 1; c_next = c_j; break;
+            case "izquierda":
+                r_next = r_j; c_next = c_j - 1; break;
+            case "derecha":
+                r_next = r_j; c_next = c_j + 1; break;
+        }
+
+        // Verificar límites del mapa (usando dimensiones dinámicas R y C)
+        if (r_next < 0 || r_next >= R || c_next < 0 || c_next >= C) {
+            return estado; // Fuera de límites
+        }
+
+        // Verificar si la posición objetivo es una pared
+        if (estado.mapa[r_next][c_next] === '#') {
+            return estado;
+        }
+
+        let cajaEnDestino = false;
+        let cajaAEmpujarIndex = -1;
+
+        // 2. Verificar si hay una caja en la posición objetivo
+        for (let i = 0; i < estado.cajas.length; i++) {
+            const box = estado.cajas[i];
+            if (box.fila === r_next && box.col === c_next) {
+                cajaEnDestino = true;
+                cajaAEmpujarIndex = i;
+                break;
+            }
+        }
+
+        // Caso 1: No hay caja en el destino (Movimiento simple)
+        if (!cajaEnDestino) {
+            // Es un movimiento válido. Actualizar estado.
+            nuevoEstado.jugador = { fila: r_next, col: c_next };
+            nuevoEstado.movimientos += 1;
+            return nuevoEstado;
+        }
+
+        // Caso 2: Hay caja en el destino (Intento de empuje)
+        let r_push, c_push; // Posición detrás de la caja
+        
+        // Calcular posición detrás de la caja
+        switch (direccion) {
+            case "arriba":
+                r_push = r_next - 1; c_push = c_next; break;
+            case "abajo":
+                r_push = r_next + 1; c_push = c_next; break;
+            case "izquierda":
+                r_push = r_next; c_push = c_next - 1; break;
+            case "derecha":
+                r_push = r_next; c_push = c_next + 1; break;
+        }
+
+        // Verificar si la posición detrás de la caja es válida para empujar (usando R y C)
+        if (r_push < 0 || r_push >= R || c_push < 0 || c_push >= C) {
+            return estado; // Empuje fuera de límites
+        }
+
+        // Verificar colisión en el destino del empuje: Pared o caja
+        if (estado.mapa[r_push][c_push] === '#') {
+            return estado; // Colisión con pared
+        }
+
+        let hayOtraCajaDetras = false;
+        for (const box of estado.cajas) {
+            if (box.fila === r_push && box.col === c_push) {
+                hayOtraCajaDetras = true;
+                break; // Colisión con otra caja
+            }
+        }
+
+        if (hayOtraCajaDetras) {
+            return estado; // Colisión con otra caja
+        }
+
+        // Empuje exitoso: Actualizar el nuevo estado.
+        nuevoEstado.movimientos += 1;
+
+        // 2a. Mover al jugador a la posición de la caja (r_next, c_next)
+        nuevoEstado.jugador = { fila: r_next, col: c_next };
+
+        // 2b. Mover la caja empujada (cajaAEmpujarIndex) a la nueva posición (r_push, c_push)
+        
+        // Crear una copia de las cajas y actualizar solo la que se movió
+        let nuevasCajas = [...estado.cajas];
+        nuevasCajas[cajaAEmpujarIndex] = { fila: r_push, col: c_push };
+        nuevoEstado.cajas = nuevasCajas;
+
+        return nuevoEstado;
+    }
+```

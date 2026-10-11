@@ -1,0 +1,18 @@
+```javascript
+ganado: function(estado) {
+        if (!estado || !estado.objetivos || estado.objetivos.length === 0) return false;
+
+        // Crear un set de coordenadas objetivo para una búsqueda rápida
+        const objetivosSet = new Set(estado.objetivos.map(obj => `${obj.fila},${obj.col}`));
+
+        // Verificar si cada caja está sobre un objetivo
+        let cajasSobreObjetivo = 0;
+        for (const caja of estado.cajas) {
+            if (objetivosSet.has(`${caja.fila},${caja.col}`)) {
+                cajasSobreObjetivo++;
+            }
+        }
+
+        return cajasSobreObjetivo === estado.objetivos.length;
+    },
+```

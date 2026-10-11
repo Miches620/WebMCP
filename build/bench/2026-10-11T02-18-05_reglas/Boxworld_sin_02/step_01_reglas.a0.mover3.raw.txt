@@ -1,0 +1,116 @@
+```javascript
+mover: function(estado, direccion) {
+    // Crear una copia profunda del estado para asegurar la inmutabilidad si el movimiento falla o es exitoso.
+    const nuevoEstadoBase = JSON.parse(JSON.stringify(estado));
+
+    // Helper para obtener coordenadas de manera segura (fila/col)
+    const getCoords = (obj) => ({ fila: obj.fila, col: obj.col });
+
+    let jugador = estado.jugador;
+    let nuevaPosicionJugador = { ...getCoords(jugador) };
+
+    // 1. Calcular la posición objetivo del jugador (P_next)
+    switch (direccion) {
+        case "arriba":
+            nuevaPosicionJugador.fila -= 1;
+            break;
+        case "abajo":
+            nuevaPosicionJugador.fila += 1;
+            break;
+        case "izquierda":
+            nuevaPosicionJugador.col -= 1;
+            break;
+        case "derecha":
+            nuevaPosicionJugador.col += 1;
+            break;
+    }
+
+    // Helper para verificar si una posición es válida (dentro de límites y no pared)
+    const isValidCoord = (r, c) => {
+        // Asumiendo que el mapa tiene dimensiones constantes (ej: 10x10 como en los tests fallidos)
+        if (r < 0 || r >= estado.mapa.length || c < 0 || c >= estado.mapa[0].length) return false;
+        return estado.mapa[r][c] !== '#';
+    };
+
+    // Verificar si el movimiento es posible en términos de límites y paredes
+    if (!isValidCoord(nuevaPosicionJugador.fila, nuevaPosicionJugador.col)) {
+        return nuevoEstadoBase; // Movimiento imposible (pared/fuera)
+    }
+
+    // 2. Comprobar colisión con cajas
+    const cajaEnDestino = estado.cajas.some(caja =>
+        caja.fila === nuevaPosicionJugador.fila && caja.col === nuevaPosicionJugador.col
+    );
+
+    if (!cajaEnDestino) {
+        // Caso A: Movimiento simple (no hay cajas en el destino)
+        const nuevoEstado = JSON.parse(JSON.stringify(estado));
+        nuevoEstado.jugador = { ...getCoords(jugador), fila: nuevaPosicionJugador.fila, col: nuevaPosicionJugador.col };
+        nuevoEstado.movimientos += 1;
+        return nuevoEstado;
+    } else {
+        // Caso B: Colisión con caja, intentar empujar
+        let cajaAEmpujar = estado.cajas.find(caja =>
+            caja.fila === nuevaPosicionJugador.fila && caja.col === nuevaPosicionJugador.col
+        );
+
+        if (!cajaAEmpujar) {
+             // Esto no debería pasar si cajaEnDestino es true, pero por seguridad:
+             return nuevoEstadoBase;
+        }
+
+        // Calcular la posición detrás de la caja (B_back)
+        let posicionDetras = { ...getCoords(cajaAEmpujar) };
+        switch (direccion) {
+            case "arriba":
+                posicionDetras.fila -= 1;
+                break;
+            case "abajo":
+                posicionDetras.fila += 1;
+                break;
+            case "izquierda":
+                posicionDetras.col -= 1;
+                break;
+            case "derecha":
+                posicionDetras.col += 1;
+                break;
+        }
+
+        // Verificar si el empuje es posible:
+        // 1. B_back debe estar dentro de límites y no ser pared.
+        if (!isValidCoord(posicionDetras.fila, posicionDetras.col)) {
+            return nuevoEstadoBase; // Empuje imposible (pared)
+        }
+
+        // 2. B_back no puede estar ocupado por otra caja.
+        const hayOtraCaja = estado.cajas.some(caja =>
+            !(caja === cajaAEmpujar) && caja.fila === posicionDetras.fila && caja.col === posicionDetras.col
+        );
+
+        if (hayOtraCaja) {
+            return nuevoEstadoBase; // Empuje imposible (otra caja)
+        }
+
+        // 3. B_back no puede estar ocupado por el jugador.
+        const hayJugadorEnDestino = estado.jugador.fila === posicionDetras.fila && estado.jugador.col === posicionDetras.col;
+        if (hayJugadorEnDestino) {
+             return nuevoEstadoBase; // Empuje imposible (el jugador está bloqueando el camino de la caja)
+        }
+
+
+        // --- EL EMPUJE ES EXITOSO ---
+
+        // 1. Actualizar cajas: Remover la caja original y añadirla en B_back
+        let nuevasCajas = estado.cajas.filter(c => c !== cajaAEmpujar);
+        nuevasCajas.push({ fila: posicionDetras.fila, col: posicionDetras.col });
+
+        // 2. Actualizar jugador: El jugador ocupa la posición de la caja original
+        const nuevoEstado = JSON.parse(JSON.stringify(estado));
+        nuevoEstado.jugador = { ...getCoords(jugador), fila: nuevaPosicionJugador.fila, col: nuevaPosicionJugador.col };
+        nuevoEstado.cajas = nuevasCajas;
+        nuevoEstado.movimientos += 1;
+
+        return nuevoEstado;
+    }
+}
+```

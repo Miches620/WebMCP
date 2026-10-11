@@ -1,0 +1,49 @@
+```javascript
+crearEstado(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+    const nuevoMapa = [];
+
+    for (let r = 0; r < nivel.length; r++) {
+        const filaActual = [];
+        for (let c = 0; c < nivel[r].length; c++) {
+            const char = nivel[r][c];
+            let mapChar = '';
+
+            // Determinar el carácter del mapa: solo puede ser '#', ' ', o '.'
+            if (char === '#') {
+                mapChar = '#';
+            } else if (['.', '+', '*'].includes(char)) {
+                // Si es un marcador de objetivo, en el mapa debe ser '.'
+                mapChar = '.';
+            } else if (char === ' ') {
+                mapChar = ' ';
+            } else {
+                // Cualquier otro carácter ('@', '$') se resuelve a espacio libre en el mapa base.
+                mapChar = ' ';
+            }
+
+            filaActual.push(mapChar);
+
+            // Recolectar elementos móviles y objetivos
+            if (char === '@' || char === '+') {
+                jugador = { fila: r, col: c };
+            } else if (char === '$' || char === '*') {
+                cajas.push({ fila: r, col: c });
+            } else if (['.', '+', '*'].includes(char)) {
+                objetivos.push({ fila: r, col: c });
+            }
+        }
+        nuevoMapa.push(filaActual);
+    }
+
+    return {
+        mapa: nuevoMapa,
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivos,
+        movimientos: 0
+    };
+}
+```

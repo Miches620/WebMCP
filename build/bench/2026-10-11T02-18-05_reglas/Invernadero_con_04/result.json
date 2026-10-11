@@ -1,0 +1,58 @@
+{
+  "case": "Invernadero",
+  "cond": "con",
+  "i": 4,
+  "ref": "LP-5160",
+  "ms": 584043,
+  "ok_first": false,
+  "fatal_first": true,
+  "ok_final": false,
+  "broken": false,
+  "problems_first": [
+    "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading '0')",
+    "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+    "la pared bloquea: tiró un error: Cannot read properties of undefined (reading '0')",
+    "empujar una caja: tiró un error: Cannot read properties of undefined (reading '0')",
+    "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+    "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading '0')",
+    "de a un casillero: tiró un error: Cannot read properties of undefined (reading '0')",
+    "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+    "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+    "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading '0')"
+  ],
+  "problems_final": [
+    "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"derecha\") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador {fila:1,col:2}, cajas [{fila:1,col:2}], movimientos 1. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+    "con [\"#####\",\"#@$.#\",\"#####\"], después de mover \"derecha\" la única caja está en el único objetivo: ganado tiene que ser true.",
+    "crearEstado([\"######\",\"#+$ *#\",\"######\"]): objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#    #\"."
+  ],
+  "member_repair": [
+    {
+      "fn": "crearEstado",
+      "ok": true
+    },
+    {
+      "fn": "mover",
+      "ok": false
+    },
+    {
+      "fn": "crearEstado",
+      "ok": false
+    }
+  ],
+  "tests": {
+    "passed": 12,
+    "failed": [
+      "empujar una caja",
+      "caja en el objetivo = ganado",
+      "lee '*' y '+'"
+    ]
+  },
+  "skill_hits": {
+    "botones-habilitados": 0,
+    "flecha-sin-tapar": 0,
+    "grilla-que-no-se-estira": 0,
+    "nombres-del-contrato": 0,
+    "piezas-aparte-del-mapa": 0,
+    "siempre-jugable": 0
+  }
+}

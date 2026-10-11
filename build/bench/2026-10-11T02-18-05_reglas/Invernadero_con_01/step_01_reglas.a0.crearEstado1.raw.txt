@@ -1,0 +1,55 @@
+```javascript
+crearEstado(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+
+    // Inicializar el mapa base (solo paredes y pisos/objetivos)
+    if (!nivel || nivel.length === 0) {
+        return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+    }
+
+    let mapaBase = nivel.map(fila => fila.split(''));
+
+    const R = nivel.length;
+    const C = nivel[0].length;
+
+    for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+            const char = nivel[r][c];
+
+            // Identificar elementos y poblar listas
+            if (char === '@' || char === '+') {
+                jugador = { fila: r, col: c };
+            } else if (char === '$' || char === '*') {
+                // Las cajas se registran por su posición inicial.
+                cajas.push({ fila: r, col: c });
+            } else if (char === '.') {
+                objetivos.push({ fila: r, col: c });
+            }
+
+            // Actualizar el mapa base: reemplazar símbolos de juego con sus elementos fijos.
+            if (char === '@' || char === '+') {
+                mapaBase[r][c] = ' '; // El jugador ocupa un espacio vacío en el mapa base
+            } else if (char === '$' || char === '*') {
+                // Las cajas también ocupan un espacio vacío en el mapa base, pero no son paredes.
+                mapaBase[r][c] = ' '; 
+            } else if (char === '.') {
+                // Si es objetivo, se mantiene '.'
+                mapaBase[r][c] = '.';
+            } else if (char !== '#') {
+                // Espacios vacíos o pisos normales
+                mapaBase[r][c] = ' ';
+            }
+        }
+    }
+
+    return {
+        mapa: mapaBase,
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivos,
+        movimientos: 0
+    };
+}
+```

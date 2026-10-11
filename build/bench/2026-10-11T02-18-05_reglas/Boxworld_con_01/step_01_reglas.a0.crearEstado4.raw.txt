@@ -1,0 +1,58 @@
+```javascript
+crearEstado: function(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+        let mapaBase = [];
+
+        for (let r = 0; r < nivel.length; r++) {
+            const rowString = nivel[r];
+            if (!rowString) continue;
+
+            let nuevaFilaMapa = [];
+            for (let c = 0; c < rowString.length; c++) {
+                const char = rowString[c];
+                let mapChar = ' '; // Default floor/empty space
+
+                // 1. Check for Walls
+                if (char === '#') {
+                    mapChar = '#';
+                } 
+                // 2. Check for Objectives (. or + or *)
+                else if (char === '.' || char === '+' || char === '*') {
+                    // Add objective only if not already recorded at this spot
+                    const isDuplicateObjective = objetivos.some(o => o.fila === r && o.col === c);
+                    if (!isDuplicateObjective) {
+                        objetivos.push({ fila: r, col: c });
+                    }
+                    mapChar = '.';
+                } 
+                // 3. Check for Player (@ or +)
+                else if (char === '@' || char === '+') {
+                    jugador = { fila: r, col: c };
+                    mapChar = ' '; // Player location itself doesn't draw on the map base
+                } 
+                // 4. Check for Crates ($ or *)
+                else if (char === '$' || char === '*') {
+                    cajas.push({ fila: r, col: c });
+                    mapChar = ' '; // Crate location itself doesn't draw on the map base
+                } 
+                // Floor space (' ') or other characters
+                else {
+                    mapChar = ' ';
+                }
+
+                nuevaFilaMapa.push(mapChar);
+            }
+            mapaBase.push(nuevaFilaMapa.join(''));
+        }
+
+        return {
+            mapa: mapaBase,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+```

@@ -1,0 +1,63 @@
+{
+  "case": "Boxworld",
+  "cond": "con",
+  "i": 1,
+  "ref": "BX-1042",
+  "ms": 795948,
+  "ok_first": false,
+  "fatal_first": true,
+  "ok_final": false,
+  "broken": false,
+  "problems_first": [
+    "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading 'split')",
+    "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading 'split')",
+    "la pared bloquea: tiró un error: Cannot read properties of undefined (reading 'split')",
+    "empujar una caja: tiró un error: Cannot read properties of undefined (reading 'split')",
+    "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading 'split')",
+    "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading 'split')",
+    "de a un casillero: tiró un error: Cannot read properties of undefined (reading 'split')",
+    "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading 'split')",
+    "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading 'split')",
+    "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading 'split')",
+    "crearEstado(NIVELES[0]) tiró: state is not defined",
+    "crearEstado(NIVELES[1]) tiró: state is not defined",
+    "crearEstado(NIVELES[2]) tiró: state is not defined",
+    "crearEstado(NIVELES[3]) tiró: state is not defined",
+    "crearEstado(NIVELES[4]) tiró: state is not defined"
+  ],
+  "problems_final": [
+    "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#    #\"."
+  ],
+  "member_repair": [
+    {
+      "fn": "crearEstado",
+      "ok": true
+    },
+    {
+      "fn": "ganado",
+      "ok": true
+    },
+    {
+      "fn": "mover",
+      "ok": true
+    },
+    {
+      "fn": "crearEstado",
+      "ok": false
+    }
+  ],
+  "tests": {
+    "passed": 14,
+    "failed": [
+      "lee '*' y '+'"
+    ]
+  },
+  "skill_hits": {
+    "botones-habilitados": 0,
+    "flecha-sin-tapar": 0,
+    "grilla-que-no-se-estira": 0,
+    "nombres-del-contrato": 5,
+    "piezas-aparte-del-mapa": 0,
+    "siempre-jugable": 0
+  }
+}

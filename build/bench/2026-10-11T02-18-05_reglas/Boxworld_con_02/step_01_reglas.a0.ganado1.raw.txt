@@ -1,0 +1,26 @@
+```javascript
+ganado(estado) {
+    if (!estado.objetivos || estado.objetivos.length === 0) return false;
+
+    // Verificar si cada objetivo tiene al menos una caja encima.
+    for (const obj of estado.objetivos) {
+        let covered = false;
+        
+        // Buscar si alguna caja coincide con la posición del objetivo actual
+        for (const box of estado.cajas) {
+            if (box.fila === obj.fila && box.col === obj.col) {
+                covered = true;
+                break; // Objetivo cubierto, pasamos al siguiente objetivo
+            }
+        }
+
+        // Si encontramos un objetivo que no está cubierto por ninguna caja, el juego no ha terminado.
+        if (!covered) {
+            return false;
+        }
+    }
+
+    // Si todos los objetivos han sido revisados y cada uno tiene una caja encima.
+    return true;
+}
+```

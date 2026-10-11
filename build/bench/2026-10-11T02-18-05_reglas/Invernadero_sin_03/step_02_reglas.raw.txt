@@ -1,0 +1,59 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado, numeroNivel) {
+    const tablero = document.getElementById('tablero');
+    const nivelDisplay = document.getElementById('nivel');
+    const movimientosDisplay = document.getElementById('movimientos');
+
+    // 1. Limpiar el tablero
+    tablero.innerHTML = '';
+
+    // Establecer la estructura de grid (9 columnas)
+    tablero.style.gridTemplateColumns = 'repeat(9, 1fr)';
+
+    const mapa = estado.mapa;
+    const filas = mapa.length;
+    const columnas = mapa[0].length;
+
+    // 2. Dibujar cada casillero
+    for (let r = 0; r < filas; r++) {
+        for (let c = 0; c < columnas; c++) {
+            const casilla = document.createElement('div');
+            casilla.className = 'casillero';
+
+            // Determinar la clase base del piso/pared
+            if (mapa[r][c] === '#') {
+                casilla.classList.add('pared');
+            } else {
+                casilla.classList.add('piso');
+            }
+
+            let clasesAdicionales = '';
+
+            // 3. Verificar elementos especiales en el casillero (Objetivo, Caja, Jugador)
+            if (mapa[r][c] === '.') {
+                clasesAdicionales += ' objetivo';
+            }
+
+            // Revisar si hay una caja aquí
+            const tieneCaja = estado.cajas.some(c => c.fila === r && c.col === c);
+            if (tieneCaja) {
+                clasesAdicionales += ' caja';
+            }
+
+            // Revisar si está el jugador aquí
+            const esJugador = estado.jugador.fila === r && estado.jugador.col === c;
+            if (esJugador) {
+                clasesAdicionales += ' jugador';
+            }
+
+            casilla.className += ' ' + clasesAdicionales;
+            tablero.appendChild(casilla);
+        }
+    }
+
+    // 4. Actualizar HUDs
+    movimientosDisplay.textContent = estado.movimientos;
+    nivelDisplay.textContent = numeroNivel;
+}
+```

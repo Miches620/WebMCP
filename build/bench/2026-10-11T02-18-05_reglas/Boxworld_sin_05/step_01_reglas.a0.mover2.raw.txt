@@ -1,0 +1,105 @@
+```javascript
+mover(estado, direccion) {
+    // Crear una copia profunda del estado para asegurar la inmutabilidad en caso de fallo o éxito.
+    const nuevoEstadoBase = JSON.parse(JSON.stringify(estado));
+
+    const { jugador: p, cajas: cajasActual } = estado;
+    let nuevaPosicionJugador = { fila: p.fila, col: p.col };
+
+    // 1. Calcular la posición objetivo del jugador (usando fila/col)
+    switch (direccion) {
+        case "arriba":
+            nuevaPosicionJugador.fila -= 1;
+            break;
+        case "abajo":
+            nuevaPosicionJugador.fila += 1;
+            break;
+        case "izquierda":
+            nuevaPosicionJugador.col -= 1;
+            break;
+        case "derecha":
+            nuevaPosicionJugador.col += 1;
+            break;
+    }
+
+    const mapa = estado.mapa;
+    const alturaMapa = mapa.length;
+    const anchoMapa = mapa[0].length;
+
+    // Verificar si la nueva posición del jugador es válida (dentro de límites y no pared)
+    if (nuevaPosicionJugador.fila < 0 || nuevaPosicionJugador.fila >= alturaMapa ||
+        nuevaPosicionJugador.col < 0 || nuevaPosicionJugador.col >= anchoMapa ||
+        mapa[nuevaPosicionJugador.fila][nuevaPosicionJugador.col] === '#') {
+        return nuevoEstadoBase; // Movimiento inválido (pared o fuera de límites)
+    }
+
+    // 2. Verificar si la nueva posición está ocupada por una caja
+    const esCaja = cajasActual.some(c => c.fila === nuevaPosicionJugador.fila && c.col === nuevaPosicionJugador.col);
+
+    if (!esCaja) {
+        // Caso 1: Movimiento simple (no hay cajas en el destino)
+        const nuevoEstado = JSON.parse(JSON.stringify(estado));
+        nuevoEstado.movimientos += 1;
+        nuevoEstado.jugador = nuevaPosicionJugador;
+        return nuevoEstado;
+    } else {
+        // Caso 2: Intento de empujar una caja
+
+        let cajaAEmpujarIndex = -1;
+        for (let i = 0; i < cajasActual.length; i++) {
+            const c = cajasActual[i];
+            if (c.fila === nuevaPosicionJugador.fila && c.col === nuevaPosicionJugador.col) {
+                cajaAEmpujarIndex = i;
+                break;
+            }
+        }
+
+        // Calcular la posición objetivo de la caja (el destino del empuje)
+        let nuevaPosicionCaja = { fila: cajasActual[cajaAEmpujarIndex].fila, col: cajasActual[cajaAEmpujarIndex].col };
+        switch (direccion) {
+            case "arriba":
+                nuevaPosicionCaja.fila -= 1;
+                break;
+            case "abajo":
+                nuevaPosicionCaja.fila += 1;
+                break;
+            case "izquierda":
+                nuevaPosicionCaja.col -= 1;
+                break;
+            case "derecha":
+                nuevaPosicionCaja.col += 1;
+                break;
+        }
+
+        // Verificar si el empuje es posible:
+        // a) Debe estar dentro de límites y no ser pared.
+        if (nuevaPosicionCaja.fila < 0 || nuevaPosicionCaja.fila >= alturaMapa ||
+            nuevaPosicionCaja.col < 0 || nuevaPosicionCaja.col >= anchoMapa ||
+            mapa[nuevaPosicionCaja.fila][nuevaPosicionCaja.col] === '#') {
+            return nuevoEstadoBase; // La caja choca contra una pared o límite
+        }
+
+        // b) El destino de la caja no debe estar ocupado por otra cosa (otra caja).
+        const hayOcupacion = cajasActual.some((c, i) => 
+            i !== cajaAEmpujarIndex && c.fila === nuevaPosicionCaja.fila && c.col === nuevaPosicionCaja.col);
+
+        if (hayOcupacion) {
+            return nuevoEstadoBase; // La caja choca contra otra caja
+        }
+
+        // Empuje exitoso: Crear el nuevo estado
+        const nuevoEstado = JSON.parse(JSON.stringify(estado));
+        nuevoEstado.movimientos += 1;
+
+        // Actualizar jugador
+        nuevoEstado.jugador = nuevaPosicionJugador;
+
+        // Actualizar cajas (copiando y modificando la posición de la caja empujada)
+        let nuevasCajas = [...cajasActual];
+        nuevasCajas[cajaAEmpujarIndex] = nuevaPosicionCaja;
+        nuevoEstado.cajas = nuevasCajas;
+
+        return nuevoEstado;
+    }
+}
+```

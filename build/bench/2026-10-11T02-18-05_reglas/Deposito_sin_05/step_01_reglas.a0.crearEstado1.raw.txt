@@ -1,0 +1,52 @@
+```javascript
+crearEstado(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+    const mapaFinal = [];
+
+    // Iteramos sobre el nivel para construir el mapa limpio y recolectar coordenadas de estado.
+    for (let r = 0; r < nivel.length; r++) {
+        let rowString = "";
+        for (let c = 0; c < nivel[r].length; c++) {
+            const char = nivel[r][c];
+            let mapChar = '';
+
+            // --- Recolección de Coordenadas ---
+            if (char === '@' || char === '+') { // Marcadores de jugador inicial
+                if (!jugador) { 
+                    jugador = { fila: r, col: c };
+                }
+            } else if (['$', '*'].includes(char)) { // Cajas
+                cajas.push({ fila: r, col: c });
+            } else if (['.', '+', '*'].includes(char)) { // Objetivos
+                 objetivos.push({ fila: r, col: c });
+            }
+
+            // --- Construcción del Mapa Limpio ---
+            if (char === '#') {
+                mapChar = '#';
+            } else if (['.', '+', '*'].includes(char)) {
+                // Si era un marcador de objetivo, el mapa muestra '.'
+                mapChar = '.';
+            } else if (char === '@' || char === '$') {
+                 // Posición inicial del jugador o caja: se trata como piso vacío en el estado.mapa
+                 mapChar = ' '; 
+            } else {
+                // Espacio estándar (' ')
+                mapChar = ' ';
+            }
+            rowString += mapChar;
+        }
+        mapaFinal.push(rowString);
+    }
+
+    return {
+        mapa: mapaFinal, 
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivos,
+        movimientos: 0
+    };
+}
+```

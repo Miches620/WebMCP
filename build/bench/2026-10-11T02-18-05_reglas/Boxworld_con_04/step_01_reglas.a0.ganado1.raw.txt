@@ -1,0 +1,31 @@
+```javascript
+ganado(estado) {
+    if (!estado || !estado.objetivos || estado.objetivos.length === 0) {
+        return true;
+    }
+
+    const objetivosCoords = estado.objetivos;
+    const cajasCoords = estado.cajas;
+
+    if (!cajasCoords || cajasCoords.length === 0) {
+        return false;
+    }
+
+    // Crear un set de coordenadas de las cajas para búsqueda rápida
+    const cajaSet = new Set();
+    for (const coord of cajasCoords) {
+        cajaSet.add(`${coord.fila},${coord.col}`);
+    }
+
+    // Verificar si cada objetivo tiene una caja encima
+    for (const objetivo of objetivosCoords) {
+        const coordKey = `${objetivo.fila},${objetivo.col}`;
+        if (!cajaSet.has(coordKey)) {
+            return false; // Encontrado un objetivo sin caja encima
+        }
+    }
+
+    // Todos los objetivos están cubiertos
+    return true;
+}
+```

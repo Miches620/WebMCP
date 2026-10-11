@@ -1,0 +1,39 @@
+{
+  "case": "Deposito",
+  "cond": "sin",
+  "i": 1,
+  "ref": "BX-1042",
+  "ms": 526169,
+  "ok_first": false,
+  "fatal_first": false,
+  "ok_final": true,
+  "broken": false,
+  "problems_first": [
+    "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"derecha\") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador {fila:1,col:4}, cajas [{fila:1,col:3}], movimientos 1.",
+    "con [\"######\",\"#@   #\",\"#    #\",\"######\"], \"derecha\" deja al jugador en {fila:1,col:2} y \"abajo\" en {fila:2,col:1} (un casillero por vez); quedó {fila:1,col:3} y {fila:3,col:1}.",
+    "crearEstado([\"######\",\"#+$ *#\",\"######\"]): objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#    #\"."
+  ],
+  "problems_final": [],
+  "member_repair": [
+    {
+      "fn": "mover",
+      "ok": true
+    },
+    {
+      "fn": "crearEstado",
+      "ok": true
+    }
+  ],
+  "tests": {
+    "passed": 14,
+    "failed": []
+  },
+  "skill_hits": {
+    "botones-habilitados": 0,
+    "flecha-sin-tapar": 0,
+    "grilla-que-no-se-estira": 0,
+    "nombres-del-contrato": 0,
+    "piezas-aparte-del-mapa": 0,
+    "siempre-jugable": 0
+  }
+}

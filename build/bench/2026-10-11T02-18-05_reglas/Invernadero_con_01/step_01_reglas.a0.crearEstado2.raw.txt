@@ -1,0 +1,73 @@
+```javascript
+crearEstado(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+    const R = nivel.length;
+    if (R === 0) {
+        return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+    }
+    const C = nivel[0].length;
+
+    // Inicializar un mapa temporal para construir el estado final
+    let tempMapa = Array(R).fill(null).map(() => Array(C));
+
+    for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+            const char = nivel[r][c];
+            let mapChar = '';
+
+            // 1. Identificar elementos y poblar listas
+            if (char === '@' || char === '+') {
+                jugador = { fila: r, col: c };
+                // Si el jugador está sobre un objetivo ('+'), lo registramos como objetivo.
+                if (char === '+') { 
+                    objetivos.push({ fila: r, col: c });
+                }
+            } else if (char === '$' || char === '*') {
+                cajas.push({ fila: r, col: c });
+            } else if (char === '.') {
+                objetivos.push({ fila: r, col: c });
+            } 
+            // '*' siempre marca un objetivo y es una caja.
+            if (char === '*') {
+                 objetivos.push({ fila: r, col: c });
+            } else if (char === '+') {
+                // Si '+' no fue detectado como jugador en este ciclo (ej. si el nivel lo usa solo para marcar objetivo), 
+                // y ya se registró arriba si era jugador, nos aseguramos de que sea un objetivo.
+                 if (!objetivos.some(obj => obj.fila === r && obj.col === c)) {
+                    objetivos.push({ fila: r, col: c });
+                }
+            }
+
+            // 2. Determinar el carácter del mapa base (solo '#', ' ', '.')
+            if (char === '#') {
+                mapChar = '#';
+            } else if (['@', '$', '+', '*'].includes(char)) {
+                // Elementos dinámicos dejan un espacio vacío en el mapa fijo.
+                mapChar = ' '; 
+            } else if (char === '.') {
+                // Objetivo, siempre se representa como '.' en el mapa base.
+                mapChar = '.';
+            } else {
+                 // Espacios vacíos o pisos normales (' ')
+                 mapChar = ' ';
+            }
+
+            tempMapa[r][c] = mapChar;
+        }
+    }
+    
+    // 3. Convertir el mapa temporal (array de arrays) a un array de strings
+    const mapaFinal = tempMapa.map(row => row.join(''));
+
+
+    return {
+        mapa: mapaFinal,
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivos,
+        movimientos: 0
+    };
+}
+```

@@ -1,0 +1,59 @@
+```javascript
+crearEstado(nivel) {
+    let jugador = null;
+    let cajas = [];
+    // Usamos un Set para asegurar que cada coordenada de objetivo sea única
+    let objetivosSet = new Set(); 
+    let mapaBase = [];
+
+    for (let r = 0; r < nivel.length; r++) {
+        let rowString = "";
+        for (let c = 0; c < nivel[r].length; c++) {
+            const char = nivel[r][c];
+            let mapChar = ' '; // Default character for the map base
+
+            // 1. Determinar el carácter que va en el mapa base (solo '#', ' ', '.')
+            if (char === '#') {
+                mapChar = '#';
+            } else if (char === '.') {
+                mapChar = '.';
+            } else {
+                // Cualquier otra cosa (incluyendo +, $, @, *) se representa como espacio en el mapa base.
+                mapChar = ' '; 
+            }
+
+            rowString += mapChar;
+
+            // 2. Identificar entidades y objetivos
+            if (char === '@' || char === '+') {
+                // Detectar la posición inicial del jugador
+                jugador = { fila: r, col: c };
+            } else if (char === '$' || char === '*') {
+                // Registrar cajas
+                cajas.push({ fila: r, col: c });
+            } 
+            
+            // Detectar objetivos: . o cualquier marcador de entidad (+, *, @) que indique un objetivo.
+            if (char === '.' || char === '+' || char === '*' || char === '@') {
+                objetivosSet.add(`${r},${c}`);
+            }
+        }
+        mapaBase.push(rowString);
+    }
+
+    // Convertir el Set de coordenadas a un array de objetos {fila, col}
+    let objetivosArray = [];
+    objetivosSet.forEach(coord => {
+        const [rStr, cStr] = coord.split(',');
+        objetivosArray.push({ fila: parseInt(rStr), col: parseInt(cStr) });
+    });
+
+    return {
+        mapa: mapaBase,
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivosArray,
+        movimientos: 0
+    };
+}
+```

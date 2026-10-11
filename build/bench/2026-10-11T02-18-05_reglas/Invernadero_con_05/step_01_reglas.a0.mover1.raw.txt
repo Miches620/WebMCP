@@ -1,0 +1,109 @@
+```javascript
+mover: function(estado, direccion) {
+        // Crear una copia profunda del estado para asegurar inmutabilidad
+        const nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        let jugadorActual = estado.jugador;
+        let cajasActuales = estado.cajas;
+        let movimientosActuales = estado.movimientos;
+
+        // 1. Calcular la posición objetivo del jugador (sin considerar si hay caja)
+        let nextPlayerR = jugadorActual.fila;
+        let nextPlayerC = jugadorActual.col;
+
+        switch (direccion) {
+            case "arriba":
+                nextPlayerR -= 1;
+                break;
+            case "abajo":
+                nextPlayerR += 1;
+                break;
+            case "izquierda":
+                nextPlayerC -= 1;
+                break;
+            case "derecha":
+                nextPlayerC += 1;
+                break;
+        }
+
+        // Verificar si el movimiento es posible (dentro de límites y no pared)
+        if (nextPlayerR < 0 || nextPlayerR >= estado.mapa.length ||
+            nextPlayerC < 0 || nextPlayerC >= estado.mapa[0].length ||
+            estado.mapa[nextPlayerR][nextPlayerC] === '#') {
+            return nuevoEstado; // Movimiento inválido: pared o fuera de límites
+        }
+
+        // Verificar si el destino del jugador está ocupado por una caja
+        const boxInFront = cajasActuales.some(box => 
+            box.fila === nextPlayerR && box.col === nextPlayerC
+        );
+
+        if (!boxInFront) {
+            // Caso 1: Movimiento simple (solo el jugador se mueve)
+            nuevoEstado.jugador = { fila: nextPlayerR, col: nextPlayerC };
+            nuevoEstado.movimientos = movimientosActuales + 1;
+            return nuevoEstado;
+        } else {
+            // Caso 2: Intento de empujar una caja
+            let boxToPushIndex = -1;
+            let boxCoords = null;
+
+            // Identificar la caja que está justo delante del jugador
+            for (let i = 0; i < cajasActuales.length; i++) {
+                const box = cajasActuales[i];
+                if (box.fila === nextPlayerR && box.col === nextPlayerC) {
+                    boxToPushIndex = i;
+                    boxCoords = box;
+                    break;
+                }
+            }
+
+            // Calcular la posición donde debe ir la caja empujada
+            let nextBoxR = boxCoords.fila;
+            let nextBoxC = boxCoords.col;
+
+            switch (direccion) {
+                case "arriba":
+                    nextBoxR -= 1;
+                    break;
+                case "abajo":
+                    nextBoxR += 1;
+                    break;
+                case "izquierda":
+                    nextBoxC -= 1;
+                    break;
+                case "derecha":
+                    nextBoxC += 1;
+                    break;
+            }
+
+            // Verificar si el destino de la caja es válido:
+            // 1. No puede ser pared o fuera de límites.
+            if (nextBoxR < 0 || nextBoxR >= estado.mapa.length ||
+                nextBoxC < 0 || nextBoxC >= estado.mapa[0].length ||
+                estado.mapa[nextBoxR][nextBoxC] === '#') {
+                return nuevoEstado; // Caja contra pared o fuera de límites
+            }
+
+            // 2. No puede haber otra caja en el destino de la caja empujada.
+            const collisionWithOtherBox = cajasActuales.some((box, index) => 
+                index !== boxToPushIndex && box.fila === nextBoxR && box.col === nextBoxC
+            );
+
+            if (collisionWithOtherBox) {
+                return nuevoEstado; // Caja contra otra caja
+            }
+
+            // Movimiento exitoso: Empuje de caja
+            nuevoEstado.jugador = { fila: nextPlayerR, col: nextPlayerC };
+            nuevoEstado.movimientos = movimientosActuales + 1;
+
+            // Actualizar la lista de cajas (mover el elemento en el array)
+            let nuevasCajas = [...cajasActuales];
+            nuevasCajas[boxToPushIndex] = { fila: nextBoxR, col: nextBoxC };
+            nuevoEstado.cajas = nuevasCajas;
+
+            return nuevoEstado;
+        }
+    }
+```

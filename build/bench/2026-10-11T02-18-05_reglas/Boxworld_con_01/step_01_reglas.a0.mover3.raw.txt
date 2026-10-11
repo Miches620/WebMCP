@@ -1,0 +1,104 @@
+```javascript
+mover: function(estado, direccion) {
+        // Clonar el estado para asegurar que solo se devuelva un nuevo estado si hay éxito
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        const jugadorActual = estado.jugador;
+        let nuevaPosicionJugador = { ...jugadorActual };
+
+        // 1. Calcular la posición tentativa del jugador (p_new)
+        switch (direccion) {
+            case "arriba":
+                nuevaPosicionJugador.fila -= 1;
+                break;
+            case "abajo":
+                nuevaPosicionJugador.fila += 1;
+                break;
+            case "izquierda":
+                nuevaPosicionJugador.col -= 1;
+                break;
+            case "derecha":
+                nuevaPosicionJugador.col += 1;
+                break;
+        }
+
+        // Función auxiliar para verificar si una posición es válida (dentro de límites y no pared)
+        const esValido = (r, c) => {
+            // Asumiendo que el mapa tiene dimensiones fijas o que los límites son manejados por 0-9.
+            if (r < 0 || r >= estado.mapa.length || c < 0 || c >= estado.mapa[0].length) return false;
+            return estado.mapa[r][c] !== '#';
+        };
+
+        // Verificar si el movimiento del jugador es posible en primer lugar (pared o fuera de límites)
+        if (!esValido(nuevaPosicionJugador.fila, nuevaPosicionJugador.col)) {
+            return estado; 
+        }
+
+        // 2. Verificar si la posición tentativa está ocupada por una caja
+        let cajaEnDestino = estado.cajas.find(c => c.fila === nuevaPosicionJugador.fila && c.col === nuevaPosicionJugador.col);
+
+        if (!cajaEnDestino) {
+            // Caso 1: Movimiento a un espacio vacío (piso o objetivo). ¡Éxito!
+            nuevoEstado.jugador = nuevaPosicionJugador;
+            nuevoEstado.movimientos += 1;
+            return nuevoEstado;
+        } else {
+            // Caso 2: Posición tentativa ocupada por una caja. Intentar empujar.
+
+            let posicionCaja = cajaEnDestino;
+            let nuevaPosicionCaja = { ...posicionCaja };
+
+            switch (direccion) {
+                case "arriba":
+                    nuevaPosicionCaja.fila -= 1;
+                    break;
+                case "abajo":
+                    nuevaPosicionCaja.fila += 1;
+                    break;
+                case "izquierda":
+                    nuevaPosicionCaja.col -= 1;
+                    break;
+                case "derecha":
+                    nuevaPosicionCaja.col += 1;
+                    break;
+            }
+
+            // Verificar si el destino de la caja es válido (no pared y no fuera de límites)
+            if (!esValido(nuevaPosicionCaja.fila, nuevaPosicionCaja.col)) {
+                return estado; // La caja está contra una pared o límite. No se puede empujar.
+            }
+
+            // Verificar si el destino de la caja está ocupado por otra caja (colisión)
+            const hayOtraCaja = estado.cajas.some(c => 
+                c !== posicionCaja && c.fila === nuevaPosicionCaja.fila && c.col === nuevaPosicionCaja.col
+            );
+
+            if (hayOtraCaja) {
+                return estado; // Colisión con otra caja. No se puede empujar.
+            }
+
+            // Empuje exitoso: Actualizar posiciones de jugador y caja
+            nuevoEstado.jugador = nuevaPosicionJugador;
+            nuevoEstado.movimientos += 1;
+
+            // Actualizar la posición de la caja en el nuevo estado (CORRECCIÓN DE REFERENCIA)
+            let nuevasCajas = estado.cajas.map(c => ({ ...c })); // Clonar array y objetos internos
+            
+            // Buscar e identificar la caja que se movió usando coordenadas, no referencias.
+            for (let i = 0; i < nuevasCajas.length; i++) {
+                const caja = nuevasCajas[i];
+                if (caja.fila === posicionCaja.fila && caja.col === posicionCaja.col) {
+                    // Actualizar la posición de esta caja específica
+                    nuevasCajas[i] = { 
+                        fila: nuevaPosicionCaja.fila, 
+                        col: nuevaPosicionCaja.col 
+                    };
+                    break;
+                }
+            }
+
+            nuevoEstado.cajas = nuevasCajas;
+            return nuevoEstado;
+        }
+    }
+```

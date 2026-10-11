@@ -1,0 +1,52 @@
+```javascript
+crearEstado(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+    const GRID_HEIGHT = nivel.length;
+    // Asumimos que todas las filas tienen la misma longitud
+    const GRID_WIDTH = nivel[0].length; 
+
+    let nuevoMapa = [];
+
+    for (let r = 0; r < GRID_HEIGHT; r++) {
+        let filaString = '';
+        for (let c = 0; c < GRID_WIDTH; c++) {
+            const char = nivel[r][c];
+            let mapChar = char; // Valor por defecto
+
+            // 1. Detección de entidades y objetivos, y ajuste del mapa
+            if (char === '@' || char === '+') {
+                // Detecta jugador o jugador sobre objetivo
+                if (!jugador) { // Prioriza la primera ubicación detectada
+                    jugador = { fila: r, col: c };
+                }
+                objetivos.push({ fila: r, col: c }); 
+                mapChar = ' '; // El jugador desaparece del mapa de estado
+            } else if (char === '$' || char === '*') { 
+                // Detecta cajas o caja sobre objetivo
+                cajas.push({ fila: r, col: c });
+                objetivos.push({ fila: r, col: c }); // La ubicación de la caja también cuenta como objetivo si está en un punto objetivo
+                mapChar = ' '; // La caja desaparece del mapa de estado
+            } else if (char === '.') {
+                // Objetivo puro
+                objetivos.push({ fila: r, col: c });
+                mapChar = '.'; // El marcador de objetivo permanece visible
+            } 
+            // Si char es '#', mapChar se queda como '#' (pared).
+            // Si char es ' ', mapChar se queda como ' ' (piso vacío).
+
+            filaString += mapChar;
+        }
+        nuevoMapa.push(filaString);
+    }
+
+    return {
+        mapa: nuevoMapa,
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivos,
+        movimientos: 0
+    };
+}
+```

@@ -1,0 +1,52 @@
+```javascript
+crearEstado(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+    const GRID_HEIGHT = nivel.length;
+    // Asumimos que todas las filas tienen la misma longitud
+    const GRID_WIDTH = nivel[0].length; 
+
+    let nuevoMapa = [];
+
+    for (let r = 0; r < GRID_HEIGHT; r++) {
+        let filaString = '';
+        for (let c = 0; c < GRID_WIDTH; c++) {
+            const char = nivel[r][c];
+            let mapChar = char; // Valor por defecto
+
+            // 1. Detección de entidades y llenado de listas
+            if (char === '@' || char === '+') {
+                if (!jugador) { // Prioriza la primera ubicación detectada
+                    jugador = { fila: r, col: c };
+                }
+            } else if (char === '$' || char === '*') { 
+                // Detecta cajas ($ o *)
+                cajas.push({ fila: r, col: c });
+            } else if (char === '.') {
+                objetivos.push({ fila: r, col: c });
+            }
+
+            // 2. Filtrado del mapa para el estado (solo '#', ' ', '.')
+            if (['@', '+', '$', '*', '+'].includes(char)) {
+                // Si es un marcador de entidad, lo reemplazamos por espacio libre en el mapa de estado, a menos que ya fuera objetivo.
+                mapChar = '.'; // Esto solo ocurre si la lógica anterior falló y no se detecta correctamente. 
+                if (char !== '.') {
+                    mapChar = ' '; 
+                }
+            }
+
+            filaString += mapChar;
+        }
+        nuevoMapa.push(filaString);
+    }
+
+    return {
+        mapa: nuevoMapa,
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivos,
+        movimientos: 0
+    };
+}
+```

@@ -1,0 +1,29 @@
+```javascript
+ganado(estado) {
+        if (estado.objetivos.length === 0) return true; // No hay objetivos que cumplir
+
+        // Usamos un Set para almacenar las coordenadas únicas de los objetivos cubiertos.
+        const objetivosCubiertos = new Set();
+
+        for (const caja of estado.cajas) {
+            const cajaCoord = `${caja.fila},${caja.col}`;
+            
+            // Verificamos si la posición de la caja coincide con alguna posición objetivo.
+            let esObjetivo = false;
+            for (const obj of estado.objetivos) {
+                if (obj.fila === caja.fila && obj.col === caja.col) {
+                    esObjetivo = true;
+                    break;
+                }
+            }
+
+            if (esObjetivo) {
+                // Si es un objetivo, lo añadimos al set. El Set garantiza que solo se cuente una vez.
+                objetivosCubiertos.add(cajaCoord);
+            }
+        }
+
+        // Ganamos si el número de objetivos cubiertos únicos es igual al total de objetivos.
+        return objetivosCubiertos.size === estado.objetivos.length;
+    }
+```

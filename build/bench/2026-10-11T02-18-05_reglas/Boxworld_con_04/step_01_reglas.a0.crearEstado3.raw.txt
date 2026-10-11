@@ -1,0 +1,65 @@
+```javascript
+crearEstado(nivel) {
+        const altura = nivel.length;
+        const ancho = nivel[0].length;
+
+        let jugadorPos = null;
+        let cajasCoords = [];
+        let objetivosCoords = [];
+        // Inicializamos mapaBase como un array de arrays de caracteres
+        let mapaBase = Array(altura).fill(null).map(() => Array(ancho));
+
+        for (let r = 0; r < altura; r++) {
+            for (let c = 0; c < ancho; c++) {
+                const char = nivel[r][c];
+                let mapChar = ' '; // Valor por defecto: piso vacío
+
+                // 1. Manejo de Paredes
+                if (char === '#') {
+                    mapChar = '#';
+                } else {
+                    // Determinar si la ubicación es un marcador de objetivo
+                    const isObjectiveLocation = char === '.' || char === '+' || char === '*';
+
+                    // 2. Posición del Jugador (@ o +)
+                    if (char === '@' || char === '+') {
+                        jugadorPos = { fila: r, col: c };
+                    }
+
+                    // 3. Cajas ($ o *)
+                    if (char === '$' || char === '*') {
+                        cajasCoords.push({ fila: r, col: c });
+                    }
+
+                    // 4. Objetivos (., +, *)
+                    if (isObjectiveLocation) {
+                        objetivosCoords.push({ fila: r, col: c });
+                        mapChar = '.'; // Si es un objetivo, el mapa siempre muestra '.'
+                    } else if (char === '@') {
+                        // Jugador en piso vacío no objetivo
+                        mapChar = ' '; 
+                    } else if (char === '$' || char === '*') {
+                        // Caja en piso vacío no objetivo
+                        mapChar = ' ';
+                    } else {
+                        // Caso por defecto: espacio libre o caracteres tratados como piso
+                        mapChar = ' ';
+                    }
+                }
+
+                mapaBase[r][c] = mapChar;
+            }
+        }
+
+        // Convertir el mapa base de array 2D a un array de strings para cumplir con la especificación del estado.
+        const mapaStringArray = mapaBase.map(row => row.join(''));
+
+        return {
+            mapa: mapaStringArray,
+            jugador: jugadorPos,
+            cajas: cajasCoords,
+            objetivos: objetivosCoords,
+            movimientos: 0
+        };
+    }
+```

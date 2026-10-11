@@ -1,0 +1,30 @@
+```javascript
+ganado: function(estado) {
+        if (!Array.isArray(estado.objetivos) || estado.objetivos.length === 0) {
+            return true;
+        }
+
+        // Crear un Set de coordenadas de las cajas para búsqueda rápida O(1).
+        const cajaCoords = new Set();
+        if (Array.isArray(estado.cajas)) {
+            for (const box of estado.cajas) {
+                cajaCoords.add(`${box.row},${box.col}`);
+            }
+        }
+
+        // Verificar si cada objetivo está cubierto por al menos una caja.
+        for (const obj of estado.objetivos) {
+            if (!obj || typeof obj.row === 'undefined' || typeof obj.col === 'undefined') continue;
+
+            const objectiveCoord = `${obj.row},${obj.col}`;
+            
+            // Si la coordenada del objetivo no está en el set de cajas, no hemos ganado.
+            if (!cajaCoords.has(objectiveCoord)) {
+                return false;
+            }
+        }
+
+        // Si pasamos por todos los objetivos y todos están cubiertos.
+        return true;
+    },
+```

@@ -1,0 +1,66 @@
+```javascript
+crearEstado: function(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+    let mapaBase = [];
+
+    const R = nivel.length;
+    if (R === 0) return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+    // Asumimos que todos los niveles son rectangulares y el primer nivel define la columna
+    const C = nivel[0] ? nivel[0].length : 0;
+
+    for (let r = 0; r < R; r++) {
+        const rowString = nivel[r];
+        if (!rowString) continue;
+
+        let filaMapaChars = [];
+
+        for (let c = 0; c < C; c++) {
+            const char = rowString[c];
+            let cellContent = ' '; // Contenido del mapa base (si no es pared o objetivo fijo)
+
+            // Actualizar estado y determinar el carácter para la fila del mapa
+            if (char === '#') {
+                filaMapaChars.push('#');
+                cellContent = '#';
+            } else if (char === '@' || char === '+') {
+                // Jugador: @ o +
+                jugador = { fila: r, col: c };
+                filaMapaChars.push(' '); // El jugador no se dibuja en el mapa base
+                cellContent = ' ';
+            } else if (char === '$' || char === '*') {
+                // Caja: $ o *
+                cajas.push({ fila: r, col: c });
+                filaMapaChars.push(' '); // La caja no se dibuja en el mapa base
+                cellContent = ' ';
+            } else if (char === '.') {
+                // Objetivo puro
+                objetivos.push({ fila: r, col: c });
+                filaMapaChars.push('.');
+                cellContent = '.';
+            } else if (char === '*' || char === '+') {
+                // Superposición: Caja/Jugador sobre objetivo
+                cajas.push({ fila: r, col: c });
+                objetivos.push({ fila: r, col: c });
+                filaMapaChars.push(' '); // Invisible en el mapa base
+                cellContent = ' ';
+            } else {
+                // Espacio vacío o piso normal (' ', etc.)
+                filaMapaChars.push(' ');
+                cellContent = ' ';
+            }
+        }
+        // El mapa debe ser un array de strings, no un array de arrays de caracteres
+        mapaBase.push(filaMapaChars.join(''));
+    }
+
+    return {
+        mapa: mapaBase,
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivos,
+        movimientos: 0
+    };
+}
+```

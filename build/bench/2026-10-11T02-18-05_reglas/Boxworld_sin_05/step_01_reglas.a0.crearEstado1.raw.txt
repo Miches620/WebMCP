@@ -1,0 +1,48 @@
+```javascript
+crearEstado(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+    let mapaInicial = [];
+
+    // 1. Recorrer el nivel para identificar posiciones clave y construir el mapa base
+    for (let r = 0; r < nivel.length; r++) {
+        let nuevaFilaChars = []; // Array temporal de caracteres para la fila
+        
+        for (let c = 0; c < nivel[r].length; c++) {
+            const char = nivel[r][c];
+            let mapChar = ' '; // Por defecto, el mapa muestra espacio libre si no es pared o objetivo
+
+            if (char === '#') {
+                mapChar = '#';
+            } else if (char === '.') {
+                mapChar = '.';
+            } 
+            // Si es @, $, *, +, se trata como ' ' en el mapa.
+
+            nuevaFilaChars.push(mapChar);
+
+            if (char === '@') {
+                jugador = { fila: r, col: c };
+            } else if (char === '$' || char === '*') {
+                cajas.push({ fila: r, col: c });
+            } 
+            // Nota: '+' y '*' también pueden marcar objetivos si el objetivo está en esa posición.
+
+            if (char === '.') {
+                objetivos.push({ fila: r, col: c });
+            }
+        }
+        // Convertir el array de caracteres a un string para cumplir con el contrato del mapa
+        mapaInicial.push(nuevaFilaChars.join('')); 
+    }
+
+    return {
+        mapa: mapaInicial, // Mapa solo con #, ' ', '.' (Array de strings)
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivos,
+        movimientos: 0
+    };
+}
+```

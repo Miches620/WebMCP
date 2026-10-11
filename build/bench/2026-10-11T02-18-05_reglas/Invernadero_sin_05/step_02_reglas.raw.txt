@@ -1,0 +1,59 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado, numeroNivel) {
+    const tablero = document.getElementById('tablero');
+    const movimientosDisplay = document.getElementById('movimientos');
+    const nivelDisplay = document.getElementById('nivel');
+
+    // 1. Limpiar el tablero
+    tablero.innerHTML = '';
+
+    // Establecer la estructura de grid (9x9)
+    tablero.style.gridTemplateColumns = 'repeat(9, 1fr)';
+
+    const mapa = estado.mapa;
+    const altura = mapa.length;
+    const ancho = mapa[0].length;
+
+    // Iterar sobre el mapa para dibujar cada casillero
+    for (let r = 0; r < altura; r++) {
+        for (let c = 0; c < ancho; c++) {
+            const casilla = document.createElement('div');
+            casilla.className = 'casillero';
+
+            // Determinar la clase base del piso/pared
+            if (mapa[r][c] === '#') {
+                casilla.classList.add('pared');
+            } else {
+                casilla.classList.add('piso');
+            }
+
+            let clasesAdicionales = '';
+
+            // 2. Verificar si es un objetivo
+            if (mapa[r][c] === '.') {
+                clasesAdicionales += ' objetivo';
+            }
+
+            // 3. Verificar si hay una caja en esta posición
+            const tieneCaja = estado.cajas.some(c => c.fila === r && c.col === c);
+            if (tieneCaja) {
+                clasesAdicionales += ' caja';
+            }
+
+            // 4. Verificar si está el jugador en esta posición
+            const esJugador = estado.jugador.fila === r && estado.jugador.col === c;
+            if (esJugador) {
+                clasesAdicionales += ' jugador';
+            }
+
+            casilla.className = `casillero ${mapa[r][c] === '#' ? 'pared' : 'piso'} ${clasesAdicionales}`;
+            tablero.appendChild(casilla);
+        }
+    }
+
+    // 5. Actualizar el contador de movimientos y el nivel
+    movimientosDisplay.textContent = estado.movimientos;
+    nivelDisplay.textContent = numeroNivel;
+}
+```

@@ -1,0 +1,101 @@
+```javascript
+mover(estado, direccion) {
+        // Crear una copia profunda del estado para asegurar inmutabilidad
+        const nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        let jugadorActual = estado.jugador;
+        let nuevasCajas = [...estado.cajas];
+        let nuevosMovimientos = estado.movimientos;
+
+        // 1. Calcular la posición objetivo del jugador (sin considerar colisiones)
+        let nextPlayerPos = { ...jugadorActual };
+        switch (direccion) {
+            case "arriba":
+                nextPlayerPos.fila -= 1;
+                break;
+            case "abajo":
+                nextPlayerPos.fila += 1;
+                break;
+            case "izquierda":
+                nextPlayerPos.col -= 1;
+                break;
+            case "derecha":
+                nextPlayerPos.col += 1;
+                break;
+        }
+
+        // Verificar límites del mapa (8x8)
+        if (nextPlayerPos.fila < 0 || nextPlayerPos.fila > 7 || nextPlayerPos.col < 0 || nextPlayerPos.col > 7) {
+            return nuevoEstado; // Fuera de límites, no se mueve nada
+        }
+
+        // Verificar colisión con pared (usando el mapa base)
+        if (nuevoEstado.mapa[nextPlayerPos.fila][nextPlayerPos.col] === '#') {
+            return nuevoEstado; // Colisión con pared
+        }
+
+        // 2. Comprobar si la posición objetivo está ocupada por una caja
+        const cajaEnDestino = nuevasCajas.some(c => c.fila === nextPlayerPos.fila && c.col === nextPlayerPos.col);
+
+        if (!cajaEnDestino) {
+            // Movimiento simple (solo el jugador se mueve)
+            nuevoEstado.jugador = nextPlayerPos;
+            return nuevoEstado;
+        } else {
+            // 3. Intento de empuje (Pushing)
+            let cajaAEmpujarIndex = -1;
+            for (let i = 0; i < nuevasCajas.length; i++) {
+                const c = nuevasCajas[i];
+                if (c.fila === nextPlayerPos.fila && c.col === nextPlayerPos.col) {
+                    cajaAEmpujarIndex = i;
+                    break;
+                }
+            }
+
+            // Calcular la posición destino de la caja empujada
+            let boxTargetPos = { ...nextPlayerPos };
+            switch (direccion) {
+                case "arriba":
+                    boxTargetPos.fila -= 1;
+                    break;
+                case "abajo":
+                    boxTargetPos.fila += 1;
+                    break;
+                case "izquierda":
+                    boxTargetPos.col -= 1;
+                    break;
+                case "derecha":
+                    boxTargetPos.col += 1;
+                    break;
+            }
+
+            // Verificar si el destino de la caja es válido:
+            // a) No puede ser pared (usando mapa base)
+            if (nuevoEstado.mapa[boxTargetPos.fila][boxTargetPos.col] === '#') {
+                return nuevoEstado; // Colisión con pared al empujar
+            }
+
+            // b) No puede estar ocupado por otra caja o el jugador (el jugador ya se movió a la posición de la caja, así que solo chequeamos cajas)
+            const hayColisionCajaDestino = nuevasCajas.some((c, index) => 
+                index !== cajaAEmpujarIndex && c.fila === boxTargetPos.fila && c.col === boxTargetPos.col
+            );
+
+            if (hayColisionCajaDestino) {
+                return nuevoEstado; // Colisión con otra caja al empujar
+            }
+
+            // 4. Movimiento exitoso de Empuje
+            
+            // Actualizar la posición del jugador
+            nuevoEstado.jugador = nextPlayerPos;
+
+            // Actualizar la posición de la caja empujada (CORRECCIÓN: Usar estado.cajas en lugar de cajas)
+            const nuevaCajaEmpujada = { ...estado.cajas[cajaAEmpujarIndex], fila: boxTargetPos.fila, col: boxTargetPos.col };
+            nuevasCajas[cajaAEmpujarIndex] = nuevaCajaEmpujada;
+
+            // Actualizar el estado con las nuevas posiciones y movimientos incrementados
+            nuevoEstado.cajas = [...nuevasCajas];
+            nuevoEstado.movimientos = nuevoEstado.movimientos + 1;
+        }
+    }
+```

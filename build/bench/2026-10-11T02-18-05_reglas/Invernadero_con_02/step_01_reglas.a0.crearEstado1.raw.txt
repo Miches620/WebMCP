@@ -1,0 +1,64 @@
+```javascript
+crearEstado(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+
+    // Determinar dimensiones del nivel
+    const R = nivel.length;
+    if (R === 0) return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+    const C = nivel[0].length;
+
+    // Inicializar el mapa base como una copia mutable de los caracteres del nivel
+    let mapaBase = [];
+    for (let r = 0; r < R; r++) {
+        mapaBase[r] = Array.from(nivel[r]);
+    }
+
+    // Paso 1: Identificar objetivos y paredes, y establecer el estado inicial de mapaBase
+    for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+            const char = nivel[r][c];
+
+            if (char === '.') {
+                // Objetivo: lo guardamos y aseguramos que el mapa refleje esto.
+                objetivos.push({ fila: r, col: c });
+                mapaBase[r][c] = '.';
+            } else if (char === '#') {
+                // Pared
+                mapaBase[r][c] = '#';
+            } 
+        }
+    }
+
+    // Paso 2: Identificar elementos dinámicos (Jugador y Cajas) y limpiar el mapa base.
+    let jugadorEncontrado = false;
+    for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+            const char = nivel[r][c];
+
+            if ((char === '@' || char === '+') && !jugadorEncontrado) {
+                // Jugador: solo se registra el primero encontrado.
+                jugador = { fila: r, col: c };
+                mapaBase[r][c] = ' '; // El jugador no se dibuja en el mapa base.
+                jugadorEncontrado = true;
+            } else if ((char === '$' || char === '*') && (char !== '.')) {
+                // Caja: $ o *
+                cajas.push({ fila: r, col: c });
+                mapaBase[r][c] = ' '; // La caja no se dibuja en el mapa base.
+            } else if (char === ' ') {
+                 // Piso vacío que no fue cubierto por objetivos/paredes
+                 mapaBase[r][c] = ' ';
+            }
+        }
+    }
+
+    return {
+        mapa: mapaBase,
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivos,
+        movimientos: 0
+    };
+}
+```

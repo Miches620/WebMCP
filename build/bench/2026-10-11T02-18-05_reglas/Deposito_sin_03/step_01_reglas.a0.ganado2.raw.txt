@@ -1,0 +1,26 @@
+```javascript
+ganado: function(estado) {
+        if (estado.objetivos.length === 0) return false; // No hay objetivos que cubrir
+
+        // Debemos verificar si CADA objetivo tiene al menos una caja encima.
+        for (const obj of estado.objetivos) {
+            let objetivoCubierto = false;
+
+            // Revisamos todas las cajas para ver si alguna coincide con la posición del objetivo actual.
+            for (const box of estado.cajas) {
+                if (box.fila === obj.fila && box.col === obj.col) {
+                    objetivoCubierto = true;
+                    break; // Encontramos una caja para este objetivo, pasamos al siguiente objetivo.
+                }
+            }
+
+            // Si después de revisar todas las cajas, encontramos que el objetivo no está cubierto, el nivel no se ha ganado.
+            if (!objetivoCubierto) {
+                return false;
+            }
+        }
+
+        // Si hemos iterado sobre todos los objetivos y cada uno fue encontrado con una caja encima, el nivel está ganado.
+        return true;
+    }
+```

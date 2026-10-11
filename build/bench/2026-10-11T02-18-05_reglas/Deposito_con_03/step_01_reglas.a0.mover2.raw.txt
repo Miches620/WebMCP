@@ -1,0 +1,107 @@
+```javascript
+mover(estado, direccion) {
+    // Clonar el estado para asegurar que no se modifique si el movimiento falla o es exitoso
+    const nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+    const { jugador: p } = estado;
+    let r_new = p.fila;
+    let c_new = p.col;
+
+    // 1. Calcular la posición objetivo del jugador (p_next)
+    switch (direccion) {
+        case "arriba":
+            r_new -= 1;
+            break;
+        case "abajo":
+            r_new += 1;
+            break;
+        case "izquierda":
+            c_new -= 1;
+            break;
+        case "derecha":
+            c_new += 1;
+            break;
+    }
+
+    // Función auxiliar para verificar si una posición es válida (dentro de límites y no pared)
+    const isValidPos = (r, c) => {
+        if (r < 0 || r >= estado.mapa.length || c < 0 || c >= estado.mapa[0].length) return false; // Fuera de límites
+        return estado.mapa[r][c] !== '#'; // No es pared
+    };
+
+    // Verificar si la posición objetivo contiene una caja
+    const cajaEnFrente = estado.cajas.some(box => box.fila === r_new && box.col === c_new);
+
+    // Caso A: Intento de movimiento simple (sin cajas en el camino)
+    if (!cajaEnFrente && isValidPos(r_new, c_new)) {
+        // Movimiento exitoso simple
+        const nuevoJugador = { fila: r_new, col: c_new };
+
+        return {
+            mapa: estado.mapa, // El mapa no cambia
+            jugador: nuevoJugador,
+            cajas: JSON.parse(JSON.stringify(estado.cajas)), // Clonar cajas
+            objetivos: estado.objetivos,
+            movimientos: estado.movimientos + 1
+        };
+    }
+
+    // Caso B: Intento de empujar una caja
+    if (cajaEnFrente) {
+        // Calcular la posición destino para la caja (nextBoxPos)
+        let r_next = r_new;
+        let c_next = c_new;
+
+        switch (direccion) {
+            case "arriba":
+                r_next -= 1;
+                break;
+            case "abajo":
+                r_next += 1;
+                break;
+            case "izquierda":
+                c_next -= 1;
+                break;
+            case "derecha":
+                c_next += 1;
+                break;
+        }
+
+        const nextBoxPos = { fila: r_next, col: c_next };
+
+        // 1. ¿Es el destino de la caja válido? (No pared y dentro de límites)
+        if (!isValidPos(r_next, c_next)) {
+            return estado; // Colisión con pared o límite
+        }
+
+        // 2. ¿Hay otra caja en el destino de la caja (bloqueando el empuje)?
+        const hayOtraCaja = estado.cajas.some(box => box.fila === r_next && box.col === c_next);
+
+        if (!hayOtraCaja) {
+            // Empuje exitoso: 
+            // Nuevo jugador en caja, nueva caja en destino.
+            const nuevoJugador = { fila: r_new, col: c_new }; // El jugador se mueve a la posición de la caja original
+
+            // Clonar y actualizar las cajas
+            const nuevasCajasActualizadas = estado.cajas.map(box => {
+                // Si esta es la caja que estamos empujando (en r_new, c_new)
+                if (box.fila === r_new && box.col === c_new) {
+                    return nextBoxPos; // Moverla a la nueva posición
+                }
+                return box; // De lo contrario, mantener su posición
+            });
+
+            return {
+                mapa: estado.mapa,
+                jugador: nuevoJugador,
+                cajas: nuevasCajasActualizadas,
+                objetivos: estado.objetivos,
+                movimientos: estado.movimientos + 1
+            };
+        }
+    }
+
+    // Si ninguna de las condiciones anteriores se cumplió (pared o caja bloqueada)
+    return estado;
+}
+```

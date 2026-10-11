@@ -7,7 +7,7 @@ const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name
 
 const r = await loadRole("web-game");
 t("Role web-game: DRAFT con sus Skills", r.status === "DRAFT" && r.skills.length >= 6);
-t("cada Skill tiene evidencia (un build real), pasos y qué error detecta", r.skills.every((s) => /b\d/.test(s.evidence) && s.kinds.length && s.detects), r.skills.filter((s) => !/b\d/.test(s.evidence) || !s.detects).map((s) => s.id).join(", "));
+t("cada Skill tiene evidencia (un build real), pasos y qué error detecta", r.skills.every((s) => /b\d|banco/.test(s.evidence) && s.kinds.length && s.detects), r.skills.filter((s) => !/b\d|banco/.test(s.evidence) || !s.detects).map((s) => s.id).join(", "));
 const KINDS = ["data", "logic", "screen", "render", "wiring"];
 t("las Skills aplican a clases de paso que existen en el motor", r.skills.every((s) => s.kinds.every((k) => KINDS.includes(k))));
 t("las Skills son cortas (entran en 16k de contexto): menos de 400 caracteres cada una", r.skills.every((s) => s.text.length < 400), r.skills.map((s) => s.id + ":" + s.text.length).join(" "));
@@ -20,6 +20,7 @@ const real = {
   "siempre-jugable": "ganar un nivel y pasar al siguiente: ... el juego queda bloqueado.",
   "botones-habilitados": "en juego.html, #btn-reiniciar tiene el atributo disabled: así nunca se puede usar.",
   "grilla-que-no-se-estira": "en styles.css #tablero cambia de tamaño cuando #mensaje tiene un texto largo",
+  "recorre-el-nivel-que-recibe": "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading '0')",
 };
 t("cada Skill detecta el texto real del problema que la originó (y solo ese)", r.skills.every((s) => Object.entries(real).every(([id, txt]) => s.detects.test(txt) === (id === s.id))));
 t("parseSkill: sin frontmatter → error claro", (() => { try { parseSkill("hola", "x.md"); return false; } catch (e) { return /SKILL_FORMAT/.test(e.message); } })());

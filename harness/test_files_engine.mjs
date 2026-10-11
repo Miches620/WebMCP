@@ -4,7 +4,10 @@
 // proyecto vive en un Standard (standards/…); acá se prueba con un Standard de juguete.
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { loadScripts, runAcceptance, fatal, playProblems, probeProblems, pageHtml, missingIds, stripComments } from "./files_engine.mjs";
+import { loadScripts, runAcceptance, fatal, playProblems, probeProblems, pageHtml, missingIds, stripComments, buildFiles, extractFile } from "./files_engine.mjs";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join as pjoin } from "node:path";
 import { STANDARDS, getStandard } from "../standards/registry.mjs";
 
 let ok = 0, fail = 0;
@@ -46,6 +49,14 @@ t("cada 'needs' apunta a un paso anterior", Object.values(STANDARDS).every((s) =
 
 // v0.9.6: un comentario no es código (b15: "No utiliza DOM ni window." bloqueó 3 intentos)
 t("stripComments: saca comentarios de bloque y de línea, deja strings con //", !/window/.test(stripComments("/**\n * No utiliza DOM ni window.\n */\nconst a = 1; // ni window.x")) && /"http:\/\/x"/.test(stripComments('const u = "http://x";')));
+
+// v0.9.7 (banco por paso): las entradas fijas fallan fuerte ANTES de llamar a Gemma
+const benchErr = async (bench) => { try { await buildFiles({ refined: { project_name: "T", features: [] }, tasks: [] }, mkdtempSync(pjoin(tmpdir(), "bench-")), { standard: getStandard("web/game/grilla"), log: () => {}, bench }); return ""; } catch (e) { return e.message; } };
+t("banco: paso que no existe en el Standard → BENCH_STEP", /BENCH_STEP/.test(await benchErr({ step: "snake", frozen: {} })));
+t("banco: faltan las respuestas del paso de datos → BENCH_FROZEN (sin llamar a Gemma)", /BENCH_FROZEN/.test(await benchErr({ step: "reglas", frozen: { files: {}, raws: {} } })));
+
+// v0.9.8 (banco 11/10): un bloque con nombre de OTRO archivo del proyecto no se toma por extensión
+t("extractFile: js/dibujo.js no pasa por js/reglas.js; un nombre desconocido .js sí", extractFile("### FILE: js/dibujo.js\n```javascript\nD\n```", "js/reglas.js", ["js/reglas.js", "js/dibujo.js"]) === null && extractFile("### FILE: js/logica.js\n```javascript\nL\n```", "js/reglas.js", ["js/reglas.js", "js/dibujo.js"]) === "L\n" && extractFile("### FILE: js/dibujo.js\n```javascript\nD\n```", "js/reglas.js") === "D\n");
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

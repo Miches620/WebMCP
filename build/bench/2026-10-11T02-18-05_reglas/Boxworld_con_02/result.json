@@ -1,0 +1,48 @@
+{
+  "case": "Boxworld",
+  "cond": "con",
+  "i": 2,
+  "ref": "QM-7731",
+  "ms": 422206,
+  "ok_first": false,
+  "fatal_first": true,
+  "ok_final": false,
+  "broken": false,
+  "problems_first": [
+    "recién creado no está ganado: tiró un error: state is not defined",
+    "caja en el objetivo = ganado: tiró un error: state is not defined",
+    "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa: cada fila tiene que ser un STRING (como \"#.  .#\"), no un array de caracteres.",
+    "crearEstado(NIVELES[0]) tiró: state is not defined",
+    "crearEstado(NIVELES[1]) tiró: state is not defined",
+    "crearEstado(NIVELES[2]) tiró: state is not defined",
+    "crearEstado(NIVELES[3]) tiró: state is not defined",
+    "crearEstado(NIVELES[4]) tiró: state is not defined"
+  ],
+  "problems_final": [
+    "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa: cada fila tiene que ser un STRING (como \"#.  .#\"), no un array de caracteres."
+  ],
+  "member_repair": [
+    {
+      "fn": "ganado",
+      "ok": true
+    },
+    {
+      "fn": "crearEstado",
+      "ok": false
+    }
+  ],
+  "tests": {
+    "passed": 14,
+    "failed": [
+      "lee '*' y '+'"
+    ]
+  },
+  "skill_hits": {
+    "botones-habilitados": 0,
+    "flecha-sin-tapar": 0,
+    "grilla-que-no-se-estira": 0,
+    "nombres-del-contrato": 7,
+    "piezas-aparte-del-mapa": 0,
+    "siempre-jugable": 0
+  }
+}

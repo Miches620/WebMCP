@@ -1,0 +1,94 @@
+```javascript
+mover(estado, direccion) {
+    const { jugador: p } = estado;
+    let nextR = p.fila;
+    let nextC = p.col;
+
+    // 1. Calcular la posición objetivo del jugador (sin considerar cajas aún)
+    switch (direccion) {
+        case "arriba":
+            nextR -= 1;
+            break;
+        case "abajo":
+            nextR += 1;
+            break;
+        case "izquierda":
+            nextC -= 1;
+            break;
+        case "derecha":
+            nextC += 1;
+            break;
+    }
+
+    // Verificar límites y paredes en la posición objetivo del jugador.
+    const mapHeight = estado.mapa.length;
+    const mapWidth = estado.mapa[0].length;
+
+    if (nextR < 0 || nextR >= mapHeight || nextC < 0 || nextC >= mapWidth) {
+        return estado; // Fuera de límites
+    }
+    if (estado.mapa[nextR][nextC] === '#') {
+        return estado; // Colisión con pared
+    }
+
+    // Verificar si hay una caja en la posición objetivo del jugador.
+    const boxAtTarget = estado.cajas.some(box => box.fila === nextR && box.col === nextC);
+
+    if (!boxAtTarget) {
+        // Caso 1: Movimiento simple (no hay cajas delante).
+        return Reglas._crearNuevoEstado(estado, p, { fila: nextR, col: nextC }, estado.cajas, estado.objetivos, estado.movimientos + 1);
+    } else {
+        // Caso 2: Intento de empujar una caja.
+        const box = estado.cajas.find(box => box.fila === nextR && box.col === nextC);
+
+        // Calcular la posición detrás de la caja (donde queremos que vaya).
+        let pushTargetR = nextR;
+        let pushTargetC = nextC;
+
+        switch (direccion) {
+            case "arriba":
+                pushTargetR -= 1;
+                break;
+            case "abajo":
+                pushTargetR += 1;
+                break;
+            case "izquierda":
+                pushTargetC -= 1;
+                break;
+            case "derecha":
+                pushTargetC += 1;
+                break;
+        }
+
+        // Verificar si el empuje es posible.
+        const mapHeight = estado.mapa.length;
+        const mapWidth = estado.mapa[0].length;
+
+        if (pushTargetR < 0 || pushTargetR >= mapHeight || pushTargetC < 0 || pushTargetC >= mapWidth) {
+            return estado; // Empujar fuera de límites
+        }
+        if (estado.mapa[pushTargetR][pushTargetC] === '#') {
+            return estado; // Empujar contra pared
+        }
+
+        // Verificar si el destino del empuje está ocupado por otra caja.
+        const boxCollision = estado.cajas.some(otherBox => 
+            otherBox !== box && otherBox.fila === pushTargetR && otherBox.col === pushTargetC
+        );
+
+        if (boxCollision) {
+            return estado; // Empujar contra otra caja
+        }
+
+        // El empuje es válido. Crear el nuevo estado.
+        const newCajas = estado.cajas.map(b => 
+            (b.fila === nextR && b.col === nextC) ? { fila: pushTargetR, col: pushTargetC } : b
+        );
+
+        // El jugador se mueve a la posición de la caja original.
+        const newPlayer = { fila: nextR, col: nextC };
+
+        return Reglas._crearNuevoEstado(estado, p, newPlayer, newCajas, estado.objetivos, estado.movimientos + 1);
+    }
+}
+```

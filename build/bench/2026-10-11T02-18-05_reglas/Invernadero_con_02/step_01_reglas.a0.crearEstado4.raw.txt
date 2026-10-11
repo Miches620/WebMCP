@@ -1,0 +1,78 @@
+```javascript
+crearEstado(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+
+    // Determinar dimensiones del nivel
+    const R = nivel.length;
+    if (R === 0) return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+    const C = nivel[0].length;
+
+    // Paso 1: Identificar objetivos y elementos dinámicos (Jugador y Cajas)
+    let jugadorEncontrado = false;
+    for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+            const char = nivel[r][c];
+
+            // Identificar objetivos: '.' es el marcador principal. También incluimos '+' y '*' si están presentes, 
+            // ya que las pruebas fallidas sugieren que estos pueden marcar ubicaciones objetivo.
+            if (char === '.') {
+                objetivos.push({ fila: r, col: c });
+            } else if ((char === '+' || char === '*') && !['#', ' ', '.'].includes(char)) {
+                 // Añadimos objetivos si el carácter es un marcador de objetivo potencial y no ya lo hemos contado.
+                if (!objetivos.some(obj => obj.fila === r && obj.col === c)) {
+                    objetivos.push({ fila: r, col: c });
+                }
+            }
+
+            // Identificar Jugador (solo el primero)
+            if ((char === '@' || char === '+') && !jugadorEncontrado) {
+                jugador = { fila: r, col: c };
+                jugadorEncontrado = true;
+            } 
+            // Identificar Cajas
+            else if ((char === '$' || char === '*') && (char !== '.')) {
+                cajas.push({ fila: r, col: c });
+            }
+        }
+    }
+
+    // Paso 2: Construir el mapa final como un array de strings
+    let mapa = [];
+    for (let r = 0; r < R; r++) {
+        let rowString = '';
+        for (let c = 0; c < C; c++) {
+            const char = nivel[r][c];
+
+            if (char === '#') {
+                rowString += '#';
+            } else if (char === '.') {
+                // Objetivo: siempre visible en el mapa.
+                rowString += '.';
+            } else if ((char === '@' || char === '+') && jugador && jugador.fila === r && jugador.col === c) {
+                 // Jugador: se elimina del mapa, dejando un espacio vacío ' '.
+                rowString += ' ';
+            } else if ((char === '$' || char === '*') && cajas.some(box => box.fila === r && box.col === c)) {
+                // Caja: se elimina del mapa, dejando un espacio vacío ' '.
+                rowString += ' ';
+            } else if (char === ' ') {
+                 // Piso vacío
+                rowString += ' ';
+            } else {
+                // Cualquier otro carácter que no sea pared ni objetivo visible debe ser tratado como piso.
+                rowString += ' ';
+            }
+        }
+        mapa.push(rowString);
+    }
+
+    return {
+        mapa: mapa,
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivos,
+        movimientos: 0
+    };
+}
+```

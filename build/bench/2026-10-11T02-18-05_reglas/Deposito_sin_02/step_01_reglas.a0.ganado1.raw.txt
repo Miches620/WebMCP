@@ -1,0 +1,23 @@
+```javascript
+ganado: function(estado) {
+        const { objetivos, cajas } = estado;
+
+        if (objetivos.length === 0) return true; // Mantenemos el comportamiento original para este caso de borde
+
+        // Crear un set de coordenadas donde están las cajas para búsqueda rápida
+        const cajasSet = new Set(cajas.map(c => `${c.fila},${c.col}`));
+
+        // Verificar si cada objetivo tiene una caja encima
+        for (const objetivo of objetivos) {
+            const coordObjetivo = `${objetivo.fila},${objetivo.col}`;
+            
+            // Si el set de cajas NO contiene la coordenada del objetivo, no hemos ganado.
+            if (!cajasSet.has(coordObjetivo)) {
+                return false; 
+            }
+        }
+
+        // Si todos los objetivos fueron revisados y cada uno tiene una caja encima, se gana.
+        return true;
+    }
+```

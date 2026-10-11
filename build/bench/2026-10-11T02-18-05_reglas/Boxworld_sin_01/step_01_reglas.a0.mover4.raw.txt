@@ -1,0 +1,106 @@
+```javascript
+mover: function(estado, direccion) {
+        // Clonamos el estado para asegurar inmutabilidad. 
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        const jugadorActual = estado.jugador;
+        let nuevaPosicionJugador = { row: jugadorActual.row, col: jugadorActual.col };
+        let cajaAEmpujarIndex = -1;
+        let movimientoExitoso = false;
+
+        // 1. Calcular la posición objetivo del jugador (P_destino)
+        switch (direccion) {
+            case "arriba":
+                nuevaPosicionJugador.row -= 1;
+                break;
+            case "abajo":
+                nuevaPosicionJugador.row += 1;
+                break;
+            case "izquierda":
+                nuevaPosicionJugador.col -= 1;
+                break;
+            case "derecha":
+                nuevaPosicionJugador.col += 1;
+                break;
+        }
+
+        // Función auxiliar para verificar si una posición es válida (dentro de límites y no pared)
+        const isValidCoord = (r, c) => {
+            const rows = estado.mapa.length;
+            if (rows === 0) return false;
+            const cols = estado.mapa[0].length;
+
+            // Chequeo robusto de límites y paredes
+            if (r < 0 || r >= rows || c < 0 || c >= cols) return false;
+            return estado.mapa[r][c] !== '#';
+        };
+
+        // Verificar si el destino del jugador es válido
+        if (!isValidCoord(nuevaPosicionJugador.row, nuevaPosicionJugador.col)) {
+            return nuevoEstado; // Colisión con pared o fuera de límites
+        }
+
+        // 2. Comprobar colisiones en P_destino
+        let cajaEnDestino = estado.cajas.find(c => c.row === nuevaPosicionJugador.row && c.col === nuevaPosicionJugador.col);
+
+        if (cajaEnDestino) {
+            // Hay una caja en el destino, intentar empujar
+            const posCaja = cajaEnDestino;
+            let posicionEmpujeFinal = { row: posCaja.row, col: posCaja.col }; // Posición donde la caja intentará ir
+
+            // Calcular la posición final de la caja (P_final)
+            switch (direccion) {
+                case "arriba":
+                    posicionEmpujeFinal.row -= 1;
+                    break;
+                case "abajo":
+                    posicionEmpujeFinal.row += 1;
+                    break;
+                case "izquierda":
+                    posicionEmpujeFinal.col -= 1;
+                    break;
+                case "derecha":
+                    posicionEmpujeFinal.col += 1;
+                    break;
+            }
+
+            // Verificar si el empuje es posible: P_final debe ser válido y no contener otra caja
+            const isPushTargetValid = isValidCoord(posicionEmpujeFinal.row, posicionEmpujeFinal.col);
+            let hayOtraCajaEnDestinoFinal = estado.cajas.some(c => 
+                (c !== cajaEnDestino) && (c.row === posicionEmpujeFinal.row && c.col === posicionEmpujeFinal.col)
+            );
+
+            if (isPushTargetValid && !hayOtraCajaEnDestinoFinal) {
+                // ¡Éxito en el empuje!
+                movimientoExitoso = true;
+                cajaAEmpujarIndex = estado.cajas.findIndex(c => c === cajaEnDestino);
+
+                // Actualizar cajas: la caja se mueve a P_final
+                let nuevasCajas = [...estado.cajas];
+                nuevasCajas[cajaAEmpujarIndex] = { row: posicionEmpujeFinal.row, col: posicionEmpujeFinal.col };
+                nuevoEstado.cajas = nuevasCajas;
+
+                // Actualizar jugador: el jugador se mueve a la posición original de la caja
+                nuevoEstado.jugador = { row: posCaja.row, col: posCaja.col };
+
+            } else {
+                // Empuje fallido (pared o otra caja)
+                return nuevoEstado; // Devolver estado sin cambios
+            }
+        } else {
+            // No hay caja en el destino, movimiento simple
+            movimientoExitoso = true;
+            nuevoEstado.jugador = nuevaPosicionJugador;
+        }
+
+        if (movimientoExitoso) {
+            // Actualizar movimientos y devolver el nuevo estado
+            nuevoEstado.movimientos = estado.movimientos + 1;
+        } else {
+             // Si por alguna razón falló la lógica de movimiento simple, devolvemos sin cambios
+             return nuevoEstado;
+        }
+
+        return nuevoEstado;
+    }
+```

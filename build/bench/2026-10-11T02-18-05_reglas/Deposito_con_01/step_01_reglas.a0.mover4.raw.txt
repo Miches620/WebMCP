@@ -1,0 +1,81 @@
+```javascript
+mover(estado, direccion) {
+    // Determinar dimensiones del mapa a partir del estado recibido
+    const filas = estado.mapa.length;
+    if (filas === 0) return { ...estado, movimientos: estado.movimientos };
+    const columnas = estado.mapa[0].length;
+
+    // Función auxiliar para obtener la posición objetivo basada en la dirección
+    const getTargetPos = (pos, dir) => {
+        let r = pos.fila;
+        let c = pos.col;
+        switch (dir) {
+            case "arriba":
+                r--;
+                break;
+            case "abajo":
+                r++;
+                break;
+            case "izquierda":
+                c--;
+                break;
+            case "derecha":
+                c++;
+                break;
+        }
+        return { fila: r, col: c };
+    };
+
+    // 1. Calcular la posición objetivo del jugador (P_next)
+    const pNext = getTargetPos(estado.jugador, direccion);
+
+    // Validación de límites y paredes para P_next
+    if (pNext.fila < 0 || pNext.fila >= filas || pNext.col < 0 || pNext.col >= columnas || estado.mapa[pNext.fila][pNext.col] === '#') {
+        return { ...estado, movimientos: estado.movimientos }; // No hay movimiento válido
+    }
+
+    // 2. Verificar si P_next está ocupado por una caja
+    const cajaEnPNext = estado.cajas.some(c => c.fila === pNext.fila && c.col === pNext.col);
+
+    if (!cajaEnPNext) {
+        // Caso A: Movimiento simple (a espacio vacío o objetivo)
+        return {
+            ...estado,
+            jugador: pNext,
+            movimientos: estado.movimientos + 1
+        };
+    } else {
+        // Caso B: Intento de empuje
+        const cajaAEmpujar = estado.cajas.find(c => c.fila === pNext.fila && c.col === pNext.col);
+
+        // Calcular la posición donde irá la caja (C_next)
+        const cNext = getTargetPos(cajaAEmpujar, direccion);
+
+        // Validación de C_next: Debe estar dentro del mapa, no ser pared y no tener otra caja/jugador.
+        if (cNext.fila < 0 || cNext.fila >= filas || cNext.col < 0 || cNext.col >= columnas || estado.mapa[cNext.fila][cNext.col] === '#') {
+            return { ...estado, movimientos: estado.movimientos }; // Colisión con pared o límite
+        }
+
+        // Verificar si C_next está ocupado por otra caja
+        const hayOtraCajaEnCNext = estado.cajas.some(c => 
+            c !== cajaAEmpujar && c.fila === cNext.fila && c.col === cNext.col
+        );
+
+        if (hayOtraCajaEnCNext) {
+            return { ...estado, movimientos: estado.movimientos }; // Colisión con otra caja
+        }
+
+        // Empuje exitoso
+        const nuevasCajas = estado.cajas.map(c => 
+            (c === cajaAEmpujar) ? cNext : c
+        );
+
+        return {
+            ...estado,
+            jugador: pNext,
+            cajas: nuevasCajas,
+            movimientos: estado.movimientos + 1
+        };
+    }
+}
+```

@@ -1,0 +1,26 @@
+```javascript
+ganado(estado) {
+        if (estado.objetivos.length === 0) return false;
+
+        // Iterar sobre todos los objetivos para asegurar que cada uno tenga una caja encima.
+        for (const objetivo of estado.objetivos) {
+            let tieneCaja = false;
+            
+            // Verificar si alguna caja coincide con la posición del objetivo actual.
+            for (const caja of estado.cajas) {
+                if (caja.fila === objetivo.fila && caja.col === objetivo.col) {
+                    tieneCaja = true;
+                    break; // Encontramos una caja para este objetivo, pasamos al siguiente.
+                }
+            }
+
+            // Si encontramos un objetivo sin ninguna caja encima, el juego no está ganado.
+            if (!tieneCaja) {
+                return false;
+            }
+        }
+
+        // Si revisamos todos los objetivos y cada uno tiene una caja, el juego está ganado.
+        return true;
+    }
+```

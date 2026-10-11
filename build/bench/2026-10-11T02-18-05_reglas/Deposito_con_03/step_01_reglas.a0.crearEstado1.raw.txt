@@ -1,0 +1,53 @@
+```javascript
+crearEstado(nivel) {
+    const mapa = [];
+    let jugadorPos = null;
+    const cajas = [];
+    const objetivos = new Set();
+
+    // Inicializar el mapa con dimensiones dinámicas del nivel recibido
+    for (let r = 0; r < nivel.length; r++) {
+        mapa[r] = [];
+        for (let c = 0; c < nivel[r].length; c++) {
+            mapa[r][c] = ' '; // Inicializar con piso vacío temporalmente
+        }
+    }
+
+    // Recorriendo el nivel para parsear elementos
+    for (let r = 0; r < nivel.length; r++) {
+        for (let c = 0; c < nivel[r].length; c++) {
+            const char = nivel[r][c];
+            
+            if (char === '#') {
+                mapa[r][c] = '#'; // Pared
+            } else if (char === ' ') {
+                // Piso vacío
+                mapa[r][c] = ' '; 
+            } else if (char === '.') {
+                objetivos.add({ fila: r, col: c });
+                mapa[r][c] = '.'; // Objetivo/Piso
+            } else if (char === '@' || char === '+') {
+                // Jugador inicial (@ o +)
+                jugadorPos = { fila: r, col: c };
+                // El mapa base no muestra al jugador. 
+                mapa[r][c] = ' '; 
+            } else if (char === '$' || char === '*') {
+                // Caja ($ o *). '*' es caja sobre objetivo, pero la caja sigue siendo una caja.
+                cajas.push({ fila: r, col: c });
+                mapa[r][c] = ' '; // El mapa base no muestra las cajas
+            } else {
+                // Manejo de cualquier otro carácter inesperado
+                mapa[r][c] = ' '; 
+            }
+        }
+    }
+
+    return {
+        mapa: mapa,
+        jugador: jugadorPos,
+        cajas: cajas,
+        objetivos: Array.from(objetivos),
+        movimientos: 0
+    };
+}
+```

@@ -1,0 +1,1538 @@
+[
+  {
+    "case": "Boxworld",
+    "cond": "sin",
+    "i": 1,
+    "ref": "BX-1042",
+    "ms": 773664,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": true,
+    "problems_first": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading '0')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading '0')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading '0')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading '0')",
+      "crearEstado(NIVELES[0]) tiró: state is not defined",
+      "crearEstado(NIVELES[1]) tiró: state is not defined",
+      "crearEstado(NIVELES[2]) tiró: state is not defined",
+      "crearEstado(NIVELES[3]) tiró: state is not defined",
+      "crearEstado(NIVELES[4]) tiró: state is not defined"
+    ],
+    "problems_final": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading '0')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading '0')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading '0')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading '0')"
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": false
+      },
+      {
+        "fn": "ganado",
+        "ok": true
+      },
+      {
+        "fn": "ganado",
+        "ok": false
+      },
+      {
+        "fn": "mover",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 5,
+      "failed": [
+        "crearEstado lee jugador, cajas y objetivos",
+        "recién creado no está ganado",
+        "la pared bloquea",
+        "empujar una caja",
+        "caja en el objetivo = ganado",
+        "mover no modifica el estado que recibe",
+        "de a un casillero",
+        "caja contra pared no se mueve",
+        "caja contra caja no se mueve",
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 5,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Boxworld",
+    "cond": "con",
+    "i": 1,
+    "ref": "BX-1042",
+    "ms": 795948,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading 'split')",
+      "crearEstado(NIVELES[0]) tiró: state is not defined",
+      "crearEstado(NIVELES[1]) tiró: state is not defined",
+      "crearEstado(NIVELES[2]) tiró: state is not defined",
+      "crearEstado(NIVELES[3]) tiró: state is not defined",
+      "crearEstado(NIVELES[4]) tiró: state is not defined"
+    ],
+    "problems_final": [
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#    #\"."
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": true
+      },
+      {
+        "fn": "ganado",
+        "ok": true
+      },
+      {
+        "fn": "mover",
+        "ok": true
+      },
+      {
+        "fn": "crearEstado",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 14,
+      "failed": [
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 5,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Deposito",
+    "cond": "sin",
+    "i": 1,
+    "ref": "BX-1042",
+    "ms": 526169,
+    "ok_first": false,
+    "fatal_first": false,
+    "ok_final": true,
+    "broken": false,
+    "problems_first": [
+      "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"derecha\") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador {fila:1,col:4}, cajas [{fila:1,col:3}], movimientos 1.",
+      "con [\"######\",\"#@   #\",\"#    #\",\"######\"], \"derecha\" deja al jugador en {fila:1,col:2} y \"abajo\" en {fila:2,col:1} (un casillero por vez); quedó {fila:1,col:3} y {fila:3,col:1}.",
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#    #\"."
+    ],
+    "problems_final": [],
+    "member_repair": [
+      {
+        "fn": "mover",
+        "ok": true
+      },
+      {
+        "fn": "crearEstado",
+        "ok": true
+      }
+    ],
+    "tests": {
+      "passed": 14,
+      "failed": []
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Deposito",
+    "cond": "con",
+    "i": 1,
+    "ref": "BX-1042",
+    "ms": 667880,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading '0')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading '0')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading '0')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading '0')",
+      "crearEstado(NIVELES[0]) tiró: state is not defined",
+      "crearEstado(NIVELES[1]) tiró: state is not defined",
+      "crearEstado(NIVELES[2]) tiró: state is not defined",
+      "crearEstado(NIVELES[3]) tiró: state is not defined"
+    ],
+    "problems_final": [
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio [{fila:1,col:1}]; mapa: cada fila tiene que ser un STRING (como \"#.  .#\"), no un array de caracteres."
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": true
+      },
+      {
+        "fn": "ganado",
+        "ok": true
+      },
+      {
+        "fn": "mover",
+        "ok": true
+      },
+      {
+        "fn": "mover",
+        "ok": true
+      }
+    ],
+    "tests": {
+      "passed": 13,
+      "failed": [
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 4,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Invernadero",
+    "cond": "sin",
+    "i": 1,
+    "ref": "BX-1042",
+    "ms": 89365,
+    "ok_first": false,
+    "fatal_first": false,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "js/reglas.js no puede usar document ni window (es lógica pura)."
+    ],
+    "problems_final": [
+      "js/reglas.js no puede usar document ni window (es lógica pura)."
+    ],
+    "member_repair": [],
+    "tests": {
+      "passed": 0,
+      "failed": [
+        "contrato"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Invernadero",
+    "cond": "con",
+    "i": 1,
+    "ref": "BX-1042",
+    "ms": 482051,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading '0')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading '0')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading '0')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading '0')"
+    ],
+    "problems_final": [
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa: cada fila tiene que ser un STRING (como \"#.  .#\"), no un array de caracteres."
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": true
+      },
+      {
+        "fn": "crearEstado",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 14,
+      "failed": [
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Boxworld",
+    "cond": "sin",
+    "i": 2,
+    "ref": "QM-7731",
+    "ms": 619642,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading 'split')"
+    ],
+    "problems_final": [
+      "crearEstado([\"#####\",\"#@$.#\",\"#####\"]) tendría que dar jugador {fila:1,col:1}, cajas [{fila:1,col:2}], objetivos [{fila:1,col:3}], movimientos 0; dio jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], objetivos [{fila:undefined,col:undefined}], movimientos 0.",
+      "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"izquierda\") choca con la pared: el jugador sigue en {fila:1,col:1} y movimientos 0; quedó {fila:undefined,col:undefined} y movimientos 0.",
+      "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"derecha\") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], movimientos 1. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+      "mover tiene que devolver un estado NUEVO: después de mover(e, \"derecha\"), e.jugador sigue en {fila:1,col:1} y su caja en {fila:1,col:2}; quedó {fila:undefined,col:undefined}.",
+      "con [\"######\",\"#@   #\",\"#    #\",\"######\"], \"derecha\" deja al jugador en {fila:1,col:2} y \"abajo\" en {fila:2,col:1} (un casillero por vez); quedó {fila:undefined,col:undefined} y {fila:undefined,col:undefined}.",
+      "con [\"####\",\"#@$#\",\"####\"], la caja tiene una pared detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, caja {fila:1,col:2}, movimientos 0); quedó jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], movimientos 0. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+      "con [\"######\",\"#@$$.#\",\"######\"], la caja tiene otra caja detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, movimientos 0); quedó {fila:undefined,col:undefined}, movimientos 0. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; cajas: tendrían que ser [{fila:1,col:2},{fila:1,col:4}] ('*' = caja sobre objetivo también es caja) y dio [{fila:undefined,col:undefined},{fila:undefined,col:undefined}]; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa: cada fila tiene que ser un STRING (como \"#.  .#\"), no un array de caracteres."
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": true
+      },
+      {
+        "fn": "crearEstado",
+        "ok": false
+      },
+      {
+        "fn": "mover",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 7,
+      "failed": [
+        "crearEstado lee jugador, cajas y objetivos",
+        "la pared bloquea",
+        "empujar una caja",
+        "mover no modifica el estado que recibe",
+        "de a un casillero",
+        "caja contra pared no se mueve",
+        "caja contra caja no se mueve",
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Boxworld",
+    "cond": "con",
+    "i": 2,
+    "ref": "QM-7731",
+    "ms": 422206,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "recién creado no está ganado: tiró un error: state is not defined",
+      "caja en el objetivo = ganado: tiró un error: state is not defined",
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa: cada fila tiene que ser un STRING (como \"#.  .#\"), no un array de caracteres.",
+      "crearEstado(NIVELES[0]) tiró: state is not defined",
+      "crearEstado(NIVELES[1]) tiró: state is not defined",
+      "crearEstado(NIVELES[2]) tiró: state is not defined",
+      "crearEstado(NIVELES[3]) tiró: state is not defined",
+      "crearEstado(NIVELES[4]) tiró: state is not defined"
+    ],
+    "problems_final": [
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa: cada fila tiene que ser un STRING (como \"#.  .#\"), no un array de caracteres."
+    ],
+    "member_repair": [
+      {
+        "fn": "ganado",
+        "ok": true
+      },
+      {
+        "fn": "crearEstado",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 14,
+      "failed": [
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 7,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Deposito",
+    "cond": "sin",
+    "i": 2,
+    "ref": "QM-7731",
+    "ms": 460605,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "recién creado no está ganado: tiró un error: objectivos is not defined",
+      "caja en el objetivo = ganado: tiró un error: objectivos is not defined",
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa: cada fila tiene que ser un STRING (como \"#.  .#\"), no un array de caracteres.",
+      "crearEstado(NIVELES[0]) tiró: objectivos is not defined",
+      "crearEstado(NIVELES[1]) tiró: objectivos is not defined",
+      "crearEstado(NIVELES[2]) tiró: objectivos is not defined",
+      "crearEstado(NIVELES[3]) tiró: objectivos is not defined"
+    ],
+    "problems_final": [
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa: cada fila tiene que ser un STRING (como \"#.  .#\"), no un array de caracteres."
+    ],
+    "member_repair": [
+      {
+        "fn": "ganado",
+        "ok": true
+      },
+      {
+        "fn": "crearEstado",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 13,
+      "failed": [
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Deposito",
+    "cond": "con",
+    "i": 2,
+    "ref": "QM-7731",
+    "ms": 293200,
+    "ok_first": false,
+    "fatal_first": false,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; cajas: tendrían que ser [{fila:1,col:2},{fila:1,col:4}] ('*' = caja sobre objetivo también es caja) y dio [{fila:1,col:2}]; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#+$ *#\"."
+    ],
+    "problems_final": [
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; cajas: tendrían que ser [{fila:1,col:2},{fila:1,col:4}] ('*' = caja sobre objetivo también es caja) y dio [{fila:1,col:2}]; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#+$ *#\"."
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 13,
+      "failed": [
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Invernadero",
+    "cond": "sin",
+    "i": 2,
+    "ref": "QM-7731",
+    "ms": 66616,
+    "ok_first": false,
+    "fatal_first": false,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "js/reglas.js no puede usar document ni window (es lógica pura)."
+    ],
+    "problems_final": [
+      "js/reglas.js no puede usar document ni window (es lógica pura)."
+    ],
+    "member_repair": [],
+    "tests": {
+      "passed": 0,
+      "failed": [
+        "contrato"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Invernadero",
+    "cond": "con",
+    "i": 2,
+    "ref": "QM-7731",
+    "ms": 763050,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": true,
+    "problems_first": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading '0')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading '0')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading '0')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading '0')",
+      "crearEstado(NIVELES[0]) tiró: state is not defined",
+      "crearEstado(NIVELES[1]) tiró: state is not defined",
+      "crearEstado(NIVELES[2]) tiró: state is not defined",
+      "crearEstado(NIVELES[3]) tiró: state is not defined",
+      "crearEstado(NIVELES[4]) tiró: state is not defined"
+    ],
+    "problems_final": [
+      "de a un casillero: tiró un error: state is not defined",
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#    #\"."
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": true
+      },
+      {
+        "fn": "ganado",
+        "ok": true
+      },
+      {
+        "fn": "mover",
+        "ok": false
+      },
+      {
+        "fn": "crearEstado",
+        "ok": true
+      }
+    ],
+    "tests": {
+      "passed": 13,
+      "failed": [
+        "de a un casillero",
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 5,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Boxworld",
+    "cond": "sin",
+    "i": 3,
+    "ref": "TR-2208",
+    "ms": 774839,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": true,
+    "broken": false,
+    "problems_first": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading '0')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading '0')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading '0')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading '0')",
+      "crearEstado(NIVELES[0]) tiró: state is not defined",
+      "crearEstado(NIVELES[1]) tiró: state is not defined",
+      "crearEstado(NIVELES[2]) tiró: state is not defined",
+      "crearEstado(NIVELES[3]) tiró: state is not defined",
+      "crearEstado(NIVELES[4]) tiró: state is not defined"
+    ],
+    "problems_final": [],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": true
+      },
+      {
+        "fn": "ganado",
+        "ok": true
+      },
+      {
+        "fn": "mover",
+        "ok": true
+      },
+      {
+        "fn": "crearEstado",
+        "ok": true
+      }
+    ],
+    "tests": {
+      "passed": 15,
+      "failed": []
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 5,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Boxworld",
+    "cond": "con",
+    "i": 3,
+    "ref": "TR-2208",
+    "ms": 573543,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": true,
+    "problems_first": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading 'split')"
+    ],
+    "problems_final": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading 'split')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading 'split')"
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": false
+      },
+      {
+        "fn": "ganado",
+        "ok": false
+      },
+      {
+        "fn": "mover",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 5,
+      "failed": [
+        "crearEstado lee jugador, cajas y objetivos",
+        "recién creado no está ganado",
+        "la pared bloquea",
+        "empujar una caja",
+        "caja en el objetivo = ganado",
+        "mover no modifica el estado que recibe",
+        "de a un casillero",
+        "caja contra pared no se mueve",
+        "caja contra caja no se mueve",
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Deposito",
+    "cond": "sin",
+    "i": 3,
+    "ref": "TR-2208",
+    "ms": 524379,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": true,
+    "problems_first": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading '0')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading '0')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading '0')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading '0')"
+    ],
+    "problems_final": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading '0')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading '0')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading '0')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading '0')"
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": false
+      },
+      {
+        "fn": "ganado",
+        "ok": false
+      },
+      {
+        "fn": "mover",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 4,
+      "failed": [
+        "crearEstado lee jugador, cajas y objetivos",
+        "recién creado no está ganado",
+        "la pared bloquea",
+        "empujar una caja",
+        "caja en el objetivo = ganado",
+        "mover no modifica el estado que recibe",
+        "de a un casillero",
+        "caja contra pared no se mueve",
+        "caja contra caja no se mueve",
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Deposito",
+    "cond": "con",
+    "i": 3,
+    "ref": "TR-2208",
+    "ms": 669732,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading '0')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading '0')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading '0')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading '0')"
+    ],
+    "problems_final": [
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa: cada fila tiene que ser un STRING (como \"#.  .#\"), no un array de caracteres."
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": true
+      },
+      {
+        "fn": "mover",
+        "ok": true
+      },
+      {
+        "fn": "crearEstado",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 13,
+      "failed": [
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Invernadero",
+    "cond": "sin",
+    "i": 3,
+    "ref": "TR-2208",
+    "ms": 54950,
+    "ok_first": false,
+    "fatal_first": false,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "js/reglas.js no puede usar document ni window (es lógica pura)."
+    ],
+    "problems_final": [
+      "js/reglas.js no puede usar document ni window (es lógica pura)."
+    ],
+    "member_repair": [],
+    "tests": {
+      "passed": 0,
+      "failed": [
+        "contrato"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Invernadero",
+    "cond": "con",
+    "i": 3,
+    "ref": "TR-2208",
+    "ms": 635486,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading '0')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading '0')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading '0')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading '0')"
+    ],
+    "problems_final": [
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#+   #\"."
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": true
+      },
+      {
+        "fn": "mover",
+        "ok": true
+      },
+      {
+        "fn": "crearEstado",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 14,
+      "failed": [
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Boxworld",
+    "cond": "sin",
+    "i": 4,
+    "ref": "LP-5160",
+    "ms": 556781,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": true,
+    "problems_first": [
+      "crearEstado([\"#####\",\"#@$.#\",\"#####\"]) tendría que dar jugador {fila:1,col:1}, cajas [{fila:1,col:2}], objetivos [{fila:1,col:3}], movimientos 0; dio jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], objetivos [{fila:undefined,col:undefined}], movimientos 0.",
+      "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"izquierda\") choca con la pared: el jugador sigue en {fila:1,col:1} y movimientos 0; quedó {fila:undefined,col:undefined} y movimientos 0.",
+      "empujar una caja: tiró un error: state is not defined",
+      "caja en el objetivo = ganado: tiró un error: state is not defined",
+      "mover no modifica el estado que recibe: tiró un error: state is not defined",
+      "con [\"######\",\"#@   #\",\"#    #\",\"######\"], \"derecha\" deja al jugador en {fila:1,col:2} y \"abajo\" en {fila:2,col:1} (un casillero por vez); quedó {fila:undefined,col:undefined} y {fila:undefined,col:undefined}.",
+      "caja contra pared no se mueve: tiró un error: state is not defined",
+      "caja contra caja no se mueve: tiró un error: state is not defined",
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; cajas: tendrían que ser [{fila:1,col:2},{fila:1,col:4}] ('*' = caja sobre objetivo también es caja) y dio [{fila:undefined,col:undefined},{fila:undefined,col:undefined}]; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#    #\"."
+    ],
+    "problems_final": [
+      "crearEstado([\"#####\",\"#@$.#\",\"#####\"]) tendría que dar jugador {fila:1,col:1}, cajas [{fila:1,col:2}], objetivos [{fila:1,col:3}], movimientos 0; dio jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], objetivos [{fila:undefined,col:undefined}], movimientos 0.",
+      "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"izquierda\") choca con la pared: el jugador sigue en {fila:1,col:1} y movimientos 0; quedó {fila:undefined,col:undefined} y movimientos 0.",
+      "empujar una caja: tiró un error: state is not defined",
+      "caja en el objetivo = ganado: tiró un error: state is not defined",
+      "mover no modifica el estado que recibe: tiró un error: state is not defined",
+      "con [\"######\",\"#@   #\",\"#    #\",\"######\"], \"derecha\" deja al jugador en {fila:1,col:2} y \"abajo\" en {fila:2,col:1} (un casillero por vez); quedó {fila:undefined,col:undefined} y {fila:undefined,col:undefined}.",
+      "caja contra pared no se mueve: tiró un error: state is not defined",
+      "caja contra caja no se mueve: tiró un error: state is not defined",
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; cajas: tendrían que ser [{fila:1,col:2},{fila:1,col:4}] ('*' = caja sobre objetivo también es caja) y dio [{fila:undefined,col:undefined},{fila:undefined,col:undefined}]; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#    #\"."
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": false
+      },
+      {
+        "fn": "mover",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 6,
+      "failed": [
+        "crearEstado lee jugador, cajas y objetivos",
+        "la pared bloquea",
+        "empujar una caja",
+        "caja en el objetivo = ganado",
+        "mover no modifica el estado que recibe",
+        "de a un casillero",
+        "caja contra pared no se mueve",
+        "caja contra caja no se mueve",
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 5,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Boxworld",
+    "cond": "con",
+    "i": 4,
+    "ref": "LP-5160",
+    "ms": 614466,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": true,
+    "broken": false,
+    "problems_first": [
+      "recién creado no está ganado: tiró un error: state is not defined",
+      "la pared bloquea: tiró un error: state is not defined",
+      "empujar una caja: tiró un error: state is not defined",
+      "caja en el objetivo = ganado: tiró un error: state is not defined",
+      "mover no modifica el estado que recibe: tiró un error: state is not defined",
+      "de a un casillero: tiró un error: state is not defined",
+      "caja contra pared no se mueve: tiró un error: state is not defined",
+      "caja contra caja no se mueve: tiró un error: state is not defined",
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#    #\".",
+      "crearEstado(NIVELES[0]) tiró: state is not defined",
+      "crearEstado(NIVELES[1]) tiró: state is not defined",
+      "crearEstado(NIVELES[2]) tiró: state is not defined",
+      "crearEstado(NIVELES[3]) tiró: state is not defined",
+      "crearEstado(NIVELES[4]) tiró: state is not defined"
+    ],
+    "problems_final": [],
+    "member_repair": [
+      {
+        "fn": "ganado",
+        "ok": true
+      },
+      {
+        "fn": "mover",
+        "ok": true
+      },
+      {
+        "fn": "crearEstado",
+        "ok": true
+      }
+    ],
+    "tests": {
+      "passed": 15,
+      "failed": []
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 13,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Deposito",
+    "cond": "sin",
+    "i": 4,
+    "ref": "LP-5160",
+    "ms": 88868,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": true,
+    "problems_first": [
+      "la respuesta no trajo ### FILE: js/reglas.js."
+    ],
+    "problems_final": [
+      "la respuesta no trajo ### FILE: js/reglas.js."
+    ],
+    "member_repair": [],
+    "tests": {
+      "passed": 0,
+      "failed": [
+        "contrato"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Deposito",
+    "cond": "con",
+    "i": 4,
+    "ref": "LP-5160",
+    "ms": 426069,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading '0')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading '0')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading '0')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading '0')"
+    ],
+    "problems_final": [
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#    #\"."
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": true
+      },
+      {
+        "fn": "crearEstado",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 13,
+      "failed": [
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Invernadero",
+    "cond": "sin",
+    "i": 4,
+    "ref": "LP-5160",
+    "ms": 59349,
+    "ok_first": false,
+    "fatal_first": false,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "js/reglas.js no puede usar document ni window (es lógica pura)."
+    ],
+    "problems_final": [
+      "js/reglas.js no puede usar document ni window (es lógica pura)."
+    ],
+    "member_repair": [],
+    "tests": {
+      "passed": 0,
+      "failed": [
+        "contrato"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Invernadero",
+    "cond": "con",
+    "i": 4,
+    "ref": "LP-5160",
+    "ms": 584043,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading '0')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading '0')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading '0')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading '0')"
+    ],
+    "problems_final": [
+      "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"derecha\") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador {fila:1,col:2}, cajas [{fila:1,col:2}], movimientos 1. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+      "con [\"#####\",\"#@$.#\",\"#####\"], después de mover \"derecha\" la única caja está en el único objetivo: ganado tiene que ser true.",
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#    #\"."
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": true
+      },
+      {
+        "fn": "mover",
+        "ok": false
+      },
+      {
+        "fn": "crearEstado",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 12,
+      "failed": [
+        "empujar una caja",
+        "caja en el objetivo = ganado",
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Boxworld",
+    "cond": "sin",
+    "i": 5,
+    "ref": "ZN-3397",
+    "ms": 431815,
+    "ok_first": false,
+    "fatal_first": false,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "crearEstado([\"#####\",\"#@$.#\",\"#####\"]) tendría que dar jugador {fila:1,col:1}, cajas [{fila:1,col:2}], objetivos [{fila:1,col:3}], movimientos 0; dio jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], objetivos [{fila:undefined,col:undefined}], movimientos 0.",
+      "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"izquierda\") choca con la pared: el jugador sigue en {fila:1,col:1} y movimientos 0; quedó {fila:undefined,col:undefined} y movimientos 0.",
+      "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"derecha\") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], movimientos 1. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+      "mover tiene que devolver un estado NUEVO: después de mover(e, \"derecha\"), e.jugador sigue en {fila:1,col:1} y su caja en {fila:1,col:2}; quedó {fila:undefined,col:undefined}.",
+      "con [\"######\",\"#@   #\",\"#    #\",\"######\"], \"derecha\" deja al jugador en {fila:1,col:2} y \"abajo\" en {fila:2,col:1} (un casillero por vez); quedó {fila:undefined,col:undefined} y {fila:undefined,col:undefined}.",
+      "con [\"####\",\"#@$#\",\"####\"], la caja tiene una pared detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, caja {fila:1,col:2}, movimientos 0); quedó jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], movimientos 0. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+      "con [\"######\",\"#@$$.#\",\"######\"], la caja tiene otra caja detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, movimientos 0); quedó {fila:undefined,col:undefined}, movimientos 0. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; cajas: tendrían que ser [{fila:1,col:2},{fila:1,col:4}] ('*' = caja sobre objetivo también es caja) y dio [{fila:undefined,col:undefined},{fila:undefined,col:undefined}]; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa: cada fila tiene que ser un STRING (como \"#.  .#\"), no un array de caracteres."
+    ],
+    "problems_final": [
+      "crearEstado([\"#####\",\"#@$.#\",\"#####\"]) tendría que dar jugador {fila:1,col:1}, cajas [{fila:1,col:2}], objetivos [{fila:1,col:3}], movimientos 0; dio jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], objetivos [{fila:undefined,col:undefined}], movimientos 0.",
+      "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"izquierda\") choca con la pared: el jugador sigue en {fila:1,col:1} y movimientos 0; quedó {fila:undefined,col:undefined} y movimientos 0.",
+      "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"derecha\") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], movimientos 1. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+      "mover tiene que devolver un estado NUEVO: después de mover(e, \"derecha\"), e.jugador sigue en {fila:1,col:1} y su caja en {fila:1,col:2}; quedó {fila:undefined,col:undefined}.",
+      "con [\"######\",\"#@   #\",\"#    #\",\"######\"], \"derecha\" deja al jugador en {fila:1,col:2} y \"abajo\" en {fila:2,col:1} (un casillero por vez); quedó {fila:undefined,col:undefined} y {fila:undefined,col:undefined}.",
+      "con [\"####\",\"#@$#\",\"####\"], la caja tiene una pared detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, caja {fila:1,col:2}, movimientos 0); quedó jugador {fila:undefined,col:undefined}, cajas [{fila:undefined,col:undefined}], movimientos 0. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+      "con [\"######\",\"#@$$.#\",\"######\"], la caja tiene otra caja detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, movimientos 0); quedó {fila:undefined,col:undefined}, movimientos 0. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; cajas: tendrían que ser [{fila:1,col:2},{fila:1,col:4}] ('*' = caja sobre objetivo también es caja) y dio [{fila:undefined,col:undefined},{fila:undefined,col:undefined}]; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa: cada fila tiene que ser un STRING (como \"#.  .#\"), no un array de caracteres."
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": false
+      },
+      {
+        "fn": "mover",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 7,
+      "failed": [
+        "crearEstado lee jugador, cajas y objetivos",
+        "la pared bloquea",
+        "empujar una caja",
+        "mover no modifica el estado que recibe",
+        "de a un casillero",
+        "caja contra pared no se mueve",
+        "caja contra caja no se mueve",
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 3,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Boxworld",
+    "cond": "con",
+    "i": 5,
+    "ref": "ZN-3397",
+    "ms": 320733,
+    "ok_first": false,
+    "fatal_first": false,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#+$ *#\"."
+    ],
+    "problems_final": [
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#+$ *#\"."
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 14,
+      "failed": [
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Deposito",
+    "cond": "sin",
+    "i": 5,
+    "ref": "ZN-3397",
+    "ms": 317560,
+    "ok_first": false,
+    "fatal_first": false,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#+$ *#\"."
+    ],
+    "problems_final": [
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#+$ *#\"."
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 13,
+      "failed": [
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Deposito",
+    "cond": "con",
+    "i": 5,
+    "ref": "ZN-3397",
+    "ms": 737374,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading '0')",
+      "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "la pared bloquea: tiró un error: Cannot read properties of undefined (reading '0')",
+      "empujar una caja: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+      "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading '0')",
+      "de a un casillero: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+      "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading '0')",
+      "crearEstado(NIVELES[0]) tiró: objectivosSet is not defined",
+      "crearEstado(NIVELES[1]) tiró: objectivosSet is not defined",
+      "crearEstado(NIVELES[2]) tiró: objectivosSet is not defined",
+      "crearEstado(NIVELES[3]) tiró: objectivosSet is not defined"
+    ],
+    "problems_final": [
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; cajas: tendrían que ser [{fila:1,col:2},{fila:1,col:4}] ('*' = caja sobre objetivo también es caja) y dio [{fila:1,col:1},{fila:1,col:2},{fila:1,col:4}]; mapa: cada fila tiene que ser un STRING (como \"#.  .#\"), no un array de caracteres."
+    ],
+    "member_repair": [
+      {
+        "fn": "crearEstado",
+        "ok": true
+      },
+      {
+        "fn": "ganado",
+        "ok": true
+      },
+      {
+        "fn": "mover",
+        "ok": true
+      },
+      {
+        "fn": "mover",
+        "ok": true
+      }
+    ],
+    "tests": {
+      "passed": 13,
+      "failed": [
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Invernadero",
+    "cond": "sin",
+    "i": 5,
+    "ref": "ZN-3397",
+    "ms": 48361,
+    "ok_first": false,
+    "fatal_first": false,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "js/reglas.js no puede usar document ni window (es lógica pura)."
+    ],
+    "problems_final": [
+      "js/reglas.js no puede usar document ni window (es lógica pura)."
+    ],
+    "member_repair": [],
+    "tests": {
+      "passed": 0,
+      "failed": [
+        "contrato"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 0,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  },
+  {
+    "case": "Invernadero",
+    "cond": "con",
+    "i": 5,
+    "ref": "ZN-3397",
+    "ms": 422307,
+    "ok_first": false,
+    "fatal_first": true,
+    "ok_final": false,
+    "broken": false,
+    "problems_first": [
+      "la pared bloquea: tiró un error: state is not defined",
+      "empujar una caja: tiró un error: state is not defined",
+      "caja en el objetivo = ganado: tiró un error: state is not defined",
+      "mover no modifica el estado que recibe: tiró un error: state is not defined",
+      "de a un casillero: tiró un error: state is not defined",
+      "caja contra pared no se mueve: tiró un error: state is not defined",
+      "caja contra caja no se mueve: tiró un error: state is not defined",
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#+$ *#\"."
+    ],
+    "problems_final": [
+      "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; objetivos: tendrían que ser [{fila:1,col:1},{fila:1,col:4}] ('+' y '*' también marcan un objetivo) y dio []; mapa fila 1: tendría que ser \"#.  .#\" (donde hay '+' o '*' el mapa tiene '.') y dio \"#+$ *#\"."
+    ],
+    "member_repair": [
+      {
+        "fn": "mover",
+        "ok": true
+      },
+      {
+        "fn": "crearEstado",
+        "ok": false
+      }
+    ],
+    "tests": {
+      "passed": 14,
+      "failed": [
+        "lee '*' y '+'"
+      ]
+    },
+    "skill_hits": {
+      "botones-habilitados": 0,
+      "flecha-sin-tapar": 0,
+      "grilla-que-no-se-estira": 0,
+      "nombres-del-contrato": 7,
+      "piezas-aparte-del-mapa": 0,
+      "siempre-jugable": 0
+    }
+  }
+]

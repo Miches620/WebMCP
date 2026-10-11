@@ -1,0 +1,54 @@
+```javascript
+crearEstado: function(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+        let estadoMapa = []; // Usaremos este para construir el mapa directamente como array de arrays de caracteres
+
+        // Asumiendo que el nivel es 10x10 según la estructura original del código fallido.
+        const ROWS = 10;
+        const COLS = 10;
+
+        for (let r = 0; r < ROWS; r++) {
+            let filaActual = [];
+            for (let c = 0; c < COLS; c++) {
+                // Verificamos que el nivel tenga la dimensión esperada antes de acceder al carácter
+                if (nivel[r] && nivel[r][c] === undefined) {
+                    filaActual.push(' '); // Rellenar si falta dato, aunque no debería pasar en un entorno controlado
+                    continue;
+                }
+
+                const char = nivel[r][c];
+                let mapChar = char;
+
+                // 1. Determinar el carácter para el estadoMapa: los objetos móviles se convierten en espacio vacío ' '.
+                if (char === '@' || char === '$' || char === '*' || char === '+') {
+                    mapChar = ' ';
+                } else if (char !== '.') {
+                    // Si es una pared o cualquier otro carácter fijo, lo mantenemos.
+                    // Solo los objetivos '.' deben permanecer visibles en el mapa base.
+                }
+
+                filaActual.push(mapChar);
+
+                // 2. Identificar posiciones:
+                if (char === '@') {
+                    jugador = { fila: r, col: c };
+                } else if (char === '$' || char === '*' || char === '+') { // Maneja todas las representaciones de caja
+                    cajas.push({ fila: r, col: c });
+                } else if (char === '.') {
+                    objetivos.push({ fila: r, col: c });
+                }
+            }
+            estadoMapa.push(filaActual);
+        }
+
+        return {
+            mapa: estadoMapa, 
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+```

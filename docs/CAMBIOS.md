@@ -2,6 +2,34 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Banco por paso, 1ª corrida: reglas (11/10) → files_engine v0.9.8, step_bench v0.2, Skill candidata**
+- *Corrida:* reglas, k=5, sin/con (todas las Skills), entradas fijas de los 3 builds "sin" (Boxworld, Depósito, Invernadero) = 30 muestras, con reparación por función (~10 min por muestra).
+
+| reglas | bien al 1er intento | bien tras reparar | roto |
+|---|---|---|---|
+| todos sin | 0/15 | 2/15 | 7/15 |
+| todos con | 0/15 | 1/15 | 13/15 |
+
+- *Lo principal:* **reglas no sale bien al primer intento en ninguna de las 30.** Es el punto flojo.
+- *Causa más repetida (20 de 30):* la función que arma el estado recorre un tamaño fijo, `for (r < 10)` o `for (r < 9)`, que sale del tamaño del mapa del brief. Las pruebas del harness usan niveles chicos (3x5) → `Cannot read properties of undefined (reading '0' / 'split')`. En el juego real andaría (todos los niveles son NxN), pero el contrato pide que sirva para cualquier nivel, y Validation también prueba con uno chico (`game_scenario`). Otras causas: `{row}` en vez de `{fila}`, `state` sin declarar, `+` y `*` sin leer.
+- *Dos fallas del banco/harness que la corrida destapó:*
+  1. **La línea neutra al final tapaba el pedido.** En Invernadero "sin", Gemma escribió `js/dibujo.js` las 5 veces, y en Depósito una vez `juego.html`. → step_bench v0.2: la línea va al **principio** y el pedido del paso sigue siendo lo último que lee Gemma. Las 30 muestras de esta corrida no se pueden usar para comparar sin/con.
+  2. **El harness juzgaba otro archivo como si fuera el pedido.** `extractFile` caía "por extensión" en `js/dibujo.js` y decía "reglas.js no puede usar document". → v0.9.8: un bloque con nombre de otro archivo del proyecto no se toma, y el problema lo dice ("Trajiste js/dibujo.js: ese archivo es de otro paso…"). Esto también vale para los builds.
+- *Más rápido:* el banco mide por defecto solo la primera respuesta de Gemma (`--repair` para incluir la reparación). Por muestra pasa de ~10 min a ~1–3 min.
+- *Medir una Skill sola:* condición `con:<id>[+<id>]`. Skill candidata nueva: `recorre-el-nivel-que-recibe` (DRAFT, logic), con su placebo-7. Ojo: "con" (todas) ahora son 7 Skills.
+- *Sobre Skills:* esta corrida no dice nada a favor ni en contra. Las 6 Skills no evitan el error principal porque ninguna habla de él.
+- Tests: motor 18, roles 11, grilla 92.
+
+**Banco por paso (10/10, files_engine v0.9.7)**
+- *Por qué:* el control de Skills mostró que 1 build por condición no mide nada. Un cambio en un paso se agranda en los siguientes, y cada build es 1 sola muestra de 20–30 min.
+- *Qué:* `build/step_bench.mjs --step reglas --k 5 --conds sin,con <run_dir> …`
+  - Cada `run_dir` es un build anterior. De ahí salen el brief, el plan, los archivos de los pasos previos (`app/`) y las respuestas crudas del paso de datos. Esos pasos **no se le piden a Gemma**: son entradas fijas.
+  - Corre solo el paso pedido, k veces por condición. Cada muestra lleva al final una línea neutra distinta ("Referencia del pedido: BX-1042"…). La diferencia entre muestras de una misma condición es el ruido. Las referencias son las mismas en todas las condiciones, así que se comparan de a pares.
+  - Mide con las pruebas del harness, sin Validation: bien al 1er intento, bien tras la reparación por función, roto (no carga o tira error), cantidad de problemas y minutos. También los problemas más repetidos.
+  - Retoma: una muestra con `result.json` no se vuelve a correr (`--out <dir>`). Muestra afuera, condición adentro: si LM Studio se pone lento, le toca a todas por igual.
+- *Motor (v0.9.7):* `opts.bench` (paso, entradas fijas, intentos, línea final), `opts.temperature` y `first_problems` en cada intento (lo que dio Gemma antes de reparar). Sin `opts.bench`, el pedido es idéntico al de antes.
+- *Probado* con un LM falso: 3 respuestas distintas según la referencia (bien, `state` sin declarar → reparada, sintaxis rota). El paso de datos no se llama, `--skills` y `--placebo` llegan al pedido, y retoma. Motor 17 (2 nuevos: paso inexistente y entradas faltantes fallan antes de llamar a Gemma).
+
 **Resultado del control de Skills (10/10): el ruido es tan grande como el efecto**
 - *Corridas (Gemma real; Boxworld y Depósito "sin/con" son las del 08/10, Boxworld ya con el FAIL falso del avatar sacado):*
 

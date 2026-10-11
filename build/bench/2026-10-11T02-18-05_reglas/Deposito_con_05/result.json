@@ -1,0 +1,62 @@
+{
+  "case": "Deposito",
+  "cond": "con",
+  "i": 5,
+  "ref": "ZN-3397",
+  "ms": 737374,
+  "ok_first": false,
+  "fatal_first": true,
+  "ok_final": false,
+  "broken": false,
+  "problems_first": [
+    "crearEstado lee jugador, cajas y objetivos: tiró un error: Cannot read properties of undefined (reading '0')",
+    "recién creado no está ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+    "la pared bloquea: tiró un error: Cannot read properties of undefined (reading '0')",
+    "empujar una caja: tiró un error: Cannot read properties of undefined (reading '0')",
+    "caja en el objetivo = ganado: tiró un error: Cannot read properties of undefined (reading '0')",
+    "mover no modifica el estado que recibe: tiró un error: Cannot read properties of undefined (reading '0')",
+    "de a un casillero: tiró un error: Cannot read properties of undefined (reading '0')",
+    "caja contra pared no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+    "caja contra caja no se mueve: tiró un error: Cannot read properties of undefined (reading '0')",
+    "lee '*' y '+': tiró un error: Cannot read properties of undefined (reading '0')",
+    "crearEstado(NIVELES[0]) tiró: objectivosSet is not defined",
+    "crearEstado(NIVELES[1]) tiró: objectivosSet is not defined",
+    "crearEstado(NIVELES[2]) tiró: objectivosSet is not defined",
+    "crearEstado(NIVELES[3]) tiró: objectivosSet is not defined"
+  ],
+  "problems_final": [
+    "crearEstado([\"######\",\"#+$ *#\",\"######\"]): jugador: tendría que ser {fila:1,col:1} ('+' = jugador sobre objetivo) y dio null; cajas: tendrían que ser [{fila:1,col:2},{fila:1,col:4}] ('*' = caja sobre objetivo también es caja) y dio [{fila:1,col:1},{fila:1,col:2},{fila:1,col:4}]; mapa: cada fila tiene que ser un STRING (como \"#.  .#\"), no un array de caracteres."
+  ],
+  "member_repair": [
+    {
+      "fn": "crearEstado",
+      "ok": true
+    },
+    {
+      "fn": "ganado",
+      "ok": true
+    },
+    {
+      "fn": "mover",
+      "ok": true
+    },
+    {
+      "fn": "mover",
+      "ok": true
+    }
+  ],
+  "tests": {
+    "passed": 13,
+    "failed": [
+      "lee '*' y '+'"
+    ]
+  },
+  "skill_hits": {
+    "botones-habilitados": 0,
+    "flecha-sin-tapar": 0,
+    "grilla-que-no-se-estira": 0,
+    "nombres-del-contrato": 0,
+    "piezas-aparte-del-mapa": 0,
+    "siempre-jugable": 0
+  }
+}

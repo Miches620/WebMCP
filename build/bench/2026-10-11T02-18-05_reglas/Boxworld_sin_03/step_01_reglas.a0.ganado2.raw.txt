@@ -1,0 +1,25 @@
+```javascript
+ganado: function(estado) {
+        if (estado.objetivos.length === 0) return false;
+
+        const objetivosSet = new Set();
+        for (const obj of estado.objetivos) {
+            objetivosSet.add(`${obj.fila},${obj.col}`);
+        }
+
+        let coveredObjectivesCount = 0;
+        const coveredLocations = new Set();
+
+        for (const caja of estado.cajas) {
+            const boxLocationKey = `${caja.fila},${caja.col}`;
+            if (objetivosSet.has(boxLocationKey)) {
+                if (!coveredLocations.has(boxLocationKey)) {
+                    coveredObjectivesCount++;
+                    coveredLocations.add(boxLocationKey);
+                }
+            }
+        }
+
+        return coveredObjectivesCount === estado.objetivos.length;
+    },
+```

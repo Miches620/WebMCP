@@ -1,0 +1,97 @@
+```javascript
+mover(estado, direccion) {
+    // Crear una copia profunda del estado para asegurar inmutabilidad
+    const nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+    let jugadorActual = estado.jugador;
+    let cajasActual = estado.cajas;
+    let nuevaPosicionJugador = null;
+    let nuevasCajas = [...cajasActual];
+    // let movimientoExitoso = false; // Variable no utilizada, se elimina o ignora
+
+    // 1. Calcular la posición objetivo del jugador (P_next)
+    let rNext, cNext;
+    switch (direccion) {
+        case "arriba":
+            rNext = jugadorActual.fila - 1;
+            cNext = jugadorActual.col;
+            break;
+        case "abajo":
+            rNext = jugadorActual.fila + 1;
+            cNext = jugadorActual.col;
+            break;
+        case "izquierda":
+            rNext = jugadorActual.fila;
+            cNext = jugadorActual.col - 1;
+            break;
+        case "derecha":
+            rNext = jugadorActual.fila;
+            cNext = jugadorActual.col + 1;
+            break;
+    }
+
+    // Validación de límites y paredes (P_next)
+    if (rNext < 0 || rNext >= estado.mapa.length || cNext < 0 || cNext >= estado.mapa[0].length || estado.mapa[rNext][cNext] === '#') {
+        return estado; // Colisión con pared o límite
+    }
+
+    // 2. Verificar si P_next está ocupado por una caja
+    const boxCollisionIndex = cajasActual.findIndex(box => box.fila === rNext && box.col === cNext);
+
+    if (boxCollisionIndex === -1) {
+        // Caso A: No hay caja en P_next. Movimiento simple del jugador.
+        nuevoEstado.jugador = { fila: rNext, col: cNext };
+        nuevoEstado.movimientos += 1;
+        return nuevoEstado;
+    } else {
+        // Caso B: Hay una caja (Box B) en P_next. Intentar empujar.
+        const boxB = cajasActual[boxCollisionIndex];
+
+        // Calcular la posición objetivo de la caja (B_next)
+        let rNextBox, cNextBox;
+        switch (direccion) {
+            case "arriba":
+                rNextBox = boxB.fila - 1;
+                cNextBox = boxB.col;
+                break;
+            case "abajo":
+                rNextBox = boxB.fila + 1;
+                cNextBox = boxB.col;
+                break;
+            case "izquierda":
+                rNextBox = boxB.fila;
+                cNextBox = boxB.col - 1;
+                break;
+            case "derecha":
+                rNextBox = boxB.fila;
+                cNextBox = boxB.col + 1;
+                break;
+        }
+
+        // Validación de B_next: Límites, Paredes o Colisión con otra caja (Box C)
+        if (rNextBox < 0 || rNextBox >= estado.mapa.length || cNextBox < 0 || cNextBox >= estado.mapa[0].length || estado.mapa[rNextBox][cNextBox] === '#') {
+            return estado; // La caja choca contra una pared o límite
+        }
+
+        // Verificar si B_next está ocupado por otra caja (Box C)
+        const boxCCollision = cajasActual.some(box => 
+            (box !== boxB && box.fila === rNextBox && box.col === cNextBox)
+        );
+
+        if (boxCCollision) {
+            return estado; // La caja choca contra otra caja
+        }
+
+        // Movimiento exitoso: Empuje de la caja y movimiento del jugador
+        nuevoEstado.jugador = { fila: rNext, col: cNext };
+        nuevoEstado.movimientos += 1;
+
+        // Actualizar posiciones de las cajas (Box B se mueve a B_next)
+        const nuevasCajasActualizadas = [...cajasActual];
+        nuevasCajasActualizadas[boxCollisionIndex] = { fila: rNextBox, col: cNextBox };
+        nuevoEstado.cajas = nuevasCajasActualizadas;
+
+        return nuevoEstado;
+    }
+}
+```

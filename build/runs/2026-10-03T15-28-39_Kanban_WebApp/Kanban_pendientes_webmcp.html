@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-10a'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
+  const SEED = '2026-10-11a'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
   let state = loadState() || {
  "columns": [
   {
@@ -521,8 +521,8 @@
    "cards": [
     {
      "id": "g3",
-     "title": "Banco por paso: medir con muestras, no con 1 build",
-     "desc": "[#Skills #Benchmark] 10/10: un placebo movió Boxworld de 7/0 a 3/4, así que 1 build por condición no mide nada. Propuesta: correr UN paso (p. ej. reglas) con su contrato fijo, k versiones neutras del pedido × sin/con Skills, y contar cuántas salen bien al 1er intento. 1–3 min por llamada. Sirve también para el Benchmark de modelos. A definir con Miche.",
+     "title": "Banco: medir recorre-el-nivel-que-recibe",
+     "desc": "[#Skills #Benchmark] reglas falla al 1er intento 30/30; 20 por recorrer 9 o 10 filas fijas (tamaño del brief). Corrida: --step reglas --k 5 --conds sin,con:recorre-el-nivel-que-recibe con los 3 builds 'sin' (sin reparación, ~1 h). Si sube el '1er intento', pasa la parte del QUÉ ('sirve para cualquier tamaño') al Standard y queda la Skill para el CÓMO.",
      "priority": "urgente"
     }
    ]
@@ -533,6 +533,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h27",
+     "title": "11/10 · Banco 1ª corrida: reglas es el punto flojo",
+     "desc": "[#Benchmark] 0/30 bien al 1er intento. 20/30: recorre un tamaño fijo (9 o 10) y se rompe con los niveles chicos del harness. La línea neutra al final hacía escribir otro archivo (pasa al principio: step_bench v0.2) y el harness juzgaba dibujo.js como reglas.js (arreglado, v0.9.8). Sin reparación: ~1–3 min por muestra.",
+     "priority": "bajo"
+    },
     {
      "id": "h26",
      "title": "10/10 · Control de Skills: el ruido es tan grande como el efecto",

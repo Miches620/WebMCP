@@ -1,0 +1,65 @@
+```javascript
+crearEstado: function(nivel) {
+    let jugador = null;
+    let cajas = [];
+    let objetivos = [];
+    let mapaBase = [];
+
+    const rows = nivel.length;
+    if (rows === 0) return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+    const cols = nivel[0].length;
+
+    for (let r = 0; r < rows; r++) {
+        let filaActual = [];
+        for (let c = 0; c < cols; c++) {
+            const char = nivel[r][c];
+            let mapChar = ' '; // Default floor/empty space
+
+            // Check for special characters and update state variables
+            if (char === '#') {
+                mapChar = '#';
+            } else if (char === '@' || char === '+') {
+                // Player location found. 
+                if (!jugador) { 
+                    jugador = { row: r, col: c };
+                }
+                mapChar = ' '; // Player spot on map is empty space
+            } else if (char === '$' || char === '*') {
+                // Box location found.
+                cajas.push({ row: r, col: c });
+                mapChar = ' '; // Box spot on map is empty space
+            } else if (char === '.') {
+                // Objective only
+                objetivos.push({ row: r, col: c });
+                mapChar = '.';
+            } else if (char === '*') {
+                // Combination: Box AND Objective
+                cajas.push({ row: r, col: c });
+                objetivos.push({ row: r, col: c });
+                mapChar = '.'; // Map shows objective marker
+            } else if (char === '+') {
+                // Combination: Player AND Objective
+                if (!jugador) { 
+                    jugador = { row: r, col: c };
+                }
+                objetivos.push({ row: r, col: c });
+                mapChar = '.'; // Map shows objective marker
+            } else {
+                // Default case: space or other non-special character treated as floor
+                mapChar = ' ';
+            }
+            
+            filaActual.push(mapChar);
+        }
+        mapaBase.push(filaActual);
+    }
+
+    return {
+        mapa: mapaBase,
+        jugador: jugador,
+        cajas: cajas,
+        objetivos: objetivos,
+        movimientos: 0
+    };
+}
+```

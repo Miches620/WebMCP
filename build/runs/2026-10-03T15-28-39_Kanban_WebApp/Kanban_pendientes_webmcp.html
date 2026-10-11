@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-09a'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
+  const SEED = '2026-10-10a'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
   let state = loadState() || {
  "columns": [
   {
@@ -433,6 +433,18 @@
    "isInbox": true,
    "isDefault": true,
    "cards": [
+    {
+     "id": "p30",
+     "title": "TechLeader: rol inválido se cambia en silencio",
+     "desc": "[#Contrato] Lo marcó ChatGPT (10/10) y sigue en script.js: si el rol de una fase no es válido, se reemplaza por profile.defaultRole sin avisar. depends_on mal formado sí se rechaza. Elegir una sola regla: rechazar, o reemplazar dejando constancia (evidencia).",
+     "priority": "medio"
+    },
+    {
+     "id": "p31",
+     "title": "Tablero de 9x9 desborda a 390 px",
+     "desc": "[#Validation web/game] Invernadero R8 FAIL sin y con Skills (26 y 7 px). Celdas de tamaño fijo × 9 columnas no entran en un celular. ¿El Standard pide un tamaño de celda que dependa del ancho, o se acepta como límite?",
+     "priority": "bajo"
+    },
     {
      "id": "g2",
      "title": "1 · URGENTE · web/app por archivos (si b8 anda)",
@@ -509,8 +521,8 @@
    "cards": [
     {
      "id": "g3",
-     "title": "Paso 3b: confirmar que las Skills ayudan",
-     "desc": "[#Skills] Listo para correr: 1) --placebo en Boxworld y Depósito (6 fichas de estilo, mismo lugar y largo). 2) Invernadero (project27, 9x9, 5 niveles) sin y con --skills (mide nombres-del-contrato v2). Comparar las 7 corridas con compare_runs. Si placebo ≈ sin, las Skills que bajaron su error pasan de DRAFT a candidatas.",
+     "title": "Banco por paso: medir con muestras, no con 1 build",
+     "desc": "[#Skills #Benchmark] 10/10: un placebo movió Boxworld de 7/0 a 3/4, así que 1 build por condición no mide nada. Propuesta: correr UN paso (p. ej. reglas) con su contrato fijo, k versiones neutras del pedido × sin/con Skills, y contar cuántas salen bien al 1er intento. 1–3 min por llamada. Sirve también para el Benchmark de modelos. A definir con Miche.",
      "priority": "urgente"
     }
    ]
@@ -521,6 +533,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h26",
+     "title": "10/10 · Control de Skills: el ruido es tan grande como el efecto",
+     "desc": "[#Skills] Placebo: Boxworld 3/4, Depósito 1/6 (peor que sin). Con Skills ganan en los 2 juegos donde nacieron (14 PASS contra 4 del placebo), pero en el juego nuevo (Invernadero) no ayudan: 6/2 con, 7/1 sin. FAILs revisados: son reales. Skills siguen DRAFT. Se aprendió que 1 build no alcanza para medir.",
+     "priority": "bajo"
+    },
     {
      "id": "h25",
      "title": "08/10 · 2º experimento de Skills: mejor en los dos juegos",

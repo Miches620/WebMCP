@@ -2,6 +2,24 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Resultado del control de Skills (10/10): el ruido es tan grande como el efecto**
+- *Corridas (Gemma real; Boxworld y Depósito "sin/con" son las del 08/10, Boxworld ya con el FAIL falso del avatar sacado):*
+
+| | sin | con Skills | placebo |
+|---|---|---|---|
+| Boxworld | 7/0 · 17 problemas · 25 min | 7/0 · 16 · 17 min | **3/4** · 38 · 31 min |
+| Depósito | 2/5 · 59 · 31 min | 7/0 · 11 · 17 min | **1/6** · 13 · 21 min |
+| Invernadero (juego nuevo) | 7/1 · 8 · 19 min | **6/2** · 17 · 24 min | — |
+
+- *Los FAIL son reales* (revisados en evidence.json): placebo Boxworld, el jugador sin fila (`undefined,2`) y el juego se bloquea al pasar de nivel; placebo Depósito, `Reglas` no queda definido y dibujo/controles no se corren; Invernadero con Skills, al ganar no muestra "¡Nivel completado!" (error de JS). R8 de Invernadero (sin y con): a 390 px el tablero de 9x9 desborda (26 y 7 px).
+- *Lectura:*
+  1. **El placebo no es igual a "con Skills":** en Boxworld y Depósito salió peor que "sin". Agregar texto neutro movió Boxworld de 7/0 a 3/4. El efecto mariposa existe y es grande, para los dos lados.
+  2. **En los dos juegos donde nacieron, las Skills le ganaron al placebo** (14 PASS contra 4). Pero las Skills se escribieron mirando los errores de esos dos juegos: es como medir con el examen que se usó para estudiar.
+  3. **En el juego nuevo, las Skills no ayudaron** (6/2 contra 7/1). Los errores que apuntan casi no aparecieron (flecha 1→0, grilla 1→1, el resto 0).
+  4. Las veces que aparece cada error también se mueven con el placebo: `piezas-aparte-del-mapa` en Depósito 9 sin → 0 con → 0 placebo; `nombres-del-contrato` en Boxworld 7 → 7 → 0. Bajar ese número con 1 corrida no prueba nada.
+- *Conclusión:* no hay evidencia de que las Skills sirvan en general. Quedan DRAFT. Lo más importante que se aprendió es otra cosa: **1 build por condición no alcanza para medir nada** (tampoco los arreglos del harness medidos con un build antes y uno después). Con temperature 0 la variación no viene del sorteo, viene de cualquier cambio en el pedido.
+- *Siguiente:* medir por paso y no por build entero. Mismo paso, mismo contrato, varias versiones del pedido (k placebos distintos = muestras del ruido), sin/con. Es más barato (un paso tarda 1–3 min, un build 20–30) y da una distribución en vez de un número. Es la misma herramienta que hace falta para el Benchmark de modelos.
+
 **Control de las Skills (09/10): placebo + 3er juego (Invernadero)**
 - *Por qué:* la 2ª vuelta mostró mejora, pero con `temperature 0` cualquier texto agregado cambia la salida. Hay que ver si mejora por lo que dicen las Skills o solo por agregar texto.
 - *Placebo (`--placebo`):* `roles/web-game/placebo/` tiene 6 fichas, una por Skill (`par:`), en el mismo paso, con el mismo encabezado "HABILIDADES" y largo parecido (±15%). El texto es de estilo (comillas, sangría, camelCase) y no toca ningún error conocido. `loadRole(id, { placebo: true })` las carga con status PLACEBO; `compare_runs` muestra la columna como "placebo".

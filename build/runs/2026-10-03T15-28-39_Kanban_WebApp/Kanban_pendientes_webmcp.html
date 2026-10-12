@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-12k'; // tablero actualizado al 12/10 (puntos 7 y 8 hechos; orden 7 → 8 → 9 → 5/6)
+  const SEED = '2026-10-12l'; // tablero actualizado al 12/10 (6ª corrida + v0.4.1)
   let state = loadState() || {
  "columns": [
   {
@@ -437,6 +437,12 @@
      "id": "p35",
      "title": "Punto 9 · Las tareas atómicas manejan la construcción",
      "desc": "[#Specialist #Contrato] Hoy las 16 tareas de Project23 le llegan a Gemma solo como notas; el Specialist corre los pasos del Standard. Cada tarea atómica = un paso con su ASSIGNMENT v0 (goal, role, skills que pone el harness, standard, componente, tests_to_pass / tests_must_stay_green, constraints, output). Sin campos vacíos de la rama de aprendizaje.",
+     "priority": "urgente"
+    },
+    {
+     "id": "p40",
+     "title": "Validation: 'algo cambió' no alcanza para aprobar una acción",
+     "desc": "[#Validation] 6ª corrida: mover a la misma columna cambiaba el orden y last_updated → action_changes PASS. Hace falta saber QUÉ tiene que cambiar (el elemento queda en otro lugar, el valor editado queda, +1/−1 al crear/borrar). Va con n5 (flujo de datos). Ojo: sin leer el contrato de Gemma para aprobar.",
      "priority": "urgente"
     },
     {
@@ -550,9 +556,9 @@
    "isDefault": true,
    "cards": [
     {
-     "id": "w1",
-     "title": "Corrida real del Kanban con web/app/estado v0.4.0",
-     "desc": "[#Specialist] Ver si Gemma, en el paso 5/6 (dibujo), agrega controlesDe(...) en vez de inventar botones. set WEBMCP_CONTEXT=12000 en su propia línea, después node build/run_build.mjs C:\\Users\\Miche\\Desktop\\project23_snapshot.json --profile web/app",
+     "id": "w2",
+     "title": "Corrida de confirmación con v0.4.1",
+     "desc": "[#Specialist] Ver que mover cambie de columna de verdad y que nada más se mueva. Temperatura 0: si el contrato sale igual que la 6ª, cambia solo acciones.js.",
      "priority": "urgente"
     }
    ]
@@ -563,6 +569,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h36",
+     "title": "12/10 · 6ª corrida: los 6 pasos OK al primer intento + v0.4.1",
+     "desc": "[#Specialist #Standard] Primera vez sin un solo reintento: Gemma usó controlesDe como pedía el contrato. Validation 7 PASS / 1 FAIL (R3, contador que nadie pidió) / 1 SIN_EVIDENCIA (R7, estilo); compuerta 6/6; ~8 min de Gemma. La revisión encontró un PASS falso en R2: mover(tarjetaId, nuevaColumnaId) movía a la MISMA columna (la regla tomaba el destino como contexto). v0.4.1: es contexto solo si el ejemplo del contrato es donde está el elemento; si no, <select> sin el lugar actual. Verificado con los archivos reales (fixture real_kanban_c6).",
+     "priority": "bajo"
+    },
     {
      "id": "h35",
      "title": "12/10 · Punto 8b: los controles de cada elemento los arma el código (v0.4.0)",
@@ -791,7 +803,7 @@
   }
  ],
  "customColumnsCount": 1,
- "cardCounter": 72
+ "cardCounter": 75
 };
   
   let editingColumnId = null;

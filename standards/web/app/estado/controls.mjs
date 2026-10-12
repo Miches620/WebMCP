@@ -1,4 +1,4 @@
-// controls.mjs — Standard web/app/estado v0.4.0 (12/10, punto 8, segunda parte): los CONTROLES de cada
+// controls.mjs — Standard web/app/estado v0.4.1 (12/10, punto 8, segunda parte): los CONTROLES de cada
 // elemento los arma el harness. Gemma dibuja cómo se ve cada cosa; los botones y campos de las acciones
 // salen del contrato y de la FORMA del estado, no del dominio (no sabe qué es una tarjeta ni una columna).
 //
@@ -62,6 +62,17 @@ export function kindsOf(estado) {
 }
 
 const ancestorsOf = (kinds, k) => { const out = []; for (let p = kinds[k]?.parent; p; p = kinds[p].parent) out.push(p); return out; };
+const itemsAt = (root, path) => path.reduce((out, k) => out.flatMap((o) => (Array.isArray(o?.[k]) ? o[k] : [])), [root]);
+/** Dónde está de verdad un elemento en el estado: { tipoAncestro: id } (para leer el ejemplo del contrato). */
+function realAncestors(estado, kinds, kind, id) {
+  const K = kinds[kind], out = {};
+  for (const a of ancestorsOf(kinds, kind)) {
+    const A = kinds[a], rest = K.path.slice(A.path.length);
+    const hit = itemsAt(estado, A.path).find((x) => itemsAt(x, rest).some((y) => J(y[K.id]) === J(id)));
+    if (hit) out[a] = hit[A.id];
+  }
+  return out;
+}
 /** "moverTarjeta" → "Mover tarjeta" */
 export const humanize = (s) => { const w = String(s).replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[_-]+/g, " ").toLowerCase().trim(); return w.charAt(0).toUpperCase() + w.slice(1); };
 
@@ -80,11 +91,18 @@ export function controlsPlan(c) {
     const ownerParam = ids[0] || null;
     const owner = ownerParam ? kindOf(ownerParam) : "app";
     const anc = owner === "app" ? [] : ancestorsOf(kinds, owner);
+    // v0.4.1 (6ª corrida real): un id del tipo de un ancestro es CONTEXTO solo si el ejemplo del contrato es
+    // justo el ancestro donde está el elemento del ejemplo. moverTarjeta(tarjetaId, nuevaColumnaId) con
+    // ejemplo ("card-2", "col-progreso") y card-2 en col-pendiente → es un DESTINO (elección), no contexto.
+    // Antes se tomaba el primero como contexto: "mover" movía a la misma columna y Validation daba PASS falso.
+    const ex = (p) => a.ejemplo[a.params.indexOf(p)];
+    const real = ownerParam ? realAncestors(c.estado, kinds, owner, ex(ownerParam)) : {};
     const ctx = [], choice = [];
     for (const p of ids.slice(1)) {
       const k = kindOf(p);
-      if (anc.includes(k) && !ctx.some((x) => x.kind === k)) ctx.push({ p, kind: k });
-      else choice.push({ p, kind: k });
+      const here = real[k] === undefined || J(real[k]) === J(ex(p));
+      if (anc.includes(k) && !ctx.some((x) => x.kind === k) && here) ctx.push({ p, kind: k });
+      else choice.push({ p, kind: k, notHere: anc.includes(k) });
     }
     const campos = a.params.filter((p) => !ids.includes(p)).map((p) => ({ p, num: typeof a.ejemplo[a.params.indexOf(p)] === "number", prefill: owner !== "app" }));
     return { nombre: a.nombre, label: humanize(a.nombre), owner, ownerParam, ctx, choice, campos, params: a.params };
@@ -134,8 +152,11 @@ function controlesDe(tipo, elemento, estado) {
       var s = document.createElement("select");
       s.dataset.campo = ch.p;
       var K = TIPOS[ch.kind];
+      // un destino del tipo de un ancestro no ofrece el lugar donde ya está el elemento
+      var aca = ctxVal[ch.kind];
+      if (aca === undefined && ch.notHere && elemento) { var an = ancestroDe(estado, tipo, elemento, ch.kind); aca = an ? an[K.id] : undefined; }
       elementosDe(estado, K.path).forEach(function (o) {
-        if (ctxVal[ch.kind] !== undefined && o[K.id] === ctxVal[ch.kind]) return;
+        if (aca !== undefined && o[K.id] === aca) return;
         var op = document.createElement("option");
         op.value = o[K.id];
         op.textContent = o[K.label] !== undefined ? o[K.label] : o[K.id];

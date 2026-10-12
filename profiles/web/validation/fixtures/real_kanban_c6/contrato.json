@@ -1,0 +1,103 @@
+{
+  "estado": {
+    "columns": [
+      {
+        "id": "col-pendiente",
+        "title": "Pendiente",
+        "cards": [
+          {
+            "id": "card-1",
+            "content": "Diseñar arquitectura inicial del sistema.",
+            "labels": ["Backend"],
+            "comments": [
+              {"user": "Admin", "text": "Revisar API endpoints y estructura de datos."}
+            ],
+            "last_updated": 1
+          },
+          {
+            "id": "card-2",
+            "content": "Crear maquetación base con estilo oscuro.",
+            "labels": ["UI/UX"],
+            "comments": [],
+            "last_updated": 2
+          }
+        ]
+      },
+      {
+        "id": "col-progreso",
+        "title": "En Progreso",
+        "cards": [
+          {
+            "id": "card-3",
+            "content": "Implementar lógica de estado y acciones.",
+            "labels": ["JS"],
+            "comments": [
+              {"user": "DevA", "text": "Necesito ayuda con el flujo de datos entre componentes."}
+            ],
+            "last_updated": 3
+          }
+        ]
+      },
+      {
+        "id": "col-completado",
+        "title": "Completado",
+        "cards": []
+      }
+    ]
+  },
+  "acciones": [
+    {
+      "nombre": "agregarTarjeta",
+      "params": ["contenido", "columnaId"],
+      "ejemplo": ["Nuevo requisito de funcionalidad", "col-pendiente"],
+      "hace": "Crea una nueva tarjeta en la columna especificada.",
+      "features": [1],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": ["tarjetaId", "nuevaColumnaId"],
+      "ejemplo": ["card-2", "col-progreso"],
+      "hace": "Mueve una tarjeta de su columna actual a la nueva columna.",
+      "features": [2],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "agregarComentario",
+      "params": ["cardId", "textoComentario"],
+      "ejemplo": ["card-1", "Excelente avance, sigue así."],
+      "hace": "Añade un comentario a una tarjeta específica.",
+      "features": [3],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "agregarEtiqueta",
+      "params": ["cardId", "etiquetaTexto"],
+      "ejemplo": ["card-3", "Prioridad Alta"],
+      "hace": "Añade una etiqueta de color a la tarjeta.",
+      "features": [4],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": ["cardId", "nuevoContenido"],
+      "ejemplo": ["card-1", "Diseñar arquitectura inicial y definir el esquema de datos."],
+      "hace": "Actualiza el contenido principal de la tarjeta.",
+      "features": [5],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "borrarTarjeta",
+      "params": ["tarjetaId", "columnaId"],
+      "ejemplo": ["card-2", "col-pendiente"],
+      "hace": "Elimina completamente una tarjeta del tablero.",
+      "features": [6],
+      "cambia": ["columns"]
+    }
+  ],
+  "se_ve": [
+    7,
+    8,
+    9
+  ]
+}

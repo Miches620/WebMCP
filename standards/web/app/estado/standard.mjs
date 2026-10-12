@@ -168,7 +168,7 @@ const validation = {
 
 const STANDARD = {
   id: "web/app/estado",
-  version: "0.4.0",
+  version: "0.4.1",
   status: "DRAFT",
   validation,
   label: "app de una pantalla con estado y acciones",

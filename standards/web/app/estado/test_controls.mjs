@@ -103,5 +103,32 @@ t("Kanban real: la compuerta de Validation da 6/6 acciones con datos de verdad (
 const html = await (async () => { const { chromium } = await import("playwright"); const b = await chromium.launch(); const pg = await b.newPage(); await pg.goto("file://" + join(dk, "index.html")); const o = await pg.evaluate(() => ({ mover: [...document.querySelectorAll('.ctl-accion select[data-campo="targetColumnId"]')][0]?.options.length, cols: document.querySelectorAll(".column").length, editar: document.querySelector('.ctl-accion input[data-campo="titulo"]')?.value })); await b.close(); return o; })();
 t("Kanban real: mover ofrece las otras columnas (no la propia) y editar arranca con el texto actual", html.mover === html.cols - 1 && html.editar === "Diseñar estructura base", JSON.stringify(html));
 
+// ---------- 4. v0.4.1 (6ª corrida real): un destino sin "origen" no es contexto ----------
+const FX6 = fileURLToPath(new URL("../../../../profiles/web/validation/fixtures/real_kanban_c6/", import.meta.url));
+const C6 = P(JSON.parse(readFileSync(join(FX6, "contrato.json"), "utf8")));
+const p6 = controlsPlan(C6);
+t("6ª corrida: moverTarjeta(tarjetaId, nuevaColumnaId) → el destino es elección (el ejemplo no es la columna donde está)", row(p6, "moverTarjeta").ctx.length === 0 && row(p6, "moverTarjeta").choice[0]?.p === "nuevaColumnaId" && row(p6, "moverTarjeta").choice[0]?.notHere === true, JSON.stringify(row(p6, "moverTarjeta")));
+t("6ª corrida: borrarTarjeta(tarjetaId, columnaId) → la columna es contexto (el ejemplo es donde está)", row(p6, "borrarTarjeta").ctx[0]?.p === "columnaId" && row(p6, "borrarTarjeta").choice.length === 0);
+t("4ª corrida sigue igual: origen = contexto, destino = elección", row(pk, "moverTarjeta").ctx.map((x) => x.p).join() === "sourceColumnId" && row(pk, "moverTarjeta").choice.map((x) => x.p).join() === "targetColumnId");
+// mover de verdad: con el acciones.js de la corrida (v0.4.0) la tarjeta queda en la misma columna; con el nuevo cambia
+const moveTest = async (dir) => {
+  const { chromium } = await import("playwright"); const b = await chromium.launch(); const pg = await b.newPage();
+  await pg.goto("file://" + join(dir, "index.html"));
+  const where = () => pg.evaluate(() => { const c = estado.columns.find((x) => x.cards.some((k) => k.id === "card-1")); return c && c.id; });
+  const before = await where();
+  const opts = await pg.evaluate(() => { const card = document.getElementById("card-1"); const s = card.querySelector('select[data-campo="nuevaColumnaId"]'); return s ? [...s.options].map((o) => o.value) : null; });
+  await pg.evaluate(() => document.getElementById("card-1").querySelector('[data-accion="moverTarjeta"]').click());
+  const after = await where(); await b.close();
+  return { before, after, opts };
+};
+const old6 = await moveTest(FX6);
+t("6ª corrida tal cual (v0.4.0): 'Mover tarjeta' deja la tarjeta en la misma columna (el PASS falso de R2)", old6.before === old6.after && old6.opts === null, JSON.stringify(old6));
+const d6 = app("kanban6", C6, readFileSync(join(FX6, "js/dibujo.js"), "utf8"), readFileSync(join(FX6, "styles.css"), "utf8"), readFileSync(join(FX6, "js/logica.js"), "utf8"));
+const new6 = await moveTest(d6);
+t("v0.4.1, con el dibujo y la lógica reales de la 6ª corrida: mover ofrece las otras columnas y la tarjeta cambia de columna", new6.before === "col-pendiente" && new6.after !== new6.before && new6.opts?.length === 2 && !new6.opts.includes("col-pendiente"), JSON.stringify(new6));
+writeFileSync(join(d6, "contrato.json"), readFileSync(join(FX6, "contrato.json")));
+const g6 = await validationGates({ artifact: join(d6, "index.html"), outDir: d6, input: { refined: JSON.parse(readFileSync(join(FX6, "refined.json"), "utf8")) }, specialist: { standard: { id: "web/app/estado" } } });
+t("v0.4.1, 6ª corrida: la compuerta sigue 6/6", g6.result === "PASS" && g6.rows.length === 6, JSON.stringify(g6.rows));
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

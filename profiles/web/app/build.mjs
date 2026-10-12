@@ -68,7 +68,7 @@ export const translateRequirement = (text, opts = {}) => (legacyFlag(opts) ? APP
 // 12/10 (Kanban real, 2ª corrida): aunque el traductor elija chequeos de formulario o click_changes, en la app
 // por archivos se cambian por UN action_changes. Las palabras salen del requisito (el verbo primero) y de los
 // params que eligió el traductor. Lo decide el código, no el modelo (como "próximo nivel" en web/game).
-const FORM_CHECKS = new Set(["submit_empty_blocked", "valid_submit_passes", "field_exists", "field_required", "field_optional", "click_changes"]);
+const FORM_CHECKS = new Set(["submit_empty_blocked", "valid_submit_passes", "field_exists", "field_required", "field_optional", "click_changes", "click_reveals"]);
 const STOP = new Set(["a", "al", "el", "la", "las", "los", "lo", "de", "del", "en", "entre", "con", "y", "o", "u", "para", "por", "un", "una", "unos", "unas", "que", "se", "sus", "su", "le", "les", "mas", "muy", "cada", "todo", "todos", "todas"]);
 const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 export function actionWords(text, checks = []) {

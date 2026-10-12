@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kanban WebApp</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main id="principal" data-feature="R1 R2 R3 R4 R5 R6 R7 R8 R9">
+<h1>Kanban Board</h1>
+<div id="app"></div>
+</main>
+<script src="js/datos.js"></script>
+<script src="js/logica.js"></script>
+<script src="js/dibujo.js"></script>
+<script>
+window.__probe = (function () {
+  try {
+    var ACTS = [{"n":"crearTarjeta","ids":["columnid"],"campos":["content"]},{"n":"moverTarjeta","ids":["cardid","sourcecolumnid","targetcolumnid"],"campos":[]},{"n":"agregarComentario","ids":["cardid"],"campos":["commentText"]},{"n":"agregarEtiqueta","ids":["cardid"],"campos":["tagName"]},{"n":"editarTarjeta","ids":["cardid"],"campos":["newContent"]},{"n":"borrarTarjeta","ids":["cardid","columnid"],"campos":[]}], CSS = ["column","column-header","card","card-content","tags-container","tag","comment-section","comment","comment-user","btn","btn-primary","card-actions","add-card-area"];
+    var e = App.crear(); dibujar(e);
+    var box = document.getElementById("app");
+    if (!box) return { ok: false, error: "no existe #app" };
+    var norm = function (s) { return String(s).replace(/\s+/g, " ").trim().toLowerCase(); };
+    var txt = norm(box.textContent || "");
+    var texts = [];
+    (function walk(v) {
+      if (typeof v === "string") { var t = v.trim(); if (t.length > 1 && /\s|[A-ZÁÉÍÓÚÑ]/.test(t) && texts.indexOf(t) < 0) texts.push(t); }
+      else if (Array.isArray(v)) v.forEach(walk);
+      else if (v && typeof v === "object") Object.keys(v).forEach(function (k) { walk(v[k]); });
+    })(ESTADO_INICIAL);
+    var inState = norm(JSON.stringify(ESTADO_INICIAL));
+    var noButton = [], noId = [], noField = [];
+    ACTS.forEach(function (a) {
+      var bs = Array.prototype.filter.call(box.querySelectorAll("[data-accion]"), function (b) { return b.dataset.accion === a.n; });
+      if (!bs.length) { noButton.push(a.n); return; }
+      var b = bs[0];
+      a.ids.forEach(function (p) { if (b.dataset[p] === undefined || b.dataset[p] === "") noId.push(a.n + ":" + p); });
+      a.campos.forEach(function (p) { if (!b.parentElement || !b.parentElement.querySelector('[data-campo="' + p + '"]')) noField.push(a.n + ":" + p); });
+    });
+    var cssCls = {};
+    CSS.forEach(function (k) { cssCls[k] = 1; });
+    var used = {};
+    Array.prototype.forEach.call(document.querySelectorAll("[class]"), function (el) { Array.prototype.forEach.call(el.classList, function (k) { used[k] = used[k] || (box.contains(el) ? 2 : 1); }); });
+    var unstyled = Object.keys(used).filter(function (k) { return used[k] === 2 && !cssCls[k]; });
+    var unused = Object.keys(cssCls).filter(function (k) { return !used[k]; });
+    // v0.2.1 (2ª corrida real): una clase sin estilo propio no es un error (.tag se pinta con ".etiquetas span").
+    // Es error si se PARECE a una del CSS que nadie usa (kanban-card ~ card) o si la mayoría no tiene estilo.
+    var near = function (a, b) { return a.length >= 3 && b.length >= 3 && (a.indexOf(b) >= 0 || b.indexOf(a) >= 0); };
+    var pairs = [];
+    unstyled.forEach(function (u) { unused.forEach(function (v) { if (near(u, v)) pairs.push(u + "~" + v); }); });
+    var els = Array.prototype.filter.call(box.querySelectorAll("[class]"), function (el) { return el.classList.length; });
+    var styledEls = els.filter(function (el) { return Array.prototype.some.call(el.classList, function (k) { return cssCls[k]; }); }).length;
+    return { ok: true, children: box.children.length, total: texts.length, noButton: noButton, noId: noId, noField: noField, unstyled: unstyled, unused: unused, pairs: pairs, styledShare: els.length ? styledEls / els.length : 1,
+      missing: texts.filter(function (t) { return txt.indexOf(norm(t)) < 0; }),
+      objectText: ((box.textContent || "").match(/\[object \w+\]/) || [])[0] || "",
+      undef: ["undefined", "nan", "null"].filter(function (w) { return new RegExp("\\b" + w + "\\b").test(txt) && inState.indexOf(w) < 0; }) };
+  } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
+})();
+</script>
+</body>
+</html>

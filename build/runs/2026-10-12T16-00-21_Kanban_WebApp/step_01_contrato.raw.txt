@@ -1,0 +1,94 @@
+### FILE: contrato.json
+```json
+{
+  "estado": {
+    "columns": [
+      { "id": "todo", "titulo": "Pendientes", "descripcion": "Tareas por iniciar." },
+      { "id": "progreso", "titulo": "En Progreso", "descripcion": "Trabajando activamente en ellas." },
+      { "id": "terminado", "titulo": "Completadas", "descripcion": "Listas para revisión o finalizadas." }
+    ],
+    "cards": [
+      {
+        "id": "card1",
+        "columnId": "todo",
+        "titulo": "Diseñar estructura Kanban",
+        "descripcion": "Definir el flujo de trabajo y las etapas.",
+        "labels": ["UX/UI"],
+        "comentarios": [
+          {"usuario": "Admin", "texto": "Revisar wireframes antes de empezar."},
+          {"usuario": "Equipo", "texto": "Necesitamos definir los requisitos finales."}
+        ]
+      },
+      {
+        "id": "card2",
+        "columnId": "progreso",
+        "titulo": "Implementar lógica JS",
+        "descripcion": "Escribir las funciones de estado y dibujo.",
+        "labels": ["Backend"],
+        "comentarios": [
+          {"usuario": "Admin", "texto": "Avance bueno, mantener la estructura limpia."}
+        ]
+      },
+      {
+        "id": "card3",
+        "columnId": "terminado",
+        "titulo": "Crear contrato JSON",
+        "descripcion": "Definir el esquema de datos inicial.",
+        "labels": ["Planificación"],
+        "comentarios": []
+      }
+    ]
+  },
+  "acciones": [
+    {
+      "nombre": "agregarTarjeta",
+      "params": ["columnId", "titulo", "descripcion"],
+      "ejemplo": ["todo", "Nueva Tarea de Prueba", "Descripción inicial para la nueva tarjeta."],
+      "hace": "Crea una nueva tarjeta en la columna especificada.",
+      "features": [1],
+      "cambia": ["cards"]
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": ["cardId", "newColumnId"],
+      "ejemplo": ["card1", "progreso"],
+      "hace": "Cambia la columna de una tarjeta existente.",
+      "features": [2],
+      "cambia": ["cards"]
+    },
+    {
+      "nombre": "agregarComentario",
+      "params": ["cardId", "texto"],
+      "ejemplo": ["card1", "Nuevo comentario sobre el diseño."],
+      "hace": "Añade un nuevo comentario a una tarjeta.",
+      "features": [3],
+      "cambia": ["cards"]
+    },
+    {
+      "nombre": "etiquetarTarjeta",
+      "params": ["cardId", "labelTexto"],
+      "ejemplo": ["card2", "Testing"],
+      "hace": "Añade una etiqueta a la tarjeta.",
+      "features": [4],
+      "cambia": ["cards"]
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": ["cardId", "titulo", "descripcion"],
+      "ejemplo": ["card1", "Título Editado y Mejorado", "Descripción actualizada con más detalles."],
+      "hace": "Actualiza el título y la descripción de una tarjeta.",
+      "features": [5],
+      "cambia": ["cards"]
+    },
+    {
+      "nombre": "borrarTarjeta",
+      "params": ["cardId"],
+      "ejemplo": ["card3"],
+      "hace": "Elimina completamente una tarjeta del tablero.",
+      "features": [6],
+      "cambia": ["cards"]
+    }
+  ],
+  "se_ve": []
+}
+```

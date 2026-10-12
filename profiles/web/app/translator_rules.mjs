@@ -25,7 +25,7 @@ export const APP_TRANSLATOR = { catalog: APP_CATALOG, rules: [APP_RULE] };
 // botón dibujado con sus campos al lado. Los chequeos de formulario daban FAIL falsos ("no hay formulario").
 export const APP_FILES_CATALOG = [
   "no_js_errors", "text_visible", "control_visible", "no_horizontal_scroll", "hover_changes",
-  "key_changes", "action_changes", "counter_on_action", "click_reveals",
+  "key_changes", "action_changes", "counter_on_action",
 ];
 export const APP_FILES_RULE = `Es una APP de UNA pantalla, sin formularios: cada acción es un botón con sus campos al lado.
    - "Crear / agregar / editar / borrar / mover / etiquetar X" → action_changes con click = palabras en orden: primero el verbo, después el objeto (ej. ["borrar", "eliminar", "tarjeta"]). El chequeo completa los campos del botón solo.
@@ -33,4 +33,4 @@ export const APP_FILES_RULE = `Es una APP de UNA pantalla, sin formularios: cada
    - "Se maneja con el teclado / las flechas" → key_changes. "Contador / cantidad que cambia" → counter_on_action.
    - "Responsive" → no_horizontal_scroll. Hover o sombras al pasar el mouse → hover_changes. Colores, estilo, paleta → "checks": [] y explicalo en "sin_chequeo".`;
 // accept: si el modelo igual elige un chequeo de formulario, no se pierde: postprocessChecks lo cambia por action_changes
-export const APP_FILES_TRANSLATOR = { catalog: APP_FILES_CATALOG, rules: [APP_FILES_RULE], accept: ["field_exists", "field_required", "field_optional", "submit_empty_blocked", "valid_submit_passes", "click_changes"] };
+export const APP_FILES_TRANSLATOR = { catalog: APP_FILES_CATALOG, rules: [APP_FILES_RULE], accept: ["field_exists", "field_required", "field_optional", "submit_empty_blocked", "valid_submit_passes", "click_changes", "click_reveals"] };

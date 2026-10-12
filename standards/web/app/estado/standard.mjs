@@ -51,7 +51,7 @@ export function contractText(ctx) {
 - js/datos.js (lo escribe el harness a partir de contrato.json) define: const ESTADO_INICIAL = ${c ? JSON.stringify(c.estado) : "{...}"};
 - js/logica.js define: ${app}. Sin DOM (no usa document ni window). crear() devuelve una COPIA profunda de ESTADO_INICIAL (JSON.parse(JSON.stringify(ESTADO_INICIAL))). Cada acción DEVUELVE UN ESTADO NUEVO y completo (no modifica el que recibe; mismas claves); en el estado van solo datos (textos, números, true/false, listas y objetos), nunca elementos de la página.${c ? `\n  Acciones:\n${c.acciones.map(actionLine).join("\n")}` : ""}
 - app.html: SOLO el título (<h1>) y el contenedor <div id="app"></div>. Nada más: los botones y los campos los dibuja dibujar() desde el estado. Sin <script> ni <style>.
-- js/dibujo.js define: function dibujar(estado). Vacía #app y lo arma desde el estado (todo lo que el usuario ve sale del estado). Toda acción es un <button> con b.dataset.accion = "<acción>" y sus ids en b.dataset, con el nombre del param EN MINÚSCULAS (b.dataset.cardid, en HTML data-cardid: el HTML pasa los data-* a minúsculas). Si la acción tiene campos, van en el MISMO elemento padre que su botón: un <input> (o <textarea>) con data-campo="<param>". Usa las clases que tienen estilo en styles.css. No agrega listeners.
+- js/dibujo.js define: function dibujar(estado). Vacía #app y lo arma desde el estado (todo lo que el usuario ve sale del estado). Toda acción es un <button> con b.dataset.accion = "<acción>" y sus ids en b.dataset, con el nombre del param EN MINÚSCULAS (b.dataset.cardid, en HTML data-cardid: el HTML pasa los data-* a minúsculas). Si un id NO es del elemento donde está el botón (p.ej. el destino de una acción de mover), dibujá un botón por cada valor posible, con su nombre ("Mover a …"). Si la acción tiene campos, van VISIBLES en el MISMO elemento padre que su botón: un <input> (o <textarea>) con data-campo="<param>"; nada oculto ni que se abra con otro botón. Usa las clases que tienen estilo en styles.css. No agrega listeners.
 - js/controles.js: let estado = App.crear(); UN solo listener click en #app: const b = ev.target.closest("[data-accion]"); los ids salen de b.dataset y los campos de b.parentElement.querySelector('[data-campo="<param>"]').value; estado = App.<acción>(estado, ...); dibujar(estado). Al final del archivo: dibujar(estado).`;
 }
 
@@ -88,9 +88,20 @@ export const probeFor = (c, css = []) => `window.__probe = (function () {
     ACTS.forEach(function (a) {
       var bs = Array.prototype.filter.call(box.querySelectorAll("[data-accion]"), function (b) { return b.dataset.accion === a.n; });
       if (!bs.length) { noButton.push(a.n); return; }
-      var b = bs[0];
-      a.ids.forEach(function (p) { if (b.dataset[p] === undefined || b.dataset[p] === "") noId.push(a.n + ":" + p); });
-      a.campos.forEach(function (p) { if (!b.parentElement || !b.parentElement.querySelector('[data-campo="' + p + '"]')) noField.push(a.n + ":" + p); });
+      // v0.2.2 (3ª corrida real): vale CUALQUIER botón de la acción (Gemma dibujó un ícono ✏️ y un "Guardar"
+      // al lado de los campos); se queda con el que menos le falta. Un campo oculto (display:none) no cuenta.
+      var vis = function (el) { return el.getClientRects().length > 0; };
+      var best = null;
+      bs.forEach(function (b) {
+        var ids = a.ids.filter(function (p) { return b.dataset[p] === undefined || b.dataset[p] === ""; });
+        var fs = a.campos.filter(function (p) { var f = b.parentElement && b.parentElement.querySelector('[data-campo="' + p + '"]'); return !f || !vis(f) || !vis(b); }).map(function (p) {
+          var f = b.parentElement && b.parentElement.querySelector('[data-campo="' + p + '"]'); return p + (f && !vis(f) ? "!" : "") + (!vis(b) ? "?" : ""); });
+        // un campo que existe pero está oculto pesa un poco menos que uno que falta: así el mensaje dice "oculto"
+        var miss = ids.length + fs.reduce(function (n, f) { return n + (/[!?]/.test(f) ? 0.9 : 1); }, 0);
+        if (!best || miss < best.miss) best = { miss: miss, ids: ids, fs: fs };
+      });
+      best.ids.forEach(function (p) { noId.push(a.n + ":" + p); });
+      best.fs.forEach(function (p) { noField.push(a.n + ":" + p); });
     });
     var cssCls = {};
     CSS.forEach(function (k) { cssCls[k] = 1; });
@@ -118,11 +129,12 @@ const FORBIDDEN_TAGS = ["form", "input", "button", "select", "textarea"];
 
 const STANDARD = {
   id: "web/app/estado",
-  version: "0.2.1",
+  version: "0.2.2",
   status: "DRAFT",
   label: "app de una pantalla con estado y acciones",
   describe: "App de una pantalla por archivos: el contrato (estado inicial + acciones) lo propone Gemma como datos y el harness lo valida; js/logica.js (lógica pura probada en Node con pruebas que salen del contrato), app.html + styles.css, js/dibujo.js (probado en Chromium), js/controles.js (cada acción se puede usar desde la pantalla).",
   evidence: [
+    "Kanban real, 3ª corrida (v0.2.1, 12/10): ids en minúsculas bien; Validation 5 PASS. Dibujo: mover con un solo botón sin la columna destino y campos en grupos display:none que nada mostraba → v0.2.2.",
     "Kanban real, 2ª corrida (v0.2.0, 12/10): contrato y lógica bien; dibujo y controles fallaron por data-cardId en innerHTML (el HTML lo pasa a data-cardid) → v0.2.1: claves del dataset en minúsculas.",
     "Kanban real (Project23, Gemma, 12/10, v0.1): contrato 1er intento, lógica 32/32 (arreglo state→estado + 4 reparaciones), controles falló 3 intentos: formularios fijos con datos del estado que nadie llenaba (select vacío, input hidden), clases del CSS distintas de las de dibujo. → v0.2.",
     "Diseño (12/10): Kanban v1 (Project23, componente único): editar borraba etiquetas, \"[object HTMLDivElement]\" en pantalla, + Añadir Columna sin efecto, doble confirm. Ningún chequeo lo vio.",
@@ -149,7 +161,7 @@ const STANDARD = {
       prompt: (c) => `${c.paso}: antes de programar, definí el CONTRATO de la app como JSON (no escribas código). El harness lo valida y con él arma js/datos.js y las pruebas.
 - "estado": el estado INICIAL de la app, solo datos (objetos, listas, textos, números, true/false), con ejemplos reales para que la pantalla no arranque vacía (2 o 3 por lista). Cada cosa que se pueda editar, mover o borrar lleva un "id" único. Corto: hasta ${MAX_STATE_CHARS} caracteres.
 - "acciones": lo que el usuario puede hacer. Cada una: "nombre" (verbo en camelCase), "params" (lo que recibe ADEMÁS del estado), "ejemplo" (un valor por param, que funcione con el estado inicial: ids que existan), "hace" (una frase), "features" (números de las features del brief que cumple) y "cambia" (qué claves de "estado" cambia).
-- "se_ve": números de las features que solo se VEN en la pantalla (no son acciones).
+- "se_ve": números de las features que solo se VEN en la pantalla (no son acciones), también las de aspecto: colores, estilo, sombras, efectos al pasar el mouse.
 Toda acción la dispara un botón (arrastrar puede ir además, nunca en vez del botón). Lo que el usuario escribe es un texto o un número por param (una lista no: que la acción reciba un elemento por vez).
 Cada feature del brief va en "features" de alguna acción o en "se_ve"${c.hints.style.length ? ` (salvo las de estilo: ${c.hints.style.join(", ")})` : ""}.
 Formato (es un ejemplo de la forma, no de esta app):
@@ -190,8 +202,13 @@ ${fence("json", CONTRACT_FMT)}`,
       expect: (p) => {
         const out = [];
         if (p.noButton?.length) out.push(`dibujar no dibuja ningún botón para: ${p.noButton.join(", ")}. Cada acción es un <button> con b.dataset.accion = "<acción>" (con el estado inicial tiene que verse al menos uno).`);
-        if (p.noId?.length) out.push(`a estos botones les falta el id en b.dataset: ${p.noId.map((x) => { const [a, k] = x.split(":"); return `${a} (b.dataset.${k}, en HTML data-${k})`; }).join(", ")}. La clave va en minúsculas: el HTML pasa data-cardId a data-cardid.`);
-        if (p.noField?.length) out.push(`faltan campos al lado del botón (en su mismo elemento padre): ${p.noField.map((x) => { const [a, k] = x.split(":"); return `${a} → <input data-campo="${k}">`; }).join(", ")}.`);
+        if (p.noId?.length) out.push(`a estos botones les falta el id en b.dataset: ${p.noId.map((x) => { const [a, k] = x.split(":"); return `${a} (b.dataset.${k}, en HTML data-${k})`; }).join(", ")}. La clave va en minúsculas: el HTML pasa data-cardId a data-cardid. Si ese id no es del elemento donde está el botón (un destino), dibujá un botón por cada valor posible.`);
+        if (p.noField?.length) {
+          const fl = p.noField.map((x) => { const [a, k] = x.split(":"); return { a, k: k.replace(/[!?]/g, ""), hidden: k.includes("!"), btnHidden: k.includes("?") }; });
+          const miss = fl.filter((f) => !f.hidden && !f.btnHidden), hid = fl.filter((f) => f.hidden || f.btnHidden);
+          if (miss.length) out.push(`faltan campos al lado del botón (en su mismo elemento padre): ${miss.map((f) => `${f.a} → <input data-campo="${f.k}">`).join(", ")}.`);
+          if (hid.length) out.push(`estos campos (o su botón) están ocultos (display:none) y nada los muestra: ${hid.map((f) => `${f.a} → data-campo="${f.k}"`).join(", ")}. Dibujá el campo VISIBLE, al lado de su botón, sin ocultarlo ni abrirlo con otro botón.`);
+        }
         if (p.unstyled?.length && p.unused?.length && (p.pairs?.length || (p.styledShare ?? 1) < 0.5)) out.push(`dibujar usa clases que no tienen estilo en styles.css (${p.unstyled.slice(0, 6).map((k) => "." + k).join(", ")}) y styles.css tiene estilo para clases que nadie usa (${p.unused.slice(0, 8).map((k) => "." + k).join(", ")})${p.pairs?.length ? `; parecen las mismas: ${p.pairs.slice(0, 4).map((x) => x.split("~").map((k) => "." + k).join(" ↔ ")).join(", ")}` : ""}: usá las clases de styles.css.`);
         if (!p.children) out.push("dibujar(App.crear()) no dibujó nada dentro de #app.");
         if (p.missing?.length) out.push(`estos textos del estado no se ven en #app: ${p.missing.slice(0, 5).map((t) => JSON.stringify(t)).join(", ")}${p.missing.length > 5 ? ` y ${p.missing.length - 5} más` : ""}. Todo lo que está en el estado se muestra.`);

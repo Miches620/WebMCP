@@ -171,6 +171,18 @@ dibujar(estado);`;
     const call = S.steps.find((x) => x.id === "controles").resolve({ data: { contrato: { items: [KI] } } }).calls.hints.borrar;
     t("v0.2.1: data-itemId en HTML cuenta (dataset.itemid) y controles lee b.dataset.itemid", r.probe?.ok && r.probe.noId.length === 0 && /b\.dataset\.itemid\)/.test(call) && /data-itemid/.test(contractText({ data: { contrato: { items: [KI] } } })), JSON.stringify(r.probe) + call);
   }
+  // v0.2.2 (3ª corrida real): un ícono sin campo + un "Guardar" con el campo en un grupo display:none
+  {
+    const HID = DIBUJO.replace('n.appendChild(i);', 'const g = document.createElement("div"); g.style.display = "none"; g.appendChild(i); const s = document.createElement("button"); s.textContent = "Guardar"; s.dataset.accion = "agregarItem"; g.appendChild(s); n.appendChild(g);');
+    const rh = await probePage(page("oculto", { ...base, "js/dibujo.js": HID }, draw.probe));
+    const mh = draw.expect(rh.probe).join(" | ");
+    t("v0.2.2: campo en un grupo oculto → 'ocultos (display:none)', no 'faltan'", /ocultos \(display:none\).*agregarItem → data-campo="texto"/.test(mh) && !/faltan campos/.test(mh), mh);
+    const r2 = await probePage(page("dos_botones", { ...base, "js/dibujo.js": DIBUJO.replace('n.appendChild(i);', 'const ic = document.createElement("button"); ic.textContent = "+"; ic.dataset.accion = "agregarItem"; app.appendChild(ic); n.appendChild(i);') }, draw.probe));
+    t("v0.2.2: vale cualquier botón de la acción (un ícono sin campo + otro con su campo visible)", draw.expect(r2.probe).length === 0, JSON.stringify(r2.probe));
+    const { validationFor } = await import("../../../../profiles/web/validation/check_catalog.mjs");
+    const rv = await validationFor(["web", "web/app"]).runChecks(page("val_oculto", { ...base, "js/dibujo.js": HID, "js/controles.js": CONTROLES(true, true) }), [{ type: "action_changes", params: { click: ["agregar", "item"] } }]);
+    t("v0.2.2: Validation no completa campos ocultos (3ª corrida: PASS falso en Crear)", !/campo/.test(rv[0].detail), rv[0].detail);
+  }
   // (un <button> dentro de un <form> dibujado no recarga si el listener vuelve a dibujar: el form se saca antes del submit;
   // la detección de recarga se sigue probando en la sonda, ver runCallsProbe)
 }

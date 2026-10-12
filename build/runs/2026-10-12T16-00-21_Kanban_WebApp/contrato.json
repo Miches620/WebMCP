@@ -1,0 +1,96 @@
+{
+  "estado": {
+    "columns": [
+      {
+        "id": "todo",
+        "title": "Pendientes",
+        "cards": [
+          {
+            "id": "card1",
+            "content": "Diseñar el flujo principal de la app y los componentes base.",
+            "tags": ["UX"],
+            "comments": [
+              {"user": "Admin", "text": "Revisar wireframes antes de empezar a codificar."}
+            ]
+          },
+          {
+            "id": "card2",
+            "content": "Escribir la lógica de manejo de estado y las funciones CRUD.",
+            "tags": ["JS"],
+            "comments": []
+          }
+        ]
+      },
+      {
+        "id": "progreso",
+        "title": "En Curso",
+        "cards": [
+          {
+            "id": "card3",
+            "content": "Definir la estructura de datos y el contrato JSON.",
+            "tags": ["Backend"],
+            "comments": [
+              {"user": "Admin", "text": "Listo para revisión del equipo."}
+            ]
+          }
+        ]
+      },
+      {
+        "id": "terminado",
+        "title": "Completado",
+        "cards": []
+      }
+    ]
+  },
+  "acciones": [
+    {
+      "nombre": "crearTarjeta",
+      "params": ["columnId", "content"],
+      "ejemplo": ["todo", "Crear la estructura HTML base de la app."],
+      "hace": "Crea una nueva tarjeta en la columna especificada.",
+      "features": [1],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": ["cardId", "sourceColumnId", "targetColumnId"],
+      "ejemplo": ["card2", "todo", "progreso"],
+      "hace": "Mueve una tarjeta de una columna a otra.",
+      "features": [2],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "agregarComentario",
+      "params": ["cardId", "commentText"],
+      "ejemplo": ["card1", "Excelente avance, sigue así."],
+      "hace": "Añade un comentario a una tarjeta existente.",
+      "features": [3],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "agregarEtiqueta",
+      "params": ["cardId", "tagName"],
+      "ejemplo": ["card1", "UI/UX"],
+      "hace": "Añade una etiqueta (tag) a la tarjeta.",
+      "features": [4],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": ["cardId", "newContent"],
+      "ejemplo": ["card3", "Ajustar los detalles de la API."],
+      "hace": "Actualiza el contenido principal de una tarjeta.",
+      "features": [5],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "borrarTarjeta",
+      "params": ["cardId", "columnId"],
+      "ejemplo": ["card2", "todo"],
+      "hace": "Elimina completamente una tarjeta de la aplicación.",
+      "features": [6],
+      "cambia": ["columns"]
+    }
+  ],
+  "se_ve": [7, 8, 9]
+}

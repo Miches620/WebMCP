@@ -2,6 +2,22 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Kanban real, 3ª corrida (v0.2.1) → v0.2.2 (12/10): campos ocultos y "mover" sin destino**
+- *Corrida (Gemma, Project23):* los ids en minúsculas funcionaron (`data-cardid`, `b.dataset.cardid`). Validation pasó de 1 a **5 PASS** / 3 FAIL. Contrato con 1 reintento (otra vez las features de estilo); lógica 32/32 (el 1er intento trajo app.html y el aviso de "archivo de otro paso" lo corrigió). **Dibujo y controles fallaron los 3 intentos.**
+- *Causas (probadas con los archivos reales en Chromium):*
+  - **Campos ocultos:** Gemma dibujó un ícono (✏️ 💬 🏷️) y, aparte, un grupo con `display:none` (campo + "Guardar") que nada muestra. "Crear" tenía su textarea oculto. En la app real **solo Borrar funciona**.
+  - **Mover sin destino:** un solo botón "➡️" sin la columna destino (ni Gemma sabía cuál poner).
+  - **PASS falso de Validation:** `action_changes` llenaba el textarea oculto de "Crear", que una persona no puede escribir. R1 pasaba en falso.
+  - **Traductor:** usó `click_reveals` para comentar y etiquetar. No aplica a una acción.
+- *v0.2.2:*
+  - **Sonda de dibujo:** vale cualquier botón de la acción (ícono + "Guardar"), se queda con el que menos le falta. Un campo o un botón oculto no cuenta. Mensaje propio: "están ocultos (display:none) y nada los muestra: dibujá el campo VISIBLE al lado de su botón".
+  - **Contrato y pedido:** si un id no es del elemento donde está el botón (un destino), se dibuja un botón por cada valor posible. Los campos van visibles, sin abrirse con otro botón. A la falta de id se le suma la misma pista.
+  - **Contrato (paso 1):** el pedido dice que las features de aspecto (colores, estilo, sombras, hover) van en `se_ve`, para ahorrar el reintento.
+  - **Validation:** `action_changes` y la sonda de llamadas completan solo campos **visibles**. `click_reveals` sale del traductor de web/app por archivos (si llega, se convierte en `action_changes`).
+  - Con los archivos reales de la 3ª corrida: dibujo da los 2 problemas correctos, controles los 5 que no se pueden usar, y Validation da R1–R5 FAIL y R6 PASS, lo que de verdad pasa en la app.
+- *Probado:* Standard 48, app 24, catálogo 53, motor 28, grilla 104, profiles 30. Grilla: pedidos idénticos byte a byte.
+- *Lectura honesta:* cada corrida arregla la falla anterior, pero Gemma inventa otra forma de interfaz (formularios fijos → `data-*` en camelCase → grupos ocultos). La regla "botón y campo visibles juntos" es simple y comprobable. Si la 4ª corrida trae otra variante, la idea anotada es que **controles.js lo escriba el harness** (sale entero del contrato) y que Gemma haga solo el dibujo.
+
 **Kanban real, 2ª corrida (v0.2.0) → v0.2.1 (12/10): data-* en minúsculas y Validation sin formularios**
 - *Corrida (Gemma, Project23):* contrato con 1 reintento: las features 7–9, de estilo, no estaban cubiertas, porque el snapshot es anterior a `estilo`. Lógica 32/32 (reparación de `crear` y `moverTarjeta`). Pantalla ✓, solo título y `#app`. **Dibujo y controles fallaron los 3 intentos.** Validation 1 PASS / 7 FAIL.
 - *Causa (verificada en Chromium):* **el HTML pasa los `data-*` a minúsculas.** Dibujo escribió `data-cardId="…"` en `innerHTML`, que queda como `dataset.cardid`. La sonda y controles buscaban `b.dataset.cardId`, que daba `undefined`. Error de diseño del contrato, no de Gemma.

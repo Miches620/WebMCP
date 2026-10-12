@@ -59,6 +59,7 @@ export default {
           const box = el.parentElement || el; let n = 0;
           box.querySelectorAll("input, textarea").forEach((f) => {
             const t = (f.getAttribute("type") || "text").toLowerCase();
+            if (!f.getClientRects().length) return; // un campo oculto no lo puede escribir nadie (3ª corrida: PASS falso)
             if (["button", "submit", "checkbox", "radio", "hidden", "color", "range", "file"].includes(t)) return;
             // un campo de editar ya trae el texto actual: se cambia igual (si no, "Editar" no cambia nada)
             f.value = t === "number" ? String((Number(f.value) || 0) + 1) : t === "date" ? "2026-01-01" : (f.value ? f.value + " (editado)" : "Prueba de Validation"); n++;

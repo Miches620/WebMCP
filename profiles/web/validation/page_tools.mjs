@@ -223,7 +223,7 @@ export async function runCallsProbe(htmlPath, { global, methods, draw, fill = "P
     const fillAll = (v) => page.evaluate((v) => {
       Array.prototype.forEach.call(document.querySelectorAll("input, textarea"), function (el) {
         var t = (el.getAttribute("type") || "text").toLowerCase();
-        if (el.value || ["button", "submit", "checkbox", "radio", "hidden", "color", "range", "file"].indexOf(t) >= 0) return;
+        if (el.value || ["button", "submit", "checkbox", "radio", "hidden", "color", "range", "file"].indexOf(t) >= 0 || !el.getClientRects().length) return;
         el.value = t === "number" ? "1" : t === "date" ? "2026-01-01" : t === "email" ? "prueba@ejemplo.com" : v;
         el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true }));
       });

@@ -1,0 +1,160 @@
+function dibujar(estado) {
+    const appContainer = document.getElementById('app');
+    if (!appContainer) return;
+
+    // 1. Limpiar el contenedor principal
+    appContainer.innerHTML = '';
+
+    // Función auxiliar para crear elementos y añadir clases/atributos
+    const createElement = (tag, classes = [], attributes = {}) => {
+        const element = document.createElement(tag);
+        if (classes.length) {
+            element.className = classes.join(' ');
+        }
+        for (const key in attributes) {
+            if (attributes[key] !== undefined) {
+                element.setAttribute(key, attributes[key]);
+            }
+        }
+        return element;
+    };
+
+    // 2. Iterar sobre las columnas para dibujar el tablero
+    estado.columns.forEach(column => {
+        const columnDiv = createElement('div', ['column']);
+        columnDiv.dataset.columnid = column.id;
+
+        // Header de la columna
+        const header = createElement('div', ['column-header'], { 'data-columnid': column.id });
+        header.innerHTML = `<h2>${column.title}</h2>`;
+        columnDiv.appendChild(header);
+
+        // Área para añadir nuevas tarjetas (Crear Tarjeta)
+        const addCardArea = createElement('div', ['add-card-area']);
+        addCardArea.innerHTML = `
+            <button class="btn btn-primary" data-accion="crearTarjeta" data-columnid="${column.id}">+ Añadir tarjeta</button>
+            <div style="display: none;">
+                <textarea data-campo="content" placeholder="Contenido de la nueva tarjeta..."></textarea>
+            </div>
+        `;
+        columnDiv.appendChild(addCardArea);
+
+        // Contenedor de tarjetas (el área donde se mueven las tarjetas)
+        const cardsContainer = createElement('div', ['card-container']);
+        columnDiv.appendChild(cardsContainer);
+
+
+        // 3. Iterar sobre las tarjetas para dibujar el contenido
+        column.cards.forEach(card => {
+            const cardDiv = createElement('div', ['card'], { 'data-cardid': card.id });
+
+            // Contenido principal de la tarjeta
+            let contentHtml = `<p class="card-content">${card.content}</p>`;
+            
+            // Etiquetas (Tags)
+            if (card.tags && card.tags.length > 0) {
+                const tagsContainer = createElement('div', ['tags-container']);
+                card.tags.forEach(tag => {
+                    const tagEl = createElement('span', ['tag'], { 'data-tag': tag });
+                    tagEl.textContent = tag;
+                    tagsContainer.appendChild(tagEl);
+                });
+                contentHtml += `<div class="tags-container">${tagsContainer.outerHTML}</div>`;
+            }
+
+            // Comentarios
+            if (card.comments && card.comments.length > 0) {
+                const commentsSection = createElement('div', ['comment-section']);
+                card.comments.forEach(comment => {
+                    const commentDiv = createElement('div', ['comment'], { 'data-user': comment.user });
+                    // Usamos innerHTML para el texto principal del comentario
+                    commentDiv.innerHTML = `<p class="comment-text">${comment.text}</p>`; 
+                    
+                    // Creamos y adjuntamos el usuario como un nodo separado
+                    const userSpan = createElement('small', [], { style: "display: block; color: #aaa;" });
+                    userSpan.textContent = `— ${comment.user}`;
+                    commentDiv.appendChild(userSpan);
+
+                    commentsSection.appendChild(commentDiv);
+                });
+                contentHtml += `<div class="comment-section">${commentsSection.outerHTML}</div>`;
+            }
+
+            // Contenido HTML final de la tarjeta (solo el cuerpo)
+            cardDiv.innerHTML = contentHtml;
+
+
+            // 4. Área de Acciones (Botones y Inputs)
+            const actionsArea = createElement('div', ['card-actions']);
+            
+            // Botón Editar Tarjeta
+            const editBtn = createElement('button', ['btn', 'btn-secondary'], { 'data-accion': 'editarTarjeta', 'data-cardid': card.id });
+            editBtn.textContent = '✏️';
+            actionsArea.appendChild(editBtn);
+
+            // Botón Comentar
+            const commentBtn = createElement('button', ['btn', 'btn-secondary'], { 'data-accion': 'agregarComentario', 'data-cardid': card.id });
+            commentBtn.textContent = '💬';
+            actionsArea.appendChild(commentBtn);
+
+            // Botón Etiquetar
+            const tagBtn = createElement('button', ['btn', 'btn-secondary'], { 'data-accion': 'agregarEtiqueta', 'data-cardid': card.id });
+            tagBtn.textContent = '🏷️';
+            actionsArea.appendChild(tagBtn);
+
+            // Botón Mover (Se mantiene por estructura, aunque no se usa en el contrato de acciones)
+            const moveBtn = createElement('button', ['btn', 'btn-secondary'], { 'data-accion': 'moverTarjeta', 'data-cardid': card.id, 'data-sourcecolumnid': column.id });
+            moveBtn.textContent = '➡️';
+            actionsArea.appendChild(moveBtn);
+
+
+            // Input/Modal para acciones (se ocultan por defecto)
+            const actionInputs = createElement('div', ['action-inputs']);
+
+            // 1. Editar Tarjeta (Input de contenido)
+            actionInputs.innerHTML += `
+                <div class="input-group" style="display: none;">
+                    <textarea data-campo="newContent" placeholder="Editar contenido..."></textarea>
+                    <button class="btn btn-primary" data-accion="editarTarjeta" data-cardid="${card.id}">Guardar Edición</button>
+                </div>
+            `;
+
+            // 2. Comentar (Input de texto)
+            actionInputs.innerHTML += `
+                <div class="input-group" style="display: none;">
+                    <textarea data-campo="commentText" placeholder="Escribe un comentario..."></textarea>
+                    <button class="btn btn-primary" data-accion="agregarComentario" data-cardid="${card.id}">Enviar Comentario</button>
+                </div>
+            `;
+
+            // 3. Etiquetar (Input de texto)
+            actionInputs.innerHTML += `
+                <div class="input-group" style="display: none;">
+                    <input type="text" data-campo="tagName" placeholder="Nueva etiqueta...">
+                    <button class="btn btn-primary" data-accion="agregarEtiqueta" data-cardid="${card.id}">Añadir Etiqueta</button>
+                </div>
+            `;
+
+            // 4. Borrar Tarjeta (Botón de confirmación)
+            const deleteBtn = createElement('button', ['btn', 'btn-danger'], { 'data-accion': 'borrarTarjeta', 'data-cardid': card.id, 'data-columnid': column.id });
+            deleteBtn.textContent = '🗑️';
+            actionsArea.appendChild(deleteBtn);
+
+
+            // Ensamblar la tarjeta final: Contenido + Separador (Card Body)
+            const cardBody = createElement('div', ['card-body']);
+            cardBody.innerHTML = contentHtml + '<hr/>'; 
+            
+            // Añadir el cuerpo, las acciones y los inputs al contenedor de la tarjeta
+            cardDiv.appendChild(cardBody);
+            cardDiv.appendChild(actionsArea);
+            cardDiv.appendChild(actionInputs);
+
+            // Añadir la tarjeta al contenedor de tarjetas de la columna
+            cardsContainer.appendChild(cardDiv);
+        });
+
+        // 5. Agregar el contenedor completo a #app
+        appContainer.appendChild(columnDiv);
+    });
+}

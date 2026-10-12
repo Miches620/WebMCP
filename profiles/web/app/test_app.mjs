@@ -48,5 +48,15 @@ t("game: el principal se llama #juego; app: #principal", (await gameBuild.planPa
 t("--legacy no aplica a web/app", (() => { try { appBuild.build({}, "/tmp/x", { legacy: true }); return false; } catch (e) { return /legacy/.test(e.message); } })());
 t("specialistSees = lo que el brief suma (guardia de holdout)", gameBuild.specialistSees(refined) === rb);
 
+// 12/10 (Kanban real, 2ª corrida): sin <form>, los chequeos de formulario se cambian por action_changes
+{
+  const { controlScore } = await import("../validation/lib.mjs");
+  const btns = ["+ Crear Tarjeta", "Mover a En Progreso", "💬 Añadir Comentario", "🏷️ Añadir Etiqueta", "✏️ Editar", "🗑️ Eliminar Tarjeta"];
+  const pick = (t, ch) => { const ac = appBuild.postprocessChecks(ch, "R", t).find((c) => c.type === "action_changes"); return ac && btns.map((b) => [b, controlScore(b, ac.params.click)]).reduce((x, y) => (y[1] > x[1] ? y : x))[0]; };
+  t("app: submit/field/click_changes → un action_changes (control_visible se queda)", appBuild.postprocessChecks([{ type: "control_visible", params: { text: ["crear"] } }, { type: "submit_empty_blocked", params: {} }, { type: "field_exists", params: { field: ["x"] } }], "R1", "Crear tarjetas").map((c) => c.type).join() === "control_visible,action_changes");
+  t("app: sin chequeos de formulario no cambia nada", appBuild.postprocessChecks([{ type: "hover_changes", params: { elementos: ["tarjeta"] } }], "R8", "Sombras").length === 1);
+  t("app: el control elegido es el del verbo (Kanban real)", pick("Crear tarjetas", [{ type: "submit_empty_blocked" }]) === "+ Crear Tarjeta" && pick("Agregar comentarios a las tarjetas", [{ type: "field_exists", params: { field: ["comentario"] } }]) === "💬 Añadir Comentario" && pick("Mover tarjetas entre columnas", [{ type: "click_changes", params: { click: ["columna", "tarjeta"] } }]) === "Mover a En Progreso" && pick("Etiquetar tarjetas", [{ type: "field_exists" }]) === "🏷️ Añadir Etiqueta" && pick("Borrar tarjetas", [{ type: "click_changes" }]) === "🗑️ Eliminar Tarjeta");
+  t("app: el traductor por archivos no ofrece chequeos de formulario", !(await import("./translator_rules.mjs")).APP_FILES_CATALOG.some((x) => /^(field_|submit_|valid_submit)/.test(x)));
+}
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

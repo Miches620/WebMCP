@@ -10,7 +10,7 @@ import { join } from "node:path";
 import { buildComponents, baselineHtml } from "../landing/specialist_components.mjs";
 import { translateRequirement as translateWeb } from "../validation/check_translator.mjs";
 import { planPage as planApp, planText } from "./page_plan.mjs";
-import { APP_TRANSLATOR } from "./translator_rules.mjs";
+import { APP_TRANSLATOR, APP_FILES_TRANSLATOR } from "./translator_rules.mjs";
 import { APP_SPECIALIST_RULES, rulesBrief } from "./specialist_rules.mjs";
 import { buildFiles } from "../../../harness/files_engine.mjs";
 import { WEB_FILES, baselinePage } from "../specialist/files_kit.mjs";
@@ -59,14 +59,40 @@ export function makeScreenBuild(cfg) {
 }
 
 const APP = makeScreenBuild({ translator: APP_TRANSLATOR, systemExtra: APP_SPECIALIST_RULES });
-export const { planPage, translateRequirement, postprocessChecks, specialistSees } = APP;
+// 12/10: por archivos (por defecto) el traductor no ofrece chequeos de formulario (la app no tiene <form>)
+const FILES = makeScreenBuild({ translator: APP_FILES_TRANSLATOR, systemExtra: APP_SPECIALIST_RULES });
+const legacyFlag = (opts = {}) => !!opts.legacyComponents || process.argv.includes("--legacy-components");
+export const { planPage, specialistSees } = APP;
+export const translateRequirement = (text, opts = {}) => (legacyFlag(opts) ? APP : FILES).translateRequirement(text, opts);
+
+// 12/10 (Kanban real, 2ª corrida): aunque el traductor elija chequeos de formulario o click_changes, en la app
+// por archivos se cambian por UN action_changes. Las palabras salen del requisito (el verbo primero) y de los
+// params que eligió el traductor. Lo decide el código, no el modelo (como "próximo nivel" en web/game).
+const FORM_CHECKS = new Set(["submit_empty_blocked", "valid_submit_passes", "field_exists", "field_required", "field_optional", "click_changes"]);
+const STOP = new Set(["a", "al", "el", "la", "las", "los", "lo", "de", "del", "en", "entre", "con", "y", "o", "u", "para", "por", "un", "una", "unos", "unas", "que", "se", "sus", "su", "le", "les", "mas", "muy", "cada", "todo", "todos", "todas"]);
+const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+export function actionWords(text, checks = []) {
+  const fromText = nrm(text).split(/[^a-z0-9]+/).filter((w) => w.length >= 3 && !STOP.has(w));
+  const fromParams = checks.flatMap((c) => [].concat(c?.params?.click || [], c?.params?.text || [], c?.params?.field || [])).map(nrm);
+  // una raíz cuenta una vez (tarjetas y tarjeta pesaban doble y "mover" perdía contra "+ Crear Tarjeta")
+  const seen = new Set();
+  return [...fromText, ...fromParams].filter((w) => { const k = w.slice(0, 6); if (!w || seen.has(k)) return false; seen.add(k); return true; }).slice(0, 8);
+}
+export function postprocessChecks(checks = [], id, text = "") {
+  if (legacyFlag()) return checks;
+  const form = checks.filter((c) => FORM_CHECKS.has(c?.type));
+  if (!form.length) return checks;
+  const out = checks.filter((c) => !FORM_CHECKS.has(c?.type));
+  if (!out.some((c) => c?.type === "action_changes")) out.push({ type: "action_changes", params: { click: actionWords(text, checks) } });
+  return out;
+}
 
 // 12/10 (paso 2 del borde, decisión de Miche): la app se escribe POR ARCHIVOS con el Standard que
 // declara el profile (standards/web/app/estado, DRAFT), con el mismo motor universal que web/game.
 // --legacy-components vuelve al componente único (motor de landing), para comparar.
 export function build(input, outDir, opts = {}) {
   if (opts.legacy) return APP.build(input, outDir, opts); // tira el error de siempre (--legacy es de landing)
-  if (opts.legacyComponents || process.argv.includes("--legacy-components")) return APP.build(input, outDir, opts);
+  if (legacyFlag(opts)) return APP.build(input, outDir, opts);
   return buildFiles(input, outDir, { ...opts, standard: getStandard(profile.standard), platform: WEB_FILES });
 }
 export function writeBaseline(baselineDir, input, basePlan, specialist) {

@@ -7,7 +7,8 @@ import { INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle } from "./for
 
 export const norm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
 export const words = (arr) => (Array.isArray(arr) ? arr : [arr]).map(norm).filter((w) => w.length >= 2);
-export const matches = (text, syn) => { const n = norm(text); return words(syn).some((w) => n.includes(w)); };
+// 12/10 (Kanban real): "Añadir Comentario" no matcheaba "comentarios". Una palabra larga matchea también sin la s final.
+export const matches = (text, syn) => { const n = norm(text); return words(syn).some((w) => n.includes(w) || (w.length >= 6 && /s$/.test(w) && n.includes(w.slice(0, -1)))); };
 export const fieldText = (f) => `${f.name} ${f.id} ${f.placeholder} ${f.label}`;
 
 // Definición del catálogo: tipo → { descripción para el traductor, params, run }.
@@ -110,11 +111,45 @@ export const ITEM_LEFTS = () => [...document.querySelectorAll("[data-vc-item]")]
 export const STYLE_SNAP = (el) => { const c = getComputedStyle(el); return [c.color, c.backgroundColor, c.boxShadow, c.transform, c.borderColor, c.opacity, c.textDecorationLine, c.outlineStyle].join("|"); };
 export const HOVER_KINDS = [
   { re: /(bot|button|btn|cta)/, sel: "button, .btn, [class*=button], [class*=cta], input[type=submit], a[class*=btn]", label: "botón" },
-  { re: /(tarjet|card)/, sel: "[class*=card], article", label: "tarjeta" },
+  // 12/10 (Kanban real): class="tarjeta" no entraba ("tarjeta: no hay" con .tarjeta:hover en el CSS)
+  { re: /(tarjet|card)/, sel: "[class*=card], [class*=tarjet], article", label: "tarjeta" },
   { re: /(enlace|link|vinculo)/, sel: "a[href]", label: "enlace" },
 ];
 export const NUMBERS_IN = (sel) => [...document.querySelectorAll(sel + " *")].filter((e) => !e.children.length && /\d/.test(e.textContent || "")).map((e) => (e.textContent || "").trim()).join(" | ");
 export const NAV_RE = /(anterior|siguiente|previo|prev|next|‹|›|←|→|«|»|^\s*<\s*$|^\s*>\s*$)/i;
+
+// ---- 12/10 (web/app por archivos): el control que MEJOR coincide con una lista de palabras en orden ----
+// Kanban real: "Agregar comentarios a las tarjetas" tomaba "+ Crear Tarjeta" (primer control con alguna palabra).
+// Cada palabra pesa más cuanto antes aparece (el verbo va primero), se compara por raíz (6 letras:
+// comentarios ~ comentario, etiquetar ~ etiqueta) y con unos pocos sinónimos de acciones.
+const SYN = [["borrar", "eliminar", "quitar", "sacar", "remover"], ["agregar", "anadir", "crear", "nuevo", "nueva", "sumar"], ["editar", "modificar", "cambiar", "renombrar"], ["mover", "pasar", "trasladar"]];
+const stem = (w) => w.slice(0, 6);
+const tokens = (t) => norm(t).split(/[^a-z0-9]+/).filter((x) => x.length >= 3);
+/** Puntaje de un texto para una lista de palabras ordenada (0 = nada). */
+export function controlScore(text, ws) {
+  const tk = tokens(text);
+  const list = words(ws).filter((w, i, l) => l.findIndex((x) => stem(x) === stem(w)) === i);
+  return list.reduce((acc, w, i) => {
+    const group = SYN.find((g) => g.includes(w)) || [w];
+    const hit = group.some((g) => tk.some((t) => (g.length >= 4 && t.length >= 4 ? stem(t) === stem(g) : t === g)));
+    return acc + (hit ? list.length - i : 0);
+  }, 0);
+}
+/** El control visible con mayor puntaje (empate: el primero). */
+export async function bestControl(page, syn) {
+  const loc = page.locator("button, a, [role=button], input[type=button], input[type=submit]").filter({ visible: true });
+  const n = await loc.count();
+  let best = null;
+  for (let i = 0; i < n; i++) {
+    const el = loc.nth(i);
+    const t = (await el.innerText().catch(() => "")) || (await el.getAttribute("value")) || (await el.getAttribute("aria-label")) || "";
+    // botones con ícono ("→", "🗑️"): también cuentan title, aria-label y data-accion (moverTarea → "mover tarea")
+    const extra = [await el.getAttribute("title"), await el.getAttribute("aria-label"), String((await el.getAttribute("data-accion")) || "").replace(/([a-z])([A-Z])/g, "$1 $2")].filter(Boolean).join(" ");
+    const sc = controlScore(`${t} ${extra}`, syn);
+    if (sc > 0 && (!best || sc > best.score)) best = { loc: el, text: t.trim(), score: sc };
+  }
+  return best;
+}
 
 /** Primer control visible cuyo texto (o value / aria-label) menciona alguna palabra. */
 export async function findControl(page, syn) {

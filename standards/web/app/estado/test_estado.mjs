@@ -97,10 +97,11 @@ t("cssClasses: clases con estilo (sin comentarios ni decimales)", cssClasses(".a
 const draw0 = S.steps.find((s) => s.id === "dibujo");
 const draw = { ...draw0, ...draw0.resolve({ ...ctxL, files: { "styles.css": ".item{color:red} .nueva{}" } }) };
 t("dibujo: sonda → mensajes (vacío, textos, [object Object], undefined, botón, id, campo, clases)", (() => {
-  const m = draw.expect({ children: 0, missing: ["Comprar pan"], objectText: "[object Object]", undef: ["undefined"], noButton: ["marcarHecho"], noId: ["borrarItem:id"], noField: ["agregarItem:texto"], unstyled: ["kanban-card"], unused: ["item"] });
-  return m.length === 8 && /no dibujó nada/.test(m.join()) && /ningún botón para: marcarHecho/.test(m.join()) && /b\.dataset\.id/.test(m.join()) && /data-campo="texto"/.test(m.join()) && /\.kanban-card.*\.item/.test(m.join()) && /\[object Object\]/.test(m.join());
+  const m = draw.expect({ children: 0, missing: ["Comprar pan"], objectText: "[object Object]", undef: ["undefined"], noButton: ["marcarHecho"], noId: ["borrarItem:id"], noField: ["agregarItem:texto"], unstyled: ["kanban-card"], unused: ["card"], pairs: ["kanban-card~card"] });
+  return m.length === 8 && /no dibujó nada/.test(m.join()) && /ningún botón para: marcarHecho/.test(m.join()) && /b\.dataset\.id/.test(m.join()) && /data-campo="texto"/.test(m.join()) && /\.kanban-card.*\.card/.test(m.join()) && /\[object Object\]/.test(m.join());
 })());
 t("dibujo: clases sin estilo solo si además hay clases del CSS que nadie usa", draw.expect({ children: 1, unstyled: ["fila"], unused: [] }).length === 0);
+t("dibujo v0.2.1: clase sin estilo propio que no se parece a nada y la mayoría con estilo → no es problema (2ª corrida real: .tag, .tarjetas)", draw.expect({ children: 1, unstyled: ["tarjetas", "tag"], unused: ["crear-card-controls"], pairs: [], styledShare: 0.8 }).length === 0 && draw.expect({ children: 1, unstyled: ["x", "y"], unused: ["z"], pairs: [], styledShare: 0.3 }).length === 1);
 const cs = S.steps.find((s) => s.id === "controles").resolve(ctxL).calls;
 t("controles v0.2: todas las acciones son de botón; la pista dice la llamada exacta", cs.methods.join() === "agregarItem,borrarItem,marcarHecho" && cs.forms.length === 0 && /App\.borrarItem\(estado, Number\(b\.dataset\.id\)\)/.test(cs.hints.borrarItem) && /App\.agregarItem\(estado, b\.parentElement\.querySelector\('\[data-campo="texto"\]'\)\.value\)/.test(cs.hints.agregarItem), JSON.stringify(cs.hints));
 t("contrato (texto) v0.2: botón, ids y campos por acción; app.html solo título y #app", /b\.dataset\.accion = "borrarItem", b\.dataset\.id = el id \(número/.test(CT) && /campos: data-campo="texto"/.test(CT) && /SOLO el título/.test(CT));
@@ -142,16 +143,34 @@ dibujar(estado);`;
   const base = { "styles.css": ".item{color:red} .nueva{display:flex}", "js/datos.js": datosJs(KL.estado), "js/logica.js": GOOD, "js/dibujo.js": DIBUJO };
   const pr = await probePage(page("dibujo", base, draw.probe));
   t("Chromium: sonda de dibujo de la lista sin problemas", pr.probe?.ok && draw.expect(pr.probe).length === 0 && pr.probe.total === 2, JSON.stringify(pr));
-  const prBad = await probePage(page("dibujo_mal", { ...base, "js/dibujo.js": DIBUJO.replace("it.texto +", "it +").replace('d.className = "item"', 'd.className = "fila"').replace('i.dataset.campo = "texto"', 'i.name = "texto"').replace('["Hecho", "marcarHecho"]', '["Hecho", "otra"]') }, draw.probe));
-  t("Chromium: dibujo mal → [object Object], textos, botón que falta, campo que falta y clases sin estilo", (() => { const m = draw.expect(prBad.probe).join(" | "); return /\[object Object\]/.test(m) && /ningún botón para: marcarHecho/.test(m) && /data-campo="texto"/.test(m) && /\.fila.*\.item/.test(m); })(), JSON.stringify(prBad.probe));
+  const prBad = await probePage(page("dibujo_mal", { ...base, "js/dibujo.js": DIBUJO.replace("it.texto +", "it +").replace('d.className = "item"', 'd.className = "lista-item"').replace('i.dataset.campo = "texto"', 'i.name = "texto"').replace('["Hecho", "marcarHecho"]', '["Hecho", "otra"]') }, draw.probe));
+  t("Chromium: dibujo mal → [object Object], textos, botón que falta, campo que falta y clases sin estilo", (() => { const m = draw.expect(prBad.probe).join(" | "); return /\[object Object\]/.test(m) && /ningún botón para: marcarHecho/.test(m) && /data-campo="texto"/.test(m) && /\.lista-item.*\.item/.test(m); })(), JSON.stringify(prBad.probe));
   const rOk = await runCallsProbe(page("bien", { ...base, "js/controles.js": CONTROLES(true, true) }), cs);
   t("Chromium: controles bien → todas las acciones se llaman y se dibuja", callsProblems(rOk, cs).length === 0 && rOk.calls.agregarItem >= 1 && rOk.calls.borrarItem >= 1 && rOk.tracked, JSON.stringify(rOk));
+  // Validation (12/10): action_changes completa los campos al lado del botón, lo aprieta y mira que cambie
+  {
+    const { validationFor } = await import("../../../../profiles/web/validation/check_catalog.mjs");
+    const V = validationFor(["web", "web/app"]);
+    const okP = page("val_bien", { ...base, "js/controles.js": CONTROLES(true, true) });
+    const rv = await V.runChecks(okP, [{ type: "action_changes", params: { click: ["agregar", "item"] } }, { type: "action_changes", params: { click: ["borrar", "item"] } }]);
+    const rm = await V.runChecks(page("val_mal", { ...base, "js/controles.js": CONTROLES(false) }), [{ type: "action_changes", params: { click: ["borrar", "item"] } }]);
+    t("Validation action_changes: agregar (con campo) y borrar PASS; borrar sin conectar FAIL", rv.every((x) => x.result === "PASS") && /1 campo/.test(rv[0].detail) && rm[0].result === "FAIL", JSON.stringify([...rv, ...rm].map((x) => x.detail)));
+  }
   const rBad = await runCallsProbe(page("mal", { ...base, "js/controles.js": CONTROLES(false) }), cs);
   const pb = callsProblems(rBad, cs);
   t("Chromium: falta borrar y marcar no dibuja → 2 problemas", pb.length === 2 && pb.some((x) => /llama a App.borrarItem/.test(x)) && pb.some((x) => /después de App.marcarHecho no se llama a dibujar/.test(x)), pb.join(" | "));
   const FORM = DIBUJO.replace('app.appendChild(n);', 'app.appendChild(n); const f = document.createElement("form"); f.innerHTML = "<input name=q><button>Enviar</button>"; app.appendChild(f);');
   const rRel = await runCallsProbe(page("recarga", { ...base, "js/dibujo.js": FORM, "js/controles.js": CONTROLES(true, true) }), cs);
   t("Chromium: un <form> que nadie escucha → recarga la página", callsProblems(rRel, cs).some((x) => /apretar "enviar" recarga la página/.test(x)), JSON.stringify(rRel));
+  // v0.2.1 (Kanban real, 2ª corrida): data-itemId en innerHTML → dataset.itemid (el HTML pasa a minúsculas)
+  {
+    const KI = parseContract({ estado: { items: [{ id: "a1", texto: "Uno Dos" }] }, acciones: [{ nombre: "borrar", params: ["itemId"], ejemplo: ["a1"] }] }, {}).items[0];
+    const st = { ...draw0, ...draw0.resolve({ data: { contrato: { items: [KI] } }, files: {} }) };
+    const HTMLDRAW = 'function dibujar(e) { document.getElementById("app").innerHTML = e.items.map((it) => `<div>${it.texto}<button data-accion="borrar" data-itemId="${it.id}">x</button></div>`).join(""); }';
+    const r = await probePage(page("minus", { "js/datos.js": datosJs(KI.estado), "js/logica.js": "const App = { crear() { return JSON.parse(JSON.stringify(ESTADO_INICIAL)); }, borrar(e, id) { return { ...e, items: e.items.filter((x) => x.id !== id) }; } };", "js/dibujo.js": HTMLDRAW }, st.probe));
+    const call = S.steps.find((x) => x.id === "controles").resolve({ data: { contrato: { items: [KI] } } }).calls.hints.borrar;
+    t("v0.2.1: data-itemId en HTML cuenta (dataset.itemid) y controles lee b.dataset.itemid", r.probe?.ok && r.probe.noId.length === 0 && /b\.dataset\.itemid\)/.test(call) && /data-itemid/.test(contractText({ data: { contrato: { items: [KI] } } })), JSON.stringify(r.probe) + call);
+  }
   // (un <button> dentro de un <form> dibujado no recarga si el listener vuelve a dibujar: el form se saca antes del submit;
   // la detección de recarga se sigue probando en la sonda, ver runCallsProbe)
 }

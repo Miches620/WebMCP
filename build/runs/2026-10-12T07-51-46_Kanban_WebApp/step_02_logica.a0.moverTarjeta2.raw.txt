@@ -1,0 +1,41 @@
+```javascript
+moverTarjeta: function(estado, cardId, origenColumnaId, destinoColumnaId) {
+    // 1. Crear una copia profunda del estado para garantizar la inmutabilidad
+    const nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+    let cardToMove = null;
+
+    // 2. Primera pasada: Extraer el objeto de la tarjeta y removerlo de la columna de origen en el nuevo estado.
+    nuevoEstado.columnas = nuevoEstado.columnas.map(col => {
+        if (col.id === origenColumnaId) {
+            // Encontrar el objeto real de la tarjeta antes de filtrar
+            const foundCard = col.tarjetas.find(card => card.id === cardId);
+
+            if (!foundCard) return col; // Si no se encuentra, devolver la columna sin cambios
+
+            cardToMove = foundCard;
+
+            // Filtrar la tarjeta del array de tarjetas de origen
+            return { ...col, tarjetas: col.tarjetas.filter(card => card.id !== cardId) };
+        }
+        return col;
+    });
+
+    // Si no se pudo extraer la tarjeta (ej. ID incorrecto), devolver el estado original
+    if (!cardToMove) return estado;
+
+    // 3. Segunda pasada: Añadir la tarjeta extraída a la columna de destino en el nuevo estado.
+    nuevoEstado.columnas = nuevoEstado.columnas.map(col => {
+        if (col.id === destinoColumnaId) {
+            // Agregar la tarjeta al array de tarjetas del destino
+            return {
+                ...col,
+                tarjetas: [...col.tarjetas, cardToMove] // Usar spread para inmutabilidad
+            };
+        }
+        return col;
+    });
+
+    return nuevoEstado;
+},
+```

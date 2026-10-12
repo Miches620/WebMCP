@@ -35,10 +35,13 @@ export function appHints(refined = {}) {
 // ---------- contrato (texto) ----------
 // v0.2 (Kanban real, 12/10): toda acción es un botón que dibuja dibujar(); sus ids van en b.dataset y sus
 // campos (lo que escribe el usuario) al lado del botón. Así no hay formularios fijos que dependan del estado.
+// v0.2.1 (Kanban real, 2ª corrida): el HTML pasa los data-* a minúsculas (data-cardId="x" → dataset.cardid),
+// así que b.dataset.cardId daba undefined en dibujo y en controles. La clave del dataset es el param en minúsculas.
+export const dk = (p) => p.toLowerCase();
 const idType = (a, p) => (typeof a.ejemplo[a.params.indexOf(p)] === "number" ? " (número: Number(...))" : "");
-const actionLine = (a) => `    - ${signature(a)}: ${a.hace || "(sin descripción)"}. Botón: b.dataset.accion = "${a.nombre}"${a.ids.map((p) => `, b.dataset.${p} = el id${idType(a, p)}`).join("")}${a.campos.length ? `; campos: ${a.campos.map((p) => `data-campo="${p}"`).join(", ")}` : ""}`;
+const actionLine = (a) => `    - ${signature(a)}: ${a.hace || "(sin descripción)"}. Botón: b.dataset.accion = "${a.nombre}"${a.ids.map((p) => `, b.dataset.${dk(p)} = el id${idType(a, p)} (en HTML: data-${dk(p)})`).join("")}${a.campos.length ? `; campos: ${a.campos.map((p) => `data-campo="${p}"`).join(", ")}` : ""}`;
 /** La llamada que hace controles: App.x(estado, Number(b.dataset.id), campo("texto")). */
-const callOf = (a) => `App.${a.nombre}(${["estado", ...a.params.map((p) => a.ids.includes(p) ? (idType(a, p) ? `Number(b.dataset.${p})` : `b.dataset.${p}`) : `${typeof a.ejemplo[a.params.indexOf(p)] === "number" ? "Number(" : ""}b.parentElement.querySelector('[data-campo="${p}"]').value${typeof a.ejemplo[a.params.indexOf(p)] === "number" ? ")" : ""}`)].join(", ")})`;
+const callOf = (a) => `App.${a.nombre}(${["estado", ...a.params.map((p) => a.ids.includes(p) ? (idType(a, p) ? `Number(b.dataset.${dk(p)})` : `b.dataset.${dk(p)}`) : `${typeof a.ejemplo[a.params.indexOf(p)] === "number" ? "Number(" : ""}b.parentElement.querySelector('[data-campo="${p}"]').value${typeof a.ejemplo[a.params.indexOf(p)] === "number" ? ")" : ""}`)].join(", ")})`;
 /** El contrato que lee Gemma. Antes del paso 1 dice la forma; después, las acciones y el estado reales. */
 export function contractText(ctx) {
   const c = contractOf(ctx);
@@ -48,7 +51,7 @@ export function contractText(ctx) {
 - js/datos.js (lo escribe el harness a partir de contrato.json) define: const ESTADO_INICIAL = ${c ? JSON.stringify(c.estado) : "{...}"};
 - js/logica.js define: ${app}. Sin DOM (no usa document ni window). crear() devuelve una COPIA profunda de ESTADO_INICIAL (JSON.parse(JSON.stringify(ESTADO_INICIAL))). Cada acción DEVUELVE UN ESTADO NUEVO y completo (no modifica el que recibe; mismas claves); en el estado van solo datos (textos, números, true/false, listas y objetos), nunca elementos de la página.${c ? `\n  Acciones:\n${c.acciones.map(actionLine).join("\n")}` : ""}
 - app.html: SOLO el título (<h1>) y el contenedor <div id="app"></div>. Nada más: los botones y los campos los dibuja dibujar() desde el estado. Sin <script> ni <style>.
-- js/dibujo.js define: function dibujar(estado). Vacía #app y lo arma desde el estado (todo lo que el usuario ve sale del estado). Toda acción es un <button> con b.dataset.accion = "<acción>" y sus ids en b.dataset (con el nombre del param). Si la acción tiene campos, van en el MISMO elemento padre que su botón: un <input> (o <textarea>) con data-campo="<param>". Usa las clases que tienen estilo en styles.css. No agrega listeners.
+- js/dibujo.js define: function dibujar(estado). Vacía #app y lo arma desde el estado (todo lo que el usuario ve sale del estado). Toda acción es un <button> con b.dataset.accion = "<acción>" y sus ids en b.dataset, con el nombre del param EN MINÚSCULAS (b.dataset.cardid, en HTML data-cardid: el HTML pasa los data-* a minúsculas). Si la acción tiene campos, van en el MISMO elemento padre que su botón: un <input> (o <textarea>) con data-campo="<param>". Usa las clases que tienen estilo en styles.css. No agrega listeners.
 - js/controles.js: let estado = App.crear(); UN solo listener click en #app: const b = ev.target.closest("[data-accion]"); los ids salen de b.dataset y los campos de b.parentElement.querySelector('[data-campo="<param>"]').value; estado = App.<acción>(estado, ...); dibujar(estado). Al final del archivo: dibujar(estado).`;
 }
 
@@ -64,7 +67,7 @@ const CONTRACT_FMT = `{ "estado": { "items": [ { "id": 1, "texto": "Primer ejemp
 // los ids y estados internos ("col-1", "hecho") pueden no mostrarse.
 // v0.2 (Kanban real): además, por cada acción, que haya un botón con sus ids y sus campos al lado; y que
 // las clases que dibuja dibujar() tengan estilo (styles.css decía .card y dibujar ponía .kanban-card).
-const acts = (c) => (c?.acciones || []).map((a) => ({ n: a.nombre, ids: a.ids, campos: a.campos }));
+const acts = (c) => (c?.acciones || []).map((a) => ({ n: a.nombre, ids: a.ids.map(dk), campos: a.campos }));
 // las clases del CSS las pasa el harness (en file:// Chromium no deja leer cssRules)
 export const probeFor = (c, css = []) => `window.__probe = (function () {
   try {
@@ -95,7 +98,14 @@ export const probeFor = (c, css = []) => `window.__probe = (function () {
     Array.prototype.forEach.call(document.querySelectorAll("[class]"), function (el) { Array.prototype.forEach.call(el.classList, function (k) { used[k] = used[k] || (box.contains(el) ? 2 : 1); }); });
     var unstyled = Object.keys(used).filter(function (k) { return used[k] === 2 && !cssCls[k]; });
     var unused = Object.keys(cssCls).filter(function (k) { return !used[k]; });
-    return { ok: true, children: box.children.length, total: texts.length, noButton: noButton, noId: noId, noField: noField, unstyled: unstyled, unused: unused,
+    // v0.2.1 (2ª corrida real): una clase sin estilo propio no es un error (.tag se pinta con ".etiquetas span").
+    // Es error si se PARECE a una del CSS que nadie usa (kanban-card ~ card) o si la mayoría no tiene estilo.
+    var near = function (a, b) { return a.length >= 3 && b.length >= 3 && (a.indexOf(b) >= 0 || b.indexOf(a) >= 0); };
+    var pairs = [];
+    unstyled.forEach(function (u) { unused.forEach(function (v) { if (near(u, v)) pairs.push(u + "~" + v); }); });
+    var els = Array.prototype.filter.call(box.querySelectorAll("[class]"), function (el) { return el.classList.length; });
+    var styledEls = els.filter(function (el) { return Array.prototype.some.call(el.classList, function (k) { return cssCls[k]; }); }).length;
+    return { ok: true, children: box.children.length, total: texts.length, noButton: noButton, noId: noId, noField: noField, unstyled: unstyled, unused: unused, pairs: pairs, styledShare: els.length ? styledEls / els.length : 1,
       missing: texts.filter(function (t) { return txt.indexOf(norm(t)) < 0; }),
       objectText: ((box.textContent || "").match(/\\[object \\w+\\]/) || [])[0] || "",
       undef: ["undefined", "nan", "null"].filter(function (w) { return new RegExp("\\\\b" + w + "\\\\b").test(txt) && inState.indexOf(w) < 0; }) };
@@ -108,11 +118,12 @@ const FORBIDDEN_TAGS = ["form", "input", "button", "select", "textarea"];
 
 const STANDARD = {
   id: "web/app/estado",
-  version: "0.2.0",
+  version: "0.2.1",
   status: "DRAFT",
   label: "app de una pantalla con estado y acciones",
   describe: "App de una pantalla por archivos: el contrato (estado inicial + acciones) lo propone Gemma como datos y el harness lo valida; js/logica.js (lógica pura probada en Node con pruebas que salen del contrato), app.html + styles.css, js/dibujo.js (probado en Chromium), js/controles.js (cada acción se puede usar desde la pantalla).",
   evidence: [
+    "Kanban real, 2ª corrida (v0.2.0, 12/10): contrato y lógica bien; dibujo y controles fallaron por data-cardId en innerHTML (el HTML lo pasa a data-cardid) → v0.2.1: claves del dataset en minúsculas.",
     "Kanban real (Project23, Gemma, 12/10, v0.1): contrato 1er intento, lógica 32/32 (arreglo state→estado + 4 reparaciones), controles falló 3 intentos: formularios fijos con datos del estado que nadie llenaba (select vacío, input hidden), clases del CSS distintas de las de dibujo. → v0.2.",
     "Diseño (12/10): Kanban v1 (Project23, componente único): editar borraba etiquetas, \"[object HTMLDivElement]\" en pantalla, + Añadir Columna sin efecto, doble confirm. Ningún chequeo lo vio.",
     "Herencia: grilla (Boxworld, Depósito, Invernadero): un archivo por paso, datos de Gemma validados por código, pruebas de la lógica en Node, sondas en Chromium.",
@@ -179,9 +190,9 @@ ${fence("json", CONTRACT_FMT)}`,
       expect: (p) => {
         const out = [];
         if (p.noButton?.length) out.push(`dibujar no dibuja ningún botón para: ${p.noButton.join(", ")}. Cada acción es un <button> con b.dataset.accion = "<acción>" (con el estado inicial tiene que verse al menos uno).`);
-        if (p.noId?.length) out.push(`a estos botones les falta el id en b.dataset: ${p.noId.map((x) => { const [a, k] = x.split(":"); return `${a} (b.dataset.${k})`; }).join(", ")}.`);
+        if (p.noId?.length) out.push(`a estos botones les falta el id en b.dataset: ${p.noId.map((x) => { const [a, k] = x.split(":"); return `${a} (b.dataset.${k}, en HTML data-${k})`; }).join(", ")}. La clave va en minúsculas: el HTML pasa data-cardId a data-cardid.`);
         if (p.noField?.length) out.push(`faltan campos al lado del botón (en su mismo elemento padre): ${p.noField.map((x) => { const [a, k] = x.split(":"); return `${a} → <input data-campo="${k}">`; }).join(", ")}.`);
-        if (p.unstyled?.length && p.unused?.length) out.push(`dibujar usa clases que no tienen estilo en styles.css (${p.unstyled.slice(0, 6).map((k) => "." + k).join(", ")}) y styles.css tiene estilo para clases que nadie usa (${p.unused.slice(0, 8).map((k) => "." + k).join(", ")}): usá las clases de styles.css.`);
+        if (p.unstyled?.length && p.unused?.length && (p.pairs?.length || (p.styledShare ?? 1) < 0.5)) out.push(`dibujar usa clases que no tienen estilo en styles.css (${p.unstyled.slice(0, 6).map((k) => "." + k).join(", ")}) y styles.css tiene estilo para clases que nadie usa (${p.unused.slice(0, 8).map((k) => "." + k).join(", ")})${p.pairs?.length ? `; parecen las mismas: ${p.pairs.slice(0, 4).map((x) => x.split("~").map((k) => "." + k).join(" ↔ ")).join(", ")}` : ""}: usá las clases de styles.css.`);
         if (!p.children) out.push("dibujar(App.crear()) no dibujó nada dentro de #app.");
         if (p.missing?.length) out.push(`estos textos del estado no se ven en #app: ${p.missing.slice(0, 5).map((t) => JSON.stringify(t)).join(", ")}${p.missing.length > 5 ? ` y ${p.missing.length - 5} más` : ""}. Todo lo que está en el estado se muestra.`);
         if (p.objectText) out.push(`en #app aparece "${p.objectText}": se escribió un objeto o un elemento como texto. Escribí sus propiedades (p.ej. item.texto) con textContent.`);

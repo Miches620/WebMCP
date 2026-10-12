@@ -105,7 +105,8 @@ export async function translateRequirement(requirement, opts = {}) {
   const parsed = parseJsonLoose(raw);
   const checks = [], dropped = [];
   for (const c of parsed.checks || []) {
-    const n = CATALOG[c?.type]?.base || !opts.translator.catalog.includes(c?.type) ? null : normalizeCheck(c);
+    // 12/10: translator.accept = tipos que el profile no ofrece pero sí recibe (los convierte su postprocessChecks)
+    const n = CATALOG[c?.type]?.base || !(opts.translator.catalog.includes(c?.type) || (opts.translator.accept || []).includes(c?.type)) ? null : normalizeCheck(c);
     if (n) checks.push({ ...n, covers: String(c.covers || "") });
     else dropped.push(c);
   }

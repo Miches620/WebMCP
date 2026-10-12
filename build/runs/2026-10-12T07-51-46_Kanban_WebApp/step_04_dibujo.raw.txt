@@ -1,0 +1,120 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado) {
+    const appContainer = document.getElementById('app');
+    if (!appContainer) return;
+
+    // 1. Vaciar el contenedor principal
+    appContainer.innerHTML = '';
+
+    // Función auxiliar para crear elementos de acción (botones + campos)
+    function renderActions(cardId, actionType, params = {}) {
+        let html = `<div class="acciones">`;
+        html += `<button data-accion="${actionType}" data-cardId="${cardId}">`;
+
+        // Manejo específico de parámetros para el botón (ej. moverTarjeta)
+        if (actionType === "moverTarjeta") {
+            // Para mover, necesitamos un control por cada columna destino posible
+            let moveControls = '';
+            estado.columnas.forEach(col => {
+                if (col.id !== params.origenColumnaId) {
+                    moveControls += `<button class="btn-mover" data-accion="moverTarjeta" 
+                                        data-cardId="${cardId}" 
+                                        data-origenColumnaId="${params.origenColumnaId}" 
+                                        data-destinoColumnaId="${col.id}">Mover a ${col.titulo}</button>`;
+                }
+            });
+            html += moveControls;
+
+        } else if (actionType === "agregarComentario") {
+            html += `Agregar Comentario: <textarea data-campo="texto" placeholder="Escribe tu comentario..."></textarea><button class="btn-comentar">Enviar</button>`;
+        } else if (actionType === "agregarEtiqueta") {
+            html += `Nueva Etiqueta: <input type="text" data-campo="etiquetaTexto" placeholder="Ej: Bug, UI"><button class="btn-taggear">Añadir</button>`;
+        } else if (actionType === "editarTarjeta") {
+            html += `Editar Tarjeta:<br>
+                     <input type="text" data-campo="tituloNuevo" placeholder="Nuevo Título"><br>
+                     <textarea data-campo="contenidoNuevo" placeholder="Contenido actualizado..."></textarea><button class="btn-editar">Guardar Cambios</button>`;
+        } else if (actionType === "borrarTarjeta") {
+            html += `<button class="btn-eliminar">🗑️ Eliminar Tarjeta</button>`;
+        }
+
+        html += `</button></div>`;
+        return html;
+    }
+
+
+    // 2. Iterar sobre las columnas para construir el tablero
+    estado.columnas.forEach(columna => {
+        const columnaDiv = document.createElement('div');
+        columnaDiv.className = 'columna';
+
+        // Título de la Columna
+        let colTitle = document.createElement('h2');
+        colTitle.textContent = columna.titulo;
+        columnaDiv.appendChild(colTitle);
+
+        // Controles para crear nueva tarjeta en esta columna
+        const createControls = document.createElement('div');
+        createControls.className = 'crear-card-controls';
+        createControls.innerHTML = `
+            <button class="btn-crear" data-accion="crearTarjeta" data-columnaId="${columna.id}">+ Crear Tarjeta</button>
+            <div style="margin-top: 10px;">
+                <input type="text" data-campo="titulo" placeholder="Título de la tarjeta">
+                <textarea data-campo="contenido" placeholder="Descripción inicial..."></textarea>
+            </div>
+        `;
+        columnaDiv.appendChild(createControls);
+
+        // Contenedor para las tarjetas
+        const cardsContainer = document.createElement('div');
+        cardsContainer.className = 'tarjetas';
+
+        // 3. Iterar sobre las tarjetas de la columna
+        columna.tarjetas.forEach(card => {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'tarjeta';
+            cardDiv.dataset.cardId = card.id;
+
+            // Contenido principal (Título y Descripción)
+            let contentHTML = `<h3>${card.titulo}</h3>`;
+            contentHTML += `<p class="contenido">${card.contenido}</p>`;
+            cardDiv.innerHTML += contentHTML;
+
+            // Etiquetas
+            if (card.etiquetas && card.etiquetas.length > 0) {
+                let tagsHTML = '<div class="etiquetas">';
+                card.etiquetas.forEach(tag => {
+                    tagsHTML += `<span class="tag">${tag}</span>`;
+                });
+                tagsHTML += '</div>';
+                cardDiv.innerHTML += tagsHTML;
+            }
+
+            // Comentarios
+            if (card.comentarios && card.comentarios.length > 0) {
+                let commentsHTML = '<div class="comentarios">';
+                card.comentarios.forEach(comment => {
+                    commentsHTML += `
+                        <div class="comentario-item">
+                            <p class="comentario-autor">${comment.autor}</p>
+                            <p>${comment.texto}</p>
+                        </div>`;
+                });
+                commentsHTML += '</div>';
+                cardDiv.innerHTML += commentsHTML;
+            }
+
+            // 4. Renderizar Controles de Acción (Botones)
+            const actionControls = renderActions(card.id, "moverTarjeta", { origenColumnaId: columna.id });
+            cardDiv.innerHTML += `<div class="acciones-container">${actionControls}</div>`;
+
+
+            // Añadir la tarjeta al contenedor de tarjetas
+            cardsContainer.appendChild(cardDiv);
+        });
+
+        columnaDiv.appendChild(cardsContainer);
+        appContainer.appendChild(columnaDiv);
+    });
+}
+```

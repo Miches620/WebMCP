@@ -2,6 +2,22 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Kanban real, 2ª corrida (v0.2.0) → v0.2.1 (12/10): data-* en minúsculas y Validation sin formularios**
+- *Corrida (Gemma, Project23):* contrato con 1 reintento: las features 7–9, de estilo, no estaban cubiertas, porque el snapshot es anterior a `estilo`. Lógica 32/32 (reparación de `crear` y `moverTarjeta`). Pantalla ✓, solo título y `#app`. **Dibujo y controles fallaron los 3 intentos.** Validation 1 PASS / 7 FAIL.
+- *Causa (verificada en Chromium):* **el HTML pasa los `data-*` a minúsculas.** Dibujo escribió `data-cardId="…"` en `innerHTML`, que queda como `dataset.cardid`. La sonda y controles buscaban `b.dataset.cardId`, que daba `undefined`. Error de diseño del contrato, no de Gemma.
+  - En dibujo: "falta el id" en todos los botones.
+  - En controles: las acciones se llamaban con `undefined` y devolvían el mismo estado. Como el `if (nuevoEstado !== estado)` de Gemma no redibujaba, aparecía "después de App.x no se llama a dibujar".
+  - En Validation: Borrar sin efecto.
+- *v0.2.1:*
+  - **Los ids van en `b.dataset.<param en minúsculas>`** (en HTML, `data-cardid`). Así lo dicen el contrato, el pedido de dibujo, la llamada exacta de controles y la sonda. Hay una prueba con `innerHTML` y `data-itemId`. Con el `dibujo.js` real de esta corrida, la sonda ya no da ningún problema.
+  - **Clases sin estilo, más fina:** con el CSS real, `.tag` (que se pinta con `.etiquetas span`) y `.tarjetas` daban un aviso falso. Ahora solo avisa si una clase sin estilo **se parece** a una del CSS que nadie usa (`kanban-card` ↔ `card`, el caso de la 1ª corrida) o si menos de la mitad de los elementos tiene alguna clase con estilo.
+- *Validation (decisión de Miche: chequeo nuevo, independiente del contrato):*
+  - **`action_changes`** (Validation profile web/app): elige el control que mejor coincide con las palabras. Las palabras pesan por orden (el verbo primero), se comparan por raíz de 6 letras y con unos pocos sinónimos de acciones. También lee `title`, `aria-label` y `data-accion`. Completa los campos del mismo elemento padre (cambia también los que ya traen texto, para que "Editar" cambie algo), aprieta y mira que la pantalla cambie.
+  - **Traductor de web/app por archivos** (`APP_FILES_TRANSLATOR`): sin chequeos de formulario; las acciones van con `action_changes`. Si el modelo igual elige uno (`translator.accept`), `postprocessChecks` lo cambia por **un** `action_changes`, con palabras del requisito y de sus params. Lo decide el código. Con `--legacy-components` sigue el traductor de antes.
+  - **FAIL falsos de la corrida, arreglados:** hover no encontraba `class="tarjeta"` (ahora entra `[class*=tarjet]`); "comentarios" no matcheaba "Añadir Comentario" (ahora una palabra de 6 letras o más matchea sin la s final). Cambia para todos los profiles: los tests del catálogo dan 53/53.
+- *Probado:* grilla, pedidos idénticos byte a byte. Tests: Standard 45, app 24, catálogo 53, motor 28, grilla 104, profiles 30. LM falso: errores sembrados en su paso, y Validation con chequeos de formulario convertidos (R1–R4 PASS).
+- *Pendiente anotado:* los snapshots viejos no traen `estilo`, y el contrato gasta un reintento en cubrir las features de estilo.
+
 **Kanban real con web/app/estado v0.1 → v0.2 (12/10): los errores eran de coordinación entre pasos**
 - *Corrida (Gemma, Project23, 9 features):* contrato bien al 1er intento (6 acciones). Lógica 32/32 con el arreglo de `state` → `estado` y 4 reparaciones por función. Pantalla y dibujo ✓. **Controles falló los 3 intentos con los mismos 4 problemas.** Validation 2 PASS / 6 FAIL. Tiempo 13 min.
 - *Por qué falló (mirando los archivos):* ninguno de los errores era de un solo archivo.

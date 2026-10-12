@@ -1,0 +1,121 @@
+### FILE: contrato.json
+```json
+{
+  "estado": {
+    "columns": [
+      {
+        "id": "col-pendiente",
+        "title": "Pendiente",
+        "cards": [
+          {
+            "id": "card-1",
+            "titulo": "Diseñar arquitectura de la API",
+            "contenido": "Definir endpoints y modelos de datos para el backend.",
+            "labels": ["label-feature"],
+            "comments": [
+              {"usuario": "Admin", "texto": "Revisar documentación Swagger antes del viernes."},
+              {"usuario": "Dev A", "texto": "Necesitamos un endpoint de autenticación más robusto."}
+            ]
+          },
+          {
+            "id": "card-2",
+            "titulo": "Crear landing page inicial",
+            "contenido": "Diseño básico con textos y estructura principal.",
+            "labels": ["label-bug"],
+            "comments": []
+          }
+        ]
+      },
+      {
+        "id": "col-progreso",
+        "title": "En Progreso",
+        "cards": [
+          {
+            "id": "card-3",
+            "titulo": "Implementar autenticación JWT",
+            "contenido": "Usar bcrypt para hashing de contraseñas.",
+            "labels": ["label-feature"],
+            "comments": []
+          }
+        ]
+      },
+      {
+        "id": "col-completado",
+        "title": "Completado",
+        "cards": [
+          {
+            "id": "card-4",
+            "titulo": "Configurar entorno de desarrollo local",
+            "contenido": "Instalar dependencias y variables de entorno.",
+            "labels": [],
+            "comments": []
+          }
+        ]
+      }
+    ],
+    "labels": [
+      {
+        "id": "label-feature",
+        "nombre": "Feature",
+        "color": "#4ecdc4"
+      },
+      {
+        "id": "label-bug",
+        "nombre": "Bug",
+        "color": "#ff6b6b"
+      }
+    ]
+  },
+  "acciones": [
+    {
+      "nombre": "agregarTarjeta",
+      "params": ["columnaId", "titulo", "contenido"],
+      "ejemplo": ["col-pendiente", "Nueva tarea de prueba", "Detalles iniciales."],
+      "hace": "Crea una nueva tarjeta en la columna especificada.",
+      "features": [1],
+      "cambia": "columns[columnaId].cards"
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": ["columnId", "cardId", "titulo", "contenido"],
+      "ejemplo": ["col-pendiente", "card-1", "Arquitectura API V2", "Definir endpoints y modelos de datos para el backend."],
+      "hace": "Actualiza el título y contenido de una tarjeta existente.",
+      "features": [5],
+      "cambia": "columns[columnId].cards.find(c => c.id === cardId)"
+    },
+    {
+      "nombre": "borrarTarjeta",
+      "params": ["columnId", "cardId"],
+      "ejemplo": ["col-pendiente", "card-2"],
+      "hace": "Elimina una tarjeta de la columna especificada.",
+      "features": [6],
+      "cambia": "columns[columnId].cards"
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": ["cardId", "origenColumnaId", "destinoColumnaId"],
+      "ejemplo": ["card-2", "col-pendiente", "col-progreso"],
+      "hace": "Mueve una tarjeta de una columna a otra.",
+      "features": [2],
+      "cambia": "columns[origenColumnaId].cards y columns[destinoColumnaId].cards"
+    },
+    {
+      "nombre": "agregarComentario",
+      "params": ["cardId", "usuario", "contenido"],
+      "ejemplo": ["card-1", "Dev B", "Revisé el endpoint de usuario, parece correcto."],
+      "hace": "Añade un comentario a una tarjeta específica.",
+      "features": [3],
+      "cambia": "columns[columnaId].cards.find(c => c.id === cardId).comments"
+    },
+    {
+      "nombre": "agregarEtiquetaTarjeta",
+      "params": ["columnId", "cardId", "labelId"],
+      "ejemplo": ["col-pendiente", "card-1", "label-bug"],
+      "hace": "Asigna una etiqueta a la tarjeta.",
+      "features": [4],
+      "cambia": "columns[columnId].cards.find(c => c.id === cardId).labels"
+    }
+  ],
+  "se_ve": [3, 4]
+}
+```

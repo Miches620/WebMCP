@@ -2,6 +2,72 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Paso 2 del borde: web/app por archivos con su propio Standard (12/10, `web/app/estado` DRAFT v0.1.0, motor v0.10.1)**
+- *Por qué (Miche, 12/10):* "pulamos eso antes de web/app". web/app seguía con el motor por componentes de landing (todo en una respuesta). Diseño aprobado: "construilo así".
+- *Lo nuevo de una app:* el contrato **no se conoce de antemano** (un Kanban y un contador no tienen las mismas acciones). Entonces el paso 1 lo propone Gemma **como datos** y el harness lo valida, igual que los niveles en grilla.
+- *Los 5 pasos:*
+  1. **contrato** (data): `contrato.json` con `estado` (inicial, con ejemplos) y `acciones` (`nombre`, `params`, `ejemplo`, `hace`, `control`, `features`, `cambia`) + `se_ve`. El harness arregla los nombres (`"agregar tarea"` → `agregarTarea`), saca `estado` de `params`, descarta las que no sirven (reservadas, repetidas, `ejemplo` que no coincide) y exige que cada feature (menos las de estilo) esté cubierta. Escribe `js/datos.js` con `ESTADO_INICIAL`.
+  2. **logica** (logic): `const App = { crear(), <acciones> }`. Pruebas **generales** que salen del contrato: `crear()` = copia profunda de `ESTADO_INICIAL`; cada acción con su `ejemplo`: devuelve un estado, no modifica el que recibe, conserva las claves, hace algo (o lo hace después de otra acción: `reiniciar`), y el estado son solo datos (Kanban v1: `[object HTMLDivElement]`). Cada acción se prueba con su propia copia del estado inicial: si `crear()` comparte el objeto, lo dice solo la prueba de `crear`. Lo que Gemma dijo en `cambia` se **observa** y se guarda (`observations`), **no bloquea**.
+  3. **pantalla** (screen): `app.html` + `styles.css`, con `#app`; ningún botón con `disabled`.
+  4. **dibujo** (render): `dibujar(estado)` en Chromium: dibuja algo, los textos del estado para personas se ven, no aparece `[object …]`, ni `undefined`/`NaN`.
+  5. **controles** (wiring): sonda nueva `runCallsProbe` (en `page_tools`, la puede usar Validation): envuelve `App.*` y `dibujar`, completa los campos y aprieta cada botón como una persona. Problemas: acción de botón/formulario que ningún control llama (Kanban v1: "+ Añadir Columna" muerto), acción sin `dibujar` después, formulario que recarga la página (falta `preventDefault`).
+- *Motor v0.10.1 (genérico):* `S.contract` puede ser función del contexto; `st.resolve(ctx)` completa un paso con lo que dieron los anteriores; `st.check` en datos da problemas que no rompen; `st.observe` en logic guarda observaciones. Kit web: `noDisabled` en screen, `calls` en wiring.
+- *Profile web/app v0.2:* `standard: "web/app/estado"`, motor universal + `WEB_FILES`. `--legacy-components` vuelve al motor de landing. Landing no se tocó.
+- *Probado:*
+  - Grilla: pedidos a Gemma **idénticos byte a byte** (build, `--skills`, banco: 18 + 18 + 7) con un LM falso, después de todos los cambios.
+  - LM falso con **dos apps distintas**: Kanban con errores sembrados (feature sin cubrir, `crear` que comparte el objeto, `moverTarea` que modifica lo que recibe, botón con `disabled`, `[object Object]` en pantalla, formulario sin `preventDefault`, borrar sin conectar): cada uno lo encontró su paso y se corrigió en el reintento o con la reparación por función. Contador limpio: todo al primer intento. Validation 6/6 y 5/5.
+  - Tests: Standard 37 (incluye "no nombra ninguna app" y la sonda de llamadas en Chromium con tres versiones de controles), motor 28, app 20, grilla 104.
+- *Sin evidencia todavía:* todo es diseño. Primera corrida real: el Kanban (Project23/24). Arrastrar y teclado no se prueban en controles.
+
+**Cierre de la rama reglas (12/10): medición final con reparación, y temperature 0 no es determinista**
+- *Corrida final:* reglas, grilla v0.1.8 + motor v0.9.9, k=5, 3 juegos, `--repair`.
+
+| de 15 | sin | con recorre |
+|---|---|---|
+| bien al 1er intento | 2 | 8 |
+| **bien al final** | 9 | 10 |
+| rotas al 1er intento | 13 | 3 |
+| min por muestra | 8,5 | 5,4 |
+
+- **Hallazgo: con temperature 0, LM Studio no responde siempre igual.** Con la misma configuración (`bench.json` igual salvo `repair`), el mismo pedido y la misma referencia, `Boxworld sin #1` dio dos `reglas.js` distintos en la corrida de las 00:12 y en la de las 02:11. En la misma condición, "con recorre", el 1er intento dio 3/15 en una y 8/15 en la otra. La hipótesis más probable es la caché de pedidos de llama.cpp: según lo que se corrió antes, cambia cómo se procesa el pedido y aparecen diferencias numéricas chicas. **No está comprobada.** Consecuencias:
+  - La comparación de b13/b14 (idénticos) fue suerte o dependía de que no hubiera nada antes en la caché. No hay que contar con el determinismo.
+  - El banco ya mide una distribución (k referencias), así que sigue sirviendo. Pero con 15 muestras por condición, **dos corridas iguales pueden diferir en 5 de 15**. Hay que sumar corridas antes de sacar conclusiones.
+- *Sumando las corridas comparables (30 muestras por condición):*
+  - bien al 1er intento: sin **4/30** (13 %), con recorre **11/30** (37 %);
+  - bien al final, con reparación: sin **19/30**, con recorre **17/30**: **sin diferencia**;
+  - tiempo por muestra: con la Skill, un 36 % menos (5,4 contra 8,5 min); rotas al 1er intento: 3 contra 13 de 15 en esta corrida.
+- *Lectura:* `recorre-el-nivel-que-recibe` sirve para **primer intento, tiempo y robustez**, pero **no cambia el resultado final**: la reparación por función ya cubre ese error. Queda DRAFT con esa evidencia.
+- *Cierre de la rama:* lo que queda en reglas son errores de lógica de `mover` (empujar, caja contra pared) que varían de muestra a muestra. Seguir acá tiene rendimiento decreciente. Se pasa a web/app con lo aprendido.
+
+**El borde del harness: motor universal + kit de la plataforma web (12/10, files_engine v0.10.0)**
+- *Por qué (Miche):* antes de pasar a web/app, "¿tenemos un harness y un Validation que funcionen de forma universal?". No: `files_engine.mjs` importaba 7 módulos de `profiles/web/` (brief, plan de componentes, reparación de sintaxis, `fixRedeclare`, chequeos, reglas de app, sondas de página), y 3 de sus 5 clases de paso eran de web.
+- *Qué:*
+  - `harness/files_engine.mjs` = **motor universal**: corre los pasos, intentos, puntaje, `needs`, arreglos, banco y la clase `data`. Recibe `opts.platform`; sin plataforma falla con `PLATFORM_REQUIRED`.
+  - `harness/js_tools.mjs` y `harness/kinds_js.mjs` = **lenguaje JavaScript** (no web): cargar y probar lógica en Node, clase `logic`.
+  - `profiles/web/specialist/files_kit.mjs` = **plataforma web**: pedido de sistema, contexto del pedido, clases `screen`/`render`/`wiring`, arreglo previo de un `.js`, armado de `index.html` + `styles.css` y `baselinePage`. Qué globales no puede usar la lógica pura (`document`, `window`) también lo dice la plataforma.
+  - Interfaz de una clase de paso: `make` (juez/arreglo/reparación), `store` (guarda el resultado) y `frozen` (banco). Así el motor ya no tiene `if (kind === "screen")`.
+  - web/game le pasa `platform: WEB_FILES` al motor.
+- *Sin cambios de conducta, verificado:* con un LM falso que guarda cada pedido, los pedidos a Gemma de un build, un build con `--skills` y un banco con reparación son **idénticos byte a byte** antes y después (18 + 18 + 7 pedidos). También salen iguales la `app/`, la evidencia y los resultados del banco. Con temperature 0, eso quiere decir que Gemma va a responder lo mismo.
+- *Tests nuevos (motor 25):* el harness no importa nada de `profiles/`, `standards/` ni `roles/`; no nombra cosas de web (`document`, `styles.css`, `index.html`, `playwright`…); sin plataforma → `PLATFORM_REQUIRED`. Grilla 104, roles 11.
+- *Lo que todavía no es universal (anotado):* web/app y landing siguen con el motor viejo por componentes. Validation tiene el framework separado de los profiles, pero el framework es web (Chromium). "Universal" se demuestra recién con una segunda plataforma.
+
+**Mediciones hacia adelante (12/10): ejemplos v0.3 y reglas con grilla v0.1.8 + motor v0.9.9**
+- *Ejemplos v0.3 (respuestas nuevas):* 88 de 104 válidos (85 %), 75 correctos (85 % de los válidos). La retro daba 89 y 73: **se confirma**.
+  - **Pero un solo ejemplo malo arruina la compuerta.** En las 8 muestras con al menos uno mal, la compuerta rechaza las 52 versiones buenas. En las 6 muestras con todos correctos: se escapan entre 7 y 15 rotas de 97, y aparecen 6 a 10 "falsas alarmas" de 52.
+  - Esas "falsas alarmas" con ejemplos correctos son versiones que el harness da por buenas pero que se comportan distinto que la referencia en un ejemplo de Gemma. **Pueden ser huecos de las pruebas del harness**, no errores de los ejemplos. Hay que mirarlas.
+  - Con solo los ejemplos correctos, atrapa 1147 de 1261 rotas (91 %).
+- *Reglas, 1ª respuesta (k=5, 3 juegos):*
+
+| de 15 | sin | con recorre |
+|---|---|---|
+| bien al 1er intento | 2 | 3 |
+| rotas | 13 | **5** |
+| problemas (promedio) | 8,3 | 4,3 |
+
+  - La retro (16/30) **no se confirma**: salen 3/15. La retro miraba respuestas viejas, y con k=5 el ruido es grande. Lo que sí se repite en todas las corridas: la Skill baja mucho las rotas (13 → 5).
+  - El arreglo de variables se usó en 4 muestras (`state` → `estado`). Las 4 dejaron de romperse, pero ninguna pasó todo.
+  - Lo que queda con la Skill ya no son nombres ni tamaños: son **errores de lógica de `mover`**. Empuja mal la caja (6), mueve la caja contra la pared (5), deja `@`/`$` en el mapa (5).
+
 **Ejemplos v0.3 y prueba del mapa más flexible (12/10, grilla v0.1.8)**
 - *examples_bench, 2ª corrida (v0.2, en coordenadas):* 82 de 100 ejemplos se descartaron igual, y 5 de los 18 válidos tenían la expectativa mal. Revisando los descartes, **casi ninguno era un ejemplo malo**: el validador usaba las reglas de un nivel jugable.
   - 47: cantidad de cajas distinta de la de objetivos, o sin cajas. Un ejemplo de "moverse a un piso libre" no necesita cajas.

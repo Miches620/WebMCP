@@ -1,0 +1,113 @@
+```javascript
+mover: function(estado, direccion) {
+        // 1. Clonar el estado para asegurar inmutabilidad al inicio del proceso de cálculo.
+        // Usaremos este clon como base si no hay movimiento exitoso o para construir el nuevo estado final.
+        const estadoBase = JSON.parse(JSON.stringify(estado));
+
+        let jugadorActual = estado.jugador;
+        let nuevasCajas = [...estado.cajas]; // Copia superficial del array de cajas
+        let nuevaPosicionJugador = { ...jugadorActual };
+        let movimientoExitoso = false;
+
+        // 2. Calcular la posición objetivo del jugador
+        let dr, dc;
+        switch (direccion) {
+            case "arriba":
+                dr = -1; dc = 0; break;
+            case "abajo":
+                dr = 1; dc = 0; break;
+            case "izquierda":
+                dr = 0; dc = -1; break;
+            case "derecha":
+                dr = 0; dc = 1; break;
+        }
+
+        let objetivoPos = { fila: jugadorActual.fila + dr, col: jugadorActual.col + dc };
+
+        // Verificar límites del mapa
+        if (objetivoPos.fila < 0 || objetivoPos.fila >= estado.mapa.length || objetivoPos.col < 0 || objetivoPos.col >= estado.mapa[0].length) {
+            return estado; // Fuera de límites
+        }
+
+        // Obtener el carácter del mapa en la posición objetivo
+        const charEnObjetivo = estado.mapa[objetivoPos.fila][objetivoPos.col];
+
+        // Verificar pared
+        if (charEnObjetivo === '#') {
+            return estado; // Colisión con pared
+        }
+
+        // 3. Determinar si el objetivo está ocupado por una caja
+        let cajaAfectadaIndex = -1;
+        for (let i = 0; i < estado.cajas.length; i++) {
+            const caja = estado.cajas[i];
+            if (caja.fila === objetivoPos.fila && caja.col === objetivoPos.col) {
+                cajaAfectadaIndex = i;
+                break;
+            }
+        }
+
+        // 4. Lógica de movimiento
+        if (cajaAfectadaIndex === -1) {
+            // Caso A: El destino está libre (no hay caja). Mover jugador directamente.
+            nuevaPosicionJugador = objetivoPos;
+            movimientoExitoso = true;
+
+        } else {
+            // Caso B: El destino está ocupado por una caja. Intentar empujar.
+            const cajaOriginal = estado.cajas[cajaAfectadaIndex];
+            let posDetras = { fila: objetivoPos.fila + dr, col: objetivoPos.col + dc };
+
+            // Verificar si el espacio detrás de la caja es válido para empujar
+            if (posDetras.fila < 0 || posDetras.fila >= estado.mapa.length || posDetras.col < 0 || posDetras.col >= estado.mapa[0].length) {
+                return estado; // No se puede empujar fuera del mapa
+            }
+
+            const charDetras = estado.mapa[posDetras.fila][posDetras.col];
+            if (charDetras === '#') {
+                return estado; // La caja choca contra una pared detrás de ella
+            }
+
+            // Verificar si el espacio detrás está ocupado por otra caja
+            let collisionConOtraCaja = false;
+            for (let i = 0; i < estado.cajas.length; i++) {
+                const caja = estado.cajas[i];
+                // Ignoramos la caja que estamos intentando mover (cajaAfectadaIndex)
+                if (i !== cajaAfectadaIndex && caja.fila === posDetras.fila && caja.col === posDetras.col) {
+                    collisionConOtraCaja = true;
+                    break;
+                }
+            }
+
+            if (!collisionConOtraCaja) {
+                // Empuje exitoso: el jugador va a la caja, y la caja se mueve detrás.
+                nuevaPosicionJugador = objetivoPos; // El jugador ocupa donde estaba la caja
+                movimientoExitoso = true;
+
+                // *** CORRECCIÓN DE IMMUTABILIDAD: Clonar la caja que se mueve antes de modificarla ***
+                let nuevaCajasTemporal = [...estado.cajas]; 
+                const cajaMovidaClonada = JSON.parse(JSON.stringify(cajaOriginal)); // Deep clone del objeto caja
+                cajaMovidaClonada.fila = posDetras.fila;
+                cajaMovidaClonada.col = posDetras.col;
+
+                // Reemplazar la referencia de la caja en el array copiado
+                nuevaCajasTemporal[cajaAfectadaIndex] = cajaMovidaClonada; 
+                nuevasCajas = nuevaCajasTemporal; // Actualizar nuevasCajas con las posiciones clonadas y movidas
+            } else {
+                return estado; // Bloqueado por otra caja
+            }
+        }
+
+        if (movimientoExitoso) {
+            // Crear el nuevo estado inmutable usando los valores calculados.
+            const nuevoEstadoFinal = JSON.parse(JSON.stringify(estado));
+            nuevoEstadoFinal.jugador = nuevaPosicionJugador;
+            nuevoEstadoFinal.cajas = nuevasCajas; // Usamos la copia de cajas actualizada/clonada
+            nuevoEstadoFinal.movimientos += 1;
+            return nuevoEstadoFinal;
+        } else {
+            // Si no hubo movimiento exitoso, devolver el estado original sin modificar movimientos
+            return estado;
+        }
+    }
+```

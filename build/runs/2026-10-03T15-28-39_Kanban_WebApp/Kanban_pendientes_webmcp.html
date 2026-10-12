@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-12c'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
+  const SEED = '2026-10-12g'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
   let state = loadState() || {
  "columns": [
   {
@@ -434,9 +434,15 @@
    "isDefault": true,
    "cards": [
     {
+     "id": "p33",
+     "title": "Piloto Kanban con web/app/estado (Gemma)",
+     "desc": "[#Standard #web/app] Construido (12/10): Standard web/app/estado DRAFT v0.1.0, 5 pasos (contrato como datos → lógica probada en Node → pantalla → dibujo → controles con sonda de llamadas). Probado solo con LM falso (Kanban con errores sembrados + contador). Falta: correr el Kanban real (Project23/24) y mirar qué falla. Después: arrastrar/teclado en controles; Validation web/app que lea el Standard.",
+     "priority": "urgente"
+    },
+    {
      "id": "p32",
-     "title": "Pruebas primero: examples v0.3 + cómo filtrar ejemplos mal",
-     "desc": "[#TDD] Retro v0.3: válidos 18 → 89/100, correctos 73 (82%). El 18% que queda son errores de simulación de Gemma (dónde termina la caja tras 2 flechas). Correr examples_bench v0.3. Después: ¿cómo se filtran los ejemplos mal sin tener una referencia? (ideas: acuerdo entre varias muestras, ejemplos de una sola flecha, el Specialist puede 'disputar' un ejemplo).",
+     "title": "Pruebas primero: un ejemplo malo arruina la compuerta",
+     "desc": "[#TDD] v0.3 adelante: 85% válidos, 85% de ellos correctos. Con todos correctos atrapa ~91% de las rotas; con uno solo mal rechaza todas las buenas (8 de 14 muestras). Falta: (1) filtrar ejemplos mal sin referencia; (2) revisar las 'falsas alarmas' con ejemplos correctos: pueden ser huecos de las pruebas del harness.",
      "priority": "urgente"
     },
     {
@@ -453,7 +459,7 @@
     },
     {
      "id": "g2",
-     "title": "1 · URGENTE · web/app por archivos (si b8 anda)",
+     "title": "1 · web/app por archivos → hecho como Standard web/app/estado (ver p33)",
      "desc": "[#Specialist] Misma fórmula para el Kanban: datos.js, estado.js (probado sin navegador: crear/editar/borrar/mover tarjeta), vista.js, eventos.js.",
      "priority": "urgente"
     },
@@ -525,12 +531,6 @@
    "isInbox": false,
    "isDefault": true,
    "cards": [
-    {
-     "id": "g3",
-     "title": "Reglas: medir hacia adelante v0.9.9 + v0.1.8",
-     "desc": "[#Benchmark] Retro: con recorre 10/30 → 16/30 bien al 1er intento (arreglo de variables + mapa flexible). Confirmarlo con una corrida nueva: --step reglas --k 5 --conds sin,con:recorre-el-nivel-que-recibe (sin reparación, ~1 h).",
-     "priority": "urgente"
-    }
    ]
   },
   {
@@ -539,6 +539,18 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h31",
+     "title": "12/10 · Cierre de reglas + temperature 0 no es determinista",
+     "desc": "[#Benchmark] Total 30 muestras por condición: bien al 1er intento sin 4/30, con recorre 11/30; bien al final con reparación 19/30 contra 17/30 (igual). La Skill ahorra 36% de tiempo y evita rotas, no mejora el final. Misma config y mismo pedido dieron reglas.js distintos en dos corridas: LM Studio no es determinista con temp 0 (¿caché de pedidos?). Sumar corridas antes de concluir.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h30",
+     "title": "12/10 · Harness universal: motor + kit web",
+     "desc": "[#Harness] files_engine v0.10: el motor no importa nada de profiles/standards/roles ni nombra cosas de web (tests). Kit web en profiles/web/specialist/files_kit.mjs; JS en harness/js_tools + kinds_js. Pedidos a Gemma idénticos byte a byte antes/después (43 pedidos con LM falso).",
+     "priority": "bajo"
+    },
     {
      "id": "h29",
      "title": "11/10 · Banco: primeras respuestas buenas de reglas",

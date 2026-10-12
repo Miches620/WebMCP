@@ -1,0 +1,168 @@
+### FILE: js/reglas.js
+```javascript
+const Reglas = {
+    /**
+     * Crea el estado inicial del juego a partir de un nivel dado.
+     * @param {string[]} nivel - Array de strings que representan el mapa (9x9).
+     * @returns {object} El estado inicial del juego.
+     */
+    crearEstado(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+
+        for (let r = 0; r < nivel.length; r++) {
+            for (let c = 0; c < nivel[r].length; c++) {
+                const char = nivel[r][c];
+                if (char === '@') {
+                    jugador = { fila: r, col: c };
+                } else if (char === '$') {
+                    cajas.push({ fila: r, col: c });
+                } else if (char === '.') {
+                    objetivos.push({ fila: r, col: c });
+                }
+            }
+        }
+
+        return {
+            mapa: nivel, // Solo contiene '#', ' ', '.'
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+
+    /**
+     * Mueve el estado del juego según la dirección y las reglas de colisión.
+     * @param {object} estado - El estado actual del juego.
+     * @param {"arriba" | "abajo" | "izquierda" | "derecha"} direccion - Dirección deseada.
+     * @returns {object} Un nuevo estado (o el original si no hay movimiento).
+     */
+    mover(estado, direccion) {
+        // Clonamos el estado para asegurar inmutabilidad
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        const filaJ = estado.jugador.fila;
+        const colJ = estado.jugador.col;
+        let nuevaFilaJ = filaJ;
+        let nuevaColJ = colJ;
+
+        // 1. Calcular la posición objetivo del jugador
+        switch (direccion) {
+            case "arriba":
+                nuevaFilaJ -= 1;
+                break;
+            case "abajo":
+                nuevaFilaJ += 1;
+                break;
+            case "izquierda":
+                nuevaColJ -= 1;
+                break;
+            case "derecha":
+                nuevaColJ += 1;
+                break;
+        }
+
+        // Verificar límites y paredes en la posición objetivo del jugador
+        if (nuevaFilaJ < 0 || nuevaFilaJ >= estado.mapa.length || 
+            nuevaColJ < 0 || nuevaColJ >= state.mapa[0].length) {
+            return estado; // Fuera de límites
+        }
+
+        const pared = estado.mapa[nuevaFilaJ][nuevaColJ] === '#';
+        if (pared) {
+            return estado; // Colisión con pared
+        }
+
+        // 2. Verificar si la posición objetivo está ocupada por una caja
+        let cajaEnDestino = estado.cajas.find(c => c.fila === nuevaFilaJ && c.col === nuevaColJ);
+
+        if (!cajaEnDestino) {
+            // Caso A: Movimiento simple (a espacio o objetivo)
+            nuevoEstado.jugador = { fila: nuevaFilaJ, col: nuevaColJ };
+            nuevoEstado.movimientos += 1;
+            return nuevoEstado;
+        } else {
+            // Caso B: Intento de empujar una caja
+            const boxToPush = cajaEnDestino;
+            let destinoCajaF = boxToPush.fila;
+            let destinoCajaC = boxToPush.col;
+
+            // Calcular la posición final deseada para la caja (detrás del jugador)
+            switch (direccion) {
+                case "arriba":
+                    destinoCajaF -= 1;
+                    break;
+                case "abajo":
+                    destinoCajaF += 1;
+                    break;
+                case "izquierda":
+                    destinoCajaC -= 1;
+                    break;
+                case "derecha":
+                    destinoCajaC += 1;
+                    break;
+            }
+
+            // Verificar si el destino de la caja es válido (no pared, no fuera de límites)
+            if (destinoCajaF < 0 || destinoCajaF >= estado.mapa.length || 
+                destinoCajaC < 0 || destinoCajaC >= state.mapa[0].length) {
+                return estado; // Caja contra límite
+            }
+
+            // Verificar si el destino de la caja está ocupado por otra cosa (pared o caja)
+            const paredDestino = estado.mapa[destinoCajaF][destinoCajaC] === '#';
+            let otraCajaEnDestino = false;
+            for (const c of estado.cajas) {
+                if (c !== boxToPush && c.fila === destinoCajaF && c.col === destinoCajaC) {
+                    otraCajaEnDestino = true;
+                    break;
+                }
+            }
+
+            if (paredDestino || otraCajaEnDestino) {
+                return estado; // Colisión: caja contra pared o caja
+            }
+
+            // Movimiento exitoso de empuje
+            nuevoEstado.jugador = { fila: nuevaFilaJ, col: nuevaColJ };
+            nuevoEstado.movimientos += 1;
+
+            // Actualizar la posición de la caja empujada
+            const cajasActualizadas = estado.cajas.map(c => {
+                if (c === boxToPush) {
+                    return { fila: destinoCajaF, col: destinoCajaC };
+                }
+                return c;
+            });
+            nuevoEstado.cajas = cajasActualizadas;
+
+            return nuevoEstado;
+        }
+    },
+
+    /**
+     * Verifica si todas las macetas están sobre un objetivo.
+     * @param {object} estado - El estado actual del juego.
+     * @returns {boolean} True si el nivel está ganado, False en caso contrario.
+     */
+    ganado(estado) {
+        if (estado.objetivos.length === 0) return true; // No hay objetivos que cubrir
+
+        const cajasEnPosiciones = new Set();
+        for (const caja of estado.cajas) {
+            cajasEnPosiciones.add(`${caja.fila},${caja.col}`);
+        }
+
+        // Comprobar si cada objetivo tiene una caja encima
+        for (const objetivo of estado.objetivos) {
+            if (!cajasEnPosiciones.has(`${objetivo.fila},${objetivo.col}`)) {
+                return false; // Al menos un objetivo no está cubierto
+            }
+        }
+
+        return true; // Todos los objetivos están cubiertos
+    }
+};
+```

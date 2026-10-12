@@ -14,16 +14,17 @@ export default {
   kind: "type",
   selectable: true,
   status: "DRAFT",
-  version: "0.1",
-  describe: "Aplicación de una pantalla con estado y acciones (crear, editar, borrar, arrastrar). Un componente principal, sin header ni footer; Validation prueba interacciones.",
+  version: "0.2",
+  describe: "Aplicación de una pantalla con estado y acciones (crear, editar, borrar, arrastrar), escrita POR ARCHIVOS: el contrato (estado + acciones) lo propone Gemma como datos y el harness lo valida (Standard web/app/estado, DRAFT). Validation prueba interacciones.",
   build: "web/app",
+  // v0.2 (12/10, paso 2 del borde): por archivos con su propio Standard (DRAFT). --legacy-components = motor de landing.
+  standard: "web/app/estado",
   borrowed: {
     from: "web/landing",
-    what: ["motor del Specialist por componentes (encapsulado, chequeos por paso, reintento) con un plan de un solo componente"],
+    what: ["plan de una pantalla y traductor de requisitos; el motor por componentes queda solo con --legacy-components"],
   },
   pending: [
     "Chequeos de flujo de datos: crear → +1, arrastrar → cambia de columna, editar → el valor queda, borrar → −1. Casos: bugs del Kanban v1 (editar borra etiquetas, [object HTMLDivElement], modal sin scroll, doble confirm, título no editable, + Añadir Columna muerto).",
-    "Una pantalla grande en un solo paso de Gemma: con 25 tareas el componente usó ~7k tokens; si se corta, partir en pasos (estado → dibujo → acciones).",
     "Correr el Kanban (Project23/24) con este profile: hasta ahora solo hay evidencia de juego.",
   ],
   evidence: [

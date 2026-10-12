@@ -4,7 +4,8 @@
 // proyecto vive en un Standard (standards/…); acá se prueba con un Standard de juguete.
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { loadScripts, runAcceptance, fatal, playProblems, probeProblems, pageHtml, missingIds, stripComments, buildFiles, extractFile } from "./files_engine.mjs";
+import { loadScripts, runAcceptance, fatal, stripComments, buildFiles, extractFile } from "./files_engine.mjs";
+import { playProblems, probeProblems, pageHtml, missingIds, WEB_FILES } from "../profiles/web/specialist/files_kit.mjs";
 import { mkdtempSync } from "node:fs";
 import { fixUndeclared, undefinedNames, isDeclared } from "./undeclared.mjs";
 import { findMember as fm } from "./files_engine.mjs";
@@ -21,6 +22,18 @@ const src = readFileSync(fileURLToPath(new URL("./files_engine.mjs", import.meta
 const DOMAIN = /\b(niveles?|NIVELES|Reglas|cajas?|jugador|sokoban|boxworld|tablero|dibujar|dibujo|mover|ganado|juego|snake|controles)\b/gi;
 const hits = [...new Set(src.match(DOMAIN) || [])];
 t("files_engine.mjs no nombra ningún juego ni dominio", hits.length === 0, hits.join(", "));
+
+// 1b. (12/10, Miche: "¿el harness es universal?") ningún archivo del harness importa de profiles/ ni
+// nombra una plataforma: lo de web vive en profiles/web/specialist/files_kit.mjs
+{
+  const { readdirSync } = await import("node:fs");
+  const dir = fileURLToPath(new URL(".", import.meta.url));
+  const own = readdirSync(dir).filter((f) => f.endsWith(".mjs") && !f.startsWith("test_"));
+  const bad = own.flatMap((f) => [...readFileSync(dir + f, "utf8").matchAll(/^\s*(?:import|export)\b[^;]*?from\s+["']([^"']+)["']/gm)].map((m) => m[1]).filter((x) => /profiles\/|standards\/|roles\//.test(x)).map((x) => `${f} → ${x}`));
+  t("el harness no importa nada de profiles/, standards/ ni roles/ (universal)", bad.length === 0, bad.join(", "));
+  const webWords = own.flatMap((f) => { const code = readFileSync(dir + f, "utf8").replace(/\/\*[\s\S]*?\*\//g, "").split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n"); return (code.match(/\b(document|window|styles\.css|index\.html|Chromium|playwright|innerHTML|addEventListener)\b/g) || []).map((w) => `${f}: ${w}`); });
+  t("el harness no nombra cosas de web (document, styles.css, index.html, playwright…)", webWords.length === 0, [...new Set(webWords)].join(", "));
+}
 
 // 2. un Standard de juguete (contador) corre con los mismos jueces
 const toy = { file: "js/logica.js", global: "Logica", functions: ["sumar", "doble"], tests: [
@@ -53,7 +66,7 @@ t("cada 'needs' apunta a un paso anterior", Object.values(STANDARDS).every((s) =
 t("stripComments: saca comentarios de bloque y de línea, deja strings con //", !/window/.test(stripComments("/**\n * No utiliza DOM ni window.\n */\nconst a = 1; // ni window.x")) && /"http:\/\/x"/.test(stripComments('const u = "http://x";')));
 
 // v0.9.7 (banco por paso): las entradas fijas fallan fuerte ANTES de llamar a Gemma
-const benchErr = async (bench) => { try { await buildFiles({ refined: { project_name: "T", features: [] }, tasks: [] }, mkdtempSync(pjoin(tmpdir(), "bench-")), { standard: getStandard("web/game/grilla"), log: () => {}, bench }); return ""; } catch (e) { return e.message; } };
+const benchErr = async (bench) => { try { await buildFiles({ refined: { project_name: "T", features: [] }, tasks: [] }, mkdtempSync(pjoin(tmpdir(), "bench-")), { standard: getStandard("web/game/grilla"), platform: WEB_FILES, log: () => {}, bench }); return ""; } catch (e) { return e.message; } };
 t("banco: paso que no existe en el Standard → BENCH_STEP", /BENCH_STEP/.test(await benchErr({ step: "snake", frozen: {} })));
 t("banco: faltan las respuestas del paso de datos → BENCH_FROZEN (sin llamar a Gemma)", /BENCH_FROZEN/.test(await benchErr({ step: "reglas", frozen: { files: {}, raws: {} } })));
 
@@ -81,5 +94,23 @@ t("extractFile: js/dibujo.js no pasa por js/reglas.js; un nombre desconocido .js
   t("undeclared: con dos candidatos no adivina", fixUndeclared(two, ["state"], [fm(two, "mover")], { estado: ["state"], state2: ["state"] }).fixes.length === 0);
 }
 
+// v0.10: sin plataforma, el motor no adivina
+t("motor sin plataforma → PLATFORM_REQUIRED", await (async () => { try { await buildFiles({ refined: { project_name: "T", features: [] }, tasks: [] }, mkdtempSync(pjoin(tmpdir(), "p-")), { standard: getStandard("web/game/grilla"), log: () => {} }); return false; } catch (e) { return /PLATFORM_REQUIRED/.test(e.message); } })());
+// v0.10.1 (web/app, 12/10): contrato que depende de un paso anterior, resolve(ctx) por paso y check en datos
+{
+  const seen = [];
+  const toyP = { id: "toy", systemPrompt: "s", prepare: () => ({ brief: "", notes: "" }), finish: () => [],
+    kinds: { toy: { make: () => { throw new Error("STOP"); }, store() {}, frozen: async (st, _fz, env) => { seen.push({ id: st.id, x: st.x, contract: env.contract() }); env.ctx.data[st.id] = st.id.toUpperCase(); } } } };
+  const toyS = { id: "toy", version: "0", status: "DRAFT", scripts: [], contract: (ctx) => `C:${ctx.data.a || "-"}`,
+    steps: [{ id: "a", kind: "toy" }, { id: "b", kind: "toy", resolve: (ctx) => ({ x: ctx.data.a }) }, { id: "c", kind: "toy" }] };
+  const err = await buildFiles({ refined: { project_name: "T", features: [] }, tasks: [] }, mkdtempSync(pjoin(tmpdir(), "dyn-")), { standard: toyS, platform: toyP, log: () => {}, bench: { step: "c", frozen: {} } }).then(() => "", (e) => e.message);
+  t("contrato dinámico: S.contract(ctx) ve lo que dejó el paso anterior", err === "STOP" && seen[0].contract === "C:-" && seen[1].contract === "C:A", JSON.stringify(seen));
+  t("resolve(ctx): el paso se completa con datos de los anteriores (sin tocar el Standard)", seen[0].x === undefined && seen[1].x === "A" && toyS.steps[1].x === undefined);
+  const { dataKind } = await import("./files_engine.mjs");
+  const st = { id: "d", answer: "d.json", parse: (j) => ({ items: [j], reports: [{}], dropped: [] }), need: () => 1, missing: () => "falta", emit: (items, reports) => ({ items: [items.at(-1)], reports: [reports.at(-1)], js: "" }), check: (p) => (p.items[0].n < 2 ? ["n tiene que ser 2"] : []) };
+  const K = dataKind.make(st, { ctx: {}, wrongNote: () => "" });
+  const p1 = await K.judge({ "d.json": '{"n":1}' }), p2 = await K.judge({ "d.json": '{"n":2}' });
+  t("datos: check da problemas que NO rompen (se reintenta y se queda el mejor)", p1.length === 1 && !p1.fatal && p2.length === 0);
+}
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

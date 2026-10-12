@@ -5,8 +5,9 @@
 // se cumplió; no lo copia). Un profile de tipo elige su Standard por id.
 
 import grilla from "./web/game/grilla/standard.mjs";
+import estado from "./web/app/estado/standard.mjs";
 
-const ALL = [grilla];
+const ALL = [grilla, estado];
 export const STANDARDS = Object.freeze(Object.fromEntries(ALL.map((s) => [s.id, s])));
 
 /** Devuelve el Standard o falla fuerte (nunca "uno por defecto" en silencio). */

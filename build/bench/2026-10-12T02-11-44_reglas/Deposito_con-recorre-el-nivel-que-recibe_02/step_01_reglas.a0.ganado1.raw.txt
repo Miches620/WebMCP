@@ -1,0 +1,21 @@
+```javascript
+ganado: function(estado) {
+        if (estado.objetivos.length === 0 || estado.cajas.length === 0) return false;
+
+        // Crear un set de coordenadas objetivo (los lugares que deben estar cubiertos)
+        const objectivesSet = new Set();
+        estado.objetivos.forEach(obj => objectivesSet.add(`${obj.fila},${obj.col}`));
+
+        // Crear un set de coordenadas caja (dónde están las cajas actualmente)
+        const boxesSet = new Set();
+        estado.cajas.forEach(box => boxesSet.add(`${box.fila},${box.col}`));
+
+        // Verificar si cada objetivo tiene al menos una caja encima
+        for (const coord of objectivesSet) {
+            if (!boxesSet.has(coord)) {
+                return false; // Al menos un objetivo no está cubierto por ninguna caja
+            }
+        }
+        return true; // Todos los objetivos están cubiertos
+    }
+```

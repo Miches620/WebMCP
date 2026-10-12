@@ -1,0 +1,55 @@
+```javascript
+crearEstado(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+        let nuevoMapa = [];
+
+        if (!nivel || nivel.length === 0) {
+            return {
+                mapa: [],
+                jugador: null,
+                cajas: [],
+                objetivos: [],
+                movimientos: 0
+            };
+        }
+
+        const R = nivel.length;
+        // Asumimos que el nivel es rectangular y al menos la primera fila existe
+        const C = nivel[0].length; 
+
+        for (let r = 0; r < R; r++) {
+            let filaActual = '';
+            for (let c = 0; c < C; c++) {
+                const char = nivel[r][c];
+                
+                // 1. Identificar ubicaciones usando el carácter original
+                if (char === '@') {
+                    jugador = { fila: r, col: c };
+                } else if (char === '$') {
+                    cajas.push({ fila: r, col: c });
+                } else if (char === '.') {
+                    objetivos.push({ fila: r, col: c });
+                }
+
+                // 2. Construir el mapa sin jugador ni cajas
+                let mapChar = char;
+                if (char === '@' || char === '$') {
+                    mapChar = ' '; // Reemplazar @ y $ por espacio en el mapa visible
+                }
+                
+                filaActual += mapChar;
+            }
+            nuevoMapa.push(filaActual);
+        }
+
+        return {
+            mapa: nuevoMapa,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    }
+```

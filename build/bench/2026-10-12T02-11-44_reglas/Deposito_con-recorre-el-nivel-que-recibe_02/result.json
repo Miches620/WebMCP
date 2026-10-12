@@ -1,0 +1,60 @@
+{
+  "case": "Deposito",
+  "cond": "con:recorre-el-nivel-que-recibe",
+  "i": 2,
+  "ref": "QM-7731",
+  "ms": 552416,
+  "ok_first": false,
+  "fatal_first": true,
+  "ok_final": false,
+  "broken": false,
+  "problems_first": [
+    "recién creado no está ganado: tiró un error: objectivesSet is not defined",
+    "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"derecha\") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador {fila:1,col:2}, cajas [{fila:1,col:2}], movimientos 1. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+    "caja en el objetivo = ganado: tiró un error: objectivesSet is not defined",
+    "con [\"####\",\"#@$#\",\"####\"], la caja tiene una pared detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, caja {fila:1,col:2}, movimientos 0); quedó jugador {fila:1,col:2}, cajas [{fila:1,col:2}], movimientos 1. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+    "con [\"######\",\"#@$$.#\",\"######\"], la caja tiene otra caja detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, movimientos 0); quedó {fila:1,col:2}, movimientos 1. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+    "crearEstado(NIVELES[0]) tiró: objectivesSet is not defined",
+    "crearEstado(NIVELES[1]) tiró: objectivesSet is not defined",
+    "crearEstado(NIVELES[2]) tiró: objectivesSet is not defined",
+    "crearEstado(NIVELES[3]) tiró: objectivesSet is not defined"
+  ],
+  "problems_final": [
+    "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"derecha\") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador {fila:1,col:2}, cajas [{fila:1,col:2}], movimientos 1. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+    "con [\"#####\",\"#@$.#\",\"#####\"], después de mover \"derecha\" la única caja está en el único objetivo: ganado tiene que ser true.",
+    "con [\"####\",\"#@$#\",\"####\"], la caja tiene una pared detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, caja {fila:1,col:2}, movimientos 0); quedó jugador {fila:1,col:2}, cajas [{fila:1,col:2}], movimientos 1. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+    "con [\"######\",\"#@$$.#\",\"######\"], la caja tiene otra caja detrás: \"derecha\" no mueve nada (jugador {fila:1,col:1}, movimientos 0); quedó {fila:1,col:2}, movimientos 1. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas."
+  ],
+  "wrong_files": [],
+  "arreglos": {
+    "undeclared": [],
+    "redeclare": []
+  },
+  "member_repair": [
+    {
+      "fn": "ganado",
+      "ok": true
+    },
+    {
+      "fn": "mover",
+      "ok": false
+    }
+  ],
+  "tests": {
+    "passed": 10,
+    "failed": [
+      "empujar una caja",
+      "caja en el objetivo = ganado",
+      "caja contra pared no se mueve",
+      "caja contra caja no se mueve"
+    ]
+  },
+  "skill_hits": {
+    "botones-habilitados": 0,
+    "flecha-sin-tapar": 0,
+    "grilla-que-no-se-estira": 0,
+    "piezas-aparte-del-mapa": 3,
+    "recorre-el-nivel-que-recibe": 0,
+    "siempre-jugable": 0
+  }
+}

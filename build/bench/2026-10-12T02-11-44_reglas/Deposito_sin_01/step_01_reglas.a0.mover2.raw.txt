@@ -1,0 +1,95 @@
+```javascript
+mover: function(estado, direccion) {
+    const { jugador, cajas } = estado;
+
+    // Definición de direcciones (dr: cambio en fila, dc: cambio en columna)
+    let dr, dc;
+    switch (direccion) {
+        case "arriba":
+            dr = -1; dc = 0; break;
+        case "abajo":
+            dr = 1; dc = 0; break;
+        case "izquierda":
+            dr = 0; dc = -1; break;
+        case "derecha":
+            dr = 0; dc = 1; break;
+    }
+
+    // Posición objetivo del jugador (P_new)
+    const pNewFila = jugador.fila + dr;
+    const pNewCol = jugador.col + dc;
+
+    // --- Validación de límites y paredes en P_new ---
+    if (pNewFila < 0 || pNewFila >= 8 || pNewCol < 0 || pNewCol >= 8) {
+        return { ...estado, movimientos: estado.movimientos }; // Fuera de límites
+    }
+
+    // Verificar si la nueva posición es una pared en el mapa base (solo '#')
+    if (estado.mapa[pNewFila][pNewCol] === '#') {
+        return { ...estado, movimientos: estado.movimientos }; // Colisión con pared
+    }
+
+    let nuevoJugador = { fila: pNewFila, col: pNewCol };
+    let nuevasCajas = [...cajas];
+    let nuevosMovimientos = estado.movimientos;
+
+    // 1. Verificar si hay cajas en P_new
+    const cajaEnPNew = cajas.some(c => c.fila === pNewFila && c.col === pNewCol);
+
+    if (!cajaEnPNew) {
+        // Caso A: Movimiento simple (a espacio o objetivo)
+        nuevosMovimientos += 1;
+        return {
+            ...estado,
+            jugador: nuevoJugador,
+            movimientos: nuevosMovimientos
+        };
+
+    } else {
+        // Caso B: Intento de empujar una caja
+        const cajaAEmpujarIndex = cajas.findIndex(c => c.fila === pNewFila && c.col === pNewCol);
+        if (cajaAEmpujarIndex === -1) return estado; // Fallo interno
+
+        // Posición objetivo de la caja (B_new)
+        const bNewFila = pNewFila + dr;
+        const bNewCol = pNewCol + dc;
+
+        // Validación del empuje:
+        // 1. ¿Está fuera de límites?
+        if (bNewFila < 0 || bNewFila >= 8 || bNewCol < 0 || bNewCol >= 8) {
+            return { ...estado, movimientos: estado.movimientos }; // Empuje contra borde
+        }
+
+        // 2. ¿Es pared en B_new?
+        if (estado.mapa[bNewFila][bNewCol] === '#') {
+            return { ...estado, movimientos: estado.movimientos }; // Empuje contra pared
+        }
+
+        // 3. ¿Está ocupado por otra caja o el jugador en B_new?
+        const colisionBox = cajas.some((c, index) => index !== cajaAEmpujarIndex && c.fila === bNewFila && c.col === bNewCol);
+        // Nota: No necesitamos verificar colisión con el jugador porque el jugador se mueve a P_new y la caja intenta moverse a B_new.
+
+        if (colisionBox) {
+            return { ...estado, movimientos: estado.movimientos }; // Empuje contra otra caja
+        }
+
+        // ¡Empuje exitoso! Actualizar estados
+        nuevosMovimientos += 1;
+
+        // Crear la nueva lista de cajas (caja empujada se mueve)
+        let nuevasCajasActualizadas = [...cajas];
+        const cajaEmpujada = nuevasCajasActualizadas[cajaAEmpujarIndex];
+        
+        // Asegurarse de que el objeto dentro del array sea modificado en la copia, no en el original.
+        cajaEmpujada.fila = bNewFila;
+        cajaEmpujada.col = bNewCol;
+
+        return {
+            ...estado,
+            jugador: nuevoJugador,
+            cajas: nuevasCajasActualizadas, // Usamos la copia modificada
+            movimientos: nuevosMovimientos
+        };
+    }
+}
+```

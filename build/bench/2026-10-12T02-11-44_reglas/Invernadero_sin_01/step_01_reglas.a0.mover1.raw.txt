@@ -1,0 +1,106 @@
+```javascript
+mover(estado, direccion) {
+        // Clonamos el estado para asegurar inmutabilidad
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        const filaJ = estado.jugador.fila;
+        const colJ = estado.jugador.col;
+        let nuevaFilaJ = filaJ;
+        let nuevaColJ = colJ;
+
+        // 1. Calcular la posición objetivo del jugador
+        switch (direccion) {
+            case "arriba":
+                nuevaFilaJ -= 1;
+                break;
+            case "abajo":
+                nuevaFilaJ += 1;
+                break;
+            case "izquierda":
+                nuevaColJ -= 1;
+                break;
+            case "derecha":
+                nuevaColJ += 1;
+                break;
+        }
+
+        // Verificar límites y paredes en la posición objetivo del jugador
+        if (nuevaFilaJ < 0 || nuevaFilaJ >= estado.mapa.length || 
+            nuevaColJ < 0 || nuevaColJ >= state.mapa[0].length) {
+            return estado; // Fuera de límites
+        }
+
+        const pared = estado.mapa[nuevaFilaJ][nuevaColJ] === '#';
+        if (pared) {
+            return estado; // Colisión con pared
+        }
+
+        // 2. Verificar si la posición objetivo está ocupada por una caja
+        let cajaEnDestino = estado.cajas.find(c => c.fila === nuevaFilaJ && c.col === nuevaColJ);
+
+        if (!cajaEnDestino) {
+            // Caso A: Movimiento simple (a espacio o objetivo)
+            nuevoEstado.jugador = { fila: nuevaFilaJ, col: nuevaColJ };
+            nuevoEstado.movimientos += 1;
+            return nuevoEstado;
+        } else {
+            // Caso B: Intento de empujar una caja
+            const boxToPush = cajaEnDestino;
+            let destinoCajaF = boxToPush.fila;
+            let destinoCajaC = boxToPush.col;
+
+            // Calcular la posición final deseada para la caja (detrás del jugador)
+            switch (direccion) {
+                case "arriba":
+                    destinoCajaF -= 1;
+                    break;
+                case "abajo":
+                    destinoCajaF += 1;
+                    break;
+                case "izquierda":
+                    destinoCajaC -= 1;
+                    break;
+                case "derecha":
+                    destinoCajaC += 1;
+                    break;
+            }
+
+            // Verificar si el destino de la caja es válido (no pared, no fuera de límites)
+            if (destinoCajaF < 0 || destinoCajaF >= estado.mapa.length || 
+                destinoCajaC < 0 || destinoCajaC >= state.mapa[0].length) {
+                return estado; // Caja contra límite
+            }
+
+            // Verificar si el destino de la caja está ocupado por otra cosa (pared o caja)
+            const paredDestino = estado.mapa[destinoCajaF][destinoCajaC] === '#';
+            let otraCajaEnDestino = false;
+            for (const c of estado.cajas) {
+                // Comparamos referencias para asegurar que no es la caja que estamos empujando
+                if (c !== boxToPush && c.fila === destinoCajaF && c.col === destinoCajaC) {
+                    otraCajaEnDestino = true;
+                    break;
+                }
+            }
+
+            if (paredDestino || otraCajaEnDestino) {
+                return estado; // Colisión: caja contra pared o caja
+            }
+
+            // Movimiento exitoso de empuje
+            nuevoEstado.jugador = { fila: nuevaFilaJ, col: nuevaColJ };
+            nuevoEstado.movimientos += 1;
+
+            // Actualizar la posición de la caja empujada (asegurando inmutabilidad del array)
+            const cajasActualizadas = estado.cajas.map(c => {
+                if (c === boxToPush) {
+                    return { fila: destinoCajaF, col: destinoCajaC };
+                }
+                // Si no es la caja empujada, mantenemos su referencia/copia original
+                return c; 
+            });
+            nuevoEstado.cajas = cajasActualizadas;
+
+            return nuevoEstado;
+        }
+    }
+```

@@ -1,0 +1,67 @@
+```javascript
+mover: function(estado, direccion) {
+        const jugador = estado.jugador;
+        let nuevaPosJugador = { ...jugador };
+
+        // 1. Calcular la posición objetivo del jugador
+        switch (direccion) {
+            case "arriba":
+                nuevaPosJugador.fila -= 1;
+                break;
+            case "abajo":
+                nuevaPosJugador.fila += 1;
+                break;
+            case "izquierda":
+                nuevaPosJugador.col -= 1;
+                break;
+            case "derecha":
+                nuevaPosJugador.col += 1;
+                break;
+        }
+
+        // Verificar límites del mapa (Asumiendo un tamaño fijo, aunque el contrato no lo especifica, se usa la lógica de los tests)
+        const FILA_MAX = estado.mapa.length - 1;
+        const COL_MAX = estado.mapa[0].length - 1;
+
+        if (nuevaPosJugador.fila < 0 || nuevaPosJugador.fila > FILA_MAX || 
+            nuevaPosJugador.col < 0 || nuevaPosJugador.col > COL_MAX) {
+            return { ...estado, movimientos: estado.movimientos }; // No se mueve nada
+        }
+
+        // Verificar si la posición objetivo es una pared
+        if (estado.mapa[nuevaPosJugador.fila][nuevaPosJugador.col] === '#') {
+            return { ...estado, movimientos: estado.movimientos }; // Colisión con pared
+        }
+
+        let cajasNuevas = [...estado.cajas];
+        let jugadorMovido = false;
+        let movimientoValido = true;
+
+        // 2. Verificar colisiones y determinar el nuevo estado
+        
+        // A) ¿Hay una caja en la posición objetivo? (Intento de empuje)
+        const cajaEnDestino = estado.cajas.some(caja => 
+            caja.fila === nuevaPosJugador.fila && caja.col === nuevaPosJugador.col
+        );
+
+        if (cajaEnDestino) {
+            // Es un empuje. Calcular la posición donde debe ir la caja.
+            let posCajaOriginal = null;
+            for (const caja of estado.cajas) {
+                if (caja.fila === nuevaPosJugador.fila && caja.col === nuevaPosJugador.col) {
+                    posCajaOriginal = caja;
+                    break;
+                }
+            }
+
+            let posCajaDestino = { ...posCajaOriginal };
+            switch (direccion) {
+                case "arriba": posCajaDestino.fila -= 1; break;
+                case "abajo": posCajaDestino.fila += 1; break;
+                case "izquierda": posCajaDestino.col -= 1; break;
+                case "derecha": posCajaDestino.col += 1; break;
+            }
+
+            // Verificar si el destino de la caja es válido:
+            // 1. No puede salir del mapa
+            if (posCajaDestino.fila < 0 ||

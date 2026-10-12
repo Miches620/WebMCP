@@ -1,0 +1,224 @@
+/**
+ * @typedef {Object} Estado
+ * @property {string[]} mapa - Mapa de 10x10 con solo '#', ' ', '.'
+ * @property {{fila: number, col: number}} jugador - Posición actual del jugador.
+ * @property {Array<{fila: number, col: number}>} cajas - Lista de posiciones de las cajas.
+ * @property {Array<{fila: number, col: number}>} objetivos - Lista de coordenadas objetivo.
+ * @property {number} movimientos - Contador de movimientos realizados.
+ */
+
+/**
+ * Crea un nuevo estado inicial a partir del mapa de nivel.
+ * @param {string[]} nivel - Array de strings que representan el mapa 10x10.
+ * @returns {Estado} El estado inicial del juego.
+ */
+const crearEstado = (nivel) => {
+    let jugadorPos = null;
+    let cajasIniciales = [];
+    let objetivosIniciales = [];
+
+    for (let r = 0; r < 10; r++) {
+        for (let c = 0; c < 10; c++) {
+            const char = nivel[r][c];
+            if (char === '@') {
+                jugadorPos = { fila: r, col: c };
+            } else if (char === '$') {
+                cajasIniciales.push({ fila: r, col: c });
+            } else if (char === '.') {
+                objetivosIniciales.push({ fila: r, col: c });
+            }
+        }
+    }
+
+    // El mapa debe ser limpio de @, $, y solo contener #, ' ', '.'
+    const mapaLimpio = nivel.map(row => row.replace(/[@\$]/g, ''));
+
+    return {
+        mapa: mapaLimpio,
+        jugador: jugadorPos,
+        cajas: cajasIniciales,
+        objetivos: objetivosIniciales,
+        movimientos: 0
+    };
+};
+
+/**
+ * Devuelve un estado idéntico al actual (copia profunda).
+ * @param {Estado} estado - El estado a copiar.
+ * @returns {Estado} Una copia del estado.
+ */
+const copyState = (estado) => ({
+    mapa: [...estado.mapa],
+    jugador: { ...estado.jugador },
+    cajas: JSON.parse(JSON.stringify(estado.cajas)), // Deep copy of array of objects
+    objetivos: [...estado.objetivos],
+    movimientos: estado.movimientos
+});
+
+/**
+ * Calcula la nueva posición (fila, col) basándose en la dirección.
+ * @param {{fila: number, col: number}} pos - Posición actual.
+ * @param {"arriba" | "abajo" | "izquierda" | "derecha"} direccion - Dirección del movimiento.
+ * @returns {{fila: number, col: number} | null} La nueva posición o null si está fuera de límites.
+ */
+const getNewPosition = (pos, direccion) => {
+    let newPos = { ...pos };
+    switch (direccion) {
+        case "arriba":
+            newPos.fila -= 1;
+            break;
+        case "abajo":
+            newPos.fila += 1;
+            break;
+        case "izquierda":
+            newPos.col -= 1;
+            break;
+        case "derecha":
+            newPos.col += 1;
+            break;
+    }
+
+    // Verificar límites (0 a 9)
+    if (newPos.fila < 0 || newPos.fila > 9 || newPos.col < 0 || newPos.col > 9) {
+        return null;
+    }
+    return newPos;
+};
+
+/**
+ * Verifica si una posición dada es una pared en el mapa.
+ * @param {{fila: number, col: number}} pos - Posición a verificar.
+ * @returns {boolean} True si es una pared ('#').
+ */
+const isWall = (pos) => {
+    if (!pos) return true; // Should not happen if bounds checked first
+    return estado.mapa[pos.fila][pos.col] === '#';
+};
+
+/**
+ * Verifica si una posición está ocupada por alguna caja.
+ * @param {{fila: number, col: number}} pos - Posición a verificar.
+ * @param {Array<{fila: number, col: number}>} [cajasExcluir=[]] - Opcional: cajas que no contar (útil para el jugador).
+ * @returns {boolean} True si hay una caja en esa posición.
+ */
+const isBoxAt = (pos, cajasExcluir = []) => {
+    return estado.cajas.some(box => 
+        box.fila === pos.fila && box.col === pos.col && !cajasExcluir.includes(box)
+    );
+};
+
+/**
+ * Intenta mover al jugador y las cajas según la dirección.
+ * @param {Estado} estado - El estado actual del juego.
+ * @param {"arriba" | "abajo" | "izquierda" | "derecha"} direccion - Dirección de movimiento.
+ * @returns {Estado} Un nuevo estado con el movimiento aplicado, o una copia del estado original si falla.
+ */
+const mover = (estado, direccion) => {
+    // 1. Calcular la posición objetivo potencial del jugador
+    let targetPos = getNewPosition(estado.jugador, direccion);
+
+    // Si está fuera de límites, no hay movimiento posible.
+    if (!targetPos) {
+        return copyState(estado);
+    }
+
+    const newEstado = copyState(estado);
+    let playerMoved = false;
+    let boxesMoved = false;
+
+    // 2. Verificar colisiones y determinar el tipo de movimiento
+
+    // A. Colisión con Pared o Límite (Ya cubierto por getNewPosition)
+    if (isWall(targetPos)) {
+        return newEstado; // No se mueve
+    }
+
+    // B. ¿Hay una caja en la posición objetivo?
+    const boxAtTarget = isBoxAt(targetPos);
+
+    if (!boxAtTarget) {
+        // Caso 1: Movimiento libre (a espacio o objetivo)
+        newEstado.jugador = targetPos;
+        playerMoved = true;
+    } else {
+        // Caso 2: Colisión con caja, intentar empujar
+        let pushSuccessful = false;
+
+        // Calcular la posición donde debería ir la caja después del empuje
+        const boxTargetPos = targetPos;
+        const finalBoxPos = getNewPosition(boxTargetPos, direccion);
+
+        // Verificar si el empuje es posible:
+        // 1. El destino final de la caja no puede ser una pared o fuera de límites.
+        if (!finalBoxPos || isWall(finalBoxPos)) {
+            return newEstado; // Empuje fallido (pared)
+        }
+
+        // 2. El destino final de la caja no puede estar ocupado por otra caja.
+        const otherBoxes = estado.cajas.filter(box => 
+            !(box.fila === targetPos.fila && box.col === targetPos.col) // Excluir la caja que estamos moviendo
+        );
+
+        if (otherBoxes.some(box => 
+            box.fila === finalBoxPos.fila && box.col === finalBoxPos.col
+        )) {
+            return newEstado; // Empuje fallido (otra caja)
+        }
+
+        // Si llegamos aquí, el empuje es exitoso.
+        newEstado.jugador = targetPos; // El jugador ocupa la posición de la caja
+        
+        // Actualizar posiciones de las cajas:
+        const newCajas = estado.cajas.map(box => {
+            if (box.fila === targetPos.fila && box.col === targetPos.col) {
+                // Esta es la caja que se mueve
+                return finalBoxPos; 
+            } else {
+                // Otras cajas permanecen igual
+                return box;
+            }
+        });
+
+        newEstado.cajas = newCajas;
+        boxesMoved = true;
+        playerMoved = true; // El jugador siempre se mueve si empuja con éxito
+
+    }
+
+    // 3. Actualizar estado final
+    if (playerMoved) {
+        newEstado.movimientos += 1;
+    } else {
+        // Si no hubo movimiento, devolvemos el estado copiado sin cambios de movimientos.
+        return newEstado;
+    }
+
+    return newEstado;
+};
+
+
+/**
+ * Verifica si todas las posiciones objetivo están cubiertas por al menos una caja.
+ * @param {Estado} estado - El estado actual del juego.
+ * @returns {boolean} True si el nivel está ganado, false en caso contrario.
+ */
+const ganado = (estado) => {
+    if (!estado.objetivos || estado.objetivos.length === 0) return true;
+
+    // Crear un set de coordenadas de las cajas para búsqueda rápida
+    const boxCoords = new Set(estado.cajas.map(box => `${box.fila},${box.col}`));
+
+    for (const objetivo of estado.objetivos) {
+        const coordKey = `${objetivo.fila},${objetivo.col}`;
+        if (!boxCoords.has(coordKey)) {
+            return false; // Hay un objetivo sin caja encima
+        }
+    }
+    return true; // Todos los objetivos están cubiertos
+};
+
+const Reglas = {
+    crearEstado: crearEstado,
+    mover: mover,
+    ganado: ganado
+};

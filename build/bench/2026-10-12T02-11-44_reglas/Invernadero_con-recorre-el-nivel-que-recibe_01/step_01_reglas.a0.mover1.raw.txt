@@ -1,0 +1,101 @@
+```javascript
+mover: function(estado, direccion) {
+        const jugador = estado.jugador;
+        // Creamos una copia mutable de las cajas para el cálculo del nuevo estado
+        let nuevaCajas = [...estado.cajas]; 
+        let nuevaJugador = { ...jugador };
+        let nuevosMovimientos = estado.movimientos;
+
+        // 1. Calcular la posición objetivo del jugador (sin considerar cajas)
+        let destinoX = jugador.col;
+        let destinoY = jugador.fila;
+
+        switch (direccion) {
+            case "arriba":
+                destinoY -= 1;
+                break;
+            case "abajo":
+                destinoY += 1;
+                break;
+            case "izquierda":
+                destinoX -= 1;
+                break;
+            case "derecha":
+                destinoX += 1;
+                break;
+        }
+
+        // Verificar límites y paredes en el destino del jugador
+        const filas = estado.mapa.length;
+        const columnas = estado.mapa[0].length;
+
+        if (destinoY < 0 || destinoY >= filas || destinoX < 0 || destinoX >= columnas) {
+            return { ...estado }; // Fuera de límites
+        }
+        if (estado.mapa[destinoY][destinoX] === '#') {
+            return { ...estado }; // Colisión con pared
+        }
+
+        // 2. Verificar si el destino del jugador está ocupado por una caja
+        const esCajaDestino = nuevaCajas.some(c => c.fila === destinoY && c.col === destinoX);
+
+        if (!esCajaDestino) {
+            // Movimiento simple (solo jugador)
+            nuevaJugador = { fila: destinoY, col: destinoX };
+            return { ...estado, jugador: nuevaJugador, movimientos: estado.movimientos + 1 };
+        } else {
+            // Intentando empujar una caja
+            const cajaAEmpujarIndex = nuevaCajas.findIndex(c => c.fila === destinoY && c.col === destinoX);
+            if (cajaAEmpujarIndex === -1) return { ...estado }; // No debería pasar
+
+            let posicionCaja = nuevaCajas[cajaAEmpujarIndex];
+            let destinoDetrasX = posicionCaja.col;
+            let destinoDetrasY = posicionCaja.fila;
+
+            // Calcular la posición detrás de la caja (donde debe ir el jugador)
+            switch (direccion) {
+                case "arriba":
+                    destinoDetrasY -= 1;
+                    break;
+                case "abajo":
+                    destinoDetrasY += 1;
+                    break;
+                case "izquierda":
+                    destinoDetrasX -= 1;
+                    break;
+                case "derecha":
+                    destinoDetrasX += 1;
+                    break;
+            }
+
+            // Verificar si el espacio detrás de la caja está libre y dentro del mapa
+            const esBloqueo = (y, x) => {
+                if (y < 0 || y >= filas || x < 0 || x >= columnas) return true; // Fuera de límites
+                return estado.mapa[y][x] === '#'; // Pared
+            };
+
+            const hayBloqueoDetras = esBloqueo(destinoDetrasY, destinoDetrasX);
+
+            // Verificar si el espacio detrás está ocupado por otra caja
+            const estaOcupadoPorOtraCaja = nuevaCajas.some((c, index) => 
+                index !== cajaAEmpujarIndex && c.fila === destinoDetrasY && c.col === destinoDetrasX
+            );
+
+            if (hayBloqueoDetras || estaOcupadoPorOtraCaja) {
+                return { ...estado }; // No se puede empujar, el movimiento falla
+            }
+
+            // Movimiento exitoso: Empuje de caja
+            let nuevoEstado = { ...estado, movimientos: estado.movimientos + 1 };
+
+            // 1. Actualizar la posición del jugador (va a donde estaba la caja)
+            nuevoEstado.jugador = { fila: posicionCaja.fila, col: posicionCaja.col };
+
+            // 2. Actualizar la posición de la caja (se mueve al destino detrás)
+            nuevaCajas[cajaAEmpujarIndex] = { fila: destinoDetrasY, col: destinoDetrasX };
+            nuevoEstado.cajas = [...nuevaCajas];
+
+            return nuevoEstado;
+        }
+    }
+```

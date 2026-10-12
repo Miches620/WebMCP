@@ -1,0 +1,45 @@
+```javascript
+crearEstado: function(nivel) {
+        const filas = nivel.length;
+        if (filas === 0) return null;
+        const columnas = nivel[0].length;
+
+        let jugadorPos = null;
+        let cajasIniciales = [];
+        let objetivosIniciales = [];
+
+        // Recorrer el mapa para encontrar posiciones iniciales
+        for (let r = 0; r < filas; r++) {
+            for (let c = 0; c < columnas; c++) {
+                const char = nivel[r][c];
+                if (char === '@') {
+                    jugadorPos = { fila: r, col: c };
+                } else if (char === '$') {
+                    cajasIniciales.push({ fila: r, col: c });
+                } else if (char === '.') {
+                    objetivosIniciales.push({ fila: r, col: c });
+                }
+            }
+        }
+
+        // El estado debe tener el mapa sin jugador ni cajas en los caracteres visibles
+        const mapaLimpiado = nivel.map(fila => {
+            let result = '';
+            for (let i = 0; i < fila.length; i++) {
+                const char = fila[i];
+                if (char !== '@' && char !== '$') {
+                    result += char;
+                }
+            }
+            return result;
+        });
+
+        return {
+            mapa: mapaLimpiado,
+            jugador: jugadorPos,
+            cajas: cajasIniciales,
+            objetivos: objetivosIniciales,
+            movimientos: 0
+        };
+    },
+```

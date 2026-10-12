@@ -10,7 +10,9 @@ import { RULE_TESTS } from "./acceptance.mjs";
 import { levelFromSpec, solve, levelsFromSpecs, nivelesJs, stuckBoxes, winsInOneMove } from "./levels.mjs";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { postprocessChecks } from "../../../../profiles/web/game/build.mjs";
-import * as E from "../../../../harness/files_engine.mjs";
+import * as E0 from "../../../../harness/files_engine.mjs";
+import * as K0 from "../../../../profiles/web/specialist/files_kit.mjs";
+const E = { ...E0, ...K0 };
 import { fixRedeclare } from "../../../../profiles/web/specialist/encapsulation.mjs";
 
 const { cleanFragment, cleanCss, extractFile, findMember, replaceMember, topNames, clashes, shadowProblems } = E;

@@ -1,0 +1,177 @@
+### FILE: js/reglas.js
+```javascript
+const Reglas = {
+    /**
+     * Crea el estado inicial del juego a partir de un nivel dado.
+     * @param {string[]} nivel - Array de strings que representan el mapa 9x9.
+     * @returns {object} El estado inicial del juego.
+     */
+    crearEstado: function(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+
+        for (let r = 0; r < nivel.length; r++) {
+            for (let c = 0; c < nivel[r].length; c++) {
+                const char = nivel[r][c];
+                if (char === '@') {
+                    jugador = { fila: r, col: c };
+                } else if (char === '$') {
+                    cajas.push({ fila: r, col: c });
+                } else if (char === '.') {
+                    objetivos.push({ fila: r, col: c });
+                }
+            }
+        }
+
+        // El mapa de estado solo contiene paredes ('#'), pisos (' ') y objetivos ('.')
+        const mapaEstado = nivel.map(fila => 
+            Array.from(fila).map(char => {
+                if (char === '@' || char === '$') return ' '; // Ocultar jugador/caja en el estado base
+                return char;
+            }).join('')
+        );
+
+        return {
+            mapa: mapaEstado,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+
+    /**
+     * Intenta mover el estado según la dirección. Devuelve un nuevo estado inmutable.
+     * @param {object} estado - El estado actual del juego.
+     * @param {"arriba" | "abajo" | "izquierda" | "derecha"} direccion - Dirección de movimiento.
+     * @returns {object} Nuevo estado o el estado original si el movimiento falla.
+     */
+    mover: function(estado, direccion) {
+        const N = 9; // Tamaño del mapa
+
+        // Función auxiliar para obtener coordenadas objetivo
+        let nextP_r = estado.jugador.fila;
+        let nextP_c = estado.jugador.col;
+
+        switch (direccion) {
+            case "arriba":
+                nextP_r -= 1;
+                break;
+            case "abajo":
+                nextP_r += 1;
+                break;
+            case "izquierda":
+                nextP_c -= 1;
+                break;
+            case "derecha":
+                nextP_c += 1;
+                break;
+        }
+
+        // 1. Validación de límites y paredes en el destino del jugador
+        if (nextP_r < 0 || nextP_r >= N || nextP_c < 0 || nextP_c >= N) {
+            return JSON.parse(JSON.stringify(estado)); // Fuera de límites
+        }
+
+        const mapaChar = estado.mapa[nextP_r][nextP_c];
+        if (mapaChar === '#') {
+            return JSON.parse(JSON.stringify(estado)); // Colisión con pared
+        }
+
+        // 2. Verificar si el destino es una caja
+        const boxAtTarget = estado.cajas.some(box => 
+            box.fila === nextP_r && box.col === nextP_c
+        );
+
+        let nuevoEstado;
+
+        if (!boxAtTarget) {
+            // Caso A: Movimiento simple (solo el jugador se mueve)
+            nuevoEstado = JSON.parse(JSON.stringify(estado));
+            nuevoEstado.jugador = { fila: nextP_r, col: nextP_c };
+            nuevoEstado.movimientos += 1;
+
+        } else {
+            // Caso B: Intento de empujar una caja
+            const boxToPush = estado.cajas.find(box => 
+                box.fila === nextP_r && box.col === nextP_c
+            );
+
+            // Calcular la posición objetivo para la caja (un paso más allá)
+            let pushTarget_r = nextP_r;
+            let pushTarget_c = nextP_c;
+
+            switch (direccion) {
+                case "arriba":
+                    pushTarget_r -= 1;
+                    break;
+                case "abajo":
+                    pushTarget_r += 1;
+                    break;
+                case "izquierda":
+                    pushTarget_c -= 1;
+                    break;
+                case "derecha":
+                    pushTarget_c += 1;
+                    break;
+            }
+
+            // Validación del destino de la caja (Push Target)
+            if (pushTarget_r < 0 || pushTarget_r >= N || pushTarget_c < 0 || pushTarget_c >= N) {
+                return JSON.parse(JSON.stringify(estado)); // Colisión con límite
+            }
+
+            const mapaCharTarget = estado.mapa[pushTarget_r][pushTarget_c];
+            if (mapaCharTarget === '#') {
+                return JSON.parse(JSON.stringify(estado)); // Colisión con pared
+            }
+
+            // Verificar si el destino de la caja está ocupado por otra caja
+            const isPushTargetOccupiedByBox = estado.cajas.some(box => 
+                box !== boxToPush && box.fila === pushTarget_r && box.col === pushTarget_c
+            );
+
+            if (isPushTargetOccupiedByBox) {
+                return JSON.parse(JSON.stringify(estado)); // Colisión con otra caja
+            }
+
+            // Movimiento exitoso de empuje
+            nuevoEstado = JSON.parse(JSON.stringify(estado));
+            
+            // 1. Mover jugador a la posición actual de la caja
+            nuevoEstado.jugador = { fila: nextP_r, col: nextP_c };
+
+            // 2. Actualizar cajas (remover y añadir)
+            const nuevasCajas = estado.cajas.filter(box => 
+                !(box.fila === nextP_r && box.col === nextP_c) // Excluir la caja movida
+            );
+            nuevasCajas.push({ fila: pushTarget_r, col: pushTarget_c });
+            nuevoEstado.cajas = nuevasCajas;
+
+            // 3. Incrementar movimientos
+            nuevoEstado.movimientos += 1;
+        }
+
+        return nuevoEstado;
+    },
+
+    /**
+     * Verifica si todas las cajas están sobre un objetivo.
+     * @param {object} estado - El estado actual del juego.
+     * @returns {boolean} True si el nivel está ganado, False en caso contrario.
+     */
+    ganado: function(estado) {
+        if (estado.objetivos.length === 0) return true; // No hay objetivos que cumplir
+
+        const cajasEnObjetivo = estado.cajas.filter(box => {
+            return estado.objetivos.some(obj => 
+                obj.fila === box.fila && obj.col === box.col
+            );
+        });
+
+        // Se gana si el número de cajas es igual al número de objetivos, y todas están en un objetivo.
+        return cajasEnObjetivo.length === estado.objetivos.length;
+    }
+};
+```

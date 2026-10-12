@@ -1,0 +1,21 @@
+```javascript
+ganado: function(estado) {
+        // Si no hay objetivos, se considera ganado (o el estado inicial es inválido).
+        if (estado.objetivos.length === 0) return true;
+
+        // Crear un set de coordenadas donde están las cajas para búsqueda rápida
+        const cajasSet = new Set();
+        estado.cajas.forEach(box => cajasSet.add(`${box.fila},${box.col}`));
+
+        // Verificar si cada objetivo tiene al menos una caja encima
+        for (const objetivo of estado.objetivos) {
+            const key = `${objetivo.fila},${objetivo.col}`;
+            if (!cajasSet.has(key)) {
+                return false; // Encontramos un objetivo sin cubrir
+            }
+        }
+
+        // Si el bucle termina, significa que todos los objetivos están cubiertos por al menos una caja.
+        return true;
+    }
+```

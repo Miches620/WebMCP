@@ -1,0 +1,48 @@
+```javascript
+crearEstado: function(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+        let nuevoMapa = [];
+
+        // Iteramos sobre el número real de filas proporcionadas en el nivel
+        for (let r = 0; r < nivel.length; r++) {
+            const rowString = nivel[r];
+            if (!rowString) continue; // Saltar si la fila no existe o es nula
+
+            nuevoMapa[r] = [];
+            
+            // Iteramos solo hasta la longitud real de la cadena de la fila
+            for (let c = 0; c < rowString.length; c++) {
+                const char = rowString[c];
+                let effectiveChar = char;
+
+                if (effectiveChar === '@') {
+                    jugador = { fila: r, col: c };
+                    nuevoMapa[r].push(' '); // El jugador no se dibuja en el mapa base
+                } else if (effectiveChar === '$') {
+                    cajas.push({ fila: r, col: c });
+                    nuevoMapa[r].push(' '); // La caja no se dibuja en el mapa base
+                } else if (effectiveChar === '.') {
+                    objetivos.push({ fila: r, col: c });
+                    nuevoMapa[r].push('.');
+                } else if (effectiveChar === '#') {
+                    nuevoMapa[r].push('#');
+                } else { // ' ' o cualquier otro carácter que no sea especial
+                    nuevoMapa[r].push(' ');
+                }
+            }
+        }
+
+        // Convertir el array de arrays a un array de strings para mantener la estructura del contrato.
+        const mapaString = nuevoMapa.map(row => row.join(''));
+
+        return {
+            mapa: mapaString,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    }
+```

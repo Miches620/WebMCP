@@ -1,0 +1,105 @@
+```javascript
+mover(estado, direccion) {
+        let { jugador, cajas, movimientos } = estado;
+
+        // 1. Calcular la posición objetivo del jugador
+        let nextPlayerPos = { ...jugador };
+        switch (direccion) {
+            case "arriba":
+                nextPlayerPos.fila -= 1;
+                break;
+            case "abajo":
+                nextPlayerPos.fila += 1;
+                break;
+            case "izquierda":
+                nextPlayerPos.col -= 1;
+                break;
+            case "derecha":
+                nextPlayerPos.col += 1;
+                break;
+        }
+
+        // Verificar límites del mapa (Asumiendo que el mapa es cuadrado o al menos tiene dimensiones conocidas)
+        const maxRow = estado.mapa.length - 1;
+        const maxCol = estado.mapa[0].length - 1;
+
+        if (nextPlayerPos.fila < 0 || nextPlayerPos.fila > maxRow || nextPlayerPos.col < 0 || nextPlayerPos.col > maxCol) {
+            return { ...estado, movimientos: movimientos }; // No se mueve si está fuera de límites
+        }
+
+        // Verificar pared en la posición objetivo (usando el mapa limpio)
+        if (estado.mapa[nextPlayerPos.fila][nextPlayerPos.col] === '#') {
+            return { ...estado, movimientos: movimientos }; // Colisión con pared
+        }
+
+        let nuevoEstado = { 
+            ...estado, 
+            movimientos: movimientos + 1 // Inicialmente asumimos que se mueve y incrementamos el contador
+        };
+        
+        // 2. Verificar si la posición objetivo está ocupada por una caja
+        const boxAtTargetIndex = cajas.findIndex(box => 
+            box.fila === nextPlayerPos.fila && box.col === nextPlayerPos.col
+        );
+
+        if (boxAtTargetIndex !== -1) {
+            // Hay una caja en el destino, intentar empujar
+            const cajaAEmpujar = cajas[boxAtTargetIndex];
+            let posDetrasCaja = { ...cajaAEmpujar };
+
+            // Calcular la posición detrás de la caja (donde debe ir la caja)
+            switch (direccion) {
+                case "arriba":
+                    posDetrasCaja.fila -= 1;
+                    break;
+                case "abajo":
+                    posDetrasCaja.fila += 1;
+                    break;
+                case "izquierda":
+                    posDetrasCaja.col -= 1;
+                    break;
+                case "derecha":
+                    posDetrasCaja.col += 1;
+                    break;
+            }
+
+            // Verificar si el movimiento de la caja es válido:
+            // 1. No puede salir del mapa (límites)
+            if (posDetrasCaja.fila < 0 || posDetrasCaja.fila > maxRow || posDetrasCaja.col < 0 || posDetrasCaja.col > maxCol) {
+                return { ...estado, movimientos: movimientos }; // Colisión con borde
+            }
+
+            // 2. No puede chocar contra una pared en el destino de la caja
+            if (estado.mapa[posDetrasCaja.fila][posDetrasCaja.col] === '#') {
+                return { ...estado, movimientos: movimientos }; // Colisión con pared detrás de la caja
+            }
+
+            // 3. No puede chocar contra otra caja en el destino de la caja
+            const collisionWithBox = cajas.some(box => 
+                box !== cajaAEmpujar && box.fila === posDetrasCaja.fila && box.col === posDetrasCaja.col
+            );
+
+            if (collisionWithBox) {
+                return { ...estado, movimientos: movimientos }; // Colisión con otra caja detrás de la caja
+            }
+
+            // --- Empuje exitoso ---
+            
+            // Actualizar cajas: mover la caja empujada y crear una nueva lista de cajas
+            const nuevasCajas = [...cajas];
+            nuevasCajas[boxAtTargetIndex] = { ...cajaAEmpujar, fila: posDetrasCaja.fila, col: posDetrasCaja.col };
+            nuevoEstado.cajas = nuevasCajas;
+
+            // Actualizar jugador: el jugador se mueve a la posición de la caja original (nextPlayerPos)
+            nuevoEstado.jugador = nextPlayerPos;
+            
+            return nuevoEstado;
+
+        } else {
+            // 3. Movimiento simple (sin caja)
+            nuevoEstado.jugador = nextPlayerPos;
+            // El contador ya fue incrementado al inicio, si llegamos aquí significa que el movimiento es válido.
+            return nuevoEstado;
+        }
+    }
+```

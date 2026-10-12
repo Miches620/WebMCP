@@ -1,239 +1,43 @@
-// files_engine.mjs — motor GENERAL del Specialist "por archivos" (v0.9, 06/10).
+// files_engine.mjs — motor UNIVERSAL del Specialist "por archivos" (v0.10, 12/10).
 //
-// Decisión de Miche (06/10): Harness → Standard → Validation profile. El harness es general
-// para todas las ejecuciones; lo específico de un tipo de proyecto (qué archivos, qué contrato,
-// qué pruebas, qué datos) lo declara un STANDARD (standards/…) que el Specialist recibe en su
-// tarea. "Hoy Boxworld, mañana Boxworld + Snake, pasado Boxworld + Snake + Miner: inviable."
-// Regla de este archivo: no nombra ningún juego ni ningún dominio (lo vigila una prueba).
-//
+// Decisión de Miche (06/10): Harness → Standard → Validation profile. Y (12/10): el harness tiene
+// que ser universal; lo de una plataforma (web, firmware…) vive en su profile.
+// Este archivo NO sabe de web ni de ningún dominio (lo vigila una prueba: no importa nada de
+// profiles/ ni nombra juegos). Recibe:
+//   - opts.standard  QUÉ se construye: pasos, contrato, pruebas, datos (standards/…);
+//   - opts.platform  CON QUÉ: pedido de sistema, clases de paso (screen/render/wiring en web; logic
+//                    para JavaScript), contexto del pedido y cómo se arma el resultado
+//                    (profiles/web/specialist/files_kit.mjs).
 // Qué hace el motor:
-//   - corre los PASOS que declara el Standard, un archivo (o dos) por paso de Gemma;
-//   - cada paso: hasta 3 intentos SOLO de ese archivo; reparación de sintaxis por tramo;
-//     declaración repetida sin Gemma; reparación de una sola función; se queda con el mejor
+//   - corre los PASOS del Standard, un archivo (o dos) por paso de Gemma;
+//   - cada paso: hasta 3 intentos SOLO de ese archivo; arreglo previo de la plataforma (p.ej.
+//     sintaxis), arreglos deterministas y reparación de la clase de paso; se queda con el mejor
 //     intento (un archivo que no compila / no carga siempre pierde);
-//   - si un paso del que dependo quedó roto, no me corre (no me culpa).
-// Clases de paso (kind), cada una con su juez general:
-//   data    Gemma propone datos (JSON); el Standard los valida y escribe el .js
-//   logic   lógica pura sin DOM; se carga en Node y corre las pruebas de aceptación del Standard
-//   screen  fragmento HTML + CSS; ids que pide el Standard
-//   render  función que dibuja; se prueba en Chromium con la sonda del Standard
-//   wiring  eventos y arranque; chequeos de interacción (Validation) que pide el Standard
+//   - si un paso del que dependo quedó roto, no me corre (no me culpa);
+//   - la clase de paso "data" (Gemma propone datos JSON, el Standard los valida) es universal y vive acá;
+//   - banco por paso (opts.bench): carga los pasos anteriores de un build viejo y corre uno solo.
 //
-// Historia (antes vivía en profiles/web/game/specialist_files.mjs, game_files v0.8–v0.8.2):
-// v0.8 un archivo = un paso con contrato fijo · v0.8.1 intento sin archivo nunca gana, reparación
-// por método, nombres repetidos entre archivos · v0.8.2 no-carga siempre pierde, fixRedeclare,
-// sin cascada, presupuesto de reparación = el del archivo, lint de sombra.
+// Historia: v0.8–v0.9.9 todo junto en este archivo (ver docs/CAMBIOS.md). v0.10 (12/10): se separa
+// el borde, sin cambios de conducta (pedidos a Gemma idénticos byte a byte, verificado con un LM falso):
+// harness/js_tools.mjs (lenguaje JS), harness/kinds_js.mjs (clase logic), y el kit web en profiles/web.
 
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
-import vm from "node:vm";
 import { chatStream } from "../build/lm_stream.mjs";
 import { estTokens } from "../build/tokens.mjs";
-import { briefText } from "../profiles/web/landing/specialist_spa.mjs";
-import { assignTasks, notesText, componentsFromPlan } from "../profiles/web/landing/components.mjs";
-import { repairSyntax } from "../profiles/web/landing/specialist_components.mjs";
-import { fixRedeclare } from "../profiles/web/specialist/encapsulation.mjs";
-import { runChecks } from "../profiles/web/validation/check_catalog.mjs";
-import { rulesBrief } from "../profiles/web/app/specialist_rules.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
-import { fixUndeclared, undefinedNames } from "./undeclared.mjs";
+// compatibilidad: las herramientas de JS se siguen pudiendo importar desde acá (viven en js_tools.mjs)
+export { loadScripts, syntaxOf, runAcceptance, findMember, replaceMember, stripComments, topNames, clashes, shadowProblems } from "./js_tools.mjs";
 
-export const ENGINE_VERSION = "files_engine v0.9.9";
+export const ENGINE_VERSION = "files_engine v0.10.1";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
-const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-
-export const FILE_PROMPT = `Sos el Specialist de MicheLab. Programás un proyecto web en VARIOS archivos chicos, como un programador prolijo. En cada paso escribís UN archivo (o dos, si se te piden) y nada más.
-
-Respondé SOLO con el bloque o los bloques pedidos:
-### FILE: <nombre>
-\`\`\`<lenguaje>
-...
-\`\`\`
-
-Cómo trabajar:
-1. Respetá el CONTRATO: mismos nombres, misma forma de los datos, mismos ids. Usá solo lo que el contrato dice que existe.
-2. JavaScript clásico (sin import/export, sin módulos, sin fetch). Nada de recursos externos (CDN, fuentes web, imágenes por URL); para íconos, emoji.
-3. Contenido en español. Código corto y claro: funciones chicas.
-4. Si te devuelven PROBLEMAS, corregilos y devolvé el archivo completo.`;
-
-export const memberFixPrompt = (file, label) => `Corregís UNA función de ${file} (${label}).
-Recibís el CONTRATO, las PRUEBAS DEL HARNESS QUE FALLAN y la función. Devolvé SOLO la función corregida, completa, con el mismo nombre y los mismos parámetros, en UN bloque \`\`\`javascript (con la misma forma: si era "nombre(params) {", devolvé "nombre(params) {"). Sin explicaciones.`;
 
 // ---------- problemas que rompen el archivo ----------
 /** Marca una lista de problemas como "el archivo no compila / no carga / no cumple el contrato". */
 export const fatal = (list) => Object.assign([...list], { fatal: true });
 const scoreOf = (has, problems) => (!has ? Infinity : problems.fatal ? 1000 + problems.length : problems.length);
-
-// ---------- cargar scripts en Node ----------
-/** Corre los scripts (en orden) en un contexto aislado y devuelve los globales pedidos. */
-export function loadScripts(codes, globals = []) {
-  const ctx = vm.createContext({ console: { log() {}, warn() {}, error() {} } });
-  const grab = globals.map((g) => `globalThis.__g_${g} = typeof ${g} !== "undefined" ? ${g} : undefined;`).join(" ");
-  try { vm.runInContext(codes.join("\n;\n") + "\n;" + grab, ctx, { timeout: 2000 }); } catch (e) { return { error: String(e.message || e) }; }
-  return Object.fromEntries(globals.map((g) => [g, ctx[`__g_${g}`]]));
-}
-export const syntaxOf = (code) => { try { new vm.Script(code || ""); return null; } catch (e) { return e.message; } };
-
-// ---------- pruebas de aceptación de un paso logic ----------
-/**
- * Corre las pruebas que declara el Standard sobre el objeto global de la lógica.
- * step.tests: [{name, fn, after?, input, run(G, input) → true | "mensaje"}]
- * step.itemTests: [(G, item, i) → {name, fn, ok, detail}] — una por cada dato (p.ej. cada nivel)
- * @returns {{passed:string[], failed:{name,fn,after,detail}[]}}
- */
-export function runAcceptance(G, items, step) {
-  const passed = [], failed = [];
-  const fns = step.functions || [];
-  if (!G || fns.some((f) => typeof G[f] !== "function"))
-    return { passed, failed: [{ name: "contrato", detail: `${step.file} tiene que definir const ${step.global} = { ${fns.join(", ")} } (${fns.length === 1 ? "la función" : `las ${fns.length} funciones`}).` }] };
-  for (const t of step.tests || []) {
-    let r;
-    try { r = t.run(G, t.input); } catch (e) { r = `${t.name}: tiró un error: ${e.message}`; }
-    if (r === true) passed.push(t.name); else failed.push({ name: t.name, fn: t.fn, after: t.after, detail: r });
-  }
-  (items || []).forEach((item, i) => {
-    for (const it of step.itemTests || []) {
-      let r;
-      try { r = it(G, item, i); } catch (e) { r = { name: `dato ${i + 1}`, fn: null, ok: false, detail: `tiró: ${e.message}` }; }
-      if (r.ok) passed.push(r.name); else failed.push({ name: r.name, fn: r.fn, detail: r.detail });
-    }
-  });
-  // una prueba que depende de otra función se atribuye a esa función si ella también falla
-  // (b9: se "reparó" ganado, que estaba bien, porque mover no empujaba)
-  for (const f of failed) if (f.after && failed.some((g) => g.fn === f.after && !g.after)) f.fn = f.after;
-  return { passed, failed };
-}
-
-// ---------- reparación por función ----------
-function blockEndLines(lines, from) {
-  let depth = 0, seen = false, q = null, block = false;
-  for (let i = from; i < lines.length; i++) {
-    const l = lines[i];
-    for (let k = 0; k < l.length; k++) {
-      const ch = l[k], nx = l[k + 1];
-      if (block) { if (ch === "*" && nx === "/") { block = false; k++; } continue; }
-      if (q) { if (ch === "\\") { k++; continue; } if (ch === q) q = null; continue; }
-      if (ch === "/" && nx === "/") break;
-      if (ch === "/" && nx === "*") { block = true; k++; continue; }
-      if (ch === "'" || ch === '"' || ch === "`") { q = ch; continue; }
-      if (ch === "{") { depth++; seen = true; } else if (ch === "}") { depth--; if (seen && depth === 0) return i; }
-    }
-    if (q !== "`") q = null;
-  }
-  return -1;
-}
-/** Dónde está un método o función `name` (líneas 1-based): `name(…) {`, `name: function (…) {`, `function name(…) {`, `const name = …`. */
-export function findMember(js, name) {
-  const lines = String(js || "").split("\n");
-  const re = new RegExp(`^\\s*(?:async\\s+)?(?:function\\s+${name}\\s*\\(|${name}\\s*\\(|${name}\\s*:\\s*(?:async\\s*)?(?:function\\b|\\()|(?:const|let|var)\\s+${name}\\s*=)`);
-  const i = lines.findIndex((l) => re.test(l));
-  if (i < 0) return null;
-  const end = blockEndLines(lines, i);
-  return end < 0 ? null : { name, start: i + 1, end: end + 1, text: lines.slice(i, end + 1).join("\n") };
-}
-/** Reemplaza el método por la versión corregida; respeta la coma final de un literal de objeto. */
-export function replaceMember(js, m, code) {
-  let body = String(code || "").replace(/\s+$/, "");
-  if (!new RegExp(`\\b${m.name}\\b`).test(body.split("\n")[0] || "")) return { ok: false, why: `no devolvió ${m.name}` };
-  const lines = String(js).split("\n");
-  const hadComma = /}\s*,\s*$/.test(lines[m.end - 1]);
-  if (hadComma && !/,\s*$/.test(body)) body += ",";
-  if (!hadComma) body = body.replace(/,\s*$/, "");
-  const next = [...lines.slice(0, m.start - 1), body, ...lines.slice(m.end)].join("\n");
-  try { new vm.Script(next); } catch (e) { return { ok: false, why: `no compila: ${e.message}` }; }
-  return { ok: true, js: next };
-}
-
-// ---------- lints generales ----------
-/** El código sin comentarios (para lints que buscan palabras: un comentario no es código). */
-export function stripComments(code) {
-  return String(code || "").replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1");
-}
-/** Nombres declarados al nivel superior (const/let/var/function/class al comienzo de la línea). */
-export function topNames(code) {
-  return [...String(code || "").matchAll(/^(?:const|let|var|function|class)\s+([A-Za-z_$][\w$]*)/gm)].map((m) => m[1]);
-}
-/** Nombres que este archivo declara y otro ya declaró (en scripts comunes eso rompe la página). */
-export function clashes(code, others) {
-  const mine = new Set(topNames(code));
-  const out = [];
-  for (const [file, src] of Object.entries(others)) for (const n of topNames(src)) if (mine.has(n)) out.push(`"${n}" ya está declarado en ${file}: en este archivo no lo declares (usalo o elegí otro nombre).`);
-  return out;
-}
-/** Parámetro de flecha que tapa a una variable de afuera y se compara consigo mismo (`c => c.col === c`). */
-export function shadowProblems(code) {
-  const out = [];
-  for (const m of String(code || "").matchAll(/\(?\s*([A-Za-z_$][\w$]*)\s*\)?\s*=>[^;\n]*?\b\1\.[\w$]+\s*===?\s*\1\b(?![\w$.(\[])/g))
-    out.push(`en \`${m[0].trim().replace(/^\(\s*/, "").slice(0, 80)}\` el parámetro "${m[1]}" tapa a la variable "${m[1]}" de afuera (se compara ${m[1]}.algo con el mismo ${m[1]}): renombrá el parámetro de la flecha (por ejemplo p => p.fila === r && p.col === ${m[1]}).`);
-  return out;
-}
-
-// ---------- screen ----------
-/** ¿El elemento con ese id trae el atributo disabled en el HTML? */
-export function disabledInHtml(html, id) {
-  const m = String(html || "").match(new RegExp(`<[^>]*\\bid\\s*=\\s*["']${id}["'][^>]*>`, "i"));
-  return !!m && /\sdisabled(\s|=|>|\/)/i.test(m[0].replace(/\bid\s*=\s*["'][^"']*["']/i, ""));
-}
-export function missingIds(html, ids) {
-  return ids.filter((id) => !new RegExp(`id\\s*=\\s*["']${id}["']`).test(html || ""));
-}
-export function cleanFragment(html) {
-  let h = String(html || "");
-  const body = h.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i);
-  if (body) h = body[1];
-  return h.replace(/<!DOCTYPE[^>]*>/gi, "").replace(/<script\b[\s\S]*?<\/script>/gi, "").replace(/<style\b[\s\S]*?<\/style>/gi, "").replace(/<link\b[^>]*>/gi, "").trim();
-}
-export const cleanCss = (css) => String(css || "").replace(/@import[^;]*;/gi, "").replace(/url\(\s*['"]?https?:[^)]*\)/gi, "none");
-
-// ---------- página ----------
-export function pageHtml({ title, fragment, features = [], scripts = [], inline = "", mainId = "app" }) {
-  const df = features.length ? ` data-feature="${features.join(" ")}"` : "";
-  return `<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${esc(title)}</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-<main id="${mainId}"${df}>
-${fragment || `<h1>${esc(title)}</h1>`}
-</main>
-${scripts.map((s) => `<script src="${s}"></script>`).join("\n")}${inline ? `\n<script>\n${inline}\n</script>` : ""}
-</body>
-</html>
-`;
-}
-function writeApp(dir, files, page) {
-  for (const [name, content] of Object.entries(files)) {
-    if (content == null) continue;
-    const p = join(dir, name);
-    mkdirSync(join(p, ".."), { recursive: true });
-    writeFileSync(p, content, "utf8");
-  }
-  mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, "index.html"), page, "utf8");
-}
-
-// ---------- herramientas de página: viven en Validation (paso 2); el motor las usa ----------
-export { probePage, swatchProbe, swatchProblems, stableProbe, stableProblems, drawnLooksProbe, drawnLooksProblems, runScenario } from "../profiles/web/validation/page_tools.mjs";
-import { probePage, swatchProbe, swatchProblems, stableProbe, stableProblems, drawnLooksProbe, drawnLooksProblems, runScenario } from "../profiles/web/validation/page_tools.mjs";
-
-/** Problemas generales de una sonda; los específicos los agrega step.expect(probe). */
-export function probeProblems({ probe: p, errors }, step) {
-  if (!p) return fatal([`la página no llegó a probar ${step.call}${errors.length ? `: ${errors[0]}` : ""}.`]);
-  if (!p.ok) return fatal([`${step.call} tiró un error: ${p.error}.`]);
-  return step.expect(p);
-}
-
-// ---------- wiring ----------
-export function playProblems(results) {
-  const out = results.filter((r) => r.result === "FAIL").map((r) => `${r.type}: ${r.detail}`);
-  return results.some((r) => r.type === "no_js_errors" && r.result === "FAIL") ? fatal(out) : out;
-}
 
 // ---------- respuesta ----------
 /** others (v0.9.8): archivos del proyecto que NO son este. Un bloque con nombre de otro archivo no se
@@ -257,37 +61,92 @@ export function extractFile(raw, name, others = []) {
 }
 const langOf = (n) => (n.endsWith(".css") ? "css" : n.endsWith(".html") ? "html" : n.endsWith(".json") ? "json" : "javascript");
 
+// ---------- clase de paso universal: data ----------
+// v0.9.1 (Boxworld b10): los datos válidos de TODOS los intentos se juntan (antes cada intento
+// empezaba de cero: b10 tuvo 4, 3 y 2 niveles válidos y se quedó con 4 de los 5 pedidos).
+export const dataKind = {
+  make: (st, env) => {
+    const { ctx } = env;
+    const pool = [], seen = new Set();
+    let last = { dropped: [] };
+    const final = () => {
+      const items = pool.map((p) => p.item), reports = pool.map((p) => p.report);
+      const em = st.emit(items, reports, ctx);
+      return { items: em.items, reports: em.reports, js: em.js, dropped: last.dropped, need: st.need(ctx), summary: { valid: em.items.length, need: st.need(ctx), report: em.reports, dropped: last.dropped } };
+    };
+    return {
+      judge: async (c) => {
+        const txt = c[st.answer];
+        // v0.9.6 (Depósito): sin el archivo pedido, Gemma escribió otro (js/niveles.js con strings): se le recuerda el formato
+        if (!txt) return fatal([`la respuesta no trajo ### FILE: ${st.answer}.${env.wrongNote(st)}${st.answerHint ? ` ${st.answerHint}` : ""}`]);
+        const pj = parseJsonLoose(txt);
+        if (!pj.ok) return fatal([`el JSON no se puede leer: ${pj.error}`]);
+        const out = st.parse(pj.data, ctx);
+        if (out.error) return fatal([out.error]);
+        last = out;
+        out.items.forEach((item, i) => { const k = JSON.stringify(item); if (!seen.has(k)) { seen.add(k); pool.push({ item, report: out.reports[i] }); } });
+        c.parsed = final();
+        const need = st.need(ctx);
+        // v0.10.1 (web/app): st.check(parsed, ctx) → problemas que NO rompen (se reintenta y se queda el mejor)
+        return pool.length >= need ? (st.check ? st.check(c.parsed, ctx) : []) : fatal([...out.dropped, st.missing(pool.length, need, ctx)]);
+      },
+      final,
+      count: () => pool.length,
+    };
+  },
+  store: (st, K, s, env) => {
+    const { ctx, files, opts, outDir, log } = env;
+    const parsed = K.final();
+    if (!parsed?.items?.length && opts.bench) { s.rec.data = { valid: 0 }; return "stop"; } // banco: sin datos = muestra rota, no error
+    if (!parsed?.items?.length) throw new Error(`${st.id}: ningún dato válido después de 3 intentos (${(s.rec.problems_final || []).slice(0, 3).join(" | ")})`);
+    ctx.data[st.id] = parsed;
+    files[st.file] = parsed.js;
+    writeFileSync(join(outDir, st.answer), String(s.content[st.answer] || ""), "utf8");
+    s.rec.data = parsed.summary;
+    s.rec.broken = false; // lo que quedó alcanza (los datos inválidos se descartan)
+    log(`[SPECIALIST]   ${st.summaryText ? st.summaryText(parsed) : `${parsed.items.length} datos válidos`}`);
+  },
+  // banco: los datos se rearman con TODAS las respuestas crudas de ese paso (el pool junta intentos);
+  // el archivo que se usa es el del build congelado, tal cual
+  frozen: async (st, fz, env) => {
+    const K = dataKind.make(st, env);
+    let pr = [];
+    for (const raw of fz.raws?.[st.id] || []) pr = await K.judge({ [st.answer]: extractFile(raw, st.answer) });
+    const parsed = K.final();
+    if (!parsed?.items?.length) throw new Error(`BENCH_FROZEN: las respuestas de ${st.id} del build congelado no dan datos válidos (${[...pr].slice(0, 2).join(" | ")})`);
+    env.ctx.data[st.id] = parsed; env.files[st.file] = fz.files?.[st.file] || parsed.js;
+  },
+};
+
 // ---------- build ----------
 /**
- * Corre los pasos del Standard.
+ * Corre los pasos del Standard con las herramientas de una plataforma.
  * @param {{refined, tasks}} input
- * @param {string} outDir   la app queda en outDir/app/
- * @param {{standard, log?, model?, pagePlan?, check?:boolean, forbidden?:string[]}} opts
+ * @param {string} outDir
+ * @param {{standard, platform, log?, model?, pagePlan?, check?:boolean, forbidden?:string[], skills?, bench?, temperature?}} opts
  */
 export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
   const S = opts.standard;
   if (!S?.steps?.length) throw new Error("STANDARD_REQUIRED: el motor por archivos necesita un Standard con pasos");
+  const P = opts.platform;
+  if (!P?.kinds || !P.systemPrompt || !P.prepare || !P.finish) throw new Error("PLATFORM_REQUIRED: el motor por archivos necesita una plataforma (kit) con systemPrompt, kinds, prepare y finish");
   const log = opts.log || console.log;
   const model = opts.model || MODEL;
   const hints = S.hints ? S.hints(refined) : {};
-  const comps = componentsFromPlan(opts.pagePlan, refined.features || []);
-  const main = comps[0];
-  const features = main ? main.features.map((f) => f.id) : [];
-  const notes = notesText((assignTasks(comps, tasks).byComp[main?.id] || []), { maxDescribed: 0 });
-  const brief = briefText(refined) + "\n\n" + rulesBrief(refined);
-  const title = refined.project_name || S.defaultTitle || "Proyecto";
-  const appDir = join(outDir, "app");
-  mkdirSync(appDir, { recursive: true });
-  const files = Object.fromEntries(["styles.css", ...S.scripts].map((f) => [f, ""]));
-  const ctx = { hints, notes, fragment: "", data: {}, files, total: S.steps.length, paso: "" };
+  const prep = P.prepare({ refined, tasks }, opts, S);
+  const { brief, notes } = prep;
+  mkdirSync(join(outDir, "app"), { recursive: true });
+  const files = Object.fromEntries([...(P.extraFiles || []), ...S.scripts].map((f) => [f, ""]));
+  const ctx = { hints, notes, ...(prep.initial || {}), data: {}, files, total: S.steps.length, paso: "" };
   const steps = [];
   const byId = {};
+  const out = {};
+  const KINDS = { data: dataKind, ...P.kinds };
   // opts.skills = { role, status, list: [{ id, kinds, text }] } (lo arma el profile con el Role)
   const skillsFor = (kind) => {
     const mine = (opts.skills?.list || []).filter((x) => x.kinds.includes(kind));
     return mine.length ? `HABILIDADES (lo que sabe hacer un programador con experiencia en este tipo de proyecto):\n${mine.map((x) => `- ${x.text}`).join("\n")}` : "";
   };
-  const page = (scripts, inline = "", fr = ctx.fragment) => pageHtml({ title, fragment: fr, features, scripts, inline, mainId: S.mainId });
 
   const ask = async (system, user, cap) => {
     const leak = (opts.forbidden || []).find((f) => f && user.toLowerCase().includes(f.toLowerCase()));
@@ -303,11 +162,15 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
     ? `PROBLEMAS DE TU VERSIÓN ANTERIOR (los encontró el harness):\n${problems.map((p) => "- " + p).join("\n")}\n\nTU VERSIÓN ANTERIOR:\n${names.map((n) => `### FILE: ${n}\n${fence(langOf(n), prev?.[n])}`).join("\n\n")}\n\nDevolvé ${names.join(" y ")} corregido(s), completo(s).`
     : "";
   const answerOf = (st) => st.answer ? [st.answer] : st.files || [st.file];
-  const known = [...new Set(["styles.css", ...S.scripts, ...S.steps.flatMap((x) => answerOf(x))])];
+  const known = [...new Set([...(P.extraFiles || []), ...S.scripts, ...S.steps.flatMap((x) => answerOf(x))])];
   let lastWrong = [];
   const wrongNote = (st) => lastWrong.length ? ` Trajiste ${lastWrong.join(" y ")}: ese archivo es de otro paso. En este paso escribí SOLO ${answerOf(st).join(" y ")}.` : "";
   const loadedBefore = (st) => S.scripts.slice(0, S.scripts.indexOf(st.file)).map((f) => files[f]);
-  const dataItems = () => Object.values(ctx.data).find((d) => Array.isArray(d?.items))?.items || [];
+  // lo que reciben las clases de paso y la plataforma
+  // v0.10.1 (web/app): el contrato puede depender de lo que dio un paso anterior (S.contract(ctx))
+  const contract = () => (typeof S.contract === "function" ? S.contract(ctx) : S.contract);
+  const env = { S, P, opts, ctx, files, outDir, log, ask, fence, skillsFor, steps, out, wrongNote, loadedBefore, contract, title: prep.title, features: prep.features };
+  env.page = P.pageFor ? P.pageFor(env) : null;
 
   // ---- un paso: hasta 3 intentos del MISMO archivo ----
   const runStep = async (st, n, K) => {
@@ -326,36 +189,12 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
       const sk = skillsFor(st.kind);
       // banco (v0.9.8): la línea neutra va ADELANTE; el pedido del paso sigue siendo lo último que lee Gemma
       // (11/10: con la línea al final, en Invernadero escribió js/dibujo.js las 5 veces)
-      const user = (opts.bench?.prefix ? `${opts.bench.prefix}\n\n` : "") + `BRIEF:\n${brief}\n\n${S.contract}\n\n${sk ? sk + "\n\n" : ""}${st.prompt(ctx)}\n\n` + retry;
-      const r = await ask(FILE_PROMPT, user, st.cap || 4000);
+      const user = (opts.bench?.prefix ? `${opts.bench.prefix}\n\n` : "") + `BRIEF:\n${brief}\n\n${contract()}\n\n${sk ? sk + "\n\n" : ""}${st.prompt(ctx)}\n\n` + retry;
+      const r = await ask(P.systemPrompt, user, st.cap || 4000);
       writeFileSync(join(outDir, `step_${String(n).padStart(2, "0")}_${st.id}${k ? ".retry" + k : ""}.raw.txt`), r.raw, "utf8");
-      let raw = r.raw;
       const att = { k, ms: r.ms, finish_reason: r.finish_reason, reasoning_chars: r.reasoning_chars, prompt_tokens_est: r.promptTokens, max_tokens: r.maxTokens };
-      const jsName = names.find((x) => x.endsWith(".js"));
-      if (jsName) {
-        let js = extractFile(raw, jsName, known);
-        if (js) {
-          let err = syntaxOf(js);
-          // declaración repetida → arreglo determinista, sin Gemma (b9: const altura dos veces)
-          if (err && /has already been declared/.test(err)) {
-            const fr = fixRedeclare(js);
-            if (fr.fixes.length) {
-              const e2 = syntaxOf(fr.js);
-              att.redeclare_fix = fr.fixes;
-              log(`[SPECIALIST]   declaración repetida: ${fr.fixes.map((f) => `${f.name} L${f.line} ${f.action}`).join(", ")}${e2 ? ` → sigue: ${e2}` : " → compila"}`);
-              raw = raw.includes(js) ? raw.replace(js, () => fr.js) : `### FILE: ${jsName}\n\`\`\`javascript\n${fr.js}\n\`\`\``;
-              js = fr.js; err = e2;
-            }
-          }
-          // otro error de sintaxis → reparación por tramo
-          if (err) {
-            const wrapped = `### FILE: componente.js\n\`\`\`javascript\n${js}\n\`\`\``;
-            const fx = await repairSyntax(wrapped, { id: S.mainId }, ask, { write: (m, txt) => writeFileSync(join(outDir, `step_${String(n).padStart(2, "0")}_${st.id}.fix${m}.raw.txt`), txt, "utf8") });
-            att.syntax_repair = fx.rounds;
-            if (fx.raw) { const fixed = extractFile(fx.raw, "componente.js"); raw = raw.replace(js, () => fixed); log(`[SPECIALIST]   reparación de sintaxis: ${fx.rounds.map((x) => `L${x.line} ${x.ok ? "✓" : "✗"}`).join(", ")} → compila`); }
-          }
-        }
-      }
+      // arreglo previo de la plataforma (en web: declaración repetida y sintaxis de un .js)
+      const raw = P.preFix ? await P.preFix({ raw: r.raw, names, known, att, st, n, env }) : r.raw;
       let content = Object.fromEntries(names.map((x) => [x, extractFile(raw, x, known)]));
       // v0.9.8: si trajo OTRO archivo del proyecto en vez del pedido, el problema lo dice
       lastWrong = names.some((x) => !content[x]) ? [...String(raw).matchAll(/###\s*(?:FILE|APPEND):\s*([\w./\-]+)/g)].map((m) => m[1]).filter((f) => !names.some((x) => x === f || f.endsWith("/" + x.split("/").pop()))) : [];
@@ -391,264 +230,45 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
     return { content: {}, rec };
   };
 
-  // ---- jueces generales por clase de paso ----
-  const jsBasics = (st, code) => {
-    if (!code) return fatal([`la respuesta no trajo ### FILE: ${st.file}.${wrongNote(st)}`]);
-    const se = syntaxOf(code); if (se) return fatal([`error de sintaxis: ${se}`]);
-    return null;
-  };
-  const KINDS = {
-    // v0.9.1 (Boxworld b10): los datos válidos de TODOS los intentos se juntan (antes cada intento
-    // empezaba de cero: b10 tuvo 4, 3 y 2 niveles válidos y se quedó con 4 de los 5 pedidos).
-    data: (st) => {
-      const pool = [], seen = new Set();
-      let last = { dropped: [] };
-      const final = () => {
-        const items = pool.map((p) => p.item), reports = pool.map((p) => p.report);
-        const em = st.emit(items, reports, ctx);
-        return { items: em.items, reports: em.reports, js: em.js, dropped: last.dropped, need: st.need(ctx), summary: { valid: em.items.length, need: st.need(ctx), report: em.reports, dropped: last.dropped } };
-      };
-      return {
-        judge: async (c) => {
-          const txt = c[st.answer];
-          // v0.9.6 (Depósito): sin el archivo pedido, Gemma escribió otro (js/niveles.js con strings): se le recuerda el formato
-          if (!txt) return fatal([`la respuesta no trajo ### FILE: ${st.answer}.${wrongNote(st)}${st.answerHint ? ` ${st.answerHint}` : ""}`]);
-          const pj = parseJsonLoose(txt);
-          if (!pj.ok) return fatal([`el JSON no se puede leer: ${pj.error}`]);
-          const out = st.parse(pj.data, ctx);
-          if (out.error) return fatal([out.error]);
-          last = out;
-          out.items.forEach((item, i) => { const k = JSON.stringify(item); if (!seen.has(k)) { seen.add(k); pool.push({ item, report: out.reports[i] }); } });
-          c.parsed = final();
-          const need = st.need(ctx);
-          return pool.length >= need ? [] : fatal([...out.dropped, st.missing(pool.length, need, ctx)]);
-        },
-        final,
-        count: () => pool.length,
-      };
-    },
-    logic: (st) => {
-      const acceptance = (code) => {
-        const L = loadScripts([...loadedBefore(st), code], [st.global, ...(st.itemsGlobal ? [st.itemsGlobal] : [])]);
-        if (L.error) return { error: L.error };
-        return { result: runAcceptance(L[st.global], st.itemsGlobal ? L[st.itemsGlobal] : [], st) };
-      };
-      // v0.9.9 (banco --repair 11/10): `state is not defined` con el parámetro `estado` → se renombra solo
-      // en esa función, sin Gemma (harness/undeclared.mjs). Se queda solo si quedan menos pruebas fallando.
-      const fix = async (c, att) => {
-        const code = c[st.file];
-        if (!code || syntaxOf(code)) return null;
-        const failTexts = (a) => (a.error ? [a.error] : a.result.failed.map((f) => f.detail));
-        const a = acceptance(code);
-        const names = undefinedNames(failTexts(a));
-        if (!names.length) return null;
-        const members = (st.functions || []).map((f) => findMember(code, f)).filter(Boolean);
-        const r = fixUndeclared(code, names, members, S.aliases || {});
-        if (!r.fixes.length || syntaxOf(r.code)) return null;
-        const a2 = acceptance(r.code);
-        const n = (x) => (x.error ? Infinity : x.result.failed.length);
-        if (n(a2) >= n(a)) return null;
-        att.undeclared_fix = r.fixes;
-        log(`[SPECIALIST]   variable sin declarar: ${r.fixes.map((f) => `${f.name} → ${f.to} en ${f.fn} (${f.count}×, ${f.why})`).join(", ")} · pruebas que fallan ${n(a) === Infinity ? "no carga" : n(a)} → ${n(a2)}`);
-        return { ...c, [st.file]: r.code };
-      };
-      return {
-        fix,
-        judge: async (c) => {
-          const code = c[st.file];
-          const b = jsBasics(st, code); if (b) return b;
-          // v0.9.6 (Boxworld --skills): el comentario "No utiliza DOM ni window." daba este problema en los 3
-          // intentos y tapaba el error real (state is not defined): se mira el código sin comentarios
-          if (st.pure && /\b(document|window)\./.test(stripComments(code))) return [`${st.file} no puede usar document ni window (es lógica pura).`];
-          const sh = shadowProblems(code); if (sh.length) return sh;
-          const a = acceptance(code);
-          if (a.error) return fatal([`al ejecutarlo: ${a.error}`]);
-          const failed = a.result.failed;
-          // v0.9.6: si una prueba TIRA un error (no un resultado distinto: el código se rompe), lo de abajo
-          // no se puede probar (Boxworld --skills: controles se reintentó 3 veces por "state is not defined")
-          return failed.some((f) => f.name === "contrato" || /tiró( un error)?:/.test(f.detail)) ? fatal(failed.map((f) => f.detail)) : failed.map((f) => f.detail);
-        },
-        repair: async (c, _pr, att) => {
-          let code = c[st.file];
-          if (!code || syntaxOf(code)) return null;
-          const rounds = [];
-          for (let k = 0; k < 4; k++) {
-            const a = acceptance(code);
-            if (a.error) break;
-            const failed = a.result.failed;
-            if (!failed.length || failed.some((f) => f.name === "contrato")) break;
-            const fn = failed.find((f) => f.fn && !rounds.some((r) => r.fn === f.fn && !r.ok))?.fn;
-            const m = fn && findMember(code, fn);
-            if (!m) break;
-            const user = `${S.contract}\n\n${skillsFor("logic") ? skillsFor("logic") + "\n\n" : ""}PRUEBAS DEL HARNESS QUE FALLAN (${fn}):\n${failed.filter((f) => f.fn === fn).map((f) => "- " + f.detail).join("\n")}\n\nFUNCIÓN A CORREGIR (${fn}):\n${fence("javascript", m.text)}`;
-            const r = await ask(memberFixPrompt(st.file, st.label || "lógica pura, sin DOM"), user, st.cap || 5000);
-            writeFileSync(join(outDir, `step_${String(steps.length + 1).padStart(2, "0")}_${st.id}.a${att.k ?? 0}.${fn}${k + 1}.raw.txt`), r.raw, "utf8");
-            const got = (String(r.raw || "").match(/```(?:javascript|js)?\n([\s\S]*?)```/) || [])[1];
-            const rp = replaceMember(code, m, got);
-            const before = failed.length;
-            let after = before;
-            if (rp.ok) { const a2 = acceptance(rp.js); after = a2.error ? Infinity : a2.result.failed.length; }
-            const note = rp.ok ? null : rp.why + (r.finish_reason === "length" ? " (cortada por largo)" : !String(r.raw || "").trim() ? " (respuesta vacía)" : "");
-            const round = { fn, ms: r.ms, finish_reason: r.finish_reason, chars: String(r.raw || "").length, reasoning_chars: r.reasoning_chars ?? 0, ok: rp.ok && after < before, before, after: after === Infinity ? "error" : after, ...(note ? { note } : {}) };
-            rounds.push(round);
-            if (round.ok) code = rp.js;
-          }
-          if (rounds.length) {
-            att.member_repair = rounds;
-            log(`[SPECIALIST]   reparación por función: ${rounds.map((r) => `${r.fn} ${r.ok ? "✓" : `✗${r.note ? ` (${r.note})` : ""}`}`).join(", ")}`);
-          }
-          return code !== c[st.file] ? { [st.file]: code } : null;
-        },
-        acceptance,
-      };
-    },
-    screen: (st) => ({
-      judge: async (c) => {
-        const out = [];
-        const [html, css] = st.files;
-        if (!c[html]) out.push(`la respuesta no trajo ### FILE: ${html}.${wrongNote(st)}`);
-        else { const miss = missingIds(c[html], S.ids || []); if (miss.length) out.push(`faltan estos ids en ${html}: ${miss.map((x) => "#" + x).join(", ")}.`); }
-        if (!c[css]) out.push(`la respuesta no trajo ### FILE: ${css}.`);
-        for (const id of st.enabled || []) if (disabledInHtml(c[html], id)) out.push(`en ${html}, #${id} tiene el atributo disabled: así nunca se puede usar. Sacá disabled.`);
-        if (out.length || !st.swatches || opts.check === false) return out;
-        // v0.9.1 (Boxworld b10): que las variantes SE VEAN distintas. b10 pasó 5 chequeos con un
-        // tablero de 100 casilleros iguales: styles.css decía ".casillero .pared" (descendiente)
-        // y dibujar() pone las clases en el mismo div → ningún color se aplicaba.
-        const dir = join(outDir, `probe_${st.id}`);
-        writeApp(dir, { [css]: cleanCss(c[css]) }, page([], swatchProbe(st.swatches), cleanFragment(c[html])));
-        const swp = swatchProblems(await probePage(join(dir, "index.html")), st.swatches, c[css]);
-        if (swp.length || !st.stable) return swp;
-        // v0.9.4 (Boxworld b12): la grilla no se puede deformar cuando otro elemento cambia su texto
-        const sdir = join(outDir, `probe_${st.id}_estable`);
-        writeApp(sdir, { [css]: cleanCss(c[css]) }, page([], stableProbe(st.stable), cleanFragment(c[html])));
-        return stableProblems((await probePage(join(sdir, "index.html"))).probe, st.stable);
-      },
-    }),
-    render: (st) => ({
-      judge: async (c) => {
-        const code = c[st.file];
-        const b = jsBasics(st, code); if (b) return b;
-        const others = Object.fromEntries(S.scripts.slice(0, S.scripts.indexOf(st.file)).map((f) => [f, files[f]]));
-        const own = topNames(code).filter((x) => (st.notOwn?.names || []).includes(x));
-        const extra = [
-          ...shadowProblems(code),
-          ...clashes(code, others),
-          ...(own.length ? [`${st.file} solo define ${st.defines}: ${own.join(", ")} van en ${st.notOwn.owner}, no acá.`] : []),
-          ...(st.noListeners && /addEventListener\s*\(/.test(code) ? [`${st.file} no agrega listeners (van en ${st.notOwn?.owner || "otro archivo"}).`] : []),
-        ];
-        if (extra.length) return extra;
-        if (opts.check === false) return [];
-        const dir = join(outDir, `probe_${st.id}`);
-        writeApp(dir, { ...files, [st.file]: code }, page(S.scripts.slice(0, S.scripts.indexOf(st.file) + 1), st.probe + (st.looks ? "\n" + drawnLooksProbe(st.looks) : "")));
-        const pr = await probePage(join(dir, "index.html"));
-        const base = probeProblems(pr, st);
-        if (base.fatal || !st.looks) return base;
-        return [...base, ...drawnLooksProblems(pr.looks, st.looks, code, st.file)];
-      },
-    }),
-    wiring: (st) => ({
-      judge: async (c) => {
-        const code = c[st.file];
-        const b = jsBasics(st, code); if (b) return b;
-        const others = Object.fromEntries(S.scripts.filter((f) => f !== st.file).map((f) => [f, files[f]]));
-        const cl = clashes(code, others);
-        if (cl.length) return cl;
-        if (opts.check === false) return [];
-        const dir = join(outDir, `probe_${st.id}`);
-        writeApp(dir, { ...files, [st.file]: code }, page(S.scripts));
-        const pp = playProblems(await runChecks(join(dir, "index.html"), st.play || []));
-        if (pp.fatal || !st.scenarios) return pp;
-        const sp = [];
-        for (const sc of st.scenarios) {
-          const sdir = join(outDir, `probe_${st.id}_${sc.id}`);
-          writeApp(sdir, { ...files, [st.file]: code, ...sc.files }, page(S.scripts));
-          sp.push(...await runScenario(join(sdir, "index.html"), sc));
-        }
-        return [...pp, ...sp];
-      },
-    }),
-  };
-
   if (opts.skills) log(`[SPECIALIST] Skills del Role ${opts.skills.role} (${opts.skills.status}): ${opts.skills.list.map((x) => x.id).join(", ")}`);
-  log(`[SPECIALIST] ${ENGINE_VERSION} · Standard ${S.id} v${S.version} (${S.status}): ${S.steps.length} pasos chicos (un archivo por paso)${S.hintsText ? ` · ${S.hintsText(hints)}` : ""}`);
-  const out = {};
+  log(`[SPECIALIST] ${ENGINE_VERSION} · Standard ${S.id} v${S.version} (${S.status}) · plataforma ${P.id || "?"}: ${S.steps.length} pasos chicos (un archivo por paso)${S.hintsText ? ` · ${S.hintsText(hints)}` : ""}`);
   // v0.9.7 (10/10, banco por paso): opts.bench = { step, frozen: { files, fragment, raws }, maxAttempts, prefix, noRepair }.
   // Los pasos de antes NO se piden a Gemma: se cargan de un build anterior (entradas fijas); se corre
   // solo `step` y se corta. Así la diferencia entre muestras viene solo del pedido de ese paso.
   const benchAt = opts.bench ? S.steps.findIndex((x) => x.id === opts.bench.step) : -1;
   if (opts.bench && benchAt < 0) throw new Error(`BENCH_STEP: "${opts.bench.step}" no es un paso del Standard ${S.id} (${S.steps.map((x) => x.id).join(", ")})`);
-  for (const [i, st] of S.steps.entries()) {
+  for (const [i, st0] of S.steps.entries()) {
     const n = i + 1;
+    // v0.10.1 (web/app): st.resolve(ctx) completa el paso con lo que dieron los anteriores (funciones y
+    // pruebas que salen del contrato). Sin resolve el paso es el mismo objeto de siempre.
     if (opts.bench && i > benchAt) break;
+    const st = st0.resolve ? { ...st0, ...st0.resolve(ctx) } : st0;
+    const kind = KINDS[st.kind];
+    if (!kind) throw new Error(`STANDARD_STEP_KIND: "${st.kind}" (paso ${st.id}) no existe en el motor ni en la plataforma ${P.id || "?"} (${Object.keys(KINDS).join(", ")})`);
     if (opts.bench && i < benchAt) {
-      const fz = opts.bench.frozen || {};
-      if (st.kind === "data") {
-        // los datos se rearman con TODAS las respuestas crudas de ese paso (el pool junta intentos);
-        // el .js que se usa es el del build congelado, tal cual
-        const K = KINDS.data(st);
-        let pr = [];
-        for (const raw of fz.raws?.[st.id] || []) pr = await K.judge({ [st.answer]: extractFile(raw, st.answer) });
-        const parsed = K.final();
-        if (!parsed?.items?.length) throw new Error(`BENCH_FROZEN: las respuestas de ${st.id} del build congelado no dan datos válidos (${[...pr].slice(0, 2).join(" | ")})`);
-        ctx.data[st.id] = parsed; files[st.file] = fz.files?.[st.file] || parsed.js;
-      } else if (st.kind === "screen") {
-        if (!fz.fragment) throw new Error("BENCH_FROZEN: falta el fragmento HTML (index.html del build congelado)");
-        ctx.fragment = fz.fragment; files[st.files[1]] = fz.files?.[st.files[1]] || "";
-      } else {
-        if (!fz.files?.[st.file]) throw new Error(`BENCH_FROZEN: falta ${st.file} en el build congelado`);
-        files[st.file] = fz.files[st.file];
-      }
+      await kind.frozen(st, opts.bench.frozen || {}, env);
       byId[st.id] = { broken: false, files: answerOf(st), problems_final: [] };
       continue;
     }
     const broken = (st.needs || []).map((id) => byId[id]).find((r) => r?.broken);
     if (broken) { byId[st.id] = skipStep(st, n, `${broken.files.join(" + ")} no funciona (${String(broken.problems_final[0] || "").slice(0, 120)})`).rec; continue; }
-    const kind = KINDS[st.kind];
-    if (!kind) throw new Error(`STANDARD_STEP_KIND: "${st.kind}" (paso ${st.id}) no existe en el motor`);
-    const K = kind(st);
+    const K = kind.make(st, env);
     const s = await runStep(st, n, K);
     byId[st.id] = s.rec;
-    if (st.kind === "data") {
-      const parsed = K.final();
-      if (!parsed?.items?.length && opts.bench) { s.rec.data = { valid: 0 }; break; } // banco: sin datos = muestra rota, no error
-      if (!parsed?.items?.length) throw new Error(`${st.id}: ningún dato válido después de 3 intentos (${(s.rec.problems_final || []).slice(0, 3).join(" | ")})`);
-      ctx.data[st.id] = parsed;
-      files[st.file] = parsed.js;
-      writeFileSync(join(outDir, st.answer), String(s.content[st.answer] || ""), "utf8");
-      s.rec.data = parsed.summary;
-      s.rec.broken = false; // lo que quedó alcanza (los datos inválidos se descartan)
-      log(`[SPECIALIST]   ${st.summaryText ? st.summaryText(parsed) : `${parsed.items.length} datos válidos`}`);
-    } else if (st.kind === "screen") {
-      ctx.fragment = cleanFragment(s.content[st.files[0]]);
-      files[st.files[1]] = cleanCss(s.content[st.files[1]]);
-    } else {
-      files[st.file] = s.content[st.file] || "";
-    }
-    if (st.kind === "logic") {
-      const a = K.acceptance(files[st.file]);
-      s.rec.tests = a.error ? { passed: [], failed: [{ name: "carga", detail: `al ejecutarlo: ${a.error}` }] } : a.result;
-      out.acceptance = { ...(out.acceptance || {}), [st.id]: s.rec.tests };
-      log(`[SPECIALIST]   pruebas de ${st.id} (harness, sin navegador): ${s.rec.tests.passed.length}/${s.rec.tests.passed.length + s.rec.tests.failed.length}${s.rec.tests.failed.length ? ` · fallan: ${s.rec.tests.failed.map((f) => f.name).join(", ")}` : ""}`);
-    }
+    if (kind.store(st, K, s, env) === "stop") break;
   }
 
-  writeApp(appDir, files, page(S.scripts));
+  const outFiles = P.finish(env);
   const skipped = steps.filter((s) => s.skipped).map((s) => s.task_id);
-  log(`[SPECIALIST] app/: index.html, styles.css, ${S.scripts.join(", ")}${steps.some((s) => s.problems_final.length) ? ` · quedan problemas en: ${steps.filter((s) => s.problems_final.length).map((s) => s.task_id).join(", ")}` : " · todos los pasos OK"}`);
+  log(`[SPECIALIST] app/: ${outFiles.join(", ")}${steps.some((s) => s.problems_final.length) ? ` · quedan problemas en: ${steps.filter((s) => s.problems_final.length).map((s) => s.task_id).join(", ")}` : " · todos los pasos OK"}`);
   const firstLogic = S.steps.find((s) => s.kind === "logic");
   return {
-    model, specialist_version: ENGINE_VERSION, standard: { id: S.id, version: S.version, status: S.status },
+    model, specialist_version: ENGINE_VERSION, platform: P.id || null, standard: { id: S.id, version: S.version, status: S.status },
     skills: opts.skills ? { role: opts.skills.role, status: opts.skills.status, ids: opts.skills.list.map((x) => x.id) } : null,
-    files: ["index.html", "styles.css", ...S.scripts],
+    files: outFiles,
     hints, data: Object.fromEntries(Object.entries(ctx.data).map(([k, v]) => [k, v.summary])),
     rule_tests: firstLogic ? out.acceptance?.[firstLogic.id] : undefined, acceptance: out.acceptance,
     ...(skipped.length ? { skipped } : {}), order: steps.map((s) => s.task_id),
     steps: steps.map((s) => ({ ...s, ms: s.attempts.reduce((a, b) => a + b.ms, 0), finish_reason: s.attempts.at(-1)?.finish_reason, changed: s.files, rejected: s.problems_final })),
   };
-}
-
-/** Esqueleto de control para Validation: la misma página sin JS ni contenido. */
-export function baselinePage(refined, plan, standard) {
-  const comps = componentsFromPlan(plan, refined.features || []);
-  return pageHtml({ title: refined.project_name || standard.defaultTitle || "Proyecto", fragment: "", features: comps[0] ? comps[0].features.map((f) => f.id) : [], scripts: [], mainId: standard.mainId });
 }

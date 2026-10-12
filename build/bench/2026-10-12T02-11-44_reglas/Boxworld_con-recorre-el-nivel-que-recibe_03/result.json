@@ -1,0 +1,47 @@
+{
+  "case": "Boxworld",
+  "cond": "con:recorre-el-nivel-que-recibe",
+  "i": 3,
+  "ref": "TR-2208",
+  "ms": 419208,
+  "ok_first": false,
+  "fatal_first": false,
+  "ok_final": true,
+  "broken": false,
+  "problems_first": [
+    "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"derecha\") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador {fila:1,col:2}, cajas [{fila:1,col:2}], movimientos 1. El jugador quedó ENCIMA de una caja: mover no vio la caja. En estado.mapa no hay cajas (solo '#', ' ' y '.'); las cajas están en estado.cajas: antes de mover, buscá si hay una caja en el destino con estado.cajas.",
+    "con [\"#####\",\"#@$.#\",\"#####\"], después de mover \"derecha\" la única caja está en el único objetivo: ganado tiene que ser true."
+  ],
+  "problems_final": [],
+  "wrong_files": [],
+  "arreglos": {
+    "undeclared": [
+      {
+        "name": "state",
+        "to": "estado",
+        "fn": "mover",
+        "count": 1,
+        "why": "alias"
+      }
+    ],
+    "redeclare": []
+  },
+  "member_repair": [
+    {
+      "fn": "mover",
+      "ok": true
+    }
+  ],
+  "tests": {
+    "passed": 15,
+    "failed": []
+  },
+  "skill_hits": {
+    "botones-habilitados": 0,
+    "flecha-sin-tapar": 0,
+    "grilla-que-no-se-estira": 0,
+    "piezas-aparte-del-mapa": 1,
+    "recorre-el-nivel-que-recibe": 0,
+    "siempre-jugable": 0
+  }
+}

@@ -6,7 +6,8 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { makeScreenBuild } from "../app/build.mjs";
-import { buildFiles, baselinePage } from "../../../harness/files_engine.mjs";
+import { buildFiles } from "../../../harness/files_engine.mjs";
+import { WEB_FILES, baselinePage } from "../specialist/files_kit.mjs";
 import { getStandard } from "../../../standards/registry.mjs";
 import profile from "./profile.mjs";
 import { loadRole } from "../../../roles/registry.mjs";
@@ -86,7 +87,7 @@ export function build(input, outDir, opts = {}) {
     const role = withSkills ? await loadRole(profile.role, { placebo }) : null;
     // banco (11/10): opts.skills puede traer ya un subconjunto ({ role, status, list }) para medir una Skill sola
     const skills = opts.skills?.list ? opts.skills : role ? { role: role.id, status: role.status, list: role.skills } : null;
-    return buildFiles(input, outDir, { ...opts, skills, standard: getStandard(profile.standard) });
+    return buildFiles(input, outDir, { ...opts, skills, standard: getStandard(profile.standard), platform: WEB_FILES });
   })();
 }
 export function writeBaseline(baselineDir, input, basePlan, specialist) {

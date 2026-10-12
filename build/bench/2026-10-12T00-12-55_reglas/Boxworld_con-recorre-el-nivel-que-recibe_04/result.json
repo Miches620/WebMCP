@@ -1,0 +1,51 @@
+{
+  "case": "Boxworld",
+  "cond": "con:recorre-el-nivel-que-recibe",
+  "i": 4,
+  "ref": "LP-5160",
+  "ms": 146695,
+  "ok_first": false,
+  "fatal_first": false,
+  "ok_final": false,
+  "broken": false,
+  "problems_first": [
+    "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"derecha\") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador {fila:1,col:1}, cajas [{fila:1,col:2}], movimientos 0.",
+    "con [\"#####\",\"#@$.#\",\"#####\"], después de mover \"derecha\" la única caja está en el único objetivo: ganado tiene que ser true.",
+    "crearEstado([\"######\",\"#@$ .#\",\"######\"]): mapa fila 1 tendría que ser \"#   .#\" (en el mapa no hay cajas ni jugador: solo '#', ' ' y '.') y dio \"### .#\"."
+  ],
+  "problems_final": [
+    "con [\"#####\",\"#@$.#\",\"#####\"], mover(estado, \"derecha\") empuja la caja: jugador {fila:1,col:2}, caja {fila:1,col:3}, movimientos 1; quedó jugador {fila:1,col:1}, cajas [{fila:1,col:2}], movimientos 0.",
+    "con [\"#####\",\"#@$.#\",\"#####\"], después de mover \"derecha\" la única caja está en el único objetivo: ganado tiene que ser true.",
+    "crearEstado([\"######\",\"#@$ .#\",\"######\"]): mapa fila 1 tendría que ser \"#   .#\" (en el mapa no hay cajas ni jugador: solo '#', ' ' y '.') y dio \"### .#\"."
+  ],
+  "wrong_files": [],
+  "arreglos": {
+    "undeclared": [
+      {
+        "name": "state",
+        "to": "estado",
+        "fn": "mover",
+        "count": 1,
+        "why": "alias"
+      }
+    ],
+    "redeclare": []
+  },
+  "member_repair": [],
+  "tests": {
+    "passed": 12,
+    "failed": [
+      "empujar una caja",
+      "caja en el objetivo = ganado",
+      "mapa sin cajas ni jugador"
+    ]
+  },
+  "skill_hits": {
+    "botones-habilitados": 0,
+    "flecha-sin-tapar": 0,
+    "grilla-que-no-se-estira": 0,
+    "piezas-aparte-del-mapa": 0,
+    "recorre-el-nivel-que-recibe": 0,
+    "siempre-jugable": 0
+  }
+}

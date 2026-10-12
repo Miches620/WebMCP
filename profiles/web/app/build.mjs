@@ -12,6 +12,10 @@ import { translateRequirement as translateWeb } from "../validation/check_transl
 import { planPage as planApp, planText } from "./page_plan.mjs";
 import { APP_TRANSLATOR } from "./translator_rules.mjs";
 import { APP_SPECIALIST_RULES, rulesBrief } from "./specialist_rules.mjs";
+import { buildFiles } from "../../../harness/files_engine.mjs";
+import { WEB_FILES, baselinePage } from "../specialist/files_kit.mjs";
+import { getStandard } from "../../../standards/registry.mjs";
+import profile from "./profile.mjs";
 
 // paso 2 (06/10): Validation profile de este tipo = cadena web → web/app (no el catálogo entero)
 import { validationFor, CATALOG_VERSION } from "../validation/check_catalog.mjs";
@@ -55,4 +59,17 @@ export function makeScreenBuild(cfg) {
 }
 
 const APP = makeScreenBuild({ translator: APP_TRANSLATOR, systemExtra: APP_SPECIALIST_RULES });
-export const { planPage, translateRequirement, postprocessChecks, build, writeBaseline, specialistSees } = APP;
+export const { planPage, translateRequirement, postprocessChecks, specialistSees } = APP;
+
+// 12/10 (paso 2 del borde, decisión de Miche): la app se escribe POR ARCHIVOS con el Standard que
+// declara el profile (standards/web/app/estado, DRAFT), con el mismo motor universal que web/game.
+// --legacy-components vuelve al componente único (motor de landing), para comparar.
+export function build(input, outDir, opts = {}) {
+  if (opts.legacy) return APP.build(input, outDir, opts); // tira el error de siempre (--legacy es de landing)
+  if (opts.legacyComponents || process.argv.includes("--legacy-components")) return APP.build(input, outDir, opts);
+  return buildFiles(input, outDir, { ...opts, standard: getStandard(profile.standard), platform: WEB_FILES });
+}
+export function writeBaseline(baselineDir, input, basePlan, specialist) {
+  if (!specialist?.standard) return APP.writeBaseline(baselineDir, input, basePlan, specialist);
+  writeFileSync(join(baselineDir, "index.html"), baselinePage(input.refined, basePlan, getStandard(specialist.standard.id)), "utf8");
+}

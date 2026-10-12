@@ -1,0 +1,107 @@
+```javascript
+mover(estado, direccion) {
+    const jugador = estado.jugador;
+    let nuevaFila = jugador.fila;
+    let nuevaCol = jugador.col;
+
+    // 1. Calcular la posición objetivo del jugador
+    switch (direccion) {
+        case "arriba":
+            nuevaFila -= 1;
+            break;
+        case "abajo":
+            nuevaFila += 1;
+            break;
+        case "izquierda":
+            nuevaCol -= 1;
+            break;
+        case "derecha":
+            nuevaCol += 1;
+            break;
+    }
+
+    const filas = estado.mapa.length;
+    // Asumimos que el mapa no está vacío y todas las filas tienen la misma longitud
+    if (filas === 0) return { ...estado }; 
+    const columnas = estado.mapa[0].length;
+
+    // Validación de límites y paredes en la posición objetivo del jugador
+    if (nuevaFila < 0 || nuevaFila >= filas || nuevaCol < 0 || nuevaCol >= columnas) {
+        return { ...estado }; // Fuera de límites
+    }
+    if (estado.mapa[nuevaFila][nuevaCol] === '#') {
+        return { ...estado }; // Colisión con pared
+    }
+
+    // Verificar si hay una caja en la posición objetivo del jugador
+    const cajaEnDestino = estado.cajas.some(c => c.fila === nuevaFila && c.col === nuevaCol);
+
+    if (!cajaEnDestino) {
+        // Caso 1: Movimiento simple (a espacio o objetivo)
+        return {
+            mapa: JSON.parse(JSON.stringify(estado.mapa)), // Copia inmutable del mapa
+            jugador: { fila: nuevaFila, col: nuevaCol },
+            cajas: estado.cajas.map(c => ({ ...c })), // Copia de cajas
+            objetivos: estado.objetivos.map(o => ({ ...o })), // Copia de objetivos
+            movimientos: estado.movimientos + 1
+        };
+    } else {
+        // Caso 2: Intento de empujar una caja
+        const cajaAEmpujar = estado.cajas.find(c => c.fila === nuevaFila && c.col === nuevaCol);
+
+        let destinoCajaFila = cajaAEmpujar.fila;
+        let destinoCajaCol = cajaAEmpujar.col;
+
+        // Calcular la posición de destino para la caja
+        switch (direccion) {
+            case "arriba":
+                destinoCajaFila -= 1;
+                break;
+            case "abajo":
+                destinoCajaFila += 1;
+                break;
+            case "izquierda":
+                destinoCajaCol -= 1;
+                break;
+            case "derecha":
+                destinoCajaCol += 1;
+                break;
+        }
+
+        // Validación de la posición destino para la caja:
+        // 1. ¿Está fuera de límites?
+        if (destinoCajaFila < 0 || destinoCajaFila >= filas || destinoCajaCol < 0 || destinoCajaCol >= columnas) {
+            return { ...estado }; // La caja cae fuera del mapa
+        }
+
+        // 2. ¿Está bloqueada por una pared?
+        if (estado.mapa[destinoCajaFila][destinoCajaCol] === '#') {
+            return { ...estado }; // Colisión con pared en destino de la caja
+        }
+
+        // 3. ¿Hay otra cosa (caja) bloqueando el movimiento de la caja?
+        const colisionaConOtroObjeto = estado.cajas.some(c => c !== cajaAEmpujar && c.fila === destinoCajaFila && c.col === destinoCajaCol);
+
+        if (colisionaConOtroObjeto) {
+            return { ...estado }; // Colisión con otra caja
+        }
+
+        // Si el movimiento es válido:
+        
+        // 1. Crear la lista de cajas actualizadas: filtrar la caja vieja y añadir la nueva posición
+        const nuevoCajas = estado.cajas.filter(c => !(c.fila === nuevaFila && c.col === nuevaCol));
+        nuevoCajas.push({ fila: destinoCajaFila, col: destinoCajaCol });
+
+        // 2. Construir el nuevo estado inmutable
+        const nuevoEstado = {
+            mapa: JSON.parse(JSON.stringify(estado.mapa)),
+            jugador: { fila: nuevaFila, col: nuevaCol },
+            cajas: [...nuevoCajas], // Usamos spread para asegurar que es una copia del array de cajas
+            objetivos: estado.objetivos.map(o => ({ ...o })),
+            movimientos: estado.movimientos + 1
+        };
+
+        return nuevoEstado;
+    }
+}
+```

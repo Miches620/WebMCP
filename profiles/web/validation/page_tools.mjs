@@ -182,3 +182,94 @@ export function stableRealProbe({ container, changing, text }) {
   } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
 })();`;
 }
+
+// ---------- wiring: llamadas (12/10, Standard web/app/estado) ----------
+// Kanban v1 (03/10): "+ Añadir Columna" no hacía nada y nadie lo vio hasta usarlo. Sonda general: envuelve
+// los métodos de un objeto global (los que declara el Standard) y la función que dibuja, y usa la
+// pantalla como una persona: completa los campos de texto vacíos y aprieta cada control (uno por
+// recarga, y los que aparecen después de ese clic, p.ej. "Guardar"). Devuelve qué métodos se llamaron,
+// cuáles no fueron seguidos por un dibujo y si algún clic recargó la página (formulario sin preventDefault).
+const CTRL_SEL = "button, [role=button], input[type=button], input[type=submit], [data-accion]";
+const IN_PAGE = `(function () {
+  var vis = function (el) { var r = el.getBoundingClientRect(), s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none"; };
+  var sig = function (el) { var a = el.getAttribute("data-accion"); return a ? "accion:" + a : (el.tagName + ":" + String(el.value && el.tagName === "INPUT" ? el.value : el.textContent || el.getAttribute("aria-label") || el.title || "").replace(/\\s+/g, " ").trim().toLowerCase().slice(0, 40)); };
+  var list = function () { return Array.prototype.filter.call(document.querySelectorAll(${JSON.stringify(CTRL_SEL)}), vis); };
+  return { vis: vis, sig: sig, list: list };
+})()`;
+export async function runCallsProbe(htmlPath, { global, methods, draw, fill = "Prueba", max = 25 }) {
+  const browser = await chromium.launch();
+  const out = { calls: {}, undrawn: {}, clicked: [], errors: [], reloads: [], tracked: false, found: false, controls: 0 };
+  try {
+    const page = await browser.newPage();
+    page.on("pageerror", (e) => out.errors.push(e.message));
+    page.on("dialog", (d) => (d.type() === "prompt" ? d.accept(fill) : d.accept()).catch(() => {}));
+    await page.route(/^https?:/, (r) => r.abort());
+    const url = pathToFileURL(htmlPath).href;
+    let navs = 0;
+    page.on("framenavigated", (f) => { if (f === page.mainFrame()) navs++; });
+    const load = async () => {
+      await page.goto(url, { waitUntil: "load" }); navs = 0;
+      return page.evaluate(({ global, methods, draw }) => {
+        window.__seq = [];
+        var G; try { G = (0, eval)(global); } catch (e) { G = undefined; }
+        if (!G) return { found: false, tracked: false };
+        methods.forEach(function (m) { var f = G[m]; if (typeof f !== "function") return; G[m] = function () { window.__seq.push(m); return f.apply(this, arguments); }; });
+        var tracked = false;
+        try { var d = (0, eval)(draw); if (typeof d === "function") { var w = function () { window.__seq.push("#draw"); return d.apply(this, arguments); }; window[draw] = w; tracked = (0, eval)(draw) === w; } } catch (e) {}
+        return { found: true, tracked: tracked };
+      }, { global, methods, draw });
+    };
+    const sigs = () => page.evaluate((src) => { var T = (0, eval)(src); var s = []; T.list().forEach(function (el) { var k = T.sig(el); if (s.indexOf(k) < 0) s.push(k); }); return s; }, IN_PAGE);
+    const fillAll = (v) => page.evaluate((v) => {
+      Array.prototype.forEach.call(document.querySelectorAll("input, textarea"), function (el) {
+        var t = (el.getAttribute("type") || "text").toLowerCase();
+        if (el.value || ["button", "submit", "checkbox", "radio", "hidden", "color", "range", "file"].indexOf(t) >= 0) return;
+        el.value = t === "number" ? "1" : t === "date" ? "2026-01-01" : t === "email" ? "prueba@ejemplo.com" : v;
+        el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    }, v);
+    const click = async (k) => {
+      const hit = await page.evaluate(({ src, k }) => { var T = (0, eval)(src); Array.prototype.forEach.call(document.querySelectorAll("[data-probe-hit]"), function (e) { e.removeAttribute("data-probe-hit"); });
+        var el = T.list().find(function (e) { return T.sig(e) === k; }); if (!el) return false; el.setAttribute("data-probe-hit", "1"); return true; }, { src: IN_PAGE, k });
+      if (!hit) return false;
+      const before = navs;
+      await page.click("[data-probe-hit]", { timeout: 2000 }).catch(() => {});
+      await page.waitForTimeout(120);
+      if (navs > before) out.reloads.push(k);
+      return true;
+    };
+    const account = (seq) => {
+      seq.forEach((m, i) => {
+        if (m === "#draw") return;
+        out.calls[m] = (out.calls[m] || 0) + 1;
+        if (!seq.slice(i + 1).includes("#draw")) out.undrawn[m] = (out.undrawn[m] || 0) + 1;
+      });
+    };
+    const st = await load();
+    out.found = st.found; out.tracked = st.tracked;
+    if (!st.found) return out;
+    const first = await sigs();
+    out.controls = first.length;
+    const done = new Set();
+    for (const k of first) {
+      if (done.has(k) || done.size >= max) continue;
+      done.add(k);
+      await load(); await fillAll(fill);
+      // el clic y lo que aparece después (un solo nivel: "Guardar", "Confirmar")
+      const seq = [];
+      if (await click(k)) {
+        out.clicked.push(k);
+        if (!out.reloads.includes(k)) {
+          seq.push(...await page.evaluate(() => window.__seq.splice(0)));
+          for (const n of await sigs()) {
+            if (first.includes(n) || done.has(n) || done.size >= max) continue;
+            done.add(n); await fillAll(fill + " 2");
+            if (await click(n)) { out.clicked.push(n); if (out.reloads.includes(n)) break; seq.push(...await page.evaluate(() => window.__seq.splice(0))); }
+          }
+        }
+      }
+      account(seq);
+    }
+  } finally { await browser.close(); }
+  return out;
+}

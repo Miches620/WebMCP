@@ -1,0 +1,51 @@
+```javascript
+crearEstado: function(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+        const nuevoMapa = [];
+
+        const numRows = nivel.length;
+        if (numRows === 0) {
+            return { mapa: [], jugador: null, cajas: [], objetivos: [], movimientos: 0 };
+        }
+        // Asumimos que el nivel es rectangular y no está vacío
+        const numCols = nivel[0].length;
+
+        for (let r = 0; r < numRows; r++) {
+            if (!nivel[r]) continue;
+            
+            let filaActualChars = [];
+            for (let c = 0; c < numCols; c++) {
+                const charOriginal = nivel[r][c];
+                let charMap;
+
+                // El mapa estático solo contiene '#', ' ', y '.'. Eliminamos '@' y '$'.
+                if (charOriginal === '@' || charOriginal === '$') {
+                    charMap = ' '; 
+                } else {
+                    charMap = charOriginal;
+                }
+                filaActualChars.push(charMap);
+
+                // Actualizar coordenadas de estado con el carácter original
+                if (charOriginal === '@') {
+                    jugador = { fila: r, col: c };
+                } else if (charOriginal === '$') {
+                    cajas.push({ fila: r, col: c });
+                } else if (charOriginal === '.') {
+                    objetivos.push({ fila: r, col: c });
+                }
+            }
+            nuevoMapa.push(filaActualChars.join(''));
+        }
+
+        return {
+            mapa: nuevoMapa,
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+```

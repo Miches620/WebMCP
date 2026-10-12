@@ -1,0 +1,44 @@
+```javascript
+crearEstado: function(nivel) {
+        let jugador = null;
+        let cajas = [];
+        let objetivos = [];
+
+        // Inicializar el mapa limpio (solo #, ' ', '.') reemplazando @ y $ por espacios para mantener la longitud de la fila.
+        const mapaLimpio = nivel.map(fila => {
+            let nuevaFila = '';
+            for (let i = 0; i < fila.length; i++) {
+                const char = fila[i];
+                if (char === '@' || char === '$') {
+                    nuevaFila += ' '; // Reemplazar jugador o caja con un espacio
+                } else {
+                    nuevaFila += char; // Mantener #, ' ', '.'
+                }
+            }
+            return nuevaFila;
+        });
+
+        // Encontrar posiciones clave (esto debe hacerse sobre el nivel original)
+        for (let r = 0; r < nivel.length; r++) {
+            const fila = nivel[r];
+            for (let c = 0; c < fila.length; c++) {
+                const char = fila[c];
+                if (char === '@') {
+                    jugador = { fila: r, col: c };
+                } else if (char === '$') {
+                    cajas.push({ fila: r, col: c });
+                } else if (char === '.') {
+                    objetivos.push({ fila: r, col: c });
+                }
+            }
+        }
+
+        return {
+            mapa: mapaLimpio, // Mapa sin jugadores ni cajas
+            jugador: jugador,
+            cajas: cajas,
+            objetivos: objetivos,
+            movimientos: 0
+        };
+    },
+```

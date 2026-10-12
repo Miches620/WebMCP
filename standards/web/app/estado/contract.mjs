@@ -6,7 +6,6 @@
 // del contrato de los pasos siguientes y las pruebas de la lógica.
 // Igual que los niveles en grilla: Gemma da datos, el código decide si sirven. Nada de un dominio acá.
 
-const CONTROLS = ["boton", "formulario", "arrastrar", "teclado"];
 const RESERVED = new Set(["crear", "estado", "App", "break", "case", "catch", "class", "const", "continue", "debugger", "default", "delete", "do", "else", "export", "extends", "finally", "for", "function", "if", "import", "in", "instanceof", "let", "new", "return", "super", "switch", "this", "throw", "try", "typeof", "var", "void", "while", "with", "yield", "constructor", "prototype", "__proto__"]);
 export const MAX_STATE_CHARS = 2500; // el estado va en el contrato de cada pedido (16k de contexto)
 export const MAX_ACTIONS = 12;
@@ -20,6 +19,14 @@ export function toIdentifier(x) {
   return /^[A-Za-z_$][\w$]*$/.test(id) ? id : null;
 }
 
+const J = (x) => JSON.stringify(x);
+/** Ids de los ELEMENTOS del estado: claves "id" (o que terminan en Id/_id) de objetos que están en una lista.
+ *  ("nextCardId": 5 al nivel de arriba es un contador, no el id de algo.) */
+export function idsOf(v, out = new Set(), inList = false) {
+  if (Array.isArray(v)) v.forEach((x) => idsOf(x, out, true));
+  else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) { if (inList && /(^|_)id$|Id$/i.test(k) && (typeof x === "string" || typeof x === "number")) out.add(J(x)); idsOf(x, out, false); }
+  return out;
+}
 const isPlain = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 /** Números de feature: 3, "3", "R3", "feature 3" → 3. */
 const featNum = (f) => { const m = String(f ?? "").match(/(\d+)/); return m ? Number(m[1]) : null; };
@@ -39,6 +46,7 @@ export function parseContract(json, h = {}) {
   if (!Array.isArray(json.acciones) || !json.acciones.length) return { error: '"acciones" tiene que ser una lista con lo que el usuario puede hacer.' };
   const nFeat = (h.features || []).length;
   const keys = Object.keys(estado);
+  const idValues = idsOf(estado);
   const dropped = [], renamed = [], acciones = [];
   const used = new Set();
   json.acciones.slice(0, MAX_ACTIONS).forEach((a, i) => {
@@ -60,12 +68,18 @@ export function parseContract(json, h = {}) {
     if (params[0] === "estado") { params = params.slice(1); if (ejemplo.length === params.length + 1) ejemplo = ejemplo.slice(1); }
     if (new Set(params).size !== params.length || params.includes("estado")) return bad('"params" tiene nombres repetidos (o "estado" en otro lugar que no es el primero).');
     if (ejemplo.length !== params.length) return bad(`"ejemplo" tiene que tener un valor por cada param (${params.length}: ${params.join(", ") || "ninguno"}) y tiene ${ejemplo.length}.`);
-    const control = CONTROLS.includes(String(a.control || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")) ? String(a.control).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "") : "boton";
+    // v0.2 (Kanban real, 12/10): toda acción es un botón que dibuja dibujar(). Cada param es un ID (su
+    // ejemplo es el id de algo del estado: va en b.dataset) o un CAMPO que escribe el usuario (input con
+    // data-campo, al lado del botón). Lo decide el harness, no Gemma.
+    const ids = params.filter((p, k) => idValues.has(J(ejemplo[k])));
+    const campos = params.filter((p) => !ids.includes(p));
+    const badField = campos.find((p) => !["string", "number"].includes(typeof ejemplo[params.indexOf(p)]));
+    if (badField) return bad(`el param "${badField}" lo escribe el usuario en un campo: su "ejemplo" tiene que ser un texto o un número (no ${J(ejemplo[params.indexOf(badField)])}). Si es una lista, que la acción reciba un elemento por vez.`);
     const features = [...new Set([].concat(a.features ?? []).map(featNum).filter((n) => n && n >= 1 && (!nFeat || n <= nFeat)))];
     const cambia = [].concat(a.cambia ?? []).map(String).filter((k) => keys.includes(k));
     const hace = String(a.hace ?? "").replace(/\s+/g, " ").trim().slice(0, 200);
     used.add(nombre);
-    acciones.push({ nombre, params, ejemplo, hace, control, features, cambia });
+    acciones.push({ nombre, params, ejemplo, hace, ids, campos, features, cambia });
   });
   if (json.acciones.length > MAX_ACTIONS) dropped.push(`hay ${json.acciones.length} acciones; se usan las primeras ${MAX_ACTIONS}.`);
   if (!acciones.length) return { error: `ninguna acción sirve: ${dropped.slice(0, 3).join(" | ")}` };

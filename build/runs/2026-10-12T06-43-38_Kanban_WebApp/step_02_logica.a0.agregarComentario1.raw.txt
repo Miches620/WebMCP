@@ -1,0 +1,71 @@
+```javascript
+agregarComentario: function(estado, cardId, texto, usuario) {
+        // 1. Deep copy the state to ensure immutability
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        let foundCard = null;
+        let targetColumnIndex = -1;
+        let targetCardIndex = -1;
+
+        // 2. Find Card Location (Iterate through columns and cards)
+        for (let i = 0; i < nuevoEstado.columns.length; i++) {
+            const column = nuevoEstado.columns[i];
+            const cardIndex = column.cards.findIndex(card => card.id === cardId);
+
+            if (cardIndex !== -1) {
+                foundCard = column.cards[cardIndex];
+                targetColumnIndex = i;
+                targetCardIndex = cardIndex;
+                break; // Found it, stop searching
+            }
+        }
+
+        // If the card is not found, return the original state
+        if (!foundCard) {
+            return estado;
+        }
+
+        // 3. Create Comment
+        const newCommentId = `c${estado.nextCommentId}`;
+        const newComment = {
+            id: newCommentId,
+            user: usuario,
+            text: texto
+        };
+
+        // 4. Update Card (Create a copy of the card and append data)
+        const updatedCard = {
+            ...foundCard,
+            comments: [...foundCard.comments, newComment],
+            comment_ids: [...foundCard.comment_ids, newCommentId]
+        };
+
+        // 5. Update State immutably (Rebuild the structure)
+
+        // Rebuild the cards array for the target column
+        const updatedCards = [
+            ...nuevoEstado.columns[targetColumnIndex].cards.slice(0, targetCardIndex),
+            updatedCard, // The replacement card
+            ...nuevoEstado.columns[targetColumnIndex].cards.slice(targetCardIndex + 1)
+        ];
+
+        // Rebuild the columns array for the entire state
+        const updatedColumns = [
+            ...nuevoEstado.columns.slice(0, targetColumnIndex),
+            {
+                ...nuevoEstado.columns[targetColumnIndex], // Keep other properties of the column
+                cards: updatedCards // Replace only the cards array
+            },
+            ...nuevoEstado.columns.slice(targetColumnIndex + 1)
+        ];
+
+        // Create the final new state object, incrementing the counter
+        const nuevoState = {
+            ...estado,
+            columns: updatedColumns,
+            nextCommentId: estado.nextCommentId + 1
+        };
+
+        return nuevoState;
+    }
+```

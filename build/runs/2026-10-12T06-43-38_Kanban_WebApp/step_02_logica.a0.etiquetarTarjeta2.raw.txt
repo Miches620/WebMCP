@@ -1,0 +1,49 @@
+```javascript
+etiquetarTarjeta: function(estado, cardId, etiquetas) {
+    // Creamos una copia profunda del estado para garantizar la inmutabilidad.
+    const nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+    let foundCard = false;
+
+    // Iteramos sobre las columnas para encontrar la tarjeta.
+    for (let i = 0; i < nuevoEstado.columns.length; i++) {
+        const column = nuevoEstado.columns[i];
+        
+        // Buscamos el índice de la tarjeta dentro de esta columna específica.
+        const cardIndex = column.cards.findIndex(card => card.id === cardId);
+
+        if (cardIndex !== -1) {
+            foundCard = true;
+            
+            // Creamos la nueva versión de la tarjeta, manteniendo todas las propiedades originales 
+            // y sobrescribiendo solo los labels.
+            const originalCard = column.cards[cardIndex];
+            const updatedCard = { 
+                ...originalCard, 
+                labels: etiquetas
+            };
+
+            // Reconstruimos el array de tarjetas para esta columna (de forma inmutable).
+            const newCards = [
+                ...column.cards.slice(0, cardIndex), // Tarjetas antes del objetivo
+                updatedCard,                          // La tarjeta actualizada
+                ...column.cards.slice(cardIndex + 1) // Tarjetas después del objetivo
+            ];
+
+            // Actualizamos la columna en el nuevo estado con las tarjetas reconstruidas.
+            nuevoEstado.columns[i] = {
+                ...column,
+                cards: newCards
+            };
+        }
+    }
+
+    // Si no se encontró la tarjeta, devolvemos una copia profunda del estado original 
+    // para mantener el contrato de devolver siempre un nuevo estado.
+    if (!foundCard) {
+        return JSON.parse(JSON.stringify(estado));
+    }
+
+    return nuevoEstado;
+},
+```

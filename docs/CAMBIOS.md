@@ -2,6 +2,23 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Kanban real con web/app/estado v0.1 → v0.2 (12/10): los errores eran de coordinación entre pasos**
+- *Corrida (Gemma, Project23, 9 features):* contrato bien al 1er intento (6 acciones). Lógica 32/32 con el arreglo de `state` → `estado` y 4 reparaciones por función. Pantalla y dibujo ✓. **Controles falló los 3 intentos con los mismos 4 problemas.** Validation 2 PASS / 6 FAIL. Tiempo 13 min.
+- *Por qué falló (mirando los archivos):* ninguno de los errores era de un solo archivo.
+  - app.html tenía formularios fijos que necesitaban datos del estado: un `<select>` de columnas vacío ("lo llena JS", nadie lo llenaba) e `<input type="hidden">` con el id de la tarjeta que nadie completaba. El botón "Añadir Comentario" de dibujo tenía `data-accion="setCommentCardId"`, que controles no maneja. Controles no podía arreglarlo: el problema estaba en app.html y dibujo.js, y **el harness reintentaba el archivo equivocado**.
+  - styles.css usaba `.card` y `.column`; dibujo.js puso `.kanban-card` y `.kanban-column`. El estilo no se aplicaba → R8/R9 FAIL (real).
+  - Mover era "arrastrar": no había botón y no se probaba.
+  - R6 "Borrar": **FAIL falso** de Validation, que descartaba el `confirm()`.
+- *v0.2 (decisiones de Miche):*
+  - **app.html solo lleva el título y `#app`.** Si trae `<form>`, `<input>`, `<button>`, `<select>` o `<textarea>`, es un problema (`forbidTags` en el kit). Todo lo que depende del estado lo dibuja `dibujar()`.
+  - **Toda acción es un botón** que dibuja `dibujar()`, con `b.dataset.accion`. Se sacó "control" del contrato. Arrastrar puede ir además del botón, nunca en vez de él.
+  - **El harness separa los params:** si el ejemplo de un param es el id de un elemento del estado, es un **id** y va en `b.dataset.<param>`. Si no, es un **campo** que escribe el usuario: `<input data-campo="<param>">` en el mismo elemento padre que el botón. Un campo con una lista de ejemplo se descarta (un elemento por vez). Un contador de arriba (`nextCardId`) no cuenta como id.
+  - El contrato y los pedidos de dibujo y controles dicen, por acción, el botón, los ids, los campos y la llamada exacta: `App.x(estado, Number(b.dataset.id), b.parentElement.querySelector('[data-campo="texto"]').value)`.
+  - **Sonda de dibujo:** cada acción tiene su botón, con sus ids y sus campos. Y **clases sin estilo**: si `dibujar` usa clases que el CSS no tiene y el CSS tiene clases que nadie usa, es un problema. Las clases del CSS se le pasan a la sonda (en `file://`, Chromium no deja leer `cssRules`) y van en el pedido de dibujo ("usalas").
+  - **Validation acepta `confirm()`** (framework.mjs). Afecta a todos los profiles. Tests del catálogo 53/53; hay que mirarlo en la próxima landing.
+- *Probado:* grilla, pedidos idénticos byte a byte (18 + 18 + 7). LM falso: Kanban con errores nuevos sembrados (form en app.html, campo que falta, `.kanban-card` sin estilo, borrar sin conectar), cada uno en su paso. Contador limpio. Tests: Standard 42, motor 28, catálogo 53, grilla 104, app 20.
+- *Lección:* cuando el error de un paso viene de otro archivo, reintentar el mismo paso no sirve (3 × 100 s perdidos). La solución fue de diseño: que no exista la coordinación (todo lo dibuja `dibujar()`). Queda anotado para el motor: **un problema puede culpar a otro paso**.
+
 **Paso 2 del borde: web/app por archivos con su propio Standard (12/10, `web/app/estado` DRAFT v0.1.0, motor v0.10.1)**
 - *Por qué (Miche, 12/10):* "pulamos eso antes de web/app". web/app seguía con el motor por componentes de landing (todo en una respuesta). Diseño aprobado: "construilo así".
 - *Lo nuevo de una app:* el contrato **no se conoce de antemano** (un Kanban y un contador no tienen las mismas acciones). Entonces el paso 1 lo propone Gemma **como datos** y el harness lo valida, igual que los niveles en grilla.

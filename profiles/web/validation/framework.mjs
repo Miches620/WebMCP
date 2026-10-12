@@ -133,7 +133,9 @@ export async function runChecks(htmlPath, checks, { registry, env = {} } = {}) {
   const page = await browser.newPage();
   const ctx = { dialogs: [], pageErrors: [], pageStacks: [] };
   page.on("pageerror", (e) => { ctx.pageErrors.push(e.message); ctx.pageStacks.push({ message: e.message, stack: String(e.stack || "") }); });
-  page.on("dialog", (d) => { ctx.dialogs.push(d.message()); d.dismiss().catch(() => {}); });
+  // 12/10 (Kanban real, decisión de Miche): un confirm() se ACEPTA, como haría el usuario que apretó "Borrar"
+  // (descartarlo dio un FAIL falso en click_changes). alert y prompt siguen como antes (alert: aceptar = cerrar).
+  page.on("dialog", (d) => { ctx.dialogs.push(d.message()); (d.type() === "confirm" ? d.accept() : d.dismiss()).catch(() => {}); });
   await page.addInitScript(INIT);
   await page.route(/^https?:/, (r) => r.abort());
   const reload = async () => { ctx.pageErrors.length = 0; ctx.pageStacks.length = 0; await page.goto(url, { waitUntil: "load" }); await waitForSettle(page); };

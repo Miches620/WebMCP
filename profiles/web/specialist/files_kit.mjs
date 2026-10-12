@@ -138,6 +138,8 @@ const screenKind = {
       if (!c[css]) out.push(`la respuesta no trajo ### FILE: ${css}.`);
       for (const id of st.enabled || []) if (disabledInHtml(c[html], id)) out.push(`en ${html}, #${id} tiene el atributo disabled: así nunca se puede usar. Sacá disabled.`);
       // 12/10 (web/app): ningún botón nace deshabilitado (los botones no se conocen de antemano)
+      // 12/10 (web/app v0.2): etiquetas que la pantalla fija NO lleva (las dibuja el código desde el estado)
+      if (st.forbidTags && c[html]) { const tags = st.forbidTags.filter((t) => new RegExp(`<${t}\\b`, "i").test(cleanFragment(c[html]))); if (tags.length) out.push(`${html} no lleva ${tags.map((t) => `<${t}>`).join(", ")}: lo que depende del estado (botones y campos) lo dibuja el código de dibujo. Dejá solo el título y los contenedores.`); }
       if (st.noDisabled && c[html]) { const d = disabledButtons(c[html]); if (d.length) out.push(`en ${html} hay botones con el atributo disabled (${d.slice(0, 2).join(" ")}): así nunca se pueden usar. Sacá disabled.`); }
       if (out.length || !st.swatches || opts.check === false) return out;
       // v0.9.1 (Boxworld b10): que las variantes SE VEAN distintas. b10 pasó 5 chequeos con un

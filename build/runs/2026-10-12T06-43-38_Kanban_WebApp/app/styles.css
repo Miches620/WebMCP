@@ -1,0 +1,198 @@
+/* Estilos Globales y Fondo Industrial */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1e272e; /* Gris oscuro/Azul petróleo para fondo industrial */
+    color: #ecf0f1; /* Texto claro */
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #2c3e50; /* Azul más oscuro para el encabezado */
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+h1 {
+    margin: 0;
+    color: #ecf0f1;
+}
+
+/* Contenedor del Tablero Kanban */
+#app {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    overflow-x: auto; /* Permite scroll horizontal si hay muchas columnas */
+    min-height: 70vh;
+}
+
+/* Estilo de las Columnas (Backlogs) */
+.column {
+    flex: 0 0 300px; /* Ancho fijo para cada columna */
+    background-color: #2c3e50; /* Fondo ligeramente más claro que el body */
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.column h3 {
+    margin-top: 0;
+    border-bottom: 2px solid #3498db; /* Línea de acento azul */
+    padding-bottom: 10px;
+    color: #bdc3c7;
+}
+
+/* Contenedor de Tarjetas dentro de la columna */
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espacio entre tarjetas */
+    min-height: 50px; /* Para que se vea el espacio incluso si está vacía */
+}
+
+/* Estilo de las Tarjetas (Cards) */
+.card {
+    background-color: #34495e; /* Fondo oscuro para la tarjeta */
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Sombra base */
+    cursor: grab;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Efecto de iluminación al pasar el mouse (Hover) */
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(52, 152, 219, 0.4); /* Sombra más pronunciada y azulada */
+}
+
+/* Estilo de la cabecera del contenido de la tarjeta */
+.card-content-header {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #3498db;
+}
+
+.card-body p {
+    margin: 0 0 10px 0;
+    line-height: 1.4;
+}
+
+/* Estilo de Etiquetas (Labels) */
+.labels-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.label {
+    background-color: #2980b9; /* Azul más oscuro para la etiqueta */
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+}
+
+/* Estilo de Comentarios */
+.comments-section {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #3c546a; /* Separador sutil */
+}
+
+.comment {
+    background-color: #2c3e50;
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.comment-meta {
+    display: block;
+    font-size: 0.75em;
+    color: #95a5a6; /* Gris claro para el usuario/fecha */
+    margin-bottom: 3px;
+}
+
+/* Estilos de los Controles y Formularios Fijos */
+.controls-container {
+    background-color: #2c3e50;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    margin-top: 30px;
+}
+
+.controls-container h2 {
+    color: #ecf0f1;
+    border-bottom: 1px solid #3c546a;
+    padding-bottom: 10px;
+    margin-top: 20px;
+}
+
+.control-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #3c546a;
+    border-radius: 6px;
+}
+
+.control-form input[type="text"],
+.control-form textarea,
+.control-form select {
+    flex-grow: 1;
+    min-width: 150px;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #34495e; /* Fondo oscuro para inputs */
+    color: #ecf0f1;
+}
+
+.control-form textarea {
+    resize: vertical;
+}
+
+/* Estilo de los botones */
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #3498db; /* Azul principal para acciones */
+    color: white;
+    transition: background-color 0.2s ease, transform 0.1s;
+}
+
+button:hover {
+    background-color: #2980b9; /* Oscurece al pasar el mouse */
+    transform: translateY(-1px);
+}
+
+/* Media Queries para mejor adaptabilidad (opcional pero bueno) */
+@media (max-width: 768px) {
+    #app {
+        flex-direction: column;
+        padding: 10px;
+    }
+    .column {
+        flex: 1 1 auto; /* Permite que las columnas ocupen más espacio en pantallas pequeñas */
+        min-width: unset;
+    }
+    .control-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    button {
+        width: 100%;
+        margin-top: 10px;
+    }
+}

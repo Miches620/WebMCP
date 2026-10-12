@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kanban WebApp</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main id="principal" data-feature="R1 R2 R3 R4 R5 R6 R7 R8 R9">
+<header>
+    <h1>Kanban Board</h1>
+</header>
+
+<!-- Contenedor principal donde se dibujará el tablero -->
+<div id="app"></div>
+
+<!-- Sección de Controles y Formularios Fijos (No dibujados por dibujar()) -->
+<section class="controls-container">
+    <h2>Crear Nueva Tarjeta</h2>
+    <form id="createCardForm" class="control-form">
+        <input type="text" id="cardContentInput" placeholder="Contenido de la tarjeta..." required>
+        <select id="columnIdSelect" required>
+            <!-- Las opciones de columna serán llenadas por JS, pero necesitamos el select -->
+            <option value="" disabled selected>Seleccionar Columna</option>
+        </select>
+        <button type="submit">Crear Tarjeta</button>
+    </form>
+
+    <h2>Comentarios</h2>
+    <form id="addCommentForm" class="control-form">
+        <input type="hidden" id="commentCardIdInput">
+        <input type="text" id="commentText" placeholder="Escribe tu comentario..." required>
+        <select id="commentUserSelect" required>
+            <!-- Opciones de usuario (ej. Admin, Dev) -->
+            <option value="Admin">Admin</option>
+            <option value="Dev">Desarrollador</option>
+        </select>
+        <button type="submit">Añadir Comentario</button>
+    </form>
+
+    <h2>Editar Tarjeta</h2>
+    <form id="editCardForm" class="control-form">
+        <input type="hidden" id="editCardIdInput">
+        <textarea id="newContentTextarea" placeholder="Nuevo contenido de la tarjeta..." rows="2" required></textarea>
+        <button type="submit">Guardar Cambios</button>
+    </form>
+
+    <h2>Etiquetar Tarjeta</h2>
+    <form id="labelCardForm" class="control-form">
+        <input type="hidden" id="labelCardIdInput">
+        <input type="text" id="newLabelsInput" placeholder="Etiquetas (separadas por coma, ej: UI/UX, Backend)" required>
+        <button type="submit">Aplicar Etiquetas</button>
+    </form>
+
+</div>
+</main>
+<script src="js/datos.js"></script>
+<script src="js/logica.js"></script>
+<script src="js/dibujo.js"></script>
+<script src="js/controles.js"></script>
+</body>
+</html>

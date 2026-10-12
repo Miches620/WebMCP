@@ -1,0 +1,255 @@
+### FILE: js/logica.js
+```javascript
+const App = {
+    /**
+     * Devuelve una copia profunda del estado inicial.
+     * @returns {object} Estado clonado.
+     */
+    crear: function() {
+        return JSON.parse(JSON.stringify(ESTADO_INICIAL));
+    },
+
+    /**
+     * Crea una nueva tarjeta en la columna especificada.
+     * @param {object} estado - El estado actual del tablero.
+     * @param {string} contenido - Contenido inicial de la tarjeta.
+     * @param {string} columnaId - ID de la columna destino.
+     * @returns {object} Nuevo estado con la tarjeta añadida.
+     */
+    crearTarjeta: function(estado, contenido, columnaId) {
+        const newCard = {
+            id: `card${estado.nextCardId}`,
+            content: contenido,
+            labels: [],
+            comments: [],
+            comment_ids: []
+        };
+
+        // Clonar el estado para asegurar inmutabilidad
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        // Encontrar la columna destino y actualizarla
+        const targetColumnIndex = nuevoEstado.columns.findIndex(col => col.id === columnaId);
+        if (targetColumnIndex !== -1) {
+            nuevoEstado.columns[targetColumnIndex].cards = [
+                ...nuevoEstado.columns[targetColumnIndex].cards,
+                newCard
+            ];
+        }
+
+        // Incrementar el ID de la tarjeta y devolver el nuevo estado
+        nuevoEstado.nextCardId += 1;
+        return nuevoEstado;
+    },
+
+    /**
+     * Mueve una tarjeta de su columna actual a la nueva columna.
+     * @param {object} estado - El estado actual del tablero.
+     * @param {string} cardId - ID de la tarjeta a mover.
+     * @param {string} nuevoColumnaId - ID de la columna destino.
+     * @returns {object} Nuevo estado con la tarjeta movida.
+     */
+    moverTarjeta: function(estado, cardId, nuevoColumnaId) {
+        let nuevaColumns = [];
+        let cardEncontrada = null;
+
+        // 1. Buscar y extraer la tarjeta de su columna original
+        for (const column of estado.columns) {
+            const cardsWithoutMovedCard = column.cards.filter(card => card.id !== cardId);
+            if (column.id === nuevoColumnaId) {
+                // Si ya está en el destino, no hacer nada y solo clonar
+                nuevaColumns.push({ ...column, cards: [...cardsWithoutMovedCard] });
+            } else if (cardEncontrada === null && column.cards.some(card => card.id === cardId)) {
+                // Esta es la columna de origen
+                nuevaColumns.push({ ...column, cards: [...cardsWithoutMovedCard] });
+                cardEncontrada = true; // Marcar que se encontró el origen
+            } else {
+                // Otras columnas sin cambios
+                nuevaColumns.push(column);
+            }
+        }
+
+        // 2. Crear la nueva tarjeta en la columna destino (si es diferente de la original)
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+        nuevoEstado.columns = [...estado.columns]; // Clonar el array de columnas
+
+        const targetColumnIndex = nuevoEstado.columns.findIndex(col => col.id === nuevoColumnaId);
+        if (targetColumnIndex !== -1) {
+            // Crear una copia profunda del estado para modificarlo
+            let newState = JSON.parse(JSON.stringify(estado));
+            
+            // 1. Clonar todas las columnas, pero vaciar la tarjeta de su posición original
+            const newColumnsArray = state.columns.map(col => ({
+                ...col,
+                cards: col.cards.filter(card => card.id !== cardId)
+            }));
+
+            // 2. Añadir la tarjeta al destino
+            newColumnsArray[targetColumnIndex].cards.push(state.columns.find(c => c.cards.some(card => card.id === cardId)).cards.find(card => card.id === cardId));
+            
+            return { ...estado, columns: newColumnsArray };
+        }
+
+        // Si por alguna razón no se encuentra la columna destino (debería pasar)
+        return estado; 
+    },
+
+    /**
+     * Añade un comentario a una tarjeta específica.
+     * @param {object} estado - El estado actual del tablero.
+     * @param {string} cardId - ID de la tarjeta objetivo.
+     * @param {string} texto - Texto del comentario.
+     * @param {string} usuario - Usuario que comenta.
+     * @returns {object} Nuevo estado con el comentario añadido.
+     */
+    agregarComentario: function(estado, cardId, texto, usuario) {
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        // Buscar la tarjeta y actualizarla
+        for (const column of nuevoEstado.columns) {
+            const cardIndex = column.cards.findIndex(card => card.id === cardId);
+            if (cardIndex !== -1) {
+                const card = nuevoEstado.columns[0].cards[cardIndex]; // Solo para referencia, el objeto real está en la columna
+
+                // 1. Crear comentario y actualizar la tarjeta
+                const newComment = {
+                    id: `c${estado.nextCommentId}`,
+                    user: usuario,
+                    text: texto
+                };
+
+                let updatedCard = { ...card, comments: [...card.comments, newComment], comment_ids: [...card.comment_ids, newComment.id] };
+
+                // 2. Reconstruir la columna con la tarjeta actualizada
+                nuevoEstado.columns[0].cards[cardIndex] = updatedCard; // Esto es un hack temporal para el ejemplo de estado, pero en realidad debemos iterar y reemplazar correctamente.
+
+                // Implementación correcta: Iterar sobre todas las columnas y reconstruir el array de tarjetas
+                const newColumns = nuevoState.columns.map(col => {
+                    if (col.cards[cardIndex] && col.cards[cardIndex].id === cardId) {
+                        return { 
+                            ...col, 
+                            cards: [...col.cards.slice(0, cardIndex), updatedCard, ...col.cards.slice(cardIndex + 1)] 
+                        };
+                    }
+                    return col;
+                });
+
+                // Actualizar el estado con las nuevas columnas y el ID de comentario incrementado
+                nuevoEstado = {
+                    ...estado,
+                    columns: newColumns,
+                    nextCommentId: estado.nextCommentId + 1
+                };
+                return nuevoEstado;
+            }
+        }
+
+        // Si no se encuentra la tarjeta (debería pasar)
+        return estado;
+    },
+
+    /**
+     * Añade o actualiza las etiquetas de una tarjeta.
+     * @param {object} estado - El estado actual del tablero.
+     * @param {string} cardId - ID de la tarjeta objetivo.
+     * @param {Array<string>} etiquetas - Lista de nuevas etiquetas.
+     * @returns {object} Nuevo estado con las etiquetas actualizadas.
+     */
+    etiquetarTarjeta: function(estado, cardId, etiquetas) {
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        // Buscar la tarjeta y actualizarla
+        for (const column of nuevoEstado.columns) {
+            const cardIndex = column.cards.findIndex(card => card.id === cardId);
+            if (cardIndex !== -1) {
+                let updatedCard = { ...column.cards[cardIndex], labels: etiquetas };
+
+                // Reconstruir la columna con la tarjeta actualizada
+                nuevoEstado.columns[0].cards[cardIndex] = updatedCard; // Esto es un hack temporal, debe ser más robusto.
+
+                // Implementación correcta de reconstrucción del estado
+                const newColumns = nuevoState.columns.map(col => {
+                    if (col.cards[cardIndex] && col.cards[cardIndex].id === cardId) {
+                        return { 
+                            ...col, 
+                            cards: [...col.cards.slice(0, cardIndex), updatedCard, ...col.cards.slice(cardIndex + 1)] 
+                        };
+                    }
+                    return col;
+                });
+
+                nuevoEstado = {
+                    ...estado,
+                    columns: newColumns
+                };
+                return nuevoEstado;
+            }
+        }
+
+        // Si no se encuentra la tarjeta
+        return estado;
+    },
+
+    /**
+     * Actualiza el contenido principal de una tarjeta.
+     * @param {object} estado - El estado actual del tablero.
+     * @param {string} cardId - ID de la tarjeta objetivo.
+     * @param {string} nuevoContenido - Nuevo texto para el contenido.
+     * @returns {object} Nuevo estado con el contenido actualizado.
+     */
+    editarTarjeta: function(estado, cardId, nuevoContenido) {
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        // Buscar la tarjeta y actualizarla
+        for (const column of nuevoEstado.columns) {
+            const cardIndex = column.cards.findIndex(card => card.id === cardId);
+            if (cardIndex !== -1) {
+                let updatedCard = { ...column.cards[cardIndex], content: nuevoContenido };
+
+                // Reconstruir la columna con la tarjeta actualizada
+                const newColumns = nuevoState.columns.map(col => {
+                    if (col.cards[cardIndex] && col.cards[cardIndex].id === cardId) {
+                        return { 
+                            ...col, 
+                            cards: [...col.cards.slice(0, cardIndex), updatedCard, ...col.cards.slice(cardIndex + 1)] 
+                        };
+                    }
+                    return col;
+                });
+
+                nuevoEstado = {
+                    ...estado,
+                    columns: newColumns
+                };
+                return nuevoEstado;
+            }
+        }
+
+        // Si no se encuentra la tarjeta
+        return estado;
+    },
+
+    /**
+     * Elimina completamente una tarjeta y sus comentarios asociados.
+     * @param {object} estado - El estado actual del tablero.
+     * @param {string} cardId - ID de la tarjeta a borrar.
+     * @returns {object} Nuevo estado sin la tarjeta eliminada.
+     */
+    borrarTarjeta: function(estado, cardId) {
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        // Iterar sobre todas las columnas y filtrar la tarjeta
+        const newColumns = nuevoState.columns.map(column => ({
+            ...column,
+            cards: column.cards.filter(card => card.id !== cardId)
+        }));
+
+        nuevoEstado = {
+            ...estado,
+            columns: newColumns
+        };
+
+        return nuevoEstado;
+    }
+};
+```

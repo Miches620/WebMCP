@@ -6,7 +6,7 @@ import { readFileSync, mkdtempSync, writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import S, { contractText, appHints } from "./standard.mjs";
+import S, { contractText, appHints, cssClasses } from "./standard.mjs";
 import { parseContract, toIdentifier, contractProblems, gapsOf, datosJs } from "./contract.mjs";
 import { logicTests, nonData, observeChanges } from "./acceptance.mjs";
 import { loadScripts, runAcceptance } from "../../../../harness/js_tools.mjs";
@@ -20,21 +20,23 @@ const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name
 const LISTA = { h: { features: ["Agregar", "Borrar", "Marcar hecho", "Ver la lista", "Estilo claro"], style: [5] },
   json: { estado: { items: [{ id: 1, texto: "Comprar pan", hecho: false }, { id: 2, texto: "Llamar a Ana", hecho: true }], siguiente: 3 },
     acciones: [
-      { nombre: "agregar item", params: ["texto"], ejemplo: ["Nuevo"], hace: "agrega", control: "formulario", features: [1], cambia: ["items", "siguiente"] },
-      { nombre: "borrarItem", params: ["estado", "id"], ejemplo: [1], hace: "saca", control: "botón", features: ["R2"], cambia: ["items"] },
+      { nombre: "agregar item", params: ["texto"], ejemplo: ["Nuevo"], hace: "agrega", features: [1], cambia: ["items", "siguiente"] },
+      { nombre: "borrarItem", params: ["estado", "id"], ejemplo: [1], hace: "saca", features: ["R2"], cambia: ["items"] },
       { nombre: "marcarHecho", params: ["id"], ejemplo: [1], hace: "invierte hecho", features: [3], cambia: ["siguiente"] },
     ], se_ve: [4] } };
 const CONT = { h: { features: ["Sumar", "Reiniciar"], style: [] },
   json: { estado: { titulo: "Mi contador", valor: 0 }, acciones: [
-    { nombre: "sumar", params: [], ejemplo: [], control: "boton", features: [1] },
-    { nombre: "reiniciar", params: [], ejemplo: [], control: "boton", features: [2] }] } };
+    { nombre: "sumar", params: [], ejemplo: [], features: [1] },
+    { nombre: "reiniciar", params: [], ejemplo: [], features: [2] }] } };
 
 // ---------- 1. contrato ----------
 t("toIdentifier: frases, guiones y acentos → camelCase", toIdentifier("Agregar tarea") === "agregarTarea" && toIdentifier("borrar_ítem") === "borrarItem" && toIdentifier("moverTarea") === "moverTarea" && toIdentifier("añadir") === "anadir" && toIdentifier("!!") === null);
 const PL = parseContract(LISTA.json, LISTA.h);
 const KL = PL.items?.[0];
 t("contrato: válido, nombres arreglados y 'estado' sacado de params", KL && KL.acciones.map((a) => a.nombre).join() === "agregarItem,borrarItem,marcarHecho" && PL.reports[0].renamed.join() === "agregar item → agregarItem" && KL.acciones[1].params.join() === "id", JSON.stringify(PL));
-t("contrato: control con acento y por defecto 'boton'; features 'R2' → 2", KL.acciones[1].control === "boton" && KL.acciones[2].control === "boton" && KL.acciones[1].features.join() === "2");
+t("contrato v0.2: el harness separa ids (su ejemplo es un id del estado) y campos; features 'R2' → 2", KL.acciones[0].campos.join() === "texto" && KL.acciones[0].ids.length === 0 && KL.acciones[1].ids.join() === "id" && KL.acciones[1].campos.length === 0 && KL.acciones[1].features.join() === "2");
+t("contrato v0.2: un campo con una lista de ejemplo se descarta (un elemento por vez)", /lo escribe el usuario en un campo/.test(parseContract({ estado: { items: [{ id: 1 }] }, acciones: [{ nombre: "a", params: ["id", "tags"], ejemplo: [1, ["x"]] }, { nombre: "b" }] }, {}).dropped[0] || ""));
+t("contrato v0.2: un contador de arriba (siguiente: 3) no es un id", parseContract({ estado: { items: [{ id: 1 }], siguiente: 3 }, acciones: [{ nombre: "a", params: ["n"], ejemplo: [3] }] }, {}).items[0].acciones[0].campos.join() === "n");
 t("contrato: 'cambia' solo con claves del estado", KL.acciones[0].cambia.join() === "items,siguiente");
 t("contrato: todas las features cubiertas (la de estilo no cuenta)", gapsOf(KL, LISTA.h).length === 0 && contractProblems(PL, LISTA.h).length === 0);
 const gap = parseContract({ ...LISTA.json, se_ve: [] }, LISTA.h);
@@ -47,7 +49,7 @@ t("datos.js: ESTADO_INICIAL con el estado", loadScripts([datosJs(KL.estado)], ["
 // ---------- 2. contrato (texto) ----------
 const ctxL = { data: { contrato: { items: [KL] } } };
 const CT = contractText(ctxL);
-t("texto del contrato: antes del paso 1 dice la forma, después las acciones reales", /<una función por acción>/.test(contractText({ data: {} })) && /borrarItem\(estado, id\)/.test(CT) && /agregarItem\(estado, texto\): agrega \[formulario\]/.test(CT) && CT.includes(JSON.stringify(KL.estado)));
+t("texto del contrato: antes del paso 1 dice la forma, después las acciones reales", /<una función por acción>/.test(contractText({ data: {} })) && /borrarItem\(estado, id\)/.test(CT) && /agregarItem\(estado, texto\): agrega\. Botón: b\.dataset\.accion = "agregarItem"; campos: data-campo="texto"/.test(CT) && CT.includes(JSON.stringify(KL.estado)));
 // código y textos que lee Gemma (sin comentarios ni la historia de evidence/pending, que sí nombra el Kanban)
 const srcs = ["standard.mjs", "contract.mjs", "acceptance.mjs"].map((f) => readFileSync(fileURLToPath(new URL("./" + f, import.meta.url)), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\n  (evidence|pending): \[[\s\S]*?\n  \],/g, "").split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n")).join("\n");
 const dom = [...new Set(srcs.match(/\b(kanban|tareas?|columnas?|contador|tablero|tarjetas?)\b/gi) || [])];
@@ -90,17 +92,20 @@ t("contador: reiniciar que no hace nada → falla", run(CGOOD.replace("reiniciar
 
 // ---------- 4. pantalla y sondas ----------
 t("disabledButtons: cualquier botón con disabled", disabledButtons('<button id="a">x</button><button class="b" disabled>y</button>').length === 1 && disabledButtons('<button data-disabled="no">x</button>').length === 0);
-const draw = S.steps.find((s) => s.id === "dibujo");
-t("dibujo: sonda → mensajes (vacío, textos que faltan, [object Object], undefined)", (() => {
-  const m = draw.expect({ children: 0, missing: ["Comprar pan"], objectText: "[object Object]", undef: ["undefined"] });
-  return m.length === 4 && /no dibujó nada/.test(m[0]) && /"Comprar pan"/.test(m[1]) && /\[object Object\]/.test(m[2]) && /"undefined"/.test(m[3]);
+t("pantalla v0.2: app.html sin formularios ni botones (forbidTags)", S.steps.find((s) => s.id === "pantalla").forbidTags.join() === "form,input,button,select,textarea");
+t("cssClasses: clases con estilo (sin comentarios ni decimales)", cssClasses(".a{x} .card:hover, .b .c-d{} /* .z{} */ @media(x){.e{}} p { width:.5em }").join() === "a,card,b,c-d,e");
+const draw0 = S.steps.find((s) => s.id === "dibujo");
+const draw = { ...draw0, ...draw0.resolve({ ...ctxL, files: { "styles.css": ".item{color:red} .nueva{}" } }) };
+t("dibujo: sonda → mensajes (vacío, textos, [object Object], undefined, botón, id, campo, clases)", (() => {
+  const m = draw.expect({ children: 0, missing: ["Comprar pan"], objectText: "[object Object]", undef: ["undefined"], noButton: ["marcarHecho"], noId: ["borrarItem:id"], noField: ["agregarItem:texto"], unstyled: ["kanban-card"], unused: ["item"] });
+  return m.length === 8 && /no dibujó nada/.test(m.join()) && /ningún botón para: marcarHecho/.test(m.join()) && /b\.dataset\.id/.test(m.join()) && /data-campo="texto"/.test(m.join()) && /\.kanban-card.*\.item/.test(m.join()) && /\[object Object\]/.test(m.join());
 })());
+t("dibujo: clases sin estilo solo si además hay clases del CSS que nadie usa", draw.expect({ children: 1, unstyled: ["fila"], unused: [] }).length === 0);
 const cs = S.steps.find((s) => s.id === "controles").resolve(ctxL).calls;
-t("controles: llamadas = acciones de botón y formulario", cs.methods.join() === "agregarItem,borrarItem,marcarHecho" && cs.forms.join() === "agregarItem");
+t("controles v0.2: todas las acciones son de botón; la pista dice la llamada exacta", cs.methods.join() === "agregarItem,borrarItem,marcarHecho" && cs.forms.length === 0 && /App\.borrarItem\(estado, Number\(b\.dataset\.id\)\)/.test(cs.hints.borrarItem) && /App\.agregarItem\(estado, b\.parentElement\.querySelector\('\[data-campo="texto"\]'\)\.value\)/.test(cs.hints.agregarItem), JSON.stringify(cs.hints));
+t("contrato (texto) v0.2: botón, ids y campos por acción; app.html solo título y #app", /b\.dataset\.accion = "borrarItem", b\.dataset\.id = el id \(número/.test(CT) && /campos: data-campo="texto"/.test(CT) && /SOLO el título/.test(CT));
 const cp = callsProblems({ found: true, calls: { borrarItem: 2, agregarItem: 1 }, undrawn: { borrarItem: 2 }, reloads: [], errors: [], controls: 3, tracked: true }, cs);
-t("callsProblems: acción sin control y acción sin dibujar", cp.length === 2 && /ningún control de la pantalla llama a App.marcarHecho \(un botón con data-accion="marcarHecho"/.test(cp[0]) && /después de App.borrarItem no se llama a dibujar/.test(cp[1]), cp.join(" | "));
-const cr = callsProblems({ found: true, calls: {}, undrawn: {}, reloads: ["BUTTON:agregar"], errors: [], controls: 1, tracked: true }, cs);
-t("callsProblems: formulario que recarga → lo dice una vez (no 'ningún control llama')", /recarga la página/.test(cr[0]) && !cr.some((x) => /llama a App.agregarItem/.test(x)));
+t("callsProblems: acción sin control y acción sin dibujar", cp.length === 2 && /ningún control de la pantalla llama a App.marcarHecho/.test(cp[0]) && /después de App.borrarItem no se llama a dibujar/.test(cp[1]), cp.join(" | "));
 t("callsProblems: sin App → fatal", callsProblems({ found: false }, cs).fatal === true);
 
 // Chromium: la lista entera (datos + lógica + dibujo + controles) con la sonda de dibujo y la de llamadas
@@ -108,40 +113,47 @@ t("callsProblems: sin App → fatal", callsProblems({ found: false }, cs).fatal 
   const dir = mkdtempSync(join(tmpdir(), "estado-"));
   const DIBUJO = `function dibujar(estado) {
   const app = document.getElementById("app"); app.innerHTML = "";
+  const n = document.createElement("div"); n.className = "nueva";
+  const i = document.createElement("input"); i.dataset.campo = "texto"; n.appendChild(i);
+  const a = document.createElement("button"); a.textContent = "Agregar"; a.dataset.accion = "agregarItem"; n.appendChild(a);
+  app.appendChild(n);
   estado.items.forEach((it) => {
-    const d = document.createElement("div"); d.textContent = it.texto + (it.hecho ? " ✓" : "");
+    const d = document.createElement("div"); d.className = "item"; d.textContent = it.texto + (it.hecho ? " ✓" : "");
     for (const [t, a] of [["Borrar", "borrarItem"], ["Hecho", "marcarHecho"]]) { const b = document.createElement("button"); b.textContent = t; b.dataset.accion = a; b.dataset.id = it.id; d.appendChild(b); }
     app.appendChild(d);
   });
 }`;
-  const CONTROLES = (prevent, borrar) => `let estado = App.crear();
+  const CONTROLES = (borrar, drawAfterMark = false) => `let estado = App.crear();
 document.getElementById("app").addEventListener("click", (ev) => {
   const b = ev.target.closest("[data-accion]"); if (!b) return;
   const id = Number(b.dataset.id);
+  if (b.dataset.accion === "agregarItem") estado = App.agregarItem(estado, b.parentElement.querySelector('[data-campo="texto"]').value);
   ${borrar ? 'if (b.dataset.accion === "borrarItem") estado = App.borrarItem(estado, id);' : ""}
-  if (b.dataset.accion === "marcarHecho") { estado = App.marcarHecho(estado, id); return; }
+  if (b.dataset.accion === "marcarHecho") { estado = App.marcarHecho(estado, id); ${drawAfterMark ? "" : "return;"} }
   dibujar(estado);
 });
-document.getElementById("f").addEventListener("submit", (ev) => { ${prevent ? "ev.preventDefault();" : ""} estado = App.agregarItem(estado, document.getElementById("txt").value); dibujar(estado); });
 dibujar(estado);`;
   const page = (name, files, inline = "") => {
     const d = join(dir, name); mkdirSync(join(d, "js"), { recursive: true });
     for (const [f, c] of Object.entries(files)) writeFileSync(join(d, f), c);
-    writeFileSync(join(d, "index.html"), pageHtml({ title: "T", fragment: '<form id="f"><input id="txt" type="text"><button type="submit">Agregar</button></form><div id="app"></div>', scripts: Object.keys(files), inline, mainId: "principal" }));
+    writeFileSync(join(d, "index.html"), pageHtml({ title: "T", fragment: '<h1>Lista</h1><div id="app"></div>', scripts: Object.keys(files).filter((f) => f.endsWith(".js")), inline, mainId: "principal" }));
     return join(d, "index.html");
   };
-  const base = { "js/datos.js": datosJs(KL.estado), "js/logica.js": GOOD, "js/dibujo.js": DIBUJO };
+  const base = { "styles.css": ".item{color:red} .nueva{display:flex}", "js/datos.js": datosJs(KL.estado), "js/logica.js": GOOD, "js/dibujo.js": DIBUJO };
   const pr = await probePage(page("dibujo", base, draw.probe));
   t("Chromium: sonda de dibujo de la lista sin problemas", pr.probe?.ok && draw.expect(pr.probe).length === 0 && pr.probe.total === 2, JSON.stringify(pr));
-  const prBad = await probePage(page("dibujo_mal", { ...base, "js/dibujo.js": DIBUJO.replace("it.texto +", "it +") }, draw.probe));
-  t("Chromium: dibujo que escribe el objeto → [object Object] y textos que faltan", (() => { const m = draw.expect(prBad.probe); return m.length === 2 && /\[object Object\]/.test(m[1]); })(), JSON.stringify(prBad.probe));
-  const rOk = await runCallsProbe(page("bien", { ...base, "js/controles.js": CONTROLES(true, true).replace("estado = App.marcarHecho(estado, id); return;", "estado = App.marcarHecho(estado, id);") }), cs);
+  const prBad = await probePage(page("dibujo_mal", { ...base, "js/dibujo.js": DIBUJO.replace("it.texto +", "it +").replace('d.className = "item"', 'd.className = "fila"').replace('i.dataset.campo = "texto"', 'i.name = "texto"').replace('["Hecho", "marcarHecho"]', '["Hecho", "otra"]') }, draw.probe));
+  t("Chromium: dibujo mal → [object Object], textos, botón que falta, campo que falta y clases sin estilo", (() => { const m = draw.expect(prBad.probe).join(" | "); return /\[object Object\]/.test(m) && /ningún botón para: marcarHecho/.test(m) && /data-campo="texto"/.test(m) && /\.fila.*\.item/.test(m); })(), JSON.stringify(prBad.probe));
+  const rOk = await runCallsProbe(page("bien", { ...base, "js/controles.js": CONTROLES(true, true) }), cs);
   t("Chromium: controles bien → todas las acciones se llaman y se dibuja", callsProblems(rOk, cs).length === 0 && rOk.calls.agregarItem >= 1 && rOk.calls.borrarItem >= 1 && rOk.tracked, JSON.stringify(rOk));
-  const rBad = await runCallsProbe(page("mal", { ...base, "js/controles.js": CONTROLES(true, false) }), cs);
+  const rBad = await runCallsProbe(page("mal", { ...base, "js/controles.js": CONTROLES(false) }), cs);
   const pb = callsProblems(rBad, cs);
   t("Chromium: falta borrar y marcar no dibuja → 2 problemas", pb.length === 2 && pb.some((x) => /llama a App.borrarItem/.test(x)) && pb.some((x) => /después de App.marcarHecho no se llama a dibujar/.test(x)), pb.join(" | "));
-  const rRel = await runCallsProbe(page("recarga", { ...base, "js/controles.js": CONTROLES(false, true) }), cs);
-  t("Chromium: formulario sin preventDefault → recarga la página", callsProblems(rRel, cs).some((x) => /recarga la página/.test(x)), JSON.stringify(rRel));
+  const FORM = DIBUJO.replace('app.appendChild(n);', 'app.appendChild(n); const f = document.createElement("form"); f.innerHTML = "<input name=q><button>Enviar</button>"; app.appendChild(f);');
+  const rRel = await runCallsProbe(page("recarga", { ...base, "js/dibujo.js": FORM, "js/controles.js": CONTROLES(true, true) }), cs);
+  t("Chromium: un <form> que nadie escucha → recarga la página", callsProblems(rRel, cs).some((x) => /apretar "enviar" recarga la página/.test(x)), JSON.stringify(rRel));
+  // (un <button> dentro de un <form> dibujado no recarga si el listener vuelve a dibujar: el form se saca antes del submit;
+  // la detección de recarga se sigue probando en la sonda, ver runCallsProbe)
 }
 
 console.log(`\n${ok}/${ok + fail} OK`);

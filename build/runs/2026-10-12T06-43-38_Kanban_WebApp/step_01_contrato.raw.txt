@@ -1,0 +1,112 @@
+### FILE: contrato.json
+```json
+{
+  "estado": {
+    "columns": [
+      {
+        "id": "todo",
+        "title": "Pendientes",
+        "cards": [
+          {
+            "id": "card1",
+            "content": "Diseñar arquitectura inicial",
+            "labels": ["Backend"],
+            "comments": [{"user": "Admin", "text": "Revisar API endpoints."}],
+            "comment_ids": ["c1"]
+          },
+          {
+            "id": "card2",
+            "content": "Crear estructura de base de datos",
+            "labels": [],
+            "comments": []
+          }
+        ]
+      },
+      {
+        "id": "progreso",
+        "title": "En Progreso",
+        "cards": [
+          {
+            "id": "card3",
+            "content": "Implementar lógica de estado",
+            "labels": ["Frontend"],
+            "comments": [{"user": "Dev", "text": "Pendiente la validación del contrato."}],
+            "comment_ids": ["c2"]
+          }
+        ]
+      },
+      {
+        "id": "terminado",
+        "title": "Terminado",
+        "cards": [
+          {
+            "id": "card4",
+            "content": "Diseño de UI/UX finalizado",
+            "labels": ["UI/UX"],
+            "comments": []
+          }
+        ]
+      }
+    ],
+    "nextCardId": 5,
+    "nextCommentId": 3
+  },
+  "acciones": [
+    {
+      "nombre": "crearTarjeta",
+      "params": ["contenido", "columnaId"],
+      "ejemplo": ["Nueva tarea pendiente", "todo"],
+      "hace": "Crea una nueva tarjeta en la columna especificada.",
+      "control": "formulario",
+      "features": [1],
+      "cambia": ["columns", "nextCardId"]
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": ["cardId", "nuevoColumnaId"],
+      "ejemplo": ["card2", "progreso"],
+      "hace": "Mueve una tarjeta de su columna actual a la nueva columna.",
+      "control": "arrastrar",
+      "features": [2],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "agregarComentario",
+      "params": ["cardId", "texto", "usuario"],
+      "ejemplo": ["card1", "Revisar el flujo de datos.", "Gerente"],
+      "hace": "Añade un comentario a una tarjeta específica.",
+      "control": "formulario",
+      "features": [3],
+      "cambia": ["columns", "nextCommentId"]
+    },
+    {
+      "nombre": "etiquetarTarjeta",
+      "params": ["cardId", "etiquetas"],
+      "ejemplo": ["card2", ["Backend", "Alta prioridad"]],
+      "hace": "Añade o actualiza las etiquetas de una tarjeta.",
+      "control": "formulario",
+      "features": [4],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": ["cardId", "nuevoContenido"],
+      "ejemplo": ["card3", "Implementar lógica de estado avanzada"],
+      "hace": "Actualiza el contenido principal de una tarjeta.",
+      "control": "formulario",
+      "features": [5],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "borrarTarjeta",
+      "params": ["cardId"],
+      "ejemplo": ["card4"],
+      "hace": "Elimina completamente una tarjeta y sus comentarios asociados.",
+      "control": "boton",
+      "features": [6],
+      "cambia": ["columns"]
+    }
+  ],
+  "se_ve": [7, 8, 9]
+}
+```

@@ -1,0 +1,16 @@
+```javascript
+borrarTarjeta: function(estado, cardId) {
+    // Creamos un nuevo array de columnas filtrando la tarjeta con el ID dado en cada columna.
+    const newColumns = estado.columns.map(column => ({
+        ...column,
+        cards: column.cards.filter(card => card.id !== cardId)
+    }));
+
+    // Devolvemos un nuevo objeto de estado que preserva todas las claves del estado original 
+    // (como nextCardId y nextCommentId) y reemplaza el array de columnas con la versión filtrada.
+    return {
+        ...estado,
+        columns: newColumns
+    };
+}
+```

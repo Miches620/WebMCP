@@ -1,4 +1,4 @@
-// standard.mjs — Standard "app con estado" (web/app/estado) · DRAFT v0.1.0 (12/10).
+// standard.mjs — Standard "app con estado" (web/app/estado) · DRAFT v0.2.0 (12/10; v0.1.0 el mismo día, ver docs/CAMBIOS.md).
 //
 // Paso 2 del borde (12/10, diseño aprobado por Miche: "construilo así"): web/app por archivos, con su
 // propio Standard, y el Kanban como piloto. Lo que cambia respecto de grilla: en una app el contrato NO
@@ -9,9 +9,9 @@
 // Pasos:
 //   1. contrato  (data)   contrato.json → js/datos.js (ESTADO_INICIAL), nombres arreglados, features cubiertas
 //   2. logica    (logic)  js/logica.js: const App = { crear(), <acciones>(estado, …) } probada en Node
-//   3. pantalla  (screen) app.html + styles.css: #app, ningún botón con disabled
-//   4. dibujo    (render) js/dibujo.js: dibujar(estado) en Chromium: dibuja algo, los textos del estado se ven
-//   5. controles (wiring) js/controles.js: cada acción de botón/formulario se puede usar y después se dibuja
+//   3. pantalla  (screen) app.html (SOLO título + #app) + styles.css (las clases que va a usar dibujar)
+//   4. dibujo    (render) js/dibujo.js: dibujar(estado) en Chromium: textos del estado, un botón por acción con ids y campos, clases con estilo
+//   5. controles (wiring) js/controles.js: cada acción se puede usar desde la pantalla y después se dibuja
 //
 // Nada de un dominio acá (ni Kanban ni contador): lo prueba test_estado.mjs con dos apps distintas.
 // DRAFT: no tiene evidencia todavía. Primera corrida: el Kanban (Project23/24).
@@ -33,7 +33,12 @@ export function appHints(refined = {}) {
 }
 
 // ---------- contrato (texto) ----------
-const actionLine = (a) => `    - ${signature(a)}: ${a.hace || "(sin descripción)"}${a.control !== "boton" ? ` [${a.control}]` : ""}`;
+// v0.2 (Kanban real, 12/10): toda acción es un botón que dibuja dibujar(); sus ids van en b.dataset y sus
+// campos (lo que escribe el usuario) al lado del botón. Así no hay formularios fijos que dependan del estado.
+const idType = (a, p) => (typeof a.ejemplo[a.params.indexOf(p)] === "number" ? " (número: Number(...))" : "");
+const actionLine = (a) => `    - ${signature(a)}: ${a.hace || "(sin descripción)"}. Botón: b.dataset.accion = "${a.nombre}"${a.ids.map((p) => `, b.dataset.${p} = el id${idType(a, p)}`).join("")}${a.campos.length ? `; campos: ${a.campos.map((p) => `data-campo="${p}"`).join(", ")}` : ""}`;
+/** La llamada que hace controles: App.x(estado, Number(b.dataset.id), campo("texto")). */
+const callOf = (a) => `App.${a.nombre}(${["estado", ...a.params.map((p) => a.ids.includes(p) ? (idType(a, p) ? `Number(b.dataset.${p})` : `b.dataset.${p}`) : `${typeof a.ejemplo[a.params.indexOf(p)] === "number" ? "Number(" : ""}b.parentElement.querySelector('[data-campo="${p}"]').value${typeof a.ejemplo[a.params.indexOf(p)] === "number" ? ")" : ""}`)].join(", ")})`;
 /** El contrato que lee Gemma. Antes del paso 1 dice la forma; después, las acciones y el estado reales. */
 export function contractText(ctx) {
   const c = contractOf(ctx);
@@ -42,23 +47,28 @@ export function contractText(ctx) {
 - Archivos: app.html (solo el contenido de la pantalla), styles.css, js/datos.js, js/logica.js, js/dibujo.js, js/controles.js. Se cargan en ese orden con <script src> comunes: NADA de import/export ni módulos. Cada archivo define SOLO lo suyo.
 - js/datos.js (lo escribe el harness a partir de contrato.json) define: const ESTADO_INICIAL = ${c ? JSON.stringify(c.estado) : "{...}"};
 - js/logica.js define: ${app}. Sin DOM (no usa document ni window). crear() devuelve una COPIA profunda de ESTADO_INICIAL (JSON.parse(JSON.stringify(ESTADO_INICIAL))). Cada acción DEVUELVE UN ESTADO NUEVO y completo (no modifica el que recibe; mismas claves); en el estado van solo datos (textos, números, true/false, listas y objetos), nunca elementos de la página.${c ? `\n  Acciones:\n${c.acciones.map(actionLine).join("\n")}` : ""}
-- app.html: la pantalla, con un contenedor #app vacío (ahí dibuja dibujar()) y, si hacen falta, formularios y botones fijos (con id). Sin <script> ni <style>. Ningún botón con disabled.
-- js/dibujo.js define: function dibujar(estado). Vacía #app y lo arma desde el estado (todo lo que el usuario ve sale del estado). Cada botón que dibuja lleva data-accion="<nombre de la acción>" y data-id (u otro data-*) con lo que esa acción necesita. No agrega listeners.
-- js/controles.js: let estado = App.crear(); UN listener click en #app que lee data-accion (delegación) y los listeners de los formularios y botones fijos de app.html (submit con event.preventDefault()). Cada uno hace estado = App.<acción>(estado, ...) y después dibujar(estado). Al final del archivo: dibujar(estado).`;
+- app.html: SOLO el título (<h1>) y el contenedor <div id="app"></div>. Nada más: los botones y los campos los dibuja dibujar() desde el estado. Sin <script> ni <style>.
+- js/dibujo.js define: function dibujar(estado). Vacía #app y lo arma desde el estado (todo lo que el usuario ve sale del estado). Toda acción es un <button> con b.dataset.accion = "<acción>" y sus ids en b.dataset (con el nombre del param). Si la acción tiene campos, van en el MISMO elemento padre que su botón: un <input> (o <textarea>) con data-campo="<param>". Usa las clases que tienen estilo en styles.css. No agrega listeners.
+- js/controles.js: let estado = App.crear(); UN solo listener click en #app: const b = ev.target.closest("[data-accion]"); los ids salen de b.dataset y los campos de b.parentElement.querySelector('[data-campo="<param>"]').value; estado = App.<acción>(estado, ...); dibujar(estado). Al final del archivo: dibujar(estado).`;
 }
 
 const CONTRACT_FMT = `{ "estado": { "items": [ { "id": 1, "texto": "Primer ejemplo", "hecho": false }, { "id": 2, "texto": "Segundo ejemplo", "hecho": true } ] },
   "acciones": [
-    { "nombre": "agregarItem", "params": ["texto"], "ejemplo": ["Comprar pan"], "hace": "agrega un item al final", "control": "formulario", "features": [1], "cambia": ["items"] },
-    { "nombre": "borrarItem", "params": ["id"], "ejemplo": [1], "hace": "saca el item con ese id", "control": "boton", "features": [2], "cambia": ["items"] }
+    { "nombre": "agregarItem", "params": ["texto"], "ejemplo": ["Comprar pan"], "hace": "agrega un item al final", "features": [1], "cambia": ["items"] },
+    { "nombre": "borrarItem", "params": ["id"], "ejemplo": [1], "hace": "saca el item con ese id", "features": [2], "cambia": ["items"] }
   ],
   "se_ve": [3] }`;
 
 // ---------- sonda de dibujar() (la corre el kit web en Chromium) ----------
 // Textos para personas = strings del estado con un espacio o una mayúscula ("Por hacer", "Diseñar logo");
 // los ids y estados internos ("col-1", "hecho") pueden no mostrarse.
-const PROBE = `window.__probe = (function () {
+// v0.2 (Kanban real): además, por cada acción, que haya un botón con sus ids y sus campos al lado; y que
+// las clases que dibuja dibujar() tengan estilo (styles.css decía .card y dibujar ponía .kanban-card).
+const acts = (c) => (c?.acciones || []).map((a) => ({ n: a.nombre, ids: a.ids, campos: a.campos }));
+// las clases del CSS las pasa el harness (en file:// Chromium no deja leer cssRules)
+export const probeFor = (c, css = []) => `window.__probe = (function () {
   try {
+    var ACTS = ${JSON.stringify(acts(c))}, CSS = ${JSON.stringify(css)};
     var e = App.crear(); dibujar(e);
     var box = document.getElementById("app");
     if (!box) return { ok: false, error: "no existe #app" };
@@ -71,26 +81,46 @@ const PROBE = `window.__probe = (function () {
       else if (v && typeof v === "object") Object.keys(v).forEach(function (k) { walk(v[k]); });
     })(ESTADO_INICIAL);
     var inState = norm(JSON.stringify(ESTADO_INICIAL));
-    return { ok: true, children: box.children.length, total: texts.length,
+    var noButton = [], noId = [], noField = [];
+    ACTS.forEach(function (a) {
+      var bs = Array.prototype.filter.call(box.querySelectorAll("[data-accion]"), function (b) { return b.dataset.accion === a.n; });
+      if (!bs.length) { noButton.push(a.n); return; }
+      var b = bs[0];
+      a.ids.forEach(function (p) { if (b.dataset[p] === undefined || b.dataset[p] === "") noId.push(a.n + ":" + p); });
+      a.campos.forEach(function (p) { if (!b.parentElement || !b.parentElement.querySelector('[data-campo="' + p + '"]')) noField.push(a.n + ":" + p); });
+    });
+    var cssCls = {};
+    CSS.forEach(function (k) { cssCls[k] = 1; });
+    var used = {};
+    Array.prototype.forEach.call(document.querySelectorAll("[class]"), function (el) { Array.prototype.forEach.call(el.classList, function (k) { used[k] = used[k] || (box.contains(el) ? 2 : 1); }); });
+    var unstyled = Object.keys(used).filter(function (k) { return used[k] === 2 && !cssCls[k]; });
+    var unused = Object.keys(cssCls).filter(function (k) { return !used[k]; });
+    return { ok: true, children: box.children.length, total: texts.length, noButton: noButton, noId: noId, noField: noField, unstyled: unstyled, unused: unused,
       missing: texts.filter(function (t) { return txt.indexOf(norm(t)) < 0; }),
       objectText: ((box.textContent || "").match(/\\[object \\w+\\]/) || [])[0] || "",
       undef: ["undefined", "nan", "null"].filter(function (w) { return new RegExp("\\\\b" + w + "\\\\b").test(txt) && inState.indexOf(w) < 0; }) };
   } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
 })();`;
+const PROBE = probeFor(null);
+/** Clases que tienen estilo en un CSS (para decírselas a dibujo). */
+export const cssClasses = (css) => [...new Set([...String(css || "").replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/\.([A-Za-z_-][\w-]*)(?=[^{}]*\{)/g)].map((m) => m[1]))];
+const FORBIDDEN_TAGS = ["form", "input", "button", "select", "textarea"];
 
 const STANDARD = {
   id: "web/app/estado",
-  version: "0.1.0",
+  version: "0.2.0",
   status: "DRAFT",
   label: "app de una pantalla con estado y acciones",
   describe: "App de una pantalla por archivos: el contrato (estado inicial + acciones) lo propone Gemma como datos y el harness lo valida; js/logica.js (lógica pura probada en Node con pruebas que salen del contrato), app.html + styles.css, js/dibujo.js (probado en Chromium), js/controles.js (cada acción se puede usar desde la pantalla).",
   evidence: [
+    "Kanban real (Project23, Gemma, 12/10, v0.1): contrato 1er intento, lógica 32/32 (arreglo state→estado + 4 reparaciones), controles falló 3 intentos: formularios fijos con datos del estado que nadie llenaba (select vacío, input hidden), clases del CSS distintas de las de dibujo. → v0.2.",
     "Diseño (12/10): Kanban v1 (Project23, componente único): editar borraba etiquetas, \"[object HTMLDivElement]\" en pantalla, + Añadir Columna sin efecto, doble confirm. Ningún chequeo lo vio.",
     "Herencia: grilla (Boxworld, Depósito, Invernadero): un archivo por paso, datos de Gemma validados por código, pruebas de la lógica en Node, sondas en Chromium.",
   ],
   pending: [
-    "Primera corrida: Kanban (Project23/24). Todo lo de este Standard es diseño, sin evidencia.",
-    "Arrastrar y teclado no se prueban en controles (solo botón y formulario).",
+    "Correr el Kanban otra vez con v0.2.",
+    "Arrastrar y teclado no se prueban (toda acción tiene botón; arrastrar va además).",
+    "Un problema de un paso puede venir de otro archivo: hoy el motor solo reintenta el paso que falla.",
     "Las expectativas de Gemma (\"cambia\") se observan; ver si sirven antes de que bloqueen.",
   ],
   aliases: { estado: ["state", "appState"], nuevo: ["newState", "next"], texto: ["text"], titulo: ["title"], nombre: ["name"] },
@@ -107,8 +137,9 @@ const STANDARD = {
       answerHint: 'Respondé SOLO con ### FILE: contrato.json, un JSON como el del formato (no escribas código).',
       prompt: (c) => `${c.paso}: antes de programar, definí el CONTRATO de la app como JSON (no escribas código). El harness lo valida y con él arma js/datos.js y las pruebas.
 - "estado": el estado INICIAL de la app, solo datos (objetos, listas, textos, números, true/false), con ejemplos reales para que la pantalla no arranque vacía (2 o 3 por lista). Cada cosa que se pueda editar, mover o borrar lleva un "id" único. Corto: hasta ${MAX_STATE_CHARS} caracteres.
-- "acciones": lo que el usuario puede hacer. Cada una: "nombre" (verbo en camelCase), "params" (lo que recibe ADEMÁS del estado), "ejemplo" (un valor por param, que funcione con el estado inicial: ids que existan), "hace" (una frase), "control" (cómo la dispara el usuario: "boton", "formulario", "arrastrar" o "teclado"), "features" (números de las features del brief que cumple) y "cambia" (qué claves de "estado" cambia).
+- "acciones": lo que el usuario puede hacer. Cada una: "nombre" (verbo en camelCase), "params" (lo que recibe ADEMÁS del estado), "ejemplo" (un valor por param, que funcione con el estado inicial: ids que existan), "hace" (una frase), "features" (números de las features del brief que cumple) y "cambia" (qué claves de "estado" cambia).
 - "se_ve": números de las features que solo se VEN en la pantalla (no son acciones).
+Toda acción la dispara un botón (arrastrar puede ir además, nunca en vez del botón). Lo que el usuario escribe es un texto o un número por param (una lista no: que la acción reciba un elemento por vez).
 Cada feature del brief va en "features" de alguna acción o en "se_ve"${c.hints.style.length ? ` (salvo las de estilo: ${c.hints.style.join(", ")})` : ""}.
 Formato (es un ejemplo de la forma, no de esta app):
 ### FILE: contrato.json
@@ -136,32 +167,38 @@ ${fence("json", CONTRACT_FMT)}`,
     {
       id: "pantalla", kind: "screen", files: ["app.html", "styles.css"], cap: 4500,
       noDisabled: true,
-      prompt: (c) => { const fixed = contractOf(c).acciones.filter((a) => a.control === "formulario");
-        return `${c.paso}: escribí app.html (SOLO el contenido de la pantalla: título, el contenedor #app vacío${fixed.length ? ` y un formulario (con id) para ${fixed.map((a) => `${a.nombre} (${a.params.join(", ") || "sin datos"})`).join(", ")}` : ""}; sin <html>, <head>, <script> ni <style>; ningún botón con disabled) y styles.css (todo el estilo de la página, también de lo que dibujar() arma adentro de #app). Respetá los CRITERIOS DE ESTILO del brief.`; },
+      // v0.2 (Kanban real): los formularios fijos necesitaban datos del estado (columna, tarjeta) que nadie llenaba
+      forbidTags: FORBIDDEN_TAGS,
+      prompt: (c) => `${c.paso}: escribí app.html (SOLO <h1> con el título y <div id="app"></div>: nada más; los botones y campos los dibuja dibujar(); sin <html>, <head>, <script> ni <style>) y styles.css: todo el estilo, sobre todo de lo que dibujar() va a armar adentro de #app. Elegí una clase para cada cosa (cada lista del estado, cada elemento, sus botones y sus campos) y escribí su estilo: dibujar() va a usar esas clases. Respetá los CRITERIOS DE ESTILO del brief.`,
     },
     {
       id: "dibujo", kind: "render", file: "js/dibujo.js", cap: 4500, needs: ["contrato", "logica"],
       defines: "dibujar(estado)", notOwn: { names: ["estado"], owner: "js/controles.js (paso 5)" }, noListeners: true,
       call: "dibujar(App.crear())", probe: PROBE,
+      resolve: (ctx) => (contractOf(ctx) ? { probe: probeFor(contractOf(ctx), cssClasses(ctx.files?.["styles.css"])) } : {}),
       expect: (p) => {
         const out = [];
+        if (p.noButton?.length) out.push(`dibujar no dibuja ningún botón para: ${p.noButton.join(", ")}. Cada acción es un <button> con b.dataset.accion = "<acción>" (con el estado inicial tiene que verse al menos uno).`);
+        if (p.noId?.length) out.push(`a estos botones les falta el id en b.dataset: ${p.noId.map((x) => { const [a, k] = x.split(":"); return `${a} (b.dataset.${k})`; }).join(", ")}.`);
+        if (p.noField?.length) out.push(`faltan campos al lado del botón (en su mismo elemento padre): ${p.noField.map((x) => { const [a, k] = x.split(":"); return `${a} → <input data-campo="${k}">`; }).join(", ")}.`);
+        if (p.unstyled?.length && p.unused?.length) out.push(`dibujar usa clases que no tienen estilo en styles.css (${p.unstyled.slice(0, 6).map((k) => "." + k).join(", ")}) y styles.css tiene estilo para clases que nadie usa (${p.unused.slice(0, 8).map((k) => "." + k).join(", ")}): usá las clases de styles.css.`);
         if (!p.children) out.push("dibujar(App.crear()) no dibujó nada dentro de #app.");
         if (p.missing?.length) out.push(`estos textos del estado no se ven en #app: ${p.missing.slice(0, 5).map((t) => JSON.stringify(t)).join(", ")}${p.missing.length > 5 ? ` y ${p.missing.length - 5} más` : ""}. Todo lo que está en el estado se muestra.`);
         if (p.objectText) out.push(`en #app aparece "${p.objectText}": se escribió un objeto o un elemento como texto. Escribí sus propiedades (p.ej. item.texto) con textContent.`);
         if (p.undef?.length) out.push(`en #app aparece ${p.undef.map((w) => `"${w}"`).join(", ")}: se lee una propiedad que no existe en el estado (mirá los nombres de ESTADO_INICIAL).`);
         return out;
       },
-      prompt: (c) => `YA EXISTEN: ESTADO_INICIAL, App (crear, ${contractOf(c).acciones.map((a) => a.nombre).join(", ")}) y app.html:\n${fence("html", c.fragment.slice(0, 2500))}\n\n${c.paso}: escribí js/dibujo.js (function dibujar(estado)). Los botones de cada elemento llevan data-accion y data-id: ${contractOf(c).acciones.filter((a) => a.control === "boton").map((a) => `data-accion="${a.nombre}"`).join(", ") || "(ninguna acción es de botón)"}.`,
+      prompt: (c) => { const k = cssClasses(c.files?.["styles.css"]);
+        return `YA EXISTEN: ESTADO_INICIAL, App (crear, ${contractOf(c).acciones.map((a) => a.nombre).join(", ")}) y app.html:\n${fence("html", c.fragment.slice(0, 2500))}\n${k.length ? `styles.css tiene estilo para estas clases (usalas): ${k.slice(0, 40).map((x) => "." + x).join(" ")}\n` : ""}\n${c.paso}: escribí js/dibujo.js (function dibujar(estado)). Los botones de cada acción y sus campos, como dice el contrato:\n${contractOf(c).acciones.map(actionLine).join("\n")}`; },
     },
     {
       id: "controles", kind: "wiring", file: "js/controles.js", cap: 4500, needs: ["logica", "dibujo"],
       play: [{ type: "no_js_errors", params: {} }],
-      // cada acción que el usuario dispara con un botón o un formulario se tiene que poder usar desde la pantalla
+      // cada acción se tiene que poder usar desde la pantalla (todas son botones desde v0.2)
       resolve: (ctx) => { const c = contractOf(ctx); if (!c) return {};
-        const reach = c.acciones.filter((a) => a.control === "boton" || a.control === "formulario");
-        return { calls: { global: "App", draw: "dibujar", methods: reach.map((a) => a.nombre), forms: reach.filter((a) => a.control === "formulario").map((a) => a.nombre),
-          hints: Object.fromEntries(reach.map((a) => [a.nombre, a.control === "formulario" ? "el formulario de app.html, al enviarse, hace estado = App." + a.nombre + "(estado, ...) y dibujar(estado)" : `un botón con data-accion="${a.nombre}": el listener click de #app lo lee y hace estado = App.${a.nombre}(estado, ...)`])) } }; },
-      prompt: (c) => `NOTAS DEL TECHLEADER (contexto):\n${c.notes}\n\nYA EXISTEN: ESTADO_INICIAL, App (crear, ${contractOf(c).acciones.map((a) => a.nombre).join(", ")}), dibujar(estado) y app.html:\n${fence("html", c.fragment.slice(0, 2500))}\n\n${c.paso}: escribí js/controles.js (let estado = App.crear(); los listeners que llaman a cada acción y después a dibujar(estado); al final dibujar(estado)).`,
+        return { calls: { global: "App", draw: "dibujar", methods: c.acciones.map((a) => a.nombre), forms: [],
+          hints: Object.fromEntries(c.acciones.map((a) => [a.nombre, `el listener click de #app, con b.dataset.accion === "${a.nombre}", hace estado = ${callOf(a)} y dibujar(estado)`])) } }; },
+      prompt: (c) => `NOTAS DEL TECHLEADER (contexto):\n${c.notes}\n\nYA EXISTEN: ESTADO_INICIAL, App (crear, ${contractOf(c).acciones.map((a) => a.nombre).join(", ")}) y dibujar(estado), que dibuja un botón por acción con sus ids en b.dataset y sus campos al lado.\n\n${c.paso}: escribí js/controles.js: let estado = App.crear(); UN listener click en #app con const b = ev.target.closest("[data-accion]"), y por cada acción:\n${contractOf(c).acciones.map((a) => `- "${a.nombre}": estado = ${callOf(a)};`).join("\n")}\ndespués dibujar(estado). Al final del archivo: dibujar(estado).`,
     },
   ],
 };

@@ -1,0 +1,36 @@
+```javascript
+editarTarjeta: function(estado, cardId, nuevoContenido) {
+    const updatedColumns = estado.columns.map(column => {
+        let cardFoundInColumn = false;
+        
+        // Mapeamos las tarjetas de la columna actual para encontrar y actualizar la tarjeta deseada
+        const newCards = column.cards.map(card => {
+            if (card.id === cardId) {
+                cardFoundInColumn = true;
+                // Creamos una nueva tarjeta con el contenido actualizado, manteniendo todas las demás propiedades
+                return { ...card, content: nuevoContenido }; 
+            }
+            return card;
+        });
+
+        // Si la tarjeta fue encontrada y actualizada en esta columna, devolvemos un objeto de columna nuevo.
+        if (cardFoundInColumn) {
+            return {
+                ...column, // Mantenemos el resto de las propiedades de la columna (id, title, etc.)
+                cards: newCards // Usamos el array de tarjetas recién mapeado
+            };
+        }
+        
+        // Si no se encontró la tarjeta en esta columna, devolvemos la columna original.
+        return column; 
+    });
+
+    // Creamos el nuevo estado completo, reemplazando solo las columnas con la versión actualizada.
+    const nuevoEstado = {
+        ...estado, // Copiamos propiedades de nivel superior (nextCardId, etc.)
+        columns: updatedColumns
+    };
+
+    return nuevoEstado;
+}
+```

@@ -196,9 +196,13 @@ const IN_PAGE = `(function () {
   var list = function () { return Array.prototype.filter.call(document.querySelectorAll(${JSON.stringify(CTRL_SEL)}), vis); };
   return { vis: vis, sig: sig, list: list };
 })()`;
+// v0.2.3 (12/10, Validation lee la sonda): además de QUÉ métodos se llaman, guarda CON QUÉ argumentos
+// (args[m]: hasta 8 llamadas, cada una la lista de argumentos resumidos: textos, números, "__undefined__",
+// "__NaN__", "__object__"…) y desde qué control (via[m]). Kanban 4ª corrida: agregarEtiqueta se llamaba
+// con labelId undefined, la pantalla "cambiaba" (dibujaba una etiqueta vacía) y Validation daba PASS.
 export async function runCallsProbe(htmlPath, { global, methods, draw, fill = "Prueba", max = 25 }) {
   const browser = await chromium.launch();
-  const out = { calls: {}, undrawn: {}, clicked: [], errors: [], reloads: [], tracked: false, found: false, controls: 0 };
+  const out = { calls: {}, undrawn: {}, args: {}, via: {}, clicked: [], errors: [], reloads: [], tracked: false, found: false, controls: 0 };
   try {
     const page = await browser.newPage();
     page.on("pageerror", (e) => out.errors.push(e.message));
@@ -210,10 +214,17 @@ export async function runCallsProbe(htmlPath, { global, methods, draw, fill = "P
     const load = async () => {
       await page.goto(url, { waitUntil: "load" }); navs = 0;
       return page.evaluate(({ global, methods, draw }) => {
-        window.__seq = [];
+        window.__seq = []; window.__args = [];
         var G; try { G = (0, eval)(global); } catch (e) { G = undefined; }
         if (!G) return { found: false, tracked: false };
-        methods.forEach(function (m) { var f = G[m]; if (typeof f !== "function") return; G[m] = function () { window.__seq.push(m); return f.apply(this, arguments); }; });
+        var brief = function (v) {
+          if (v === undefined) return "__undefined__";
+          if (typeof v === "number") return isNaN(v) ? "__NaN__" : v;
+          if (typeof v === "string") return v.slice(0, 60);
+          if (v === null || typeof v === "boolean") return v;
+          return Array.isArray(v) ? "__array__" : "__" + typeof v + "__";
+        };
+        methods.forEach(function (m) { var f = G[m]; if (typeof f !== "function") return; G[m] = function () { window.__seq.push(m); try { window.__args.push([m, Array.prototype.map.call(arguments, brief)]); } catch (e) {} return f.apply(this, arguments); }; });
         var tracked = false;
         try { var d = (0, eval)(draw); if (typeof d === "function") { var w = function () { window.__seq.push("#draw"); return d.apply(this, arguments); }; window[draw] = w; tracked = (0, eval)(draw) === w; } } catch (e) {}
         return { found: true, tracked: tracked };
@@ -238,6 +249,13 @@ export async function runCallsProbe(htmlPath, { global, methods, draw, fill = "P
       if (navs > before) out.reloads.push(k);
       return true;
     };
+    const takeArgs = async (k) => {
+      const list = await page.evaluate(() => (window.__args || []).splice(0)).catch(() => []);
+      for (const [m, a] of list) {
+        (out.args[m] ||= []).length < 8 && out.args[m].push(a);
+        if (!out.via[m]) out.via[m] = k;
+      }
+    };
     const account = (seq) => {
       seq.forEach((m, i) => {
         if (m === "#draw") return;
@@ -261,10 +279,11 @@ export async function runCallsProbe(htmlPath, { global, methods, draw, fill = "P
         out.clicked.push(k);
         if (!out.reloads.includes(k)) {
           seq.push(...await page.evaluate(() => window.__seq.splice(0)));
+          await takeArgs(k);
           for (const n of await sigs()) {
             if (first.includes(n) || done.has(n) || done.size >= max) continue;
             done.add(n); await fillAll(fill + " 2");
-            if (await click(n)) { out.clicked.push(n); if (out.reloads.includes(n)) break; seq.push(...await page.evaluate(() => window.__seq.splice(0))); }
+            if (await click(n)) { out.clicked.push(n); if (out.reloads.includes(n)) break; seq.push(...await page.evaluate(() => window.__seq.splice(0))); await takeArgs(n); }
           }
         }
       }

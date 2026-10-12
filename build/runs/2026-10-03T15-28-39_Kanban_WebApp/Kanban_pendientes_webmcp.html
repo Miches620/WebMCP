@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-12j'; // tablero actualizado al 05/10 (el anterior quedó en michelab_pendientes_webmcp)
+  const SEED = '2026-10-12k'; // tablero actualizado al 12/10 (puntos 7 y 8 hechos; orden 7 → 8 → 9 → 5/6)
   let state = loadState() || {
  "columns": [
   {
@@ -434,10 +434,34 @@
    "isDefault": true,
    "cards": [
     {
-     "id": "p33",
-     "title": "Kanban con web/app/estado v0.2.2 (4ª corrida)",
-     "desc": "[#Standard #web/app] 3ª corrida: ids en minúsculas OK, Validation 5 PASS. Fallas: campos en grupos display:none que nada muestra y mover sin destino; Validation daba PASS falso llenando un campo oculto. v0.2.2: campos visibles al lado del botón, un botón por destino, Validation solo llena campos visibles. Si la 4ª trae otra variante: que controles.js lo escriba el harness desde el contrato.",
+     "id": "p35",
+     "title": "Punto 9 · Las tareas atómicas manejan la construcción",
+     "desc": "[#Specialist #Contrato] Hoy las 16 tareas de Project23 le llegan a Gemma solo como notas; el Specialist corre los pasos del Standard. Cada tarea atómica = un paso con su ASSIGNMENT v0 (goal, role, skills que pone el harness, standard, componente, tests_to_pass / tests_must_stay_green, constraints, output). Sin campos vacíos de la rama de aprendizaje.",
      "priority": "urgente"
+    },
+    {
+     "id": "p36",
+     "title": "Puntos 5/6 · Tests antes del código, por tarea (TDD rojo → verde)",
+     "desc": "[#TDD] Depende del punto 9 y de p32 (filtrar ejemplos malos de Gemma sin referencia). Dos capas: aceptación por requisito (Validation) y unitarios por tarea. El test tiene que fallar contra el esqueleto antes del código; los tests los corre el harness (no Gemma) en sesiones limpias, máx. 3 intentos.",
+     "priority": "urgente"
+    },
+    {
+     "id": "p37",
+     "title": "Punto 10 · Al terminar, el Orchestrator pregunta si cumple",
+     "desc": "[#Orchestrator] Se reabre el chat: si sí, el proyecto termina; si no, nueva ronda de Intent Forge sobre el proyecto en curso. Separar 'no cumple algo pedido' (falla del pipeline, evidencia) de 'quiero algo nuevo' (+ Feature).",
+     "priority": "medio"
+    },
+    {
+     "id": "p38",
+     "title": "Traductor: R3 pide un contador de comentarios que nadie pidió",
+     "desc": "[#Validation] 'Agregar comentarios' → action_changes + counter_on_action. El contador no está en el requisito: FAIL que no corresponde (pasa en todas las corridas).",
+     "priority": "medio"
+    },
+    {
+     "id": "p39",
+     "title": "WEBMCP_CONTEXT: el motor asume 16000 y LM Studio está en 12000",
+     "desc": "[#Infra] Hoy no pasa nada (pico ~6k), pero con prompts de 7k el harness le permite a Gemma una respuesta que no entra. Opciones: default 12000 o leerlo de LM Studio.",
+     "priority": "bajo"
     },
     {
      "id": "p34",
@@ -464,12 +488,6 @@
      "priority": "bajo"
     },
     {
-     "id": "g2",
-     "title": "1 · web/app por archivos → hecho como Standard web/app/estado (ver p33)",
-     "desc": "[#Specialist] Misma fórmula para el Kanban: datos.js, estado.js (probado sin navegador: crear/editar/borrar/mover tarjeta), vista.js, eventos.js.",
-     "priority": "urgente"
-    },
-    {
      "id": "n13",
      "title": "1c · Paso 3: skills del Role web/game",
      "desc": "[#Skills] 3 o 4 fichas cortas, cada una nacida de un error real (b8: state/estado; b9: cajas buscadas en el mapa, variable tapada). DRAFT: se mide con y sin skill. La pista 'en estado.mapa no hay cajas' sale del contrato y va acá. Solo entra en el paso que corresponde (16k de contexto).",
@@ -488,21 +506,15 @@
      "priority": "medio"
     },
     {
-     "id": "n4",
-     "title": "3 · Correr el Kanban (P23/P24) con el profile web/app",
-     "desc": "[#Specialist] web/app está hecho pero solo se probó con un juego. Correr el snapshot del Kanban con profiles=['web/app'] y ver qué rompe.",
-     "priority": "medio"
-    },
-    {
      "id": "n5",
      "title": "4 · Validation: chequeos de flujo de datos para apps",
-     "desc": "[#Validation] crear → +1, arrastrar → cambia de columna, editar → el valor queda, borrar → −1. Casos: bugs del Kanban v1 (editar borra etiquetas, [object HTMLDivElement], modal sin scroll, doble confirm, título no editable, + Añadir Columna muerto). Ya existen key_changes / click_changes / counter_on_action como base.",
+     "desc": "[#Validation] crear → +1, arrastrar → cambia de columna, editar → el valor queda, borrar → −1. Casos: bugs del Kanban v1 (editar borra etiquetas, [object HTMLDivElement], modal sin scroll, doble confirm, título no editable, + Añadir Columna muerto). Ya existen key_changes / click_changes / counter_on_action como base. Avance 12/10: calls_gate (punto 7) ya revisa que cada acción se llame con datos de verdad; falta 'el valor queda' (editar) y contar elementos.",
      "priority": "medio"
     },
     {
      "id": "n6",
      "title": "5 · Transversales: estilo que el Specialist respete",
-     "desc": "[#Transversales] Las restricciones ya llegan al Specialist en app/game (hoy). Falta: el estilo (R8 'Family NES 8 bits') llega como transversal pero Gemma lo ignora en los 6 builds; y en landing las restricciones todavía no llegan.",
+     "desc": "[#Transversales] Las restricciones ya llegan al Specialist en app/game (hoy). Falta: el estilo (R8 'Family NES 8 bits') llega como transversal pero Gemma lo ignora en los 6 builds; y en landing las restricciones todavía no llegan. 12/10: en el Kanban R7 (paleta oscura) da SIN_EVIDENCIA en todas las corridas: no hay chequeo de estilo que discrimine.",
      "priority": "medio"
     },
     {
@@ -537,14 +549,44 @@
    "isInbox": false,
    "isDefault": true,
    "cards": [
+    {
+     "id": "w1",
+     "title": "Corrida real del Kanban con web/app/estado v0.4.0",
+     "desc": "[#Specialist] Ver si Gemma, en el paso 5/6 (dibujo), agrega controlesDe(...) en vez de inventar botones. set WEBMCP_CONTEXT=12000 en su propia línea, después node build/run_build.mjs C:\\Users\\Miche\\Desktop\\project23_snapshot.json --profile web/app",
+     "priority": "urgente"
+    }
    ]
   },
   {
    "id": "col-4",
-   "name": "✅ Hecho 05–06/10",
+   "name": "✅ Hecho 05–12/10",
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h35",
+     "title": "12/10 · Punto 8b: los controles de cada elemento los arma el código (v0.4.0)",
+     "desc": "[#Standard #Harness] Lo mecánico lo escribe el código, lo visual el modelo. Paso nuevo 'acciones' (clase written) escribe controlesDe(tipo, elemento, estado) desde la FORMA del estado: dueño = primer id, contexto = id de un ancestro, elección = <select>, campos visibles (editar arranca con el valor). Gemma solo muestra textos y agrega controlesDe. 5 formas probadas (lista, contador, Kanban c3/c4, biblioteca inventada). Sin Gemma: compuerta 6/6 (antes 1/6); build con LM falso 7 PASS / 1 FAIL / 1 SIN_EVIDENCIA (antes 3/5/1). Pedido de dibujo ~2.260 → ~1.550 tokens. Tests: controls 20, motor 34, Standard 52.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h34",
+     "title": "12/10 · Punto 8a: un paso puede escribirlo el código (files_engine v0.11)",
+     "desc": "[#Harness] Universal: cualquier paso puede declarar write(ctx); se juzga igual y no se reintenta. --gemma-writes-all para comparar. web/app: controles.js sale del contrato. 5ª corrida: pasos 1–4 idénticos a la 4ª (temp 0) → 1/6, todo lo que falla está en dibujo.js. Paso 5 en 0 s (build 19 → ~14 min).",
+     "priority": "bajo"
+    },
+    {
+     "id": "h33",
+     "title": "12/10 · Punto 7: Validation usa la sonda del Standard (calls_gate v0.1)",
+     "desc": "[#Validation] 4ª corrida: R4 PASS falso (agregarEtiqueta con labelId undefined). Compuerta: por acción del contrato, FAIL si nadie la llama, si ninguna llamada trae todos los datos o si no redibuja. Nunca suma un PASS. 4ª: 4/4 → 3 PASS / 5 FAIL; 3ª: R1–R5 FAIL, R6 PASS = lo real (solo Borrar andaba). Fixtures real_kanban_c3/c4. 22 tests.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h32",
+     "title": "12/10 · Tokens reales por intento + 4 corridas del Kanban",
+     "desc": "[#Benchmark] lm_stream mide prefill; files_engine guarda prompt/completion/reasoning tokens de LM Studio. Pico 5.694 de 12k (47%); pensamiento 15–70% de cada respuesta; estimación largo/3,2 da 10–18% de más. Hoy el límite no es el contexto. Ojo: WEBMCP_CONTEXT va en su propia línea (set ... && no). Corridas 1ª–4ª con web/app/estado v0.1→v0.2.2: la lógica siempre 32/32, falla la unión dibujo↔controles.",
+     "priority": "bajo"
+    },
     {
      "id": "h31",
      "title": "12/10 · Cierre de reglas + temperature 0 no es determinista",
@@ -749,7 +791,7 @@
   }
  ],
  "customColumnsCount": 1,
- "cardCounter": 60
+ "cardCounter": 72
 };
   
   let editingColumnId = null;

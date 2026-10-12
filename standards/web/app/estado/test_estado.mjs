@@ -49,12 +49,12 @@ t("datos.js: ESTADO_INICIAL con el estado", loadScripts([datosJs(KL.estado)], ["
 // ---------- 2. contrato (texto) ----------
 const ctxL = { data: { contrato: { items: [KL] } } };
 const CT = contractText(ctxL);
-t("texto del contrato: antes del paso 1 dice la forma, después las acciones reales", /<una función por acción>/.test(contractText({ data: {} })) && /borrarItem\(estado, id\)/.test(CT) && /agregarItem\(estado, texto\): agrega\. Botón: b\.dataset\.accion = "agregarItem"; campos: data-campo="texto"/.test(CT) && CT.includes(JSON.stringify(KL.estado)));
+t("texto del contrato: antes del paso 1 dice la forma, después las acciones reales", /<una función por acción>/.test(contractText({ data: {} })) && /borrarItem\(estado, id\)/.test(CT) && /agregarItem\(estado, texto\): agrega/.test(CT) && /"items": cada elemento de estado\.items\[\] → Borrar item, Marcar hecho/.test(CT) && /"app" \(acciones generales, elemento null\).*Agregar item/.test(CT) && CT.includes(JSON.stringify(KL.estado)));
 // código y textos que lee Gemma (sin comentarios ni la historia de evidence/pending, que sí nombra el Kanban)
-const srcs = ["standard.mjs", "contract.mjs", "acceptance.mjs"].map((f) => readFileSync(fileURLToPath(new URL("./" + f, import.meta.url)), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\n  (evidence|pending): \[[\s\S]*?\n  \],/g, "").split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n")).join("\n");
+const srcs = ["standard.mjs", "contract.mjs", "acceptance.mjs", "controls.mjs"].map((f) => readFileSync(fileURLToPath(new URL("./" + f, import.meta.url)), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\n  (evidence|pending): \[[\s\S]*?\n  \],/g, "").split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n")).join("\n");
 const dom = [...new Set(srcs.match(/\b(kanban|tareas?|columnas?|contador|tablero|tarjetas?)\b/gi) || [])];
 t("el Standard no nombra ninguna app (Kanban, tareas, columnas, contador…)", dom.length === 0, dom.join(", "));
-t("registro: web/app/estado existe y es DRAFT", getStandard("web/app/estado").status === "DRAFT" && S.steps.map((s) => s.id).join() === "contrato,logica,pantalla,dibujo,controles");
+t("registro: web/app/estado existe y es DRAFT", getStandard("web/app/estado").status === "DRAFT" && S.steps.map((s) => s.id).join() === "contrato,logica,acciones,pantalla,dibujo,controles");
 t("pistas: features numeradas y las de estilo aparte", JSON.stringify(appHints({ features: ["a", "Estilo X"], estilo: ["Estilo X"] })) === JSON.stringify({ features: ["a", "Estilo X"], style: [2] }));
 const logicStep = S.steps.find((s) => s.id === "logica");
 const R = logicStep.resolve(ctxL);
@@ -97,14 +97,14 @@ t("cssClasses: clases con estilo (sin comentarios ni decimales)", cssClasses(".a
 const draw0 = S.steps.find((s) => s.id === "dibujo");
 const draw = { ...draw0, ...draw0.resolve({ ...ctxL, files: { "styles.css": ".item{color:red} .nueva{}" } }) };
 t("dibujo: sonda → mensajes (vacío, textos, [object Object], undefined, botón, id, campo, clases)", (() => {
-  const m = draw.expect({ children: 0, missing: ["Comprar pan"], objectText: "[object Object]", undef: ["undefined"], noButton: ["marcarHecho"], noId: ["borrarItem:id"], noField: ["agregarItem:texto"], unstyled: ["kanban-card"], unused: ["card"], pairs: ["kanban-card~card"] });
-  return m.length === 8 && /no dibujó nada/.test(m.join()) && /ningún botón para: marcarHecho/.test(m.join()) && /b\.dataset\.id/.test(m.join()) && /data-campo="texto"/.test(m.join()) && /\.kanban-card.*\.card/.test(m.join()) && /\[object Object\]/.test(m.join());
+  const m = draw.expect({ children: 0, missing: ["Comprar pan"], objectText: "[object Object]", undef: ["undefined"], noButton: ["marcarHecho@items"], noId: ["borrarItem:id"], noField: ["agregarItem:texto"], unstyled: ["kanban-card"], unused: ["card"], pairs: ["kanban-card~card"] });
+  return m.length === 8 && /no dibujó nada/.test(m.join()) && /faltan los controles de: marcarHecho \(agregá controlesDe\("items", elemento, estado\)/.test(m.join()) && /b\.dataset\.id/.test(m.join()) && /data-campo="texto"/.test(m.join()) && /\.kanban-card.*\.card/.test(m.join()) && /\[object Object\]/.test(m.join());
 })());
 t("dibujo: clases sin estilo solo si además hay clases del CSS que nadie usa", draw.expect({ children: 1, unstyled: ["fila"], unused: [] }).length === 0);
 t("dibujo v0.2.1: clase sin estilo propio que no se parece a nada y la mayoría con estilo → no es problema (2ª corrida real: .tag, .tarjetas)", draw.expect({ children: 1, unstyled: ["tarjetas", "tag"], unused: ["crear-card-controls"], pairs: [], styledShare: 0.8 }).length === 0 && draw.expect({ children: 1, unstyled: ["x", "y"], unused: ["z"], pairs: [], styledShare: 0.3 }).length === 1);
 const cs = S.steps.find((s) => s.id === "controles").resolve(ctxL).calls;
 t("controles v0.2: todas las acciones son de botón; la pista dice la llamada exacta", cs.methods.join() === "agregarItem,borrarItem,marcarHecho" && cs.forms.length === 0 && /App\.borrarItem\(estado, Number\(b\.dataset\.id\)\)/.test(cs.hints.borrarItem) && /App\.agregarItem\(estado, b\.parentElement\.querySelector\('\[data-campo="texto"\]'\)\.value\)/.test(cs.hints.agregarItem), JSON.stringify(cs.hints));
-t("contrato (texto) v0.2: botón, ids y campos por acción; app.html solo título y #app", /b\.dataset\.accion = "borrarItem", b\.dataset\.id = el id \(número/.test(CT) && /campos: data-campo="texto"/.test(CT) && /SOLO el título/.test(CT));
+t("contrato (texto) v0.4: dibujo usa controlesDe y no dibuja botones propios; app.html solo título y #app", /controlesDe\(tipo, elemento, estado\)/.test(CT) && /NO dibuja botones ni campos propios/.test(CT) && /js\/acciones\.js \(lo escribe el harness\)/.test(CT) && /SOLO el título/.test(CT) && !/b\.dataset\.accion = "borrarItem"/.test(CT));
 const cp = callsProblems({ found: true, calls: { borrarItem: 2, agregarItem: 1 }, undrawn: { borrarItem: 2 }, reloads: [], errors: [], controls: 3, tracked: true }, cs);
 t("callsProblems: acción sin control y acción sin dibujar", cp.length === 2 && /ningún control de la pantalla llama a App.marcarHecho/.test(cp[0]) && /después de App.borrarItem no se llama a dibujar/.test(cp[1]), cp.join(" | "));
 t("callsProblems: sin App → fatal", callsProblems({ found: false }, cs).fatal === true);
@@ -144,7 +144,7 @@ dibujar(estado);`;
   const pr = await probePage(page("dibujo", base, draw.probe));
   t("Chromium: sonda de dibujo de la lista sin problemas", pr.probe?.ok && draw.expect(pr.probe).length === 0 && pr.probe.total === 2, JSON.stringify(pr));
   const prBad = await probePage(page("dibujo_mal", { ...base, "js/dibujo.js": DIBUJO.replace("it.texto +", "it +").replace('d.className = "item"', 'd.className = "lista-item"').replace('i.dataset.campo = "texto"', 'i.name = "texto"').replace('["Hecho", "marcarHecho"]', '["Hecho", "otra"]') }, draw.probe));
-  t("Chromium: dibujo mal → [object Object], textos, botón que falta, campo que falta y clases sin estilo", (() => { const m = draw.expect(prBad.probe).join(" | "); return /\[object Object\]/.test(m) && /ningún botón para: marcarHecho/.test(m) && /data-campo="texto"/.test(m) && /\.lista-item.*\.item/.test(m); })(), JSON.stringify(prBad.probe));
+  t("Chromium: dibujo mal → [object Object], textos, botón que falta, campo que falta y clases sin estilo", (() => { const m = draw.expect(prBad.probe).join(" | "); return /\[object Object\]/.test(m) && /faltan los controles de: marcarHecho/.test(m) && /data-campo="texto"/.test(m) && /\.lista-item.*\.item/.test(m); })(), JSON.stringify(prBad.probe));
   const rOk = await runCallsProbe(page("bien", { ...base, "js/controles.js": CONTROLES(true, true) }), cs);
   t("Chromium: controles bien → todas las acciones se llaman y se dibuja", callsProblems(rOk, cs).length === 0 && rOk.calls.agregarItem >= 1 && rOk.calls.borrarItem >= 1 && rOk.tracked, JSON.stringify(rOk));
   // Validation (12/10): action_changes completa los campos al lado del botón, lo aprieta y mira que cambie
@@ -169,7 +169,7 @@ dibujar(estado);`;
     const HTMLDRAW = 'function dibujar(e) { document.getElementById("app").innerHTML = e.items.map((it) => `<div>${it.texto}<button data-accion="borrar" data-itemId="${it.id}">x</button></div>`).join(""); }';
     const r = await probePage(page("minus", { "js/datos.js": datosJs(KI.estado), "js/logica.js": "const App = { crear() { return JSON.parse(JSON.stringify(ESTADO_INICIAL)); }, borrar(e, id) { return { ...e, items: e.items.filter((x) => x.id !== id) }; } };", "js/dibujo.js": HTMLDRAW }, st.probe));
     const call = S.steps.find((x) => x.id === "controles").resolve({ data: { contrato: { items: [KI] } } }).calls.hints.borrar;
-    t("v0.2.1: data-itemId en HTML cuenta (dataset.itemid) y controles lee b.dataset.itemid", r.probe?.ok && r.probe.noId.length === 0 && /b\.dataset\.itemid\)/.test(call) && /data-itemid/.test(contractText({ data: { contrato: { items: [KI] } } })), JSON.stringify(r.probe) + call);
+    t("v0.2.1: data-itemId en HTML cuenta (dataset.itemid) y controles lee b.dataset.itemid", r.probe?.ok && r.probe.noId.length === 0 && /b\.dataset\.itemid\)/.test(call) && /b\.dataset\.itemid/.test(S.steps.find((x) => x.id === "controles").write({ data: { contrato: { items: [KI] } } })["js/controles.js"]), JSON.stringify(r.probe) + call);
   }
   // v0.2.2 (3ª corrida real): un ícono sin campo + un "Guardar" con el campo en un grupo display:none
   {
@@ -182,6 +182,19 @@ dibujar(estado);`;
     const { validationFor } = await import("../../../../profiles/web/validation/check_catalog.mjs");
     const rv = await validationFor(["web", "web/app"]).runChecks(page("val_oculto", { ...base, "js/dibujo.js": HID, "js/controles.js": CONTROLES(true, true) }), [{ type: "action_changes", params: { click: ["agregar", "item"] } }]);
     t("v0.2.2: Validation no completa campos ocultos (3ª corrida: PASS falso en Crear)", !/campo/.test(rv[0].detail), rv[0].detail);
+  }
+  // v0.3.0 (punto 8): controles.js lo escribe el harness desde el contrato
+  {
+    const ctl = S.steps.find((x) => x.id === "controles");
+    const gen = ctl.write(ctxL)["js/controles.js"];
+    t("v0.3.0: controles lo escribe el harness (write), con la llamada de cada acción desde el contrato", /case "borrarItem": estado = App\.borrarItem\(estado, num\(b\.dataset\.id\)\)/.test(gen) && /case "agregarItem": if \(campo\(b, "texto"\) === ""\) return; estado = App\.agregarItem\(estado, campo\(b, "texto"\)\)/.test(gen) && JSON.stringify(ctl.write({ data: {} })) === "{}", gen);
+    const rg = await runCallsProbe(page("gen_bien", { ...base, "js/controles.js": gen }), cs);
+    t("Chromium v0.3.0: con un dibujo que cumple el contrato, el controles generado llama a todas las acciones y dibuja", callsProblems(rg, cs).length === 0 && (rg.args.borrarItem || []).some((a) => typeof a[1] === "number") && rg.calls.agregarItem >= 1, JSON.stringify(rg));
+    const rh = await runCallsProbe(page("gen_sin_campo", { ...base, "js/dibujo.js": DIBUJO.replace('i.dataset.campo = "texto"', 'i.name = "texto"'), "js/controles.js": gen }), cs);
+    t("Chromium v0.3.0: si dibujo no pone el campo, la acción llega con undefined (la culpa queda en dibujo, no hay error de JS)", (rh.args.agregarItem || []).every((a) => a[1] === "__undefined__") && rh.errors.length === 0, JSON.stringify(rh));
+    const KC0 = parseContract(CONT.json, CONT.h).items[0];
+    const genC = ctl.write({ data: { contrato: { items: [KC0] } } })["js/controles.js"];
+    t("v0.3.0: otra app (contador, acciones sin params) → sin campos ni ids", /case "sumar": estado = App\.sumar\(estado\); break;/.test(genC) && !/campo\(b, "/.test(genC.split("switch")[1]), genC);
   }
   // (un <button> dentro de un <form> dibujado no recarga si el listener vuelve a dibujar: el form se saca antes del submit;
   // la detección de recarga se sigue probando en la sonda, ver runCallsProbe)

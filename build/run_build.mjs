@@ -11,6 +11,7 @@
 //   node build/run_build.mjs snapshot.json --legacy    Specialist v0.6.1 (tareas del graph); por defecto v0.7 por componentes
 //   ... --validate build/runs/<dir> --retranslate   vuelve a traducir (el checks.json anterior queda archivado)
 //   ... --profile web/landing   tipo de proyecto si el snapshot no lo trae (corridas anteriores al 05/10)
+//   ... --gemma-writes-all   los pasos que el Standard escribe con código (st.write) los escribe el modelo (para comparar)
 //
 // Refactor de profiles (05/10): este archivo es CORE. No sabe de secciones,
 // páginas ni componentes: el plan, el Specialist, el esqueleto de control, las
@@ -109,7 +110,7 @@ if (args[0] === "--validate") {
     else log(`[PLAN] ✗ plan inválido (${pp.errors.join("; ")}) → esqueleto mínimo sin secciones`);
   }
   // El Specialist lo pone el profile (web/landing: por componentes; --legacy = v0.6.1).
-  specialist = await B.build(input, outDir, { log, forbidden, resume: !!resumeDir, pagePlan, legacy: args.includes("--legacy") });
+  specialist = await B.build(input, outDir, { log, forbidden, resume: !!resumeDir, pagePlan, legacy: args.includes("--legacy"), noWrite: args.includes("--gemma-writes-all") });
   writeFileSync(join(outDir, "build.json"), JSON.stringify({ input, specialist }, null, 2));
 }
 
@@ -191,11 +192,18 @@ const alwaysGate = (id) => {
   const bad = always.filter((x) => x.gate && x.result === "FAIL");
   return bad.length && anchoredIds.has(id) ? { type: bad.map((x) => x.type).join("+"), gate: true, result: "FAIL", detail: bad.map((x) => x.detail).join(" | ").slice(0, 300) } : null;
 };
+// Punto 7 (12/10): compuertas que el profile saca del Standard usado (web/app: cada acción del contrato
+// se usa desde la pantalla con datos de verdad). Como las demás compuertas, nunca suma un PASS.
+const profileGates = typeof B.validationGates === "function" ? await B.validationGates({ artifact, outDir, input, specialist }) : null;
+const standardGate = (id) => profileGates?.gates?.[id] || null;
+const gateReason = (gs) => gs.some((g) => g.type === "components_render") ? "sin chequeos del traductor, pero su componente no dibujó nada"
+  : gs.some((g) => g.type === "calls_probe") ? `sin chequeos del traductor, pero ${gs.find((g) => g.type === "calls_probe").detail}`
+  : "sin chequeos del traductor, pero su pieza no se ve";
 for (const r of reqChecks) {
-  const gates = [visGate(r.id), renderGate(r.id), alwaysGate(r.id)].filter(Boolean);
+  const gates = [visGate(r.id), renderGate(r.id), alwaysGate(r.id), standardGate(r.id)].filter(Boolean);
   const gate = gates[0] || null;
   if (!r.checks.length) {
-    coverage.push(gate ? { id: r.id, text: r.text, verdict: "FAIL", reason: gates.some((g) => g.type === "components_render") ? "sin chequeos del traductor, pero su componente no dibujó nada" : "sin chequeos del traductor, pero su pieza no se ve", checks: gates }
+    coverage.push(gate ? { id: r.id, text: r.text, verdict: "FAIL", reason: gateReason(gates), checks: gates }
       : { id: r.id, text: r.text, verdict: "SIN_CHEQUEO", reason: r.error || r.sin_chequeo || "el traductor no produjo chequeos válidos", checks: [] });
     continue;
   }
@@ -222,11 +230,11 @@ const evidence = {
   artifact_loads_without_js_errors: smoke[0].result === "PASS",
   sections_visible: { result: visibility.result, features: visibility.features || {}, anchors: visibility.anchors || [], detail: visibility.detail },
   components_render: { result: render.result, components: render.components || [], detail: render.detail },
-  validation: { profile: B.validationProfile || null, standard: specialist?.standard || null, always: always.map(({ type, result, detail, gate }) => ({ type, result, detail, gate })) },
+  validation: { profile: B.validationProfile || null, standard: specialist?.standard || null, always: always.map(({ type, result, detail, gate }) => ({ type, result, detail, gate })), standard_gates: profileGates },
   summary: { requisitos: coverage.length, PASS: count("PASS"), FAIL: count("FAIL"), SIN_EVIDENCIA: count("SIN_EVIDENCIA"), SIN_CHEQUEO: count("SIN_CHEQUEO") },
   control: "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
   coverage,
-  specialist: specialist && { model: specialist.model, version: specialist.specialist_version, standard: specialist.standard, skills: specialist.skills || null, tasks_assigned: specialist.tasks_assigned, files: specialist.files, rule_tests: specialist.rule_tests, steps: specialist.steps.map(({ n, task_id, role, ms, finish_reason, chars, changed, rejected, error, no_change, contract_retry, contract }) => ({ n, task_id, role, ms, finish_reason, chars, changed, rejected, error, no_change, contract_retry, contract_missing: contract?.missing })) },
+  specialist: specialist && { model: specialist.model, version: specialist.specialist_version, standard: specialist.standard, skills: specialist.skills || null, tasks_assigned: specialist.tasks_assigned, files: specialist.files, rule_tests: specialist.rule_tests, steps: specialist.steps.map(({ n, task_id, by, role, ms, finish_reason, chars, changed, rejected, error, no_change, contract_retry, contract }) => ({ n, task_id, by: by || "modelo", role, ms, finish_reason, chars, changed, rejected, error, no_change, contract_retry, contract_missing: contract?.missing })) },
 };
 writeFileSync(join(outDir, "evidence.json"), JSON.stringify(evidence, null, 2));
 
@@ -236,6 +244,10 @@ log(`componentes que dibujan algo: ${render.result === "PASS" ? "todos" : render
 log(`piezas visibles al llegar con el scroll: ${visibility.result === "PASS" ? "todas" : visibility.result === "FAIL" ? "NO — " + visibility.detail.split("; ").filter((p) => p.endsWith("✗")).join("; ") : visibility.detail}`);
 if (B.validationProfile) log(`Validation profile: ${B.validationProfile.join(" → ")}${specialist?.standard ? ` · Standard ${specialist.standard.id} v${specialist.standard.version}` : ""}`);
 for (const x of always) log(`${x.gate ? "compuerta" : "informa"} ${x.type}: ${x.result}${x.result === "PASS" ? "" : " — " + x.detail}`);
+if (profileGates) {
+  log(`compuerta acciones del Standard (${profileGates.version}): ${profileGates.result} — ${profileGates.detail}`);
+  for (const r of profileGates.rows || []) if (r.problem) log(`             ✗ ${r.nombre} (R${(r.features || []).join(", R") || "?"}): ${r.problem}`);
+}
 for (const c of coverage) {
   log(`${c.verdict.padEnd(11)} ${c.id} ${c.text.slice(0, 70)}`);
   for (const x of c.checks.filter((x) => x.result !== "PASS")) log(`             ✗ ${x.type}: ${x.detail}`);

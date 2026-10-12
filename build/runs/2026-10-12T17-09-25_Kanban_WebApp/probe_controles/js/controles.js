@@ -1,0 +1,66 @@
+let estado = App.crear();
+
+document.getElementById('app').addEventListener('click', function(ev) {
+    const b = ev.target.closest("[data-accion]");
+    if (!b) return;
+
+    const accion = b.dataset.accion;
+    let nuevoEstado = null;
+
+    switch (accion) {
+        case "crearTarjeta": {
+            const colId = b.dataset.columnid;
+            // Los campos de título y contenido están en el padre del botón
+            const titulo = b.parentElement.querySelector('[data-campo="titulo"]').value;
+            const contenido = b.parentElement.querySelector('[data-campo="contenido"]').value;
+            nuevoEstado = App.crearTarjeta(estado, colId, titulo, contenido);
+            break;
+        }
+        case "moverTarjeta": {
+            // Todos los datos están en el botón 'b'
+            const cardId = b.dataset.cardid;
+            const sourceColumnId = b.dataset.sourcecolumnid;
+            const targetColumnId = b.dataset.targetcolumnid;
+            nuevoEstado = App.moverTarjeta(estado, cardId, sourceColumnId, targetColumnId);
+            break;
+        }
+        case "agregarComentario": {
+            // El texto está en el padre del botón
+            const cardId = b.dataset.cardid;
+            const texto = b.parentElement.querySelector('[data-campo="texto"]').value;
+            nuevoEstado = App.agregarComentario(estado, cardId, texto);
+            break;
+        }
+        case "agregarEtiqueta": {
+            // Ambos datos están en el botón 'b'
+            const cardId = b.dataset.cardid;
+            const labelId = b.dataset.labelid;
+            nuevoEstado = App.agregarEtiqueta(estado, cardId, labelId);
+            break;
+        }
+        case "editarTarjeta": {
+            // El ID está en el botón 'b', los campos de texto están en el padre
+            const cardId = b.dataset.cardid;
+            const titulo = b.parentElement.querySelector('[data-campo="titulo"]').value;
+            const contenido = b.parentElement.querySelector('[data-campo="contenido"]').value;
+            nuevoEstado = App.editarTarjeta(estado, cardId, titulo, contenido);
+            break;
+        }
+        case "borrarTarjeta": {
+            // Ambos datos están en el botón 'b'
+            const cardId = b.dataset.cardid;
+            const colId = b.dataset.columnid;
+            nuevoEstado = App.borrarTarjeta(estado, cardId, colId);
+            break;
+        }
+    }
+
+    // Actualizar el estado y redibujar si se procesó una acción exitosa
+    if (nuevoEstado !== null) {
+        estado = nuevoEstado;
+        dibujar(estado);
+    }
+});
+
+// Dibujar el estado inicial al cargar la aplicación
+dibujar(estado);

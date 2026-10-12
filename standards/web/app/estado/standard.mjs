@@ -16,11 +16,12 @@
 // Nada de un dominio acá (ni Kanban ni contador): lo prueba test_estado.mjs con dos apps distintas.
 // DRAFT: no tiene evidencia todavía. Primera corrida: el Kanban (Project23/24).
 
-import { parseContract, contractProblems, bestContract, datosJs, signature, MAX_STATE_CHARS } from "./contract.mjs";
+import { parseContract, contractProblems, bestContract, datosJs, signature, idsOf, MAX_STATE_CHARS } from "./contract.mjs";
 import { logicTests, observeChanges } from "./acceptance.mjs";
+import { controlsPlan, accionesJs, controlesFromPlan, whereOf } from "./controls.mjs";
 
 export const IDS = ["app"];
-export const SCRIPTS = ["js/datos.js", "js/logica.js", "js/dibujo.js", "js/controles.js"];
+export const SCRIPTS = ["js/datos.js", "js/logica.js", "js/acciones.js", "js/dibujo.js", "js/controles.js"];
 const fence = (lang, s) => "```" + lang + "\n" + s + "\n```";
 const contractOf = (c) => c?.data?.contrato?.items?.[0] || null;
 
@@ -42,17 +43,41 @@ const idType = (a, p) => (typeof a.ejemplo[a.params.indexOf(p)] === "number" ? "
 const actionLine = (a) => `    - ${signature(a)}: ${a.hace || "(sin descripción)"}. Botón: b.dataset.accion = "${a.nombre}"${a.ids.map((p) => `, b.dataset.${dk(p)} = el id${idType(a, p)} (en HTML: data-${dk(p)})`).join("")}${a.campos.length ? `; campos: ${a.campos.map((p) => `data-campo="${p}"`).join(", ")}` : ""}`;
 /** La llamada que hace controles: App.x(estado, Number(b.dataset.id), campo("texto")). */
 const callOf = (a) => `App.${a.nombre}(${["estado", ...a.params.map((p) => a.ids.includes(p) ? (idType(a, p) ? `Number(b.dataset.${dk(p)})` : `b.dataset.${dk(p)}`) : `${typeof a.ejemplo[a.params.indexOf(p)] === "number" ? "Number(" : ""}b.parentElement.querySelector('[data-campo="${p}"]').value${typeof a.ejemplo[a.params.indexOf(p)] === "number" ? ")" : ""}`)].join(", ")})`;
+/**
+ * v0.3.0 (12/10, punto 8): js/controles.js lo escribe el harness. Sale entero del contrato: un botón por
+ * acción con data-accion, sus ids en b.dataset (en minúsculas) y sus campos al lado (data-campo).
+ * Evidencia: 4 corridas del Kanban, y en las 4 Gemma inventó otra forma de unir dibujo y controles
+ * (formularios fijos → data-* en camelCase → grupos ocultos → formularios vacíos). Ahora la única
+ * parte que puede no coincidir es dibujo.js, y su sonda ya dice qué le falta.
+ * Si un campo falta, la acción se llama con undefined (la compuerta de Validation lo dice tal cual);
+ * si el campo está pero vacío (la persona no escribió nada), no se hace nada.
+ */
+export function controlesJs(c) {
+  return controlesFromPlan(controlsPlan(c), (n, p) => { const a = c.acciones.find((x) => x.nombre === n); return a.ejemplo[a.params.indexOf(p)]; });
+}
+
+/** v0.4.0: qué tipos de elemento tienen acciones y dónde están (para el pedido de dibujo). */
+export function tiposText(c) {
+  const plan = controlsPlan(c);
+  const own = [...new Set(plan.acciones.map((a) => a.owner))];
+  return own.map((t) => {
+    const acts = plan.acciones.filter((a) => a.owner === t).map((a) => a.label).join(", ");
+    return t === "app" ? `  - "app" (acciones generales, elemento null): una vez, al final de #app → ${acts}` : `  - "${t}": cada elemento de ${whereOf(plan.kinds[t])} → ${acts}`;
+  }).join("\n");
+}
+
 /** El contrato que lee Gemma. Antes del paso 1 dice la forma; después, las acciones y el estado reales. */
 export function contractText(ctx) {
   const c = contractOf(ctx);
   const app = c ? `const App = { crear(), ${c.acciones.map((a) => `${a.nombre}(${["estado", ...a.params].join(", ")})`).join(", ")} }` : "const App = { crear(), <una función por acción>(estado, ...params) }";
   return `CONTRATO DE LA APP (lo define el harness; respetalo al pie de la letra):
-- Archivos: app.html (solo el contenido de la pantalla), styles.css, js/datos.js, js/logica.js, js/dibujo.js, js/controles.js. Se cargan en ese orden con <script src> comunes: NADA de import/export ni módulos. Cada archivo define SOLO lo suyo.
+- Archivos: app.html (solo el contenido de la pantalla), styles.css, js/datos.js, js/logica.js, js/acciones.js, js/dibujo.js, js/controles.js. Se cargan en ese orden con <script src> comunes: NADA de import/export ni módulos. Cada archivo define SOLO lo suyo.
 - js/datos.js (lo escribe el harness a partir de contrato.json) define: const ESTADO_INICIAL = ${c ? JSON.stringify(c.estado) : "{...}"};
-- js/logica.js define: ${app}. Sin DOM (no usa document ni window). crear() devuelve una COPIA profunda de ESTADO_INICIAL (JSON.parse(JSON.stringify(ESTADO_INICIAL))). Cada acción DEVUELVE UN ESTADO NUEVO y completo (no modifica el que recibe; mismas claves); en el estado van solo datos (textos, números, true/false, listas y objetos), nunca elementos de la página.${c ? `\n  Acciones:\n${c.acciones.map(actionLine).join("\n")}` : ""}
-- app.html: SOLO el título (<h1>) y el contenedor <div id="app"></div>. Nada más: los botones y los campos los dibuja dibujar() desde el estado. Sin <script> ni <style>.
-- js/dibujo.js define: function dibujar(estado). Vacía #app y lo arma desde el estado (todo lo que el usuario ve sale del estado). Toda acción es un <button> con b.dataset.accion = "<acción>" y sus ids en b.dataset, con el nombre del param EN MINÚSCULAS (b.dataset.cardid, en HTML data-cardid: el HTML pasa los data-* a minúsculas). Si un id NO es del elemento donde está el botón (p.ej. el destino de una acción de mover), dibujá un botón por cada valor posible, con su nombre ("Mover a …"). Si la acción tiene campos, van VISIBLES en el MISMO elemento padre que su botón: un <input> (o <textarea>) con data-campo="<param>"; nada oculto ni que se abra con otro botón. Usa las clases que tienen estilo en styles.css. No agrega listeners.
-- js/controles.js: let estado = App.crear(); UN solo listener click en #app: const b = ev.target.closest("[data-accion]"); los ids salen de b.dataset y los campos de b.parentElement.querySelector('[data-campo="<param>"]').value; estado = App.<acción>(estado, ...); dibujar(estado). Al final del archivo: dibujar(estado).`;
+- js/logica.js define: ${app}. Sin DOM (no usa document ni window). crear() devuelve una COPIA profunda de ESTADO_INICIAL (JSON.parse(JSON.stringify(ESTADO_INICIAL))). Cada acción DEVUELVE UN ESTADO NUEVO y completo (no modifica el que recibe; mismas claves); en el estado van solo datos (textos, números, true/false, listas y objetos), nunca elementos de la página.${c ? `\n  Acciones:\n${c.acciones.map((a) => `    - ${signature(a)}: ${a.hace || "(sin descripción)"}`).join("\n")}` : ""}
+- app.html: SOLO el título (<h1>) y el contenedor <div id="app"></div>. Nada más: lo demás lo arma dibujar() desde el estado. Sin <script> ni <style>.
+- js/acciones.js (lo escribe el harness) define: controlesDe(tipo, elemento, estado). Devuelve un <div class="ctl-controles"> con los campos y el botón de cada acción de ese elemento, ya armados y conectados.
+- js/dibujo.js define: function dibujar(estado). Vacía #app y lo arma desde el estado: muestra cada elemento con sus textos (todo lo que el usuario ve sale del estado). Adentro de cada elemento que tiene acciones agrega controlesDe("<tipo>", elemento, estado) con appendChild. NO dibuja botones ni campos propios para las acciones: eso lo hace controlesDe. Usa las clases que tienen estilo en styles.css. No agrega listeners.${c ? `\n  Tipos con acciones:\n${tiposText(c)}` : ""}
+- js/controles.js (lo escribe el harness): conecta los botones de controlesDe con App y vuelve a llamar a dibujar(estado).`;
 }
 
 const CONTRACT_FMT = `{ "estado": { "items": [ { "id": 1, "texto": "Primer ejemplo", "hecho": false }, { "id": 2, "texto": "Segundo ejemplo", "hecho": true } ] },
@@ -67,7 +92,7 @@ const CONTRACT_FMT = `{ "estado": { "items": [ { "id": 1, "texto": "Primer ejemp
 // los ids y estados internos ("col-1", "hecho") pueden no mostrarse.
 // v0.2 (Kanban real): además, por cada acción, que haya un botón con sus ids y sus campos al lado; y que
 // las clases que dibuja dibujar() tengan estilo (styles.css decía .card y dibujar ponía .kanban-card).
-const acts = (c) => (c?.acciones || []).map((a) => ({ n: a.nombre, ids: a.ids.map(dk), campos: a.campos }));
+const acts = (c) => (c ? controlsPlan(c).acciones : []).map((a) => ({ n: a.nombre, t: a.owner, ids: [a.ownerParam, ...a.ctx.map((x) => x.p)].filter(Boolean).map(dk), campos: [...a.campos.map((f) => f.p), ...a.choice.map((x) => x.p)] }));
 // las clases del CSS las pasa el harness (en file:// Chromium no deja leer cssRules)
 export const probeFor = (c, css = []) => `window.__probe = (function () {
   try {
@@ -87,7 +112,7 @@ export const probeFor = (c, css = []) => `window.__probe = (function () {
     var noButton = [], noId = [], noField = [];
     ACTS.forEach(function (a) {
       var bs = Array.prototype.filter.call(box.querySelectorAll("[data-accion]"), function (b) { return b.dataset.accion === a.n; });
-      if (!bs.length) { noButton.push(a.n); return; }
+      if (!bs.length) { noButton.push(a.n + "@" + a.t); return; }
       // v0.2.2 (3ª corrida real): vale CUALQUIER botón de la acción (Gemma dibujó un ícono ✏️ y un "Guardar"
       // al lado de los campos); se queda con el que menos le falta. Un campo oculto (display:none) no cuenta.
       var vis = function (el) { return el.getClientRects().length > 0; };
@@ -107,7 +132,7 @@ export const probeFor = (c, css = []) => `window.__probe = (function () {
     CSS.forEach(function (k) { cssCls[k] = 1; });
     var used = {};
     Array.prototype.forEach.call(document.querySelectorAll("[class]"), function (el) { Array.prototype.forEach.call(el.classList, function (k) { used[k] = used[k] || (box.contains(el) ? 2 : 1); }); });
-    var unstyled = Object.keys(used).filter(function (k) { return used[k] === 2 && !cssCls[k]; });
+    var unstyled = Object.keys(used).filter(function (k) { return used[k] === 2 && !cssCls[k] && k.indexOf("ctl-") !== 0; });
     var unused = Object.keys(cssCls).filter(function (k) { return !used[k]; });
     // v0.2.1 (2ª corrida real): una clase sin estilo propio no es un error (.tag se pinta con ".etiquetas span").
     // Es error si se PARECE a una del CSS que nadie usa (kanban-card ~ card) o si la mayoría no tiene estilo.
@@ -127,10 +152,25 @@ const PROBE = probeFor(null);
 export const cssClasses = (css) => [...new Set([...String(css || "").replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/\.([A-Za-z_-][\w-]*)(?=[^{}]*\{)/g)].map((m) => m[1]))];
 const FORBIDDEN_TAGS = ["form", "input", "button", "select", "textarea"];
 
+// v0.2.3 (12/10, punto 7: "Validation corre las pruebas del Standard"): lo que Validation puede LEER del
+// Standard para comprobar, usando la pantalla como una persona, que cada acción del contrato se dispara
+// con datos de verdad. Validation no copia estas reglas: las pide acá. Los pedidos a Gemma no cambian.
+const validation = {
+  /** El contrato validado a partir de contrato.json (el mismo parse del paso 1). null si no sirve. */
+  contract: (json, refined) => parseContract(json, appHints(refined)).items?.[0] || null,
+  /** Qué envolver en la página: el objeto global, sus métodos y la función que dibuja. */
+  calls: (c) => ({ global: "App", draw: "dibujar", methods: c.acciones.map((a) => a.nombre) }),
+  /** Cada acción con sus params (después de estado), cuáles son ids, y qué features cumple. */
+  actions: (c) => c.acciones.map(({ nombre, params, ids, campos, features }) => ({ nombre, params, ids, campos, features })),
+  /** Ids que existen en el estado inicial (para saber si un id que llega es de verdad). */
+  idValues: (c) => [...idsOf(c.estado)].map((x) => JSON.parse(x)),
+};
+
 const STANDARD = {
   id: "web/app/estado",
-  version: "0.2.2",
+  version: "0.4.0",
   status: "DRAFT",
+  validation,
   label: "app de una pantalla con estado y acciones",
   describe: "App de una pantalla por archivos: el contrato (estado inicial + acciones) lo propone Gemma como datos y el harness lo valida; js/logica.js (lógica pura probada en Node con pruebas que salen del contrato), app.html + styles.css, js/dibujo.js (probado en Chromium), js/controles.js (cada acción se puede usar desde la pantalla).",
   evidence: [
@@ -188,20 +228,28 @@ ${fence("json", CONTRACT_FMT)}`,
       prompt: (c) => `NOTAS DEL TECHLEADER (contexto):\n${c.notes}\n\nYA EXISTE js/datos.js (lo armó el harness) con ESTADO_INICIAL.\n\n${c.paso}: escribí js/logica.js (const App = { crear, ${contractOf(c).acciones.map((a) => a.nombre).join(", ")} }). Sin DOM. El harness lo va a probar con ESTADO_INICIAL y el "ejemplo" de cada acción:\n${contractOf(c).acciones.map((a) => `- App.${a.nombre}(App.crear()${a.ejemplo.map((v) => ", " + JSON.stringify(v)).join("")})`).join("\n")}`,
     },
     {
+      // v0.4.0 (punto 8): los controles de cada elemento los arma el código (controls.mjs), no el modelo
+      id: "acciones", kind: "written", file: "js/acciones.js", needs: ["contrato"],
+      write: (ctx) => { const c = contractOf(ctx); return c ? { "js/acciones.js": accionesJs(controlsPlan(c)) } : {}; },
+      check: (c) => { try { new Function(c["js/acciones.js"]); return []; } catch (e) { return Object.assign([`js/acciones.js no compila: ${e.message}`], { fatal: true }); } },
+    },
+    {
       id: "pantalla", kind: "screen", files: ["app.html", "styles.css"], cap: 4500,
       noDisabled: true,
       // v0.2 (Kanban real): los formularios fijos necesitaban datos del estado (columna, tarjeta) que nadie llenaba
       forbidTags: FORBIDDEN_TAGS,
-      prompt: (c) => `${c.paso}: escribí app.html (SOLO <h1> con el título y <div id="app"></div>: nada más; los botones y campos los dibuja dibujar(); sin <html>, <head>, <script> ni <style>) y styles.css: todo el estilo, sobre todo de lo que dibujar() va a armar adentro de #app. Elegí una clase para cada cosa (cada lista del estado, cada elemento, sus botones y sus campos) y escribí su estilo: dibujar() va a usar esas clases. Respetá los CRITERIOS DE ESTILO del brief.`,
+      prompt: (c) => `${c.paso}: escribí app.html (SOLO <h1> con el título y <div id="app"></div>: nada más; lo demás lo arma dibujar(); sin <html>, <head>, <script> ni <style>) y styles.css: todo el estilo, sobre todo de lo que dibujar() va a armar adentro de #app. Elegí una clase para cada cosa (cada lista del estado y cada elemento) y escribí su estilo: dibujar() va a usar esas clases. Los campos y botones de las acciones los arma el harness con estas clases: .ctl-controles (todos los de un elemento), .ctl-accion (una acción: sus campos y su botón), .ctl-boton (el botón), y adentro input y select: escribí su estilo también. Respetá los CRITERIOS DE ESTILO del brief.`,
     },
     {
-      id: "dibujo", kind: "render", file: "js/dibujo.js", cap: 4500, needs: ["contrato", "logica"],
-      defines: "dibujar(estado)", notOwn: { names: ["estado"], owner: "js/controles.js (paso 5)" }, noListeners: true,
+      id: "dibujo", kind: "render", file: "js/dibujo.js", cap: 4500, needs: ["contrato", "logica", "acciones"],
+      defines: "dibujar(estado)", notOwn: { names: ["estado", "controlesDe"], owner: "js/controles.js y js/acciones.js (los escribe el harness)" }, noListeners: true,
       call: "dibujar(App.crear())", probe: PROBE,
       resolve: (ctx) => (contractOf(ctx) ? { probe: probeFor(contractOf(ctx), cssClasses(ctx.files?.["styles.css"])) } : {}),
       expect: (p) => {
         const out = [];
-        if (p.noButton?.length) out.push(`dibujar no dibuja ningún botón para: ${p.noButton.join(", ")}. Cada acción es un <button> con b.dataset.accion = "<acción>" (con el estado inicial tiene que verse al menos uno).`);
+        // v0.4.0: los botones los arma controlesDe; si falta uno, es que no se agregó controlesDe en ese tipo de elemento
+        if (p.noButton?.length) { const by = {}; p.noButton.forEach((x) => { const [a, t] = x.split("@"); (by[t || "?"] ||= []).push(a); });
+          out.push(`faltan los controles de: ${Object.entries(by).map(([t, as]) => `${as.join(", ")} (agregá ${t === "app" ? 'controlesDe("app", null, estado) una vez al final de #app' : `controlesDe("${t}", elemento, estado) adentro de cada elemento de ese tipo`})`).join("; ")}.`); }
         if (p.noId?.length) out.push(`a estos botones les falta el id en b.dataset: ${p.noId.map((x) => { const [a, k] = x.split(":"); return `${a} (b.dataset.${k}, en HTML data-${k})`; }).join(", ")}. La clave va en minúsculas: el HTML pasa data-cardId a data-cardid. Si ese id no es del elemento donde está el botón (un destino), dibujá un botón por cada valor posible.`);
         if (p.noField?.length) {
           const fl = p.noField.map((x) => { const [a, k] = x.split(":"); return { a, k: k.replace(/[!?]/g, ""), hidden: k.includes("!"), btnHidden: k.includes("?") }; });
@@ -217,11 +265,13 @@ ${fence("json", CONTRACT_FMT)}`,
         return out;
       },
       prompt: (c) => { const k = cssClasses(c.files?.["styles.css"]);
-        return `YA EXISTEN: ESTADO_INICIAL, App (crear, ${contractOf(c).acciones.map((a) => a.nombre).join(", ")}) y app.html:\n${fence("html", c.fragment.slice(0, 2500))}\n${k.length ? `styles.css tiene estilo para estas clases (usalas): ${k.slice(0, 40).map((x) => "." + x).join(" ")}\n` : ""}\n${c.paso}: escribí js/dibujo.js (function dibujar(estado)). Los botones de cada acción y sus campos, como dice el contrato:\n${contractOf(c).acciones.map(actionLine).join("\n")}`; },
+        return `YA EXISTEN: ESTADO_INICIAL, App (crear, ${contractOf(c).acciones.map((a) => a.nombre).join(", ")}) y app.html:\n${fence("html", c.fragment.slice(0, 2500))}\n${k.length ? `styles.css tiene estilo para estas clases (usalas): ${k.slice(0, 40).map((x) => "." + x).join(" ")}\n` : ""}YA EXISTE controlesDe(tipo, elemento, estado) (js/acciones.js, lo armó el harness): devuelve los campos y botones de las acciones de ese elemento, ya conectados.\n\n${c.paso}: escribí js/dibujo.js (function dibujar(estado)): mostrá cada elemento del estado con sus textos y agregale adentro sus controles:\n${tiposText(contractOf(c))}\nPor ejemplo: const el = document.createElement("div"); el.className = "<clase de styles.css>"; (sus textos con textContent); el.appendChild(controlesDe("<tipo>", elemento, estado)); No dibujes botones ni campos propios para las acciones.`; },
     },
     {
-      id: "controles", kind: "wiring", file: "js/controles.js", cap: 4500, needs: ["logica", "dibujo"],
+      id: "controles", kind: "wiring", file: "js/controles.js", cap: 4500, needs: ["logica", "acciones", "dibujo"],
       play: [{ type: "no_js_errors", params: {} }],
+      // v0.3.0 (punto 8): lo escribe el harness desde el contrato (con --gemma-writes-all lo escribe Gemma, para comparar)
+      write: (ctx) => { const c = contractOf(ctx); return c ? { "js/controles.js": controlesJs(c) } : {}; },
       // cada acción se tiene que poder usar desde la pantalla (todas son botones desde v0.2)
       resolve: (ctx) => { const c = contractOf(ctx); if (!c) return {};
         return { calls: { global: "App", draw: "dibujar", methods: c.acciones.map((a) => a.nombre), forms: [],

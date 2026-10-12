@@ -1,0 +1,112 @@
+### FILE: contrato.json
+```json
+{
+  "estado": {
+    "columns": [
+      {
+        "id": "todo",
+        "title": "Pendientes",
+        "cards": [
+          {
+            "id": "card1",
+            "titulo": "Diseñar estructura base",
+            "contenido": "Definir el esqueleto HTML y CSS inicial.",
+            "labels": ["feature"],
+            "comments": [
+              {"usuario": "Admin", "texto": "Recordar la paleta oscura."}
+            ]
+          },
+          {
+            "id": "card2",
+            "titulo": "Implementar lógica de movimiento",
+            "contenido": "Manejar el estado al arrastrar y soltar.",
+            "labels": [],
+            "comments": []
+          }
+        ]
+      },
+      {
+        "id": "in_progress",
+        "title": "En Progreso",
+        "cards": [
+          {
+            "id": "card3",
+            "titulo": "Agregar funcionalidad de comentarios",
+            "contenido": "Crear el formulario y la lógica para guardar comentarios.",
+            "labels": ["feature"],
+            "comments": []
+          }
+        ]
+      },
+      {
+        "id": "done",
+        "title": "Completado",
+        "cards": [
+          {
+            "id": "card4",
+            "titulo": "Definir contrato de datos",
+            "contenido": "Finalizar la estructura JSON para el estado.",
+            "labels": ["feature"],
+            "comments": []
+          }
+        ]
+      }
+    ],
+    "labels": [
+      {"id": "bug", "name": "Bug"},
+      {"id": "feature", "name": "Feature"}
+    ]
+  },
+  "acciones": [
+    {
+      "nombre": "crearTarjeta",
+      "params": ["columnId", "titulo", "contenido"],
+      "ejemplo": ["todo", "Nueva tarjeta de prueba", "Contenido inicial."],
+      "hace": "Crea una nueva tarjeta en la columna especificada.",
+      "features": [1],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": ["cardId", "sourceColumnId", "targetColumnId"],
+      "ejemplo": ["card2", "todo", "in_progress"],
+      "hace": "Mueve una tarjeta de su columna actual a la columna destino.",
+      "features": [2],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "agregarComentario",
+      "params": ["cardId", "texto"],
+      "ejemplo": ["card1", "Buen punto, revisemos el detalle."],
+      "hace": "Añade un comentario a una tarjeta específica.",
+      "features": [3],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "agregarEtiqueta",
+      "params": ["cardId", "labelId"],
+      "ejemplo": ["card2", "bug"],
+      "hace": "Asigna una etiqueta existente a la tarjeta.",
+      "features": [4],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": ["cardId", "titulo", "contenido"],
+      "ejemplo": ["card3", "Revisar contenido", "Contenido actualizado y mejorado."],
+      "hace": "Actualiza el título y contenido de una tarjeta.",
+      "features": [5],
+      "cambia": ["columns"]
+    },
+    {
+      "nombre": "borrarTarjeta",
+      "params": ["cardId", "columnId"],
+      "ejemplo": ["card4", "done"],
+      "hace": "Elimina completamente una tarjeta de la columna.",
+      "features": [6],
+      "cambia": ["columns"]
+    }
+  ],
+  "se_ve": [7, 8, 9]
+}
+```

@@ -1,0 +1,175 @@
+/* Global Styles and Reset */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1e272e; /* Dark background */
+    color: #ecf0f1; /* Light text color */
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #3498db; /* Primary accent color for title */
+    margin-bottom: 30px;
+    border-bottom: 2px solid #2c3e50;
+    padding-bottom: 10px;
+}
+
+/* Kanban Board Container */
+#app {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 20px; /* Space for scrolling columns */
+}
+
+/* Column Styles (Kanban List) */
+.column {
+    flex: 0 0 300px; /* Fixed width for columns */
+    background-color: #2c3e50; /* Darker background for the column area */
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #34495e;
+}
+
+.column-title {
+    font-size: 1.2em;
+    color: #ecf0f1;
+    flex-grow: 1;
+}
+
+/* Card Container (The list of cards) */
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-height: 50px; /* Ensure space even if empty */
+}
+
+/* Card Styles */
+.card {
+    background-color: #34495e; /* Slightly lighter dark background for cards */
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: grab; /* Indicates draggable element */
+}
+
+/* Hover Effect (Illumination) */
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(52, 152, 219, 0.4); /* Blue glow/illumination */
+}
+
+/* Card Title and Content */
+.card-title {
+    font-size: 1.1em;
+    margin-top: 0;
+    color: #3498db;
+}
+
+.card-content {
+    font-size: 0.95em;
+    color: #bdc3c7;
+    margin-bottom: 10px;
+}
+
+/* Labels */
+.labels-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.label {
+    display: inline-block;
+    background-color: #2980b9; /* Label background */
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75em;
+}
+
+/* Comments Section */
+.comments-section {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed #3c546a;
+}
+
+.comment {
+    background-color: #2c3e50;
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.comment-user {
+    font-weight: bold;
+    color: #1abc9c; /* Green accent for user */
+    display: block;
+    margin-bottom: 3px;
+}
+
+/* Action Buttons (General Styling) */
+button, input[type="submit"] {
+    background-color: #2ecc71; /* Success/Action color */
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    margin-right: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease, transform 0.1s;
+}
+
+button:hover, input[type="submit"]:hover {
+    background-color: #27ae60; /* Darker green on hover */
+    transform: translateY(-1px);
+}
+
+/* Specific button styles (e.g., for adding comments/labels) */
+.add-comment-btn, .add-label-btn {
+    background-color: #3498db; /* Blue accent for secondary actions */
+    margin-top: 10px;
+}
+
+.add-comment-btn:hover, .add-label-btn:hover {
+    background-color: #2980b9;
+}
+
+/* Input/Textarea Fields (For forms within the card) */
+[data-campo], textarea {
+    width: calc(100% - 16px);
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #3c546a;
+    background-color: #212f3d; /* Dark input background */
+    color: #ecf0f1;
+    border-radius: 4px;
+}
+
+/* Form/Modal Area (For editing or adding) */
+.card-form {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #212f3d;
+    border-radius: 6px;
+}
+
+/* Utility classes for visibility/layout */
+.hidden {
+    display: none !important;
+}

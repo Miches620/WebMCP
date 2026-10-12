@@ -29,7 +29,7 @@ import { parseJsonLoose } from "../json_loose.mjs";
 // compatibilidad: las herramientas de JS se siguen pudiendo importar desde acá (viven en js_tools.mjs)
 export { loadScripts, syntaxOf, runAcceptance, findMember, replaceMember, stripComments, topNames, clashes, shadowProblems } from "./js_tools.mjs";
 
-export const ENGINE_VERSION = "files_engine v0.10.1";
+export const ENGINE_VERSION = "files_engine v0.11.1";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
@@ -118,6 +118,22 @@ export const dataKind = {
   },
 };
 
+// ---------- clase de paso universal: written (v0.11.1) ----------
+// Un archivo que escribe SOLO el código (st.write), sin modelo: p.ej. una ayuda que sale entera del contrato.
+// Se juzga con st.check(contenido, env) si el Standard lo da (p.ej. que compile); si no, alcanza con que exista.
+export const writtenKind = {
+  make: (st, env) => ({
+    judge: async (c) => {
+      const names = st.files || [st.file];
+      const miss = names.filter((x) => !c[x]);
+      if (miss.length) return fatal([`el harness no pudo escribir ${miss.join(", ")} (falta lo que necesita de un paso anterior)`]);
+      return st.check ? await st.check(c, env) : [];
+    },
+  }),
+  store: (st, _K, s, env) => { for (const x of st.files || [st.file]) env.files[x] = s.content[x]; },
+  frozen: async (st, fz, env) => { const c = st.write(env.ctx) || {}; for (const x of st.files || [st.file]) env.files[x] = fz.files?.[x] || c[x] || ""; },
+};
+
 // ---------- build ----------
 /**
  * Corre los pasos del Standard con las herramientas de una plataforma.
@@ -141,7 +157,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
   const steps = [];
   const byId = {};
   const out = {};
-  const KINDS = { data: dataKind, ...P.kinds };
+  const KINDS = { data: dataKind, written: writtenKind, ...P.kinds };
   // opts.skills = { role, status, list: [{ id, kinds, text }] } (lo arma el profile con el Role)
   const skillsFor = (kind) => {
     const mine = (opts.skills?.list || []).filter((x) => x.kinds.includes(kind));
@@ -155,7 +171,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
     const maxTokens = Math.max(1500, Math.min(cap, CONTEXT - promptTokens - 200));
     const t0 = Date.now();
     const data = await chatStream(LM_STUDIO_URL, { model, messages: [{ role: "system", content: system }, { role: "user", content: user }], temperature: opts.temperature ?? 0, max_tokens: maxTokens });
-    return { raw: data.content || "", ms: Date.now() - t0, finish_reason: data.finish_reason ?? null, reasoning_chars: data.reasoning_chars ?? 0, usage: data.usage ?? null, promptTokens, maxTokens };
+    return { raw: data.content || "", ms: Date.now() - t0, finish_reason: data.finish_reason ?? null, reasoning_chars: data.reasoning_chars ?? 0, usage: data.usage ?? null, ttft_ms: data.ttft_ms ?? null, promptTokens, maxTokens };
   };
   const fence = (lang, s) => "```" + lang + "\n" + (String(s || "").trim() || "(vacío)") + "\n```";
   const retryBlock = (prev, problems, names) => problems.length
@@ -179,6 +195,24 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
     const rec = { n, task_id: st.id, kind: st.kind, files: names, attempts: [] };
     log(`[SPECIALIST] ${n}/${S.steps.length} ${names.join(" + ")}`);
     ctx.paso = `PASO ${n} de ${S.steps.length}`;
+    // v0.11 (12/10, punto 8): un paso que escribe el CÓDIGO, no el modelo. El Standard decide cuál
+    // (st.write(ctx) → { archivo: contenido }) cuando ese archivo sale entero de datos ya validados;
+    // el motor no sabe de qué dominio es. Se juzga con el mismo juez de la clase de paso y no se
+    // reintenta (el mismo código daría lo mismo): si quedan problemas, vienen de un paso anterior.
+    // opts.noWrite = todo lo escribe el modelo (para comparar con y sin), salvo los pasos que no tienen
+    // pedido para el modelo (st.prompt): esos los escribe siempre el código.
+    if (typeof st.write === "function" && (!opts.noWrite || typeof st.prompt !== "function")) {
+      const t0 = Date.now();
+      const content = st.write(ctx) || {};
+      const problems = await judge(content);
+      rec.by = "harness";
+      rec.attempts.push({ k: 0, by: "harness", ms: Date.now() - t0, first_problems: [...problems], first_fatal: !!problems.fatal, problems: [...problems] });
+      rec.problems_final = [...problems];
+      rec.broken = !!problems.fatal || !names.some((x) => content[x]);
+      steps.push(rec);
+      log(`[SPECIALIST]   ${problems.length ? `✗ ${problems.length} problema(s): ${problems.slice(0, 3).join(" | ").slice(0, 300)}` : "✓"} · lo escribió el harness (sin modelo)`);
+      return { content, rec };
+    }
     let best = null, prev = null, problems = [];
     for (let k = 0; k < (opts.bench?.maxAttempts || 3); k++) {
       ctx.have = K.count ? K.count() : 0;
@@ -193,6 +227,13 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
       const r = await ask(P.systemPrompt, user, st.cap || 4000);
       writeFileSync(join(outDir, `step_${String(n).padStart(2, "0")}_${st.id}${k ? ".retry" + k : ""}.raw.txt`), r.raw, "utf8");
       const att = { k, ms: r.ms, finish_reason: r.finish_reason, reasoning_chars: r.reasoning_chars, prompt_tokens_est: r.promptTokens, max_tokens: r.maxTokens };
+      // 12/10: tokens REALES que informa LM Studio (prompt_tokens_est es solo largo/3.2). Solo se registran.
+      att.prompt_tokens = r.usage?.prompt_tokens ?? null;
+      att.completion_tokens = r.usage?.completion_tokens ?? null;
+      att.reasoning_tokens = r.usage?.completion_tokens_details?.reasoning_tokens ?? null;
+      att.context_used = att.prompt_tokens != null && att.completion_tokens != null ? att.prompt_tokens + att.completion_tokens : null;
+      att.context_limit = CONTEXT;
+      att.prefill_ms = r.ttft_ms;
       // arreglo previo de la plataforma (en web: declaración repetida y sintaxis de un .js)
       const raw = P.preFix ? await P.preFix({ raw: r.raw, names, known, att, st, n, env }) : r.raw;
       let content = Object.fromEntries(names.map((x) => [x, extractFile(raw, x, known)]));
@@ -215,7 +256,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
       const score = scoreOf(has, problems);
       if (!best || score < best.score) best = { content, problems, score };
       prev = content;
-      log(`[SPECIALIST]   ${problems.length ? `✗ ${problems.length} problema(s): ${problems.slice(0, 3).join(" | ").slice(0, 300)}` : "✓"}${k ? ` (reintento ${k})` : ""} · ${Math.round(r.ms / 1000)}s`);
+      log(`[SPECIALIST]   ${problems.length ? `✗ ${problems.length} problema(s): ${problems.slice(0, 3).join(" | ").slice(0, 300)}` : "✓"}${k ? ` (reintento ${k})` : ""} · ${Math.round(r.ms / 1000)}s${att.context_used != null ? ` · ${att.prompt_tokens}+${att.completion_tokens}=${att.context_used} tok` : ""}`);
       if (!problems.length) break;
     }
     rec.problems_final = [...best.problems];

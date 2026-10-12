@@ -1,0 +1,107 @@
+### FILE: js/controles.js
+```javascript
+let estado = App.crear();
+
+document.getElementById('app').addEventListener('click', function(ev) {
+    const b = ev.target.closest("[data-accion]");
+    if (!b) return;
+
+    // Obtener los parámetros del botón (IDs fijos en data-* atributos)
+    const accion = b.dataset.accion;
+    let params = {};
+
+    // 1. Extraer IDs de dataset
+    params.cardId = b.dataset.cardid;
+    params.columnId = b.dataset.columnid;
+    params.sourceColumnId = b.dataset.sourcecolumnid;
+    params.targetColumnId = b.dataset.targetcolumnid;
+    params.labelId = b.dataset.labelid;
+
+    // 2. Extraer valores de los campos (inputs/textareas) en el padre del botón
+    const parent = b.parentElement;
+    let fieldValues = {};
+    parent.querySelectorAll('[data-campo]').forEach(input => {
+        fieldValues[input.dataset.campo] = input.value;
+    });
+
+    let nuevoEstado = estado;
+
+    try {
+        switch (accion) {
+            case "crearTarjeta":
+                // Params: columnId, titulo, contenido
+                const columnaIdCrear = params.columnid;
+                const tituloCrear = fieldValues['titulo'];
+                const contenidoCrear = fieldValues['contenido'];
+
+                if (columnaIdCrear && tituloCrear && contenidoCrear) {
+                    nuevoEstado = App.crearTarjeta(estado, columnaIdCrear, tituloCrear, contenidoCrear);
+                }
+                break;
+
+            case "moverTarjeta":
+                // Params: cardId, sourceColumnId, targetColumnId
+                const cardIdMover = params.cardid;
+                const sourceColId = params.sourcecolumnid;
+                const targetColId = params.targetcolumnid;
+
+                if (cardIdMover && sourceColId && targetColId) {
+                    nuevoEstado = App.moverTarjeta(estado, cardIdMover, sourceColId, targetColId);
+                }
+                break;
+
+            case "agregarComentario":
+                // Params: cardId, texto
+                const cardIdComentar = params.cardid;
+                const textoComentar = fieldValues['texto'];
+
+                if (cardIdComentar && textoComentar) {
+                    nuevoEstado = App.agregarComentario(estado, cardIdComentar, textoComentar);
+                }
+                break;
+
+            case "agregarEtiqueta":
+                // Params: cardId, labelId
+                const cardIdEtiquetar = params.cardid;
+                const labelIdAgregar = params.labelid;
+
+                if (cardIdEtiquetar && labelIdAgregar) {
+                    nuevoEstado = App.agregarEtiqueta(estado, cardIdEtiquetar, labelIdAgregar);
+                }
+                break;
+
+            case "editarTarjeta":
+                // Params: cardId, titulo, contenido
+                const cardIdEditar = params.cardid;
+                const tituloEditar = fieldValues['titulo'];
+                const contenidoEditar = fieldValues['contenido'];
+
+                if (cardIdEditar && tituloEditar !== undefined && contenidoEditar !== undefined) {
+                    nuevoEstado = App.editarTarjeta(estado, cardIdEditar, tituloEditar, contenidoEditar);
+                }
+                break;
+
+            case "borrarTarjeta":
+                // Params: cardId, columnId
+                const cardIdBorrar = params.cardid;
+                const colIdBorrar = params.columnid;
+
+                if (cardIdBorrar && colIdBorrar) {
+                    nuevoEstado = App.borrarTarjeta(estado, cardIdBorrar, colIdBorrar);
+                }
+                break;
+        }
+    } catch (e) {
+        console.error("Error al procesar la acción:", e);
+    }
+
+    // Actualizar el estado global y redibujar
+    if (nuevoEstado !== estado) {
+        estado = nuevoEstado;
+        dibujar(estado);
+    }
+});
+
+// Dibujar el estado inicial al cargar la aplicación
+dibujar(estado);
+```

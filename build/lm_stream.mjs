@@ -13,6 +13,9 @@ export async function chatStream(url, body, { onProgress } = {}) {
   const ctrl = new AbortController();
   let idle = setTimeout(() => ctrl.abort(), IDLE_MS);
   const bump = () => { clearTimeout(idle); idle = setTimeout(() => ctrl.abort(), IDLE_MS); };
+  // 12/10: ms desde el pedido hasta el primer texto (o pensamiento) = cuánto tardó en leer el pedido
+  // (prefill). Se mide desde ANTES del fetch: con stream:true los headers llegan enseguida.
+  const t0 = Date.now();
   try {
     const res = await fetch(url, {
       method: "POST",
@@ -24,6 +27,7 @@ export async function chatStream(url, body, { onProgress } = {}) {
     const reader = res.body.getReader();
     const dec = new TextDecoder();
     let buf = "", content = "", finish_reason = null, usage = null, chunks = 0, reasoning = 0;
+    let ttft_ms = null;
     for (;;) {
       const { value, done } = await reader.read();
       if (done) break;
@@ -43,12 +47,13 @@ export async function chatStream(url, body, { onProgress } = {}) {
         // v0.8.2: algunos modelos "piensan" en un canal aparte; se cuenta para saber a dónde se fue el presupuesto
         const rz = ch?.delta?.reasoning_content ?? ch?.delta?.reasoning;
         if (typeof rz === "string") reasoning += rz.length;
+        if (ttft_ms === null && (ch?.delta?.content || (typeof rz === "string" && rz))) ttft_ms = Date.now() - t0;
         if (ch?.finish_reason) finish_reason = ch.finish_reason;
         if (j.usage) usage = j.usage;
         if (onProgress && ++chunks % 200 === 0) onProgress(content.length);
       }
     }
-    return { content, finish_reason, usage, reasoning_chars: reasoning };
+    return { content, finish_reason, usage, reasoning_chars: reasoning, ttft_ms };
   } catch (e) {
     if (e.name === "AbortError") throw new Error(`LM Studio sin respuesta durante ${IDLE_MS / 60000} min`);
     throw e;

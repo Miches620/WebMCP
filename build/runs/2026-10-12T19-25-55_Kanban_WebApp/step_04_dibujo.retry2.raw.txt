@@ -1,0 +1,131 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado) {
+    const app = document.getElementById('app');
+    if (!app) return;
+
+    // 1. Limpiar el contenedor principal
+    app.innerHTML = '';
+
+    // 2. Dibujar las columnas y sus contenidos
+    estado.columns.forEach(column => {
+        // Crear la estructura de la columna
+        const columnDiv = document.createElement('div');
+        columnDiv.className = 'column';
+        columnDiv.dataset.columnid = column.id;
+
+        // Encabezado de la columna
+        const header = document.createElement('div');
+        header.className = 'column-header';
+        header.innerHTML = `<h2 class="column-title">${column.title}</h2>`;
+        columnDiv.appendChild(header);
+
+        // Contenedor de tarjetas (card-list)
+        const cardList = document.createElement('div');
+        cardList.className = 'card-list';
+        columnDiv.appendChild(cardList);
+
+        // Botón para crear tarjeta en esta columna
+        const createCardBtnContainer = document.createElement('div');
+        createCardBtnContainer.innerHTML = `
+            <button class="add-comment-btn" data-accion="crearTarjeta" data-columnid="${column.id}">+ Crear Tarjeta</button>
+            <div class="card-form hidden"></div> 
+        `;
+        // Nota: El contenedor de acciones se añade al final del columnDiv para mantener la estructura limpia, pero lo adjuntamos aquí por simplicidad en el flujo de dibujo.
+        columnDiv.appendChild(createCardBtnContainer);
+
+
+        // Dibujar tarjetas dentro de esta columna
+        column.cards.forEach(card => {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+            cardDiv.dataset.cardid = card.id;
+
+            // Título y Contenido
+            let cardHTML = `
+                <h3 class="card-title">${card.titulo}</h3>
+                <p class="card-content">${card.contenido}</p>
+            `;
+
+            // Etiquetas (Labels)
+            const labelsContainer = document.createElement('div');
+            labelsContainer.className = 'labels-container';
+            if (card.labels && card.labels.length > 0) {
+                card.labels.forEach(labelId => {
+                    const labelName = estado.labels.find(l => l.id === labelId)?.name || 'Etiqueta';
+                    const labelSpan = document.createElement('span');
+                    labelSpan.className = 'label';
+                    labelSpan.textContent = labelName;
+                    labelsContainer.appendChild(labelSpan);
+                });
+            }
+
+            // Contenedor de acciones de la tarjeta (Editar/Borrar)
+            const cardActions = document.createElement('div');
+            cardActions.className = 'card-actions';
+            cardActions.innerHTML = `
+                <button class="add-label-btn" data-accion="agregarEtiqueta" data-cardid="${card.id}">🏷️ Añadir Etiqueta</button>
+                <button class="add-comment-btn" data-accion="agregarComentario" data-cardid="${card.id}">💬 Comentar</button>
+                <button class="edit-card-btn" data-accion="editarTarjeta" data-cardid="${card.id}">✏️ Editar</button>
+                <button class="delete-card-btn" data-accion="borrarTarjeta" data-cardid="${card.id}" data-columnid="${column.id}">🗑️ Borrar</button>
+            `;
+
+            // Contenedor de comentarios
+            const commentsSection = document.createElement('div');
+            commentsSection.className = 'comments-section';
+            let commentHTML = '';
+            if (card.comments && card.comments.length > 0) {
+                commentHTML = card.comments.map(c => `
+                    <div class="comment">
+                        <p class="comment-user">${c.usuario}</p>
+                        <p class="comment-text">${c.texto}</p>
+                    </div>
+                `).join('');
+            }
+
+            // Formulario de comentarios (para agregar)
+            const commentFormContainer = document.createElement('div');
+            commentFormContainer.innerHTML = `
+                <textarea data-campo="texto" class="hidden" placeholder="Escribe un comentario..."></textarea>
+                <button class="add-comment-btn hidden">Enviar Comentario</button>
+            `;
+
+            commentsSection.innerHTML = commentHTML;
+            commentsSection.appendChild(commentFormContainer);
+
+
+            // Ensamblar la tarjeta
+            cardDiv.innerHTML = cardHTML;
+            cardDiv.appendChild(labelsContainer);
+            cardDiv.appendChild(commentsSection);
+            cardDiv.appendChild(document.createRange().createContextualFragment(cardActions.outerHTML)); // Añadir acciones al final
+
+            // Agregar la tarjeta a la lista de columnas
+            cardList.appendChild(cardDiv);
+        });
+
+        // 3. Adjuntar el contenedor completo de la columna al #app
+        app.appendChild(columnDiv);
+    });
+
+
+    // 4. Dibujar los selectores de etiquetas (para acciones globales)
+    const labelSelector = document.createElement('div');
+    labelSelector.innerHTML = '<h4 style="margin-top: 20px;">Etiquetas Disponibles:</h4>';
+    estado.labels.forEach(label => {
+        const labelDiv = document.createElement('span');
+        labelDiv.className = 'label-option';
+        // Corregido el error de variable no definida (emoji)
+        labelDiv.textContent = '✨ ' + label.name; 
+        labelSelector.appendChild(labelDiv);
+    });
+
+    // Añadir el selector de etiquetas al final del #app, fuera de las columnas
+    const labelContainerWrapper = document.createElement('div');
+    labelContainerWrapper.style.marginTop = '30px';
+    labelContainerWrapper.innerHTML = '<h3 style="margin-top: 20px;">Acciones Globales</h3>';
+    labelContainerWrapper.appendChild(labelSelector);
+
+    app.appendChild(labelContainerWrapper);
+}
+```

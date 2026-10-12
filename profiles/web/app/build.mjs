@@ -23,6 +23,8 @@ export { CATALOG_VERSION };
 const V = validationFor(["web", "web/app"]);
 export const { runChecks, normalizeCheck } = V;
 export const validationProfile = V.ids;
+// 12/10 (punto 7): compuerta de llamadas. Lee el Standard que se usó; solo corre si el Standard la declara.
+export { validationGates } from "./calls_gate.mjs";
 export { planText, PAGE_PLAN_VERSION } from "./page_plan.mjs";
 
 // Una sola pantalla con todo el juego/app adentro: Boxworld build 3 usó 7117 de 8000

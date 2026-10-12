@@ -1,0 +1,107 @@
+// test_controls.mjs — Standard web/app/estado v0.4.0: los controles de cada elemento los arma el código.
+//   node standards/web/app/estado/test_controls.mjs
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import S, { probeFor, cssClasses } from "./standard.mjs";
+import { parseContract, datosJs } from "./contract.mjs";
+import { kindsOf, controlsPlan, accionesJs, humanize } from "./controls.mjs";
+import { pageHtml, probePage, runCallsProbe, callsProblems } from "../../../../profiles/web/specialist/files_kit.mjs";
+import { validationGates } from "../../../../profiles/web/app/calls_gate.mjs";
+
+let ok = 0, fail = 0;
+const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
+const P = (json) => parseContract(json, {}).items[0];
+const row = (plan, n) => plan.acciones.find((a) => a.nombre === n);
+const step = (id) => S.steps.find((x) => x.id === id);
+
+// ---------- 1. tipos y plan (sin navegador), con formas de estado distintas ----------
+const LISTA = P({ estado: { items: [{ id: 1, texto: "Comprar pan", hecho: false }, { id: 2, texto: "Llamar a Ana", hecho: true }], siguiente: 3 },
+  acciones: [{ nombre: "agregarItem", params: ["texto"], ejemplo: ["x"] }, { nombre: "borrarItem", params: ["id"], ejemplo: [1] }, { nombre: "marcarHecho", params: ["id"], ejemplo: [1] }] });
+const pl = controlsPlan(LISTA);
+t("lista: un tipo (items); 'siguiente' (número suelto) no es un tipo", Object.keys(pl.kinds).join() === "items" && pl.kinds.items.label === "texto");
+t("lista: agregar es general (sin ids) y sus campos van en 'app'; borrar y marcar van en cada item", row(pl, "agregarItem").owner === "app" && row(pl, "agregarItem").campos[0].p === "texto" && row(pl, "borrarItem").owner === "items" && row(pl, "borrarItem").ownerParam === "id");
+const CONT = P({ estado: { titulo: "Mi contador", valor: 0 }, acciones: [{ nombre: "sumar" }, { nombre: "reiniciar" }] });
+t("contador: sin listas → sin tipos; todo es general", Object.keys(controlsPlan(CONT).kinds).length === 0 && controlsPlan(CONT).acciones.every((a) => a.owner === "app"));
+const KAN = P(JSON.parse(readFileSync(fileURLToPath(new URL("../../../../profiles/web/validation/fixtures/real_kanban_c4/contrato.json", import.meta.url)), "utf8")));
+const pk = controlsPlan(KAN);
+t("contrato real (4ª corrida): tipos anidados con su padre", pk.kinds.cards.parent === "columns" && pk.kinds.columns.parent === null && pk.kinds.labels.parent === null && pk.kinds.cards.path.join(".") === "columns.cards");
+t("contrato real: el primer id dice el dueño (crear en la columna, el resto en la tarjeta)", row(pk, "crearTarjeta").owner === "columns" && ["moverTarjeta", "agregarComentario", "agregarEtiqueta", "editarTarjeta", "borrarTarjeta"].every((n) => row(pk, n).owner === "cards"));
+t("contrato real: un id del tipo padre sale de dónde está (contexto); otro del mismo tipo es elección", row(pk, "moverTarjeta").ctx.map((x) => x.p).join() === "sourceColumnId" && row(pk, "moverTarjeta").choice.map((x) => x.p).join() === "targetColumnId" && row(pk, "borrarTarjeta").ctx.map((x) => x.p).join() === "columnId");
+t("contrato real: un id de otra lista (etiquetas) es elección", row(pk, "agregarEtiqueta").choice[0]?.kind === "labels" && row(pk, "agregarEtiqueta").ctx.length === 0);
+const BIB = P({ estado: { estantes: [{ id: "e1", nombre: "Ficción", libros: [{ id: "l1", titulo: "Rayuela", prestamos: [{ id: "p1", socio: "s1" }] }] }], socios: [{ id: "s1", nombre: "Ana" }] },
+  acciones: [{ nombre: "prestarLibro", params: ["libroId", "socioId"], ejemplo: ["l1", "s1"] }, { nombre: "devolver", params: ["prestamoId", "libroId"], ejemplo: ["p1", "l1"] }, { nombre: "agregarLibro", params: ["estanteId", "titulo"], ejemplo: ["e1", "Nuevo"] }, { nombre: "moverLibro", params: ["libroId", "desde", "hacia"], ejemplo: ["l1", "e1", "e1"] }] });
+const pb = controlsPlan(BIB);
+t("otra forma (3 niveles + lista aparte): prestamos → libros → estantes", pb.kinds.prestamos.parent === "libros" && pb.kinds.libros.parent === "estantes" && pb.kinds.socios.parent === null);
+t("otra forma: devolver toma el libro de dónde está; prestar elige socio; mover elige estante destino", row(pb, "devolver").ctx[0]?.p === "libroId" && row(pb, "prestarLibro").choice[0]?.kind === "socios" && row(pb, "moverLibro").ctx[0]?.p === "desde" && row(pb, "moverLibro").choice[0]?.p === "hacia");
+const DUP = kindsOf({ a: [{ id: 1, items: [{ id: 2 }] }], b: [{ id: 3, items: [{ id: 4 }] }] });
+t("dos listas con el mismo nombre → se llaman por el camino completo", Object.keys(DUP.kinds).sort().join() === "a,a.items,b,b.items");
+t("nombres legibles para los botones", humanize("moverTarjeta") === "Mover tarjeta" && humanize("agregar_item") === "Agregar item");
+t("acciones.js compila y no nombra ninguna app", (() => { const src = accionesJs(pk); new Function(src); return !/kanban|tarjeta|columna/i.test(src.replace(/var (TIPOS|ACCIONES) = .*;/g, "")); })());
+t("paso 'acciones' (written): lo escribe el código desde el contrato", step("acciones").kind === "written" && /function controlesDe\(tipo, elemento, estado\)/.test(step("acciones").write({ data: { contrato: { items: [LISTA] } } })["js/acciones.js"]) && JSON.stringify(step("acciones").write({ data: {} })) === "{}");
+t("paso 'acciones': un archivo que no compila → fatal", step("acciones").check({ "js/acciones.js": "function (" }).fatal === true && step("acciones").check({ "js/acciones.js": "var x = 1;" }).length === 0);
+
+// ---------- 2. Chromium: un dibujo que solo muestra textos y agrega controlesDe ----------
+const root = mkdtempSync(join(tmpdir(), "controls-"));
+const app = (name, c, dibujo, css, logica) => {
+  const d = join(root, name); mkdirSync(join(d, "js"), { recursive: true });
+  const ctx = { data: { contrato: { items: [c] } } };
+  const files = { "styles.css": css, "js/datos.js": datosJs(c.estado), "js/logica.js": logica, "js/acciones.js": step("acciones").write(ctx)["js/acciones.js"], "js/dibujo.js": dibujo, "js/controles.js": step("controles").write(ctx)["js/controles.js"] };
+  for (const [f, x] of Object.entries(files)) writeFileSync(join(d, f), x);
+  const page = (scripts, inline = "") => pageHtml({ title: "T", fragment: '<h1>T</h1><div id="app"></div>', scripts, inline, mainId: "principal" });
+  writeFileSync(join(d, "probe.html"), page(["js/datos.js", "js/logica.js", "js/acciones.js", "js/dibujo.js"], probeFor(c, cssClasses(css))));
+  writeFileSync(join(d, "index.html"), page(["js/datos.js", "js/logica.js", "js/acciones.js", "js/dibujo.js", "js/controles.js"]));
+  return d;
+};
+const LOGICA_LISTA = `const App = {
+  crear() { return JSON.parse(JSON.stringify(ESTADO_INICIAL)); },
+  agregarItem(e, texto) { const n = JSON.parse(JSON.stringify(e)); n.items.push({ id: n.siguiente, texto, hecho: false }); n.siguiente++; return n; },
+  borrarItem(e, id) { return { ...e, items: e.items.filter((x) => x.id !== id) }; },
+  marcarHecho(e, id) { return { ...e, items: e.items.map((x) => x.id === id ? { ...x, hecho: !x.hecho } : x) }; }
+};`;
+const DIB_LISTA = `function dibujar(estado) {
+  const app = document.getElementById("app"); app.innerHTML = "";
+  estado.items.forEach((it) => { const d = document.createElement("div"); d.className = "item"; d.textContent = it.texto + (it.hecho ? " ✓" : ""); d.appendChild(controlesDe("items", it, estado)); app.appendChild(d); });
+  app.appendChild(controlesDe("app", null, estado));
+}`;
+const dl = app("lista", LISTA, DIB_LISTA, ".item{color:red}", LOGICA_LISTA);
+const pr = await probePage(join(dl, "probe.html"));
+t("Chromium lista: la sonda de dibujo no encuentra problemas (los controles los arma controlesDe)", pr.probe?.ok && step("dibujo").expect(pr.probe).length === 0, JSON.stringify(pr.probe));
+const cs = step("controles").resolve({ data: { contrato: { items: [LISTA] } } }).calls;
+const rc = await runCallsProbe(join(dl, "index.html"), cs);
+t("Chromium lista: todas las acciones se llaman, con ids numéricos, y se dibuja", callsProblems(rc, cs).length === 0 && (rc.args.borrarItem || []).every((a) => typeof a[1] === "number"), JSON.stringify(rc));
+const dlSin = app("lista_sin_app", LISTA, DIB_LISTA.replace('app.appendChild(controlesDe("app", null, estado));', ""), ".item{color:red}", LOGICA_LISTA);
+const ps = await probePage(join(dlSin, "probe.html"));
+t("Chromium lista: si dibujo no agrega controlesDe(\"app\") el mensaje dice exactamente eso", /faltan los controles de: agregarItem \(agregá controlesDe\("app", null, estado\) una vez al final de #app\)/.test(step("dibujo").expect(ps.probe).join(" | ")), step("dibujo").expect(ps.probe).join(" | "));
+
+// ---------- 3. el Kanban real (contrato y lógica de la 4ª corrida) con un dibujo simple ----------
+const FX = fileURLToPath(new URL("../../../../profiles/web/validation/fixtures/real_kanban_c4/", import.meta.url));
+const DIB_KAN = `function dibujar(estado) {
+  const app = document.getElementById("app"); app.innerHTML = "";
+  estado.columns.forEach((col) => {
+    const cd = document.createElement("div"); cd.className = "column";
+    const h = document.createElement("h2"); h.textContent = col.title; cd.appendChild(h);
+    col.cards.forEach((card) => {
+      const k = document.createElement("div"); k.className = "card";
+      const tt = document.createElement("h3"); tt.textContent = card.titulo; k.appendChild(tt);
+      const p = document.createElement("p"); p.textContent = card.contenido; k.appendChild(p);
+      card.labels.forEach((l) => { const s = document.createElement("span"); s.textContent = (estado.labels.find((x) => x.id === l) || {}).name || l; k.appendChild(s); });
+      card.comments.forEach((m) => { const q = document.createElement("p"); q.textContent = m.usuario + ": " + m.texto; k.appendChild(q); });
+      k.appendChild(controlesDe("cards", card, estado)); cd.appendChild(k);
+    });
+    cd.appendChild(controlesDe("columns", col, estado)); app.appendChild(cd);
+  });
+  estado.labels.forEach((l) => { const s = document.createElement("span"); s.textContent = l.name; app.appendChild(s); });
+}`;
+const dk = app("kanban", KAN, DIB_KAN, ".column{} .card{}", readFileSync(join(FX, "js/logica.js"), "utf8"));
+writeFileSync(join(dk, "contrato.json"), readFileSync(join(FX, "contrato.json")));
+const pk2 = await probePage(join(dk, "probe.html"));
+t("Kanban real: la sonda de dibujo no encuentra problemas", pk2.probe?.ok && step("dibujo").expect(pk2.probe).length === 0, JSON.stringify(pk2.probe));
+const g = await validationGates({ artifact: join(dk, "index.html"), outDir: dk, input: { refined: JSON.parse(readFileSync(join(FX, "refined.json"), "utf8")) }, specialist: { standard: { id: "web/app/estado" } } });
+t("Kanban real: la compuerta de Validation da 6/6 acciones con datos de verdad (antes 1/6)", g.result === "PASS" && g.rows.length === 6 && g.rows.every((r) => !r.problem), JSON.stringify(g.rows));
+const html = await (async () => { const { chromium } = await import("playwright"); const b = await chromium.launch(); const pg = await b.newPage(); await pg.goto("file://" + join(dk, "index.html")); const o = await pg.evaluate(() => ({ mover: [...document.querySelectorAll('.ctl-accion select[data-campo="targetColumnId"]')][0]?.options.length, cols: document.querySelectorAll(".column").length, editar: document.querySelector('.ctl-accion input[data-campo="titulo"]')?.value })); await b.close(); return o; })();
+t("Kanban real: mover ofrece las otras columnas (no la propia) y editar arranca con el texto actual", html.mover === html.cols - 1 && html.editar === "Diseñar estructura base", JSON.stringify(html));
+
+console.log(`\n${ok}/${ok + fail} OK`);
+if (fail) process.exit(1);

@@ -58,7 +58,7 @@ t("missingIds: genérico", missingIds("<div id='a'></div>", ["a", "b"]).join() =
 // 4. registro de Standards
 t("registro: web/game/grilla existe y es DRAFT", STANDARDS["web/game/grilla"]?.status === "DRAFT");
 t("registro: id desconocido → falla fuerte", (() => { try { getStandard("web/game/snake"); return false; } catch (e) { return /STANDARD_UNKNOWN/.test(e.message); } })());
-const KINDS = ["data", "logic", "screen", "render", "wiring"];
+const KINDS = ["data", "written", "logic", "screen", "render", "wiring"];
 t("cada paso de cada Standard usa una clase que el motor conoce", Object.values(STANDARDS).every((s) => s.steps.every((st) => KINDS.includes(st.kind))));
 t("cada 'needs' apunta a un paso anterior", Object.values(STANDARDS).every((s) => s.steps.every((st, i) => (st.needs || []).every((n) => s.steps.slice(0, i).some((p) => p.id === n)))));
 
@@ -111,6 +111,29 @@ t("motor sin plataforma → PLATFORM_REQUIRED", await (async () => { try { await
   const K = dataKind.make(st, { ctx: {}, wrongNote: () => "" });
   const p1 = await K.judge({ "d.json": '{"n":1}' }), p2 = await K.judge({ "d.json": '{"n":2}' });
   t("datos: check da problemas que NO rompen (se reintenta y se queda el mejor)", p1.length === 1 && !p1.fatal && p2.length === 0);
+}
+// v0.11 (12/10, punto 8): un paso que escribe el código (st.write), no el modelo
+{
+  const judged = [];
+  const toyP = { id: "toy", systemPrompt: "s", prepare: () => ({ brief: "", notes: "" }), finish: () => ["x.js"],
+    kinds: { toy: { make: () => ({ judge: async (c) => { judged.push(c["x.js"]); return c["x.js"] === "hola" ? [] : ["el archivo no dice hola"]; } }), store(st, _K, s, env) { env.files[st.file] = s.content[st.file]; } } } };
+  const toyS = (write) => ({ id: "toy", version: "0", status: "DRAFT", scripts: ["x.js"], contract: "C", steps: [{ id: "a", kind: "toy", file: "x.js", prompt: () => "p", write }] });
+  const run = (S, opts = {}) => buildFiles({ refined: { project_name: "T", features: [] }, tasks: [] }, mkdtempSync(pjoin(tmpdir(), "write-")), { standard: S, platform: toyP, log: () => {}, ...opts });
+  const r1 = await run(toyS((ctx) => ({ "x.js": "hola" })));
+  t("write: el harness escribe el archivo, lo juzga una vez y no llama al modelo", r1.steps[0].by === "harness" && r1.steps[0].attempts.length === 1 && judged.join() === "hola" && r1.steps[0].problems_final.length === 0, JSON.stringify(r1.steps[0]));
+  const r2 = await run(toyS(() => ({ "x.js": "chau" })));
+  t("write: si el juez encuentra problemas no se reintenta (vienen de otro paso)", r2.steps[0].attempts.length === 1 && r2.steps[0].problems_final[0] === "el archivo no dice hola" && !r2.steps[0].broken);
+  const e3 = await run(toyS(() => ({ "x.js": "hola" })), { noWrite: true }).then(() => "", (e) => e.message);
+  t("write: con noWrite (--gemma-writes-all) se le pide al modelo", /fetch failed|ECONNREFUSED|LM Studio/i.test(e3), e3);
+  // v0.11.1: clase de paso universal "written" (un archivo que escribe solo el código; no tiene pedido)
+  const wS = (write, check) => ({ id: "w", version: "0", status: "DRAFT", scripts: ["h.js"], contract: "C", steps: [{ id: "h", kind: "written", file: "h.js", write, check }] });
+  const wP = { ...toyP, finish: (env) => Object.keys(env.files) };
+  const w1 = await buildFiles({ refined: { project_name: "T", features: [] }, tasks: [] }, mkdtempSync(pjoin(tmpdir(), "wr-")), { standard: wS(() => ({ "h.js": "var a = 1;" })), platform: wP, log: () => {}, noWrite: true });
+  t("written: sin pedido para el modelo, lo escribe el código aunque se pida --gemma-writes-all", w1.steps[0].by === "harness" && w1.steps[0].problems_final.length === 0);
+  const w2 = await buildFiles({ refined: { project_name: "T", features: [] }, tasks: [] }, mkdtempSync(pjoin(tmpdir(), "wr-")), { standard: wS(() => ({})), platform: wP, log: () => {} });
+  t("written: si no pudo escribirlo (falta lo de un paso anterior) queda roto", w2.steps[0].broken === true && /no pudo escribir h\.js/.test(w2.steps[0].problems_final[0]));
+  const w3 = await buildFiles({ refined: { project_name: "T", features: [] }, tasks: [] }, mkdtempSync(pjoin(tmpdir(), "wr-")), { standard: wS(() => ({ "h.js": "x" }), () => ["no sirve"]), platform: wP, log: () => {} });
+  t("written: st.check del Standard decide si sirve", w3.steps[0].problems_final.join() === "no sirve");
 }
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

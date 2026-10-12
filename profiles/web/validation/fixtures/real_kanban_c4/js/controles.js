@@ -1,0 +1,63 @@
+let estado = App.crear();
+
+document.getElementById('app').addEventListener('click', function(ev) {
+    const b = ev.target.closest("[data-accion]");
+    if (!b) return;
+
+    const accion = b.dataset.accion;
+    let nuevoEstado = estado;
+
+    try {
+        switch (accion) {
+            case "crearTarjeta": {
+                const colId = b.dataset.columnid;
+                const titulo = b.parentElement.querySelector('[data-campo="titulo"]').value;
+                const contenido = b.parentElement.querySelector('[data-campo="contenido"]').value;
+                nuevoEstado = App.crearTarjeta(estado, colId, titulo, contenido);
+                break;
+            }
+            case "moverTarjeta": {
+                const cardId = b.dataset.cardid;
+                const sourceColumnId = b.dataset.sourcecolumnid;
+                const targetColumnId = b.dataset.targetcolumnid;
+                nuevoEstado = App.moverTarjeta(estado, cardId, sourceColumnId, targetColumnId);
+                break;
+            }
+            case "agregarComentario": {
+                const cardId = b.dataset.cardid;
+                const texto = b.parentElement.querySelector('[data-campo="texto"]').value;
+                nuevoEstado = App.agregarComentario(estado, cardId, texto);
+                break;
+            }
+            case "agregarEtiqueta": {
+                const cardId = b.dataset.cardid;
+                const labelId = b.dataset.labelid;
+                nuevoEstado = App.agregarEtiqueta(estado, cardId, labelId);
+                break;
+            }
+            case "editarTarjeta": {
+                const cardId = b.dataset.cardid;
+                const titulo = b.parentElement.querySelector('[data-campo="titulo"]').value;
+                const contenido = b.parentElement.querySelector('[data-campo="contenido"]').value;
+                nuevoEstado = App.editarTarjeta(estado, cardId, titulo, contenido);
+                break;
+            }
+            case "borrarTarjeta": {
+                const cardId = b.dataset.cardid;
+                const colId = b.dataset.columnid;
+                nuevoEstado = App.borrarTarjeta(estado, cardId, colId);
+                break;
+            }
+        }
+
+        if (nuevoEstado !== estado) {
+            estado = nuevoEstado;
+            dibujar(estado);
+        }
+    } catch (e) {
+        console.error("Error al procesar la acción:", e);
+    }
+});
+
+// Dibujar el estado inicial al cargar la aplicación
+dibujar(estado);

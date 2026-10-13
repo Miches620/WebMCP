@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-12l'; // tablero actualizado al 12/10 (6ª corrida + v0.4.1)
+  const SEED = '2026-10-12n'; // tablero actualizado al 12/10 (profile de tema web/seguridad)
   let state = loadState() || {
  "columns": [
   {
@@ -433,6 +433,18 @@
    "isInbox": true,
    "isDefault": true,
    "cards": [
+    {
+     "id": "p43",
+     "title": "Seguridad: que el aviso de XSS vuelva al autor (dibujo) + Skill de Frontend",
+     "desc": "[#Standard #Skills #Seguridad] SEG-1 ya lo detecta en Validation. Falta: (1) la sonda del paso de dibujo prueba el estado con un texto con HTML y le dice a Gemma 'usá textContent'; (2) Skill del Role de Frontend (web/app) nacida de este error, medida con y sin. Después, punto 9.",
+     "priority": "urgente"
+    },
+    {
+     "id": "p42",
+     "title": "Controles del harness: se ven pesados",
+     "desc": "[#Standard #Diseño] Cada tarjeta muestra 5 bloques apilados (campo + botón por acción). Placeholders con el nombre del param (textoComentario, nuevoContenido) en vez de algo legible. 'Editar' arranca vacío: el param (nuevoContenido) no se llama como el dato (content). Para cuando entren las Skills de diseño.",
+     "priority": "medio"
+    },
     {
      "id": "p35",
      "title": "Punto 9 · Las tareas atómicas manejan la construcción",
@@ -554,14 +566,7 @@
    "name": "⚙️ En Progreso",
    "isInbox": false,
    "isDefault": true,
-   "cards": [
-    {
-     "id": "w2",
-     "title": "Corrida de confirmación con v0.4.1",
-     "desc": "[#Specialist] Ver que mover cambie de columna de verdad y que nada más se mueva. Temperatura 0: si el contrato sale igual que la 6ª, cambia solo acciones.js.",
-     "priority": "urgente"
-    }
-   ]
+   "cards": []
   },
   {
    "id": "col-4",
@@ -569,6 +574,18 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h38",
+     "title": "12/10 · Validation profiles por tema: web/seguridad (SEG-1, XSS)",
+     "desc": "[#Validation #Seguridad] Decisión de Miche: la seguridad cruza todos los tipos → segundo eje de Validation profiles (tema) además del tipo; se suma solo a todo proyecto web. Código seguro = Skill del autor; revisar = profile de tema; trabajo de seguridad propio = Specialist de seguridad (cuando haya un proyecto con eso). SEG-1 escribe HTML en cada campo y mira si se ejecuta. 7ª corrida: FAIL en comentario, editar y crear (etiquetas no: ahí Gemma usó textContent). 10 tests.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h37",
+     "title": "12/10 · 7ª corrida (v0.4.1): mover anda de verdad — punto 8 terminado",
+     "desc": "[#Specialist] Pasos de Gemma idénticos a la 6ª (temp 0); solo cambió acciones.js. Probado como persona: card-1 pasa de Pendiente a Completado y el select ofrece solo las otras 2 columnas. 7 PASS / 1 FAIL (R3) / 1 SIN_EVIDENCIA (R7), compuerta 6/6, los 6 pasos al primer intento.",
+     "priority": "bajo"
+    },
     {
      "id": "h36",
      "title": "12/10 · 6ª corrida: los 6 pasos OK al primer intento + v0.4.1",
@@ -803,7 +820,7 @@
   }
  ],
  "customColumnsCount": 1,
- "cardCounter": 75
+ "cardCounter": 80
 };
   
   let editingColumnId = null;

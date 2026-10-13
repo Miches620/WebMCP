@@ -1,0 +1,184 @@
+/* Global Reset and Body Styling */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1e2124; /* Dark background for industrial feel */
+    color: #e0e0e0;
+    margin: 0;
+    padding: 20px;
+}
+
+/* Header Styling */
+h1 {
+    text-align: center;
+    color: #f5f5f5;
+    border-bottom: 3px solid #4a4d52; /* Industrial separator */
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+}
+
+/* Kanban Board Container and Columns Layout */
+#app {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 20px; /* Space for scrolling */
+}
+
+.column {
+    flex: 0 0 300px; /* Fixed width for columns */
+    background-color: #282c31; /* Slightly lighter dark background for column container */
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* Stronger shadow on the board structure */
+    min-height: 300px;
+}
+
+.column h2 {
+    color: #a9b7c6;
+    margin-top: 0;
+    border-bottom: 1px solid #3e4248;
+    padding-bottom: 10px;
+    font-size: 1.4em;
+}
+
+/* Card Styling */
+.card {
+    background-color: #3a3f45; /* Dark card background */
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Initial shadow */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+/* Hover Effect (Illumination) */
+.card:hover {
+    transform: translateY(-5px); /* Lift effect */
+    box-shadow: 0 10px 20px rgba(70, 130, 180, 0.4), 0 0 15px rgba(70, 130, 180, 0.2); /* Blueish glow/illumination */
+}
+
+/* Card Content Styling */
+.card-content {
+    margin-bottom: 10px;
+    font-size: 0.95em;
+    line-height: 1.4;
+    color: #e0e0e0;
+}
+
+/* Labels/Tags Styling */
+.labels-container {
+    display: flex;
+    flex wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.label {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: #6c757d; /* Default label color */
+}
+
+/* Comments Section Styling */
+.comments-container {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed #4a4d52;
+}
+
+.comment {
+    background-color: #3f444e; /* Slightly darker background for comment bubble */
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.comment-user {
+    display: block;
+    font-weight: bold;
+    color: #a9b7c6;
+    font-size: 0.85em;
+}
+
+.comment-text {
+    margin-top: 3px;
+    color: #e0e0e0;
+}
+
+
+/* --- Control Panel Styling (Harness Generated) --- */
+
+/* General Controls Container */
+.ctl-controles {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px 0;
+    border-top: 1px solid #3e4248;
+}
+
+/* Individual Action Control */
+.ctl-accion {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    background-color: #22262c; /* Very dark background for action grouping */
+    border-radius: 4px;
+}
+
+/* Input and Select Styling */
+.ctl-accion input[type="text"],
+.ctl-accion textarea,
+.ctl-accion select {
+    padding: 10px;
+    border: 1px solid #55606c;
+    background-color: #3a3f45; /* Match card background */
+    color: #e0e0e0;
+    border-radius: 4px;
+    width: calc(100% - 22px); /* Full width minus padding/borders */
+    box-sizing: border-box;
+}
+
+/* Button Styling (Industrial look) */
+.ctl-boton {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+/* Primary Action Button (e.g., Save/Submit) */
+.ctl-boton[type="submit"], .btn-primary {
+    background-color: #4CAF50; /* Green for success/main action */
+    color: white;
+}
+
+.ctl-boton[type="submit"]:hover, .btn-primary:hover {
+    background-color: #45a049;
+    transform: translateY(-1px);
+}
+
+/* Secondary Action Button (e.g., Cancel/Delete) */
+.ctl-boton.btn-secondary {
+    background-color: #d32f2f; /* Red for delete/danger */
+    color: white;
+}
+
+.ctl-boton.btn-secondary:hover {
+    background-color: #b71c1c;
+    transform: translateY(-1px);
+}
+
+/* Specific styling for the 'Add Card' control area (if applicable) */
+#app .column:last-child .ctl-controles {
+    border-top: none; /* Clean up border if it's the last column and we are adding controls below cards */
+}

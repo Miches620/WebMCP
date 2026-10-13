@@ -16,11 +16,21 @@ import web from "./web/profile.mjs";
 import landing from "./web/landing/profile.mjs";
 import app from "./web/app/profile.mjs";
 import game from "./web/game/profile.mjs";
+import seguridad from "./web/seguridad/profile.mjs";
 
 const ALL = [web, landing, app, game];
 export const PROFILES = Object.freeze(Object.fromEntries(ALL.map((p) => [p.id, p])));
 /** Tipos que se pueden elegir para un proyecto. */
 export const SELECTABLE = ALL.filter((p) => p.selectable);
+
+// 12/10 (decisión de Miche): Validation profiles POR TEMA (seguridad, después accesibilidad…), un segundo eje
+// además del tipo. Se suman solos a todo proyecto de su plataforma (default). No son tipos ni dan roles.
+const CONCERN_LIST = [seguridad];
+export const CONCERNS = Object.freeze(Object.fromEntries(CONCERN_LIST.map((c) => [c.id, c])));
+/** Los profiles de tema que valen para un proyecto ya resuelto (por su plataforma). */
+export function concernsFor(resolved) {
+  return CONCERN_LIST.filter((c) => c.default && (resolved?.chain || []).includes(c.platform));
+}
 
 const SINGULAR = ["defaultRole", "exampleRole"];
 

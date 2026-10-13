@@ -28,7 +28,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync } from "node:fs";
 import { join, basename } from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveProfiles, profileLabel } from "../profiles/registry.mjs";
+import { resolveProfiles, profileLabel, concernsFor } from "../profiles/registry.mjs";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const args = process.argv.slice(2);
@@ -219,6 +219,15 @@ for (const r of reqChecks) {
   coverage.push({ id: r.id, text: r.text, verdict, checks: res });
 }
 
+// 12/10 (decisión de Miche): Validation profiles POR TEMA (seguridad…), además del tipo. Se suman solos a todo
+// proyecto de su plataforma. Sus criterios no son requisitos del usuario: van aparte en la evidencia.
+const concerns = [];
+for (const cp of concernsFor(profile)) {
+  try {
+    const mod = await import(new URL(`../profiles/${cp.id}/validation.mjs`, import.meta.url));
+    concerns.push({ profile: cp.id, version: cp.version, status: cp.status, results: await mod.runConcern(artifact) });
+  } catch (e) { concerns.push({ profile: cp.id, version: cp.version, status: cp.status, error: e.message, results: [] }); }
+}
 const count = (v) => coverage.filter((c) => c.verdict === v).length;
 const evidence = {
   type: "EVIDENCE",
@@ -231,6 +240,7 @@ const evidence = {
   sections_visible: { result: visibility.result, features: visibility.features || {}, anchors: visibility.anchors || [], detail: visibility.detail },
   components_render: { result: render.result, components: render.components || [], detail: render.detail },
   validation: { profile: B.validationProfile || null, standard: specialist?.standard || null, always: always.map(({ type, result, detail, gate }) => ({ type, result, detail, gate })), standard_gates: profileGates },
+  concerns,
   summary: { requisitos: coverage.length, PASS: count("PASS"), FAIL: count("FAIL"), SIN_EVIDENCIA: count("SIN_EVIDENCIA"), SIN_CHEQUEO: count("SIN_CHEQUEO") },
   control: "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
   coverage,
@@ -254,4 +264,11 @@ for (const c of coverage) {
   for (const x of c.checks.filter((x) => x.trivial)) log(`             ~ ${x.type}: también pasa en el esqueleto (no discrimina)`);
   if (c.verdict === "SIN_CHEQUEO") log(`             (${c.reason})`);
 }
-log(`\nPASS ${evidence.summary.PASS} · FAIL ${evidence.summary.FAIL} · SIN_EVIDENCIA ${evidence.summary.SIN_EVIDENCIA} · SIN_CHEQUEO ${evidence.summary.SIN_CHEQUEO}  →  ${join(outDir, "evidence.json")}`);
+if (concerns.length) {
+  log("\n=== Criterios por tema (Validation profiles de tema) ===");
+  for (const c of concerns) {
+    if (c.error) log(`ERROR       ${c.profile}: ${c.error}`);
+    for (const r of c.results) log(`${r.verdict.padEnd(11)} ${r.id} ${r.text.slice(0, 70)}${r.verdict === "PASS" ? "" : `\n             ${r.verdict === "FAIL" ? "✗" : "~"} ${r.detail}`}`);
+  }
+}
+log(`\nPASS ${evidence.summary.PASS} · FAIL ${evidence.summary.FAIL} · SIN_EVIDENCIA ${evidence.summary.SIN_EVIDENCIA} · SIN_CHEQUEO ${evidence.summary.SIN_CHEQUEO}${concerns.length ? ` · por tema: ${concerns.flatMap((c) => c.results).map((r) => `${r.id} ${r.verdict}`).join(", ")}` : ""}  →  ${join(outDir, "evidence.json")}`);

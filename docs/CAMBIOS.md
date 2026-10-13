@@ -2,6 +2,26 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Validation profiles POR TEMA: web/seguridad v0.1 con SEG-1 (XSS) (12/10)**
+- *Evidencia:* en la 7ª corrida (`2026-10-12T21-30-27`, v0.4.1), probando la app como una persona, escribir `<img src=x onerror=alert()>` en "Editar tarjeta" **ejecutó código**: `dibujo.js` arma el texto del usuario con `innerHTML`. Ningún chequeo lo veía.
+- *Decisión de Miche (12/10):* la seguridad no va en el profile de un tipo (web/app), porque cruza todos los tipos. Los Validation profiles tienen **dos ejes**: **tipo** (web → web/app → web/game) y **tema** (seguridad; después accesibilidad, rendimiento…). Un profile de tema se suma solo a todo proyecto de su plataforma, no es elegible y no da roles. Hay tres cosas distintas:
+  - escribir código seguro → Skill del Role del autor;
+  - revisar si es seguro → Validation profile de tema;
+  - trabajo de seguridad como fase propia (login, permisos, backend) → un Specialist de seguridad, que se crea cuando haya un proyecto con ese trabajo.
+- *Qué se hizo:*
+  - `profiles/web/seguridad/profile.mjs`: solo datos, lo carga también el navegador.
+  - `profiles/web/seguridad/validation.mjs`: Node + Chromium.
+  - `profiles/registry.mjs`: `CONCERNS` y `concernsFor(resolved)`.
+  - Core (`run_build.mjs`): corre los profiles de tema después de los requisitos. Sus criterios van aparte (`evidence.concerns`), en una sección propia de la consola y en la línea final ("por tema: SEG-1 FAIL"). No son requisitos del usuario y no cambian el conteo de requisitos.
+- *SEG-1 `text_stays_text`:* por cada campo de texto visible, escribe un texto con HTML (en todos los campos del grupo), aprieta el botón del grupo y mira:
+  - **FAIL** si el HTML se volvió elementos o se ejecutó código;
+  - **PASS** si se ve tal cual, como texto;
+  - **SIN_EVIDENCIA** si el texto no volvió a aparecer.
+  No lee el contrato ni sabe de dominios: solo campos, botones y la página. Sirve también para formularios de landing.
+- *Resultado con la 7ª corrida real:* **SEG-1 FAIL** en "Agregar comentario", "Editar tarjeta" y "Agregar tarjeta". "Agregar etiqueta" no, porque ahí Gemma usó `textContent`: el chequeo es preciso.
+- *Probado:* `test_seguridad` 10/10 (nuevo): registro de los dos ejes, innerHTML → FAIL, textContent → PASS, sin campos → SIN_EVIDENCIA, formulario de landing, y la corrida real (fixture `real_kanban_c6`). Sin cambios en el resto.
+- *Falta:* que el aviso vuelva al autor. En el paso de dibujo, la sonda puede probar el estado con un texto con HTML y decirle a Gemma "usá textContent". Después, una Skill del Role de Frontend para web/app, medida con y sin.
+
 **6ª corrida real (v0.4.0) + v0.4.1: un destino sin "origen" no es contexto (12/10)**
 - *Corrida (Gemma, Project23, `2026-10-12T20-41-59`):* **los 6 pasos OK al primer intento, por primera vez.** Gemma usó `controlesDe("cards", …)` y `controlesDe("columns", …)` como pedía el contrato. Lógica 32/32. Validation 7 PASS / 1 FAIL / 1 SIN_EVIDENCIA y compuerta 6/6. Unos 8 minutos de Gemma en total.
 - *PASS falso que encontró la revisión:* R2 "Mover". El contrato de esta corrida es `moverTarjeta(tarjetaId, nuevaColumnaId)`, sin columna de origen. La regla v0.4.0 tomaba el primer id del tipo padre como contexto, así que el botón movía la tarjeta **a la misma columna**. La lógica la sacaba y la volvía a poner al final, y cambiaba `last_updated`: la pantalla "cambiaba" y `action_changes` aprobaba.

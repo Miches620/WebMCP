@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-12n'; // tablero actualizado al 12/10 (profile de tema web/seguridad)
+  const SEED = '2026-10-13a'; // tablero actualizado al 13/10 (aviso de XSS en el paso de dibujo)
   let state = loadState() || {
  "columns": [
   {
@@ -433,12 +433,6 @@
    "isInbox": true,
    "isDefault": true,
    "cards": [
-    {
-     "id": "p43",
-     "title": "Seguridad: que el aviso de XSS vuelva al autor (dibujo) + Skill de Frontend",
-     "desc": "[#Standard #Skills #Seguridad] SEG-1 ya lo detecta en Validation. Falta: (1) la sonda del paso de dibujo prueba el estado con un texto con HTML y le dice a Gemma 'usá textContent'; (2) Skill del Role de Frontend (web/app) nacida de este error, medida con y sin. Después, punto 9.",
-     "priority": "urgente"
-    },
     {
      "id": "p42",
      "title": "Controles del harness: se ven pesados",
@@ -566,7 +560,14 @@
    "name": "⚙️ En Progreso",
    "isInbox": false,
    "isDefault": true,
-   "cards": []
+   "cards": [
+    {
+     "id": "p43",
+     "title": "Seguridad: corrida para ver si Gemma corrige el XSS con el aviso (v0.4.2)",
+     "desc": "[#Standard #Seguridad] Hecho (13/10): la sonda de dibujo prueba con textos con HTML y avisa 'usá textContent'. Falta: (1) corrida real para ver si Gemma lo corrige en el reintento y SEG-1 pasa a PASS; (2) después, Skill del Role de Frontend (web/app) medida con y sin, para que salga bien al primer intento.",
+     "priority": "urgente"
+    }
+   ]
   },
   {
    "id": "col-4",
@@ -574,6 +575,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h39",
+     "title": "13/10 · Seguridad: el aviso de XSS vuelve al autor (sonda de dibujo, v0.4.2)",
+     "desc": "[#Standard #Seguridad] Trampa de HTML en los textos del estado; si se ejecuta, el paso de dibujo se reintenta con 'usá textContent'. Pedido inicial sin cambiar (para medir aviso y Skill por separado). Con el dibujo real de la 6ª/7ª: avisa en contenido y comentarios, no en etiquetas. test_controls 29/29.",
+     "priority": "bajo"
+    },
     {
      "id": "h38",
      "title": "12/10 · Validation profiles por tema: web/seguridad (SEG-1, XSS)",
@@ -820,7 +827,7 @@
   }
  ],
  "customColumnsCount": 1,
- "cardCounter": 80
+ "cardCounter": 81
 };
   
   let editingColumnId = null;

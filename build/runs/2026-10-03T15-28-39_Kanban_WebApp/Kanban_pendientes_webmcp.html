@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-14b'; // tablero actualizado al 14/10 (punto 9: receta del Standard para el Atomizer, falta medir con Gemma)
+  const SEED = '2026-10-14c'; // tablero actualizado al 14/10 (punto 9: receta v0.2 tras la 1ª corrida con Gemma)
   let state = loadState() || {
  "columns": [
   {
@@ -443,6 +443,12 @@
      "id": "p44",
      "title": "Skill de Frontend: texto del usuario con textContent (al 1er intento)",
      "desc": "[#Skills #Seguridad] El aviso ya lo corrige en 1 reintento (79 s). Una Skill solo ahorraría ese reintento a cambio de texto en cada pedido de dibujo. Medir con step_bench (con / sin / placebo) cuando haya más proyectos web/app; no es urgente.",
+     "priority": "medio"
+    },
+    {
+     "id": "p46",
+     "title": "TechLeader no conoce el Standard: sus fases le ganan a la receta",
+     "desc": "[#TechLeader #Standard] 1ª corrida de la receta: las fases decían 'columnas vacías' y hacían del Drag and Drop el mecanismo principal. El Atomizer no puede cambiar el alcance de una fase, así que la receta pierde. Opción: una versión cortita de la receta para TechLeader (qué piezas existen, que el estado arranca con ejemplos, que los controles los pone el harness). Medir aparte del Atomizer.",
      "priority": "medio"
     },
     {
@@ -570,7 +576,7 @@
     {
      "id": "p35",
      "title": "Punto 9 · Las tareas atómicas manejan la construcción",
-     "desc": "[#Specialist #Contrato #Atomizer] Paso 1 HECHO (14/10): receta del Standard en el Atomizer + campo 'pieza' (datos / logica / vista / estilo). AHORA: correr build/recipe_bench.mjs con Gemma (sin vs con, mismas fases; línea base Kanban 12/10 = 5 de 16 tareas con señales). Después: cada tarea = el ASSIGNMENT del paso del Specialist que le toca por su pieza, y Validation da veredicto por tarea.",
+     "desc": "[#Specialist #Contrato #Atomizer] Receta v0.1 medida (1ª corrida): lógica y datos salen limpios, pero 5 tareas 'vista' diseñan controles. AHORA: receta v0.2 (restricción dentro de 'vista') → repetir el bench con las mismas fases y --reps 2; objetivo vista_con_controles 5 → 0. Después: cada tarea = el ASSIGNMENT del paso del Specialist según su pieza, y Validation da veredicto por tarea.",
      "priority": "urgente"
     }
    ]
@@ -581,6 +587,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h42",
+     "title": "14/10 · Receta: 1ª corrida con Gemma → v0.2 y métricas v0.2",
+     "desc": "[#Atomizer #Evidencia] Con receta: logica = funciones puras con datos con nombre, sin Redux/grid, 23/23 piezas. Falla: 5 tareas vista diseñan controles. Métricas corregidas (pares A/B aparte, mezcla sin maquinaria): 7/18 sin y 7/23 con. Receta v0.2: la restricción va dentro de 'vista'. Fixture de la corrida real + test_recipe 36/36. Doc: claude/evidencia_receta_atomizer_2026-10-14.md.",
+     "priority": "bajo"
+    },
     {
      "id": "h41",
      "title": "14/10 · Punto 9, paso 1: receta del Standard para el Atomizer",

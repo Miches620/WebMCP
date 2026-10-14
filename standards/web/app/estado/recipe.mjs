@@ -10,11 +10,16 @@
 // sale del Standard web/app/estado (standard.mjs); si el Standard cambia, esto
 // cambia con él. NO agrega prohibiciones propias: arrastrar está permitido
 // (14/10, Miche: "una cosa es que yo lo vete, otra que el Standard lo prohíba").
+//
+// v0.2 (14/10, 1ª corrida con Gemma: build/fixtures/recipe_bench_2026-10-14.json): la regla de controles
+// suelta se ignoró en 5 tareas "vista" (botón o icono, formulario, modal, confirmación). Ahora la
+// restricción va DENTRO de la definición de "vista". "logica" aclara que mostrar es vista (F2.6) y
+// "datos" que la pantalla no arranca vacía (F1.3 salió con columnas vacías; el Standard pide ejemplos).
 
 export const PIEZAS = Object.freeze({
-  datos: "estado inicial (qué cosas hay, qué campos tienen, 2 o 3 ejemplos) y la lista de acciones del usuario (nombre, qué recibe, qué cambia). Sin código.",
-  logica: "UNA acción como función pura: recibe el estado y sus datos, devuelve el estado nuevo. Sin pantalla.",
-  vista: "cómo se ve el estado: qué elementos hay y qué texto o dato muestra cada uno.",
+  datos: "estado inicial (qué cosas hay, qué campos tienen, con 2 o 3 ejemplos por lista: la pantalla nunca arranca vacía) y la lista de acciones del usuario (nombre, qué recibe, qué cambia). Sin código.",
+  logica: "UNA acción del usuario (crear, editar, borrar, mover…) como función pura: recibe el estado y sus datos, devuelve el estado nuevo. Mostrar en pantalla no es logica, es vista.",
+  vista: "qué texto y qué datos muestra cada elemento del estado. NO incluye botones, campos, formularios, modales ni confirmaciones: esos los pone el harness solo, en el elemento que cambia.",
   estilo: "colores, tamaños, espacios, efectos al pasar el mouse.",
 });
 
@@ -37,7 +42,7 @@ const REGLAS = [
 
 const BASE = {
   standard: "web/app/estado",
-  version: "0.1",
+  version: "0.2",
   status: "DRAFT",
   piezas: PIEZAS,
   reglas: Object.freeze(REGLAS),

@@ -2,6 +2,26 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Punto 9: 1ª corrida con Gemma → receta v0.2 y métricas v0.2 (14/10)**
+- *Corrida:* `build/bench/recipe_2026-10-14T15-27-26` (las mismas 4 fases para las dos condiciones, n=1). Quedó guardada como fixture en `build/fixtures/recipe_bench_2026-10-14.json`. Análisis completo: doc del proyecto `claude/evidencia_receta_atomizer_2026-10-14.md`.
+- *Leída a mano:*
+  - Con receta, las tareas `logica` salen como funciones puras con datos con nombre: crear (título, descripción), mover (id, origen, destino), editar, borrar, comentar. Desaparecen las elecciones de framework. 23 de 23 piezas válidas.
+  - **Lo que no anduvo:** la regla suelta "los controles los pone el harness" se ignoró en 5 tareas `vista` (botón o icono, formulario, modal, confirmación).
+- *Métricas v0.2 (tenían falsos positivos):*
+  - "A/B" se cuenta aparte (`barras`), porque "oscuro/industrial" es un par, no dos caminos;
+  - "e.g." sí cuenta como alternativa;
+  - "mezcla" mira solo el título y descarta la maquinaria ("crear el componente", "actualizar el estado");
+  - "información (autor, timestamp)" no es vaga;
+  - "confirmación" cuenta como trabajo del harness;
+  - nueva métrica `vista_con_controles`.
+  - Con v0.2, la 1ª corrida da 7/18 tareas con problema sin receta y 7/23 con receta. La línea base del 12/10 sigue en 5/16.
+- *Receta v0.2:*
+  - la restricción de controles va **dentro** de la definición de `vista` ("NO incluye botones, campos, formularios, modales ni confirmaciones");
+  - `logica` = una acción del usuario, y mostrar en pantalla es `vista` (F2.6 venía mal etiquetada);
+  - `datos` = 2 o 3 ejemplos por lista, la pantalla nunca arranca vacía (F1.3 salió vacía; el Standard pide ejemplos).
+- *Bench:* `--phases` acepta también el fixture, y al final imprime el comando para repetir con las mismas fases.
+- *Probado:* `test_recipe` 36/36, con la 1ª corrida real como regresión: `vista_con_controles` = 5 (F2.4, F3.4, F3.5, F3.7, F4.5).
+
 **Punto 9: receta del Standard para el Atomizer + campo "pieza" (14/10) — receta web/app/estado v0.1 (DRAFT)**
 - *Por qué:* el Atomizer partía las fases sin consultar ningún Standard. En el Kanban del 12/10, 5 de 16 tareas traían señales de problema: "ej. drag-and-drop o botón" (F2.5), "componente o modal" (F3.4), "placeholders para metadata" (F1.3)… El Specialist recibía decisiones abiertas y trabajo que en este Standard hace el harness.
 - *Decisión de Miche (14/10):* "ANTES atomizer generaba las tareas sin tener un Standard de consulta. HOY ya lo tenemos". Y sobre arrastrar: el Standard **no lo prohíbe** (nunca lo prohibió: "arrastrar puede ir además, nunca en vez del botón"). El "sin arrastrar" estaba en mi borrador de la receta y se sacó. Pendiente: que el harness genere arrastrar a partir del plan de controles.

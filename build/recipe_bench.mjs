@@ -98,7 +98,11 @@ async function main() {
   console.log(`input: ${path.relative(ROOT, inputFile)} | tipo: ${profile.chain.join(" ← ")} | receta: ${profile.atomizerRecipe.standard} v${profile.atomizerRecipe.version}`);
 
   let phases;
-  if (arg("--phases")) phases = JSON.parse(fs.readFileSync(arg("--phases"), "utf8"));
+  if (arg("--phases")) {
+    const j = JSON.parse(fs.readFileSync(arg("--phases"), "utf8"));
+    phases = Array.isArray(j) ? j : j.fases; // fases.json de un bench o un fixture { fases, sin, con }
+    if (!Array.isArray(phases) || !phases.length) throw new Error(`${arg("--phases")} no trae fases`);
+  }
   else {
     console.log("TechLeader → armando las fases (una sola vez, las dos condiciones usan las mismas)...");
     phases = await techLeaderPhases(refined, profile);
@@ -142,10 +146,12 @@ async function main() {
         s.mezcla && `mezcla: ${s.acciones.join("+")}`,
         cond === "con" && !s.pieza && `pieza inválida (${c.crudas[i].pieza ?? "falta"})`,
       ].filter(Boolean);
+      if (s.barras.length) why.push(`(barras, mirar a mano: ${s.barras.join(", ")})`);
       console.log(`  ${s.id}${s.pieza ? ` [${s.pieza}]` : ""} ${c.crudas[i].task}${why.length ? `\n      ⚠ ${why.join(" | ")}` : ""}`);
     }
   }
   console.log(`\nGuardado en ${path.relative(ROOT, out)}`);
+  console.log(`Para repetir con las mismas fases: node build/recipe_bench.mjs --phases ${path.relative(ROOT, path.join(out, "fases.json"))}`);
 }
 
 main().catch((e) => { console.error("✗", e.message); process.exit(1); });

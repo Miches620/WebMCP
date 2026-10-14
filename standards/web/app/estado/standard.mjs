@@ -141,10 +141,30 @@ export const probeFor = (c, css = []) => `window.__probe = (function () {
     unstyled.forEach(function (u) { unused.forEach(function (v) { if (near(u, v)) pairs.push(u + "~" + v); }); });
     var els = Array.prototype.filter.call(box.querySelectorAll("[class]"), function (el) { return el.classList.length; });
     var styledEls = els.filter(function (el) { return Array.prototype.some.call(el.classList, function (k) { return cssCls[k]; }); }).length;
-    return { ok: true, children: box.children.length, total: texts.length, noButton: noButton, noId: noId, noField: noField, unstyled: unstyled, unused: unused, pairs: pairs, styledShare: els.length ? styledEls / els.length : 1,
+    var res = { ok: true, children: box.children.length, total: texts.length, noButton: noButton, noId: noId, noField: noField, unstyled: unstyled, unused: unused, pairs: pairs, styledShare: els.length ? styledEls / els.length : 1,
       missing: texts.filter(function (t) { return txt.indexOf(norm(t)) < 0; }),
       objectText: ((box.textContent || "").match(/\\[object \\w+\\]/) || [])[0] || "",
       undef: ["undefined", "nan", "null"].filter(function (w) { return new RegExp("\\\\b" + w + "\\\\b").test(txt) && inState.indexOf(w) < 0; }) };
+    // v0.4.2 (seguridad, SEG-1): los textos del estado son lo que escribe una persona. Se dibuja otra vez con
+    // cada texto convertido en HTML con una trampa (onerror): si se ejecuta o aparece como elemento, dibujar
+    // escribe datos con innerHTML (XSS). Los ids no se tocan (no son textos para personas).
+    try {
+      window.__xssd = 0;
+      var trap = '<img src=x data-xssd="1" onerror="window.__xssd=(window.__xssd||0)+1">';
+      var hit = [];
+      var tr = (function walk(v) {
+        if (typeof v === "string") { var t = v.trim(); return t.length > 1 && /\\s|[A-ZÁÉÍÓÚÑ]/.test(t) ? trap + v : v; }
+        if (Array.isArray(v)) return v.map(walk);
+        if (v && typeof v === "object") { var o = {}; Object.keys(v).forEach(function (k) { o[k] = walk(v[k]); }); return o; }
+        return v;
+      })(App.crear());
+      dibujar(tr);
+      var els2 = box.querySelectorAll("[data-xssd]");
+      Array.prototype.forEach.call(els2, function (el) { var p = el.parentElement; var s = p ? (p.textContent || "").trim().slice(0, 40) : ""; if (s && hit.indexOf(s) < 0 && hit.length < 3) hit.push(s); });
+      res.htmlInText = els2.length ? (hit.length ? hit : ["(sin texto)"]) : [];
+      dibujar(e);
+    } catch (err) { res.htmlInText = []; }
+    return res;
   } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
 })();`;
 const PROBE = probeFor(null);
@@ -168,7 +188,7 @@ const validation = {
 
 const STANDARD = {
   id: "web/app/estado",
-  version: "0.4.1",
+  version: "0.4.2",
   status: "DRAFT",
   validation,
   label: "app de una pantalla con estado y acciones",
@@ -261,6 +281,8 @@ ${fence("json", CONTRACT_FMT)}`,
         if (!p.children) out.push("dibujar(App.crear()) no dibujó nada dentro de #app.");
         if (p.missing?.length) out.push(`estos textos del estado no se ven en #app: ${p.missing.slice(0, 5).map((t) => JSON.stringify(t)).join(", ")}${p.missing.length > 5 ? ` y ${p.missing.length - 5} más` : ""}. Todo lo que está en el estado se muestra.`);
         if (p.objectText) out.push(`en #app aparece "${p.objectText}": se escribió un objeto o un elemento como texto. Escribí sus propiedades (p.ej. item.texto) con textContent.`);
+        // v0.4.2 (seguridad): el aviso vuelve al autor; Validation lo revisa aparte con el profile web/seguridad (SEG-1)
+        if (p.htmlInText?.length) out.push(`dibujar escribe los textos del estado como HTML (innerHTML o += con \`...\`): si una persona escribe "<img src=x onerror=...>" se ejecuta código. Pasó con: ${p.htmlInText.map((t) => JSON.stringify(t)).join(", ")}. Mostrá cada texto con textContent (o document.createTextNode), nunca metido dentro de innerHTML.`);
         if (p.undef?.length) out.push(`en #app aparece ${p.undef.map((w) => `"${w}"`).join(", ")}: se lee una propiedad que no existe en el estado (mirá los nombres de ESTADO_INICIAL).`);
         return out;
       },

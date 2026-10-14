@@ -2,6 +2,13 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Seguridad, el aviso vuelve al autor: sonda de dibujo con trampa de HTML (13/10) — Standard web/app/estado v0.4.2**
+- *Por qué:* SEG-1 (Validation, profile de tema) detecta el XSS al final, pero el arreglo es de quien escribió el código (decisión del 12/10). Tiene que enterarse mientras construye, no después.
+- *Qué se hizo:* después de sus chequeos de siempre, la sonda del paso de dibujo vuelve a dibujar con cada texto del estado (lo que escribe una persona; los ids no se tocan) convertido en HTML con una trampa (`<img … onerror>`). Si aparece como elemento o se ejecuta, el paso tiene un problema que no rompe el archivo, se reintenta y el aviso es: "dibujar escribe los textos del estado como HTML (innerHTML…): si una persona escribe "<img src=x onerror=...>" se ejecuta código. Pasó con: "…". Mostrá cada texto con textContent…". Después vuelve a dibujar el estado de verdad.
+- *A propósito, el pedido inicial a Gemma NO cambia.* Así se mide por separado: (1) si Gemma lo corrige con el aviso, que es la próxima corrida; (2) después, con la Skill de Frontend, si lo hace bien al primer intento.
+- *Con el dibujo real de la 6ª/7ª corrida:* aviso en "Diseñar arquitectura inicial del sistema", "Admin" y "Revisar API endpoints…" (contenido y comentarios con innerHTML). Las etiquetas no, porque ahí usó textContent.
+- *Probado:* `test_controls` 29/29 (3 nuevos: dibujo real → aviso; textContent → sin aviso; la pantalla queda bien después de la trampa). Sin cambios en el resto.
+
 **Validation profiles POR TEMA: web/seguridad v0.1 con SEG-1 (XSS) (12/10)**
 - *Evidencia:* en la 7ª corrida (`2026-10-12T21-30-27`, v0.4.1), probando la app como una persona, escribir `<img src=x onerror=alert()>` en "Editar tarjeta" **ejecutó código**: `dibujo.js` arma el texto del usuario con `innerHTML`. Ningún chequeo lo veía.
 - *Decisión de Miche (12/10):* la seguridad no va en el profile de un tipo (web/app), porque cruza todos los tipos. Los Validation profiles tienen **dos ejes**: **tipo** (web → web/app → web/game) y **tema** (seguridad; después accesibilidad, rendimiento…). Un profile de tema se suma solo a todo proyecto de su plataforma, no es elegible y no da roles. Hay tres cosas distintas:

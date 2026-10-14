@@ -130,5 +130,15 @@ writeFileSync(join(d6, "contrato.json"), readFileSync(join(FX6, "contrato.json")
 const g6 = await validationGates({ artifact: join(d6, "index.html"), outDir: d6, input: { refined: JSON.parse(readFileSync(join(FX6, "refined.json"), "utf8")) }, specialist: { standard: { id: "web/app/estado" } } });
 t("v0.4.1, 6ª corrida: la compuerta sigue 6/6", g6.result === "PASS" && g6.rows.length === 6, JSON.stringify(g6.rows));
 
+// ---------- 5. v0.4.2 (seguridad): la sonda de dibujo le avisa al autor si escribe textos con innerHTML ----------
+{
+  const d = app("kanban6_xss", C6, readFileSync(join(FX6, "js/dibujo.js"), "utf8"), readFileSync(join(FX6, "styles.css"), "utf8"), readFileSync(join(FX6, "js/logica.js"), "utf8"));
+  const pr6 = await probePage(join(d, "probe.html"));
+  const m6 = step("dibujo").expect(pr6.probe).join(" | ");
+  t("dibujo real (6ª/7ª corrida, innerHTML con los textos) → aviso con textContent y los textos donde pasó", /escribe los textos del estado como HTML/.test(m6) && /textContent/.test(m6) && pr6.probe.htmlInText.length >= 1, m6);
+  t("dibujo con textContent (Kanban 4ª) → sin aviso de HTML", (pk2.probe.htmlInText || []).length === 0 && !/como HTML/.test(step("dibujo").expect(pk2.probe).join(" ")), JSON.stringify(pk2.probe.htmlInText));
+  t("la trampa no deja la pantalla rota: después se vuelve a dibujar el estado de verdad", pr6.probe.ok && pr6.probe.missing.length === 0, JSON.stringify(pr6.probe.missing));
+}
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

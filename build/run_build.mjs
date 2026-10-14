@@ -68,8 +68,9 @@ if (args[0] === "--validate") {
   if (!refined.features?.length) throw new Error("el snapshot no trae intentForge.refined_prompt.features");
   profile = declareProfiles(refined);
   B = await loadBuild(profile);
-  const tasks = (snap.atomicTasks || []).map(({ id, role, responsable_sugerido, task, description, depends_on }) => ({
-    id, role: role || responsable_sugerido, task, description, depends_on,
+  // 14/10 (punto 9): se conserva la "pieza" de cada tarea (receta del Standard): decide a qué paso del Specialist va
+  const tasks = (snap.atomicTasks || []).map(({ id, role, responsable_sugerido, task, description, depends_on, pieza }) => ({
+    id, role: role || responsable_sugerido, task, description, depends_on, ...(pieza ? { pieza } : {}),
   }));
   if (!tasks.length) throw new Error("el snapshot no trae atomicTasks");
   input = { source: basename(args[0]), refined, tasks };

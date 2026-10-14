@@ -245,7 +245,7 @@ ${fence("json", CONTRACT_FMT)}`,
       global: "App", pure: true, label: "lógica de una app, sin DOM",
       // las funciones y las pruebas salen del contrato (paso 1)
       resolve: (ctx) => { const c = contractOf(ctx); return c ? { functions: ["crear", ...c.acciones.map((a) => a.nombre)], tests: logicTests(c), observe: observeChanges(c) } : {}; },
-      prompt: (c) => `NOTAS DEL TECHLEADER (contexto):\n${c.notes}\n\nYA EXISTE js/datos.js (lo armó el harness) con ESTADO_INICIAL.\n\n${c.paso}: escribí js/logica.js (const App = { crear, ${contractOf(c).acciones.map((a) => a.nombre).join(", ")} }). Sin DOM. El harness lo va a probar con ESTADO_INICIAL y el "ejemplo" de cada acción:\n${contractOf(c).acciones.map((a) => `- App.${a.nombre}(App.crear()${a.ejemplo.map((v) => ", " + JSON.stringify(v)).join("")})`).join("\n")}`,
+      prompt: (c) => `${c.notes ? `NOTAS DEL TECHLEADER (contexto):\n${c.notes}\n\n` : ""}YA EXISTE js/datos.js (lo armó el harness) con ESTADO_INICIAL.\n\n${c.paso}: escribí js/logica.js (const App = { crear, ${contractOf(c).acciones.map((a) => a.nombre).join(", ")} }). Sin DOM. El harness lo va a probar con ESTADO_INICIAL y el "ejemplo" de cada acción:\n${contractOf(c).acciones.map((a) => `- App.${a.nombre}(App.crear()${a.ejemplo.map((v) => ", " + JSON.stringify(v)).join("")})`).join("\n")}`,
     },
     {
       // v0.4.0 (punto 8): los controles de cada elemento los arma el código (controls.mjs), no el modelo
@@ -298,7 +298,7 @@ ${fence("json", CONTRACT_FMT)}`,
       resolve: (ctx) => { const c = contractOf(ctx); if (!c) return {};
         return { calls: { global: "App", draw: "dibujar", methods: c.acciones.map((a) => a.nombre), forms: [],
           hints: Object.fromEntries(c.acciones.map((a) => [a.nombre, `el listener click de #app, con b.dataset.accion === "${a.nombre}", hace estado = ${callOf(a)} y dibujar(estado)`])) } }; },
-      prompt: (c) => `NOTAS DEL TECHLEADER (contexto):\n${c.notes}\n\nYA EXISTEN: ESTADO_INICIAL, App (crear, ${contractOf(c).acciones.map((a) => a.nombre).join(", ")}) y dibujar(estado), que dibuja un botón por acción con sus ids en b.dataset y sus campos al lado.\n\n${c.paso}: escribí js/controles.js: let estado = App.crear(); UN listener click en #app con const b = ev.target.closest("[data-accion]"), y por cada acción:\n${contractOf(c).acciones.map((a) => `- "${a.nombre}": estado = ${callOf(a)};`).join("\n")}\ndespués dibujar(estado). Al final del archivo: dibujar(estado).`,
+      prompt: (c) => `${c.notes ? `NOTAS DEL TECHLEADER (contexto):\n${c.notes}\n\n` : ""}YA EXISTEN: ESTADO_INICIAL, App (crear, ${contractOf(c).acciones.map((a) => a.nombre).join(", ")}) y dibujar(estado), que dibuja un botón por acción con sus ids en b.dataset y sus campos al lado.\n\n${c.paso}: escribí js/controles.js: let estado = App.crear(); UN listener click en #app con const b = ev.target.closest("[data-accion]"), y por cada acción:\n${contractOf(c).acciones.map((a) => `- "${a.nombre}": estado = ${callOf(a)};`).join("\n")}\ndespués dibujar(estado). Al final del archivo: dibujar(estado).`,
     },
   ],
 };

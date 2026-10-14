@@ -95,7 +95,8 @@ export function postprocessChecks(checks = [], id, text = "") {
 export function build(input, outDir, opts = {}) {
   if (opts.legacy) return APP.build(input, outDir, opts); // tira el error de siempre (--legacy es de landing)
   if (legacyFlag(opts)) return APP.build(input, outDir, opts);
-  return buildFiles(input, outDir, { ...opts, standard: getStandard(profile.standard), platform: WEB_FILES });
+  // 14/10 (punto 9): la receta del Standard le dice al motor a qué paso va cada tarea (por su pieza)
+  return buildFiles(input, outDir, { ...opts, standard: getStandard(profile.standard), platform: WEB_FILES, recipe: profile.atomizerRecipe || null });
 }
 export function writeBaseline(baselineDir, input, basePlan, specialist) {
   if (!specialist?.standard) return APP.writeBaseline(baselineDir, input, basePlan, specialist);

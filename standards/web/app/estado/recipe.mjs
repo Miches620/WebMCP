@@ -73,6 +73,7 @@ ${reglas}
 }
 
 // El Atomizer (core) solo lee recipe.piezas y recipe.text: no sabe de qué Standard es.
-export const recipe = Object.freeze({ ...BASE, text: recipeText(BASE) });
+// El motor del Specialist (harness/assignments.mjs) lee recipe.pasos y recipe.autor: a qué paso va cada tarea y quién lo construye.
+export const recipe = Object.freeze({ ...BASE, text: recipeText(BASE), pasos: PIEZA_STEPS, autor: PIEZA_AUTOR });
 
 export default recipe;

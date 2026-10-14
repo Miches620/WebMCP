@@ -26,10 +26,11 @@ import { join } from "node:path";
 import { chatStream } from "../build/lm_stream.mjs";
 import { estTokens } from "../build/tokens.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
+import { assignByStep, assignmentText, assignmentSummary } from "./assignments.mjs";
 // compatibilidad: las herramientas de JS se siguen pudiendo importar desde acá (viven en js_tools.mjs)
 export { loadScripts, syntaxOf, runAcceptance, findMember, replaceMember, stripComments, topNames, clashes, shadowProblems } from "./js_tools.mjs";
 
-export const ENGINE_VERSION = "files_engine v0.11.1";
+export const ENGINE_VERSION = "files_engine v0.12";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
@@ -153,7 +154,10 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
   const { brief, notes } = prep;
   mkdirSync(join(outDir, "app"), { recursive: true });
   const files = Object.fromEntries([...(P.extraFiles || []), ...S.scripts].map((f) => [f, ""]));
-  const ctx = { hints, notes, ...(prep.initial || {}), data: {}, files, total: S.steps.length, paso: "" };
+  // v0.12 (14/10, punto 9): con la receta del Standard (opts.recipe) cada tarea trae su pieza y cada paso
+  // recibe SUS tareas ("TAREAS DE ESTE PASO"). Sin receta o sin piezas (corrida vieja): notas, como antes.
+  const assignment = assignByStep(tasks || [], opts.recipe || null, S.steps.map((x) => x.id));
+  const ctx = { hints, notes: assignment ? "" : notes, ...(prep.initial || {}), data: {}, files, total: S.steps.length, paso: "" };
   const steps = [];
   const byId = {};
   const out = {};
@@ -193,6 +197,8 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
     const { judge, repair } = K;
     const names = answerOf(st);
     const rec = { n, task_id: st.id, kind: st.kind, files: names, attempts: [] };
+    const mine = assignment?.byStep[st.id] || [];
+    if (assignment) rec.tareas = mine.map((t) => t.id);
     log(`[SPECIALIST] ${n}/${S.steps.length} ${names.join(" + ")}`);
     ctx.paso = `PASO ${n} de ${S.steps.length}`;
     // v0.11 (12/10, punto 8): un paso que escribe el CÓDIGO, no el modelo. El Standard decide cuál
@@ -210,7 +216,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
       rec.problems_final = [...problems];
       rec.broken = !!problems.fatal || !names.some((x) => content[x]);
       steps.push(rec);
-      log(`[SPECIALIST]   ${problems.length ? `✗ ${problems.length} problema(s): ${problems.slice(0, 3).join(" | ").slice(0, 300)}` : "✓"} · lo escribió el harness (sin modelo)`);
+      log(`[SPECIALIST]   ${problems.length ? `✗ ${problems.length} problema(s): ${problems.slice(0, 3).join(" | ").slice(0, 300)}` : "✓"} · lo escribió el harness (sin modelo)${mine.length ? ` · cubre ${mine.map((t) => t.id).join(", ")}` : ""}`);
       return { content, rec };
     }
     let best = null, prev = null, problems = [];
@@ -223,7 +229,9 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
       const sk = skillsFor(st.kind);
       // banco (v0.9.8): la línea neutra va ADELANTE; el pedido del paso sigue siendo lo último que lee Gemma
       // (11/10: con la línea al final, en Invernadero escribió js/dibujo.js las 5 veces)
-      const user = (opts.bench?.prefix ? `${opts.bench.prefix}\n\n` : "") + `BRIEF:\n${brief}\n\n${contract()}\n\n${sk ? sk + "\n\n" : ""}${st.prompt(ctx)}\n\n` + retry;
+      // v0.12: las tareas del paso van ANTES del pedido del paso (el pedido sigue siendo lo último que lee Gemma)
+      const tareas = assignmentText(mine);
+      const user = (opts.bench?.prefix ? `${opts.bench.prefix}\n\n` : "") + `BRIEF:\n${brief}\n\n${contract()}\n\n${sk ? sk + "\n\n" : ""}${tareas ? tareas + "\n\n" : ""}${st.prompt(ctx)}\n\n` + retry;
       const r = await ask(P.systemPrompt, user, st.cap || 4000);
       writeFileSync(join(outDir, `step_${String(n).padStart(2, "0")}_${st.id}${k ? ".retry" + k : ""}.raw.txt`), r.raw, "utf8");
       const att = { k, ms: r.ms, finish_reason: r.finish_reason, reasoning_chars: r.reasoning_chars, prompt_tokens_est: r.promptTokens, max_tokens: r.maxTokens };
@@ -271,6 +279,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
     return { content: {}, rec };
   };
 
+  log(`[SPECIALIST] tareas por paso: ${assignmentSummary(assignment)}`);
   if (opts.skills) log(`[SPECIALIST] Skills del Role ${opts.skills.role} (${opts.skills.status}): ${opts.skills.list.map((x) => x.id).join(", ")}`);
   log(`[SPECIALIST] ${ENGINE_VERSION} · Standard ${S.id} v${S.version} (${S.status}) · plataforma ${P.id || "?"}: ${S.steps.length} pasos chicos (un archivo por paso)${S.hintsText ? ` · ${S.hintsText(hints)}` : ""}`);
   // v0.9.7 (10/10, banco por paso): opts.bench = { step, frozen: { files, fragment, raws }, maxAttempts, prefix, noRepair }.
@@ -310,6 +319,11 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
     hints, data: Object.fromEntries(Object.entries(ctx.data).map(([k, v]) => [k, v.summary])),
     rule_tests: firstLogic ? out.acceptance?.[firstLogic.id] : undefined, acceptance: out.acceptance,
     ...(skipped.length ? { skipped } : {}), order: steps.map((s) => s.task_id),
+    // v0.12: qué tareas recibió cada paso (null = sin piezas, tareas como notas)
+    assignment: assignment && {
+      byStep: Object.fromEntries(Object.entries(assignment.byStep).map(([k, l]) => [k, l.map((t) => t.id)])),
+      autorDe: assignment.autorDe, sinPieza: assignment.sinPieza.map((t) => t.id), piezaDesconocida: assignment.piezaDesconocida.map((t) => t.id), pasosSinTareas: assignment.pasosSinTareas,
+    },
     steps: steps.map((s) => ({ ...s, ms: s.attempts.reduce((a, b) => a + b.ms, 0), finish_reason: s.attempts.at(-1)?.finish_reason, changed: s.files, rejected: s.problems_final })),
   };
 }

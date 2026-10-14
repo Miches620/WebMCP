@@ -2,6 +2,19 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Punto 9, paso 2: cada paso del Specialist recibe SUS tareas — files_engine v0.12, assignments v0.1 (14/10)**
+- *Por qué:* Miche quiere que el Specialist ejecute *esas mismas tareas*. Hasta ahora le llegaban a Gemma solo como "notas del TechLeader", y nada más que en el paso de lógica (todas las del componente).
+- *Qué se hizo:*
+  - `harness/assignments.mjs` (core, no nombra piezas ni pasos): `assignByStep(tasks, recipe, stepIds)` reparte las tareas por su pieza según `recipe.pasos`, y marca quién construye cada paso según `recipe.autor`. Sin receta, o con tareas sin pieza (corrida vieja), devuelve `null` y todo sigue como antes. Las tareas sin pieza o con pieza desconocida quedan a la vista; no se pierden.
+  - `files_engine` v0.12: el bloque **"TAREAS DE ESTE PASO"** va antes del pedido del paso, así el pedido sigue siendo lo último que lee Gemma. Termina con "si una tarea choca con el pedido del paso, manda el pedido del paso". Cada paso guarda `rec.tareas`, y el resultado trae `assignment` (reparto, autor, sin pieza, pasos sin tareas). En los pasos que escribe el harness, el log dice qué tareas cubre. Con reparto, las notas viejas no se repiten.
+  - La receta expone `pasos` y `autor`. `profiles/web/app/build.mjs` le pasa la receta al motor, y `run_build` conserva la `pieza` de cada tarea del snapshot.
+  - El Standard estado muestra el encabezado "NOTAS DEL TECHLEADER" solo si hay notas.
+  - `build/snapshots/kanban_receta_v03_snapshot.json`: el brief del Kanban del 14/10 + las 28 tareas de la 3ª corrida (rep 1), para probar sin pasar por la UI.
+- *Reparto con ese snapshot:* contrato 5 · logica 7 · acciones 6 (harness) · pantalla 10 · dibujo 6 · controles 6 (harness). Con un LM falso se verificó que el pedido real del paso contrato lleva sus 5 tareas antes del pedido del paso.
+- *Ojo, se va a ver en la corrida:* la tarea F1.3 dice "columnas vacías" y el pedido del contrato pide ejemplos. La regla es que manda el pedido del paso; hay que ver si Gemma la respeta.
+- *Probado:* `test_assignments` 19/19 (reparto con la corrida real, casos borde, motor con y sin receta), `test_files_engine` 34/34 y el resto de la suite.
+- *Falta:* el veredicto de Validation por tarea.
+
 **Punto 9: 3ª corrida (receta v0.3, pieza controles, 2 repeticiones) — el objetivo se cumple (14/10)**
 - *Corrida:* `build/bench/recipe_2026-10-14T18-12-56`, con las mismas fases. Quedó guardada como fixture en `build/fixtures/recipe_bench_2026-10-14_v03.json`.
 - *Resultado:*

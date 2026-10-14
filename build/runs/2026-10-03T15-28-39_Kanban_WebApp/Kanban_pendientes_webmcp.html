@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-14e'; // tablero actualizado al 14/10 (punto 9: receta v0.3 medida; sigue tareas → ASSIGNMENT)
+  const SEED = '2026-10-14f'; // tablero actualizado al 14/10 (punto 9 paso 2: cada paso recibe sus tareas)
   let state = loadState() || {
  "columns": [
   {
@@ -576,7 +576,7 @@
     {
      "id": "p35",
      "title": "Punto 9 · Las tareas atómicas manejan la construcción",
-     "desc": "[#Specialist #Contrato #Atomizer] Atomizer con receta v0.3 medido (3 corridas): vista sin controles (0 y 1), un control por acción, lógica limpia. A DECIDIR: siguiente paso = tareas → ASSIGNMENT del paso del Standard según su pieza (controles → harness, el resto → Gemma) y veredicto de Validation por tarea; o antes p46 (TechLeader con receta corta).",
+     "desc": "[#Specialist #Contrato #Atomizer] Paso 1 (Atomizer con receta v0.3) y paso 2 (cada paso del Specialist recibe SUS tareas, files_engine v0.12) hechos. AHORA: build real con build/snapshots/kanban_receta_v03_snapshot.json → ver si Gemma cumple sus tareas sin romper lo que andaba (7 PASS / R3 / R7) y si respeta 'manda el pedido del paso' (F1.3 columnas vacías). Después: veredicto de Validation por tarea.",
      "priority": "urgente"
     }
    ]
@@ -587,6 +587,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h45",
+     "title": "14/10 · Punto 9 paso 2: cada paso del Specialist recibe SUS tareas",
+     "desc": "[#Specialist #Harness] harness/assignments.mjs reparte las tareas por pieza según la receta (pasos y autor). El motor (v0.12) pone 'TAREAS DE ESTE PASO' antes del pedido y guarda qué tareas recibió cada paso; controles → pasos del harness. Sin receta: como antes. Kanban v03: contrato 5 · logica 7 · acciones 6 (h) · pantalla 10 · dibujo 6 · controles 6 (h). test_assignments 19/19.",
+     "priority": "bajo"
+    },
     {
      "id": "h44",
      "title": "14/10 · Receta v0.3 medida: vista sin controles (0 y 1), un control por acción",

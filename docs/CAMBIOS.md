@@ -2,6 +2,24 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Punto 9: 2ª corrida (v0.2, 2 repeticiones) → pieza "controles", receta v0.3 y métricas v0.3 (14/10)**
+- *Corrida:* `build/bench/recipe_2026-10-14T16-15-39`, con las mismas fases que la 1ª. Quedó guardada como fixture en `build/fixtures/recipe_bench_2026-10-14_v02.json`.
+  - La lógica sale muy bien en las dos repeticiones: `moveCard(id, columna)`, `editCard(id, título, descripción)`, `deleteCard(id)`, etiquetas y comentarios con sus datos.
+  - "Columnas vacías" sale las dos veces: la fase le gana a la receta (p46).
+  - Tareas `vista` que diseñan controles: 4 y 4 (con v0.1 eran 5). Gemma arma un **par por acción**: la lógica y "cómo la dispara el usuario" (formulario de crear, modal de editar, confirmación de borrar, arrastrar).
+- *Decisión de Miche (14/10):* no pelear contra ese par. Pasa a ser una pieza propia, **`controles`**: QUÉ acción y en QUÉ elemento ("borrar con un botón en cada tarjeta", "mover arrastrando a otra columna"). **No la escribe Gemma**: la resuelve el harness, con los pasos `acciones` y `controles` del Standard. Así se conserva lo que pidió el usuario (arrastrar, confirmación), que es el insumo de p45, en vez de prohibirlo.
+- *Receta v0.3:*
+  - 5 piezas, con `PIEZA_AUTOR` (`controles` = harness; el resto, Gemma) y `PIEZA_STEPS.controles = ["acciones", "controles"]`;
+  - `vista` = qué texto y datos muestra; cómo se dispara una acción es `controles`;
+  - regla nueva: a lo sumo UNA tarea `controles` por acción, que depende de su `logica`.
+  - Ojo: hoy el harness no hace confirmaciones. Si una tarea la pide, queda registrada como pedido.
+- *Métricas v0.3:*
+  - en una tarea `controles`, nombrar botón, formulario o modal no es problema (es su trabajo);
+  - `vista_con_controles` también cuenta "botón" o "icono" en una tarea `vista`;
+  - nuevas: `controles` y `controles_sin_logica` (una tarea controles cuya acción no tiene tarea logica, o sea que el harness no tendría qué disparar).
+  - `actionsIn()` saca la maquinaria ("añadir el botón de…").
+- *Probado:* `test_recipe` 42/42, con las dos corridas reales como regresión. El bench se probó contra un LM falso.
+
 **Punto 9: 1ª corrida con Gemma → receta v0.2 y métricas v0.2 (14/10)**
 - *Corrida:* `build/bench/recipe_2026-10-14T15-27-26` (las mismas 4 fases para las dos condiciones, n=1). Quedó guardada como fixture en `build/fixtures/recipe_bench_2026-10-14.json`. Análisis completo: doc del proyecto `claude/evidencia_receta_atomizer_2026-10-14.md`.
 - *Leída a mano:*

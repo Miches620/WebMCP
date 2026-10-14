@@ -15,13 +15,22 @@
 // suelta se ignoró en 5 tareas "vista" (botón o icono, formulario, modal, confirmación). Ahora la
 // restricción va DENTRO de la definición de "vista". "logica" aclara que mostrar es vista (F2.6) y
 // "datos" que la pantalla no arranca vacía (F1.3 salió con columnas vacías; el Standard pide ejemplos).
+//
+// v0.3 (14/10, decisión de Miche tras la 2ª corrida, n=2): con v0.2 las tareas "vista" con controles bajaron
+// de 5 a 3 pero no a 0: Gemma arma un PAR por acción (la lógica + cómo la dispara el usuario). En vez de
+// pelear contra eso, ese par tiene pieza propia: "controles" (qué acción y en qué elemento). No la escribe
+// Gemma: la resuelve el harness (pasos acciones/controles). Se conserva lo pedido (arrastrar, confirmar).
 
 export const PIEZAS = Object.freeze({
   datos: "estado inicial (qué cosas hay, qué campos tienen, con 2 o 3 ejemplos por lista: la pantalla nunca arranca vacía) y la lista de acciones del usuario (nombre, qué recibe, qué cambia). Sin código.",
   logica: "UNA acción del usuario (crear, editar, borrar, mover…) como función pura: recibe el estado y sus datos, devuelve el estado nuevo. Mostrar en pantalla no es logica, es vista.",
-  vista: "qué texto y qué datos muestra cada elemento del estado. NO incluye botones, campos, formularios, modales ni confirmaciones: esos los pone el harness solo, en el elemento que cambia.",
+  vista: "qué texto y qué datos muestra cada elemento del estado. Cómo el usuario dispara una acción no es vista, es controles.",
   estilo: "colores, tamaños, espacios, efectos al pasar el mouse.",
+  controles: "cómo el usuario dispara UNA acción: decí QUÉ acción y en QUÉ elemento (por ejemplo \"borrar con un botón en cada tarjeta\", \"mover arrastrando a otra columna\"). No diseñes el botón, el formulario ni el modal: lo arma el harness.",
 });
+
+// Quién construye cada pieza: "controles" no la escribe Gemma (Standard v0.4: acciones.js y controles.js los genera el harness).
+export const PIEZA_AUTOR = Object.freeze({ datos: "gemma", logica: "gemma", vista: "gemma", estilo: "gemma", controles: "harness" });
 
 // De qué paso del Standard sale cada pieza (para el Specialist, más adelante).
 export const PIEZA_STEPS = Object.freeze({
@@ -29,11 +38,12 @@ export const PIEZA_STEPS = Object.freeze({
   logica: ["logica"],
   vista: ["pantalla", "dibujo"],
   estilo: ["pantalla"],
+  controles: ["acciones", "controles"],
 });
 
 const REGLAS = [
   "Cada acción del usuario es su propia tarea \"logica\": crear, editar, borrar y mover van separadas.",
-  "Los botones y campos de cada acción los agrega el harness solo, en el elemento que cambia: no hagas tareas de cablear botones, eventos o formularios.",
+  "Cada acción del usuario tiene a lo sumo UNA tarea \"controles\" (botón, campo, arrastrar o confirmación juntos), que depende de su tarea \"logica\".",
   "Arrastrar puede sumarse; toda acción también se puede hacer con un botón en el elemento que cambia.",
   "Lo que el usuario escribe es un texto o un número por dato; una lista se agrega de a un elemento.",
   "Nombrá los campos concretos (por ejemplo \"título y descripción\"), nunca \"metadata\" ni \"información\".",
@@ -42,7 +52,7 @@ const REGLAS = [
 
 const BASE = {
   standard: "web/app/estado",
-  version: "0.2",
+  version: "0.3",
   status: "DRAFT",
   piezas: PIEZAS,
   reglas: Object.freeze(REGLAS),

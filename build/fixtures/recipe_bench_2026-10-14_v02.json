@@ -1,0 +1,855 @@
+{
+ "origen": "build/bench/recipe_2026-10-14T16-15-39 (Gemma 4 E4B, receta v0.2, 2 repeticiones)",
+ "fases": [
+  {
+   "id": "F1",
+   "name": "Establecimiento del Diseño Base y Estructura de Columnas",
+   "responsable_sugerido": "Frontend",
+   "description": "Implementar la estructura visual principal de la aplicación Kanban. Esto incluye configurar el diseño con una paleta de colores oscura y un estilo industrial, y renderizar las columnas vacías en memoria para establecer el contenedor del tablero.",
+   "depends_on": []
+  },
+  {
+   "id": "F2",
+   "name": "Gestión de Estado In-Memory y Creación de Tarjetas",
+   "responsable_sugerido": "Frontend",
+   "description": "Implementar la lógica de estado en el cliente para manejar las tarjetas y sus pertenencias a columnas. Desarrollar la funcionalidad inicial para crear nuevas tarjetas (incluyendo la captura de datos básicos) y mostrarlas dentro del estado.",
+   "depends_on": [
+    "F1"
+   ]
+  },
+  {
+   "id": "F3",
+   "name": "Implementación de Interacciones CRUD Core (Movimiento, Edición, Eliminación)",
+   "responsable_sugerido": "Frontend",
+   "description": "Desarrollar la funcionalidad principal de arrastrar y soltar (Drag and Drop) para mover tarjetas entre columnas. Implementar los flujos de edición de tarjeta en el cliente y la eliminación de tarjetas del estado.",
+   "depends_on": [
+    "F2"
+   ]
+  },
+  {
+   "id": "F4",
+   "name": "Refinamiento UX/UI y Funcionalidades Secundarias",
+   "responsable_sugerido": "Frontend",
+   "description": "Añadir los detalles de la experiencia de usuario: implementar el etiquetado y la adición de comentarios a las tarjetas. Aplicar los efectos visuales requeridos (sombras, iluminación al pasar el mouse) y finalizar la coherencia del diseño oscuro/industrial.",
+   "depends_on": [
+    "F3"
+   ]
+  }
+ ],
+ "corridas": [
+  {
+   "cond": "sin",
+   "rep": 1,
+   "tareas": [
+    {
+     "id": "F1.1",
+     "phase": "F1",
+     "task": "Configuración del Tema y Estilo Base (Dark/Industrial)",
+     "description": "Implementar la hoja de estilos base para toda la aplicación Kanban, aplicando la paleta de colores oscura y el estilo industrial requerido. Esto incluye definir variables CSS globales y los estilos fundamentales para contenedores y elementos interactivos.",
+     "depends_on": []
+    },
+    {
+     "id": "F1.2",
+     "phase": "F1",
+     "task": "Implementación del Contenedor Principal Kanban Board",
+     "description": "Crear la estructura HTML y el componente de contenedor principal (el 'board') que albergará todas las columnas. Este componente debe utilizar los estilos definidos en F1.1 para establecer el layout general del tablero.",
+     "depends_on": [
+      "F1.1"
+     ]
+    },
+    {
+     "id": "F1.3",
+     "phase": "F1",
+     "task": "Renderizado Inicial de Columnas Vacías",
+     "description": "Implementar la lógica de estado y el componente para renderizar las columnas iniciales (ej: 'To Do', 'In Progress'). Estas columnas deben ser contenedores vacíos que establezcan la estructura visual del tablero dentro del contenedor principal.",
+     "depends_on": [
+      "F1.2"
+     ]
+    },
+    {
+     "id": "F2.1",
+     "phase": "F2",
+     "task": "Implementación de la Gestión de Estado In-Memory para Tarjetas y Columnas",
+     "description": "Definir e implementar la lógica central de estado en el cliente (ej. Context API o Redux) para manejar el array global de tarjetas, sus propiedades y su pertenencia a columnas específicas del Kanban Board.",
+     "depends_on": [
+      "F1.2",
+      "F1.3"
+     ]
+    },
+    {
+     "id": "F2.2",
+     "phase": "F2",
+     "task": "Desarrollo de la Funcionalidad de Creación de Tarjetas y Captura de Datos",
+     "description": "Crear el componente de formulario (modal o sidebar) para que el usuario ingrese los datos básicos de una nueva tarjeta. Implementar la función que captura estos datos y llama a la lógica de estado (F2.1) para añadir la nueva entidad al estado global.",
+     "depends_on": [
+      "F2.1"
+     ]
+    },
+    {
+     "id": "F2.3",
+     "phase": "F2",
+     "task": "Renderizado Dinámico de Tarjetas en el Kanban Board",
+     "description": "Crear el componente visual de la tarjeta (Card Component) y actualizar la lógica del contenedor principal para que itere sobre el estado global (F2.1), renderizando las tarjetas correctamente dentro de sus respectivas columnas.",
+     "depends_on": [
+      "F2.1"
+     ]
+    },
+    {
+     "id": "F3.1",
+     "phase": "F3",
+     "task": "Implementar la funcionalidad de arrastrar (Drag Start) para las tarjetas.",
+     "description": "Añadir los manejadores de eventos necesarios a cada tarjeta renderizada para que puedan ser arrastradas visualmente dentro del Kanban Board.",
+     "depends_on": [
+      "F2.3"
+     ]
+    },
+    {
+     "id": "F3.2",
+     "phase": "F3",
+     "task": "Implementar la lógica de soltado (Drop Logic) y movimiento de estado.",
+     "description": "Desarrollar los manejadores de eventos para detectar cuándo una tarjeta es soltada sobre una columna, actualizando el estado in-memory con la nueva posición de la tarjeta.",
+     "depends_on": [
+      "F3.1",
+      "F2.1"
+     ]
+    },
+    {
+     "id": "F3.3",
+     "phase": "F3",
+     "task": "Implementar el mecanismo UI para activar el modo de edición de una tarjeta.",
+     "description": "Añadir un botón o área clickeable en la tarjeta que, al ser activado, muestre el formulario/modal de edición asociado a esa tarjeta específica.",
+     "depends_on": [
+      "F2.3"
+     ]
+    },
+    {
+     "id": "F3.4",
+     "phase": "F3",
+     "task": "Desarrollar la gestión del estado al guardar ediciones de tarjeta.",
+     "description": "Implementar la lógica cliente-side para capturar los datos modificados en el formulario de edición y actualizar el estado in-memory de la tarjeta correspondiente, sin requerir una llamada API (simulación de guardado local).",
+     "depends_on": [
+      "F3.3",
+      "F2.1"
+     ]
+    },
+    {
+     "id": "F3.5",
+     "phase": "F3",
+     "task": "Implementar el trigger y la confirmación para eliminar una tarjeta.",
+     "description": "Añadir un botón de eliminación a las tarjetas e implementar el flujo de confirmación (ej. modal de alerta) antes de proceder con la eliminación del estado.",
+     "depends_on": [
+      "F2.3"
+     ]
+    },
+    {
+     "id": "F3.6",
+     "phase": "F3",
+     "task": "Actualizar el estado y remover visualmente una tarjeta eliminada.",
+     "description": "Ejecutar la lógica final de eliminación: remover la tarjeta del estado in-memory (usando F2.1) y eliminar su representación DOM en el Kanban Board.",
+     "depends_on": [
+      "F3.5",
+      "F2.1"
+     ]
+    },
+    {
+     "id": "F4.1",
+     "phase": "F4",
+     "task": "Implementar la visualización de etiquetas (tags) en el componente de tarjeta.",
+     "description": "Añadir y estilizar los componentes de etiqueta a las tarjetas para mostrar información categorizada, asegurando que se integren con el diseño oscuro/industrial.",
+     "depends_on": [
+      "F2.3"
+     ]
+    },
+    {
+     "id": "F4.2",
+     "phase": "F4",
+     "task": "Implementar la interfaz de adición y visualización de comentarios en las tarjetas.",
+     "description": "Desarrollar el área de input para nuevos comentarios y la sección para listar los comentarios existentes dentro del componente de tarjeta o su panel asociado.",
+     "depends_on": [
+      "F2.3"
+     ]
+    },
+    {
+     "id": "F4.3",
+     "phase": "F4",
+     "task": "Aplicar efectos visuales (sombras y hover) a las tarjetas del Kanban Board.",
+     "description": "Estilizar el componente de tarjeta para incluir sombras sutiles y un efecto de iluminación o cambio visual al pasar el mouse, mejorando la interactividad UX.",
+     "depends_on": [
+      "F2.3"
+     ]
+    },
+    {
+     "id": "F4.4",
+     "phase": "F4",
+     "task": "Ajuste final de coherencia del diseño oscuro e industrial en nuevas funcionalidades.",
+     "description": "Revisar y ajustar todos los nuevos elementos (etiquetas, comentarios) y componentes interactivos para garantizar la máxima coherencia visual con el tema dark/industrial establecido en F1.1.",
+     "depends_on": [
+      "F4.1",
+      "F4.2",
+      "F4.3",
+      "F1.1"
+     ]
+    }
+   ]
+  },
+  {
+   "cond": "con",
+   "rep": 1,
+   "tareas": [
+    {
+     "id": "F1.1",
+     "phase": "F1",
+     "task": "Configurar el estilo global de la aplicación para implementar una paleta de colores oscura y un estilo industrial.",
+     "description": "Aplicar los estilos base (colores, tipografía, sombras) a todo el contenedor principal de la aplicación para establecer el tema oscuro e industrial requerido. Esto incluye definir variables CSS globales para colores primarios y secundarios.",
+     "pieza": "estilo",
+     "depends_on": []
+    },
+    {
+     "id": "F1.2",
+     "phase": "F1",
+     "task": "Implementar la estructura contenedora principal del tablero Kanban.",
+     "description": "Crear el contenedor de nivel superior (el 'board') que albergará todas las columnas. Este componente debe tener un diseño flex o grid para gestionar la disposición horizontal de los contenedores de columna.",
+     "pieza": "vista",
+     "depends_on": []
+    },
+    {
+     "id": "F1.3",
+     "phase": "F1",
+     "task": "Establecer el estado inicial en memoria con la lista de columnas vacías.",
+     "description": "Definir el estado inicial del tablero, que debe ser un array vacío o pre-poblado con los nombres y IDs de las columnas requeridas (ej: 'To Do', 'In Progress', 'Done'), sin ningún elemento dentro.",
+     "pieza": "datos",
+     "depends_on": []
+    },
+    {
+     "id": "F1.4",
+     "phase": "F1",
+     "task": "Renderizar la estructura visual de los contenedores de columna vacíos.",
+     "description": "Utilizando el estado inicial definido (F1.3), renderizar los componentes visuales de las columnas en el contenedor principal (F1.2). Cada columna debe ser un contenedor estilizado que muestre su título y esté listo para recibir tarjetas.",
+     "pieza": "vista",
+     "depends_on": [
+      "F1.2",
+      "F1.3"
+     ]
+    },
+    {
+     "id": "F2.1",
+     "phase": "F2",
+     "task": "Definir la estructura de datos in-memory para una tarjeta individual.",
+     "description": "Establecer el esquema de un objeto Tarjeta, incluyendo campos como 'título' (string), 'descripción' (string) y 'contenido_detallado' (textarea). Definir que cada tarjeta debe estar asociada a una columna específica.",
+     "pieza": "datos",
+     "depends_on": []
+    },
+    {
+     "id": "F2.2",
+     "phase": "F2",
+     "task": "Implementar la lógica de gestión del estado global in-memory para el tablero Kanban.",
+     "description": "Desarrollar la función central que inicializa y mantiene el estado en memoria, mapeando las columnas (obtenidas de F1.3) y almacenando listas de objetos Tarjeta (definidos en F2.1) dentro de cada columna.",
+     "pieza": "logica",
+     "depends_on": [
+      "F1.3",
+      "F1.4"
+     ]
+    },
+    {
+     "id": "F2.3",
+     "phase": "F2",
+     "task": "Implementar la lógica para crear una nueva tarjeta y actualizar el estado global.",
+     "description": "Crear la función que recibe los datos de un formulario (título, descripción, contenido) y ejecuta la actualización del estado en memoria (F2.2), añadiendo la nueva tarjeta a la columna activa.",
+     "pieza": "logica",
+     "depends_on": [
+      "F2.1",
+      "F2.2"
+     ]
+    },
+    {
+     "id": "F2.4",
+     "phase": "F2",
+     "task": "Diseñar y renderizar el componente visual de una tarjeta individual.",
+     "description": "Crear el componente reutilizable que muestra los datos de la Tarjeta (título, descripción, contenido) con un formato legible dentro del contenedor de columna. Este componente debe ser puramente visual y no interactivo.",
+     "pieza": "vista",
+     "depends_on": []
+    },
+    {
+     "id": "F2.5",
+     "phase": "F2",
+     "task": "Implementar la renderización dinámica de todas las tarjetas en sus respectivas columnas.",
+     "description": "Desarrollar el mecanismo que itera sobre el estado global (F2.2) y utiliza el componente visual de tarjeta (F2.4) para renderizar todas las tarjetas en la posición correcta dentro de los contenedores de columna del tablero.",
+     "pieza": "vista",
+     "depends_on": [
+      "F2.2",
+      "F2.4"
+     ]
+    },
+    {
+     "id": "F3.1",
+     "phase": "F3",
+     "task": "Implementar la lógica de movimiento de tarjeta (Drag and Drop)",
+     "description": "Desarrollar la función que recibe el ID de la tarjeta, la columna origen y la columna destino, y actualiza el estado global del tablero Kanban para reflejar el nuevo movimiento.",
+     "pieza": "logica",
+     "depends_on": [
+      "F2.2"
+     ]
+    },
+    {
+     "id": "F3.2",
+     "phase": "F3",
+     "task": "Implementar la interacción visual de arrastrar y soltar (Drag and Drop)",
+     "description": "Añadir los manejadores de eventos y el feedback visual necesario para que una tarjeta pueda ser arrastrada sobre un área de destino, indicando la columna receptora.",
+     "pieza": "vista",
+     "depends_on": [
+      "F2.4"
+     ]
+    },
+    {
+     "id": "F3.3",
+     "phase": "F3",
+     "task": "Implementar la lógica para editar los campos de una tarjeta",
+     "description": "Desarrollar la función que recibe el ID de la tarjeta y un objeto con los nuevos datos (título, descripción), y actualiza el estado global del tablero Kanban.",
+     "pieza": "logica",
+     "depends_on": [
+      "F2.2"
+     ]
+    },
+    {
+     "id": "F3.4",
+     "phase": "F3",
+     "task": "Diseñar la vista de edición para una tarjeta individual",
+     "description": "Crear el componente visual (ej. un modal o formulario expandible) que se renderiza al hacer clic en 'Editar' y contiene los campos editables para título y descripción de la tarjeta.",
+     "pieza": "vista",
+     "depends_on": [
+      "F2.4"
+     ]
+    },
+    {
+     "id": "F3.5",
+     "phase": "F3",
+     "task": "Implementar la lógica de eliminación de una tarjeta del estado",
+     "description": "Desarrollar la función que recibe el ID de la tarjeta y actualiza el estado global eliminando permanentemente esa tarjeta del tablero.",
+     "pieza": "logica",
+     "depends_on": [
+      "F2.2"
+     ]
+    },
+    {
+     "id": "F3.6",
+     "phase": "F3",
+     "task": "Añadir el control visual de eliminación a la tarjeta",
+     "description": "Integrar un botón o icono visible en cada componente de tarjeta que, al hacer clic, dispare el flujo de eliminación.",
+     "pieza": "vista",
+     "depends_on": [
+      "F2.4"
+     ]
+    },
+    {
+     "id": "F4.1",
+     "phase": "F4",
+     "task": "Definir la estructura de datos para las etiquetas (labels) asociadas a una tarjeta.",
+     "description": "Establecer el estado inicial en memoria para almacenar una lista de etiquetas por tarjeta. Cada etiqueta debe incluir un nombre y un color/identificador visual. Ejemplo: [{nombre: 'Pendiente', color: '#ffc107'}, {nombre: 'Revisión', color: '#2196f3'}].",
+     "pieza": "datos",
+     "depends_on": [
+      "F2.1"
+     ]
+    },
+    {
+     "id": "F4.2",
+     "phase": "F4",
+     "task": "Implementar la lógica para añadir o modificar etiquetas a una tarjeta existente.",
+     "description": "Crear una función que reciba el ID de la tarjeta, el nombre y el color de la etiqueta, y devuelva el estado actualizado del objeto Tarjeta con la nueva lista de etiquetas. Debe manejar la adición o actualización de etiquetas existentes.",
+     "pieza": "logica",
+     "depends_on": [
+      "F2.2"
+     ]
+    },
+    {
+     "id": "F4.3",
+     "phase": "F4",
+     "task": "Diseñar y renderizar el componente visual de las etiquetas dentro de la tarjeta.",
+     "description": "Implementar cómo se muestran las etiquetas (ej. como 'píldoras' o badges) en la vista de la tarjeta, mostrando su nombre y color asociado. Debe ser visible junto a otros campos de texto.",
+     "pieza": "vista",
+     "depends_on": [
+      "F2.4",
+      "F4.1"
+     ]
+    },
+    {
+     "id": "F4.4",
+     "phase": "F4",
+     "task": "Definir la estructura de datos para los comentarios asociados a una tarjeta.",
+     "description": "Establecer el estado inicial en memoria para almacenar un array de comentarios por tarjeta. Cada comentario debe incluir el texto, el autor (nombre o ID) y la marca de tiempo (timestamp). Ejemplo: [{texto: 'Comentario 1', autor: 'Usuario A', timestamp: '2023-10-26'}].",
+     "pieza": "datos",
+     "depends_on": [
+      "F2.1"
+     ]
+    },
+    {
+     "id": "F4.5",
+     "phase": "F4",
+     "task": "Implementar la lógica para añadir un nuevo comentario a una tarjeta.",
+     "description": "Crear una función que reciba el ID de la tarjeta, el texto del comentario y el autor actual. Debe devolver el estado actualizado de la tarjeta añadiendo el nuevo objeto comentario al array existente.",
+     "pieza": "logica",
+     "depends_on": [
+      "F2.2"
+     ]
+    },
+    {
+     "id": "F4.6",
+     "phase": "F4",
+     "task": "Diseñar y renderizar el componente visual del área de comentarios en la tarjeta.",
+     "description": "Implementar la sección visible para mostrar los comentarios (lista cronológica) y un campo de entrada/botón para añadir nuevos comentarios. Debe estar contenido dentro o asociado a la vista de la tarjeta.",
+     "pieza": "vista",
+     "depends_on": [
+      "F2.4",
+      "F4.1"
+     ]
+    },
+    {
+     "id": "F4.7",
+     "phase": "F4",
+     "task": "Aplicar efectos visuales (sombras y iluminación) a las tarjetas al pasar el mouse.",
+     "description": "Añadir transiciones suaves, sombras sutiles y un efecto de 'iluminación' o elevación visible cuando el cursor se posa sobre una tarjeta (hover state).",
+     "pieza": "estilo",
+     "depends_on": [
+      "F2.4"
+     ]
+    },
+    {
+     "id": "F4.8",
+     "phase": "F4",
+     "task": "Ajustar la coherencia del diseño oscuro/industrial en los nuevos componentes de etiquetas y comentarios.",
+     "description": "Revisar y ajustar el uso de colores, tipografía, bordes y espaciado para asegurar que las nuevas áreas (etiquetas y comentarios) se integren perfectamente con la paleta oscura e industrial definida previamente.",
+     "pieza": "estilo",
+     "depends_on": [
+      "F4.3",
+      "F4.6"
+     ]
+    }
+   ]
+  },
+  {
+   "cond": "sin",
+   "rep": 2,
+   "tareas": [
+    {
+     "id": "F1.1",
+     "phase": "F1",
+     "task": "Configuración del Diseño Base y Paleta de Colores Oscura",
+     "description": "Establecer los estilos globales (CSS/SCSS) para la aplicación, implementando la paleta de colores oscura y el estilo visual industrial requerido para todo el contenedor Kanban.",
+     "depends_on": []
+    },
+    {
+     "id": "F1.2",
+     "phase": "F1",
+     "task": "Implementación de la Estructura Principal del Tablero Kanban",
+     "description": "Crear y estructurar el contenedor principal (el 'board') que albergará todas las columnas, utilizando los estilos base definidos en F1.1.",
+     "depends_on": [
+      "F1.1"
+     ]
+    },
+    {
+     "id": "F1.3",
+     "phase": "F1",
+     "task": "Renderizado de Columnas Vacías Iniciales",
+     "description": "Implementar la lógica y el componente para renderizar las columnas iniciales del tablero (ej: 'To Do', 'In Progress'), asegurando que estén vacías en memoria pero presentes visualmente dentro de la estructura creada en F1.2.",
+     "depends_on": [
+      "F1.2"
+     ]
+    },
+    {
+     "id": "F2.1",
+     "phase": "F2",
+     "task": "Implementar la estructura de estado in-memory para gestionar el conjunto de tarjetas y su mapeo a columnas.",
+     "description": "Definir y configurar el store o hook de estado global en el cliente, estableciendo la estructura de datos que contendrá todas las tarjetas y cómo se agrupan por columna (estado inicial).",
+     "depends_on": [
+      "F1.2"
+     ]
+    },
+    {
+     "id": "F2.2",
+     "phase": "F2",
+     "task": "Implementar la lógica de mutación del estado para añadir, eliminar o mover tarjetas entre columnas.",
+     "description": "Desarrollar las funciones que modifican el estado in-memory (ej: addCard(data), moveCard(cardId, sourceColId, targetColId)) asegurando la coherencia de los datos en todo momento.",
+     "depends_on": [
+      "F2.1"
+     ]
+    },
+    {
+     "id": "F2.3",
+     "phase": "F2",
+     "task": "Crear el componente de formulario para la captura de datos básicos de una nueva tarjeta.",
+     "description": "Desarrollar el componente UI (`NewCardForm`) que permite al usuario ingresar los campos mínimos requeridos para crear una tarjeta (ej: título, descripción).",
+     "depends_on": []
+    },
+    {
+     "id": "F2.4",
+     "phase": "F2",
+     "task": "Conectar la creación de tarjetas con el estado in-memory.",
+     "description": "Implementar la lógica que toma los datos del formulario (F2.3) y llama a la función de mutación de estado (F2.2) para añadir la tarjeta al tablero virtualmente.",
+     "depends_on": [
+      "F2.3",
+      "F2.2"
+     ]
+    },
+    {
+     "id": "F2.5",
+     "phase": "F2",
+     "task": "Desarrollar el componente de Tarjeta individual (`CardComponent`) para su renderizado.",
+     "description": "Crear un componente reutilizable que recibe los datos de una tarjeta y se encarga de renderizar su representación visual completa, respetando la paleta de diseño (F1.1).",
+     "depends_on": [
+      "F1.1"
+     ]
+    },
+    {
+     "id": "F2.6",
+     "phase": "F2",
+     "task": "Integrar el renderizado dinámico de tarjetas en las columnas del tablero.",
+     "description": "Modificar la estructura principal del Tablero Kanban (F1.2) para que itere sobre el estado in-memory y muestre los componentes `CardComponent` (F2.5) dentro de cada columna, utilizando las columnas iniciales (F1.3).",
+     "depends_on": [
+      "F1.3",
+      "F2.5"
+     ]
+    },
+    {
+     "id": "F3.1",
+     "phase": "F3",
+     "task": "Implementar la funcionalidad de Drag and Drop (D&D) en el componente CardComponent para que las tarjetas puedan ser arrastradas.",
+     "description": "Añadir los manejadores de eventos y la lógica visual necesaria para iniciar, mover y soltar una tarjeta sobre un área de columna.",
+     "depends_on": [
+      "F2.5",
+      "F2.6"
+     ]
+    },
+    {
+     "id": "F3.2",
+     "phase": "F3",
+     "task": "Conectar la acción de movimiento D&D con el mutador de estado para actualizar la posición de la tarjeta.",
+     "description": "Implementar la lógica que, al soltar una tarjeta en una columna diferente, llama a la función de mutación del estado (F2.2) para registrar el nuevo movimiento y actualizar el estado in-memory.",
+     "depends_on": [
+      "F3.1",
+      "F2.2"
+     ]
+    },
+    {
+     "id": "F3.3",
+     "phase": "F3",
+     "task": "Modificar CardComponent para habilitar la edición de datos en el cliente.",
+     "description": "Hacer que los campos de texto dentro del componente Tarjeta sean editables, mostrando un estado de formulario al hacer clic o enfocar.",
+     "depends_on": [
+      "F2.5"
+     ]
+    },
+    {
+     "id": "F3.4",
+     "phase": "F3",
+     "task": "Implementar la lógica de actualización del estado tras editar una tarjeta en el cliente.",
+     "description": "Capturar los cambios realizados por el usuario en el componente editable y utilizar el mutador de estado (F2.2) para actualizar permanentemente los datos de la tarjeta en el estado in-memory.",
+     "depends_on": [
+      "F3.3",
+      "F2.2"
+     ]
+    },
+    {
+     "id": "F3.5",
+     "phase": "F3",
+     "task": "Añadir el mecanismo de eliminación visible en la tarjeta.",
+     "description": "Integrar un botón o icono de 'Eliminar' dentro del CardComponent para que sea accesible al usuario.",
+     "depends_on": [
+      "F2.5"
+     ]
+    },
+    {
+     "id": "F3.6",
+     "phase": "F3",
+     "task": "Conectar el evento de eliminación con la mutación de estado para remover la tarjeta.",
+     "description": "Implementar el manejador de eventos que, al hacer clic en eliminar (F3.5), llama a la función de mutación del estado (F2.2) para eliminar la tarjeta del conjunto de datos y del DOM.",
+     "depends_on": [
+      "F3.5",
+      "F2.2"
+     ]
+    },
+    {
+     "id": "F4.1",
+     "phase": "F4",
+     "task": "Implementar la funcionalidad de etiquetado (tagging) en el componente CardComponent.",
+     "description": "Añadir la capacidad de visualizar y gestionar etiquetas asociadas a una tarjeta dentro del CardComponent, asegurando que los datos se muestren correctamente según el diseño oscuro/industrial.",
+     "depends_on": [
+      "F2.5",
+      "F3.6"
+     ]
+    },
+    {
+     "id": "F4.2",
+     "phase": "F4",
+     "task": "Implementar la funcionalidad de comentarios en las tarjetas (CardComponent).",
+     "description": "Diseñar e implementar la sección de comentarios dentro del CardComponent, incluyendo el formulario para añadir nuevos comentarios y el renderizado histórico de los mismos.",
+     "depends_on": [
+      "F2.5",
+      "F3.6"
+     ]
+    },
+    {
+     "id": "F4.3",
+     "phase": "F4",
+     "task": "Aplicar efectos visuales (sombras y hover) a los componentes clave.",
+     "description": "Refinar el CSS de CardComponent y sus contenedores para aplicar sombras sutiles y efectos de iluminación o cambio de estado al pasar el mouse, mejorando la interactividad UX.",
+     "depends_on": [
+      "F3.6"
+     ]
+    },
+    {
+     "id": "F4.4",
+     "phase": "F4",
+     "task": "Asegurar la coherencia visual y temática del diseño oscuro/industrial en toda la interfaz.",
+     "description": "Revisar todos los componentes (incluyendo etiquetas, comentarios y el tablero principal) para garantizar que se adhieren estrictamente a la paleta de colores, tipografía y estilo industrial definido, completando el pulido UX/UI general.",
+     "depends_on": [
+      "F4.1",
+      "F4.2",
+      "F4.3"
+     ]
+    }
+   ]
+  },
+  {
+   "cond": "con",
+   "rep": 2,
+   "tareas": [
+    {
+     "id": "F1.1",
+     "phase": "F1",
+     "task": "Establecer el contenedor principal y la estructura de cuadrícula (grid/flex) para el tablero Kanban.",
+     "description": "Implementar el layout base que contendrá todas las columnas. Este debe ser un contenedor flexible o grid que gestione el ancho y espaciado de manera uniforme para albergar múltiples columnas en una sola vista horizontal.",
+     "pieza": "estilo",
+     "depends_on": []
+    },
+    {
+     "id": "F1.2",
+     "phase": "F1",
+     "task": "Aplicar la paleta de colores oscura y el estilo industrial global al tablero Kanban.",
+     "description": "Configurar los estilos CSS base para todo el componente del tablero, incluyendo fondos oscuros (dark mode), tipografía adecuada y bordes que simulen un aspecto 'industrial' o robusto. Esto afecta al contenedor principal y a sus elementos hijos.",
+     "pieza": "estilo",
+     "depends_on": []
+    },
+    {
+     "id": "F1.3",
+     "phase": "F1",
+     "task": "Definir el estado inicial (datos) con las columnas vacías predefinidas.",
+     "description": "Establecer la estructura de datos inicial del tablero, incluyendo al menos tres columnas por defecto: 'Pendiente' (To Do), 'En Progreso' (In Progress) y 'Completado' (Done). Cada columna debe estar inicialmente vacía.",
+     "pieza": "datos",
+     "depends_on": []
+    },
+    {
+     "id": "F1.4",
+     "phase": "F1",
+     "task": "Renderizar la vista inicial del tablero con las columnas definidas en el estado.",
+     "description": "Utilizando la estructura de layout (F1.1) y los datos de las columnas vacías (F1.3), renderizar visualmente todas las columnas predefinidas dentro del contenedor principal, asegurando que el estado vacío se muestre correctamente.",
+     "pieza": "vista",
+     "depends_on": [
+      "F1.1",
+      "F1.3"
+     ]
+    },
+    {
+     "id": "F2.1",
+     "phase": "F2",
+     "task": "Definir el modelo de datos (estado in-memory) para una Tarjeta.",
+     "description": "Establecer la estructura del objeto Card en el estado global, incluyendo campos como 'id' (UUID), 'titulo', 'descripcion' y 'columna_id'. Definir que cada columna contendrá una lista de estos objetos.",
+     "pieza": "datos",
+     "depends_on": []
+    },
+    {
+     "id": "F2.2",
+     "phase": "F2",
+     "task": "Implementar la vista del formulario para crear una nueva tarjeta.",
+     "description": "Crear el componente de formulario visible en el tablero que capture los datos básicos necesarios para una nueva tarjeta: un campo de texto para el título y un área de texto para la descripción. Este componente debe estar inicialmente oculto o accesible mediante un botón.",
+     "pieza": "vista",
+     "depends_on": []
+    },
+    {
+     "id": "F2.3",
+     "phase": "F2",
+     "task": "Implementar la lógica de creación de tarjeta en el estado in-memory.",
+     "description": "Desarrollar la función que recibe los datos del formulario (título y descripción), genera un nuevo objeto Card con un ID único, y lo añade al estado global dentro de la columna activa. Esta lógica debe actualizar el estado in-memory.",
+     "pieza": "logica",
+     "depends_on": [
+      "F2.1",
+      "F2.2"
+     ]
+    },
+    {
+     "id": "F2.4",
+     "phase": "F2",
+     "task": "Actualizar la vista para renderizar las tarjetas en el tablero.",
+     "description": "Modificar los componentes de columna existentes para que, además de mostrar el encabezado y el contenedor, iteren sobre la lista de Cards almacenadas en el estado in-memory (F2.1) y rendericen una representación visual de cada tarjeta con su título y descripción.",
+     "pieza": "vista",
+     "depends_on": [
+      "F2.1",
+      "F2.3"
+     ]
+    },
+    {
+     "id": "F3.1",
+     "phase": "F3",
+     "task": "Implementar la lógica de movimiento de tarjeta (Drag and Drop)",
+     "description": "Desarrollar la función 'moveCard' que recibe el ID de la tarjeta y el nuevo ID de columna, actualizando el estado in-memory para reflejar el cambio de posición/estado.",
+     "pieza": "logica",
+     "depends_on": [
+      "F2.1",
+      "F2.4"
+     ]
+    },
+    {
+     "id": "F3.2",
+     "phase": "F3",
+     "task": "Implementar la vista y estilo para Drag and Drop",
+     "description": "Añadir los manejadores de eventos (onDragStart, onDrop) y el feedback visual necesario en las tarjetas y columnas para indicar que una tarjeta puede ser movida o soltada.",
+     "pieza": "vista",
+     "depends_on": [
+      "F2.4"
+     ]
+    },
+    {
+     "id": "F3.3",
+     "phase": "F3",
+     "task": "Definir el estado de datos para la edición de tarjetas",
+     "description": "Asegurar que los campos 'título' y 'descripción' sean editables en el modelo de datos al abrir un formulario o modal de edición.",
+     "pieza": "datos",
+     "depends_on": [
+      "F2.1"
+     ]
+    },
+    {
+     "id": "F3.4",
+     "phase": "F3",
+     "task": "Implementar la lógica de edición de tarjeta",
+     "description": "Desarrollar la función 'editCard' que recibe el ID de la tarjeta y los nuevos valores (título, descripción), actualizando el estado in-memory.",
+     "pieza": "logica",
+     "depends_on": [
+      "F2.1",
+      "F2.4"
+     ]
+    },
+    {
+     "id": "F3.5",
+     "phase": "F3",
+     "task": "Implementar la vista y estilo para edición de tarjetas",
+     "description": "Crear el componente o modal visible que permite al usuario modificar los campos 'título' y 'descripción' de una tarjeta existente.",
+     "pieza": "vista",
+     "depends_on": [
+      "F2.4"
+     ]
+    },
+    {
+     "id": "F3.6",
+     "phase": "F3",
+     "task": "Implementar la lógica de eliminación de tarjetas",
+     "description": "Desarrollar la función 'deleteCard' que recibe el ID de la tarjeta y elimina permanentemente ese elemento del estado in-memory.",
+     "pieza": "logica",
+     "depends_on": [
+      "F2.1",
+      "F2.4"
+     ]
+    },
+    {
+     "id": "F3.7",
+     "phase": "F3",
+     "task": "Implementar la vista y estilo para eliminación de tarjetas",
+     "description": "Añadir un botón visible en cada tarjeta que, al hacer clic, dispare el flujo de confirmación y elimine la tarjeta del estado.",
+     "pieza": "vista",
+     "depends_on": [
+      "F2.4"
+     ]
+    },
+    {
+     "id": "F4.1",
+     "phase": "F4",
+     "task": "Actualizar el modelo de datos (estado) para incluir la funcionalidad de etiquetas en las tarjetas.",
+     "description": "Modificar el estado de una Tarjeta para que contenga un array de etiquetas. Ejemplo: 'labels': ['UX', 'Backend'].",
+     "pieza": "datos",
+     "depends_on": [
+      "F2.1"
+     ]
+    },
+    {
+     "id": "F4.2",
+     "phase": "F4",
+     "task": "Implementar la vista para mostrar las etiquetas existentes en cada tarjeta.",
+     "description": "Renderizar los labels como pequeños badges o píldoras de color dentro del componente Tarjeta, mostrando el texto y el fondo de cada etiqueta.",
+     "pieza": "vista",
+     "depends_on": [
+      "F4.1"
+     ]
+    },
+    {
+     "id": "F4.3",
+     "phase": "F4",
+     "task": "Implementar la lógica para añadir una nueva etiqueta a una tarjeta específica.",
+     "description": "Crear una función que reciba el ID de la tarjeta y el texto de la etiqueta, y actualice el estado in-memory agregando la etiqueta al array 'labels'.",
+     "pieza": "logica",
+     "depends_on": [
+      "F4.1"
+     ]
+    },
+    {
+     "id": "F4.4",
+     "phase": "F4",
+     "task": "Actualizar el modelo de datos (estado) para incluir la funcionalidad de comentarios en las tarjetas.",
+     "description": "Modificar el estado de una Tarjeta para que contenga un array de comentarios. Cada comentario debe tener al menos 'usuario' y 'texto'. Ejemplo: 'comments': [{user: 'Alice', text: 'Buen avance.'}].",
+     "pieza": "datos",
+     "depends_on": [
+      "F2.1"
+     ]
+    },
+    {
+     "id": "F4.5",
+     "phase": "F4",
+     "task": "Implementar la vista y el área de visualización para los comentarios en las tarjetas.",
+     "description": "Diseñar e implementar un componente dentro de la Tarjeta que muestre la lista cronológica de comentarios, incluyendo el nombre del usuario y el texto. Debe ser visible o accesible al pasar el mouse/hacer clic.",
+     "pieza": "vista",
+     "depends_on": [
+      "F4.4"
+     ]
+    },
+    {
+     "id": "F4.6",
+     "phase": "F4",
+     "task": "Implementar la lógica para añadir un nuevo comentario a una tarjeta específica.",
+     "description": "Crear una función que reciba el ID de la tarjeta, el texto del comentario y el usuario (o simule el usuario actual), y actualice el estado in-memory agregando el nuevo objeto comentario al array 'comments'.",
+     "pieza": "logica",
+     "depends_on": [
+      "F4.4"
+     ]
+    },
+    {
+     "id": "F4.7",
+     "phase": "F4",
+     "task": "Aplicar un efecto de sombra sutil a todas las tarjetas del tablero.",
+     "description": "Añadir una propiedad box-shadow consistente y discreta a los contenedores de Tarjeta para mejorar la profundidad visual en el diseño oscuro/industrial.",
+     "pieza": "estilo",
+     "depends_on": [
+      "F1.2"
+     ]
+    },
+    {
+     "id": "F4.8",
+     "phase": "F4",
+     "task": "Implementar un efecto de iluminación o elevación al pasar el mouse sobre las tarjetas.",
+     "description": "Aplicar transiciones CSS y efectos visuales (ej. aumento de sombra, cambio de fondo) cuando el cursor pase por encima de una Tarjeta para indicar interactividad.",
+     "pieza": "estilo",
+     "depends_on": [
+      "F4.7"
+     ]
+    },
+    {
+     "id": "F4.9",
+     "phase": "F4",
+     "task": "Asegurar la coherencia del diseño oscuro/industrial en los nuevos elementos (etiquetas y comentarios).",
+     "description": "Revisar y ajustar el color, tipografía, espaciado y bordes de las etiquetas y la sección de comentarios para que se integren perfectamente con la paleta oscura existente.",
+     "pieza": "estilo",
+     "depends_on": [
+      "F4.2",
+      "F4.5"
+     ]
+    }
+   ]
+  }
+ ]
+}

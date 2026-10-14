@@ -141,7 +141,8 @@ async function main() {
     for (const [i, s] of c.tareas.entries()) {
       const why = [
         s.alternativas.length && `alternativas: ${s.alternativas.join(", ")}`,
-        s.harness.length && `harness: ${s.harness.join(", ")}`,
+        s.harness.length && s.pieza !== "controles" && `harness: ${s.harness.join(", ")}`,
+        s.pieza === "vista" && !s.harness.length && s.boton && "vista con botón (es controles)",
         s.vagos.length && `vagos: ${s.vagos.join(", ")}`,
         s.mezcla && `mezcla: ${s.acciones.join("+")}`,
         cond === "con" && !s.pieza && `pieza inválida (${c.crudas[i].pieza ?? "falta"})`,

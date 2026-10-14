@@ -1,24 +1,26 @@
 // build/test_recipe.mjs — receta del Standard para el Atomizer (punto 9, 14/10). Sin LLM.
 //   node build/test_recipe.mjs
 import fs from "node:fs";
-import { recipe, PIEZAS, PIEZA_STEPS } from "../standards/web/app/estado/recipe.mjs";
+import { recipe, PIEZAS, PIEZA_STEPS, PIEZA_AUTOR } from "../standards/web/app/estado/recipe.mjs";
 import estado from "../standards/web/app/estado/standard.mjs";
 import { resolveProfiles } from "../profiles/registry.mjs";
 import { buildDecomposePrompt } from "../atomic_engine_v5.js";
-import { taskSignals, summarize, compareTable } from "./recipe_metrics.mjs";
+import { taskSignals, summarize, compareTable, actionsIn } from "./recipe_metrics.mjs";
 
 let ok = 0, fail = 0;
 const t = (name, cond) => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name}`); } };
 
 // --- la receta ---
-t("cuatro piezas: datos, logica, vista, estilo", Object.keys(PIEZAS).join(",") === "datos,logica,vista,estilo");
+t("cinco piezas: datos, logica, vista, estilo, controles (v0.3)", Object.keys(PIEZAS).join(",") === "datos,logica,vista,estilo,controles");
 t("cada pieza sale de pasos reales del Standard", Object.values(PIEZA_STEPS).flat().every((id) => estado.steps.some((s) => s.id === id)));
 t("es del Standard web/app/estado, DRAFT", recipe.standard === estado.id && recipe.status === "DRAFT");
-t("el texto lista las cuatro piezas", Object.keys(PIEZAS).every((p) => recipe.text.includes(`- "${p}":`)));
+t("el texto lista las cinco piezas", Object.keys(PIEZAS).every((p) => recipe.text.includes(`- "${p}":`)));
 t("arrastrar está permitido (además del botón), no prohibido", /Arrastrar puede sumarse/.test(recipe.text) && !/sin arrastrar|no arrastr/i.test(recipe.text));
 t("no inventa prohibiciones que el Standard no tiene (modales, guardar)", !/sin modales|localStorage|persist/i.test(recipe.text));
-t("corta: menos de 1600 caracteres (≈400 tokens)", recipe.text.length < 1600);
-t("v0.2: la restricción de controles está DENTRO de la pieza vista", /NO incluye botones, campos, formularios, modales ni confirmaciones/.test(PIEZAS.vista));
+t("corta: menos de 1800 caracteres (≈450 tokens)", recipe.text.length < 1800);
+t("v0.3: vista manda los controles a su pieza; controles dice QUÉ acción y en QUÉ elemento", /es controles/.test(PIEZAS.vista) && /QUÉ acción y en QUÉ elemento/.test(PIEZAS.controles));
+t("v0.3: controles la construye el harness (pasos acciones y controles del Standard); el resto, Gemma", PIEZA_AUTOR.controles === "harness" && PIEZA_STEPS.controles.join() === "acciones,controles" && ["datos", "logica", "vista", "estilo"].every((p) => PIEZA_AUTOR[p] === "gemma"));
+t("v0.3: a lo sumo una tarea controles por acción, que depende de su logica", /a lo sumo UNA tarea \"controles\"/.test(recipe.text) && /depende de su tarea \"logica\"/.test(recipe.text));
 t("v0.2: mostrar en pantalla no es logica; datos nunca arranca vacía", /Mostrar en pantalla no es logica/.test(PIEZAS.logica) && /nunca arranca vacía/.test(PIEZAS.datos));
 t("congelada", Object.isFrozen(recipe));
 
@@ -35,7 +37,7 @@ const phase = { id: "F2", name: "Acciones", responsable_sugerido: "Frontend", de
 const con = buildDecomposePrompt(phase, "Frontend", [], A);
 const sin = buildDecomposePrompt(phase, "Frontend", [], { ...A, atomizerRecipe: null });
 t("con receta: el prompt la incluye antes de SALIDA", con.includes(recipe.text) && con.indexOf("RECETA DEL STANDARD") < con.indexOf("SALIDA:"));
-t("con receta: el formato pide \"pieza\" (en los dos ejemplos)", (con.match(/"pieza": "datos \| logica \| vista \| estilo",/g) || []).length === 2);
+t("con receta: el formato pide \"pieza\" (en los dos ejemplos)", (con.match(/"pieza": "datos \| logica \| vista \| estilo \| controles",/g) || []).length === 2);
 t("sin receta: el prompt es el de siempre (sin RECETA ni pieza)", !/RECETA|"pieza"/.test(sin));
 t("sin receta: la diferencia es SOLO la receta y las 2 líneas de pieza",
   con.replace(recipe.text + "\n", "").replace(/\n      "pieza": "[^"]+",/g, "") === sin);
@@ -73,6 +75,23 @@ t("1ª corrida sin receta: 18 tareas, 7 con problema, ninguna mezcla", fs1.tarea
 t("1ª corrida con receta: 23 tareas, 7 con problema, 23 piezas válidas, 0 vagos", fc1.tareas === 23 && fc1.tareas_con_problema === 7 && fc1.pieza_valida === 23 && fc1.con_campos_vagos === 0);
 const vistaCtl = summarize(fx.con, Object.keys(PIEZAS)).tareas.filter((s, i) => fx.con[i].pieza === "vista" && s.harness.length).map((s) => s.id);
 t(`1ª corrida con receta: tareas vista que diseñan controles = ${vistaCtl.join(", ")} (lo que ataca la v0.2)`, vistaCtl.join() === "F2.4,F3.4,F3.5,F3.7,F4.5" && fc1.vista_con_controles === 5);
+
+// --- pieza controles (métricas v0.3) ---
+const P5 = Object.keys(PIEZAS);
+t("'añadir el botón de eliminar' = la acción borrar (el botón es maquinaria)", actionsIn("Añadir el botón de eliminar en cada tarjeta").join() === "borrar");
+const ctlRun = summarize([
+  { id: "a", task: "Implementar la lógica de eliminación de una tarjeta", pieza: "logica" },
+  { id: "b", task: "Borrar con un botón en cada tarjeta", description: "con confirmación antes de borrar", pieza: "controles" },
+  { id: "c", task: "Mover arrastrando a otra columna", pieza: "controles" },
+  { id: "d", task: "Mostrar el título con un botón", pieza: "vista" },
+], P5).resumen;
+t("controles: nombrar botón/confirmación NO es problema en su pieza; en vista sí cuenta", ctlRun.controles === 2 && ctlRun.tareas_con_problema === 0 && ctlRun.vista_con_controles === 1);
+t("controles sin su logica (mover sin tarea de mover) se cuenta", ctlRun.controles_sin_logica === 1);
+
+// 2ª corrida real (receta v0.2, 2 repeticiones): lo que la v0.3 quiere llevar a 0.
+const fx2 = JSON.parse(fs.readFileSync(new URL("./fixtures/recipe_bench_2026-10-14_v02.json", import.meta.url), "utf8"));
+const v02 = fx2.corridas.filter((c) => c.cond === "con").map((c) => summarize(c.tareas, ["datos", "logica", "vista", "estilo"]).resumen.vista_con_controles);
+t(`2ª corrida (v0.2): vista_con_controles = ${v02.join(" y ")} (con v0.1 eran 5; desde métricas v0.3 'botón' también cuenta)`, v02.join() === "4,4");
 
 console.log(`\n${ok}/${ok + fail} OK`);
 process.exit(fail ? 1 : 0);

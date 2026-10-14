@@ -3,13 +3,16 @@
 // las prueba build/test_recipe_metrics.mjs. No juzga si la tarea está "bien": cuenta
 // señales que ya vimos fallar en corridas reales (Project23, Kanban 12/10).
 
-export const RECIPE_METRICS_VERSION = "recipe_metrics v0.2";
+export const RECIPE_METRICS_VERSION = "recipe_metrics v0.3";
 // v0.2 (14/10, leyendo a mano la 1ª corrida con Gemma, fixtures/recipe_bench_2026-10-14.json):
 // - "A/B" ya no cuenta como alternativa: "oscuro/industrial" o "Hover/Sombras" son pares, no dos caminos.
 //   Se informa aparte ("barras") para mirarlo a mano; "e.g." sí cuenta.
 // - "mezcla" mira solo el TÍTULO, cuenta sustantivos (creación, edición…) y no cuenta la maquinaria:
 //   "crear el componente", "actualizar el estado / la estructura" no son acciones del usuario.
 // - "información (autor, timestamp)" nombra los campos: no es vaga.
+// v0.3 (receta v0.3, pieza "controles"): en una tarea "controles" nombrar botón/formulario/modal ES su trabajo
+// (lo resuelve el harness): no cuenta como problema. Nuevo: controles_sin_logica = tareas "controles" cuya
+// acción no tiene tarea "logica" (el harness no tendría qué disparar).
 
 // "X o Y", "etc.", "por ejemplo", "e.g.", "y/o": decisiones que quedan abiertas para el Specialist.
 // "uno o más" / "o no" son frases, no dos caminos: no cuentan.
@@ -30,20 +33,26 @@ const ACTIONS = {
   mover: W("mover|mueve|movimiento|arrastrar|arrastre|reordenar|soltado"),
 };
 // Maquinaria, no acciones del usuario: se saca antes de buscar acciones.
-const MACHINERY = /(?<![\p{L}])(?:crear|creación de|añadir|agregar|implementar|desarrollar)\s+(?:el|la|los|las|un|una)?\s*(?:componente|contenedor|wrapper|estilo|elemento visual|vista|estructura|interfaz)[\p{L}]*|(?<![\p{L}])actualiz[\p{L}]*\s+(?:del?\s+)?(?:el|la|los|las)?\s*(?:estado|vista|ui|interfaz|renderizado|tablero|estructura|pantalla)[\p{L}]*/giu;
+const MACHINERY = /(?<![\p{L}])(?:crear|creación de|añadir|agregar|implementar|desarrollar)\s+(?:el|la|los|las|un|una)?\s*(?:componente|contenedor|wrapper|estilo|elemento visual|vista|estructura|interfaz|bot[oó]n|control|icono|campo)[\p{L}]*|(?<![\p{L}])actualiz[\p{L}]*\s+(?:del?\s+)?(?:el|la|los|las)?\s*(?:estado|vista|ui|interfaz|renderizado|tablero|estructura|pantalla)[\p{L}]*/giu;
+
+/** Acciones del usuario en un texto, sin la maquinaria ("crear el componente", "añadir el botón"). */
+export function actionsIn(text) {
+  const clean = String(text).replace(MACHINERY, " ");
+  return Object.entries(ACTIONS).filter(([, re]) => re.test(clean)).map(([k]) => k);
+}
 
 const hits = (re, text) => [...String(text).matchAll(re)].map((m) => m[0].trim());
 
 /** Señales de UNA tarea. piezas = claves válidas de la receta (o null si no hay receta). */
 export function taskSignals(t, piezas = null) {
   const text = `${t.task || ""}. ${t.description || ""}`;
-  const title = String(t.task || "").replace(MACHINERY, " ");
-  const actions = Object.entries(ACTIONS).filter(([, re]) => re.test(title)).map(([k]) => k);
+  const actions = actionsIn(t.task || "");
   const s = {
     id: t.id,
     alternativas: hits(ALT, text),
     barras: hits(SLASH, text),
     harness: hits(HARNESS, text),
+    boton: /(?<![\p{L}])(?:bot[oó]n|botones|icono)(?![\p{L}])/iu.test(text), // solo para vista_con_controles (v0.3)
     vagos: hits(VAGUE, text),
     acciones: actions,
     mezcla: actions.length >= 2,
@@ -68,11 +77,22 @@ export function summarize(tasks, piezas = null) {
   if (piezas) {
     out.pieza_valida = count((s) => s.pieza);
     // Lo que ataca la receta v0.2: tareas "vista" que diseñan controles (los pone el harness).
-    out.vista_con_controles = count((s) => s.pieza === "vista" && s.harness.length);
+    out.vista_con_controles = count((s) => s.pieza === "vista" && (s.harness.length || s.boton));
+    if (piezas.includes("controles")) {
+      // acciones de cada tarea "logica" (por título) vs. las de cada tarea "controles" (título + descripción)
+      const logicActs = new Set(sig.filter((s) => s.pieza === "logica").flatMap((s) => s.acciones));
+      const ctl = tasks.map((t, i) => [t, sig[i]]).filter(([, s]) => s.pieza === "controles");
+      out.controles = ctl.length;
+      out.controles_sin_logica = ctl.filter(([t]) => {
+        const acts = actionsIn(`${t.task || ""}. ${t.description || ""}`);
+        return !acts.some((a) => logicActs.has(a));
+      }).length;
+    }
     out.por_pieza = Object.fromEntries(piezas.map((p) => [p, count((s) => s.pieza === p)]));
   }
   // problemas = tareas con al menos una señal (una tarea cuenta una vez)
-  out.tareas_con_problema = count((s) => s.alternativas.length || s.harness.length || s.vagos.length || s.mezcla || (piezas && !s.pieza));
+  // en una tarea "controles", nombrar botón/formulario/modal es su trabajo (lo resuelve el harness)
+  out.tareas_con_problema = count((s) => s.alternativas.length || (s.harness.length && s.pieza !== "controles") || s.vagos.length || s.mezcla || (piezas && !s.pieza));
   return { resumen: out, tareas: sig };
 }
 

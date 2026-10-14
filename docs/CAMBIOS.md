@@ -2,6 +2,22 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Standard web/app/estado v0.4.3: aviso si dibujar mete todo en un contenedor que deshace la distribución del CSS (14/10)**
+- *Evidencia:*
+  - 2º build con tareas por paso (`2026-10-14T20-08-35`, receta v0.3.1): 7 PASS, R3 FAIL y R7 SIN_EVIDENCIA. El CSS nuevo pone `overflow-x: auto` en `#app`, así que el desborde se oculta. Dibujo necesitó 3 intentos: XSS, luego un texto que faltaba, luego OK.
+  - **Las columnas siguen apiladas** (lo vi en una captura: las 3 en x=20).
+  - Mi hipótesis anterior (el doble reparto de vista) estaba incompleta. Dibujo mete `<div class="kanban-board">` siguiendo la tarea F1.2 ("Kanban Board Wrapper"), pero el CSS, que se escribe antes, arma la fila en `#app`.
+- *Qué se hizo (decisión de Miche):*
+  - La sonda de dibujo mira si `#app` tiene display flex/grid y, sin contar los controles `ctl-`, un solo hijo que no es flex/grid y que contiene 2 o más elementos. En ese caso → `res.wrapper`.
+  - El aviso al autor dice: "styles.css arma la distribución en #app (display: flex), pero dibujar mete todo dentro de un solo <div class="kanban-board"> que no la tiene: las piezas quedan apiladas una debajo de la otra. Poné los elementos directo dentro de #app, sin ese contenedor."
+  - Es genérico: no nombra ningún dominio.
+  - Fixtures nuevos: `real_kanban_c10` (build 19-22-44) y `real_kanban_c11` (build 20-08-35).
+- *Probado:* `test_controls` 34/34 (5 nuevos):
+  - los dos builds reales dan aviso;
+  - el mismo dibujo sin el contenedor no da aviso, y en Chromium las columnas pasan de x igual a 3 x distintas;
+  - una lista con `#app` sin flex no da aviso.
+- La receta v0.3.1 (vista solo a dibujo) se mantiene: no empeoró nada y ahorra tokens en pantalla.
+
 **Punto 9: 1er build con tareas por paso → `vista` va solo a dibujo (receta v0.3.1, 14/10)**
 - *Corrida:* `build/runs/2026-10-14T19-22-44_Kanban_WebApp`, con el snapshot `kanban_receta_v03`.
   - Los 6 pasos salieron OK al 1er intento y la compuerta dio 6/6.

@@ -1,0 +1,149 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado) {
+    const appContainer = document.getElementById('app');
+    if (!appContainer) return;
+
+    // 1. Limpiar el contenedor principal
+    appContainer.innerHTML = '';
+
+    // 2. Crear el wrapper del tablero (Kanban Board Wrapper)
+    const boardWrapper = document.createElement('div');
+    boardWrapper.className = 'kanban-board'; // Clase para el wrapper general
+    appContainer.appendChild(boardWrapper);
+
+    /**
+     * Función auxiliar para renderizar etiquetas
+     * @param {Array} etiquetasArray - Array de objetos etiqueta.
+     * @param {HTMLElement} cardElement - El elemento tarjeta padre.
+     */
+    function renderEtiquetas(etiquetasArray, cardElement) {
+        const container = document.createElement('div');
+        container.className = 'etiquetas-container';
+        if (etiquetasArray && etiquetasArray.length > 0) {
+            etiquetasArray.forEach(etiqueta => {
+                const label = document.createElement('span');
+                label.className = 'etiqueta';
+                // Usamos style para el color, que es seguro
+                label.style.backgroundColor = etiqueta.color;
+                // Usamos textContent para evitar XSS
+                label.textContent = etiqueta.nombre;
+                container.appendChild(label);
+            });
+        }
+        cardElement.appendChild(container);
+    }
+
+    /**
+     * Función auxiliar para renderizar comentarios (CORREGIDO)
+     * @param {Array} comentariosArray - Array de objetos comentario.
+     * @param {HTMLElement} cardElement - El elemento tarjeta padre.
+     */
+    function renderComentarios(comentariosArray, cardElement) {
+        const container = document.createElement('div');
+        container.className = 'comentarios-container';
+        if (comentariosArray && comentariosArray.length > 0) {
+            comentariosArray.forEach(comentario => {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'comentario';
+
+                // Formatear fecha para mejor lectura
+                const date = new Date(comentario.timestamp * 1000);
+                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+
+                // --- Construcción del cuerpo del comentario (Autor: Contenido) ---
+                const messageBody = document.createElement('div'); // Usamos un div para el bloque de texto principal
+
+                // 1. Autor (etiqueta fuerte)
+                const authorEl = document.createElement('strong');
+                authorEl.textContent = comentario.autor;
+                messageBody.appendChild(authorEl);
+                
+                // 2. Separador y contenido
+                const separatorText = document.createTextNode(': ');
+                messageBody.appendChild(separatorText);
+
+                const contentEl = document.createElement('span');
+                contentEl.textContent = comentario.contenido;
+                messageBody.appendChild(contentEl);
+
+                commentDiv.appendChild(messageBody);
+                
+                // 3. Separación y Fecha (pequeño texto)
+                const br = document.createElement('br');
+                commentDiv.appendChild(br);
+                
+                const dateEl = document.createElement('small');
+                dateEl.textContent = `(${formattedDate})`;
+                commentDiv.appendChild(dateEl);
+
+                cardElement.appendChild(commentDiv);
+            });
+        }
+    }
+
+
+    // 3. Iterar sobre las columnas y crear la estructura del tablero
+    estado.columnas.forEach(col => {
+        const columnaEl = document.createElement('div');
+        columnaEl.className = 'columna';
+        columnaEl.dataset.id = col.id;
+
+        // Encabezado de la columna
+        const header = document.createElement('h2');
+        header.textContent = col.nombre; // Usando textContent (seguro)
+        columnaEl.appendChild(header);
+
+        // Contenedor donde irán las tarjetas
+        const cardsContainer = document.createElement('div');
+        cardsContainer.className = 'tarjetas-container';
+        columnaEl.appendChild(cardsContainer);
+
+
+        // 4. Iterar sobre las tarjetas de la columna y renderizarlas
+        col.tarjetas.forEach(card => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'tarjeta';
+            cardEl.dataset.id = card.id;
+
+            // Contenido principal de la tarjeta
+            const titleEl = document.createElement('h3');
+            titleEl.textContent = card.titulo; // Usando textContent (seguro)
+            cardEl.appendChild(titleEl);
+
+            const descriptionEl = document.createElement('p');
+            descriptionEl.className = 'descripcion';
+            descriptionEl.textContent = card.descripcion; // Usando textContent (seguro)
+            cardEl.appendChild(descriptionEl);
+
+            // Renderizar Etiquetas (F4.2)
+            renderEtiquetas(card.etiquetas, cardEl);
+
+            // Renderizar Comentarios (F4.6)
+            renderComentarios(card.comentarios, cardEl);
+
+
+            // 5. Agregar controles de acción a la tarjeta
+            const controls = controlesDe("tarjetas", card, estado);
+            if (controls) {
+                cardEl.appendChild(controls);
+            }
+
+            cardsContainer.appendChild(cardEl);
+        });
+
+        boardWrapper.appendChild(columnaEl);
+    });
+
+
+    // 6. Agregar acciones generales del tablero (Crear tarjeta - "app")
+    const generalControls = controlesDe("app", null, estado);
+    if (generalControls) {
+        // Creamos un contenedor para los controles globales y lo añadimos al wrapper
+        const globalActionsContainer = document.createElement('div');
+        globalActionsContainer.className = 'global-actions';
+        globalActionsContainer.appendChild(generalControls);
+        boardWrapper.appendChild(globalActionsContainer);
+    }
+}
+```

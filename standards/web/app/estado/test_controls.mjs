@@ -140,5 +140,25 @@ t("v0.4.1, 6ª corrida: la compuerta sigue 6/6", g6.result === "PASS" && g6.rows
   t("la trampa no deja la pantalla rota: después se vuelve a dibujar el estado de verdad", pr6.probe.ok && pr6.probe.missing.length === 0, JSON.stringify(pr6.probe.missing));
 }
 
+// ---------- 6. v0.4.3: un contenedor de más entre #app y las piezas (builds del 14/10, columnas apiladas) ----------
+{
+  const FX = (n) => fileURLToPath(new URL(`../../../../profiles/web/validation/fixtures/real_kanban_c${n}/`, import.meta.url));
+  const real = (n, dib) => { const fx = FX(n); return app(`kanban${n}_wrap${dib ? "_fix" : ""}`, P(JSON.parse(readFileSync(join(fx, "contrato.json"), "utf8"))), dib || readFileSync(join(fx, "js/dibujo.js"), "utf8"), readFileSync(join(fx, "styles.css"), "utf8"), readFileSync(join(fx, "js/logica.js"), "utf8")); };
+  const msg = (pr) => step("dibujo").expect(pr.probe).join(" | ");
+  const p10 = await probePage(join(real(10), "probe.html"));
+  t("build 19-22-44: #app es flex y dibujar mete todo en .kanban-board → aviso", p10.probe.wrapper?.cls === "kanban-board" && /quedan apiladas/.test(msg(p10)) && /directo dentro de #app/.test(msg(p10)), JSON.stringify(p10.probe.wrapper));
+  const p11 = await probePage(join(real(11), "probe.html"));
+  t("build 20-08-35 (con el panel de crear adentro del contenedor) → aviso", p11.probe.wrapper?.cls === "kanban-board" && /display: flex/.test(msg(p11)), JSON.stringify(p11.probe.wrapper));
+  // el mismo dibujo, sin el contenedor: las columnas van directo a #app
+  const fixed = readFileSync(join(FX(11), "js/dibujo.js"), "utf8").replace(/const boardWrapper = document\.createElement\('div'\);[\s\S]*?appContainer\.appendChild\(boardWrapper\);/, "const boardWrapper = appContainer;");
+  const d11f = real(11, fixed);
+  const p11f = await probePage(join(d11f, "probe.html"));
+  t("el mismo dibujo sin el contenedor → sin aviso", fixed.includes("const boardWrapper = appContainer;") && p11f.probe.wrapper === null && !/quedan apiladas/.test(msg(p11f)), JSON.stringify(p11f.probe.wrapper));
+  const xs = async (dir) => { const { chromium } = await import("playwright"); const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1280, height: 900 } }); await pg.goto("file://" + join(dir, "index.html")); const r = await pg.evaluate(() => [...document.querySelectorAll(".columna")].map((e) => Math.round(e.getBoundingClientRect().x))); await b.close(); return r; };
+  const [xa, xb] = [await xs(real(11)), await xs(d11f)];
+  t("en pantalla: con el contenedor las 3 columnas apiladas (misma x); sin él, lado a lado", new Set(xa).size === 1 && new Set(xb).size === 3, JSON.stringify({ con: xa, sin: xb }));
+  t("lista sin flex en #app → sin aviso (el chequeo solo mira cuando el CSS arma la distribución en #app)", pr.probe.wrapper === null);
+}
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

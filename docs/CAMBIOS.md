@@ -2,6 +2,20 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Punto 9: 3ª corrida (receta v0.3, pieza controles, 2 repeticiones) — el objetivo se cumple (14/10)**
+- *Corrida:* `build/bench/recipe_2026-10-14T18-12-56`, con las mismas fases. Quedó guardada como fixture en `build/fixtures/recipe_bench_2026-10-14_v03.json`.
+- *Resultado:*
+  - `vista_con_controles`: **0 y 1** (con v0.2 eran 4 y 4).
+  - Tareas `controles`: 6 y 5. En la rep 1 hay exactamente **una por acción** (crear, mover, editar, borrar, etiqueta, comentario), cada una con su lógica. En la rep 2, crear quedó partido en dos controles ("botón +" y "formulario").
+  - La lógica sigue bien: funciones puras con datos con nombre.
+- *Lo que sigue igual:*
+  - "columnas vacías" en las dos repeticiones (p46);
+  - una lógica duplicada (mover en F2 y en F3, rep 1);
+  - "añadir, eliminar o modificar etiquetas" (rep 2).
+- *Alternativas:* son más (9.5 contra 6.5 sin receta), pero se concentran en `controles` ("ej. botón '+'", "botón o icono"), donde decide el harness, y en `estilo`. El total de "tareas con problema" no baja (11.5 contra 10.5): los problemas se mudaron a piezas donde no los ejecuta Gemma.
+- *Costo:* 27 tareas contra 18 sin receta (+50%) y ~30% más de tiempo de atomizado.
+- *Probado:* `test_recipe` 44/44, con la 3ª corrida como regresión.
+
 **Punto 9: 2ª corrida (v0.2, 2 repeticiones) → pieza "controles", receta v0.3 y métricas v0.3 (14/10)**
 - *Corrida:* `build/bench/recipe_2026-10-14T16-15-39`, con las mismas fases que la 1ª. Quedó guardada como fixture en `build/fixtures/recipe_bench_2026-10-14_v02.json`.
   - La lógica sale muy bien en las dos repeticiones: `moveCard(id, columna)`, `editCard(id, título, descripción)`, `deleteCard(id)`, etiquetas y comentarios con sus datos.

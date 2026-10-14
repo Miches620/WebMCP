@@ -93,5 +93,11 @@ const fx2 = JSON.parse(fs.readFileSync(new URL("./fixtures/recipe_bench_2026-10-
 const v02 = fx2.corridas.filter((c) => c.cond === "con").map((c) => summarize(c.tareas, ["datos", "logica", "vista", "estilo"]).resumen.vista_con_controles);
 t(`2ª corrida (v0.2): vista_con_controles = ${v02.join(" y ")} (con v0.1 eran 5; desde métricas v0.3 'botón' también cuenta)`, v02.join() === "4,4");
 
+// 3ª corrida real (receta v0.3, pieza controles, 2 repeticiones): vista sin controles; un control por acción.
+const fx3 = JSON.parse(fs.readFileSync(new URL("./fixtures/recipe_bench_2026-10-14_v03.json", import.meta.url), "utf8"));
+const v03 = fx3.corridas.filter((c) => c.cond === "con").map((c) => summarize(c.tareas, P5).resumen);
+t(`3ª corrida (v0.3): vista_con_controles = ${v03.map((r) => r.vista_con_controles).join(" y ")} (v0.2: 4 y 4)`, v03.map((r) => r.vista_con_controles).join() === "0,1");
+t(`3ª corrida (v0.3): tareas controles = ${v03.map((r) => r.controles).join(" y ")}; rep 1 sin ninguna huérfana`, v03.map((r) => r.controles).join() === "6,5" && v03[0].controles_sin_logica === 0);
+
 console.log(`\n${ok}/${ok + fail} OK`);
 process.exit(fail ? 1 : 0);

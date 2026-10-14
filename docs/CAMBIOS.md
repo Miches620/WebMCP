@@ -2,6 +2,21 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Punto 9: 1er build con tareas por paso → `vista` va solo a dibujo (receta v0.3.1, 14/10)**
+- *Corrida:* `build/runs/2026-10-14T19-22-44_Kanban_WebApp`, con el snapshot `kanban_receta_v03`.
+  - Los 6 pasos salieron OK al 1er intento y la compuerta dio 6/6.
+  - 7 PASS, R3 FAIL (contador, ya conocido) y **R7 FAIL** (desborda 112 px a 390 px). SEG-1 PASS al 1er intento.
+  - Se respetó "manda el pedido del paso": F1.3 decía "columnas vacías" y el contrato salió con ejemplos.
+  - Las tareas se ven en la app: comentarios con autor y fecha (F4.5), etiquetas con color (F4.1).
+  - Gemma cita los ids de las tareas en los comentarios del código.
+  - Evidencia completa: doc del proyecto `claude/evidencia_punto9_build_tareas_2026-10-14.md`.
+- *El problema:* en una captura a 1280 px las **columnas salen apiladas**. La tarea F1.2 (contenedor del tablero) llegó a pantalla Y a dibujo: el CSS hizo de `#app` la fila, y dibujo metió un `.kanban-board` sin estilo en el medio. El reparto vista → pantalla + dibujo era mío, sin evidencia.
+- *Cambio (decisión de Miche):* `PIEZA_STEPS.vista = ["dibujo"]`. Pantalla (app.html fijo + styles.css) recibe solo `estilo`.
+  - Nuevo reparto del snapshot: contrato 5 · logica 7 · acciones 6 (harness) · pantalla 4 · dibujo 6 · controles 6 (harness).
+  - El texto del Atomizer no cambia.
+  - A propósito no se agrega una regla nueva al dibujo, para saber qué arregló cada cosa.
+- *Probado:* `test_assignments` 19/19 (estilo → pantalla, y vista ya no va a pantalla) y `test_recipe` 44/44.
+
 **Punto 9, paso 2: cada paso del Specialist recibe SUS tareas — files_engine v0.12, assignments v0.1 (14/10)**
 - *Por qué:* Miche quiere que el Specialist ejecute *esas mismas tareas*. Hasta ahora le llegaban a Gemma solo como "notas del TechLeader", y nada más que en el paso de lógica (todas las del componente).
 - *Qué se hizo:*

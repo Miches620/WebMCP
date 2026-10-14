@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-14f'; // tablero actualizado al 14/10 (punto 9 paso 2: cada paso recibe sus tareas)
+  const SEED = '2026-10-14g'; // tablero actualizado al 14/10 (punto 9: vista solo a dibujo)
   let state = loadState() || {
  "columns": [
   {
@@ -436,7 +436,7 @@
     {
      "id": "p42",
      "title": "Controles del harness: se ven pesados",
-     "desc": "[#Standard #Diseño] Cada tarjeta muestra 5 bloques apilados (campo + botón por acción). Placeholders con el nombre del param (textoComentario, nuevoContenido) en vez de algo legible. 'Editar' arranca vacío: el param (nuevoContenido) no se llama como el dato (content). Para cuando entren las Skills de diseño.",
+     "desc": "[#Standard #Diseño] Cada tarjeta muestra 5 bloques apilados (campo + botón por acción). Placeholders con el nombre del param (textoComentario, nuevoContenido) en vez de algo legible. 'Editar' arranca vacío: el param (nuevoContenido) no se llama como el dato (content). 14/10: un param 'color' sale como texto libre (hay que escribir #ff6347; podría ser input type=color) y el CSS de Gemma usa .ctl-boton[data-tipo] que el harness no pone (botones sin color). Para cuando entren las Skills de diseño.",
      "priority": "medio"
     },
     {
@@ -576,7 +576,7 @@
     {
      "id": "p35",
      "title": "Punto 9 · Las tareas atómicas manejan la construcción",
-     "desc": "[#Specialist #Contrato #Atomizer] Paso 1 (Atomizer con receta v0.3) y paso 2 (cada paso del Specialist recibe SUS tareas, files_engine v0.12) hechos. AHORA: build real con build/snapshots/kanban_receta_v03_snapshot.json → ver si Gemma cumple sus tareas sin romper lo que andaba (7 PASS / R3 / R7) y si respeta 'manda el pedido del paso' (F1.3 columnas vacías). Después: veredicto de Validation por tarea.",
+     "desc": "[#Specialist #Contrato #Atomizer] Pasos 1 y 2 hechos. 1er build: 7 PASS, tareas visibles en la app, pero columnas apiladas (vista iba a pantalla y dibujo). AHORA: receta v0.3.1 (vista solo a dibujo) → repetir el build con el mismo snapshot; objetivo columnas lado a lado y R7 sin desborde, sin perder lo demás. Después: veredicto de Validation por tarea (Gemma ya cita los ids en el código).",
      "priority": "urgente"
     }
    ]
@@ -587,6 +587,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h46",
+     "title": "14/10 · 1er build con tareas por paso: anda, pero columnas apiladas → vista solo a dibujo",
+     "desc": "[#Specialist #Evidencia] Build 2026-10-14T19-22-44: 6 pasos OK al 1er intento, compuerta 6/6, 7 PASS, R7 FAIL (desborde), SEG-1 PASS sin reintento. Se respetó 'manda el pedido del paso' (contrato con ejemplos). Comentarios con autor/fecha y etiquetas con color salieron de las tareas; Gemma cita ids de tareas en el código. Falla: la tarea del contenedor llegó a pantalla y dibujo → columnas apiladas. Receta v0.3.1: vista solo a dibujo.",
+     "priority": "bajo"
+    },
     {
      "id": "h45",
      "title": "14/10 · Punto 9 paso 2: cada paso del Specialist recibe SUS tareas",

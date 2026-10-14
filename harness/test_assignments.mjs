@@ -27,7 +27,7 @@ const ids = (step) => a.byStep[step].map((x) => x.id);
 const of = (p) => tasks.filter((x) => x.pieza === p).map((x) => x.id);
 t("datos → contrato", ids("contrato").join() === of("datos").join(), ids("contrato").join());
 t("logica → logica", ids("logica").join() === of("logica").join());
-t("vista + estilo → pantalla (html y css)", ids("pantalla").length === of("vista").length + of("estilo").length);
+t("estilo → pantalla; vista NO va a pantalla (v0.3.1: la resolvían dos pasos)", ids("pantalla").join() === of("estilo").join());
 t("vista → dibujo", ids("dibujo").join() === of("vista").join());
 t("controles → acciones y controles (los pasos del harness)", ids("acciones").join() === of("controles").join() && ids("controles").join() === of("controles").join());
 t("autor: acciones y controles = harness; contrato, logica, pantalla, dibujo = gemma",

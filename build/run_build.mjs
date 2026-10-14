@@ -197,6 +197,8 @@ const alwaysGate = (id) => {
 // se usa desde la pantalla con datos de verdad). Como las demás compuertas, nunca suma un PASS.
 const profileGates = typeof B.validationGates === "function" ? await B.validationGates({ artifact, outDir, input, specialist }) : null;
 const standardGate = (id) => profileGates?.gates?.[id] || null;
+// 14/10 (punto 9 paso 3): veredicto por Atomic Task (solo si el profile lo sabe hacer y las tareas traen pieza)
+const taskV = typeof B.taskVerdicts === "function" ? B.taskVerdicts({ input, specialist, gates: profileGates }) : null;
 const gateReason = (gs) => gs.some((g) => g.type === "components_render") ? "sin chequeos del traductor, pero su componente no dibujó nada"
   : gs.some((g) => g.type === "calls_probe") ? `sin chequeos del traductor, pero ${gs.find((g) => g.type === "calls_probe").detail}`
   : "sin chequeos del traductor, pero su pieza no se ve";
@@ -242,6 +244,7 @@ const evidence = {
   components_render: { result: render.result, components: render.components || [], detail: render.detail },
   validation: { profile: B.validationProfile || null, standard: specialist?.standard || null, always: always.map(({ type, result, detail, gate }) => ({ type, result, detail, gate })), standard_gates: profileGates },
   concerns,
+  task_verdicts: taskV,
   summary: { requisitos: coverage.length, PASS: count("PASS"), FAIL: count("FAIL"), SIN_EVIDENCIA: count("SIN_EVIDENCIA"), SIN_CHEQUEO: count("SIN_CHEQUEO") },
   control: "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
   coverage,
@@ -272,4 +275,8 @@ if (concerns.length) {
     for (const r of c.results) log(`${r.verdict.padEnd(11)} ${r.id} ${r.text.slice(0, 70)}${r.verdict === "PASS" ? "" : `\n             ${r.verdict === "FAIL" ? "✗" : "~"} ${r.detail}`}`);
   }
 }
-log(`\nPASS ${evidence.summary.PASS} · FAIL ${evidence.summary.FAIL} · SIN_EVIDENCIA ${evidence.summary.SIN_EVIDENCIA} · SIN_CHEQUEO ${evidence.summary.SIN_CHEQUEO}${concerns.length ? ` · por tema: ${concerns.flatMap((c) => c.results).map((r) => `${r.id} ${r.verdict}`).join(", ")}` : ""}  →  ${join(outDir, "evidence.json")}`);
+if (taskV) {
+  log(`\n=== Veredicto por tarea (${taskV.version}) ===`);
+  for (const l of B.taskVerdictLines(taskV)) log(l);
+}
+log(`\nPASS ${evidence.summary.PASS} · FAIL ${evidence.summary.FAIL} · SIN_EVIDENCIA ${evidence.summary.SIN_EVIDENCIA} · SIN_CHEQUEO ${evidence.summary.SIN_CHEQUEO}${concerns.length ? ` · por tema: ${concerns.flatMap((c) => c.results).map((r) => `${r.id} ${r.verdict}`).join(", ")}` : ""}${taskV ? ` · por tarea: ${B.taskVerdictSummary(taskV)}` : ""}  →  ${join(outDir, "evidence.json")}`);

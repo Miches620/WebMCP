@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-14i'; // tablero actualizado al 14/10 (v0.4.3 funciona: columnas lado a lado)
+  const SEED = '2026-10-14j'; // tablero actualizado al 14/10 (punto 9 paso 3: veredicto por tarea)
   let state = loadState() || {
  "columns": [
   {
@@ -576,7 +576,7 @@
     {
      "id": "p35",
      "title": "Punto 9 · Las tareas atómicas manejan la construcción",
-     "desc": "[#Specialist #Contrato #Atomizer] Pasos 1 y 2 hechos y la app sale bien (build 20-50-53: columnas lado a lado, 7 PASS, compuerta 6/6, SEG-1 PASS). AHORA: paso 3, veredicto de Validation POR TAREA (cada Atomic Task con su evidencia: pruebas de lógica, compuerta de llamadas, sonda de dibujo; lo que no se pueda probar queda SIN_EVIDENCIA).",
+     "desc": "[#Specialist #Contrato #Atomizer #Validation] Pasos 1, 2 y 3 hechos en código. Paso 3: el contrato declara en cada acción qué tareas cumple ('cumple') y Validation da veredicto por tarea (logica/controles con pruebas + compuerta; datos/vista/estilo SIN_EVIDENCIA). AHORA: build real con el snapshot → ¿Gemma declara 'cumple' bien? ¿el contrato con 18 tareas (+1.400 tokens) sigue saliendo al 1er intento? Después: cerrar el punto 9 y pasar a 5/6 (TDD) o 10 (Orchestrator).",
      "priority": "urgente"
     }
    ]
@@ -587,6 +587,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h49",
+     "title": "14/10 · Punto 9 paso 3: veredicto de Validation por tarea (task_verdict v0.1)",
+     "desc": "[#Validation #Contrato] Contrato v0.5: cada acción declara 'cumple' (ids de sus tareas de lógica y controles); receta v0.3.2 manda esas tareas al contrato. task_verdict cruza con pruebas de lógica y compuerta: CUMPLIDA / NO_CUMPLIDA con motivo; datos/vista/estilo SIN_EVIDENCIA. Con el build 20-50-53 + cumple: 13 CUMPLIDAS, 15 SIN_EVIDENCIA. test_task_verdict 16/16.",
+     "priority": "bajo"
+    },
     {
      "id": "h48",
      "title": "14/10 · v0.4.3 funciona: Gemma saca el contenedor en el reintento, columnas lado a lado",

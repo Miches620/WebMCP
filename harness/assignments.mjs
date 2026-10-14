@@ -27,10 +27,11 @@ export function assignByStep(tasks = [], recipe = null, stepIds = []) {
     if (!pasos.length) { piezaDesconocida.push(t); continue; }
     for (const id of pasos) byStep[id].push(t);
   }
-  // quién construye cada paso según las piezas que lo alimentan (un paso de "controles" = harness)
+  // quién construye cada paso: "harness" solo si TODAS las piezas que lo alimentan son del harness
+  // (14/10: el contrato recibe también las tareas de controles para declararlas, y lo sigue escribiendo Gemma)
   const autorDe = {};
   for (const [pieza, pasos] of Object.entries(recipe.pasos))
-    for (const id of pasos) if (byStep[id]) autorDe[id] = autorDe[id] && autorDe[id] !== recipe.autor?.[pieza] ? "mixto" : (recipe.autor?.[pieza] || "gemma");
+    for (const id of pasos) if (byStep[id]) { const a = recipe.autor?.[pieza] || "gemma"; autorDe[id] = autorDe[id] === undefined ? a : (autorDe[id] === "harness" && a === "harness" ? "harness" : "gemma"); }
   return { byStep, autorDe, sinPieza, piezaDesconocida, pasosSinTareas: stepIds.filter((id) => !byStep[id].length) };
 }
 

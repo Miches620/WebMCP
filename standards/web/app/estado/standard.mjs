@@ -82,8 +82,8 @@ export function contractText(ctx) {
 
 const CONTRACT_FMT = `{ "estado": { "items": [ { "id": 1, "texto": "Primer ejemplo", "hecho": false }, { "id": 2, "texto": "Segundo ejemplo", "hecho": true } ] },
   "acciones": [
-    { "nombre": "agregarItem", "params": ["texto"], "ejemplo": ["Comprar pan"], "hace": "agrega un item al final", "features": [1], "cambia": ["items"] },
-    { "nombre": "borrarItem", "params": ["id"], "ejemplo": [1], "hace": "saca el item con ese id", "features": [2], "cambia": ["items"] }
+    { "nombre": "agregarItem", "params": ["texto"], "ejemplo": ["Comprar pan"], "hace": "agrega un item al final", "features": [1], "cambia": ["items"], "cumple": ["F2.1", "F2.2"] },
+    { "nombre": "borrarItem", "params": ["id"], "ejemplo": [1], "hace": "saca el item con ese id", "features": [2], "cambia": ["items"], "cumple": ["F3.1"] }
   ],
   "se_ve": [3] }`;
 
@@ -197,7 +197,7 @@ const validation = {
 
 const STANDARD = {
   id: "web/app/estado",
-  version: "0.4.3",
+  version: "0.5",
   status: "DRAFT",
   validation,
   label: "app de una pantalla con estado y acciones",
@@ -229,7 +229,7 @@ const STANDARD = {
       answerHint: 'Respondé SOLO con ### FILE: contrato.json, un JSON como el del formato (no escribas código).',
       prompt: (c) => `${c.paso}: antes de programar, definí el CONTRATO de la app como JSON (no escribas código). El harness lo valida y con él arma js/datos.js y las pruebas.
 - "estado": el estado INICIAL de la app, solo datos (objetos, listas, textos, números, true/false), con ejemplos reales para que la pantalla no arranque vacía (2 o 3 por lista). Cada cosa que se pueda editar, mover o borrar lleva un "id" único. Corto: hasta ${MAX_STATE_CHARS} caracteres.
-- "acciones": lo que el usuario puede hacer. Cada una: "nombre" (verbo en camelCase), "params" (lo que recibe ADEMÁS del estado), "ejemplo" (un valor por param, que funcione con el estado inicial: ids que existan), "hace" (una frase), "features" (números de las features del brief que cumple) y "cambia" (qué claves de "estado" cambia).
+- "acciones": lo que el usuario puede hacer. Cada una: "nombre" (verbo en camelCase), "params" (lo que recibe ADEMÁS del estado), "ejemplo" (un valor por param, que funcione con el estado inicial: ids que existan), "hace" (una frase), "features" (números de las features del brief que cumple), "cambia" (qué claves de "estado" cambia) y "cumple" (los ids de la lista de arriba, de lógica y de controles, que hace esa acción; [] si no hay lista).
 - "se_ve": números de las features que solo se VEN en la pantalla (no son acciones), también las de aspecto: colores, estilo, sombras, efectos al pasar el mouse.
 Toda acción la dispara un botón (arrastrar puede ir además, nunca en vez del botón). Lo que el usuario escribe es un texto o un número por param (una lista no: que la acción reciba un elemento por vez).
 Cada feature del brief va en "features" de alguna acción o en "se_ve"${c.hints.style.length ? ` (salvo las de estilo: ${c.hints.style.join(", ")})` : ""}.

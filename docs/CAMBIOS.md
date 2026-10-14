@@ -2,6 +2,25 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Punto 9, paso 3: veredicto de Validation POR TAREA — task_verdict v0.1, Standard web/app/estado v0.5, receta v0.3.2 (14/10)**
+- *Decisión de Miche (14/10):* Validation da un veredicto por Atomic Task, solo con evidencia que ya existe y sin LLM nuevo.
+- *Qué se hizo:*
+  - **Contrato v0.5:** cada acción declara `"cumple"`, los ids de las tareas de lógica y de controles que hace (por ejemplo `borrarTarjeta → F3.7, F3.6`). Se guarda sin repetidos ni basura. El campo no se llama "tareas" porque el Standard no nombra dominios (test_estado).
+  - **Receta v0.3.2:** las tareas de `logica` y `controles` también van al paso contrato, para que pueda declararlas. Reparto del snapshot: contrato 18 · logica 7 · acciones 6 (h) · pantalla 4 · dibujo 6 · controles 6 (h). El contrato recibe unos 1.400 tokens más (pasa de ~3.500 a ~4.900).
+  - `assignments`: un paso es "harness" solo si todas sus piezas son del harness. El contrato lo sigue escribiendo Gemma.
+  - `calls_gate` expone `tareas` (acción → lo que declara en `cumple`).
+  - **`profiles/web/app/task_verdict.mjs`:**
+    - `logica` → **CUMPLIDA** si pasan las pruebas de lógica de su acción y la compuerta muestra que se usa desde la pantalla; si no, **NO_CUMPLIDA** con el motivo.
+    - `controles` → CUMPLIDA si la compuerta dispara su acción.
+    - `datos`, `vista` y `estilo` → **SIN_EVIDENCIA** ("no hay prueba propia"). Que Gemma cite un id en un comentario es trazabilidad, no evidencia.
+    - Una tarea de lógica que ninguna acción declara queda SIN_EVIDENCIA.
+    - Se informan los ids que no existen y las tareas declaradas en dos acciones.
+  - `run_build`: sección "=== Veredicto por tarea ===", `evidence.task_verdicts` y el total en la línea final ("por tarea: CUMPLIDA x · NO_CUMPLIDA y · SIN_EVIDENCIA z"). Solo corre si las tareas traen pieza.
+- *Probado:* `test_task_verdict` 16/16, con el build real 20-50-53 como fixture (`verdict_build_2026-10-14T20-50-53.json`):
+  - su contrato no declara `cumple`, así que las 28 tareas quedan SIN_EVIDENCIA: no se inventa la relación;
+  - con `cumple` declarado, 13 CUMPLIDAS (7 de lógica, cada una con sus 5 pruebas y la compuerta, y 6 de controles) y 15 SIN_EVIDENCIA.
+  - Resto de la suite en verde.
+
 **Build con v0.4.3: el aviso funciona — columnas lado a lado (14/10, `2026-10-14T20-50-53`)**
 - *Dibujo:* el 1er intento trajo 2 problemas, el contenedor `.kanban-board` y el XSS. El **reintento 1 corrigió los dos** (Gemma dejó el comentario "APENDIZAR DIRECTAMENTE A appContainer (CORRECCIÓN DE ESTRUCTURA)"). 154 s y 5173 tokens; el pico de la corrida fue 5173.
 - *Captura a 1280 px:* Pendiente, En Curso y Completado **lado a lado** (x = 20, 370, 720) y el panel de crear a la derecha. A 390 px, `#app` scrollea adentro (overflow-x: auto) y la página no desborda.

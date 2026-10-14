@@ -25,6 +25,22 @@ export const { runChecks, normalizeCheck } = V;
 export const validationProfile = V.ids;
 // 12/10 (punto 7): compuerta de llamadas. Lee el Standard que se usó; solo corre si el Standard la declara.
 export { validationGates } from "./calls_gate.mjs";
+import { taskVerdicts as verdictsOf } from "./task_verdict.mjs";
+export { taskVerdictLines, taskVerdictSummary } from "./task_verdict.mjs";
+/**
+ * 14/10 (punto 9 paso 3): veredicto de Validation por Atomic Task, con la evidencia que ya hay (pruebas de
+ * lógica, compuerta de llamadas y las "tareas" que declara cada acción del contrato). null si las tareas no
+ * traen pieza (corrida sin receta).
+ */
+export function taskVerdicts({ input, specialist, gates }) {
+  if (!(input?.tasks || []).some((t) => t.pieza)) return null;
+  return verdictsOf({
+    tasks: input.tasks,
+    contract: gates?.tareas ? { acciones: Object.entries(gates.tareas).map(([nombre, tareas]) => ({ nombre, tareas })) } : null,
+    acceptance: specialist?.rule_tests || null,
+    gateRows: gates?.rows?.length ? gates.rows : null,
+  });
+}
 export { planText, PAGE_PLAN_VERSION } from "./page_plan.mjs";
 
 // Una sola pantalla con todo el juego/app adentro: Boxworld build 3 usó 7117 de 8000

@@ -102,5 +102,7 @@ export async function validationGates({ artifact, outDir, input, specialist }) {
     errors: probe.errors.slice(0, 3),
     rows,
     gates,
+    // 14/10 (punto 9 paso 3): qué tareas declara cada acción del contrato (para el veredicto por tarea)
+    tareas: Object.fromEntries(c.acciones.map((a) => [a.nombre, a.cumple || []])),
   };
 }

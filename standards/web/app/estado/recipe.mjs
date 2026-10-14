@@ -35,13 +35,15 @@ export const PIEZA_AUTOR = Object.freeze({ datos: "gemma", logica: "gemma", vist
 // De qué paso del Standard sale cada pieza (para el Specialist, más adelante).
 export const PIEZA_STEPS = Object.freeze({
   datos: ["contrato"],
-  logica: ["logica"],
+  // v0.3.2 (14/10, punto 9 paso 3): logica y controles también van al contrato, que declara en cada acción
+  // qué tareas cumple ("tareas"): con eso Validation da un veredicto por tarea.
+  logica: ["contrato", "logica"],
   // v0.3.1 (14/10, build 2026-10-14T19-22-44): "vista" iba a pantalla Y dibujo; la tarea del contenedor (F1.2)
   // la resolvieron los dos (el CSS hizo de #app la fila, dibujo metió un wrapper sin estilo): columnas apiladas.
   // Ahora vista va solo a dibujo; pantalla (app.html fijo + styles.css) recibe "estilo".
   vista: ["dibujo"],
   estilo: ["pantalla"],
-  controles: ["acciones", "controles"],
+  controles: ["contrato", "acciones", "controles"],
 });
 
 const REGLAS = [
@@ -55,7 +57,7 @@ const REGLAS = [
 
 const BASE = {
   standard: "web/app/estado",
-  version: "0.3.1",
+  version: "0.3.2",
   status: "DRAFT",
   piezas: PIEZAS,
   reglas: Object.freeze(REGLAS),

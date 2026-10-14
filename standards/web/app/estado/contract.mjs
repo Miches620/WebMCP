@@ -78,8 +78,12 @@ export function parseContract(json, h = {}) {
     const features = [...new Set([].concat(a.features ?? []).map(featNum).filter((n) => n && n >= 1 && (!nFeat || n <= nFeat)))];
     const cambia = [].concat(a.cambia ?? []).map(String).filter((k) => keys.includes(k));
     const hace = String(a.hace ?? "").replace(/\s+/g, " ").trim().slice(0, 200);
+    // v0.5 (14/10, punto 9 paso 3): "cumple" = ids de las Atomic Tasks que hace la acción (las de lógica y
+    // de controles). Solo se guardan; Validation los cruza con las tareas reales (veredicto por tarea).
+    // (el campo no se llama "tareas": el Standard no nombra dominios y "tareas" es el de muchas apps)
+    const cumple = [...new Set([].concat(a.cumple ?? []).map((x) => String(x).trim()).filter((x) => /^[A-Za-z]+[\w.-]*$/.test(x) && x.length <= 30))];
     used.add(nombre);
-    acciones.push({ nombre, params, ejemplo, hace, ids, campos, features, cambia });
+    acciones.push({ nombre, params, ejemplo, hace, ids, campos, features, cambia, cumple });
   });
   if (json.acciones.length > MAX_ACTIONS) dropped.push(`hay ${json.acciones.length} acciones; se usan las primeras ${MAX_ACTIONS}.`);
   if (!acciones.length) return { error: `ninguna acción sirve: ${dropped.slice(0, 3).join(" | ")}` };

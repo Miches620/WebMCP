@@ -73,6 +73,11 @@ export function resolveProfiles(ids) {
     if (vals.length > 1) throw new Error(`PROFILE_CONFLICT: ${k} distinto entre ${merged.chain.join(", ")}: ${vals.join(" / ")}`);
     merged[k] = vals[0];
   }
+  // 14/10 (punto 9): el Standard y su receta los pone el tipo más específico que declara Standard.
+  // La receta va con SU Standard: web/game (grilla) no hereda la receta de web/app (estado).
+  const withStd = chain.slice().reverse().find((p) => p.standard);
+  merged.standard = withStd?.standard || null;
+  merged.atomizerRecipe = withStd?.atomizerRecipe || null;
   const builds = [...new Set(leaves.map((p) => p.build).filter(Boolean))];
   if (builds.length > 1) throw new Error(`PROFILE_MULTI_BUILD: ${ids.join(" + ")} necesitan builds distintos (${builds.join(", ")}); el build multi-artefacto todavía no existe`);
   merged.build = builds[0] || null;

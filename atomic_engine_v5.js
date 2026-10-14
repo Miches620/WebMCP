@@ -70,10 +70,17 @@ function extractJSON(text) {
    ATOMIZER
    ========================================================= */
 
+// Punto 9 (14/10): si el profile trae la receta de su Standard, el Atomizer la
+// recibe y cada Atomic Task declara su "pieza". Sin receta el prompt es el de siempre.
+// El core no conoce ningún Standard: la receta trae su propio texto ({ piezas, text }).
+const piezaLine = (recipe) =>
+  recipe ? `\n      "pieza": "${Object.keys(recipe.piezas).join(" | ")}",` : "";
+
 const DECOMPOSE_PROMPT = (
   phase,
   rolePadre,
   roles,
+  recipe = null,
 ) => `Eres un especialista Senior en el rol "${rolePadre}".
 
 Tu única responsabilidad es ATOMIZAR la fase recibida en
@@ -146,7 +153,7 @@ Roles permitidos:
 
 ${roles.map((r) => `"${r}"`).join("\n")}
 
-SALIDA:
+${recipe ? recipe.text + "\n" : ""}SALIDA:
 
 Devuelve ÚNICAMENTE JSON válido.
 
@@ -159,7 +166,7 @@ FORMATO:
     {
       "id": "F1.1",
       "task": "...",
-      "role": "${rolePadre}",
+      "role": "${rolePadre}",${piezaLine(recipe)}
       "description": "...",
       "depends_on": []
     }
@@ -176,7 +183,7 @@ Si la fase completa puede convertirse directamente en una
     {
       "id": "F1.1",
 "task": "...",
-      "role": "${rolePadre}",
+      "role": "${rolePadre}",${piezaLine(recipe)}
       "description": "...",
       "depends_on": []
     }
@@ -279,9 +286,9 @@ function requireProfile(profile, where) {
   return profile;
 }
 
-const buildDecomposePrompt = (phase, rolePadre, previousTasks = [], profile) => {
+export const buildDecomposePrompt = (phase, rolePadre, previousTasks = [], profile) => {
   return (
-    DECOMPOSE_PROMPT(phase, rolePadre, profile.roles) +
+    DECOMPOSE_PROMPT(phase, rolePadre, profile.roles, profile.atomizerRecipe || null) +
     DECOMPOSE_CONTEXT_ADDENDUM(previousTasks, profile.atomizerRoleRules)
   );
 };
@@ -702,6 +709,10 @@ function normalizeAtomicTask(rawAT, phase, phaseIndex, sequence, lineage = {}) {
 
     description: rawAT.description || "",
 
+    // Punto 9: la pieza de la receta del Standard (datos/logica/vista/estilo), si la hay.
+    // Una subtarea re-atomizada sin pieza hereda la de su madre (lineage.pieza).
+    ...(rawAT.pieza || lineage.pieza ? { pieza: rawAT.pieza || lineage.pieza } : {}),
+
     depends_on: normalizeDependsOn(rawAT.depends_on, id),
 
     status: "PROPOSED",
@@ -913,6 +924,7 @@ export async function resolveAtomicTask(
         {
           attempt: nextAttempt,
           parent_at: currentTask.id,
+          pieza: currentTask.pieza,
         },
       );
     });

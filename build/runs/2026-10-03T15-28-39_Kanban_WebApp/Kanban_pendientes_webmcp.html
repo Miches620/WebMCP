@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-14a'; // tablero actualizado al 14/10 (aviso de XSS funciona; sigue el punto 9)
+  const SEED = '2026-10-14b'; // tablero actualizado al 14/10 (punto 9: receta del Standard para el Atomizer, falta medir con Gemma)
   let state = loadState() || {
  "columns": [
   {
@@ -446,10 +446,10 @@
      "priority": "medio"
     },
     {
-     "id": "p35",
-     "title": "Punto 9 · Las tareas atómicas manejan la construcción",
-     "desc": "[#Specialist #Contrato] Hoy las 16 tareas de Project23 le llegan a Gemma solo como notas; el Specialist corre los pasos del Standard. Cada tarea atómica = un paso con su ASSIGNMENT v0 (goal, role, skills que pone el harness, standard, componente, tests_to_pass / tests_must_stay_green, constraints, output). Sin campos vacíos de la rama de aprendizaje.",
-     "priority": "urgente"
+     "id": "p45",
+     "title": "Arrastrar generado por el harness (además del botón)",
+     "desc": "[#Standard #Diseño] Pregunta de Miche (14/10): arrastrar es más elegante y el Standard no lo prohíbe ('puede ir además, nunca en vez del botón'). Idea: cuando el plan de controles ve una 'elección' de destino de un tipo de más arriba (tarjeta → columna), el harness agrega soltar sobre ese destino y llama a la MISMA acción. El botón queda como respaldo y es lo que prueba Validation; después, una prueba propia de arrastrar.",
+     "priority": "medio"
     },
     {
      "id": "p40",
@@ -566,7 +566,14 @@
    "name": "⚙️ En Progreso",
    "isInbox": false,
    "isDefault": true,
-   "cards": []
+   "cards": [
+    {
+     "id": "p35",
+     "title": "Punto 9 · Las tareas atómicas manejan la construcción",
+     "desc": "[#Specialist #Contrato #Atomizer] Paso 1 HECHO (14/10): receta del Standard en el Atomizer + campo 'pieza' (datos / logica / vista / estilo). AHORA: correr build/recipe_bench.mjs con Gemma (sin vs con, mismas fases; línea base Kanban 12/10 = 5 de 16 tareas con señales). Después: cada tarea = el ASSIGNMENT del paso del Specialist que le toca por su pieza, y Validation da veredicto por tarea.",
+     "priority": "urgente"
+    }
+   ]
   },
   {
    "id": "col-4",
@@ -574,6 +581,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h41",
+     "title": "14/10 · Punto 9, paso 1: receta del Standard para el Atomizer",
+     "desc": "[#Atomizer #Standard] recipe.mjs (web/app/estado v0.1 DRAFT): 4 piezas atadas a pasos del Standard y 6 reglas que salen del Standard; arrastrar permitido (el 'sin arrastrar' del borrador se sacó). Viaja en el profile web/app; web/game no la hereda. Sin receta el prompt queda igual byte a byte. Bench sin/con + métricas; test_recipe 25/25.",
+     "priority": "bajo"
+    },
     {
      "id": "h40",
      "title": "14/10 · El aviso de XSS funciona: Gemma corrige y SEG-1 PASS",

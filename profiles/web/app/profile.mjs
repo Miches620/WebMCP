@@ -6,6 +6,9 @@
 // Specialist para apps con estado, traductor sin secciones/hero/carrusel y
 // chequeos de interacción (key_changes, click_changes, counter_on_action).
 // Solo datos (lo carga también el navegador). El build vive en ./build.mjs.
+// 14/10 (punto 9): la receta del Standard viaja con el profile hasta el Atomizer.
+
+import recipe from "../../../standards/web/app/estado/recipe.mjs";
 
 export default {
   id: "web/app",
@@ -19,6 +22,8 @@ export default {
   build: "web/app",
   // v0.2 (12/10, paso 2 del borde): por archivos con su propio Standard (DRAFT). --legacy-components = motor de landing.
   standard: "web/app/estado",
+  // Receta del Standard para el Atomizer (piezas datos/logica/vista/estilo). Va con el Standard, no se hereda sola.
+  atomizerRecipe: recipe,
   borrowed: {
     from: "web/landing",
     what: ["plan de una pantalla y traductor de requisitos; el motor por componentes queda solo con --legacy-components"],

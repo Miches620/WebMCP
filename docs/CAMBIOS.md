@@ -2,6 +2,17 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Punto 9: receta del Standard para el Atomizer + campo "pieza" (14/10) — receta web/app/estado v0.1 (DRAFT)**
+- *Por qué:* el Atomizer partía las fases sin consultar ningún Standard. En el Kanban del 12/10, 5 de 16 tareas traían señales de problema: "ej. drag-and-drop o botón" (F2.5), "componente o modal" (F3.4), "placeholders para metadata" (F1.3)… El Specialist recibía decisiones abiertas y trabajo que en este Standard hace el harness.
+- *Decisión de Miche (14/10):* "ANTES atomizer generaba las tareas sin tener un Standard de consulta. HOY ya lo tenemos". Y sobre arrastrar: el Standard **no lo prohíbe** (nunca lo prohibió: "arrastrar puede ir además, nunca en vez del botón"). El "sin arrastrar" estaba en mi borrador de la receta y se sacó. Pendiente: que el harness genere arrastrar a partir del plan de controles.
+- *Qué se hizo:*
+  - `standards/web/app/estado/recipe.mjs`: solo datos. Cuatro piezas (datos, logica, vista, estilo), cada una atada a pasos reales del Standard (`PIEZA_STEPS`), y 6 reglas que salen del Standard (una acción = una tarea "logica"; los controles los pone el harness; arrastrar puede sumarse con el botón siempre; un texto o número por dato; campos con nombre; sin "X o Y"). Unos 1.250 caracteres.
+  - `profiles/web/app/profile.mjs` → `atomizerRecipe`. `registry.mjs`: `standard` y `atomizerRecipe` los pone el tipo más específico que declara Standard. web/game (grilla) **no** hereda la receta de estado.
+  - `atomic_engine_v5.js` (core): si el profile trae receta, el prompt la suma antes de SALIDA y el formato pide `"pieza"`. Sin receta el prompt queda igual que antes, byte a byte. `normalizeAtomicTask` guarda `pieza`, y una subtarea re-atomizada hereda la de su madre. El core no sabe de qué Standard es la receta: lee solo `piezas` y `text`.
+  - `build/recipe_metrics.mjs` y `build/recipe_bench.mjs`: miden la salida cruda del Atomizer **sin** y **con** receta sobre las MISMAS fases (TechLeader las arma una vez y quedan guardadas). Señales que mide: alternativas, trabajo del harness, campos vagos, acciones mezcladas, pieza válida.
+- *Ojo:* desde este cambio, la UI usa la receta en todo proyecto web/app. Si la medición sale peor, se apaga sacando una línea del profile.
+- *Probado:* `build/test_recipe.mjs` 25/25 (incluye la línea base real: Kanban del 12/10 = 16 tareas, 5 con señales). Se probó el bench contra un LM falso: fases → sin → con → tabla. Falta la corrida real con Gemma.
+
 **Corrida con v0.4.2 (14/10, `2026-10-14T13-44-34`): el aviso de XSS funciona**
 - *Antes:* la corrida `2026-10-13T08-11-39` salió con v0.4.1, porque la v0.4.2 no había llegado bien al disco (ver nota). Pasos de Gemma idénticos, SEG-1 FAIL: es la línea base sin aviso.
 - *Con v0.4.2:* dibujo 1er intento igual que siempre (innerHTML en contenido y comentarios) → aviso "escribe los textos del estado como HTML… usá textContent" → **reintento 1 correcto**: Gemma cambió los tres lugares a `textContent` (dejó comentarios `// CORRECCIÓN: Usar textContent para evitar XSS`). **SEG-1 PASS.** El resto igual: 7 PASS / 1 FAIL (R3) / 1 SIN_EVIDENCIA (R7), compuerta 6/6.

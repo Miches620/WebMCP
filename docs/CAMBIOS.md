@@ -2,6 +2,13 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Corrida con v0.4.2 (14/10, `2026-10-14T13-44-34`): el aviso de XSS funciona**
+- *Antes:* la corrida `2026-10-13T08-11-39` salió con v0.4.1, porque la v0.4.2 no había llegado bien al disco (ver nota). Pasos de Gemma idénticos, SEG-1 FAIL: es la línea base sin aviso.
+- *Con v0.4.2:* dibujo 1er intento igual que siempre (innerHTML en contenido y comentarios) → aviso "escribe los textos del estado como HTML… usá textContent" → **reintento 1 correcto**: Gemma cambió los tres lugares a `textContent` (dejó comentarios `// CORRECCIÓN: Usar textContent para evitar XSS`). **SEG-1 PASS.** El resto igual: 7 PASS / 1 FAIL (R3) / 1 SIN_EVIDENCIA (R7), compuerta 6/6.
+- *Costo:* 1 reintento (79 s, unos 1.300 tokens de prompt más: 2.474 contra 1.552). Pico de la sesión: 4.213 tokens.
+- *Lectura:* el circuito acordado el 12/10 anda de punta a punta: el profile de tema detecta y el aviso al autor corrige. Una corrida no alcanza para decir que siempre lo corrige (n=1).
+- *Nota de proceso:* la escritura al disco del 13/10 dejó `standard.mjs`, `test_controls.mjs` y `CAMBIOS.md` con su versión anterior, sin que se notara. Desde el 14/10, después de cada escritura se vuelven a leer los archivos y se comparan byte a byte.
+
 **Seguridad, el aviso vuelve al autor: sonda de dibujo con trampa de HTML (13/10) — Standard web/app/estado v0.4.2**
 - *Por qué:* SEG-1 (Validation, profile de tema) detecta el XSS al final, pero el arreglo es de quien escribió el código (decisión del 12/10). Tiene que enterarse mientras construye, no después.
 - *Qué se hizo:* después de sus chequeos de siempre, la sonda del paso de dibujo vuelve a dibujar con cada texto del estado (lo que escribe una persona; los ids no se tocan) convertido en HTML con una trampa (`<img … onerror>`). Si aparece como elemento o se ejecuta, el paso tiene un problema que no rompe el archivo, se reintenta y el aviso es: "dibujar escribe los textos del estado como HTML (innerHTML…): si una persona escribe "<img src=x onerror=...>" se ejecuta código. Pasó con: "…". Mostrá cada texto con textContent…". Después vuelve a dibujar el estado de verdad.

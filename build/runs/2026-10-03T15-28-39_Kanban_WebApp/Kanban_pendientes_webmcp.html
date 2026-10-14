@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-13a'; // tablero actualizado al 13/10 (aviso de XSS en el paso de dibujo)
+  const SEED = '2026-10-14a'; // tablero actualizado al 14/10 (aviso de XSS funciona; sigue el punto 9)
   let state = loadState() || {
  "columns": [
   {
@@ -437,6 +437,12 @@
      "id": "p42",
      "title": "Controles del harness: se ven pesados",
      "desc": "[#Standard #Diseño] Cada tarjeta muestra 5 bloques apilados (campo + botón por acción). Placeholders con el nombre del param (textoComentario, nuevoContenido) en vez de algo legible. 'Editar' arranca vacío: el param (nuevoContenido) no se llama como el dato (content). Para cuando entren las Skills de diseño.",
+     "priority": "medio"
+    },
+    {
+     "id": "p44",
+     "title": "Skill de Frontend: texto del usuario con textContent (al 1er intento)",
+     "desc": "[#Skills #Seguridad] El aviso ya lo corrige en 1 reintento (79 s). Una Skill solo ahorraría ese reintento a cambio de texto en cada pedido de dibujo. Medir con step_bench (con / sin / placebo) cuando haya más proyectos web/app; no es urgente.",
      "priority": "medio"
     },
     {
@@ -560,14 +566,7 @@
    "name": "⚙️ En Progreso",
    "isInbox": false,
    "isDefault": true,
-   "cards": [
-    {
-     "id": "p43",
-     "title": "Seguridad: corrida para ver si Gemma corrige el XSS con el aviso (v0.4.2)",
-     "desc": "[#Standard #Seguridad] Hecho (13/10): la sonda de dibujo prueba con textos con HTML y avisa 'usá textContent'. Falta: (1) corrida real para ver si Gemma lo corrige en el reintento y SEG-1 pasa a PASS; (2) después, Skill del Role de Frontend (web/app) medida con y sin, para que salga bien al primer intento.",
-     "priority": "urgente"
-    }
-   ]
+   "cards": []
   },
   {
    "id": "col-4",
@@ -575,6 +574,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h40",
+     "title": "14/10 · El aviso de XSS funciona: Gemma corrige y SEG-1 PASS",
+     "desc": "[#Seguridad #Specialist] v0.4.2: dibujo 1er intento con innerHTML → aviso → reintento con textContent en los 3 lugares. SEG-1 FAIL → PASS. Costo: 1 reintento (79 s, ~1.300 tokens más). n=1. Línea base sin aviso: corrida 2026-10-13T08-11-39 (v0.4.1, SEG-1 FAIL).",
+     "priority": "bajo"
+    },
     {
      "id": "h39",
      "title": "13/10 · Seguridad: el aviso de XSS vuelve al autor (sonda de dibujo, v0.4.2)",
@@ -827,7 +832,7 @@
   }
  ],
  "customColumnsCount": 1,
- "cardCounter": 81
+ "cardCounter": 83
 };
   
   let editingColumnId = null;

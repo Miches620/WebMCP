@@ -2,6 +2,14 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Build con v0.4.3: el aviso funciona — columnas lado a lado (14/10, `2026-10-14T20-50-53`)**
+- *Dibujo:* el 1er intento trajo 2 problemas, el contenedor `.kanban-board` y el XSS. El **reintento 1 corrigió los dos** (Gemma dejó el comentario "APENDIZAR DIRECTAMENTE A appContainer (CORRECCIÓN DE ESTRUCTURA)"). 154 s y 5173 tokens; el pico de la corrida fue 5173.
+- *Captura a 1280 px:* Pendiente, En Curso y Completado **lado a lado** (x = 20, 370, 720) y el panel de crear a la derecha. A 390 px, `#app` scrollea adentro (overflow-x: auto) y la página no desborda.
+- *Validation:* 7 PASS, R3 FAIL (contador, conocido) y R7 SIN_EVIDENCIA (`no_horizontal_scroll` también pasa en el esqueleto). Compuerta 6/6 y SEG-1 PASS.
+- *Lectura:* es el mismo circuito que con el XSS. Un chequeo determinista de la sonda vuelve al autor, y Gemma corrige en un reintento. El texto del pedido no cambió (n=1).
+- *Sigue pendiente* (p42): controles pesados, placeholders con el nombre del param, el color como texto libre, y botones sin color porque el CSS usa `data-action` y el harness pone `data-accion`.
+- Fixture `real_kanban_c12`, más 1 test: el dibujo corregido no da aviso ni XSS, y las 3 columnas quedan lado a lado. `test_controls` 35/35.
+
 **Standard web/app/estado v0.4.3: aviso si dibujar mete todo en un contenedor que deshace la distribución del CSS (14/10)**
 - *Evidencia:*
   - 2º build con tareas por paso (`2026-10-14T20-08-35`, receta v0.3.1): 7 PASS, R3 FAIL y R7 SIN_EVIDENCIA. El CSS nuevo pone `overflow-x: auto` en `#app`, así que el desborde se oculta. Dibujo necesitó 3 intentos: XSS, luego un texto que faltaba, luego OK.

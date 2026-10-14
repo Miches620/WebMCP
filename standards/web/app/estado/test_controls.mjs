@@ -158,6 +158,11 @@ t("v0.4.1, 6ª corrida: la compuerta sigue 6/6", g6.result === "PASS" && g6.rows
   const [xa, xb] = [await xs(real(11)), await xs(d11f)];
   t("en pantalla: con el contenedor las 3 columnas apiladas (misma x); sin él, lado a lado", new Set(xa).size === 1 && new Set(xb).size === 3, JSON.stringify({ con: xa, sin: xb }));
   t("lista sin flex en #app → sin aviso (el chequeo solo mira cuando el CSS arma la distribución en #app)", pr.probe.wrapper === null);
+  // build 20-50-53 (v0.4.3): el reintento de Gemma, después del aviso, sacó el contenedor
+  const d12 = real(12);
+  const p12 = await probePage(join(d12, "probe.html"));
+  const x12 = await xs(d12);
+  t("build 20-50-53: Gemma sacó el contenedor en el reintento → sin aviso, sin XSS, y las 3 columnas lado a lado", p12.probe.wrapper === null && step("dibujo").expect(p12.probe).length === 0 && new Set(x12).size === 3, JSON.stringify({ w: p12.probe.wrapper, m: step("dibujo").expect(p12.probe), x12 }));
 }
 
 console.log(`\n${ok}/${ok + fail} OK`);

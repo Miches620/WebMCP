@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-14h'; // tablero actualizado al 14/10 (Standard v0.4.3: aviso de contenedor de más)
+  const SEED = '2026-10-14i'; // tablero actualizado al 14/10 (v0.4.3 funciona: columnas lado a lado)
   let state = loadState() || {
  "columns": [
   {
@@ -436,7 +436,7 @@
     {
      "id": "p42",
      "title": "Controles del harness: se ven pesados",
-     "desc": "[#Standard #Diseño] Cada tarjeta muestra 5 bloques apilados (campo + botón por acción). Placeholders con el nombre del param (textoComentario, nuevoContenido) en vez de algo legible. 'Editar' arranca vacío: el param (nuevoContenido) no se llama como el dato (content). 14/10: un param 'color' sale como texto libre (hay que escribir #ff6347; podría ser input type=color) y el CSS de Gemma usa .ctl-boton[data-tipo] que el harness no pone (botones sin color). Para cuando entren las Skills de diseño.",
+     "desc": "[#Standard #Diseño] Cada tarjeta muestra 5 bloques apilados (campo + botón por acción). Placeholders con el nombre del param (textoComentario, nuevoContenido) en vez de algo legible. 'Editar' arranca vacío: el param (nuevoContenido) no se llama como el dato (content). 14/10: un param 'color' sale como texto libre (hay que escribir #ff6347; podría ser input type=color) y el CSS de Gemma usa .ctl-boton[data-tipo] / [data-action] que el harness no pone (pone data-accion): botones sin color. Para cuando entren las Skills de diseño.",
      "priority": "medio"
     },
     {
@@ -576,7 +576,7 @@
     {
      "id": "p35",
      "title": "Punto 9 · Las tareas atómicas manejan la construcción",
-     "desc": "[#Specialist #Contrato #Atomizer] Pasos 1 y 2 hechos. 2 builds: 7 PASS y tareas visibles, pero columnas apiladas: dibujo mete un contenedor (tarea F1.2) que deshace la fila que el CSS arma en #app. Standard v0.4.3: la sonda avisa al autor. AHORA: repetir el build con el mismo snapshot → ¿Gemma saca el contenedor en el reintento? Después: veredicto de Validation por tarea.",
+     "desc": "[#Specialist #Contrato #Atomizer] Pasos 1 y 2 hechos y la app sale bien (build 20-50-53: columnas lado a lado, 7 PASS, compuerta 6/6, SEG-1 PASS). AHORA: paso 3, veredicto de Validation POR TAREA (cada Atomic Task con su evidencia: pruebas de lógica, compuerta de llamadas, sonda de dibujo; lo que no se pueda probar queda SIN_EVIDENCIA).",
      "priority": "urgente"
     }
    ]
@@ -587,6 +587,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h48",
+     "title": "14/10 · v0.4.3 funciona: Gemma saca el contenedor en el reintento, columnas lado a lado",
+     "desc": "[#Standard #Evidencia] Build 2026-10-14T20-50-53: dibujo 1er intento con contenedor + XSS → reintento 1 corrige los dos. Captura: 3 columnas lado a lado y panel de crear a la derecha. 7 PASS, R3 FAIL, R7 SIN_EVIDENCIA, compuerta 6/6, SEG-1 PASS. Fixture c12; test_controls 35/35.",
+     "priority": "bajo"
+    },
     {
      "id": "h47",
      "title": "14/10 · Standard v0.4.3: aviso si dibujar mete todo en un contenedor de más",

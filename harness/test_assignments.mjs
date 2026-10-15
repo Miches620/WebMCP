@@ -25,7 +25,7 @@ const tasks = fx.corridas.find((c) => c.cond === "con" && c.rep === 1).tareas;
 const a = assignByStep(tasks, recipe, stepIds);
 const ids = (step) => a.byStep[step].map((x) => x.id);
 const of = (p) => tasks.filter((x) => x.pieza === p).map((x) => x.id);
-t("contrato recibe datos + logica + controles (v0.3.2: declara qué tareas cumple cada acción)", [...ids("contrato")].sort().join() === [...of("datos"), ...of("logica"), ...of("controles")].sort().join(), ids("contrato").join());
+t("datos → contrato (v0.3.3: mandarle también logica y controles lo rompió)", ids("contrato").join() === of("datos").join(), ids("contrato").join());
 t("logica → logica", ids("logica").join() === of("logica").join());
 t("estilo → pantalla; vista NO va a pantalla (v0.3.1: la resolvían dos pasos)", ids("pantalla").join() === of("estilo").join());
 t("vista → dibujo", ids("dibujo").join() === of("vista").join());
@@ -38,7 +38,7 @@ t("resumen: un número por paso y marca los del harness", /logica 7/.test(assign
 // --- casos borde ---
 const b = assignByStep([{ id: "x", pieza: "logica" }, { id: "y" }, { id: "z", pieza: "magia" }], recipe, stepIds);
 t("una tarea sin pieza o con pieza desconocida queda a la vista (no se pierde)", b.sinPieza[0].id === "y" && b.piezaDesconocida[0].id === "z" && /sin pieza 1, pieza desconocida 1/.test(assignmentSummary(b)));
-t("los pasos sin tareas se informan", b.pasosSinTareas.includes("pantalla") && !b.pasosSinTareas.includes("logica"));
+t("los pasos sin tareas se informan", b.pasosSinTareas.includes("contrato") && !b.pasosSinTareas.includes("logica"));
 
 // --- el texto para el pedido ---
 const txt = assignmentText([{ id: "F3.4", task: "Implementar la lógica para guardar cambios", description: "Recibe id, título y descripción." }]);

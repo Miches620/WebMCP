@@ -19,7 +19,7 @@ t("arrastrar está permitido (además del botón), no prohibido", /Arrastrar pue
 t("no inventa prohibiciones que el Standard no tiene (modales, guardar)", !/sin modales|localStorage|persist/i.test(recipe.text));
 t("corta: menos de 1800 caracteres (≈450 tokens)", recipe.text.length < 1800);
 t("v0.3: vista manda los controles a su pieza; controles dice QUÉ acción y en QUÉ elemento", /es controles/.test(PIEZAS.vista) && /QUÉ acción y en QUÉ elemento/.test(PIEZAS.controles));
-t("v0.3: controles la construye el harness (pasos acciones y controles; v0.3.2 también va al contrato para declararla); el resto, Gemma", PIEZA_AUTOR.controles === "harness" && PIEZA_STEPS.controles.join() === "contrato,acciones,controles" && ["datos", "logica", "vista", "estilo"].every((p) => PIEZA_AUTOR[p] === "gemma"));
+t("v0.3: controles la construye el harness (pasos acciones y controles); el resto, Gemma", PIEZA_AUTOR.controles === "harness" && PIEZA_STEPS.controles.join() === "acciones,controles" && ["datos", "logica", "vista", "estilo"].every((p) => PIEZA_AUTOR[p] === "gemma"));
 t("v0.3: a lo sumo una tarea controles por acción, que depende de su logica", /a lo sumo UNA tarea \"controles\"/.test(recipe.text) && /depende de su tarea \"logica\"/.test(recipe.text));
 t("v0.2: mostrar en pantalla no es logica; datos nunca arranca vacía", /Mostrar en pantalla no es logica/.test(PIEZAS.logica) && /nunca arranca vacía/.test(PIEZAS.datos));
 t("congelada", Object.isFrozen(recipe));

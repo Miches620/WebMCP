@@ -1,0 +1,116 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado) {
+    const appContainer = document.getElementById('app');
+    if (!appContainer) return;
+
+    // 1. Limpiar el contenedor principal
+    appContainer.innerHTML = '';
+
+    // 2. Crear el wrapper del tablero Kanban (F1.2)
+    const boardWrapper = document.createElement('div');
+    boardWrapper.className = 'kanban-board'; // Clase para el wrapper general
+    appContainer.appendChild(boardWrapper);
+
+    // Función auxiliar para renderizar una tarjeta completa
+    function renderCard(card, estado) {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card';
+        cardEl.setAttribute('data-card-id', card.id);
+
+        // Título y Descripción
+        const titleEl = document.createElement('h3');
+        titleEl.textContent = card.titulo;
+        cardEl.appendChild(titleEl);
+
+        const descriptionEl = document.createElement('p');
+        descriptionEl.textContent = card.descripcion;
+        cardEl.appendChild(descriptionEl);
+
+        // Etiquetas (F4.2)
+        if (card.etiquetas && card.etiquetas.length > 0) {
+            const etiquetasContainer = document.createElement('div');
+            etiquetasContainer.className = 'etiquetas-container';
+            card.etiquetas.forEach(etiqueta => {
+                const etiquetaEl = document.createElement('span');
+                etiquetaEl.className = 'etiqueta';
+                etiquetaEl.style.backgroundColor = etiqueta.color;
+                etiquetaEl.textContent = etiqueta.nombre;
+                etiquetasContainer.appendChild(etiquetaEl);
+            });
+            cardEl.appendChild(etiquetasContainer);
+        }
+
+        // Comentarios (F4.6)
+        if (card.comentarios && card.comentarios.length > 0) {
+            const comentariosContainer = document.createElement('div');
+            comentariosContainer.className = 'comentarios-container';
+            
+            // Mostrar los comentarios en orden cronológico inverso (más reciente arriba, aunque el estado no garantiza el orden de renderizado visual, lo mostramos como lista)
+            card.comentarios.forEach(comentario => {
+                const comentarioEl = document.createElement('div');
+                comentarioEl.className = 'comentario';
+                
+                // Formatear la fecha para mejor lectura
+                const dateOptions = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                const formattedDate = new Date(comentario.timestamp).toLocaleDateString('es-ES', dateOptions);
+
+                comentarioEl.innerHTML = `<strong>${comentario.autor}</strong> (${formattedDate}): ${comentario.contenido}`;
+                comentariosContainer.appendChild(comentarioEl);
+            });
+            cardEl.appendChild(comentariosContainer);
+        }
+
+
+        // Controles de acciones (Mover, Editar) - F2.2
+        const controlesAcciones = controlesDe("tarjetas", card, estado);
+        if (controlesAcciones) {
+             cardEl.appendChild(controlesAcciones);
+        }
+
+        return cardEl;
+    }
+
+
+    // 3. Iterar sobre las columnas para crear el tablero (F1.4)
+    const columnaWrapper = document.createElement('div');
+    columnaWrapper.className = 'column-list'; // Contenedor de todas las columnas
+    boardWrapper.appendChild(columnaWrapper);
+
+    estado.columnas.forEach(col => {
+        // Crear el contenedor de la columna
+        const columnEl = document.createElement('div');
+        columnEl.className = 'column';
+        columnEl.setAttribute('data-col-id', col.id);
+
+        // Título de la Columna
+        const titleEl = document.createElement('h2');
+        titleEl.textContent = col.nombre;
+        columnEl.appendChild(titleEl);
+
+        // Contenedor donde irán las tarjetas (F1.4)
+        const cardListEl = document.createElement('div');
+        cardListEl.className = 'card-list';
+        
+        // Renderizar Tarjetas dentro de la columna (F2.2)
+        col.tarjetas.forEach(card => {
+            const cardElement = renderCard(card, estado);
+            cardListEl.appendChild(cardElement);
+        });
+
+        columnEl.appendChild(cardListEl);
+        columnaWrapper.appendChild(columnEl);
+    });
+
+
+    // 4. Controles de acciones generales (Crear Tarjeta) - "app"
+    const appControls = controlesDe("app", null, estado);
+    if (appControls) {
+        // Creamos un contenedor para los controles globales y lo añadimos al final del boardWrapper
+        const globalActionsContainer = document.createElement('div');
+        globalActionsContainer.className = 'global-actions'; 
+        globalActionsContainer.appendChild(appControls);
+        boardWrapper.appendChild(globalActionsContainer);
+    }
+}
+```

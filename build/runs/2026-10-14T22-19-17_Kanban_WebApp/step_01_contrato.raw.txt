@@ -1,0 +1,132 @@
+### FILE: contrato.json
+```json
+{
+  "estado": {
+    "columnas": [
+      {
+        "id": "col-pendiente",
+        "nombre": "Pendiente",
+        "tarjetas": [
+          {
+            "id": 101,
+            "titulo": "Diseñar estructura de datos",
+            "descripcion": "Definir el modelo de datos para tarjetas y estado global.",
+            "contenido_adicional": null,
+            "etiquetas": [
+              {"nombre": "Backend", "color": "#ff6347"},
+              {"nombre": "Prioridad Alta", "color": "#ffd700"}
+            ],
+            "comentarios": [
+              {"autor": "Sistema", "contenido": "Se requiere definir el contrato JSON.", "timestamp": "2023-10-26T10:00:00Z"}
+            ]
+          },
+          {
+            "id": 102,
+            "titulo": "Implementar lógica de movimiento",
+            "descripcion": "Asegurar que la actualización del estado sea inmutable al mover tarjetas.",
+            "contenido_adicional": null,
+            "etiquetas": [
+              {"nombre": "Lógica", "color": "#4682b4"}
+            ],
+            "comentarios": []
+          }
+        ]
+      },
+      {
+        "id": "col-en_curso",
+        "nombre": "En Curso",
+        "tarjetas": [
+          {
+            "id": 201,
+            "titulo": "Crear componente de controles",
+            "descripcion": "Usar la función controlesDe para generar los formularios.",
+            "contenido_adicional": null,
+            "etiquetas": [],
+            "comentarios": [
+              {"autor": "Usuario A", "contenido": "¿Se puede hacer un modal?", "timestamp": "2023-10-26T11:30:00Z"}
+            ]
+          }
+        ]
+      },
+      {
+        "id": "col-completado",
+        "nombre": "Completado",
+        "tarjetas": [
+          {
+            "id": 301,
+            "titulo": "Definir contrato JSON",
+            "descripcion": "El paso actual. Revisar el formato de salida.",
+            "contenido_adicional": null,
+            "etiquetas": [
+              {"nombre": "Documentación", "color": "#3cb371"}
+            ],
+            "comentarios": []
+          }
+        ]
+      }
+    ]
+  },
+  "acciones": [
+    {
+      "nombre": "crearTarjeta",
+      "params": ["titulo", "descripcion"],
+      "ejemplo": ["Nuevo Título", "Descripción de la nueva tarea."],
+      "hace": "Crea una tarjeta y la añade a la columna activa.",
+      "features": [2.3, 2.4, 2.5],
+      "cambia": ["columnas"],
+      "cumple": []
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": ["cardId", "sourceColId", "targetColId"],
+      "ejemplo": [101, "col-pendiente", "col-en_curso"],
+      "hace": "Mueve una tarjeta de su columna actual a la destino.",
+      "features": [2.6, 3.1],
+      "cambia": ["columnas"],
+      "cumple": []
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": ["cardId", "nuevoTitulo", "nuevaDescripcion"],
+      "ejemplo": [201, "Componente de Controles V2", "Mejorar la usabilidad del formulario."],
+      "hace": "Actualiza el título y descripción de una tarjeta existente.",
+      "features": [3.4, 3.5],
+      "cambia": ["columnas"],
+      "cumple": []
+    },
+    {
+      "nombre": "eliminarTarjeta",
+      "params": ["cardId"],
+      "ejemplo": [102],
+      "hace": "Elimina completamente una tarjeta del estado.",
+      "features": [3.6, 3.7],
+      "cambia": ["columnas"],
+      "cumple": []
+    },
+    {
+      "nombre": "agregarEtiqueta",
+      "params": ["cardId", "nombreEtiqueta"],
+      "ejemplo": [102, "Testing"],
+      "hace": "Añade una nueva etiqueta a la tarjeta especificada.",
+      "features": [4.1, 4.3, 4.4],
+      "cambia": ["columnas"],
+      "cumple": []
+    },
+    {
+      "nombre": "agregarComentario",
+      "params": ["cardId", "contenidoComentario"],
+      "ejemplo": [101, "Buen punto, lo reviso mañana."],
+      "hace": "Añade un nuevo comentario al hilo de la tarjeta.",
+      "features": [4.5, 4.7, 4.8],
+      "cambia": ["columnas"],
+      "cumple": []
+    }
+  ],
+  "se_ve": [
+    2.1,
+    3.2,
+    4.1,
+    4.5
+  ]
+}
+```

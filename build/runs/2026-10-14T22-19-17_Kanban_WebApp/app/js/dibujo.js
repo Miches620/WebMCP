@@ -1,0 +1,133 @@
+function dibujar(estado) {
+    const appContainer = document.getElementById('app');
+    if (!appContainer) return;
+
+    // 1. Limpiar el contenedor principal
+    appContainer.innerHTML = '';
+
+    /**
+     * Función auxiliar para renderizar una tarjeta completa
+     * @param {Object} card - Objeto de la tarjeta del estado.
+     * @param {Object} estado - El estado completo de la aplicación (necesario para controlesDe).
+     * @returns {HTMLElement} La tarjeta renderizada.
+     */
+    function renderCard(card, estado) {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card';
+        cardEl.setAttribute('data-card-id', card.id);
+
+        // Título y Descripción (Usando textContent para seguridad)
+        const titleEl = document.createElement('h3');
+        titleEl.textContent = card.titulo;
+        cardEl.appendChild(titleEl);
+
+        const descriptionEl = document.createElement('p');
+        descriptionEl.textContent = card.descripcion;
+        cardEl.appendChild(descriptionEl);
+
+        // Etiquetas (F4.2)
+        if (card.etiquetas && card.etiquetas.length > 0) {
+            const etiquetasContainer = document.createElement('div');
+            etiquetasContainer.className = 'etiquetas-container';
+            card.etiquetas.forEach(etiqueta => {
+                const etiquetaEl = document.createElement('span');
+                etiquetaEl.className = 'etiqueta';
+                etiquetaEl.style.backgroundColor = etiqueta.color;
+                // Usamos textContent para asegurar que el nombre no ejecute código
+                etiquetaEl.textContent = etiqueta.nombre; 
+                etiquetasContainer.appendChild(etiquetaEl);
+            });
+            cardEl.appendChild(etiquetasContainer);
+        }
+
+        // Comentarios (F4.6)
+        if (card.comentarios && card.comentarios.length > 0) {
+            const comentariosContainer = document.createElement('div');
+            comentariosContainer.className = 'comentarios-container';
+            
+            // Mostrar los comentarios en orden cronológico inverso
+            card.comentarios.forEach(comentario => {
+                const comentarioEl = document.createElement('div');
+                comentarioEl.className = 'comentario';
+                
+                // Formatear la fecha para mejor lectura (Problema 2 corregido)
+                try {
+                    const dateObj = new Date(comentario.timestamp);
+                    const dateOptions = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                    // Usamos toLocaleDateString para asegurar el formato legible en español
+                    const formattedDate = dateObj.toLocaleDateString('es-ES', dateOptions);
+
+                    // Construcción segura del contenido (Problema 3 corregido)
+                    comentarioEl.innerHTML = ''; // Limpiar cualquier innerHTML previo
+                    
+                    // Autor y Fecha: <strong >Autor</strong> (Fecha): Contenido
+                    const headerText = `${comentario.autor} (${formattedDate}): `;
+                    
+                    // Creamos el texto completo de forma segura
+                    const textNode = document.createTextNode(headerText + comentario.contenido);
+                    comentarioEl.appendChild(textNode);
+
+                } catch (e) {
+                    // Fallback si la fecha es inválida
+                    comentarioEl.textContent = `Error al mostrar comentario: ${comentario.autor}. Contenido: ${comentario.contenido}`;
+                }
+                
+                comentariosContainer.appendChild(comentarioEl);
+            });
+            cardEl.appendChild(comentariosContainer);
+        }
+
+
+        // Controles de acciones (Mover, Editar) - F2.2
+        const controlesAcciones = controlesDe("tarjetas", card, estado);
+        if (controlesAcciones) {
+             cardEl.appendChild(controlesAcciones);
+        }
+
+        return cardEl;
+    }
+
+
+    // 2. Contenedor de todas las columnas (Se añade directamente a #app - Problema 1 corregido)
+    const columnaWrapper = document.createElement('div');
+    columnaWrapper.className = 'column-list'; // Clase para el wrapper general del tablero
+    appContainer.appendChild(columnaWrapper);
+
+    // 3. Iterar sobre las columnas para crear el tablero (F1.4)
+    estado.columnas.forEach(col => {
+        // Crear el contenedor de la columna
+        const columnEl = document.createElement('div');
+        columnEl.className = 'column';
+        columnEl.setAttribute('data-col-id', col.id);
+
+        // Título de la Columna
+        const titleEl = document.createElement('h2');
+        titleEl.textContent = col.nombre;
+        columnEl.appendChild(titleEl);
+
+        // Contenedor donde irán las tarjetas (F1.4)
+        const cardListEl = document.createElement('div');
+        cardListEl.className = 'card-list';
+        
+        // Renderizar Tarjetas dentro de la columna (F2.2)
+        col.tarjetas.forEach(card => {
+            const cardElement = renderCard(card, estado);
+            cardListEl.appendChild(cardElement);
+        });
+
+        columnEl.appendChild(cardListEl);
+        // Añadir la columna directamente al wrapper del tablero (que está en #app)
+        columnaWrapper.appendChild(columnEl); 
+    });
+
+
+    // 4. Controles de acciones generales (Crear Tarjeta) - "app"
+    const appControls = controlesDe("app", null, estado);
+    if (appControls) {
+        // Creamos un contenedor para los controles globales y lo añadimos directamente a #app
+        const globalActionsContainer = document.createElement('div');
+        globalActionsContainer.className = 'global-actions'; 
+        globalActionsContainer.appendChild(appControls);
+        appContainer.appendChild(globalActionsContainer); // Añadido directamente a appContainer
+    }
+}

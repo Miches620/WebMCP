@@ -1,0 +1,91 @@
+{ 
+  "estado": { 
+    "columnas": [
+      {"id": "col_pendiente", "nombre": "Pendiente"},
+      {"id": "col_en_curso", "nombre": "En Curso"},
+      {"id": "col_completado", "nombre": "Completado"}
+    ],
+    "tarjetas": {
+      "col_pendiente": [
+        {
+          "id": "card1",
+          "titulo": "Implementar Login",
+          "descripcion": "Crear el flujo de autenticación y manejo de tokens.",
+          "contenido_adicional": null,
+          "labels": [{"nombre": "UX", "color": "#ff9800"}],
+          "comentarios": [
+            {"autor": "Admin", "contenido": "Revisar requisitos de seguridad.", "timestamp": 1678886400}
+          ]
+        },
+        {
+          "id": "card2",
+          "titulo": "Diseñar Dashboard",
+          "descripcion": "Bocetos iniciales de la interfaz principal y navegación.",
+          "contenido_adicional": null,
+          "labels": [],
+          "comentarios": []
+        }
+      ],
+      "col_en_curso": [
+        {
+          "id": "card3",
+          "titulo": "Configurar API",
+          "descripcion": "Conectar el backend con la base de datos y endpoints iniciales.",
+          "contenido_adicional": null,
+          "labels": [{"nombre": "Backend", "color": "#2196f3"}],
+          "comentarios": []
+        }
+      ],
+      "col_completado": [
+        {
+          "id": "card4",
+          "titulo": "Revisión Final",
+          "descripcion": null,
+          "contenido_adicional": null,
+          "labels": [],
+          "comentarios": []
+        }
+      ]
+    },
+    "estadoCreacionCard": { 
+      "titulo": "",
+      "descripcion": ""
+    }
+  },
+  "acciones": [
+    { 
+      "nombre": "crearTarjeta", 
+      "params": ["titulo", "descripcion"], 
+      "ejemplo": ["Nueva Tarea", "Descripción inicial de la tarea."], 
+      "hace": "Crea una nueva tarjeta en la columna activa.", 
+      "features": [1, 2], 
+      "cambia": ["tarjetas"], 
+      "cumple": ["F2.3", "F2.4", "F2.5"] 
+    },
+    { 
+      "nombre": "moverTarjeta", 
+      "params": ["cardId", "colOrigenId", "colDestinoId"], 
+      "ejemplo": ["card1", "col_pendiente", "col_en_curso"], 
+      "hace": "Mueve una tarjeta de su columna actual a la destino.", 
+      "features": [2, 3], 
+      "cambia": ["tarjetas"], 
+      "cumple": ["F2.6", "F3.1"] 
+    },
+    { 
+      "nombre": "editarTarjeta", 
+      "params": ["cardId", "nuevoTitulo", "nuevaDescripcion"], 
+      "ejemplo": ["card1", "Login Mejorado", "Actualizar flujo de autenticación."], 
+      "hace": "Actualiza el título y la descripción de una tarjeta.", 
+      "features": [5], 
+      "cambia": ["tarjetas"], 
+      "cumple": ["F3.4", "F3.5"] 
+    },
+    { 
+      "nombre": "eliminarTarjeta", 
+      "params": ["cardId", "columnaId"], 
+      "ejemplo": ["card2", "col_pendiente"], 
+      "hace": "Elimina completamente una tarjeta del tablero.", 
+      "features": [6], 
+      "cambia": ["tarjetas"], 
+      "cumple": ["F3.6", "F3.7"] 
+    }

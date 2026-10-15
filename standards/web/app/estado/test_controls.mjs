@@ -154,7 +154,7 @@ t("v0.4.1, 6ª corrida: la compuerta sigue 6/6", g6.result === "PASS" && g6.rows
   const d11f = real(11, fixed);
   const p11f = await probePage(join(d11f, "probe.html"));
   t("el mismo dibujo sin el contenedor → sin aviso", fixed.includes("const boardWrapper = appContainer;") && p11f.probe.wrapper === null && !/quedan apiladas/.test(msg(p11f)), JSON.stringify(p11f.probe.wrapper));
-  const xs = async (dir) => { const { chromium } = await import("playwright"); const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1280, height: 900 } }); await pg.goto("file://" + join(dir, "index.html")); const r = await pg.evaluate(() => [...document.querySelectorAll(".columna")].map((e) => Math.round(e.getBoundingClientRect().x))); await b.close(); return r; };
+  const xs = async (dir, sel = ".columna") => { const { chromium } = await import("playwright"); const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1280, height: 900 } }); await pg.goto("file://" + join(dir, "index.html")); const r = await pg.evaluate((s) => [...document.querySelectorAll(s)].map((e) => Math.round(e.getBoundingClientRect().x)), sel); await b.close(); return r; };
   const [xa, xb] = [await xs(real(11)), await xs(d11f)];
   t("en pantalla: con el contenedor las 3 columnas apiladas (misma x); sin él, lado a lado", new Set(xa).size === 1 && new Set(xb).size === 3, JSON.stringify({ con: xa, sin: xb }));
   t("lista sin flex en #app → sin aviso (el chequeo solo mira cuando el CSS arma la distribución en #app)", pr.probe.wrapper === null);
@@ -163,6 +163,14 @@ t("v0.4.1, 6ª corrida: la compuerta sigue 6/6", g6.result === "PASS" && g6.rows
   const p12 = await probePage(join(d12, "probe.html"));
   const x12 = await xs(d12);
   t("build 20-50-53: Gemma sacó el contenedor en el reintento → sin aviso, sin XSS, y las 3 columnas lado a lado", p12.probe.wrapper === null && step("dibujo").expect(p12.probe).length === 0 && new Set(x12).size === 3, JSON.stringify({ w: p12.probe.wrapper, m: step("dibujo").expect(p12.probe), x12 }));
+  // build 22-19-17 (v0.5.1): el reintento cambió .kanban-board por .column-list (mismo problema) y metió los
+  // controles de "app" en otra caja: con 2 hijos el chequeo no saltaba. Y "2023-10-26T10:00:00Z" se mostraba
+  // formateado: la sonda lo daba como texto que no se ve.
+  const d13 = real(13);
+  const p13 = await probePage(join(d13, "probe.html"));
+  const x13 = await xs(d13, ".column");
+  t("build 22-19-17: .column-list + una caja que solo envuelve controles → aviso (antes se escapaba)", p13.probe.wrapper?.cls === "column-list" && x13.length === 3 && new Set(x13).size === 1, JSON.stringify({ w: p13.probe.wrapper, x13 }));
+  t("build 22-19-17: una fecha ISO mostrada formateada no cuenta como texto que falta", !p13.probe.missing.some((m) => /2023-10-26T/.test(m)), JSON.stringify(p13.probe.missing));
 }
 
 console.log(`\n${ok}/${ok + fail} OK`);

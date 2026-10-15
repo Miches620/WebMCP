@@ -2,6 +2,18 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Build con contrato v0.5 (18 tareas): se rompió → vuelta atrás (receta v0.3.3, Standard v0.5.1) y 3 arreglos que mostró la corrida (14/10, `2026-10-14T22-19-17`)**
+- *Qué pasó:*
+  - El contrato, con 18 tareas (+1.400 tokens), falló los 3 intentos: features sin cubrir, y en dos respuestas cortadas al llegar al tope de 3000 tokens. Quedó con 3 acciones (sin borrar, etiquetar ni comentar).
+  - Resultado: 4 PASS, la compuerta 1/4 y el veredicto por tarea en 2 CUMPLIDAS, 6 NO_CUMPLIDAS y 20 SIN_EVIDENCIA.
+  - En los builds anteriores el contrato salía al 1er intento, con 6 acciones.
+- *Decisión:* **se vuelve atrás.** El contrato recibe solo las tareas de `datos` (receta v0.3.3) y el pedido no menciona `cumple`. El parse de `cumple` y `task_verdict` se quedan: si no hay `cumple`, las tareas quedan SIN_EVIDENCIA. La relación tarea → acción se va a resolver de otra forma (a decidir).
+- *Arreglos que destapó la corrida:*
+  1. **`contrato.json` no era el contrato que se usó** (files_engine v0.12.1). El dataKind guardaba el texto del intento con menos problemas, pero `emit` arma `js/datos.js` con el mejor contrato de TODOS los intentos. La compuerta probó ids de otro estado (`card-1` contra `card1`) y dio FAIL falsos en mover y editar. Ahora el Standard escribe lo elegido (`answerOf`). Test en `test_estado`.
+  2. **El aviso del contenedor se escapaba.** En el reintento, Gemma cambió `.kanban-board` por `.column-list` y metió los controles de "app" en otra caja (`.global-actions`). Con 2 hijos en `#app`, el chequeo no saltaba. Ahora una caja que solo envuelve controles del harness tampoco cuenta.
+  3. **Fechas ISO:** "2023-10-26T10:00:00Z" se mostraba formateada y la sonda la daba como "texto que no se ve" (2 reintentos gastados). Ahora una fecha ISO no se exige tal cual.
+- *Fixture:* `real_kanban_c13` (dibujo y CSS reales; el contrato está reconstruido desde `js/datos.js` porque el de la corrida era el de otro intento). `test_controls` 37/37 y `test_estado` 53/53.
+
 **Punto 9, paso 3: veredicto de Validation POR TAREA — task_verdict v0.1, Standard web/app/estado v0.5, receta v0.3.2 (14/10)**
 - *Decisión de Miche (14/10):* Validation da un veredicto por Atomic Task, solo con evidencia que ya existe y sin LLM nuevo.
 - *Qué se hizo:*

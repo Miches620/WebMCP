@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-14j'; // tablero actualizado al 14/10 (punto 9 paso 3: veredicto por tarea)
+  const SEED = '2026-10-14k'; // tablero actualizado al 14/10 (contrato con 18 tareas se rompió: vuelta atrás + 3 arreglos)
   let state = loadState() || {
  "columns": [
   {
@@ -576,7 +576,7 @@
     {
      "id": "p35",
      "title": "Punto 9 · Las tareas atómicas manejan la construcción",
-     "desc": "[#Specialist #Contrato #Atomizer #Validation] Pasos 1, 2 y 3 hechos en código. Paso 3: el contrato declara en cada acción qué tareas cumple ('cumple') y Validation da veredicto por tarea (logica/controles con pruebas + compuerta; datos/vista/estilo SIN_EVIDENCIA). AHORA: build real con el snapshot → ¿Gemma declara 'cumple' bien? ¿el contrato con 18 tareas (+1.400 tokens) sigue saliendo al 1er intento? Después: cerrar el punto 9 y pasar a 5/6 (TDD) o 10 (Orchestrator).",
+     "desc": "[#Specialist #Contrato #Atomizer #Validation] Pasos 1 y 2 andan. Paso 3: task_verdict listo, pero declarar 'cumple' DENTRO del contrato lo rompió (18 tareas: 3 intentos fallidos, respuesta cortada). Vuelta atrás (receta v0.3.3). A DECIDIR: de dónde sale la relación tarea → acción (paso chico aparte, comentario en logica.js, u otra). Después: build de control con el snapshot.",
      "priority": "urgente"
     }
    ]
@@ -587,6 +587,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h50",
+     "title": "14/10 · Contrato con 18 tareas se rompió → vuelta atrás + 3 arreglos",
+     "desc": "[#Contrato #Harness #Evidencia] Build 22-19-17: contrato 3 intentos fallidos (features sin cubrir, corte a 3000 tokens), 3 acciones; compuerta 1/4. Vuelta atrás: el contrato solo recibe 'datos'. Arreglos: (1) contrato.json era el de otro intento (files_engine v0.12.1: answerOf); (2) el aviso del contenedor se escapaba con una caja de controles aparte; (3) fechas ISO formateadas no son 'texto que falta'. Fixture c13; test_controls 37/37, test_estado 53/53.",
+     "priority": "bajo"
+    },
     {
      "id": "h49",
      "title": "14/10 · Punto 9 paso 3: veredicto de Validation por tarea (task_verdict v0.1)",

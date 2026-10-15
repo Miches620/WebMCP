@@ -1,0 +1,97 @@
+### FILE: contrato.json
+```json
+{
+  "estado": {
+    "columnas": [
+      {
+        "id": "col-1",
+        "nombre": "Pendiente",
+        "tarjetas": [
+          {
+            "id": "card-1",
+            "titulo": "Implementar Login",
+            "descripcion": "Crear el flujo de autenticación y manejo de tokens.",
+            "contenido_adicional": null,
+            "etiquetas": [
+              {"nombre": "Backend", "color": "#ff9800"}
+            ],
+            "comentarios": [
+              {"autor": "Admin", "contenido": "Revisar endpoints y manejo de errores.", "timestamp": "2023-10-26T10:00:00Z"}
+            ]
+          },
+          {
+            "id": "card-2",
+            "titulo": "Diseño UI Kanban",
+            "descripcion": "Definir la paleta de colores y el layout general del tablero.",
+            "contenido_adicional": null,
+            "etiquetas": [],
+            "comentarios": []
+          }
+        ]
+      },
+      {
+        "id": "col-2",
+        "nombre": "En Curso",
+        "tarjetas": [
+          {
+            "id": "card-3",
+            "titulo": "Configurar API",
+            "descripcion": "Conectar el frontend con los servicios de datos y realizar pruebas unitarias.",
+            "contenido_adicional": null,
+            "etiquetas": [
+              {"nombre": "API", "color": "#2196f3"}
+            ],
+            "comentarios": []
+          }
+        ]
+      },
+      {
+        "id": "col-3",
+        "nombre": "Completado",
+        "tarjetas": []
+      }
+    ]
+  },
+  "acciones": [
+    {
+      "nombre": "crearTarjeta",
+      "params": ["titulo", "descripcion"],
+      "ejemplo": ["Nueva Tarea", "Descripción inicial de la tarea."],
+      "hace": "Crea una nueva tarjeta en la columna activa.",
+      "features": [
+        2,
+        4,
+        5
+      ],
+      "cambia": "columnas[i].tarjetas",
+      "cumple": []
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": ["cardId", "colOrigenId", "colDestinoId"],
+      "ejemplo": ["card-1", "col-1", "col-2"],
+      "hace": "Mueve una tarjeta de una columna a otra.",
+      "features": [
+        6,
+        3
+      ],
+      "cambia": "columnas",
+      "cumple": []
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": ["cardId", "nuevoTitulo", "nuevaDescripcion"],
+      "ejemplo": ["card-2", "Diseño UI Kanban V2", "Definir la paleta de colores y el layout general."],
+      "hace": "Actualiza los detalles (título/descripción) de una tarjeta existente.",
+      "features": [
+        5,
+        3
+      ],
+      "cambia": "columnas[i].tarjetas[j]",
+      "cumple": []
+    },
+    {
+      "nombre": "eliminarTarjeta",
+      "params": ["cardId", "columnaId"],
+      "ejemplo": ["card-2", "col-1"],
+      

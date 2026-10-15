@@ -1,0 +1,221 @@
+### FILE: app.html
+```html
+<h1>Kanban Board</h1>
+<div id="app"></div>
+```
+
+### FILE: styles.css
+```css
+/* ------------------------------------------ */
+/* 1. Variables y Estilos Globales (Dark/Industrial) */
+/* ------------------------------------------ */
+:root {
+    --color-bg-primary: #1e272e; /* Fondo oscuro principal */
+    --color-bg-secondary: #2c3e50; /* Fondos de contenedores, columnas */
+    --color-text-light: #ecf0f1; /* Texto claro */
+    --color-accent-primary: #3498db; /* Azul industrial (botones principales) */
+    --color-accent-secondary: #e74c3c; /* Rojo de alerta/error */
+    --color-border: #3a4d60; /* Bordes sutiles */
+    --color-card-bg: #212f3d; /* Fondo de tarjeta ligeramente más claro que el contenedor */
+    --shadow-dark: rgba(0, 0, 0, 0.5);
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-light);
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    border-bottom: 2px solid var(--color-accent-primary);
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+    font-weight: 300;
+    letter-spacing: 1.5px;
+}
+
+/* Contenedor principal del tablero */
+#app {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 20px; /* Espacio para la barra de scroll horizontal */
+}
+
+/* ------------------------------------------ */
+/* 2. Estilos de Columnas (Kanban) */
+/* ------------------------------------------ */
+.column {
+    flex: 0 0 300px; /* Ancho fijo para las columnas */
+    background-color: var(--color-bg-secondary);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    min-height: 60vh; /* Asegura que las columnas tengan altura visible */
+}
+
+.column h2 {
+    font-size: 1.4em;
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-light);
+}
+
+/* Contenedor de tarjetas dentro de la columna */
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espacio entre tarjetas */
+    padding-top: 10px;
+}
+
+/* ------------------------------------------ */
+/* 3. Estilos de Tarjetas (Card) - F2.7, F4.9, F4.10 */
+/* ------------------------------------------ */
+.card {
+    background-color: var(--color-card-bg);
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); /* Sombra normal */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    border-left: 5px solid var(--color-accent-primary); /* Toque industrial */
+}
+
+/* Efecto Hover (Iluminación/Elevación) */
+.card:hover {
+    transform: translateY(-3px); /* Elevación sutil */
+    box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4), 0 4px 12px var(--shadow-dark); /* Sombra más pronunciada y colorida */
+}
+
+/* Título de la tarjeta */
+.card h3 {
+    margin-top: 0;
+    color: #ffffff;
+    font-size: 1.1em;
+    border-bottom: none;
+}
+
+/* Descripción de la tarjeta */
+.card p {
+    font-size: 0.95em;
+    color: #b0bec5; /* Gris más suave para descripciones */
+    margin-bottom: 10px;
+}
+
+/* Etiquetas (Tags) */
+.etiquetas-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.etiqueta {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: bold;
+    color: var(--color-text-light);
+}
+
+/* Comentarios */
+.comentarios-container {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--color-border);
+}
+
+.comentario {
+    background-color: #283647; /* Fondo más oscuro para el comentario */
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.comentario strong {
+    display: block;
+    color: var(--color-accent-primary);
+    font-size: 0.85em;
+}
+
+/* ------------------------------------------ */
+/* 4. Estilos de Controles y Acciones (Controls) */
+/* ------------------------------------------ */
+
+/* Contenedor general de controles (Ej: Crear Tarjeta, Comentarios) */
+.ctl-controles {
+    background-color: #25313f; /* Fondo ligeramente más oscuro para destacar la sección de acciones */
+    padding: 15px;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+/* Cada acción individual dentro del contenedor de controles */
+.ctl-accion {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--color-border);
+}
+
+.ctl-accion:last-child {
+    border-bottom: none;
+}
+
+/* Estilos de Inputs y Selects */
+input[type="text"], textarea, select {
+    width: calc(100% - 20px);
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    background-color: #3a4d60; /* Fondo oscuro para inputs */
+    color: var(--color-text-light);
+    border-radius: 4px;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+input[type="text"]:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--color-accent-primary); /* Resaltado al enfocar */
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+/* Botones de acción */
+.ctl-boton {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+/* Botón primario (Crear/Guardar) */
+.ctl-boton[type="submit"], .btn-primary {
+    background-color: var(--color-accent-primary);
+    color: white;
+}
+
+.ctl-boton[type="submit"]:hover, .btn-primary:hover {
+    background-color: #2980b9; /* Oscurecer el azul al pasar el mouse */
+    transform: translateY(-1px);
+}
+
+/* Botón secundario (Cancelar/Eliminar) */
+.ctl-boton[type="button"], .btn-secondary {
+    background-color: var(--color-border);
+    color: var(--color-text-light);
+}
+
+.ctl-boton[type="button"]:hover, .btn-secondary:hover {
+    background-color: #4a6075;
+    transform: translateY(-1px);
+}
+```

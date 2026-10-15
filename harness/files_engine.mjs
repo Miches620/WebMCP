@@ -30,7 +30,7 @@ import { assignByStep, assignmentText, assignmentSummary } from "./assignments.m
 // compatibilidad: las herramientas de JS se siguen pudiendo importar desde acá (viven en js_tools.mjs)
 export { loadScripts, syntaxOf, runAcceptance, findMember, replaceMember, stripComments, topNames, clashes, shadowProblems } from "./js_tools.mjs";
 
-export const ENGINE_VERSION = "files_engine v0.12";
+export const ENGINE_VERSION = "files_engine v0.12.1";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
@@ -102,7 +102,10 @@ export const dataKind = {
     if (!parsed?.items?.length) throw new Error(`${st.id}: ningún dato válido después de 3 intentos (${(s.rec.problems_final || []).slice(0, 3).join(" | ")})`);
     ctx.data[st.id] = parsed;
     files[st.file] = parsed.js;
-    writeFileSync(join(outDir, st.answer), String(s.content[st.answer] || ""), "utf8");
+    // v0.12.1 (14/10, build 2026-10-14T22-19-17): el archivo de respuesta era el del intento con menos problemas,
+    // pero st.emit puede elegir datos de OTRO intento (el pool junta todos): contrato.json no coincidía con
+    // js/datos.js y la compuerta probó ids de otro estado. Si el Standard sabe escribir lo elegido, se guarda eso.
+    writeFileSync(join(outDir, st.answer), st.answerOf ? st.answerOf(parsed, ctx) : String(s.content[st.answer] || ""), "utf8");
     s.rec.data = parsed.summary;
     s.rec.broken = false; // lo que quedó alcanza (los datos inválidos se descartan)
     log(`[SPECIALIST]   ${st.summaryText ? st.summaryText(parsed) : `${parsed.items.length} datos válidos`}`);

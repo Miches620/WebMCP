@@ -1,0 +1,175 @@
+const App = {
+    /**
+     * Devuelve una copia profunda del estado inicial.
+     * @returns {Object} El estado clonado.
+     */
+    crear: function() {
+        // Clonación profunda de ESTADO_INICIAL
+        return JSON.parse(JSON.stringify(ESTADO_INICIAL));
+    },
+
+    /**
+     * Crea una nueva tarjeta en la primera columna disponible del estado.
+     * @param {Object} estado El estado actual.
+     * @param {string} titulo Título de la nueva tarjeta.
+     * @param {string} descripcion Descripción inicial.
+     * @returns {Object} Nuevo estado con la tarjeta añadida.
+     */
+    crearTarjeta: function(estado, titulo, descripcion) {
+        // Clonamos el estado para asegurar inmutabilidad
+        const nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        // Buscamos la primera columna para añadir la nueva tarjeta (asumiendo que es la activa o destino por defecto)
+        let targetColumn = null;
+        for (const col of nuevoEstado.columnas) {
+            if (!col.tarjetas || col.tarjetas.length === 0 && col.id !== "col-3") { // Intentamos añadirla a una columna que no esté llena o sea la primera disponible
+                targetColumn = col;
+                break;
+            }
+        }
+
+        // Si no encontramos un lugar obvio, usamos la primera columna (col-1) como fallback.
+        if (!targetColumn && nuevoEstado.columnas[0]) {
+             targetColumn = nuevoEstado.columnas[0];
+        } else if (!targetColumn) {
+            return estado; // No hay columnas para añadir nada
+        }
+
+        // Generar un ID único simple (aunque en la práctica se usaría UUID)
+        const newCardId = 'card-' + Date.now();
+
+        const nuevaTarjeta = {
+            id: newCardId,
+            titulo: titulo,
+            descripcion: descripcion,
+            contenido_adicional: null,
+            etiquetas: [],
+            comentarios: []
+        };
+
+        // Creamos una copia de las tarjetas de la columna destino y añadimos la nueva tarjeta.
+        const nuevasTarjetas = [...targetColumn.tarjetas, nuevaTarjeta];
+
+        // Actualizamos el estado con la nueva lista de tarjetas en esa columna
+        const nuevoColumna = {
+            ...targetColumn,
+            tarjetas: nuevasTarjetas
+        };
+
+        // Creamos una copia del array de columnas y reemplazamos la columna modificada.
+        const nuevasColumnas = nuevoEstado.columnas.map(col => 
+            col.id === targetColumn.id ? nuevoColumna : col
+        );
+
+        return {
+            ...nuevoEstado,
+            columnas: nuevasColumnas
+        };
+    },
+
+    /**
+     * Mueve una tarjeta de una columna a otra.
+     * @param {Object} estado El estado actual.
+     * @param {string} cardId ID de la tarjeta a mover.
+     * @param {string} colOrigenId ID de la columna origen.
+     * @param {string} colDestinoId ID de la columna destino.
+     * @returns {Object} Nuevo estado con la tarjeta movida.
+     */
+    moverTarjeta: function(estado, cardId, colOrigenId, colDestinoId) {
+        // Clonamos el estado para asegurar inmutabilidad
+        const nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        let tarjetaAMover = null;
+        let indiceColOrigen = -1;
+
+        // 1. Encontrar la tarjeta y su columna de origen
+        for (let i = 0; i < nuevoEstado.columnas.length; i++) {
+            const col = nuevoEstado.columnas[i];
+            if (col.id === colOrigenId) {
+                indiceColOrigen = i;
+                // Buscamos la tarjeta dentro de esta columna
+                tarjetaAMover = col.tarjetas.find(card => card.id === cardId);
+                break;
+            }
+        }
+
+        if (!tarjetaAMover || indiceColOrigen === -1) {
+            return estado; // Tarjeta o columna origen no encontrados
+        }
+
+        // 2. Crear el nuevo array de tarjetas para la columna origen (sin la tarjeta movida)
+        const nuevasTarjetasOrigen = nuevoEstado.columnas[indiceColOrigen].tarjetas.filter(card => card.id !== cardId);
+
+        // 3. Actualizar la columna de origen en el nuevo estado
+        nuevoEstado.columnas[indiceColOrigen] = {
+            ...nuevoEstado.columnas[indiceColOrigen],
+            tarjetas: nuevasTarjetasOrigen
+        };
+
+        // 4. Encontrar o crear la columna destino y añadir la tarjeta
+        let indiceColDestino = -1;
+        for (let i = 0; i < nuevoEstado.columnas.length; i++) {
+            if (nuevoEstado.columnas[i].id === colDestinoId) {
+                indiceColDestino = i;
+                break;
+            }
+        }
+
+        if (indiceColDestino === -1) {
+             return estado; // Columna destino no encontrada
+        }
+
+        // Creamos una copia de las tarjetas del destino y añadimos la tarjeta movida.
+        const nuevasTarjetasDestino = [...nuevoEstado.columnas[indiceColDestino].tarjetas, tarjetaAMover];
+
+        // 5. Actualizar el estado con la columna destino modificada
+        nuevoEstado.columnas[indiceColDestino] = {
+            ...nuevoEstado.columnas[indiceColDestino],
+            tarjetas: nuevasTarjetasDestino
+        };
+
+        return nuevoEstado;
+    },
+
+    /**
+     * Actualiza el título y la descripción de una tarjeta existente.
+     * @param {Object} estado El estado actual.
+     * @param {string} cardId ID de la tarjeta a editar.
+     * @param {string} nuevoTitulo Nuevo título.
+     * @param {string} nuevaDescripcion Nueva descripción.
+     * @returns {Object} Nuevo estado con la tarjeta editada.
+     */
+    editarTarjeta: function(estado, cardId, nuevoTitulo, nuevaDescripcion) {
+        // Clonamos el estado para asegurar inmutabilidad
+        const nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        let encontrado = false;
+
+        // Iterar sobre todas las columnas y tarjetas para encontrar la tarjeta a editar
+        for (let i = 0; i < nuevoEstado.columnas.length; i++) {
+            const columna = nuevoEstado.columnas[i];
+            const nuevasTarjetasColumna = columna.tarjetas.map(card => {
+                if (card.id === cardId) {
+                    encontrado = true;
+                    // Devolvemos una copia de la tarjeta con los datos actualizados
+                    return {
+                        ...card,
+                        titulo: nuevoTitulo || card.titulo,
+                        descripcion: nuevaDescripcion || card.descripcion
+                    };
+                }
+                return card;
+            });
+
+            // Si encontramos y modificamos la tarjeta en esta columna, actualizamos el estado
+            if (encontrado && nuevasTarjetasColumna !== columna.tarjetas) {
+                 nuevoEstado.columnas[i] = {
+                    ...columna,
+                    tarjetas: nuevasTarjetasColumna
+                };
+            }
+        }
+
+        return encontrado ? nuevoEstado : estado; // Devolvemos el estado original si no se encontró la tarjeta
+    }
+};

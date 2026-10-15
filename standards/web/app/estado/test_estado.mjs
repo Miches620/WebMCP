@@ -200,5 +200,12 @@ dibujar(estado);`;
   // la detección de recarga se sigue probando en la sonda, ver runCallsProbe)
 }
 
+// v0.5.1 (14/10, build 2026-10-14T22-19-17): contrato.json guarda el contrato ELEGIDO y se vuelve a leer igual
+{
+  const st = S.steps.find((x) => x.id === "contrato");
+  const parsedL = { items: [KL] };
+  const back = parseContract(JSON.parse(st.answerOf(parsedL)), {}).items?.[0];
+  t("contrato.json = el contrato elegido (answerOf), y se vuelve a leer igual (mismo estado y acciones)", typeof st.answerOf === "function" && JSON.stringify(back.estado) === JSON.stringify(KL.estado) && back.acciones.map((a) => a.nombre).join() === KL.acciones.map((a) => a.nombre).join() && back.acciones.every((a, k) => JSON.stringify(a.ejemplo) === JSON.stringify(KL.acciones[k].ejemplo)));
+}
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

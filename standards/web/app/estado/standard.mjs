@@ -82,8 +82,8 @@ export function contractText(ctx) {
 
 const CONTRACT_FMT = `{ "estado": { "items": [ { "id": 1, "texto": "Primer ejemplo", "hecho": false }, { "id": 2, "texto": "Segundo ejemplo", "hecho": true } ] },
   "acciones": [
-    { "nombre": "agregarItem", "params": ["texto"], "ejemplo": ["Comprar pan"], "hace": "agrega un item al final", "features": [1], "cambia": ["items"], "cumple": ["F2.1", "F2.2"] },
-    { "nombre": "borrarItem", "params": ["id"], "ejemplo": [1], "hace": "saca el item con ese id", "features": [2], "cambia": ["items"], "cumple": ["F3.1"] }
+    { "nombre": "agregarItem", "params": ["texto"], "ejemplo": ["Comprar pan"], "hace": "agrega un item al final", "features": [1], "cambia": ["items"] },
+    { "nombre": "borrarItem", "params": ["id"], "ejemplo": [1], "hace": "saca el item con ese id", "features": [2], "cambia": ["items"] }
   ],
   "se_ve": [3] }`;
 
@@ -104,7 +104,8 @@ export const probeFor = (c, css = []) => `window.__probe = (function () {
     var txt = norm(box.textContent || "");
     var texts = [];
     (function walk(v) {
-      if (typeof v === "string") { var t = v.trim(); if (t.length > 1 && /\\s|[A-ZÁÉÍÓÚÑ]/.test(t) && texts.indexOf(t) < 0) texts.push(t); }
+      // v0.5.1 (build 2026-10-14T22-19-17): una fecha ISO ("2023-10-26T10:00:00Z") se muestra formateada, no tal cual
+      if (typeof v === "string") { var t = v.trim(); if (t.length > 1 && /\\s|[A-ZÁÉÍÓÚÑ]/.test(t) && !/^\\d{4}-\\d{2}-\\d{2}([T ][\\d:.]+)?(Z|[+-]\\d{2}:?\\d{2})?$/.test(t) && texts.indexOf(t) < 0) texts.push(t); }
       else if (Array.isArray(v)) v.forEach(walk);
       else if (v && typeof v === "object") Object.keys(v).forEach(function (k) { walk(v[k]); });
     })(ESTADO_INICIAL);
@@ -146,7 +147,10 @@ export const probeFor = (c, css = []) => `window.__probe = (function () {
     var wrapper = null;
     var appDisp = getComputedStyle(box).display;
     if (/flex|grid/.test(appDisp)) {
-      var kids = Array.prototype.filter.call(box.children, function (el) { return !Array.prototype.some.call(el.classList, function (k) { return k.indexOf("ctl-") === 0; }); });
+      // los controles del harness (ctl-…) no cuentan, tampoco una caja que solo envuelve controles
+      // (v0.5.1, build 2026-10-14T22-19-17: <div class="global-actions"> con los controles de "app" adentro)
+      var isCtl = function (el) { return Array.prototype.some.call(el.classList, function (k) { return k.indexOf("ctl-") === 0; }); };
+      var kids = Array.prototype.filter.call(box.children, function (el) { return !isCtl(el) && !(el.children.length && Array.prototype.every.call(el.children, isCtl)); });
       var w = kids.length === 1 ? kids[0] : null;
       if (w && w.children.length >= 2 && !/flex|grid/.test(getComputedStyle(w).display)) wrapper = { app: appDisp, tag: w.tagName.toLowerCase(), cls: w.className || "" };
     }
@@ -197,7 +201,7 @@ const validation = {
 
 const STANDARD = {
   id: "web/app/estado",
-  version: "0.5",
+  version: "0.5.1",
   status: "DRAFT",
   validation,
   label: "app de una pantalla con estado y acciones",
@@ -229,7 +233,7 @@ const STANDARD = {
       answerHint: 'Respondé SOLO con ### FILE: contrato.json, un JSON como el del formato (no escribas código).',
       prompt: (c) => `${c.paso}: antes de programar, definí el CONTRATO de la app como JSON (no escribas código). El harness lo valida y con él arma js/datos.js y las pruebas.
 - "estado": el estado INICIAL de la app, solo datos (objetos, listas, textos, números, true/false), con ejemplos reales para que la pantalla no arranque vacía (2 o 3 por lista). Cada cosa que se pueda editar, mover o borrar lleva un "id" único. Corto: hasta ${MAX_STATE_CHARS} caracteres.
-- "acciones": lo que el usuario puede hacer. Cada una: "nombre" (verbo en camelCase), "params" (lo que recibe ADEMÁS del estado), "ejemplo" (un valor por param, que funcione con el estado inicial: ids que existan), "hace" (una frase), "features" (números de las features del brief que cumple), "cambia" (qué claves de "estado" cambia) y "cumple" (los ids de la lista de arriba, de lógica y de controles, que hace esa acción; [] si no hay lista).
+- "acciones": lo que el usuario puede hacer. Cada una: "nombre" (verbo en camelCase), "params" (lo que recibe ADEMÁS del estado), "ejemplo" (un valor por param, que funcione con el estado inicial: ids que existan), "hace" (una frase), "features" (números de las features del brief que cumple) y "cambia" (qué claves de "estado" cambia).
 - "se_ve": números de las features que solo se VEN en la pantalla (no son acciones), también las de aspecto: colores, estilo, sombras, efectos al pasar el mouse.
 Toda acción la dispara un botón (arrastrar puede ir además, nunca en vez del botón). Lo que el usuario escribe es un texto o un número por param (una lista no: que la acción reciba un elemento por vez).
 Cada feature del brief va en "features" de alguna acción o en "se_ve"${c.hints.style.length ? ` (salvo las de estilo: ${c.hints.style.join(", ")})` : ""}.
@@ -246,6 +250,8 @@ ${fence("json", CONTRACT_FMT)}`,
         return { items: [items[i]], reports: [reports[i]], js: datosJs(items[i].estado) };
       },
       check: (parsed, c) => contractProblems(parsed, c.hints),
+      // v0.5.1: contrato.json = el contrato ELEGIDO (el mismo que armó js/datos.js), no el texto de un intento
+      answerOf: (p) => JSON.stringify(p.items[0], null, 2),
       summaryText: (p) => { const k = p.items[0], r = p.reports[0] || {};
         return `contrato: ${k.acciones.length} acciones (${k.acciones.map((a) => a.nombre).join(", ")}) · estado: ${Object.keys(k.estado).join(", ")}${r.renamed?.length ? ` · nombres arreglados: ${r.renamed.join(", ")}` : ""}${r.gaps?.length ? ` · features sin cubrir: ${r.gaps.join(", ")}` : ""}${r.dropped?.length ? ` · descartadas: ${r.dropped.slice(0, 2).join(" | ")}` : ""}`; },
     },

@@ -1,0 +1,713 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Kanban WebApp",
+  "source": "kanban_receta_v03_snapshot.json",
+  "catalog": "check_catalog v0.9",
+  "profiles": {
+    "ids": [
+      "web/app"
+    ],
+    "chain": [
+      "web",
+      "web/app"
+    ],
+    "status": {
+      "web": "DRAFT",
+      "web/app": "DRAFT"
+    },
+    "borrowed": [
+      {
+        "id": "web/app",
+        "from": "web/landing",
+        "what": [
+          "plan de una pantalla y traductor de requisitos; el motor por componentes queda solo con --legacy-components"
+        ]
+      }
+    ]
+  },
+  "artifact_loads_without_js_errors": true,
+  "sections_visible": {
+    "result": "PASS",
+    "features": {
+      "R1": "PASS",
+      "R2": "PASS",
+      "R3": "PASS",
+      "R4": "PASS",
+      "R5": "PASS",
+      "R6": "PASS",
+      "R7": "PASS",
+      "R8": "PASS",
+      "R9": "PASS"
+    },
+    "anchors": [
+      {
+        "id": "principal",
+        "features": [
+          "R1",
+          "R2",
+          "R3",
+          "R4",
+          "R5",
+          "R6",
+          "R7",
+          "R8",
+          "R9"
+        ],
+        "seen": 155,
+        "total": 155,
+        "ondemand": 0,
+        "ok": true
+      }
+    ],
+    "detail": "#principal: 155/155 palabras visibles"
+  },
+  "components_render": {
+    "result": "NOT_APPLICABLE",
+    "components": [],
+    "detail": "ningún componente con JS nombra contenedores"
+  },
+  "validation": {
+    "profile": [
+      "web",
+      "web/app"
+    ],
+    "standard": {
+      "id": "web/app/estado",
+      "version": "0.6.1",
+      "status": "DRAFT"
+    },
+    "always": [],
+    "standard_gates": {
+      "version": "calls_gate v0.1",
+      "standard": "web/app/estado v0.6.1",
+      "result": "PASS",
+      "detail": "6/6 acciones se usan desde la pantalla con datos de verdad",
+      "errors": [],
+      "rows": [
+        {
+          "nombre": "crearTarjeta",
+          "features": [
+            1
+          ],
+          "called": 1,
+          "via": "accion:crearTarjeta",
+          "problem": null
+        },
+        {
+          "nombre": "moverTarjeta",
+          "features": [
+            2
+          ],
+          "called": 1,
+          "via": "accion:moverTarjeta",
+          "problem": null
+        },
+        {
+          "nombre": "agregarComentario",
+          "features": [
+            3
+          ],
+          "called": 1,
+          "via": "accion:agregarComentario",
+          "problem": null
+        },
+        {
+          "nombre": "agregarEtiqueta",
+          "features": [
+            4
+          ],
+          "called": 1,
+          "via": "accion:agregarEtiqueta",
+          "problem": null
+        },
+        {
+          "nombre": "editarTarjeta",
+          "features": [
+            5
+          ],
+          "called": 1,
+          "via": "accion:editarTarjeta",
+          "problem": null
+        },
+        {
+          "nombre": "borrarTarjeta",
+          "features": [
+            6
+          ],
+          "called": 1,
+          "via": "accion:borrarTarjeta",
+          "problem": null
+        }
+      ],
+      "gates": {},
+      "tareas": {
+        "crearTarjeta": [],
+        "moverTarjeta": [],
+        "agregarComentario": [],
+        "agregarEtiqueta": [],
+        "editarTarjeta": [],
+        "borrarTarjeta": []
+      }
+    }
+  },
+  "concerns": [
+    {
+      "profile": "web/seguridad",
+      "version": "0.1",
+      "status": "DRAFT",
+      "results": [
+        {
+          "id": "SEG-1",
+          "text": "Lo que escribe el usuario se muestra como texto: no se ejecuta como HTML ni como código (XSS)",
+          "verdict": "PASS",
+          "detail": "6 campo(s) muestran el HTML como texto (autor, contenido, nombre, color)",
+          "check": "text_stays_text",
+          "tried": 12
+        }
+      ]
+    }
+  ],
+  "task_verdicts": {
+    "version": "task_verdict v0.2",
+    "rows": [
+      {
+        "id": "F1.1",
+        "pieza": "estilo",
+        "task": "Configurar el estilo global y la paleta de colores oscura e industrial.",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "no hay prueba propia para una tarea de estilo"
+      },
+      {
+        "id": "F1.2",
+        "pieza": "vista",
+        "task": "Implementar el contenedor principal del tablero (Kanban Board Wrapper).",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "no hay prueba propia para una tarea de vista"
+      },
+      {
+        "id": "F1.3",
+        "pieza": "datos",
+        "task": "Definir el estado inicial de las columnas vacías (Datos).",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "no hay prueba propia para una tarea de datos"
+      },
+      {
+        "id": "F1.4",
+        "pieza": "vista",
+        "task": "Renderizar los contenedores visuales de las columnas vacías.",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "no hay prueba propia para una tarea de vista"
+      },
+      {
+        "id": "F2.1",
+        "pieza": "datos",
+        "task": "Definir la estructura de datos in-memory para una Tarjeta (Card)",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "no hay prueba propia para una tarea de datos"
+      },
+      {
+        "id": "F2.2",
+        "pieza": "vista",
+        "task": "Implementar el renderizado visual de las Tarjetas dentro de las Columnas",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "no hay prueba propia para una tarea de vista"
+      },
+      {
+        "id": "F2.3",
+        "pieza": "datos",
+        "task": "Definir el estado temporal y los controles para la creación de una nueva Tarjeta",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "no hay prueba propia para una tarea de datos"
+      },
+      {
+        "id": "F2.4",
+        "pieza": "logica",
+        "task": "Implementar la lógica para crear una nueva Tarjeta y actualizar el estado in-memory",
+        "verdict": "CUMPLIDA",
+        "accion": "crearTarjeta",
+        "reason": "crearTarjeta: 5 pruebas de lógica; crearTarjeta: se usa desde la pantalla"
+      },
+      {
+        "id": "F2.5",
+        "pieza": "controles",
+        "task": "Implementar los controles para disparar la creación de Tarjetas",
+        "verdict": "CUMPLIDA",
+        "accion": "crearTarjeta",
+        "reason": "crearTarjeta: se usa desde la pantalla"
+      },
+      {
+        "id": "F2.6",
+        "pieza": "logica",
+        "task": "Implementar la lógica para mover una Tarjeta entre Columnas",
+        "verdict": "CUMPLIDA",
+        "accion": "moverTarjeta",
+        "reason": "moverTarjeta: 5 pruebas de lógica; moverTarjeta: se usa desde la pantalla"
+      },
+      {
+        "id": "F2.7",
+        "pieza": "estilo",
+        "task": "Definir el estilo visual y comportamiento interactivo de las Tarjetas",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "no hay prueba propia para una tarea de estilo"
+      },
+      {
+        "id": "F3.1",
+        "pieza": "logica",
+        "task": "Implementar la lógica de actualización del estado al mover una Tarjeta (Drag and Drop)",
+        "verdict": "CUMPLIDA",
+        "accion": "moverTarjeta",
+        "reason": "moverTarjeta: 5 pruebas de lógica; moverTarjeta: se usa desde la pantalla"
+      },
+      {
+        "id": "F3.2",
+        "pieza": "controles",
+        "task": "Implementar los controles de arrastrar y soltar (Drag and Drop) para las Tarjetas",
+        "verdict": "SIN_EVIDENCIA",
+        "accion": "moverTarjeta",
+        "reason": "pide arrastrar o teclado: el harness arma botones y eso no se prueba"
+      },
+      {
+        "id": "F3.3",
+        "pieza": "vista",
+        "task": "Renderizar la vista de edición para las Tarjetas",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "no hay prueba propia para una tarea de vista"
+      },
+      {
+        "id": "F3.4",
+        "pieza": "logica",
+        "task": "Implementar la lógica para guardar cambios de edición en una Tarjeta",
+        "verdict": "CUMPLIDA",
+        "accion": "editarTarjeta",
+        "reason": "editarTarjeta: 5 pruebas de lógica; editarTarjeta: se usa desde la pantalla"
+      },
+      {
+        "id": "F3.5",
+        "pieza": "controles",
+        "task": "Implementar los controles para activar el modo de edición en una Tarjeta",
+        "verdict": "CUMPLIDA",
+        "accion": "editarTarjeta",
+        "reason": "editarTarjeta: se usa desde la pantalla"
+      },
+      {
+        "id": "F3.6",
+        "pieza": "controles",
+        "task": "Implementar el control para eliminar una Tarjeta",
+        "verdict": "CUMPLIDA",
+        "accion": "borrarTarjeta",
+        "reason": "borrarTarjeta: se usa desde la pantalla"
+      },
+      {
+        "id": "F3.7",
+        "pieza": "logica",
+        "task": "Implementar la lógica para eliminar una Tarjeta del estado",
+        "verdict": "CUMPLIDA",
+        "accion": "borrarTarjeta",
+        "reason": "borrarTarjeta: 5 pruebas de lógica; borrarTarjeta: se usa desde la pantalla"
+      },
+      {
+        "id": "F4.1",
+        "pieza": "datos",
+        "task": "Actualizar el estado de la Tarjeta para incluir un campo de etiquetas (labels).",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "no hay prueba propia para una tarea de datos"
+      },
+      {
+        "id": "F4.2",
+        "pieza": "vista",
+        "task": "Implementar la visualización de las etiquetas en la Tarjeta.",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "no hay prueba propia para una tarea de vista"
+      },
+      {
+        "id": "F4.3",
+        "pieza": "logica",
+        "task": "Implementar la lógica y el control para añadir una etiqueta a una Tarjeta.",
+        "verdict": "CUMPLIDA",
+        "accion": "agregarEtiqueta",
+        "reason": "agregarEtiqueta: 5 pruebas de lógica; agregarEtiqueta: se usa desde la pantalla"
+      },
+      {
+        "id": "F4.4",
+        "pieza": "controles",
+        "task": "Implementar los controles para añadir una etiqueta a una Tarjeta.",
+        "verdict": "CUMPLIDA",
+        "accion": "agregarEtiqueta",
+        "reason": "agregarEtiqueta: se usa desde la pantalla"
+      },
+      {
+        "id": "F4.5",
+        "pieza": "datos",
+        "task": "Actualizar el estado de la Tarjeta para incluir un hilo de comentarios.",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "no hay prueba propia para una tarea de datos"
+      },
+      {
+        "id": "F4.6",
+        "pieza": "vista",
+        "task": "Implementar la visualización del hilo de comentarios en la Tarjeta.",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "no hay prueba propia para una tarea de vista"
+      },
+      {
+        "id": "F4.7",
+        "pieza": "logica",
+        "task": "Implementar la lógica para añadir un nuevo comentario a una Tarjeta.",
+        "verdict": "CUMPLIDA",
+        "accion": "agregarComentario",
+        "reason": "agregarComentario: 5 pruebas de lógica; agregarComentario: se usa desde la pantalla"
+      },
+      {
+        "id": "F4.8",
+        "pieza": "controles",
+        "task": "Implementar los controles para añadir un comentario a una Tarjeta.",
+        "verdict": "CUMPLIDA",
+        "accion": "agregarComentario",
+        "reason": "agregarComentario: se usa desde la pantalla"
+      },
+      {
+        "id": "F4.9",
+        "pieza": "estilo",
+        "task": "Aplicar efectos visuales (sombras y hover) a las Tarjetas para mejorar la experiencia de usuario.",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "no hay prueba propia para una tarea de estilo"
+      },
+      {
+        "id": "F4.10",
+        "pieza": "estilo",
+        "task": "Ajustar la coherencia visual general del diseño oscuro/industrial en todos los componentes de la Tarjeta.",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "no hay prueba propia para una tarea de estilo"
+      }
+    ],
+    "counts": {
+      "SIN_EVIDENCIA": 16,
+      "CUMPLIDA": 12
+    },
+    "desconocidas": [],
+    "enVariasAcciones": []
+  },
+  "muestreo": {
+    "temperature": 0.7,
+    "seed": 2
+  },
+  "huella": {
+    "index.html": "47dcff5b2cb6",
+    "js/acciones.js": "37fd838e53c4",
+    "js/controles.js": "c7fa243c8a86",
+    "js/datos.js": "9b275665da73",
+    "js/dibujo.js": "f88ea8c4eb9b",
+    "js/logica.js": "1137db7e9dd0",
+    "styles.css": "4841d94f6e68"
+  },
+  "summary": {
+    "requisitos": 9,
+    "PASS": 8,
+    "FAIL": 0,
+    "SIN_EVIDENCIA": 1,
+    "SIN_CHEQUEO": 0
+  },
+  "control": "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "Crear tarjetas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "action_changes",
+          "params": {
+            "click": [
+              "crear",
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "2 campo(s) completado(s), clic \"Crear tarjeta\" → 28 cambios",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Mover tarjetas entre columnas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "action_changes",
+          "params": {
+            "click": [
+              "mover",
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "clic \"Mover tarjeta\" → 84 cambios",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "Agregar comentarios a las tarjetas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "action_changes",
+          "params": {
+            "click": [
+              "agregar",
+              "comentario"
+            ]
+          },
+          "result": "PASS",
+          "detail": "2 campo(s) completado(s), clic \"Agregar comentario\" → 4 cambios",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "Etiquetar tarjetas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "action_changes",
+          "params": {
+            "click": [
+              "etiquetar",
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "2 campo(s) completado(s), clic \"Agregar etiqueta\" → 1 cambios",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "Editar tarjetas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "action_changes",
+          "params": {
+            "click": [
+              "editar",
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "2 campo(s) completado(s), clic \"Editar tarjeta\" → 2 cambios",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "Borrar tarjetas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "action_changes",
+          "params": {
+            "click": [
+              "borrar",
+              "eliminar"
+            ]
+          },
+          "result": "PASS",
+          "detail": "clic \"Borrar tarjeta\" → 33 cambios",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "text": "Diseño con paleta de colores oscura y estilo industrial",
+      "verdict": "SIN_EVIDENCIA",
+      "checks": [
+        {
+          "type": "no_horizontal_scroll",
+          "params": {},
+          "result": "PASS",
+          "detail": "390px: ok; 1280px: ok",
+          "baseline": "PASS",
+          "trivial": true
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "text": "Sombras en tarjetas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "hover_changes",
+          "params": {
+            "elementos": [
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "tarjeta: cambia al pasar el mouse",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "text": "Efectos de iluminación al pasar el mouse sobre las tarjetas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "hover_changes",
+          "params": {
+            "elementos": [
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "tarjeta: cambia al pasar el mouse",
+          "baseline": "FAIL"
+        }
+      ]
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "files_engine v0.13.1",
+    "standard": {
+      "id": "web/app/estado",
+      "version": "0.6.1",
+      "status": "DRAFT"
+    },
+    "skills": null,
+    "files": [
+      "index.html",
+      "styles.css",
+      "js/datos.js",
+      "js/logica.js",
+      "js/acciones.js",
+      "js/dibujo.js",
+      "js/controles.js"
+    ],
+    "rule_tests": {
+      "passed": [
+        "crear devuelve ESTADO_INICIAL",
+        "crearTarjeta devuelve un estado",
+        "crearTarjeta no modifica el estado que recibe",
+        "crearTarjeta conserva las claves del estado",
+        "crearTarjeta hace algo",
+        "crearTarjeta: el estado son solo datos",
+        "moverTarjeta devuelve un estado",
+        "moverTarjeta no modifica el estado que recibe",
+        "moverTarjeta conserva las claves del estado",
+        "moverTarjeta hace algo",
+        "moverTarjeta: el estado son solo datos",
+        "agregarComentario devuelve un estado",
+        "agregarComentario no modifica el estado que recibe",
+        "agregarComentario conserva las claves del estado",
+        "agregarComentario hace algo",
+        "agregarComentario: el estado son solo datos",
+        "agregarEtiqueta devuelve un estado",
+        "agregarEtiqueta no modifica el estado que recibe",
+        "agregarEtiqueta conserva las claves del estado",
+        "agregarEtiqueta hace algo",
+        "agregarEtiqueta: el estado son solo datos",
+        "editarTarjeta devuelve un estado",
+        "editarTarjeta no modifica el estado que recibe",
+        "editarTarjeta conserva las claves del estado",
+        "editarTarjeta hace algo",
+        "editarTarjeta: el estado son solo datos",
+        "borrarTarjeta devuelve un estado",
+        "borrarTarjeta no modifica el estado que recibe",
+        "borrarTarjeta conserva las claves del estado",
+        "borrarTarjeta hace algo",
+        "borrarTarjeta: el estado son solo datos",
+        "crear devuelve una copia nueva"
+      ],
+      "failed": []
+    },
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "contrato",
+        "by": "modelo",
+        "ms": 133771,
+        "finish_reason": "stop",
+        "changed": [
+          "contrato.json"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 2,
+        "task_id": "logica",
+        "by": "modelo",
+        "ms": 181880,
+        "finish_reason": "stop",
+        "changed": [
+          "js/logica.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 3,
+        "task_id": "acciones",
+        "by": "harness",
+        "ms": 1,
+        "changed": [
+          "js/acciones.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 4,
+        "task_id": "pantalla",
+        "by": "modelo",
+        "ms": 120441,
+        "finish_reason": "stop",
+        "changed": [
+          "app.html",
+          "styles.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 5,
+        "task_id": "dibujo",
+        "by": "modelo",
+        "ms": 256210,
+        "finish_reason": "stop",
+        "changed": [
+          "js/dibujo.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 6,
+        "task_id": "controles",
+        "by": "harness",
+        "ms": 2220,
+        "changed": [
+          "js/controles.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 7,
+        "task_id": "enlace",
+        "by": "modelo",
+        "ms": 56360,
+        "finish_reason": "stop",
+        "changed": [
+          "enlace.json"
+        ],
+        "rejected": []
+      }
+    ]
+  }
+}

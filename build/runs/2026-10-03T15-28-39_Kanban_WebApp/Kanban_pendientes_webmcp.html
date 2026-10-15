@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-15d'; // tablero actualizado al 15/10 (p48 réplicas: --temperature/--seed, huella, replicas.mjs)
+  const SEED = '2026-10-15e'; // tablero actualizado al 15/10 (réplicas: 2/3 rotos que se daban por buenos → gate v0.2, contrato v0.7, task_verdict v0.3)
   let state = loadState() || {
  "columns": [
   {
@@ -433,6 +433,12 @@
    "isInbox": true,
    "isDefault": true,
    "cards": [
+    {
+     "id": "p49",
+     "title": "Las 16 SIN_EVIDENCIA: enlace extendido (vista/datos → lista del estado, estilo → requisito)",
+     "desc": "[#Validation #Enlace] Camino 1 (Miche, 15/10): el mismo pedido chico ubica cada tarea de vista/datos en una lista del estado y cada tarea de estilo en un requisito. Vista CUMPLIDA si los textos de SU lista se ven (la sonda tiene que decir qué lista falta); datos si su lista existe en el contrato con ejemplos (y forma sana); estilo si su requisito dio PASS no trivial. F1.3 'columnas vacías' choca con el Standard: 'el Standard manda'.",
+     "priority": "urgente"
+    },
     {
      "id": "p42",
      "title": "Controles del harness: se ven pesados",
@@ -581,6 +587,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h56",
+     "title": "15/10 · Réplicas: 2 de 3 builds rotos que se daban por buenos → contrato v0.7, gate v0.2, task_verdict v0.3",
+     "desc": "[#Validation #Evidencia #Contrato] 3 × t=0.7: Validation 3/8/2 PASS pero por tarea 12 CUMPLIDAS en las 3. seed 1: tarjetas como objeto con ids de columna como claves → botones con cardId de columna (la compuerta aceptaba cualquier id existente). seed 3: la lista tarjetas en dos lugares → la lógica cambia una, el dibujo muestra otra. Arreglos: forma del estado (shapeProblems, reintento), compuerta: id de la misma clase + 'siempre devuelve el mismo estado' = FAIL, veredicto por tarea mira action_changes en pantalla. c16 sin falsas alarmas; c17/c18 FAIL. Fixtures c17, c18.",
+     "priority": "bajo"
+    },
     {
      "id": "h55",
      "title": "15/10 · p48: réplicas de verdad (temperatura/seed, huella, replicas.mjs)",

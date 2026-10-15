@@ -66,5 +66,21 @@ t("controles con teclado también quedan SIN_EVIDENCIA aunque estén enlazados",
 t("cada tarea de lógica cita sus 5 pruebas y la compuerta", real.rows.filter((r) => r.pieza === "logica").every((r) => /5 pruebas de lógica/.test(r.reason) && /se usa desde la pantalla/.test(r.reason)));
 t("sin piezas (corrida vieja) → null", fromBuild({ input: { tasks: [{ id: "a", task: "x" }] }, specialist: {}, gates: null }) === null);
 
+// v0.3 (15/10, p48): lo que vio Validation en la pantalla. Réplica 13-02-02 (seed 3): las pruebas de lógica pasaban y
+// la compuerta vieja decía 6/6, pero en la pantalla ninguna acción cambiaba nada (R1–R6 action_changes FAIL).
+{
+  const F = "../validation/fixtures/real_kanban_c18/";
+  const cov = J(F + "coverage.json"), con = J(F + "contrato.json"), enl = J(F + "enlace.json");
+  const rows = con.acciones.map((a) => ({ nombre: a.nombre, features: a.features, called: 1, problem: null })); // la compuerta VIEJA: todo "bien"
+  const accept = { passed: con.acciones.flatMap((a) => [1, 2, 3, 4, 5].map((k) => `${a.nombre} prueba ${k}`)), failed: [] };
+  const screen = Object.fromEntries(cov.coverage.map((c) => [c.id, c.checks.find((k) => k.type === "action_changes")]).filter(([, k]) => k));
+  const sin = taskVerdicts({ tasks: snap.atomicTasks, links: { porTarea: enl.informe.porTarea, ninguna: [] }, acceptance: accept, gateRows: rows });
+  const con3 = taskVerdicts({ tasks: snap.atomicTasks, links: { porTarea: enl.informe.porTarea, ninguna: [] }, acceptance: accept, gateRows: rows, screen });
+  t("réplica 13-02-02 sin mirar la pantalla: 12 CUMPLIDAS (lo que salió en el build)", sin.counts.CUMPLIDA === 12, JSON.stringify(sin.counts));
+  t("réplica 13-02-02 mirando la pantalla: 0 CUMPLIDAS, 12 NO_CUMPLIDAS con el motivo de Validation", !con3.counts.CUMPLIDA && con3.counts.NO_CUMPLIDA === 12 && /en pantalla \(R1\) .*no cambia nada/.test(con3.rows.find((r) => r.id === "F2.4").reason), JSON.stringify(con3.counts) + " " + con3.rows.find((r) => r.id === "F2.4").reason);
+  const okScreen = Object.fromEntries(Object.keys(screen).map((k) => [k, { result: "PASS", detail: "" }]));
+  const bien = taskVerdicts({ tasks: snap.atomicTasks, links: { porTarea: enl.informe.porTarea, ninguna: [] }, acceptance: accept, gateRows: rows, screen: okScreen });
+  t("con la pantalla en PASS: CUMPLIDA y el motivo lo dice", bien.counts.CUMPLIDA === 12 && /la pantalla cambia \(R1\)/.test(bien.rows.find((r) => r.id === "F2.4").reason));
+}
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

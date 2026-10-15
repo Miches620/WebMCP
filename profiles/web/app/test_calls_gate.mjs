@@ -113,5 +113,30 @@ t("Kanban 4ª corrida: R1, R2, R3, R5 FAIL; R6 'Borrar' (lo único que anda) sin
 const c3 = await real(3);
 t("Kanban 3ª corrida: R1–R5 FAIL y R6 sin compuerta (lo que de verdad pasaba en la app)", Object.keys(c3.gates).sort().join() === "R1,R2,R3,R4,R5", Object.keys(c3.gates).join());
 
+// ---------- v0.2 (15/10, p48: réplicas a temperatura 0.7) ----------
+{
+  // el juez: id de otra clase y acción que no cambia nada
+  const A2 = [{ nombre: "borrar", params: ["id"], ids: ["id"], campos: [], features: [2], ejemplo: ["t1"] }];
+  const KEYS = { t1: ["id", "texto", "hecho"], t2: ["id", "texto"], g1: ["id", "nombre"] };
+  const P2 = (args, effects) => P({ calls: { borrar: args.length }, via: { borrar: "accion:borrar" }, args: { borrar: args }, effects: { borrar: effects } });
+  const kind = judgeCalls(P2([["__object__", "g1"]], [false]), A2, ["t1", "t2", "g1"], {}, KEYS);
+  t("juez v0.2: un id que existe pero es de otra clase de elemento → FAIL (no es un dato de verdad)", /id = "g1", que es el id de otra clase de elemento/.test(kind.gates.R2?.detail || ""), JSON.stringify(kind.gates));
+  const opt = judgeCalls(P2([["__object__", "t2"]], [true]), A2, ["t1", "t2", "g1"], {}, KEYS);
+  t("juez v0.2: misma clase con un campo opcional de menos → sin problema", !opt.rows[0].problem, JSON.stringify(opt.rows));
+  const same = judgeCalls(P2([["__object__", "t1"], ["__object__", "t2"]], [false, false]), A2, ["t1", "t2", "g1"], {}, KEYS);
+  t("juez v0.2: siempre devuelve el mismo estado → FAIL 'no cambia nada'", /siempre devuelve el mismo estado/.test(same.gates.R2?.detail || ""), JSON.stringify(same.gates));
+  const once = judgeCalls(P2([["__object__", "t1"], ["__object__", "t2"]], [false, true]), A2, ["t1", "t2", "g1"], {}, KEYS);
+  t("juez v0.2: alguna llamada cambió el estado → sin problema", !once.rows[0].problem);
+  const noIds = judgeCalls(P({ calls: { reiniciar: 1 }, args: { reiniciar: [["__object__"]] }, effects: { reiniciar: [false] } }), [{ nombre: "reiniciar", params: [], ids: [], campos: [], features: [5] }], [], {}, {});
+  t("juez v0.2: una acción sin ids (reiniciar) que no cambia el estado inicial no se marca", !noIds.rows[0].problem);
+  // las réplicas reales (Chromium)
+  const c16 = await real(16);
+  t("build 03-49-43 (anda): 6/6 sin compuertas (sin falsas alarmas)", c16.result === "PASS" && !Object.keys(c16.gates).length, JSON.stringify(c16.gates));
+  const c17 = await real(17);
+  t("réplica 12-31-25 (seed 1): los botones mandan ids de columna como cardId → R2–R6 FAIL (antes PASS 6/6)", ["R2", "R3", "R4", "R5", "R6"].every((r) => /otra clase de elemento/.test(c17.gates[r]?.detail || "")) && !c17.gates.R1, Object.keys(c17.gates).join());
+  const c18 = await real(18);
+  t("réplica 13-02-02 (seed 3): lógica sobre una lista y dibujo sobre otra → R2–R6 FAIL 'no cambia nada' (antes PASS 6/6)", ["R2", "R3", "R4", "R5", "R6"].every((r) => /siempre devuelve el mismo estado/.test(c18.gates[r]?.detail || "")), Object.keys(c18.gates).join());
+}
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

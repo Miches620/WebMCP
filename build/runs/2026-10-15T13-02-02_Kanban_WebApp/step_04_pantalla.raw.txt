@@ -1,0 +1,235 @@
+### FILE: app.html
+```html
+<h1>Kanban WebApp</h1>
+<div id="app"></div>
+```
+
+### FILE: styles.css
+```css
+/* ---------------------------------- */
+/* F1.1 Configurar el estilo global y la paleta de colores oscura e industrial. */
+/* ---------------------------------- */
+
+:root {
+    /* Paleta Industrial Oscura */
+    --color-fondo: #2c3e50; /* Azul oscuro/gris carbón para fondo general */
+    --color-tarjeta-bg: #34495e; /* Gris azulado más claro para tarjetas */
+    --color-columna-bg: #212f3d; /* Fondo de columna ligeramente más oscuro */
+    --color-texto: #ecf0f1; /* Blanco roto/gris claro para texto principal */
+    --color-borde: #4a657d; /* Gris azulado medio para bordes */
+    --color-acento-primario: #3498db; /* Azul vibrante para acentos (botones, títulos) */
+    --color-acento-secundario: #e74c3c; /* Rojo ladrillo o naranja oscuro para alertas/acciones */
+    --sombra-normal: 0 2px 5px rgba(0, 0, 0, 0.4);
+    --sombra-hover: 0 8px 15px rgba(0, 0, 0, 0.6);
+}
+
+body {
+    font-family: 'Arial', sans-serif; /* Tipografía simple y robusta */
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    margin: 0;
+    padding: 20px;
+}
+
+/* Contenedor principal de las columnas */
+#app {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start; /* Asegura que las columnas empiecen en el mismo nivel */
+    padding-top: 20px;
+}
+
+/* Estilo general de la columna (lista) */
+.column {
+    flex: 1;
+    min-width: 300px;
+    background-color: var(--color-columna-bg);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3); /* Efecto de profundidad interior */
+}
+
+/* Título de la columna */
+.column h2 {
+    color: var(--color-texto);
+    border-bottom: 2px solid var(--color-acento-primario);
+    padding-bottom: 10px;
+    margin-top: 0;
+    font-size: 1.4em;
+}
+
+/* Contenedor de las tarjetas dentro de la columna */
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espacio entre tarjetas */
+    padding-top: 10px;
+}
+
+/* ---------------------------------- */
+/* F2.7, F4.9, F4.10 - Estilo y comportamiento interactivo de las Tarjetas (Card) */
+/* ---------------------------------- */
+
+.card {
+    background-color: var(--color-tarjeta-bg);
+    border-radius: 6px;
+    padding: 15px;
+    box-shadow: var(--sombra-normal); /* Sombra inicial */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+/* Efecto de iluminación al pasar el mouse (hover) */
+.card:hover {
+    transform: translateY(-3px); /* Elevación sutil */
+    box-shadow: var(--sombra-hover), 0 0 15px rgba(52, 152, 219, 0.4); /* Efecto de luz azulado y más fuerte */
+}
+
+/* Título dentro de la tarjeta */
+.card h3 {
+    margin-top: 0;
+    color: var(--color-acento-primario);
+    font-size: 1.2em;
+}
+
+/* Descripción de la tarjeta */
+.card p {
+    font-size: 0.95em;
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+/* Contenido adicional (Ejemplo de campo) */
+.contenido-adicional {
+    border-top: 1px dashed var(--color-borde);
+    padding-top: 8px;
+    margin-top: 8px;
+    font-style: italic;
+    font-size: 0.9em;
+}
+
+/* ---------------------------------- */
+/* Estilos de Etiquetas (Labels) */
+/* ---------------------------------- */
+
+.labels-container {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.label {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: bold;
+    color: #fff; /* Texto blanco sobre el color de la etiqueta */
+    text-transform: uppercase;
+}
+
+/* El color se define por inline style en el estado, pero definimos un fallback/base */
+/* Ejemplo: Etiqueta de UX (Naranja) */
+.label[style*="#ff9800"] { background-color: #ff9800; } 
+/* Ejemplo: Etiqueta de Backend (Azul) */
+.label[style*="#2196f3"] { background-color: #2196f3; }
+
+
+/* ---------------------------------- */
+/* Estilos de Comentarios */
+/* ---------------------------------- */
+
+.comments-section {
+    margin-top: 15px;
+    border-top: 1px solid var(--color-borde);
+    padding-top: 10px;
+}
+
+.comment {
+    background-color: rgba(0, 0, 0, 0.2); /* Fondo semi-transparente para destacar el comentario */
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.comment-meta {
+    display: block;
+    font-size: 0.75em;
+    color: #aaa; /* Color gris claro para el autor y fecha */
+    margin-bottom: 3px;
+}
+
+/* ---------------------------------- */
+/* Estilos de Controles (Control Elements - .ctl-) */
+/* ---------------------------------- */
+
+/* Contenedor general de controles */
+.ctl-controles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 15px 0;
+    border-top: 1px dashed var(--color-borde);
+    margin-top: 15px;
+}
+
+/* Cada unidad de acción dentro del control */
+.ctl-accion {
+    flex: 1 1 200px; /* Permite que las acciones sean flexibles */
+    min-width: 180px;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    border-radius: 4px;
+}
+
+/* Botón común de acción */
+.ctl-boton {
+    background-color: var(--color-acento-primario);
+    color: var(--color-texto);
+    border: none;
+    padding: 8px 15px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+/* Efecto hover en botones */
+.ctl-boton:hover {
+    background-color: #2980b9; /* Un azul un poco más oscuro */
+}
+
+/* Input y Select dentro de los controles */
+.ctl-controles input[type="text"], 
+.ctl-controles textarea, 
+.ctl-controles select {
+    width: calc(100% - 20px); /* Ajuste para el padding interno */
+    padding: 8px;
+    border: 1px solid var(--color-borde);
+    background-color: #3f546a; /* Fondo oscuro para los inputs */
+    color: var(--color-texto);
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+/* Ajuste específico si el input está en un campo de acción (mejor UX) */
+.ctl-accion textarea {
+    resize: vertical; /* Permite redimensionar solo verticalmente para descripciones/comentarios */
+    min-height: 60px;
+}
+
+/* Estilo del botón de creación de tarjeta (general, no dentro de un ctl-acción) */
+.btn-crear-tarjeta {
+    background-color: var(--color-acento-primario);
+    color: var(--color-texto);
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background-color 0.2s;
+}
+
+.btn-crear-tarjeta:hover {
+    background-color: #2980b9;
+}
+```

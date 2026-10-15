@@ -1,0 +1,229 @@
+{
+  "estado": {
+    "columnas": [
+      {
+        "id": "col-pendiente",
+        "nombre": "Pendiente"
+      },
+      {
+        "id": "col-en_curso",
+        "nombre": "En Curso"
+      },
+      {
+        "id": "col-completado",
+        "nombre": "Completado"
+      }
+    ],
+    "tarjetas": {
+      "col-pendiente": [
+        {
+          "id": "card-101",
+          "titulo": "Diseñar estructura Kanban",
+          "descripcion": "Definir el flujo de trabajo y las columnas necesarias.",
+          "etiquetas": [
+            {
+              "nombre": "UX",
+              "color": "#ff9800"
+            }
+          ],
+          "comentarios": [
+            {
+              "autor": "Admin",
+              "contenido": "Definir 3 estados: Pendiente, En Curso, Completado.",
+              "timestamp": "2023-10-27T10:00:00Z"
+            }
+          ]
+        },
+        {
+          "id": "card-102",
+          "titulo": "Definir API de estado",
+          "descripcion": "Asegurar que todas las acciones devuelvan el estado completo.",
+          "etiquetas": [],
+          "comentarios": []
+        }
+      ],
+      "col-en_curso": [
+        {
+          "id": "card-201",
+          "titulo": "Implementar lógica de movimiento",
+          "descripcion": "Manejar la transición entre columnas sin perder datos.",
+          "etiquetas": [
+            {
+              "nombre": "Lógica",
+              "color": "#2196f3"
+            }
+          ],
+          "comentarios": []
+        }
+      ],
+      "col-completado": []
+    }
+  },
+  "acciones": [
+    {
+      "nombre": "crearTarjeta",
+      "params": [
+        "titulo",
+        "descripcion",
+        "columnaId"
+      ],
+      "ejemplo": [
+        "Nueva Tarea",
+        "Descripción inicial de la tarea.",
+        "col-pendiente"
+      ],
+      "hace": "Crea una nueva tarjeta en la columna especificada.",
+      "ids": [
+        "columnaId"
+      ],
+      "campos": [
+        "titulo",
+        "descripcion"
+      ],
+      "features": [
+        1
+      ],
+      "cambia": [
+        "tarjetas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "borrarTarjeta",
+      "params": [
+        "cardId",
+        "columnaId"
+      ],
+      "ejemplo": [
+        "card-102",
+        "col-pendiente"
+      ],
+      "hace": "Elimina una tarjeta de su columna actual.",
+      "ids": [
+        "cardId",
+        "columnaId"
+      ],
+      "campos": [],
+      "features": [
+        6
+      ],
+      "cambia": [
+        "tarjetas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": [
+        "cardId",
+        "nuevoTitulo",
+        "nuevaDescripcion"
+      ],
+      "ejemplo": [
+        "card-101",
+        "Diseño UI Kanban (Revisado)",
+        "Detalles revisados del flujo de trabajo."
+      ],
+      "hace": "Actualiza el título y la descripción de una tarjeta existente.",
+      "ids": [
+        "cardId"
+      ],
+      "campos": [
+        "nuevoTitulo",
+        "nuevaDescripcion"
+      ],
+      "features": [
+        5
+      ],
+      "cambia": [
+        "tarjetas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": [
+        "cardId",
+        "nuevoColumnaId"
+      ],
+      "ejemplo": [
+        "card-101",
+        "col-en_curso"
+      ],
+      "hace": "Mueve una tarjeta de su columna actual a la nueva columna.",
+      "ids": [
+        "cardId",
+        "nuevoColumnaId"
+      ],
+      "campos": [],
+      "features": [
+        2
+      ],
+      "cambia": [
+        "tarjetas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "agregarComentario",
+      "params": [
+        "cardId",
+        "contenido",
+        "autor"
+      ],
+      "ejemplo": [
+        "card-101",
+        "¡Excelente progreso!",
+        "Usuario B"
+      ],
+      "hace": "Añade un comentario a la tarjeta especificada.",
+      "ids": [
+        "cardId"
+      ],
+      "campos": [
+        "contenido",
+        "autor"
+      ],
+      "features": [
+        3
+      ],
+      "cambia": [
+        "tarjetas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "agregarEtiqueta",
+      "params": [
+        "cardId",
+        "nombreEtiqueta",
+        "colorHex"
+      ],
+      "ejemplo": [
+        "card-201",
+        "Backend",
+        "#e91e63"
+      ],
+      "hace": "Añade una etiqueta con nombre y color a la tarjeta.",
+      "ids": [
+        "cardId"
+      ],
+      "campos": [
+        "nombreEtiqueta",
+        "colorHex"
+      ],
+      "features": [
+        4
+      ],
+      "cambia": [
+        "tarjetas"
+      ],
+      "cumple": []
+    }
+  ],
+  "se_ve": [
+    7,
+    8,
+    9
+  ]
+}

@@ -1,0 +1,137 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado) {
+    const appDiv = document.getElementById('app');
+    if (!appDiv) return;
+
+    // 1. Limpiar el contenedor principal
+    appDiv.innerHTML = '';
+
+    // 2. Crear el contenedor del tablero (Kanban Board Wrapper - F1.2)
+    const boardWrapper = document.createElement('div');
+    boardWrapper.className = 'kanban-board';
+    appDiv.appendChild(boardWrapper);
+
+    // 3. Dibujar las columnas (F1.4)
+    estado.columnas.forEach(columna => {
+        const columnaElement = document.createElement('div');
+        columnaElement.className = 'column';
+        columnaElement.dataset.columnId = columna.id;
+
+        // Título de la columna
+        const tituloColumna = document.createElement('h2');
+        tituloColumna.textContent = columna.nombre;
+        columnaElement.appendChild(tituloColumna);
+
+        // Contenedor donde irán las tarjetas (card-list)
+        const cardList = document.createElement('div');
+        cardList.className = 'card-list';
+        columnaElement.appendChild(cardList);
+
+        // 4. Dibujar las tarjetas dentro de la columna (F2.2)
+        const cardsEnColumna = estado.tarjetas.filter(tarjeta => {
+            // Asumiendo que el estado de la tarjeta incluye una propiedad 'columnaId' o similar
+            // Si no está explícito, asumiremos un mapeo basado en los datos iniciales y el flujo del sistema.
+            // Dado que ESTADO_INICIAL solo contiene la lista plana de tarjetas, necesitamos saber dónde están.
+            // Para este paso, simplemente iteraremos sobre todas las tarjetas y las colocaremos en su columna lógica.
+            // Si el estado fuera más complejo (con la referencia de columna), usaríamos eso. 
+            // Como no tenemos esa estructura, asumiremos que ESTADO_INICIAL está bien mapeado y dibujaremos todas.
+            return true; // Dibujar todas por ahora
+        });
+
+        cardsEnColumna.forEach(tarjeta => {
+            const cardElement = document.createElement('div');
+            cardElement.className = 'card';
+            cardElement.dataset.cardId = tarjeta.id;
+            
+            // Contenido principal de la tarjeta
+            let cardContentHTML = '';
+
+            // Título y Descripción (F3.3: Renderizar vista de edición/contenido)
+            const titulo = document.createElement('h3');
+            titulo.textContent = tarjeta.titulo;
+            cardElement.appendChild(titulo);
+
+            const descripcion = document.createElement('p');
+            descripcion.className = 'card-description';
+            descripcion.textContent = tarjeta.descripcion;
+            cardElement.appendChild(descripcion);
+
+            // Contenido Adicional (Si existe)
+            if (tarjeta.contenido_adicional && tarjeta.contenido_adicional.trim() !== '') {
+                const contenedorExtra = document.createElement('div');
+                contenedorExtra.className = 'contenido-adicional';
+                contenedorExtra.textContent = tarjeta.contenido_adicional;
+                cardElement.appendChild(contenedorExtra);
+            }
+
+            // 5. Renderizar Etiquetas (F4.2)
+            if (tarjeta.labels && tarjeta.labels.length > 0) {
+                const labelsContainer = document.createElement('div');
+                labelsContainer.className = 'labels-container';
+                tarjeta.labels.forEach(label => {
+                    const labelDiv = document.createElement('span');
+                    labelDiv.className = 'label';
+                    labelDiv.style.backgroundColor = label.color; // Usar el color definido
+                    labelDiv.textContent = label.nombre;
+                    labelDiv.style.color = '#fff'; 
+                    labelDiv.style.padding = '2px 8px';
+                    labelDiv.style.borderRadius = '15px';
+                    labelDiv.style.marginRight = '5px';
+                    labelDiv.style.display = 'inline-block';
+                    labelsContainer.appendChild(labelDiv);
+                });
+                cardElement.appendChild(labelsContainer);
+            }
+
+            // 6. Renderizar Comentarios (F4.6)
+            if (tarjeta.comentarios && tarjeta.comentarios.length > 0) {
+                const commentsSection = document.createElement('div');
+                commentsSection.className = 'comments-section';
+                
+                tarjeta.comentarios.forEach(comment => {
+                    const commentDiv = document.createElement('div');
+                    commentDiv.className = 'comment';
+                    
+                    // Meta información (Autor y Fecha)
+                    const meta = document.createElement('div');
+                    meta.className = 'comment-meta';
+                    const fecha = new Date(comment.timestamp);
+                    meta.innerHTML = `<strong>${comment.autor}</strong> - ${fecha.toLocaleDateString()} ${fecha.toLocaleTimeString()}`;
+                    
+                    // Contenido del comentario
+                    const contenido = document.createElement('p');
+                    contenido.textContent = comment.contenido;
+
+                    commentDiv.appendChild(meta);
+                    commentDiv.appendChild(contenido);
+                    commentsSection.appendChild(commentDiv);
+                });
+
+                cardElement.appendChild(commentsSection);
+            }
+
+
+            // 7. Agregar Controles de Acción para la Tarjeta (F2.2)
+            // Los controles se añaden al final del contenedor de la tarjeta, pero antes de cerrarla.
+            const actionControls = controlesDe("tarjetas", tarjeta, estado);
+            cardElement.appendChild(actionControls);
+
+            // Añadir tarjeta a la lista de la columna
+            cardList.appendChild(cardElement);
+        });
+
+        columnaElement.appendChild(cardList);
+        boardWrapper.appendChild(columnaElement);
+    });
+
+
+    // 8. Agregar controles generales de la aplicación (App - "app")
+    const generalControls = controlesDe("app", null, estado);
+    if (generalControls) {
+        boardWrapper.appendChild(document.createElement('hr')); // Separador visual
+        boardWrapper.appendChild(document.createElement('h2')).textContent = 'Crear Elemento';
+        boardWrapper.appendChild(generalControls);
+    }
+}
+```

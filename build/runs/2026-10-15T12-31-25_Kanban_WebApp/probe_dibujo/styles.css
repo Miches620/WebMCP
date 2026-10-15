@@ -1,0 +1,249 @@
+/* --------------------------------------------- */
+/* GLOBAL STYLES & VARIABLES (Industrial Dark Theme) */
+/* --------------------------------------------- */
+
+:root {
+    --color-bg-primary: #1e1e2e; /* Fondo muy oscuro */
+    --color-bg-secondary: #25253c; /* Superficies secundarias, tarjetas, columnas */
+    --color-text-primary: #d9dee7; /* Texto principal (gris claro) */
+    --color-text-secondary: #a0a0b5; /* Subtexto */
+    --color-accent-main: #ff6e6e; /* Rojo/Naranja suave para acentos, peligro */
+    --color-accent-info: #4fc3f7; /* Azul claro (Info) */
+    --color-accent-warning: #ffc107; /* Amarillo/Ámbar (Advertencia) */
+    --color-border: #3b3b58; /* Bordes sutiles */
+    --shadow-base: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    margin: 0;
+    padding: 20px;
+}
+
+/* Título */
+h1 {
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+    font-weight: 300;
+}
+
+/* Contenedor principal del tablero */
+#app {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 10px 0;
+}
+
+/* --------------------------------------------- */
+/* COLUMNAS (Columnas Kanban) */
+/* --------------------------------------------- */
+
+.kanban-column {
+    background-color: var(--color-bg-secondary);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: var(--shadow-base);
+    display: flex;
+    flex-direction: column;
+}
+
+.column-header {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-border);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Contenedor de tarjetas dentro de la columna */
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto; /* Permite scroll si hay muchas tarjetas */
+    padding-right: 5px; /* Espacio para el scrollbar */
+}
+
+/* --------------------------------------------- */
+/* TARJETAS (Card Component) - F4.9, F4.10 */
+/* --------------------------------------------- */
+
+.kanban-card {
+    background-color: var(--color-bg-secondary);
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Sombra base */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    cursor: grab;
+}
+
+/* Efecto Hover (Iluminación/Elevación) */
+.kanban-card:hover {
+    transform: translateY(-3px); /* Elevación sutil */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), 0 0 15px var(--color-accent-info); /* Sombra más intensa y brillo azulado */
+}
+
+/* Título de la Tarjeta */
+.card-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: var(--color-text-primary);
+    display: block;
+    word-wrap: break-word;
+}
+
+.card-description {
+    font-size: 0.9em;
+    color: var(--color-text-secondary);
+    margin-bottom: 15px;
+    white-space: pre-wrap; /* Respeta saltos de línea */
+}
+
+/* Etiqueta (Label) */
+.card-labels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.label {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    text-transform: capitalize;
+    color: #ffffff; /* Texto blanco en etiquetas */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Comentarios */
+.card-comments {
+    margin-top: 15px;
+    border-top: 1px dashed var(--color-border);
+    padding-top: 10px;
+}
+
+.comment-entry {
+    background-color: #2d2d45; /* Fondo ligeramente diferente para el comentario */
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.comment-author {
+    display: block;
+    font-weight: bold;
+    color: var(--color-accent-info);
+    font-size: 0.85em;
+}
+
+.comment-timestamp {
+    display: block;
+    font-size: 0.7em;
+    color: var(--color-text-secondary);
+    margin-top: 3px;
+}
+
+
+/* --------------------------------------------- */
+/* CONTROLES DE ACCIÓN (Inputs, Buttons, etc.) - Nivel de ControlesDe */
+/* --------------------------------------------- */
+
+.ctl-controles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid var(--color-border);
+}
+
+.ctl-accion {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 200px; /* Asegura un tamaño mínimo para los grupos de acción */
+}
+
+/* Inputs y Selects dentro de controles */
+input[type="text"], input[type="date"], select, textarea {
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    background-color: #181825; /* Fondo más oscuro para campos */
+    color: var(--color-text-primary);
+    border-radius: 4px;
+    width: 100%;
+}
+
+textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+/* Botones de Acción */
+.ctl-boton {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    font-weight: bold;
+}
+
+/* Estilos de botones según el tipo (ejemplo) */
+.ctl-boton[data-action="borrar"] {
+    background-color: var(--color-accent-main);
+    color: white;
+}
+.ctl-boton[data-action="editar"] {
+    background-color: #6c757d; /* Gris más neutro */
+    color: white;
+}
+.ctl-boton[data-action="mover"] {
+    background-color: var(--color-accent-info);
+    color: black;
+}
+.ctl-boton[data-action="comentario"] {
+    background-color: #3e5a7c; /* Azul oscuro para comentarios */
+    color: white;
+}
+/* Botón primario de envío/creación */
+.btn-primary {
+    background-color: var(--color-accent-info);
+    color: var(--color-bg-primary);
+}
+
+/* Efecto hover en botones */
+.ctl-boton:hover {
+    filter: brightness(1.2);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Botón para crear tarjeta nueva */
+.create-card-button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background-color: var(--color-accent-info);
+    color: var(--color-bg-primary);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.create-card-button:hover {
+    background-color: #6faeff;
+}

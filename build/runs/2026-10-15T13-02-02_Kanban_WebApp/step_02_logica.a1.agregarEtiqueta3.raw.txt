@@ -1,0 +1,43 @@
+```javascript
+agregarEtiqueta: function(estado, tarjetaId, nombre, color) {
+    let nuevaColumnas = [...estado.columnas];
+
+    for (let i = 0; i < nuevaColumnas.length; i++) {
+        const col = nuevaColumnas[i];
+        const cardIndex = col.tarjetas.findIndex(card => card.id === tarjetaId);
+
+        if (cardIndex !== -1) {
+            const originalCard = col.tarjetas[cardIndex];
+            const nuevaEtiqueta = { nombre: nombre, color: color };
+
+            // 1. Clonar la tarjeta objetivo profundamente para asegurar que no se modifique el estado anterior
+            let nuevaTarjetaObjetivo = JSON.parse(JSON.stringify(originalCard));
+
+            // 2. Crear el nuevo array de etiquetas e insertarlo en la copia
+            const nuevosLabels = [...originalCard.labels, nuevaEtiqueta];
+            nuevaTarjetaObjetivo.labels = nuevosLabels;
+
+            // 3. Crear un nuevo array de tarjetas reemplazando solo la tarjeta modificada
+            let nuevasTarjetas = col.tarjetas.map((card, index) => {
+                if (index === cardIndex) {
+                    return nuevaTarjetaObjetivo; // Usamos el objeto clonado y modificado
+                }
+                return card; // Otras tarjetas se mantienen como referencias (ya están bien)
+            });
+
+            // 4. Crear una nueva columna con el array de tarjetas actualizado
+            nuevaColumnas[i] = {
+                ...col,
+                tarjetas: nuevasTarjetas
+            };
+
+            // 5. Devolver el estado completo y nuevo
+            return { ...estado, columnas: nuevaColumnas };
+        }
+    }
+
+    console.error("Tarjeta no encontrada para agregar etiqueta.");
+    // Si la tarjeta no se encuentra, se devuelve una copia del estado original o simplemente el estado si es seguro que ninguna acción ocurre. Manteniendo la lógica de devolver el estado recibido.
+    return estado; 
+},
+```

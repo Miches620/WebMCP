@@ -202,7 +202,7 @@ const IN_PAGE = `(function () {
 // con labelId undefined, la pantalla "cambiaba" (dibujaba una etiqueta vacía) y Validation daba PASS.
 export async function runCallsProbe(htmlPath, { global, methods, draw, fill = "Prueba", max = 25 }) {
   const browser = await chromium.launch();
-  const out = { calls: {}, undrawn: {}, args: {}, via: {}, clicked: [], errors: [], reloads: [], tracked: false, found: false, controls: 0 };
+  const out = { calls: {}, undrawn: {}, args: {}, effects: {}, via: {}, clicked: [], errors: [], reloads: [], tracked: false, found: false, controls: 0 };
   try {
     const page = await browser.newPage();
     page.on("pageerror", (e) => out.errors.push(e.message));
@@ -224,7 +224,17 @@ export async function runCallsProbe(htmlPath, { global, methods, draw, fill = "P
           if (v === null || typeof v === "boolean") return v;
           return Array.isArray(v) ? "__array__" : "__" + typeof v + "__";
         };
-        methods.forEach(function (m) { var f = G[m]; if (typeof f !== "function") return; G[m] = function () { window.__seq.push(m); try { window.__args.push([m, Array.prototype.map.call(arguments, brief)]); } catch (e) {} return f.apply(this, arguments); }; });
+        // v0.2.4 (15/10, p48): además, si la llamada devolvió un estado DISTINTO del que recibió (entry[2]: true/false;
+        // null si no se pudo comparar). Réplica 12-31-25: el botón mandaba un id de otra clase, la acción devolvía el
+        // mismo estado y la compuerta decía "datos de verdad".
+        methods.forEach(function (m) { var f = G[m]; if (typeof f !== "function") return; G[m] = function () {
+          window.__seq.push(m);
+          var entry = null, before = null;
+          try { entry = [m, Array.prototype.map.call(arguments, brief)]; window.__args.push(entry); } catch (e) {}
+          try { before = JSON.stringify(arguments[0]); } catch (e) {}
+          var r = f.apply(this, arguments);
+          if (entry) { var ch = null; try { ch = before !== null && typeof r === "object" && r !== null ? JSON.stringify(r) !== before : null; } catch (e) {} entry.push(ch); }
+          return r; }; });
         var tracked = false;
         try { var d = (0, eval)(draw); if (typeof d === "function") { var w = function () { window.__seq.push("#draw"); return d.apply(this, arguments); }; window[draw] = w; tracked = (0, eval)(draw) === w; } } catch (e) {}
         return { found: true, tracked: tracked };
@@ -234,8 +244,12 @@ export async function runCallsProbe(htmlPath, { global, methods, draw, fill = "P
     const fillAll = (v) => page.evaluate((v) => {
       Array.prototype.forEach.call(document.querySelectorAll("input, textarea"), function (el) {
         var t = (el.getAttribute("type") || "text").toLowerCase();
-        if (el.value || ["button", "submit", "checkbox", "radio", "hidden", "color", "range", "file"].indexOf(t) >= 0 || !el.getClientRects().length) return;
-        el.value = t === "number" ? "1" : t === "date" ? "2026-01-01" : t === "email" ? "prueba@ejemplo.com" : v;
+        // v0.2.4 (15/10, p48): un campo de texto ya completo (editar arranca con el valor actual) también se cambia,
+        // como haría una persona que edita; si no, "editar" guarda lo mismo y parece que no hace nada.
+        // Números, fechas y mails con valor se dejan (pueden ser lo que la acción necesita).
+        if (["button", "submit", "checkbox", "radio", "hidden", "color", "range", "file"].indexOf(t) >= 0 || !el.getClientRects().length) return;
+        if (el.value && (t === "number" || t === "date" || t === "email" || el.value === v)) return;
+        el.value = t === "number" ? "1" : t === "date" ? "2026-01-01" : t === "email" ? "prueba@ejemplo.com" : (el.value ? el.value + " " + v : v);
         el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true }));
       });
     }, v);
@@ -251,8 +265,9 @@ export async function runCallsProbe(htmlPath, { global, methods, draw, fill = "P
     };
     const takeArgs = async (k) => {
       const list = await page.evaluate(() => (window.__args || []).splice(0)).catch(() => []);
-      for (const [m, a] of list) {
+      for (const [m, a, ch] of list) {
         (out.args[m] ||= []).length < 8 && out.args[m].push(a);
+        (out.effects[m] ||= []).push(ch === undefined ? null : ch);
         if (!out.via[m]) out.via[m] = k;
       }
     };

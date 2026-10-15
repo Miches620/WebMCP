@@ -16,7 +16,7 @@
 // Nada de un dominio acá (ni Kanban ni contador): lo prueba test_estado.mjs con dos apps distintas.
 // DRAFT: no tiene evidencia todavía. Primera corrida: el Kanban (Project23/24).
 
-import { parseContract, contractProblems, bestContract, datosJs, signature, idsOf, MAX_STATE_CHARS } from "./contract.mjs";
+import { parseContract, contractProblems, bestContract, datosJs, signature, idsOf, idKeysOf, MAX_STATE_CHARS } from "./contract.mjs";
 import { logicTests, observeChanges } from "./acceptance.mjs";
 import { controlsPlan, accionesJs, controlesFromPlan, whereOf } from "./controls.mjs";
 import { linkTasksOf, enlacePrompt, parseLinks, linkProblems, bestLinks, linksSummary, ENLACE_VERSION } from "./enlace.mjs";
@@ -199,14 +199,16 @@ const validation = {
   /** Qué envolver en la página: el objeto global, sus métodos y la función que dibuja. */
   calls: (c) => ({ global: "App", draw: "dibujar", methods: c.acciones.map((a) => a.nombre) }),
   /** Cada acción con sus params (después de estado), cuáles son ids, y qué features cumple. */
-  actions: (c) => c.acciones.map(({ nombre, params, ids, campos, features }) => ({ nombre, params, ids, campos, features })),
+  actions: (c) => c.acciones.map(({ nombre, params, ids, campos, features, ejemplo }) => ({ nombre, params, ids, campos, features, ejemplo })),
+  /** v0.7: de qué clase de elemento es cada id (sus claves), para saber si un botón manda el id correcto. */
+  idKeys: (c) => idKeysOf(c.estado),
   /** Ids que existen en el estado inicial (para saber si un id que llega es de verdad). */
   idValues: (c) => [...idsOf(c.estado)].map((x) => JSON.parse(x)),
 };
 
 const STANDARD = {
   id: "web/app/estado",
-  version: "0.6.1",
+  version: "0.7.0",
   status: "DRAFT",
   validation,
   label: "app de una pantalla con estado y acciones",

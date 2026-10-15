@@ -1,0 +1,62 @@
+```javascript
+agregarComentario: function(estado, tarjetaId, contenido, autor) {
+    const nuevoComentario = {
+        autor: autor,
+        contenido: contenido,
+        timestamp: Date.now()
+    };
+
+    let columnIndex = -1;
+    let cardIndex = -1;
+    let originalCard = null;
+
+    // 1. Buscar la columna y el índice de la tarjeta objetivo
+    for (let i = 0; i < estado.columnas.length; i++) {
+        const column = estado.columnas[i];
+        const index = column.tarjetas.findIndex(card => card.id === tarjetaId);
+        if (index !== -1) {
+            columnIndex = i;
+            cardIndex = index;
+            originalCard = column.tarjetas[index];
+            break;
+        }
+    }
+
+    if (columnIndex === -1 || originalCard === null) {
+        console.error("Tarjeta no encontrada para agregar comentario.");
+        return estado;
+    }
+
+    // 2. Crear el nuevo array de comentarios
+    const nuevosComentarios = [...originalCard.comentarios, nuevoComentario];
+
+    // 3. Clonar la tarjeta modificada (actualizando solo los comentarios)
+    const nuevaTarjetaObjetivo = {
+        ...originalCard,
+        comentarios: nuevosComentarios
+    };
+
+    // 4. Crear el nuevo array de tarjetas para esta columna
+    const nuevasTarjetas = [
+        ...estado.columnas[columnIndex].tarjetas.slice(0, cardIndex), // Tarjetas antes del objetivo
+        nuevaTarjetaObjetivo,                                      // Tarjeta modificada
+        ...estado.columnas[columnIndex].tarjetas.slice(cardIndex + 1) // Tarjetas después del objetivo
+    ];
+
+    // 5. Crear el nuevo array de columnas (reemplazando solo la columna modificada)
+    const nuevaColumnas = [
+        ...estado.columnas.slice(0, columnIndex),              // Columnas antes
+        {
+            ...estado.columnas[columnIndex], // Copia los datos de la columna
+            tarjetas: nuevasTarjetas         // Inyectar el nuevo array de tarjetas
+        },
+        ...estado.columnas.slice(columnIndex + 1)          // Columnas después
+    ];
+
+    // 6. Devolver el nuevo estado completo
+    return {
+        ...estado,
+        columnas: nuevaColumnas
+    };
+}
+```

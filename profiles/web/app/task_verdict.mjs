@@ -12,7 +12,7 @@
 //   El enlace es lo que dice Gemma (trazabilidad); la evidencia sigue siendo la de la acción.
 // Funciones puras: la página y los pasos ya corrieron; esto solo cruza resultados.
 
-export const TASK_VERDICT_VERSION = "task_verdict v0.2";
+export const TASK_VERDICT_VERSION = "task_verdict v0.3";
 const PROBADAS = new Set(["logica", "controles"]);
 // v0.2: los controles que arma el harness son BOTONES (Standard web/app/estado). Una tarea de controles que pide
 // arrastrar o teclado no queda probada porque el botón de su acción ande (el Standard: "arrastrar y teclado no se prueban").
@@ -29,7 +29,11 @@ function testsOf(acceptance, nombre) {
  *           acceptance: {passed:string[], failed:string[]}|null, gateRows: Array<{nombre,called,problem}>|null }} x
  * @returns {{ version, rows: Array<{id, pieza, task, verdict, accion?, reason}>, counts, desconocidas:string[], enVariasAcciones:string[] }}
  */
-export function taskVerdicts({ tasks = [], contract = null, links = null, acceptance = null, gateRows = null }) {
+// v0.3 (15/10, p48: réplicas 12-31-25 y 13-02-02): pruebas de lógica + compuerta no alcanzan. En las dos réplicas
+//   las 12 tareas salían CUMPLIDAS mientras Validation veía que 5 y 6 acciones no cambiaban nada en la pantalla.
+//   Ahora también cuenta lo que vio Validation al usar la acción (screen: { R<n>: action_changes }): si su requisito
+//   dio FAIL en pantalla, la tarea es NO_CUMPLIDA. Sin ese dato, no se agrega nada (no se inventa).
+export function taskVerdicts({ tasks = [], contract = null, links = null, acceptance = null, gateRows = null, screen = null }) {
   const acciones = contract?.acciones || [];
   const ids = new Set(tasks.map((t) => t.id));
   const deTarea = {};
@@ -57,6 +61,13 @@ export function taskVerdicts({ tasks = [], contract = null, links = null, accept
         else if (tt.failed.length) why.push(`${nombre}: fallan ${tt.failed.length} prueba(s) de lógica (${tt.failed[0]})`);
         else if (!tt.passed.length) why.push(`${nombre}: no tiene pruebas de lógica`);
         else ok.push(`${nombre}: ${tt.passed.length} pruebas de lógica`);
+      }
+      // lo que vio Validation en la pantalla, por los requisitos (features) de la acción
+      for (const f of g?.features || []) {
+        const sc = screen?.[`R${f}`];
+        if (!sc) continue;
+        if (sc.result === "FAIL") why.push(`${nombre}: en pantalla (R${f}) ${String(sc.detail || "no cambia nada").slice(0, 120)}`);
+        else if (sc.result === "PASS") ok.push(`${nombre}: la pantalla cambia (R${f})`);
       }
       if (!gateRows) why.push(`${nombre}: no corrió la compuerta de llamadas`);
       else if (!g) why.push(`${nombre}: no está en la compuerta`);

@@ -1,0 +1,152 @@
+function dibujar(estado) {
+    const app = document.getElementById('app');
+    if (!app) return; // Asegura que el contenedor exista
+
+    // 1. Limpiar contenido anterior
+    app.innerHTML = '';
+
+    const tarjetasEstado = estado.tarjetas;
+
+    // Iterar sobre las columnas definidas en el estado para mantener el orden visual
+    estado.columnas.forEach((columna) => {
+        const colId = columna.id;
+        const cards = tarjetasEstado[colId] || [];
+
+        // --- 2.1 Renderizar Contenedor de Columna (Se añade directamente a #app) ---
+        const columnWrapper = document.createElement('div');
+        columnWrapper.className = 'kanban-column';
+        columnWrapper.setAttribute('data-col-id', colId);
+
+        // Header de la columna
+        const header = document.createElement('div');
+        header.className = 'column-header';
+        const h3Title = document.createElement('h3');
+        h3Title.textContent = columna.nombre; // Usar textContent
+        header.appendChild(h3Title);
+
+        // Contenedor donde irán las tarjetas (Card List)
+        const cardListContainer = document.createElement('div');
+        cardListContainer.className = 'card-list';
+        
+        columnWrapper.appendChild(header);
+        columnWrapper.appendChild(cardListContainer);
+
+
+        // --- 2.2 Renderizar Tarjetas dentro de la Columna ---
+        if (cards.length > 0) {
+            const fragment = document.createDocumentFragment();
+
+            cards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'kanban-card';
+                cardElement.setAttribute('data-card-id', card.id);
+
+                // Título y Descripción (Usando textContent)
+                const titleEl = document.createElement('h4');
+                titleEl.className = 'card-title';
+                titleEl.textContent = card.titulo; 
+
+                const descriptionEl = document.createElement('p');
+                descriptionEl.className = 'card-description';
+                descriptionEl.textContent = card.descripcion;
+                
+                cardElement.appendChild(titleEl);
+                cardElement.appendChild(descriptionEl);
+
+                // Etiquetas (F4.2)
+                const labelsContainer = document.createElement('div');
+                labelsContainer.className = 'card-labels';
+                card.etiquetas.forEach(etiqueta => {
+                    const label = document.createElement('span');
+                    label.className = 'label';
+                    // Estilo se aplica vía atributo o style, pero el texto es textContent
+                    label.style.backgroundColor = etiqueta.color; 
+                    label.textContent = etiqueta.nombre;
+                    labelsContainer.appendChild(label);
+                });
+                cardElement.appendChild(labelsContainer);
+
+                // Comentarios (F4.6)
+                const commentsContainer = document.createElement('div');
+                commentsContainer.className = 'card-comments';
+                if (card.comentarios && card.comentarios.length > 0) {
+                    card.comentarios.forEach(comment => {
+                        const commentEntry = document.createElement('div');
+                        commentEntry.className = 'comment-entry';
+
+                        // Usamos un fragmento para construir el contenido de manera segura
+                        const authorP = document.createElement('p');
+                        authorP.className = 'comment-author';
+                        authorP.textContent = `${comment.autor}:`; // Solo texto
+                        
+                        const contentP = document.createElement('p');
+                        contentP.className = 'comment-content';
+                        contentP.textContent = comment.contenido; // Texto seguro
+
+                        const timestampSmall = document.createElement('small');
+                        timestampSmall.className = 'comment-timestamp';
+                        // Mostrar texto formateado, no HTML
+                        const dateObj = new Date(comment.timestamp);
+                        timestampSmall.textContent = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString()}`;
+
+                        commentEntry.appendChild(authorP);
+                        commentEntry.appendChild(contentP);
+                        commentEntry.appendChild(timestampSmall);
+                        commentsContainer.appendChild(commentEntry);
+                    });
+                }
+                cardElement.appendChild(commentsContainer);
+
+                // Agregar la tarjeta al fragmento
+                fragment.appendChild(cardElement);
+            });
+
+            // Vaciar el listado y añadir todas las tarjetas de una vez
+            cardListContainer.appendChild(fragment); 
+        }
+
+
+        // --- 2.3 Agregar Controles de Acción al final de la columna ---
+        let controlsWrapper = document.createElement('div');
+        controlsWrapper.className = 'kanban-controls-group'; 
+
+        // A) Crear Tarjeta (Para todas las columnas)
+        const actionControls = document.createElement('div');
+        actionControls.className = 'kanban-actions';
+        // Usamos el ID de la columna como elemento proxy para pasar el contexto
+        const crearCardBtn = controlesDe("columnas", { id: colId }, estado); 
+        if (crearCardBtn) actionControls.appendChild(crearCardBtn);
+
+        controlsWrapper.appendChild(actionControls);
+
+
+        // B) Controles específicos basados en el ID de la columna
+        let controlesAdicionales = null;
+        
+        const colIdActual = colId;
+
+        if (colIdActual === 'col-pendiente' || colIdActual === 'col-completado') {
+            // Usar un tipo genérico para agrupar acciones de tarjeta
+            controlesAdicionales = document.createElement('div');
+            const controlesGrupo1 = controlesDe("col-pendiente", { id: colIdActual }, estado); 
+            if(controlesGrupo1) controlesAdicionales.appendChild(controlesGrupo1);
+
+        } else if (colIdActual === 'col-en_curso') {
+            // Controles disponibles solo en En Curso: Agregar Etiqueta
+            controlesAdicionales = document.createElement('div');
+            const controlesEtiqueta = controlesDe("col-en_curso", { id: colIdActual }, estado);
+             if(controlesEtiqueta) controlesAdicionales.appendChild(controlesEtiqueta);
+        }
+
+        // Unir todos los controles y añadirlos al wrapper de la columna
+        if (controlesAdicionales) {
+            controlsWrapper.appendChild(controlesAdicionales);
+        }
+        
+        columnWrapper.appendChild(controlsWrapper);
+
+
+        // Añadir el contenedor completo de la columna a #app
+        app.appendChild(columnWrapper);
+    });
+}

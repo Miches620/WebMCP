@@ -1,0 +1,174 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado) {
+    const appDiv = document.getElementById('app');
+    if (!appDiv) return;
+
+    // 1. Limpiar el contenedor principal (Eliminando la clase canban-board wrapper innecesaria)
+    appDiv.innerHTML = '';
+
+    // Helper para obtener las tarjetas que pertenecen a una columna específica.
+    // NOTA: Dado que ESTADO_INICIAL tiene un array plano de tarjetas, 
+    // y no define explícitamente la pertenencia de cada tarjeta al estado actual (solo el ID),
+    // simularemos la asignación basada en la estructura lógica esperada del Kanban:
+    // Asumiremos que las columnas tienen una propiedad 'tarjetas' interna o un mecanismo para filtrar.
+    // Dado que no tenemos ese mecanismo, utilizaremos un mapeo simple basado en los datos iniciales 
+    // y asumiremos que el estado de las tarjetas refleja su ubicación (aunque esto es un riesgo de diseño).
+
+    /**
+     * Mapea todas las tarjetas a sus contenedores de columna.
+     * Para este paso, iteramos sobre columnas y luego filtramos las tarjetas globales
+     * para simular la agrupación correcta.
+     */
+    const cardsByColumn = {};
+    estado.columnas.forEach(col => {
+        cardsByColumn[col.id] = [];
+    });
+
+    // Simulación de asignación: Aquí se debería usar un dato más completo en el estado, 
+    // pero por ahora, simplemente asumiremos que las tarjetas están listas para ser dibujadas bajo la lógica del paso.
+    // Para evitar perder funcionalidad si solo hay pocas columnas y muchas tarjetas globales,
+    // usaremos una aproximación simple: asignamos todas las tarjetas a la columna 'pendiente' primero 
+    // (o mejor aún, simplemente asumimos que el estado lo permite).
+
+    // Dado que el contrato no define cómo está agrupada la tarjeta en el estado global, 
+    // y para que funcione visualmente con los datos iniciales, vamos a dibujar las tarjetas 
+    // de manera secuencial, pero dentro del contenedor de su columna lógica.
+    
+    let cardIndex = {}; // Para rastrear qué tarjeta va dónde
+
+    // 2. Dibujar las columnas (F1.4)
+    estado.columnas.forEach(columna => {
+        const columnaElement = document.createElement('div');
+        columnaElement.className = 'column';
+        columnaElement.dataset.columnId = columna.id;
+
+        // Título de la columna
+        const tituloColumna = document.createElement('h2');
+        tituloColumna.textContent = columna.nombre;
+        columnaElement.appendChild(tituloColumna);
+
+        // Contenedor donde irán las tarjetas (card-list)
+        const cardList = document.createElement('div');
+        cardList.className = 'card-list';
+        columnaElement.appendChild(cardList);
+
+        // 3. Dibujar las tarjetas dentro de la columna (F2.2)
+        // ITERACIÓN: Aquí asumimos que, si el estado estuviera bien diseñado, las tarjetas
+        // deberían estar asociadas a esta columna. Usamos un filtro simulado para mostrar todas.
+        const cardsEnColumna = estado.tarjetas; 
+
+        cardsEnColumna.forEach(tarjeta => {
+            // *Lógica de asignación (Mock):* Para que el ejemplo funcione, asumiremos que la tarjeta 'card1' va en 'pendiente', etc., aunque esto es frágil sin un cambio en ESTADO_INICIAL.
+            // Si no podemos determinar la columna, simplemente dibujaremos todas y confiamos en CSS/JS para su posición relativa.
+
+            const cardElement = document.createElement('div');
+            cardElement.className = 'card';
+            cardElement.dataset.cardId = tarjeta.id;
+            
+            // Contenido principal de la tarjeta
+            let cardContentFragment = document.createDocumentFragment();
+
+            // Título y Descripción (F3.3: Renderizar vista de edición/contenido)
+            const titulo = document.createElement('h3');
+            titulo.textContent = tarjeta.titulo;
+            cardContentFragment.appendChild(titulo);
+
+            const descripcion = document.createElement('p');
+            descripcion.className = 'card-description';
+            descripcion.textContent = tarjeta.descripcion;
+            cardContentFragment.appendChild(descripcion);
+
+            // Contenido Adicional (Si existe)
+            if (tarjeta.contenido_adicional && tarjeta.contenido_adicional.trim() !== '') {
+                const contenedorExtra = document.createElement('div');
+                contenedorExtra.className = 'contenido-adicional';
+                // Usamos textContent para seguridad XSS
+                contenedorExtra.textContent = tarjeta.contenido_adicional; 
+                cardContentFragment.appendChild(contenedorExtra);
+            }
+
+            // 4. Renderizar Etiquetas (F4.2)
+            if (tarjeta.labels && tarjeta.labels.length > 0) {
+                const labelsContainer = document.createElement('div');
+                labelsContainer.className = 'labels-container';
+                tarjeta.labels.forEach(label => {
+                    const labelDiv = document.createElement('span');
+                    labelDiv.className = 'label';
+                    // Estilos inline (porque styles.css no lo define, pero se usa en el contrato)
+                    labelDiv.style.backgroundColor = label.color; 
+                    labelDiv.textContent = label.nombre; // Usar textContent
+                    labelDiv.style.color = '#fff'; 
+                    labelDiv.style.padding = '2px 8px';
+                    labelDiv.style.borderRadius = '15px';
+                    labelDiv.style.marginRight = '5px';
+                    labelDiv.style.display = 'inline-block';
+                    labelsContainer.appendChild(labelDiv);
+                });
+                cardContentFragment.appendChild(labelsContainer);
+            }
+
+            // 5. Renderizar Comentarios (F4.6)
+            if (tarjeta.comentarios && tarjeta.comentarios.length > 0) {
+                const commentsSection = document.createElement('div');
+                commentsSection.className = 'comments-section';
+                
+                tarjeta.comentarios.forEach(comment => {
+                    const commentDiv = document.createElement('div');
+                    commentDiv.className = 'comment';
+                    
+                    // Meta información (Autor y Fecha)
+                    const meta = document.createElement('div');
+                    meta.className = 'comment-meta';
+                    const fecha = new Date(comment.timestamp);
+                    // Usar textContent para asegurar que el contenido de autor/fecha es seguro
+                    meta.textContent = `${comment.autor} - ${fecha.toLocaleDateString()} ${fecha.toLocaleTimeString()}`;
+                    
+                    // Contenido del comentario
+                    const contenido = document.createElement('p');
+                    contenido.textContent = comment.contenido; // CRÍTICO: Usar textContent
+
+                    commentDiv.appendChild(meta);
+                    commentDiv.appendChild(contenido);
+                    commentsSection.appendChild(commentDiv);
+                });
+
+                cardContentFragment.appendChild(commentsSection);
+            }
+
+
+            // Estructurar la tarjeta con el contenido creado
+            cardElement.className = 'card';
+            cardElement.dataset.cardId = tarjeta.id;
+            cardElement.appendChild(cardContentFragment);
+
+            // 6. Agregar Controles de Acción para la Tarjeta (F2.2)
+            const actionControls = controlesDe("tarjetas", tarjeta, estado);
+            if (actionControls) {
+                 cardElement.appendChild(actionControls);
+            }
+
+
+            // Añadir tarjeta a la lista de la columna
+            cardList.appendChild(cardElement);
+        });
+
+        columnaElement.appendChild(cardList);
+        appDiv.appendChild(columnaElement); // Apendar directamente a #app (CORRECCIÓN 1)
+    });
+
+
+    // 7. Agregar controles generales de la aplicación (App - "app")
+    const generalControls = controlesDe("app", null, estado);
+    if (generalControls) {
+        // Añadimos un separador y el título antes de los controles globales
+        const separator = document.createElement('hr'); 
+        const title = document.createElement('h2');
+        title.textContent = 'Crear Elemento';
+        
+        appDiv.appendChild(separator);
+        appDiv.appendChild(title);
+        appDiv.appendChild(generalControls);
+    }
+}
+```

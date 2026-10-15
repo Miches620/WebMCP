@@ -1,0 +1,48 @@
+```javascript
+agregarComentario: function(estado, tarjetaId, contenido, autor) {
+    const nuevoComentario = {
+        autor: autor,
+        contenido: contenido,
+        timestamp: Date.now()
+    };
+
+    for (let i = 0; i < estado.columnas.length; i++) {
+        const col = estado.columnas[i];
+        const cardIndex = col.tarjetas.findIndex(card => card.id === tarjetaId);
+
+        if (cardIndex !== -1) {
+            // 1. Crear una copia de la tarjeta objetivo, añadiendo el comentario
+            const cardOriginal = col.tarjetas[cardIndex];
+            const nuevaTarjetaObjetivo = {
+                ...cardOriginal,
+                comentarios: [...cardOriginal.comentarios, nuevoComentario]
+            };
+
+            // 2. Crear un nuevo array de tarjetas reemplazando la tarjeta modificada
+            const nuevasTarjetas = col.tarjetas.map((card, index) => 
+                index === cardIndex ? nuevaTarjetaObjetivo : card
+            );
+
+            // 3. Crear una copia del estado con la columna actualizada
+            const nuevasColumnas = estado.columnas.map((colState, index) => {
+                if (index === i) {
+                    return {
+                        ...colState, // Copia de las propiedades de la columna (nombre, id)
+                        tarjetas: nuevasTarjetas // Reemplaza el array de tarjetas completo
+                    };
+                }
+                return colState;
+            });
+
+            // 4. Devolver el nuevo estado completo
+            return {
+                ...estado,
+                columnas: nuevasColumnas
+            };
+        }
+    }
+
+    console.error("Tarjeta no encontrada para agregar comentario.");
+    return estado;
+},
+```

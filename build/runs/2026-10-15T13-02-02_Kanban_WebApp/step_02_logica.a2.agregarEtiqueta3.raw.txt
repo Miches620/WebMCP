@@ -1,0 +1,39 @@
+```javascript
+agregarEtiqueta: function(estado, tarjetaId, nombre, color) {
+        const nuevaColumnas = estado.columnas.map(col => {
+            // 1. Buscar el índice de la tarjeta en esta columna
+            const cardIndex = col.tarjetas.findIndex(card => card.id === tarjetaId);
+
+            if (cardIndex === -1) {
+                return { ...col }; // Si no se encuentra, devolver una copia superficial de la columna sin cambios
+            }
+
+            // 2. Obtener y clonar la tarjeta objetivo
+            const originalCard = col.tarjetas[cardIndex];
+            let nuevaTarjetaObjetivo = JSON.parse(JSON.stringify(originalCard));
+
+            // Asegurar que labels es un array antes de intentar esparcirlo
+            const existingLabels = Array.isArray(originalCard.labels) ? [...originalCard.labels] : [];
+
+            // 3. Crear la nueva etiqueta y actualizar el array de etiquetas de la tarjeta objetivo (Inmutabilidad)
+            const nuevaEtiqueta = { nombre: nombre, color: color };
+            nuevaTarjetaObjetivo.labels = [...existingLabels, nuevaEtiqueta];
+
+            // 4. Crear un nuevo array de tarjetas para esta columna
+            let nuevasTarjetas = [...col.tarjetas];
+            nuevasTarjetas[cardIndex] = nuevaTarjetaObjetivo; // Reemplazar la tarjeta modificada
+
+            // 5. Devolver el objeto Columna actualizado con las nuevas tarjetas
+            return {
+                ...col,
+                tarjetas: nuevasTarjetas
+            };
+        });
+
+        // Devolver un nuevo estado completo con las columnas actualizadas
+        return {
+            ...estado,
+            columnas: nuevaColumnas
+        };
+    },
+```

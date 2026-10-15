@@ -1,0 +1,55 @@
+```javascript
+moverTarjeta: function(estado, tarjetaId, columnaDestinoId) {
+        // Usamos deep copy para empezar a garantizar la inmutabilidad
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+        let cardToMove = null;
+        let sourceColIndex = -1;
+
+        // 1. Encontrar la tarjeta y su columna origen
+        for (let i = 0; i < nuevoEstado.columnas.length; i++) {
+            const col = nuevoEstado.columnas[i];
+            const cardIndex = col.tarjetas.findIndex(card => card.id === tarjetaId);
+
+            if (cardIndex !== -1) {
+                // Clonamos la tarjeta para que el objeto movido sea independiente del estado original
+                cardToMove = JSON.parse(JSON.stringify(col.tarjetas[cardIndex]));
+                sourceColIndex = i;
+                break;
+            }
+        }
+
+        if (!cardToMove) {
+            return estado; // No se puede mover si la tarjeta no existe
+        }
+
+        // 2. Crear el nuevo array de columnas (nuevo estado inmutable)
+        let nuevasColumnas = [...nuevoEstado.columnas];
+
+        // A. Eliminar de la columna origen
+        if (sourceColIndex !== -1) {
+            const sourceColumn = nuevasColumnas[sourceColIndex];
+            // Creamos una copia del objeto Columna, pero con el array 'tarjetas' filtrado
+            nuevasColumnas[sourceColIndex] = {
+                ...sourceColumn,
+                tarjetas: sourceColumn.tarjetas.filter(card => card.id !== tarjetaId)
+            };
+        }
+
+        // B. Añadir a la columna destino (si es diferente de la origen y existe)
+        if (columnaDestinoId && nuevoEstado.columnas.find((col, index) => col.id === columnaDestinoId)) {
+            const destColIndex = nuevasColumnas.findIndex(col => col.id === columnaDestinoId);
+
+            // Creamos una copia del objeto Columna destino, añadiendo la tarjeta movida al final
+             nuevasColumnas[destColIndex] = {
+                ...nuevasColumnas[destColIndex],
+                tarjetas: [...nuevasColumnas[destColIndex].tarjetas, cardToMove]
+            };
+        }
+
+        // 3. Devolver el nuevo estado completo y actualizado
+        return { 
+            ...nuevoEstado, // Mantiene todas las propiedades raíz del estado (como tarjetas[])
+            columnas: nuevasColumnas 
+        };
+    }
+```

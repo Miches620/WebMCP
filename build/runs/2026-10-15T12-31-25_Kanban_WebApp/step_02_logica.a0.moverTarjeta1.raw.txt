@@ -1,0 +1,50 @@
+```javascript
+moverTarjeta: function(state, cardId, nuevoColumnaId) {
+    // Crear una copia profunda del estado para asegurar inmutabilidad
+    let newState = JSON.parse(JSON.stringify(state));
+    let fuenteColId = null;
+
+    // 1. Encontrar el origen de la tarjeta (fuenteColId) y obtener los datos originales antes de cualquier modificación
+    for (const colId in newState.tarjetas) {
+        if (!newState.tarjetas[colId]) continue; // Salir si por alguna razón la columna no existe en el estado clonado
+
+        const columna = newState.tarjetas[colId];
+        const cardIndex = columna.findIndex(card => card.id === cardId);
+        
+        if (cardIndex !== -1) {
+            fuenteColId = colId;
+            break;
+        }
+    }
+
+    // Validación: Si no está o ya está en destino, devolver el estado original.
+    if (!fuenteColId || fuenteColId === nuevoColumnaId) {
+        return state;
+    }
+
+    // 2. Extraer la tarjeta a mover y crear su copia profunda (para mantener los datos originales).
+    const cardToMoveData = newState.tarjetas[fuenteColId].find(card => card.id === cardId);
+    if (!cardToMoveData) {
+        return state; // Fallo en encontrar la tarjeta, devolver el estado sin cambios
+    }
+    // Copia profunda de los datos de la tarjeta para añadirla al destino
+    const tarjetaAMoverCopy = JSON.parse(JSON.stringify(cardToMoveData));
+
+    // 3. Eliminar de la columna origen (usando newState)
+    newState.tarjetas[fuenteColId] = newState.tarjetas[fuenteColId].filter(card => card.id !== cardId);
+
+    // 4. Añadir a la columna destino (usando newState)
+    if (!newState.tarjetas[nuevoColumnaId]) {
+         console.error("Columna de destino no encontrada:", nuevoColumnaId);
+         return state; // Columna destino inválida, devolver estado sin cambios
+    }
+
+    // Asegurarse de que el array exista y luego añadir la copia de la tarjeta en destino.
+    newState.tarjetas[nuevoColumnaId] = [
+        ...(newState.tarjetas[nuevoColumnaId] || []), // Copiar contenido actual
+        tarjetaAMoverCopy 
+    ];
+
+    return newState;
+}
+```

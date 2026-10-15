@@ -1,0 +1,67 @@
+```javascript
+moverTarjeta: function(estado, tarjetaId, columnaDestinoId) {
+    if (!tarjetaId || !columnaDestinoId) return JSON.parse(JSON.stringify(estado));
+
+    let sourceColIndex = -1;
+    let cardToMove = null;
+
+    // 1. Encontrar la columna origen y extraer la tarjeta (copia profunda de la tarjeta)
+    for (let i = 0; i < estado.columnas.length; i++) {
+        const col = estado.columnas[i];
+        const cardIndex = col.tarjetas.findIndex(card => card.id === tarjetaId);
+
+        if (cardIndex !== -1) {
+            sourceColIndex = i;
+            // Copia profunda de la tarjeta para garantizar inmutabilidad al moverla
+            cardToMove = JSON.parse(JSON.stringify(col.tarjetas[cardIndex])); 
+            break; 
+        }
+    }
+
+    // Validación: si no se encuentra el origen o el destino es inválido, retornamos el estado original copiado
+    if (sourceColIndex === -1) {
+         return JSON.parse(JSON.stringify(estado)); 
+    }
+    
+    const destColIndex = estado.columnas.findIndex(col => col.id === columnaDestinoId);
+    
+    // Si el destino es inválido o si la tarjeta ya está en el destino, no hay movimiento que hacer.
+    if (destColIndex === -1 || sourceColIndex === destColIndex) {
+        return JSON.parse(JSON.stringify(estado)); 
+    }
+
+
+    let nuevasColumnas = [];
+
+    // 2. Construir la nueva estructura de columnas
+    for (let i = 0; i < estado.columnas.length; i++) {
+        const col = estado.columnas[i];
+        let newCol;
+
+        if (i === sourceColIndex) {
+            // Columna Origen: Filtrar la tarjeta movida
+            newCol = {
+                ...col, // Copia id y nombre
+                tarjetas: col.tarjetas.filter(card => card.id !== tarjetaId) // Nuevo array sin la tarjeta
+            };
+        } else if (i === destColIndex) {
+            // Columna Destino: Añadir la tarjeta movida al final
+            const newTarjetas = [...col.tarjetas, cardToMove]; 
+            newCol = {
+                ...col, 
+                tarjetas: newTarjetas // Nuevo array con el contenido original más la tarjeta movida
+            };
+        } else {
+            // Otras columnas: Copia superficial (suficiente dado que solo modificamos los índices de origen/destino)
+            newCol = { ...col }; 
+        }
+
+        nuevasColumnas.push(newCol);
+    }
+
+    return {
+        ...estado,
+        columnas: nuevasColumnas
+    };
+}
+```

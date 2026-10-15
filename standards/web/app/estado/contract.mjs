@@ -28,6 +28,42 @@ export function idsOf(v, out = new Set(), inList = false) {
   return out;
 }
 const isPlain = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
+
+/** v0.7 (15/10, p48: réplicas 12-31-25 y 13-02-02). Las claves de cada elemento con id: { "<id>": ["id","titulo",…] }.
+ *  Sirve para saber de QUÉ CLASE de elemento es un id (una tarjeta no es una columna) sin nombrar dominios. */
+export function idKeysOf(v, out = {}, inList = false) {
+  if (Array.isArray(v)) v.forEach((x) => idKeysOf(x, out, true));
+  else if (isPlain(v)) {
+    if (inList) for (const [k, x] of Object.entries(v)) if (/(^|_)id$|Id$/i.test(k) && (typeof x === "string" || typeof x === "number") && !(String(x) in out)) out[String(x)] = Object.keys(v).sort();
+    for (const x of Object.values(v)) idKeysOf(x, out, false);
+  }
+  return out;
+}
+/** ¿Dos elementos son de la misma clase? Comparten la mayoría de sus claves (los opcionales no los separan). */
+export const sameKind = (a = [], b = []) => { const A = new Set(a), B = new Set(b); const both = [...A].filter((k) => B.has(k)).length; return both / (new Set([...A, ...B]).size || 1) >= 0.5; };
+
+/** v0.7: problemas de FORMA del estado que después rompen los controles (los arma el harness desde el estado).
+ *  - un objeto cuyas claves son ids de elementos (réplica 12-31-25: { "tarjetas": { "<id de columna>": [...] } }):
+ *    el plan de controles tomaba cada clave como un tipo de elemento y los botones mandaban ids de otra clase;
+ *  - la misma lista con el mismo nombre en dos lugares (réplica 13-02-02: una lista adentro de cada elemento y
+ *    otra arriba): la lógica cambiaba una y el dibujo mostraba la otra. */
+export function shapeProblems(estado) {
+  const ids = new Set([...idsOf(estado)].map((x) => String(JSON.parse(x))));
+  const out = [], where = {};
+  const walk = (v, path) => {
+    if (Array.isArray(v)) { v.forEach((x) => walk(x, `${path}[]`)); return; }
+    if (!isPlain(v)) return;
+    const ks = Object.keys(v), asIds = ks.filter((k) => ids.has(k));
+    if (path && asIds.length) out.push(`en "estado", ${path} es un objeto con ids como claves (${asIds.slice(0, 3).map((k) => `"${k}"`).join(", ")}): cada cosa va en UNA lista. Poné esa lista ADENTRO de cada elemento al que pertenece (o una sola lista donde cada elemento lleva el id de su dueño).`);
+    for (const [k, x] of Object.entries(v)) {
+      if (Array.isArray(x)) (where[k] ||= new Set()).add(path ? `${path}.${k}` : k);
+      if (!asIds.includes(k)) walk(x, path ? `${path}.${k}` : k);
+    }
+  };
+  walk(estado, "");
+  for (const [k, ps] of Object.entries(where)) if (ps.size > 1) out.push(`en "estado", la lista "${k}" está en dos lugares (${[...ps].join(" y ")}): cada cosa se guarda en UN solo lugar (si no, una acción cambia una y la pantalla muestra la otra). Dejá una sola.`);
+  return out;
+}
 /** Números de feature: 3, "3", "R3", "feature 3" → 3. */
 const featNum = (f) => { const m = String(f ?? "").match(/(\d+)/); return m ? Number(m[1]) : null; };
 
@@ -101,7 +137,9 @@ export function gapsOf(contract, h = {}) {
 /** De todos los contratos válidos (juntando intentos), el que menos features deja afuera (empate: el último). */
 export function bestContract(items, reports, h) {
   let best = 0;
-  items.forEach((c, i) => { if (gapsOf(c, h).length + (reports[i]?.dropped?.length || 0) <= gapsOf(items[best], h).length + (reports[best]?.dropped?.length || 0)) best = i; });
+  // v0.7: un estado con forma rota pesa más que una feature sin cubrir (rompe todas las acciones de esa lista)
+  const score = (c, r) => gapsOf(c, h).length + (r?.dropped?.length || 0) + 3 * shapeProblems(c.estado).length;
+  items.forEach((c, i) => { if (score(c, reports[i]) <= score(items[best], reports[best])) best = i; });
   return best;
 }
 
@@ -111,6 +149,7 @@ export function contractProblems(parsed, h = {}) {
   if (!c) return [];
   const rep = parsed.reports?.[0] || {};
   return [
+    ...shapeProblems(c.estado),
     ...(rep.dropped || []),
     ...gapsOf(c, h).map((n) => `la feature ${n} ("${String(h.features[n - 1]).slice(0, 80)}") no está en "features" de ninguna acción ni en "se_ve".`),
   ];

@@ -32,7 +32,7 @@ export { taskVerdictLines, taskVerdictSummary } from "./task_verdict.mjs";
  * lógica, compuerta de llamadas y el paso enlace: qué acción hace cada tarea). null si las tareas no
  * traen pieza (corrida sin receta).
  */
-export function taskVerdicts({ input, specialist, gates }) {
+export function taskVerdicts({ input, specialist, gates, coverage = null }) {
   if (!(input?.tasks || []).some((t) => t.pieza)) return null;
   return verdictsOf({
     tasks: input.tasks,
@@ -41,6 +41,8 @@ export function taskVerdicts({ input, specialist, gates }) {
     links: specialist?.data?.enlace?.report?.[0]?.porTarea ? { porTarea: specialist.data.enlace.report[0].porTarea, ninguna: specialist.data.enlace.report[0].ninguna || [] } : null,
     acceptance: specialist?.rule_tests || null,
     gateRows: gates?.rows?.length ? gates.rows : null,
+    // 15/10 (p48): lo que vio Validation en la pantalla al usar cada acción (action_changes por requisito)
+    screen: coverage ? Object.fromEntries(coverage.map((c) => [c.id, (c.checks || []).find((k) => k.type === "action_changes")]).filter(([, k]) => k).map(([id, k]) => [id, { result: k.result, detail: k.detail }])) : null,
   });
 }
 export { planText, PAGE_PLAN_VERSION } from "./page_plan.mjs";

@@ -1,0 +1,58 @@
+```javascript
+agregarComentario: function(estado, tarjetaId, contenido, autor) {
+        let nuevasColumnas = [];
+
+        for (const col of estado.columnas) {
+            let nuevaColumna;
+            let cardIndex = -1;
+
+            // 1. Buscar la tarjeta en esta columna
+            for (let i = 0; i < col.tarjetas.length; i++) {
+                if (col.tarjetas[i].id === tarjetaId) {
+                    cardIndex = i;
+                    break;
+                }
+            }
+
+            if (cardIndex !== -1) {
+                // 2. Clonar la tarjeta objetivo y añadir el comentario
+                const originalCard = col.tarjetas[cardIndex];
+                
+                const nuevoComentario = {
+                    autor: autor,
+                    contenido: contenido,
+                    timestamp: Date.now()
+                };
+
+                // Crear un nuevo array de comentarios (Inmutabilidad)
+                const nuevosComentarios = [...originalCard.comentarios, nuevoComentario];
+
+                // Clonar la tarjeta y actualizar los comentarios
+                let nuevaTarjetaObjetivo = {
+                    ...originalCard,
+                    comentarios: nuevosComentarios
+                };
+
+                // 3. Crear un nuevo array de tarjetas para esta columna
+                const nuevasTarjetas = [...col.tarjetas];
+                nuevasTarjetas[cardIndex] = nuevaTarjetaObjetivo; // Reemplazar tarjeta modificada
+
+                // 4. Clonar la columna y actualizar el array de tarjetas
+                nuevaColumna = {
+                    ...col,
+                    tarjetas: nuevasTarjetas
+                };
+            } else {
+                // Si no hay cambio en esta columna, clonarla para mantener la coherencia del estado nuevo
+                nuevaColumna = { ...col };
+            }
+            nuevasColumnas.push(nuevaColumna);
+        }
+
+        // Devolver un estado completamente nuevo con las columnas actualizadas
+        return { 
+            ...estado, 
+            columnas: nuevasColumnas 
+        };
+    },
+```

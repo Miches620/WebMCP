@@ -2,6 +2,41 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Primeras réplicas (3 × t=0.7): 2 de 3 builds rotos que la compuerta y el veredicto por tarea daban por buenos → contrato v0.7 (forma del estado), calls_gate v0.2, task_verdict v0.3 (15/10)**
+- *Réplicas* (`build/replicas.mjs`, seeds 1, 2, 3; corridas `12-31-25`, `12-47-56`, `13-02-02`):
+  - Los seeds funcionan: salieron 3 versiones distintas de cada archivo (`index.html`, 2 de 3).
+  - Validation: **3 / 8 / 2 PASS**. Por tarea: **12 CUMPLIDAS en las 3**. Eso no puede ser: la compuerta decía "6/6 acciones con datos de verdad" mientras Validation veía que 5 y 6 acciones no cambiaban nada en pantalla.
+  - El estable a temperatura 0 (8 PASS) era 1 de 3 caminos posibles, no "el" resultado.
+- *Causas:* las dos están en la forma del estado que propone Gemma.
+  - **seed 1** (`real_kanban_c17`):
+    - El estado vino como `"tarjetas": { "<id de columna>": [...] }`, un objeto con ids como claves.
+    - El plan de controles tomó cada clave como un tipo de elemento, y los botones de las tarjetas mandaban `cardId = "col-pendiente"`.
+    - La compuerta solo miraba que el id existiera en el estado, así que lo aceptó.
+  - **seed 3** (`real_kanban_c18`):
+    - La lista `tarjetas` estaba en dos lugares: vacía adentro de cada columna y llena arriba.
+    - La lógica cambiaba la de adentro y el dibujo mostraba la de arriba.
+    - La compuerta solo miraba que se llamara a la acción con ids que existen.
+- *Arreglos:*
+  1. **Contrato v0.7** (Standard web/app/estado v0.7.0):
+     - `shapeProblems` detecta los objetos con ids como claves y la misma lista en dos lugares. Son problemas que no rompen: Gemma reintenta.
+     - Entre intentos gana el de forma sana: cada problema de forma pesa 3.
+     - El prompt no cambió.
+  2. **calls_gate v0.2:**
+     - Un id tiene que ser de la misma clase de elemento que el del `ejemplo`: comparten la mayoría de sus claves (`idKeysOf`, `sameKind`).
+     - Si una acción con ids **siempre** devuelve el mismo estado desde la pantalla, es FAIL ("no cambia nada"). Lo registra la sonda: `effects` en `page_tools` v0.2.4.
+     - Las acciones sin ids, como reiniciar, no se juzgan así.
+     - La sonda ahora también cambia los campos de texto precompletados (editar arranca con el valor actual). Sin eso, "editar" guardaba lo mismo y daba una falsa alarma en el Kanban 6ª corrida.
+  3. **task_verdict v0.3:**
+     - Una tarea de lógica o de controles también necesita que **la pantalla cambie**: el `action_changes` del requisito de su acción.
+     - `run_build` calcula el veredicto por tarea después de la cobertura.
+- *Comprobado con las réplicas reales:*
+  - **c16** (el build que anda): sin problemas de forma y compuerta 6/6. No da falsas alarmas.
+  - **c17**: problema de forma, y la compuerta da R2–R6 FAIL por "id de otra clase".
+  - **c18**: problema de forma, y la compuerta da R2–R6 FAIL por "no cambia nada".
+  - Veredicto por tarea en c18: de 12 CUMPLIDAS pasa a 0 CUMPLIDAS y 12 NO_CUMPLIDAS, con el motivo de Validation.
+- *Tests:* `test_calls_gate` 30/30 (+8, en Chromium con c16/c17/c18), `test_task_verdict` 22/22 (+3), `test_estado` 59/59 (+6). Suite completa en verde, menos `test_roles`.
+- *Lección:* a temperatura 0, los checks se ajustaron a UN camino de Gemma. La primera réplica real encontró dos agujeros de Validation en una hora.
+
 **p48: réplicas de verdad — `--temperature`/`--seed`, huella de archivos y `build/replicas.mjs` (15/10)**
 - *Por qué:*
   - A temperatura 0, los builds `02-27-10`, `03-49-43` y `11-31-58` dieron lo mismo byte a byte en contrato, lógica, CSS y enlace.

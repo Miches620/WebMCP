@@ -1,0 +1,33 @@
+```javascript
+crearTarjeta: function(estado, titulo, descripcion) {
+        const nuevoId = 'card' + Date.now();
+
+        const nuevaTarjeta = {
+            id: nuevoId,
+            titulo: titulo,
+            descripcion: descripcion,
+            contenido_adicional: null,
+            labels: [],
+            comentarios: []
+        };
+
+        // Copiamos el estado para asegurar inmutabilidad
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        // Mapeamos las columnas para actualizar la columna 'pendiente' de forma inmutable
+        nuevoEstado.columnas = nuevoEstado.columnas.map(col => {
+            if (col.id === 'pendiente') {
+                // Creamos una nueva lista de tarjetas incluyendo la nueva tarjeta
+                return {
+                    ...col,
+                    tarjetas: [...col.tarjetas, nuevaTarjeta]
+                };
+            } else {
+                // Devolvemos el resto de las columnas sin cambios (copiadas)
+                return col; 
+            }
+        });
+
+        return nuevoEstado;
+    },
+```

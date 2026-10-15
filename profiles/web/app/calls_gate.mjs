@@ -23,9 +23,11 @@ import { parseJsonLoose } from "../../../json_loose.mjs";
 import { runCallsProbe } from "../validation/page_tools.mjs";
 import { getStandard } from "../../../standards/registry.mjs";
 
-export const CALLS_GATE_VERSION = "calls_gate v0.1";
+export const CALLS_GATE_VERSION = "calls_gate v0.2";
 const EMPTY = new Set(["__undefined__", "__NaN__", "__object__", "__array__", "__function__", "undefined", "null", "NaN", "[object Object]", ""]);
 const isEmpty = (v) => v === null || (typeof v === "string" && EMPTY.has(v.trim()));
+// ¿dos elementos son de la misma clase? comparten la mayoría de sus claves (los campos opcionales no los separan)
+const sameKind = (a = [], b = []) => { const A = new Set(a), B = new Set(b); return [...A].filter((k) => B.has(k)).length / (new Set([...A, ...B]).size || 1) >= 0.5; };
 const show = (v) => (v === "__undefined__" ? "undefined" : v === "__NaN__" ? "NaN" : JSON.stringify(v));
 const ctlName = (k) => String(k || "").replace(/^accion:/, "data-accion=").replace(/^[A-Z]+:/, "");
 
@@ -36,8 +38,12 @@ const ctlName = (k) => String(k || "").replace(/^accion:/, "data-accion=").repla
  * @param {(string|number)[]} idValues                          ids del estado inicial
  * @param {{global?:string, draw?:string}} names
  */
-export function judgeCalls(probe, actions, idValues = [], { global = "App", draw = "dibujar" } = {}) {
+export function judgeCalls(probe, actions, idValues = [], { global = "App", draw = "dibujar" } = {}, idKeys = null) {
   const known = new Set(idValues.map(String));
+  // v0.2 (15/10, p48): la clase de cada id (sus claves en el estado). Un id que existe pero es de otra clase
+  // (el de una columna donde va el de una tarjeta) no es "un dato de verdad" para esa acción.
+  const kindOf = (v) => (idKeys ? idKeys[String(v)] : null);
+  const keysTxt = (ks) => `{ ${ks.slice(0, 5).join(", ")}${ks.length > 5 ? ", …" : ""} }`;
   const rows = actions.map((a) => {
     const row = { nombre: a.nombre, features: a.features, called: probe.calls?.[a.nombre] || 0, via: probe.via?.[a.nombre] || null, problem: null };
     if (!probe.found) { row.problem = `${global} no existe en la página`; return row; }
@@ -50,6 +56,8 @@ export function judgeCalls(probe, actions, idValues = [], { global = "App", draw
         if (v === "__NaN__" && (a.campos || []).includes(p)) continue;
         if (v === undefined || isEmpty(v)) return `${p} = ${v === undefined ? "(no se pasó)" : show(v)}`;
         if (a.ids.includes(p) && known.size && !known.has(String(v))) return `${p} = ${show(v)}, que no es ningún id del estado`;
+        if (a.ids.includes(p) && a.ejemplo) { const kv = kindOf(v), ke = kindOf(a.ejemplo[k]);
+          if (kv && ke && !sameKind(kv, ke)) return `${p} = ${show(v)}, que es el id de otra clase de elemento (${keysTxt(kv)}; ${p} es de ${keysTxt(ke)})`; }
       }
       return null;
     };
@@ -57,6 +65,13 @@ export function judgeCalls(probe, actions, idValues = [], { global = "App", draw
     const bads = calls.map(badOf);
     if (calls.length && bads.every(Boolean)) {
       row.problem = `"${ctlName(row.via)}" llama a ${global}.${a.nombre} con ${bads[0]}: la acción no recibe el dato que necesita`;
+      return row;
+    }
+    // v0.2: una acción sobre un elemento (tiene ids) que desde la pantalla SIEMPRE devuelve el mismo estado no hace nada
+    // (las acciones sin ids, como reiniciar, pueden no cambiar el estado inicial: no se juzgan así)
+    const eff = probe.effects?.[a.nombre] || [];
+    if (a.ids?.length && eff.length && eff.every((x) => x === false)) {
+      row.problem = `"${ctlName(row.via)}" llama a ${global}.${a.nombre} pero siempre devuelve el mismo estado: desde la pantalla la acción no cambia nada${calls[0] ? ` (por ejemplo con ${calls[0].slice(1).map(show).join(", ")})` : ""}`;
       return row;
     }
     if (probe.tracked && probe.undrawn?.[a.nombre] && probe.undrawn[a.nombre] === row.called) {
@@ -94,7 +109,7 @@ export async function validationGates({ artifact, outDir, input, specialist }) {
   if (!c) return { ...base, result: "SIN_CONTRATO", detail: `contrato.json no se puede leer${pj.ok ? "" : `: ${pj.error}`}`, rows: [], gates: {} };
   const spec = S.validation.calls(c);
   const probe = await runCallsProbe(artifact, spec);
-  const { rows, gates } = judgeCalls(probe, S.validation.actions(c), S.validation.idValues(c), spec);
+  const { rows, gates } = judgeCalls(probe, S.validation.actions(c), S.validation.idValues(c), spec, typeof S.validation.idKeys === "function" ? S.validation.idKeys(c) : null);
   return {
     ...base,
     result: rows.some((r) => r.problem) ? "FAIL" : "PASS",

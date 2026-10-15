@@ -1,0 +1,38 @@
+```javascript
+editarTarjeta: function(estado, tarjetaId, nuevoTitulo, nuevaDescripcion) {
+        // Crear una copia profunda del estado para asegurar inmutabilidad
+        const newState = JSON.parse(JSON.stringify(estado));
+
+        for (let i = 0; i < newState.columnas.length; i++) {
+            const col = newState.columnas[i];
+            const cardIndex = col.tarjetas.findIndex(card => card.id === tarjetaId);
+
+            if (cardIndex !== -1) {
+                // 1. Clonar la tarjeta objetivo para modificarla, manteniendo su estructura original
+                let nuevaTarjetaObjetivo = JSON.parse(JSON.stringify(col.tarjetas[cardIndex]));
+
+                // 2. Actualizar las propiedades requeridas
+                nuevaTarjetaObjetivo.titulo = nuevoTitulo;
+                nuevaTarjetaObjetivo.descripcion = nuevaDescripcion;
+
+                // 3. Crear un nuevo array de tarjetas para esta columna, reemplazando la tarjeta antigua
+                let nuevasTarjetas = [...col.tarjetas];
+                nuevasTarjetas[cardIndex] = nuevaTarjetaObjetivo; // Reemplazar tarjeta modificada
+
+                // 4. Crear una nueva columna con el array de tarjetas actualizado
+                const nuevaColumna = {
+                    ...col,
+                    tarjetas: nuevasTarjetas
+                };
+
+                // 5. Actualizar la columna en el estado clonado
+                newState.columnas[i] = nuevaColumna;
+
+                return newState;
+            }
+        }
+
+        console.error("Tarjeta no encontrada para editar.");
+        return estado;
+    },
+```

@@ -1,0 +1,60 @@
+```javascript
+moverTarjeta: function(estado, tarjetaId, columnaDestinoId) {
+    let cardToMove = null;
+    let sourceColIndex = -1;
+
+    // 1. Encontrar la tarjeta y su columna origen (y clonarla)
+    for (let i = 0; i < estado.columnas.length; i++) {
+        const col = estado.columnas[i];
+        const cardIndex = col.tarjetas.findIndex(card => card.id === tarjetaId);
+
+        if (cardIndex !== -1) {
+            // Clonamos la tarjeta a mover para asegurar inmutabilidad al añadirla en destino
+            cardToMove = JSON.parse(JSON.stringify(col.tarjetas[cardIndex]));
+            sourceColIndex = i;
+            break;
+        }
+    }
+
+    if (!cardToMove || !columnaDestinoId) {
+        console.error("Fallo en mover tarjeta: Tarjeta o destino no válidos.");
+        return estado; 
+    }
+
+    // 2. Determinar índices de origen y destino
+    const destColIndex = estado.columnas.findIndex(col => col.id === columnaDestinoId);
+    
+    if (destColIndex === -1) {
+         console.error("Columna destino no encontrada.");
+         return estado;
+    }
+
+    // 3. Crear el nuevo array de columnas manteniendo la inmutabilidad
+    let nuevasColumnas = [...estado.columnas];
+
+    // A. Eliminar de la columna origen (si existe)
+    if (sourceColIndex !== -1 && sourceColIndex < nuevasColumnas.length) {
+        const originalSourceColumn = nuevasColumnas[sourceColIndex];
+        // Creamos una nueva copia del objeto columna con el array filtrado
+        nuevasColumnas[sourceColIndex] = {
+            ...originalSourceColumn,
+            tarjetas: originalSourceColumn.tarjetas.filter(card => card.id !== tarjetaId)
+        };
+    }
+
+    // B. Añadir a la columna destino
+    if (destColIndex !== -1 && destColIndex < nuevasColumnas.length) {
+        const originalDestColumn = nuevasColumnas[destColIndex];
+        
+        // Creamos una nueva copia del objeto columna añadiendo el cardToMove clonado
+        nuevasColumnas[destColIndex] = {
+            ...originalDestColumn,
+            tarjetas: [...originalDestColumn.tarjetas, cardToMove]
+        };
+    }
+
+
+    // 4. Retornar el nuevo estado completo
+    return { ...estado, columnas: nuevasColumnas };
+},
+```

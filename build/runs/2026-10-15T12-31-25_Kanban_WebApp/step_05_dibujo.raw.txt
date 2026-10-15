@@ -1,0 +1,141 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado) {
+    const app = document.getElementById('app');
+    if (!app) return; // Asegura que el contenedor exista
+
+    // 1. Limpiar contenido anterior
+    app.innerHTML = '';
+
+    // 2. Crear el wrapper principal del tablero
+    const boardWrapper = document.createElement('div');
+    boardWrapper.className = 'kanban-board';
+    app.appendChild(boardWrapper);
+
+    const tarjetasEstado = estado.tarjetas;
+
+    // Iterar sobre las columnas definidas en el estado para mantener el orden visual
+    estado.columnas.forEach((columna, index) => {
+        const colId = columna.id;
+        const cards = tarjetasEstado[colId] || [];
+
+        // --- 2.1 Renderizar Contenedor de Columna ---
+        const columnWrapper = document.createElement('div');
+        columnWrapper.className = 'kanban-column';
+        columnWrapper.setAttribute('data-col-id', colId);
+
+        // Header de la columna
+        const header = document.createElement('div');
+        header.className = 'column-header';
+        header.innerHTML = `<h3>${columna.nombre}</h3>`;
+
+        // Contenedor donde irán las tarjetas (Card List)
+        const cardListContainer = document.createElement('div');
+        cardListContainer.className = 'card-list';
+        
+        columnWrapper.appendChild(header);
+        columnWrapper.appendChild(cardListContainer);
+
+
+        // --- 2.2 Renderizar Tarjetas dentro de la Columna ---
+        if (cards.length > 0) {
+            const fragment = document.createDocumentFragment();
+
+            cards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'kanban-card';
+                cardElement.setAttribute('data-card-id', card.id);
+
+                // Título y Descripción
+                let titleHtml = `<h4 class="card-title">${card.titulo}</h4>`;
+                let descriptionHtml = `<p class="card-description">${card.descripcion}</p>`;
+                
+                cardElement.innerHTML = titleHtml + descriptionHtml;
+
+                // Etiquetas (F4.2)
+                const labelsContainer = document.createElement('div');
+                labelsContainer.className = 'card-labels';
+                card.etiquetas.forEach(etiqueta => {
+                    const label = document.createElement('span');
+                    label.className = 'label';
+                    label.style.backgroundColor = etiqueta.color; 
+                    label.textContent = etiqueta.nombre;
+                    labelsContainer.appendChild(label);
+                });
+                cardElement.appendChild(labelsContainer);
+
+                // Comentarios (F4.6)
+                const commentsContainer = document.createElement('div');
+                commentsContainer.className = 'card-comments';
+                if (card.comentarios && card.comentarios.length > 0) {
+                    card.comentarios.forEach(comment => {
+                        const commentEntry = document.createElement('div');
+                        commentEntry.className = 'comment-entry';
+                        commentEntry.innerHTML = `
+                            <p class="comment-author">${comment.autor}:</p>
+                            <p class="comment-content">${comment.contenido}</p>
+                            <small class="comment-timestamp">${new Date(comment.timestamp).toLocaleDateString()} ${new Date(comment.timestamp).toLocaleTimeString()}</small>
+                        `;
+                        commentsContainer.appendChild(commentEntry);
+                    });
+                }
+                cardElement.appendChild(commentsContainer);
+
+                // Agregar la tarjeta al fragmento
+                fragment.appendChild(cardElement);
+            });
+
+            // Vaciar el listado y añadir todas las tarjetas de una vez
+            cardListContainer.appendChild(document.createDocumentFragment()); // Limpiar si hay algo residual
+            Object.assign(cardListContainer, document.createDocumentFragment()); // Método para vaciar más robusto
+            cardListContainer.append(...Array.from(fragment.children));
+
+        }
+
+
+        // --- 2.3 Agregar Controles de Acción al final de la columna ---
+        let actionControls = null;
+
+        // A) Crear Tarjeta (Para todas las columnas)
+        actionControls = document.createElement('div');
+        actionControls.className += ' kanban-actions';
+        const crearCardBtn = controlesDe("columnas", { id: colId }, estado); // Usa el contenedor de la columna como elemento proxy para pasar el contexto
+        if (crearCardBtn) actionControls.appendChild(crearCardBtn);
+
+        // B) Controles específicos basados en el ID de la columna (según contrato)
+        let controlesAdicionales = null;
+        
+        const colIdActual = colId;
+
+        if (colIdActual === 'col-pendiente' || colIdActual === 'col-completado') {
+            // Controles disponibles para Pendiente y Completado: Borrar, Editar, Mover, Comentar
+            controlesAdicionales = document.createElement('div');
+            const controlesGrupo1 = controlesDe("col-pendiente", { id: colIdActual }, estado); // Usar el tipo de columna más restrictivo o general para agrupar acciones (Aquí usamos 'col-pendiente' por convención)
+            if(controlesGrupo1) controlesAdicionales.appendChild(controlesGrupo1);
+
+        } else if (colIdActual === 'col-en_curso') {
+            // Controles disponibles solo en En Curso: Agregar Etiqueta
+            controlesAdicionales = document.createElement('div');
+            const controlesEtiqueta = controlesDe("col-en_curso", { id: colIdActual }, estado);
+             if(controlesEtiqueta) controlesAdicionales.appendChild(controlesEtiqueta);
+        }
+
+        // Unir todos los controles y añadirlos al wrapper de la columna
+        const controlsWrapper = document.createElement('div');
+        controlsWrapper.className = 'kanban-controls-group'; 
+        if (actionControls) {
+             controlsWrapper.appendChild(actionControls);
+        }
+        if (controlesAdicionales) {
+            // Nota: Aquí asumimos que los controles de acción están agrupados al final del listado de tarjetas o justo debajo del header.
+            // Para fines de renderizado, lo pondremos después del contenido principal visible.
+             controlsWrapper.appendChild(controlesAdicionales);
+        }
+
+        columnWrapper.appendChild(controlsWrapper);
+
+
+        boardWrapper.appendChild(columnWrapper);
+    });
+}
+```

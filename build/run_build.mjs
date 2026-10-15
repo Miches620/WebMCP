@@ -203,8 +203,6 @@ const alwaysGate = (id) => {
 // se usa desde la pantalla con datos de verdad). Como las demás compuertas, nunca suma un PASS.
 const profileGates = typeof B.validationGates === "function" ? await B.validationGates({ artifact, outDir, input, specialist }) : null;
 const standardGate = (id) => profileGates?.gates?.[id] || null;
-// 14/10 (punto 9 paso 3): veredicto por Atomic Task (solo si el profile lo sabe hacer y las tareas traen pieza)
-const taskV = typeof B.taskVerdicts === "function" ? B.taskVerdicts({ input, specialist, gates: profileGates }) : null;
 const gateReason = (gs) => gs.some((g) => g.type === "components_render") ? "sin chequeos del traductor, pero su componente no dibujó nada"
   : gs.some((g) => g.type === "calls_probe") ? `sin chequeos del traductor, pero ${gs.find((g) => g.type === "calls_probe").detail}`
   : "sin chequeos del traductor, pero su pieza no se ve";
@@ -239,6 +237,10 @@ for (const cp of concernsFor(profile)) {
     concerns.push({ profile: cp.id, version: cp.version, status: cp.status, results: await mod.runConcern(artifact) });
   } catch (e) { concerns.push({ profile: cp.id, version: cp.version, status: cp.status, error: e.message, results: [] }); }
 }
+// 14/10 (punto 9 paso 3): veredicto por Atomic Task (solo si el profile lo sabe hacer y las tareas traen pieza).
+// 15/10 (p48): va DESPUÉS de la cobertura: una tarea de lógica o controles también necesita que la pantalla cambie
+// (action_changes de su requisito). Réplicas 12-31-25 y 13-02-02: 12 CUMPLIDAS con 5 y 6 acciones que no cambiaban nada.
+const taskV = typeof B.taskVerdicts === "function" ? B.taskVerdicts({ input, specialist, gates: profileGates, coverage }) : null;
 const count = (v) => coverage.filter((c) => c.verdict === v).length;
 function fingerprint(dir, base = "") {
   if (!existsSync(dir)) return {};

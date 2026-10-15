@@ -1,0 +1,216 @@
+{
+  "estado": {
+    "columnas": [
+      {
+        "id": "pendiente",
+        "nombre": "Pendiente",
+        "tarjetas": []
+      },
+      {
+        "id": "en_curso",
+        "nombre": "En Curso",
+        "tarjetas": []
+      },
+      {
+        "id": "completado",
+        "nombre": "Completado",
+        "tarjetas": []
+      }
+    ],
+    "tarjetas": [
+      {
+        "id": "card1",
+        "titulo": "Diseñar Estructura Kanban",
+        "descripcion": "Definir el flujo de trabajo y las columnas necesarias.",
+        "contenido_adicional": "Revisar los requisitos del usuario antes de empezar a codificar la lógica.",
+        "labels": [
+          {
+            "nombre": "UX",
+            "color": "#ff9800"
+          }
+        ],
+        "comentarios": [
+          {
+            "autor": "Admin",
+            "contenido": "Recordar definir el estado inicial en js/datos.js",
+            "timestamp": 1678886400000
+          }
+        ]
+      },
+      {
+        "id": "card2",
+        "titulo": "Implementar Backend Lógica",
+        "descripcion": "Programar las acciones de estado (creación, movimiento, etc.) en js/logica.js.",
+        "contenido_adicional": null,
+        "labels": [
+          {
+            "nombre": "Backend",
+            "color": "#2196f3"
+          }
+        ],
+        "comentarios": []
+      }
+    ]
+  },
+  "acciones": [
+    {
+      "nombre": "crearTarjeta",
+      "params": [
+        "titulo",
+        "descripcion"
+      ],
+      "ejemplo": [
+        "Nuevo Proyecto Feature",
+        "Descripción detallada de la nueva funcionalidad."
+      ],
+      "hace": "Crea una tarjeta nueva en la columna 'Pendiente'.",
+      "ids": [],
+      "campos": [
+        "titulo",
+        "descripcion"
+      ],
+      "features": [
+        1
+      ],
+      "cambia": [
+        "tarjetas",
+        "columnas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": [
+        "tarjetaId",
+        "columnaDestinoId"
+      ],
+      "ejemplo": [
+        "card1",
+        "completado"
+      ],
+      "hace": "Mueve una tarjeta de su columna actual a la columna destino especificada.",
+      "ids": [
+        "tarjetaId",
+        "columnaDestinoId"
+      ],
+      "campos": [],
+      "features": [
+        2
+      ],
+      "cambia": [
+        "columnas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "agregarComentario",
+      "params": [
+        "tarjetaId",
+        "contenido",
+        "autor"
+      ],
+      "ejemplo": [
+        "card1",
+        "Revisar el borrador de la semana pasada.",
+        "Juan"
+      ],
+      "hace": "Añade un comentario a una tarjeta específica, registrando autor y contenido.",
+      "ids": [
+        "tarjetaId"
+      ],
+      "campos": [
+        "contenido",
+        "autor"
+      ],
+      "features": [
+        3
+      ],
+      "cambia": [
+        "tarjetas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "agregarEtiqueta",
+      "params": [
+        "tarjetaId",
+        "nombre",
+        "color"
+      ],
+      "ejemplo": [
+        "card2",
+        "Alta Prioridad",
+        "#f44336"
+      ],
+      "hace": "Asigna una etiqueta con nombre y color a la tarjeta.",
+      "ids": [
+        "tarjetaId"
+      ],
+      "campos": [
+        "nombre",
+        "color"
+      ],
+      "features": [
+        4
+      ],
+      "cambia": [
+        "tarjetas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": [
+        "tarjetaId",
+        "nuevoTitulo",
+        "nuevaDescripcion"
+      ],
+      "ejemplo": [
+        "card1",
+        "Diseñar Estructura Kanban v2",
+        "Incluir manejo de etiquetas y comentarios."
+      ],
+      "hace": "Actualiza el título y la descripción de una tarjeta.",
+      "ids": [
+        "tarjetaId"
+      ],
+      "campos": [
+        "nuevoTitulo",
+        "nuevaDescripcion"
+      ],
+      "features": [
+        5
+      ],
+      "cambia": [
+        "tarjetas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "borrarTarjeta",
+      "params": [
+        "tarjetaId"
+      ],
+      "ejemplo": [
+        "card2"
+      ],
+      "hace": "Elimina completamente una tarjeta del estado.",
+      "ids": [
+        "tarjetaId"
+      ],
+      "campos": [],
+      "features": [
+        6
+      ],
+      "cambia": [
+        "tarjetas"
+      ],
+      "cumple": []
+    }
+  ],
+  "se_ve": [
+    7,
+    8,
+    9
+  ]
+}

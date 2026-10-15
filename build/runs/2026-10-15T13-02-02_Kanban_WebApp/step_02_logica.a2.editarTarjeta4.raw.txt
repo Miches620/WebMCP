@@ -1,0 +1,34 @@
+```javascript
+editarTarjeta: function(estado, tarjetaId, nuevoTitulo, nuevaDescripcion) {
+        let nuevasColumnas = [];
+
+        for (const col of estado.columnas) {
+            // 1. Clonar la columna para asegurar inmutabilidad al inicio
+            let nuevaColumna = JSON.parse(JSON.stringify(col)); 
+            let cardIndex = nuevaColumna.tarjetas.findIndex(card => card.id === tarjetaId);
+
+            if (cardIndex !== -1) {
+                // 2. Clonar la tarjeta objetivo para modificarla
+                const originalCard = col.tarjetas[cardIndex];
+                let nuevaTarjetaObjetivo = JSON.parse(JSON.stringify(originalCard));
+
+                // 3. Actualizar propiedades
+                nuevaTarjetaObjetivo.titulo = nuevoTitulo;
+                nuevaTarjetaObjetivo.descripcion = nuevaDescripcion;
+
+                // 4. Crear un nuevo array de tarjetas para esta columna (copia profunda)
+                let nuevasTarjetas = [...col.tarjetas];
+                nuevasTarjetas[cardIndex] = nuevaTarjetaObjetivo; // Reemplazar tarjeta modificada
+
+                // 5. Actualizar la columna completa en el estado clonado
+                nuevaColumna = {
+                    ...col,
+                    tarjetas: nuevasTarjetas
+                };
+            }
+            nuevasColumnas.push(nuevaColumna);
+        }
+
+        return { ...estado, columnas: nuevasColumnas };
+    },
+```

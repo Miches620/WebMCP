@@ -207,5 +207,18 @@ dibujar(estado);`;
   const back = parseContract(JSON.parse(st.answerOf(parsedL)), {}).items?.[0];
   t("contrato.json = el contrato elegido (answerOf), y se vuelve a leer igual (mismo estado y acciones)", typeof st.answerOf === "function" && JSON.stringify(back.estado) === JSON.stringify(KL.estado) && back.acciones.map((a) => a.nombre).join() === KL.acciones.map((a) => a.nombre).join() && back.acciones.every((a, k) => JSON.stringify(a.ejemplo) === JSON.stringify(KL.acciones[k].ejemplo)));
 }
+// v0.7 (15/10, p48): forma del estado. Réplicas a temperatura 0.7: un objeto con ids como claves (seed 1) y la misma
+// lista en dos lugares (seed 3) rompían todas las acciones de esa lista; el build "bueno" (c16) no tiene problemas.
+{
+  const { shapeProblems, bestContract, idKeysOf } = await import("./contract.mjs");
+  const FXE = (n) => JSON.parse(readFileSync(fileURLToPath(new URL(`../../../../profiles/web/validation/fixtures/real_kanban_c${n}/contrato.json`, import.meta.url)), "utf8"));
+  const e16 = FXE(16).estado, e17 = FXE(17).estado, e18 = FXE(18).estado;
+  t("forma v0.7: el build que anda (c16) no tiene problemas de forma", shapeProblems(e16).length === 0, JSON.stringify(shapeProblems(e16)));
+  t("forma v0.7: objeto con ids como claves (c17) → problema que lo nombra", shapeProblems(e17).length === 1 && /es un objeto con ids como claves \("col-pendiente"/.test(shapeProblems(e17)[0]), JSON.stringify(shapeProblems(e17)));
+  t("forma v0.7: la misma lista en dos lugares (c18) → problema", shapeProblems(e18).length === 1 && /está en dos lugares \(columnas\[\]\.tarjetas y tarjetas\)/.test(shapeProblems(e18)[0]), JSON.stringify(shapeProblems(e18)));
+  t("forma v0.7: contractProblems lo incluye (se reintenta)", contractProblems({ items: [{ ...FXE(17), acciones: [] }], reports: [{}] }, { features: [] }).some((p) => /ids como claves/.test(p)));
+  t("forma v0.7: entre intentos, gana el de forma sana aunque deje una feature más afuera", bestContract([{ estado: e17, acciones: [{ features: [1, 2] }], se_ve: [] }, { estado: e16, acciones: [{ features: [1] }], se_ve: [] }], [{}, {}], { features: ["a", "b"], style: [] }) === 1);
+  t("idKeysOf: la clase de cada id (columnas ≠ tarjetas)", idKeysOf(e16)["col_pendiente"].join() === "id,nombre,tarjetas" && idKeysOf(e16)["card_1"].includes("titulo"), JSON.stringify(idKeysOf(e16)).slice(0, 200));
+}
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

@@ -1,0 +1,227 @@
+{
+  "estado": {
+    "columnas": [
+      {
+        "id": "col_pendiente",
+        "nombre": "Pendiente",
+        "tarjetas": [
+          {
+            "id": "card1",
+            "titulo": "Diseñar estructura de datos",
+            "descripcion": "Definir el modelo de datos para tarjetas y comentarios.",
+            "etiquetas": [
+              {
+                "nombre": "Backend",
+                "color": "#ff6347"
+              }
+            ],
+            "comentarios": [
+              {
+                "autor": "Admin",
+                "contenido": "Recordar incluir la estructura de etiquetas.",
+                "timestamp": 1678886400
+              }
+            ]
+          },
+          {
+            "id": "card2",
+            "titulo": "Crear contrato JSON",
+            "descripcion": "Definir el esquema de datos para que el harness pueda generar los archivos.",
+            "etiquetas": [],
+            "comentarios": []
+          }
+        ]
+      },
+      {
+        "id": "col_en_curso",
+        "nombre": "En Curso",
+        "tarjetas": [
+          {
+            "id": "card3",
+            "titulo": "Implementar lógica de movimiento",
+            "descripcion": "Asegurar que el estado se actualice correctamente al arrastrar.",
+            "etiquetas": [],
+            "comentarios": []
+          }
+        ]
+      },
+      {
+        "id": "col_completado",
+        "nombre": "Completado",
+        "tarjetas": [
+          {
+            "id": "card4",
+            "titulo": "Revisión de estilos CSS",
+            "descripcion": "Asegurar el estilo oscuro e industrial.",
+            "etiquetas": [],
+            "comentarios": []
+          }
+        ]
+      }
+    ],
+    "estado_transitorio_creacion": {
+      "titulo": "",
+      "descripcion": ""
+    }
+  },
+  "acciones": [
+    {
+      "nombre": "crearTarjeta",
+      "params": [
+        "titulo",
+        "descripcion"
+      ],
+      "ejemplo": [
+        "Nuevo Título",
+        "Descripción de la tarjeta recién creada."
+      ],
+      "hace": "Crea una nueva tarjeta en la columna actual.",
+      "ids": [],
+      "campos": [
+        "titulo",
+        "descripcion"
+      ],
+      "features": [
+        1
+      ],
+      "cambia": [
+        "columnas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": [
+        "cardId",
+        "columnaOrigenId",
+        "columnaDestinoId"
+      ],
+      "ejemplo": [
+        "card2",
+        "col_pendiente",
+        "col_en_curso"
+      ],
+      "hace": "Mueve una tarjeta de una columna a otra.",
+      "ids": [
+        "cardId",
+        "columnaOrigenId",
+        "columnaDestinoId"
+      ],
+      "campos": [],
+      "features": [
+        2
+      ],
+      "cambia": [
+        "columnas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "agregarComentario",
+      "params": [
+        "cardId",
+        "contenido"
+      ],
+      "ejemplo": [
+        "card1",
+        "Buen punto, revisemos el timestamp."
+      ],
+      "hace": "Añade un comentario a una tarjeta específica.",
+      "ids": [
+        "cardId"
+      ],
+      "campos": [
+        "contenido"
+      ],
+      "features": [
+        3
+      ],
+      "cambia": [
+        "columnas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "agregarEtiqueta",
+      "params": [
+        "cardId",
+        "nombre",
+        "color"
+      ],
+      "ejemplo": [
+        "card2",
+        "UX",
+        "#00bfff"
+      ],
+      "hace": "Añade una etiqueta con nombre y color a la tarjeta.",
+      "ids": [
+        "cardId"
+      ],
+      "campos": [
+        "nombre",
+        "color"
+      ],
+      "features": [
+        4
+      ],
+      "cambia": [
+        "columnas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": [
+        "cardId",
+        "nuevoTitulo",
+        "nuevaDescripcion"
+      ],
+      "ejemplo": [
+        "card1",
+        "Diseño de datos finalizado",
+        "Se ajustó la estructura para incluir comentarios."
+      ],
+      "hace": "Actualiza el título y descripción de una tarjeta.",
+      "ids": [
+        "cardId"
+      ],
+      "campos": [
+        "nuevoTitulo",
+        "nuevaDescripcion"
+      ],
+      "features": [
+        5
+      ],
+      "cambia": [
+        "columnas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "borrarTarjeta",
+      "params": [
+        "cardId"
+      ],
+      "ejemplo": [
+        "card4"
+      ],
+      "hace": "Elimina completamente una tarjeta del tablero.",
+      "ids": [
+        "cardId"
+      ],
+      "campos": [],
+      "features": [
+        6
+      ],
+      "cambia": [
+        "columnas"
+      ],
+      "cumple": []
+    }
+  ],
+  "se_ve": [
+    7,
+    8,
+    9
+  ]
+}

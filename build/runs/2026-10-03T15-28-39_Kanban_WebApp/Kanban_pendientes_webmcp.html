@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-14k'; // tablero actualizado al 14/10 (contrato con 18 tareas se rompió: vuelta atrás + 3 arreglos)
+  const SEED = '2026-10-14l'; // tablero actualizado al 14/10 (paso enlace: Standard v0.6, motor v0.13, task_verdict v0.2)
   let state = loadState() || {
  "columns": [
   {
@@ -433,6 +433,12 @@
    "isInbox": true,
    "isDefault": true,
    "cards": [
+    {
+     "id": "p47",
+     "title": "Traductor: agrega un contador que nadie pidió (R3 comentarios)",
+     "desc": "[#Validation #Traductor] Run 00-25-22: R3 'Agregar comentarios a las tarjetas' → action_changes + counter_on_action ('no hay ningún número junto a: comentarios') → FAIL. El brief no pide contador: Gemma-traductor sumó un chequeo inventado y el FAIL es falso. Ya pasó en builds anteriores ('R3 FAIL contador, conocido'). Idea: counter_on_action solo si el texto del requisito nombra un número/contador/cantidad (regla determinista sobre la salida del traductor).",
+     "priority": "medio"
+    },
     {
      "id": "p42",
      "title": "Controles del harness: se ven pesados",
@@ -576,7 +582,7 @@
     {
      "id": "p35",
      "title": "Punto 9 · Las tareas atómicas manejan la construcción",
-     "desc": "[#Specialist #Contrato #Atomizer #Validation] Pasos 1 y 2 andan. Paso 3: task_verdict listo, pero declarar 'cumple' DENTRO del contrato lo rompió (18 tareas: 3 intentos fallidos, respuesta cortada). Vuelta atrás (receta v0.3.3). A DECIDIR: de dónde sale la relación tarea → acción (paso chico aparte, comentario en logica.js, u otra). Después: build de control con el snapshot.",
+     "desc": "[#Specialist #Contrato #Atomizer #Validation] Pasos 1 y 2 andan. Paso 3: la relación tarea → acción sale del paso ENLACE (pedido chico al final, opcional; Standard v0.6). FALTA: build con Gemma de verdad para ver si el enlace sale bien y cuántas tareas quedan CUMPLIDAS.",
      "priority": "urgente"
     }
    ]
@@ -587,6 +593,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h51",
+     "title": "14/10 · Punto 9 paso 3: paso ENLACE (qué acción hace cada tarea)",
+     "desc": "[#Validation #Harness #Standard] Run 00-25-22 (v0.5.1): contrato 1er intento (6 acciones), lógica 32/32, compuerta 6/6, columnas lado a lado tras el aviso; por tarea 28 SIN_EVIDENCIA (sin relación). Paso 7 'enlace': acciones + 13 tareas → {accion:[ids], ninguna:[ids]}, validado por el harness; opcional y bare (sin brief). Motor v0.13 (optional, bare, skip, ctx.tasks). task_verdict v0.2: lee el enlace; controles que piden arrastrar/teclado → SIN_EVIDENCIA (antes F3.2 contaba como CUMPLIDA). Fixture c14; test_enlace 20/20, test_files_engine 39/39 (LM falso), test_task_verdict 19/19, test_controls 38/38.",
+     "priority": "bajo"
+    },
     {
      "id": "h50",
      "title": "14/10 · Contrato con 18 tareas se rompió → vuelta atrás + 3 arreglos",

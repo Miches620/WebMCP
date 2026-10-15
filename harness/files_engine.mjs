@@ -30,7 +30,7 @@ import { assignByStep, assignmentText, assignmentSummary } from "./assignments.m
 // compatibilidad: las herramientas de JS se siguen pudiendo importar desde acá (viven en js_tools.mjs)
 export { loadScripts, syntaxOf, runAcceptance, findMember, replaceMember, stripComments, topNames, clashes, shadowProblems } from "./js_tools.mjs";
 
-export const ENGINE_VERSION = "files_engine v0.12.1";
+export const ENGINE_VERSION = "files_engine v0.13.0";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
@@ -99,9 +99,14 @@ export const dataKind = {
     const { ctx, files, opts, outDir, log } = env;
     const parsed = K.final();
     if (!parsed?.items?.length && opts.bench) { s.rec.data = { valid: 0 }; return "stop"; } // banco: sin datos = muestra rota, no error
+    if (!parsed?.items?.length && st.optional) { // v0.13: un paso opcional que no dio datos no corta el build
+      s.rec.data = { valid: 0 }; s.rec.broken = true; s.rec.optional = true;
+      log(`[SPECIALIST]   ⚠ ${st.id} (opcional) sin datos válidos: se sigue sin él`);
+      return;
+    }
     if (!parsed?.items?.length) throw new Error(`${st.id}: ningún dato válido después de 3 intentos (${(s.rec.problems_final || []).slice(0, 3).join(" | ")})`);
     ctx.data[st.id] = parsed;
-    files[st.file] = parsed.js;
+    if (st.file) files[st.file] = parsed.js; // v0.13: un paso de datos puede no armar ningún archivo de la app
     // v0.12.1 (14/10, build 2026-10-14T22-19-17): el archivo de respuesta era el del intento con menos problemas,
     // pero st.emit puede elegir datos de OTRO intento (el pool junta todos): contrato.json no coincidía con
     // js/datos.js y la compuerta probó ids de otro estado. Si el Standard sabe escribir lo elegido, se guarda eso.
@@ -160,7 +165,8 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
   // v0.12 (14/10, punto 9): con la receta del Standard (opts.recipe) cada tarea trae su pieza y cada paso
   // recibe SUS tareas ("TAREAS DE ESTE PASO"). Sin receta o sin piezas (corrida vieja): notas, como antes.
   const assignment = assignByStep(tasks || [], opts.recipe || null, S.steps.map((x) => x.id));
-  const ctx = { hints, notes: assignment ? "" : notes, ...(prep.initial || {}), data: {}, files, total: S.steps.length, paso: "" };
+  // v0.13: ctx.tasks = las Atomic Tasks (con su pieza, si la traen) para los pasos que las necesitan enteras
+  const ctx = { hints, notes: assignment ? "" : notes, ...(prep.initial || {}), data: {}, files, tasks: tasks || [], total: S.steps.length, paso: "" };
   const steps = [];
   const byId = {};
   const out = {};
@@ -234,7 +240,8 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
       // (11/10: con la línea al final, en Invernadero escribió js/dibujo.js las 5 veces)
       // v0.12: las tareas del paso van ANTES del pedido del paso (el pedido sigue siendo lo último que lee Gemma)
       const tareas = assignmentText(mine);
-      const user = (opts.bench?.prefix ? `${opts.bench.prefix}\n\n` : "") + `BRIEF:\n${brief}\n\n${contract()}\n\n${sk ? sk + "\n\n" : ""}${tareas ? tareas + "\n\n" : ""}${st.prompt(ctx)}\n\n` + retry;
+      // v0.13: st.bare = un pedido chico que no necesita el brief ni el contrato del Standard (solo su propio pedido)
+      const user = (opts.bench?.prefix ? `${opts.bench.prefix}\n\n` : "") + (st.bare ? `${st.prompt(ctx)}\n\n` : `BRIEF:\n${brief}\n\n${contract()}\n\n${sk ? sk + "\n\n" : ""}${tareas ? tareas + "\n\n" : ""}${st.prompt(ctx)}\n\n`) + retry;
       const r = await ask(P.systemPrompt, user, st.cap || 4000);
       writeFileSync(join(outDir, `step_${String(n).padStart(2, "0")}_${st.id}${k ? ".retry" + k : ""}.raw.txt`), r.raw, "utf8");
       const att = { k, ms: r.ms, finish_reason: r.finish_reason, reasoning_chars: r.reasoning_chars, prompt_tokens_est: r.promptTokens, max_tokens: r.maxTokens };
@@ -303,6 +310,10 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
       byId[st.id] = { broken: false, files: answerOf(st), problems_final: [] };
       continue;
     }
+    // v0.13: st.skip(ctx) → motivo si el paso no aplica en esta corrida (no es una falla: no rompe a nadie)
+    const na = st.skip ? st.skip(ctx) : null;
+    if (na) { const rec = { n, task_id: st.id, kind: st.kind, files: answerOf(st), attempts: [], skipped: na, not_applicable: true, broken: false, problems_final: [] };
+      log(`[SPECIALIST] ${n}/${S.steps.length} ${rec.files.join(" + ")} — no aplica: ${na}`); steps.push(rec); byId[st.id] = rec; continue; }
     const broken = (st.needs || []).map((id) => byId[id]).find((r) => r?.broken);
     if (broken) { byId[st.id] = skipStep(st, n, `${broken.files.join(" + ")} no funciona (${String(broken.problems_final[0] || "").slice(0, 120)})`).rec; continue; }
     const K = kind.make(st, env);
@@ -312,7 +323,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
   }
 
   const outFiles = P.finish(env);
-  const skipped = steps.filter((s) => s.skipped).map((s) => s.task_id);
+  const skipped = steps.filter((s) => s.skipped && !s.not_applicable).map((s) => s.task_id);
   log(`[SPECIALIST] app/: ${outFiles.join(", ")}${steps.some((s) => s.problems_final.length) ? ` · quedan problemas en: ${steps.filter((s) => s.problems_final.length).map((s) => s.task_id).join(", ")}` : " · todos los pasos OK"}`);
   const firstLogic = S.steps.find((s) => s.kind === "logic");
   return {

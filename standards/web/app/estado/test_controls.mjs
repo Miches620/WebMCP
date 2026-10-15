@@ -171,6 +171,12 @@ t("v0.4.1, 6ª corrida: la compuerta sigue 6/6", g6.result === "PASS" && g6.rows
   const x13 = await xs(d13, ".column");
   t("build 22-19-17: .column-list + una caja que solo envuelve controles → aviso (antes se escapaba)", p13.probe.wrapper?.cls === "column-list" && x13.length === 3 && new Set(x13).size === 1, JSON.stringify({ w: p13.probe.wrapper, x13 }));
   t("build 22-19-17: una fecha ISO mostrada formateada no cuenta como texto que falta", !p13.probe.missing.some((m) => /2023-10-26T/.test(m)), JSON.stringify(p13.probe.missing));
+  // build 2026-10-15T00-25-22 (v0.5.1): el aviso saltó con .kanban-board y en el reintento Gemma puso las columnas
+  // directo en #app (los controles de "app" en su propia caja, que no cuenta)
+  const d14 = real(14);
+  const p14 = await probePage(join(d14, "probe.html"));
+  const x14 = await xs(d14);
+  t("build 00-25-22: columnas directo en #app + caja de controles → sin aviso y las 3 columnas lado a lado", p14.probe.wrapper === null && step("dibujo").expect(p14.probe).length === 0 && x14.length === 3 && new Set(x14).size === 3, JSON.stringify({ w: p14.probe.wrapper, m: step("dibujo").expect(p14.probe), x14 }));
 }
 
 console.log(`\n${ok}/${ok + fail} OK`);

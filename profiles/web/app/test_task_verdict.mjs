@@ -34,7 +34,7 @@ t("lógica con pruebas OK y compuerta OK → CUMPLIDA", by.L1.verdict === "CUMPL
 t("controles (harness) con su acción en la compuerta → CUMPLIDA", by.C1.verdict === "CUMPLIDA" && by.C1.accion === "borrarItem");
 t("lógica con una prueba que falla → NO_CUMPLIDA con el motivo", by.L2.verdict === "NO_CUMPLIDA" && /moverItem hace algo/.test(by.L2.reason));
 t("vista → SIN_EVIDENCIA (no hay prueba propia)", by.V1.verdict === "SIN_EVIDENCIA" && /no hay prueba propia/.test(by.V1.reason));
-t("lógica que ninguna acción declara → SIN_EVIDENCIA", by.L3.verdict === "SIN_EVIDENCIA" && /ninguna acción/.test(by.L3.reason));
+t("lógica que ninguna acción declara → SIN_EVIDENCIA", by.L3.verdict === "SIN_EVIDENCIA" && /enlace/.test(by.L3.reason));
 t("tarea sin pieza → SIN_EVIDENCIA", by.X1.verdict === "SIN_EVIDENCIA");
 t("ids que no existen en el contrato se informan", v.desconocidas.join() === "Z9" && taskVerdictLines(v).some((l) => /no existen: Z9/.test(l)));
 const v2 = taskVerdicts({ tasks: T, contract, acceptance: { passed: acceptance.passed, failed: [] }, gateRows: [{ nombre: "borrarItem", called: 0, problem: "no se llamó" }, rows[1]] });
@@ -53,7 +53,16 @@ t("build real sin 'tareas' en el contrato: 28 tareas, ninguna CUMPLIDA (no se in
 // el mismo build si el contrato hubiera declarado sus tareas (lo que pide v0.5)
 const decl = { crearTarjeta: ["F2.4", "F2.5"], moverTarjeta: ["F2.6", "F3.1", "F3.2"], editarTarjeta: ["F3.4", "F3.5"], borrarTarjeta: ["F3.7", "F3.6"], agregarEtiqueta: ["F4.3", "F4.4"], agregarComentario: ["F4.7", "F4.8"] };
 const real = fromBuild({ input, specialist: { rule_tests: fx.rule_tests }, gates: { rows: fx.gate_rows, tareas: decl } });
-t("build real + 'tareas' declaradas: 13 CUMPLIDAS (7 lógica + 6 controles) y 15 SIN_EVIDENCIA", real.counts.CUMPLIDA === 13 && real.counts.SIN_EVIDENCIA === 15 && !real.counts.NO_CUMPLIDA, JSON.stringify(real.counts));
+// v0.2: F3.2 pide arrastrar y soltar; el harness arma botones → el botón de moverTarjeta no la prueba
+t("build real + 'tareas' declaradas: 12 CUMPLIDAS (7 lógica + 5 controles) y 16 SIN_EVIDENCIA (F3.2 arrastrar no se prueba)", real.counts.CUMPLIDA === 12 && real.counts.SIN_EVIDENCIA === 16 && !real.counts.NO_CUMPLIDA && /arrastrar/.test(real.rows.find((r) => r.id === "F3.2").reason) && real.rows.find((r) => r.id === "F3.2").accion === "moverTarjeta", JSON.stringify(real.counts));
+// v0.2: la relación viene del paso enlace (Standard v0.6), sin "tareas" en el contrato
+const porTarea = {}; for (const [a, l] of Object.entries(decl)) for (const id of l) (porTarea[id] ||= []).push(a);
+const viaEnlace = fromBuild({ input, specialist: { rule_tests: fx.rule_tests, data: { enlace: { report: [{ porTarea, ninguna: [] }] } } }, gates: { rows: fx.gate_rows, tareas: Object.fromEntries(fx.gate_rows.map((r) => [r.nombre, []])) } });
+t("enlace: mismo veredicto que con 'tareas' en el contrato", JSON.stringify(viaEnlace.rows) === JSON.stringify(real.rows), JSON.stringify(viaEnlace.counts));
+const conNinguna = fromBuild({ input, specialist: { rule_tests: fx.rule_tests, data: { enlace: { report: [{ porTarea: { "F2.4": ["crearTarjeta"] }, ninguna: ["F3.7"] }] } } }, gates: { rows: fx.gate_rows, tareas: {} } });
+const rN = (id) => conNinguna.rows.find((r) => r.id === id);
+t("enlace: 'ninguna' y sin ubicar se distinguen en el motivo (las dos SIN_EVIDENCIA)", rN("F2.4").verdict === "CUMPLIDA" && /ninguna acción de la app/.test(rN("F3.7").reason) && /no la ubicó/.test(rN("F3.4").reason), JSON.stringify([rN("F3.7"), rN("F3.4")]));
+t("controles con teclado también quedan SIN_EVIDENCIA aunque estén enlazados", taskVerdicts({ tasks: [{ id: "K1", pieza: "controles", task: "Atajo de teclado para borrar" }], links: { porTarea: { K1: ["borrar"] }, ninguna: [] }, acceptance: { passed: [], failed: [] }, gateRows: [{ nombre: "borrar", called: true }] }).rows[0].verdict === "SIN_EVIDENCIA");
 t("cada tarea de lógica cita sus 5 pruebas y la compuerta", real.rows.filter((r) => r.pieza === "logica").every((r) => /5 pruebas de lógica/.test(r.reason) && /se usa desde la pantalla/.test(r.reason)));
 t("sin piezas (corrida vieja) → null", fromBuild({ input: { tasks: [{ id: "a", task: "x" }] }, specialist: {}, gates: null }) === null);
 

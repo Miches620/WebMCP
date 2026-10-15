@@ -1,0 +1,138 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado) {
+    const appContainer = document.getElementById('app');
+    if (!appContainer) return;
+
+    // 1. Limpiar el contenedor principal
+    appContainer.innerHTML = '';
+
+    /**
+     * Función auxiliar para renderizar etiquetas (F4.2)
+     */
+    function renderEtiquetas(etiquetasArray, cardElement) {
+        const container = document.createElement('div');
+        container.className = 'etiquetas-container';
+        if (etiquetasArray && etiquetasArray.length > 0) {
+            etiquetasArray.forEach(etiqueta => {
+                const label = document.createElement('span');
+                label.className = 'etiqueta';
+                // Usamos style para el color, ya que viene del estado
+                label.style.backgroundColor = etiqueta.color; 
+                label.textContent = etiqueta.nombre;
+                container.appendChild(label);
+            });
+        }
+        cardElement.appendChild(container);
+    }
+
+    /**
+     * Función auxiliar para renderizar comentarios (F4.6)
+     */
+    function renderComentarios(comentariosArray, cardElement) {
+        const container = document.createElement('div');
+        container.className = 'comentarios-container';
+        if (comentariosArray && comentariosArray.length > 0) {
+            comentariosArray.forEach(comentario => {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'comentario';
+
+                // Formatear fecha para mejor lectura
+                const date = new Date(comentario.timestamp * 1000);
+                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+
+                // Construcción segura del contenido usando textContent
+                commentDiv.innerHTML = ''; // Limpiar para reconstruir de forma segura
+
+                // Autor y Contenido principal
+                const authorStrong = document.createElement('strong');
+                authorStrong.textContent = comentario.autor;
+                commentDiv.appendChild(authorStrong);
+                
+                const colonText = document.createTextNode(': ');
+                commentDiv.appendChild(colonText);
+
+                const contentText = document.createElement('span');
+                contentText.textContent = comentario.contenido;
+                commentDiv.appendChild(contentText);
+
+                // Salto de línea y fecha
+                const br = document.createElement('br');
+                commentDiv.appendChild(br);
+
+                const dateSmall = document.createElement('small');
+                dateSmall.textContent = `(${formattedDate})`;
+                commentDiv.appendChild(dateSmall);
+
+                container.appendChild(commentDiv);
+            });
+        }
+        cardElement.appendChild(container);
+    }
+
+
+    // 2. Iterar sobre las columnas y crear la estructura del tablero (F1.4)
+    estado.columnas.forEach(col => {
+        const columnaEl = document.createElement('div');
+        columnaEl.className = 'columna';
+        columnaEl.dataset.id = col.id;
+
+        // Encabezado de la columna
+        const header = document.createElement('h2');
+        header.textContent = col.nombre;
+        columnaEl.appendChild(header);
+
+        // Contenedor donde irán las tarjetas
+        const cardsContainer = document.createElement('div');
+        cardsContainer.className = 'tarjetas-container';
+        columnaEl.appendChild(cardsContainer);
+
+
+        // 3. Iterar sobre las tarjetas de la columna y renderizarlas (F2.2)
+        col.tarjetas.forEach(card => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'tarjeta';
+            cardEl.dataset.id = card.id;
+
+            // Contenido principal de la tarjeta
+            const titleEl = document.createElement('h3');
+            titleEl.textContent = card.titulo;
+            cardEl.appendChild(titleEl);
+
+            const descriptionEl = document.createElement('p');
+            descriptionEl.className = 'descripcion';
+            descriptionEl.textContent = card.descripcion;
+            cardEl.appendChild(descriptionEl);
+
+            // Renderizar Etiquetas (F4.2)
+            renderEtiquetas(card.etiquetas, cardEl);
+
+            // Renderizar Comentarios (F4.6)
+            renderComentarios(card.comentarios, cardEl);
+
+
+            // 4. Agregar controles de acción a la tarjeta
+            const controls = controlesDe("tarjetas", card, estado);
+            if (controls) {
+                cardEl.appendChild(controls);
+            }
+
+            cardsContainer.appendChild(cardEl);
+        });
+
+        // APENDIZAR DIRECTAMENTE A appContainer (CORRECCIÓN DE ESTRUCTURA)
+        appContainer.appendChild(columnaEl);
+    });
+
+
+    // 5. Agregar acciones generales del tablero (Crear tarjeta - "app")
+    const generalControls = controlesDe("app", null, estado);
+    if (generalControls) {
+        // Creamos un contenedor para los controles globales y lo añadimos directamente a #app
+        const globalActionsContainer = document.createElement('div');
+        globalActionsContainer.className = 'global-actions';
+        globalActionsContainer.appendChild(generalControls);
+        appContainer.appendChild(globalActionsContainer); // APENDIZAR DIRECTAMENTE A appContainer
+    }
+}
+```

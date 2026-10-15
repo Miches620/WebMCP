@@ -135,5 +135,28 @@ t("motor sin plataforma → PLATFORM_REQUIRED", await (async () => { try { await
   const w3 = await buildFiles({ refined: { project_name: "T", features: [] }, tasks: [] }, mkdtempSync(pjoin(tmpdir(), "wr-")), { standard: wS(() => ({ "h.js": "x" }), () => ["no sirve"]), platform: wP, log: () => {} });
   t("written: st.check del Standard decide si sirve", w3.steps[0].problems_final.join() === "no sirve");
 }
+// v0.13 (14/10, paso enlace): pasos opcionales, pedidos chicos (bare), pasos que no aplican y datos sin archivo.
+// LM falso: se reemplaza fetch SOLO en esta prueba (no abre puertos ni llama a LM Studio).
+{
+  const seen = [], realFetch = globalThis.fetch;
+  globalThis.fetch = async (_url, init) => {
+    const user = JSON.parse(init.body).messages[1].content; seen.push(user);
+    const content = user.includes("PEDIDO A") ? '### FILE: a.json\n```json\n{"n":1}\n```' : "no sé";
+    return new Response(`data: ${JSON.stringify({ choices: [{ delta: { content }, finish_reason: "stop" }] })}\n\ndata: [DONE]\n`);
+  };
+  const D = (id, extra = {}) => ({ id, kind: "data", answer: `${id}.json`, prompt: () => `PEDIDO ${id.toUpperCase()}`, parse: (j) => ({ items: [j], reports: [{}], dropped: [] }), need: () => 1, missing: () => "falta", emit: (items, reports) => ({ items, reports, js: "JS" }), ...extra });
+  const toyS = { id: "toy", version: "0", status: "DRAFT", scripts: [], contract: "CONTRATO-DEL-STANDARD",
+    steps: [D("a", { file: "a.js" }), D("b", { optional: true, bare: true }), D("c", { skip: (ctx) => (ctx.tasks.length ? null : "no hay tareas") }), D("d", { file: "d.js", needs: ["b"], skip: () => "tampoco" })] };
+  const toyP = { id: "toy", systemPrompt: "s", prepare: () => ({ brief: "BRIEF-X", notes: "" }), finish: (env) => Object.keys(env.files), kinds: {} };
+  let res = null, err = "";
+  try { res = await buildFiles({ refined: { project_name: "T", features: [] }, tasks: [] }, mkdtempSync(pjoin(tmpdir(), "opt-")), { standard: toyS, platform: toyP, log: () => {} }); } catch (e) { err = e.message; }
+  globalThis.fetch = realFetch;
+  const rec = (id) => res?.steps.find((x) => x.task_id === id);
+  t("opcional: un paso de datos opcional que falla 3 veces no corta el build", !err && rec("b").broken === true && rec("b").optional === true && rec("b").attempts.length === 3, err);
+  t("bare: el pedido chico no lleva el brief ni el contrato del Standard; los demás sí", seen.filter((u) => u.includes("PEDIDO B")).every((u) => !u.includes("BRIEF-X") && !u.includes("CONTRATO-DEL-STANDARD")) && seen.find((u) => u.includes("PEDIDO A")).includes("BRIEF-X"));
+  t("skip: un paso que no aplica no llama al modelo, no rompe y no cuenta como salteado", rec("c").not_applicable === true && rec("c").broken === false && !seen.some((u) => u.includes("PEDIDO C")) && !(res.skipped || []).includes("c"));
+  t("skip va antes que needs: d (necesita b, roto) dice 'no aplica', no 'no funciona'", rec("d").not_applicable === true && rec("d").skipped === "tampoco");
+  t("datos sin archivo: no aparece un archivo 'undefined' en la app", res.files.join() === "a.js", res?.files.join());
+}
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

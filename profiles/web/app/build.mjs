@@ -29,7 +29,7 @@ import { taskVerdicts as verdictsOf } from "./task_verdict.mjs";
 export { taskVerdictLines, taskVerdictSummary } from "./task_verdict.mjs";
 /**
  * 14/10 (punto 9 paso 3): veredicto de Validation por Atomic Task, con la evidencia que ya hay (pruebas de
- * lógica, compuerta de llamadas y las "tareas" que declara cada acción del contrato). null si las tareas no
+ * lógica, compuerta de llamadas y el paso enlace: qué acción hace cada tarea). null si las tareas no
  * traen pieza (corrida sin receta).
  */
 export function taskVerdicts({ input, specialist, gates }) {
@@ -37,6 +37,8 @@ export function taskVerdicts({ input, specialist, gates }) {
   return verdictsOf({
     tasks: input.tasks,
     contract: gates?.tareas ? { acciones: Object.entries(gates.tareas).map(([nombre, tareas]) => ({ nombre, tareas })) } : null,
+    // v0.2 (Standard v0.6): el paso enlace deja en su resumen qué acción hace cada tarea
+    links: specialist?.data?.enlace?.report?.[0]?.porTarea ? { porTarea: specialist.data.enlace.report[0].porTarea, ninguna: specialist.data.enlace.report[0].ninguna || [] } : null,
     acceptance: specialist?.rule_tests || null,
     gateRows: gates?.rows?.length ? gates.rows : null,
   });

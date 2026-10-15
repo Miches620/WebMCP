@@ -54,7 +54,7 @@ t("texto del contrato: antes del paso 1 dice la forma, después las acciones rea
 const srcs = ["standard.mjs", "contract.mjs", "acceptance.mjs", "controls.mjs"].map((f) => readFileSync(fileURLToPath(new URL("./" + f, import.meta.url)), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\n  (evidence|pending): \[[\s\S]*?\n  \],/g, "").split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n")).join("\n");
 const dom = [...new Set(srcs.match(/\b(kanban|tareas?|columnas?|contador|tablero|tarjetas?)\b/gi) || [])];
 t("el Standard no nombra ninguna app (Kanban, tareas, columnas, contador…)", dom.length === 0, dom.join(", "));
-t("registro: web/app/estado existe y es DRAFT", getStandard("web/app/estado").status === "DRAFT" && S.steps.map((s) => s.id).join() === "contrato,logica,acciones,pantalla,dibujo,controles");
+t("registro: web/app/estado existe y es DRAFT", getStandard("web/app/estado").status === "DRAFT" && S.steps.map((s) => s.id).join() === "contrato,logica,acciones,pantalla,dibujo,controles,enlace");
 t("pistas: features numeradas y las de estilo aparte", JSON.stringify(appHints({ features: ["a", "Estilo X"], estilo: ["Estilo X"] })) === JSON.stringify({ features: ["a", "Estilo X"], style: [2] }));
 const logicStep = S.steps.find((s) => s.id === "logica");
 const R = logicStep.resolve(ctxL);

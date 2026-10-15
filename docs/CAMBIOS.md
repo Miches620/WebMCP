@@ -2,6 +2,39 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Punto 9, paso 3: paso ENLACE (qué acción hace cada tarea) — Standard web/app/estado v0.6.0, files_engine v0.13.0, task_verdict v0.2 (14/10)**
+- *Decisión de Miche (14/10):* "seguimos con el paso enlace". Es un pedido chico aparte, después del contrato. Así no se vuelve a cargar el contrato, que se rompió con 18 tareas en el build `22-19-17`.
+- *Run de origen (`2026-10-15T00-25-22`, con v0.5.1):*
+  - El contrato salió al 1er intento con 6 acciones; lógica 32/32; compuerta 6/6; SEG-1 PASS.
+  - El aviso del contenedor saltó con `.kanban-board` y en el reintento Gemma puso las columnas directo en `#app`.
+  - Validation: 7 PASS, R3 FAIL y R7 SIN_EVIDENCIA. Por tarea: 28 SIN_EVIDENCIA, lo esperado sin `cumple`.
+- *Qué se hizo:*
+  - **`standards/web/app/estado/enlace.mjs`:**
+    - Entra: las acciones del contrato (nombre + "hace") y las tareas `logica` y `controles` (13 en el snapshot). No entran el brief ni el contrato completo.
+    - Gemma responde `{"<accion>": [ids], "ninguna": [ids]}`.
+    - El harness valida: nombres con otra mayúscula, "F2.5 (crear)" → F2.5. Acciones que no existen, ids que no son tareas, tareas repetidas y tareas sin ubicar son problemas que no rompen: se reintenta y se queda el mejor.
+    - Una acción sin tareas solo se informa: puede pasar de verdad.
+    - Deja `enlace.json` y `porTarea`/`ninguna` en el resumen del paso.
+  - **Standard v0.6.0:** paso 7 `enlace` (data, opcional, bare, `cap` 1200), al final. Si no hay tareas con pieza, no aplica. Los demás pasos ahora dicen "PASO n de 7".
+  - **Motor v0.13.0** (universal):
+    - `st.optional`: un paso de datos sin datos válidos no corta el build.
+    - `st.bare`: el pedido va sin brief, contrato ni tareas.
+    - `st.skip(ctx)`: "no aplica"; no rompe a nadie ni cuenta como salteado.
+    - `ctx.tasks` lleva las Atomic Tasks.
+    - Un paso de datos puede no armar ningún archivo de la app.
+  - **task_verdict v0.2:**
+    - La relación sale del enlace; el `cumple` del contrato se sigue leyendo si viene.
+    - Los motivos distinguen "el enlace dice que ninguna acción la hace", "no la ubicó" y "no hay enlace".
+    - **Agujero cerrado:** una tarea de `controles` que pide arrastrar o teclado queda SIN_EVIDENCIA aunque esté enlazada. El harness arma botones, así que el botón de mover no prueba el arrastre. Antes F3.2 contaba como CUMPLIDA (test corregido: 12 CUMPLIDAS, no 13).
+- *Epistemología:* el enlace es lo que **dice** Gemma (trazabilidad). La evidencia sigue siendo la de la acción. Un enlace equivocado se ve comparando el título de la tarea con la acción en `enlace.json`.
+- *Probado:*
+  - `test_enlace` 20/20, con el contrato y las tareas reales del run: el pedido sale en 1.978 caracteres.
+  - `test_files_engine` 39/39, con LM falso (reemplaza `fetch` solo en la prueba): opcional, bare, skip y datos sin archivo.
+  - `test_task_verdict` 19/19.
+  - `test_controls` 38/38: fixture `real_kanban_c14`, columnas lado a lado y sin aviso.
+  - `test_estado` 53/53 y `test_assignments` 19/19.
+- *Visto en el run, para después:* R3 "Agregar comentarios" falló por `counter_on_action` ("no hay ningún número junto a: comentarios"). El brief no pide un contador: es el traductor que agrega un chequeo que nadie pidió. Y el CSS volvió a usar `data-action` mientras los botones usan `data-accion` (p42).
+
 **Build con contrato v0.5 (18 tareas): se rompió → vuelta atrás (receta v0.3.3, Standard v0.5.1) y 3 arreglos que mostró la corrida (14/10, `2026-10-14T22-19-17`)**
 - *Qué pasó:*
   - El contrato, con 18 tareas (+1.400 tokens), falló los 3 intentos: features sin cubrir, y en dos respuestas cortadas al llegar al tope de 3000 tokens. Quedó con 3 acciones (sin borrar, etiquetar ni comentar).

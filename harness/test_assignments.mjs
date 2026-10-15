@@ -32,7 +32,7 @@ t("vista → dibujo", ids("dibujo").join() === of("vista").join());
 t("controles → acciones y controles (los pasos del harness)", ids("acciones").join() === of("controles").join() && ids("controles").join() === of("controles").join());
 t("autor: acciones y controles = harness; contrato (aunque reciba tareas de controles), logica, pantalla, dibujo = gemma",
   a.autorDe.acciones === "harness" && a.autorDe.controles === "harness" && ["contrato", "logica", "pantalla", "dibujo"].every((s) => a.autorDe[s] === "gemma"), JSON.stringify(a.autorDe));
-t("todas las tareas caen en algún paso", !a.sinPieza.length && !a.piezaDesconocida.length && !a.pasosSinTareas.length);
+t("todas las tareas caen en algún paso (enlace no recibe tareas por pieza: las lee enteras, Standard v0.6)", !a.sinPieza.length && !a.piezaDesconocida.length && a.pasosSinTareas.join() === "enlace", a.pasosSinTareas.join());
 t("resumen: un número por paso y marca los del harness", /logica 7/.test(assignmentSummary(a)) && /controles 6 \(harness\)/.test(assignmentSummary(a)), assignmentSummary(a));
 
 // --- casos borde ---

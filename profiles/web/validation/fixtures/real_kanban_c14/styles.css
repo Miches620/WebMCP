@@ -1,0 +1,225 @@
+/* ========================================= */
+/* 1. Variables y Estilos Globales (Dark/Industrial) */
+/* ========================================= */
+:root {
+    --color-bg-primary: #1e272e; /* Fondo oscuro principal */
+    --color-bg-secondary: #2c3e50; /* Fondos de contenedores, columnas */
+    --color-text-light: #ecf0f1; /* Texto claro */
+    --color-accent-primary: #e74c3c; /* Rojo industrial (Acento principal) */
+    --color-accent-secondary: #3498db; /* Azul para detalles/interacción */
+    --color-border: #3a4d60; /* Bordes sutiles */
+    --color-card-bg: #212f3c; /* Fondo de tarjeta ligeramente más claro que el contenedor */
+    --shadow-dark: rgba(0, 0, 0, 0.5);
+}
+
+body {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-light);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+/* Contenedor principal del tablero */
+#app {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start; /* Asegura que las columnas se alineen desde arriba */
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+/* ========================================= */
+/* 2. Estilos de Columnas (Listas) */
+/* ========================================= */
+.columna {
+    flex-shrink: 0; /* Evita que las columnas se encojan */
+    width: 300px;
+    background-color: var(--color-bg-secondary);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Sombra para el contenedor de la columna */
+}
+
+.columna h2 {
+    border-bottom: 2px solid var(--color-accent-secondary);
+    padding-bottom: 10px;
+    margin-top: 0;
+    color: var(--color-text-light);
+    font-size: 1.4em;
+}
+
+/* Contenedor de tarjetas dentro de la columna */
+.tarjetas-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espacio entre tarjetas */
+    min-height: 10px; /* Para que el contenedor sea visible incluso vacío */
+}
+
+/* ========================================= */
+/* 3. Estilos de Tarjetas (Card) - F2.7, F4.9, F4.10 */
+/* ========================================= */
+.tarjeta {
+    background-color: var(--color-card-bg);
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4); /* Sombra normal */
+    transition: all 0.3s ease-in-out; /* Transición para efectos hover/movimiento */
+    cursor: grab;
+    border-left: 4px solid var(--color-accent-secondary); /* Detalle industrial */
+}
+
+/* Efecto Hover (Iluminación/Elevación) - F4.9 */
+.tarjeta:hover {
+    transform: translateY(-3px); /* Elevación sutil */
+    box-shadow: 0 8px 20px var(--shadow-dark); /* Sombra más pronunciada al pasar el mouse */
+    border-left-color: var(--color-accent-primary); /* Cambio de color en hover */
+}
+
+/* Estilo para la cabecera de la tarjeta (Título) */
+.tarjeta h3 {
+    margin-top: 0;
+    color: var(--color-text-light);
+    font-size: 1.2em;
+    border-bottom: 1px dashed var(--color-border);
+    padding-bottom: 5px;
+}
+
+/* Descripción */
+.tarjeta p {
+    margin-bottom: 10px;
+    color: #b0bec5; /* Gris más suave para descripciones */
+    font-size: 0.9em;
+}
+
+/* Etiquetas (Tags) */
+.etiquetas-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.etiqueta {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: bold;
+    color: var(--color-text-light);
+}
+
+/* Estilo de color para etiquetas (se sobrescribe con el color dado en el estado) */
+.etiqueta[style*="background-color"] {
+    background-color: var(--tag-bg, #5c6b80); /* Fallback si no se define */
+}
+
+/* Comentarios */
+.comentarios-container {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid var(--color-border);
+}
+
+.comentario {
+    background-color: #283647; /* Fondo más oscuro para el comentario */
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.comentario strong {
+    display: block;
+    color: var(--color-accent-secondary);
+    font-size: 0.85em;
+}
+
+/* ========================================= */
+/* 4. Estilos de Controles (Generados por el Harness) */
+/* ========================================= */
+
+/* Contenedor general de controles de acción */
+.ctl-controles {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--color-border);
+}
+
+/* Estilo para cada grupo de acciones (Ej: Editar, Comentar) */
+.ctl-accion {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+}
+
+.ctl-accion label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 3px;
+    color: #b0bec5;
+}
+
+/* Inputs y Selects */
+input[type="text"], input[type="date"], textarea, select {
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    background-color: #2c3e50; /* Fondo oscuro para inputs */
+    color: var(--color-text-light);
+    border-radius: 4px;
+    width: calc(100% - 20px); /* Ajuste de ancho */
+    box-sizing: border-box;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Botones */
+.ctl-boton {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+/* Botón primario (Ej: Crear Tarjeta) */
+.ctl-boton[data-action="crear"] {
+    background-color: var(--color-accent-primary);
+    color: white;
+    width: 100%;
+    margin-top: 5px;
+}
+
+/* Botón secundario (Ej: Guardar, Enviar) */
+.ctl-boton[data-action="guardar"], .ctl-boton[data-action="enviar"] {
+    background-color: var(--color-accent-secondary);
+    color: white;
+}
+
+/* Estilos de hover para botones */
+.ctl-boton:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Botón de eliminación (Rojo) */
+.ctl-boton[data-action="borrar"] {
+    background-color: #c0392b; /* Rojo más oscuro para peligro */
+    width: auto;
+    padding: 8px 15px;
+}
+
+/* Botón de eliminación hover */
+.ctl-boton[data-action="borrar"]:hover {
+    background-color: #e74c3c;
+}

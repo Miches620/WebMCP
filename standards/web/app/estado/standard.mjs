@@ -19,6 +19,7 @@
 import { parseContract, contractProblems, bestContract, datosJs, signature, idsOf, MAX_STATE_CHARS } from "./contract.mjs";
 import { logicTests, observeChanges } from "./acceptance.mjs";
 import { controlsPlan, accionesJs, controlesFromPlan, whereOf } from "./controls.mjs";
+import { linkTasksOf, enlacePrompt, parseLinks, linkProblems, bestLinks, linksSummary, ENLACE_VERSION } from "./enlace.mjs";
 
 export const IDS = ["app"];
 export const SCRIPTS = ["js/datos.js", "js/logica.js", "js/acciones.js", "js/dibujo.js", "js/controles.js"];
@@ -201,7 +202,7 @@ const validation = {
 
 const STANDARD = {
   id: "web/app/estado",
-  version: "0.5.1",
+  version: "0.6.0",
   status: "DRAFT",
   validation,
   label: "app de una pantalla con estado y acciones",
@@ -316,6 +317,22 @@ ${fence("json", CONTRACT_FMT)}`,
         return { calls: { global: "App", draw: "dibujar", methods: c.acciones.map((a) => a.nombre), forms: [],
           hints: Object.fromEntries(c.acciones.map((a) => [a.nombre, `el listener click de #app, con b.dataset.accion === "${a.nombre}", hace estado = ${callOf(a)} y dibujar(estado)`])) } }; },
       prompt: (c) => `${c.notes ? `NOTAS DEL TECHLEADER (contexto):\n${c.notes}\n\n` : ""}YA EXISTEN: ESTADO_INICIAL, App (crear, ${contractOf(c).acciones.map((a) => a.nombre).join(", ")}) y dibujar(estado), que dibuja un botón por acción con sus ids en b.dataset y sus campos al lado.\n\n${c.paso}: escribí js/controles.js: let estado = App.crear(); UN listener click en #app con const b = ev.target.closest("[data-accion]"), y por cada acción:\n${contractOf(c).acciones.map((a) => `- "${a.nombre}": estado = ${callOf(a)};`).join("\n")}\ndespués dibujar(estado). Al final del archivo: dibujar(estado).`,
+    },
+    {
+      // v0.6.0 (14/10, punto 9 paso 3, decisión de Miche): qué acción hace cada tarea de lógica y de controles,
+      // en un pedido CHICO aparte (dentro del contrato lo rompió: build 2026-10-14T22-19-17). Opcional: si falla,
+      // se pierde solo el veredicto por tarea. Va al final: no cambia nada de los pasos de antes.
+      id: "enlace", kind: "data", answer: "enlace.json", cap: 1200, needs: ["contrato"], optional: true, bare: true,
+      skip: (ctx) => (linkTasksOf(ctx.tasks).length ? null : "ningún pedido del Atomizer trae pieza logica o controles (corrida sin receta)"),
+      answerHint: 'Respondé SOLO con ### FILE: enlace.json, un JSON como el del formato.',
+      prompt: (c) => enlacePrompt(contractOf(c), linkTasksOf(c.tasks), c.paso),
+      parse: (json, c) => parseLinks(json, contractOf(c), linkTasksOf(c.tasks)),
+      need: () => 1,
+      missing: () => "el enlace no ubica nada.",
+      emit: (items, reports) => { if (!items.length) return { items: [], reports: [], js: null }; const i = bestLinks(items, reports); return { items: [items[i]], reports: [reports[i]], js: null }; },
+      check: (parsed) => linkProblems(parsed.reports[0]),
+      answerOf: (p) => JSON.stringify({ version: ENLACE_VERSION, ...p.items[0], informe: p.reports[0] }, null, 2),
+      summaryText: (p) => linksSummary(p.items[0], p.reports[0]),
     },
   ],
 };

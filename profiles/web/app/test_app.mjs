@@ -54,6 +54,17 @@ t("specialistSees = lo que el brief suma (guardia de holdout)", gameBuild.specia
   const btns = ["+ Crear Tarjeta", "Mover a En Progreso", "💬 Añadir Comentario", "🏷️ Añadir Etiqueta", "✏️ Editar", "🗑️ Eliminar Tarjeta"];
   const pick = (t, ch) => { const ac = appBuild.postprocessChecks(ch, "R", t).find((c) => c.type === "action_changes"); return ac && btns.map((b) => [b, controlScore(b, ac.params.click)]).reduce((x, y) => (y[1] > x[1] ? y : x))[0]; };
   t("app: submit/field/click_changes → un action_changes (control_visible se queda)", appBuild.postprocessChecks([{ type: "control_visible", params: { text: ["crear"] } }, { type: "submit_empty_blocked", params: {} }, { type: "field_exists", params: { field: ["x"] } }], "R1", "Crear tarjetas").map((c) => c.type).join() === "control_visible,action_changes");
+  // 15/10 (p47): el contador que el requisito no pide se saca; si lo nombra, se queda
+  {
+    const R3 = [{ type: "action_changes", params: { click: ["agregar", "comentario"] } }, { type: "counter_on_action", params: { label: ["comentarios"] } }];
+    const o3 = appBuild.postprocessChecks(R3, "R3", "Agregar comentarios a las tarjetas");
+    t("app (p47): 'Agregar comentarios' → sin counter_on_action, con el motivo", o3.map((c) => c.type).join() === "action_changes" && /no nombra ningún número/.test(o3.why), JSON.stringify(o3));
+    t("app (p47): 'Contador de tarjetas por columna' → el counter_on_action se queda", appBuild.postprocessChecks(R3, "R", "Contador de tarjetas por columna").map((c) => c.type).join() === "action_changes,counter_on_action");
+    t("app (p47): 'Mostrar la cantidad de comentarios' y 'cuántos movimientos' también nombran un número", appBuild.namesANumber("Mostrar la cantidad de comentarios") && appBuild.namesANumber("Ver cuántos movimientos hice") && !appBuild.namesANumber("Etiquetar tarjetas") && !appBuild.namesANumber("Comentarios en las tarjetas"));
+    const both = appBuild.postprocessChecks([...R3, { type: "submit_empty_blocked", params: {} }], "R3", "Agregar comentarios a las tarjetas");
+    t("app (p47): con chequeos de formulario además, los dos ajustes y los dos motivos", both.map((c) => c.type).join() === "action_changes" && /número/.test(both.why) && /palabras/.test(both.why), JSON.stringify(both));
+    t("app (p47): sin nada que ajustar devuelve lo mismo (sin motivo)", appBuild.postprocessChecks(R3.slice(0, 1), "R1", "Crear tarjetas") === undefined || !appBuild.postprocessChecks(R3.slice(0, 1), "R1", "Crear tarjetas").why);
+  }
   t("app: sin chequeos de formulario no cambia nada", appBuild.postprocessChecks([{ type: "hover_changes", params: { elementos: ["tarjeta"] } }], "R8", "Sombras").length === 1);
   t("app: el control elegido es el del verbo (Kanban real)", pick("Crear tarjetas", [{ type: "submit_empty_blocked" }]) === "+ Crear Tarjeta" && pick("Agregar comentarios a las tarjetas", [{ type: "field_exists", params: { field: ["comentario"] } }]) === "💬 Añadir Comentario" && pick("Mover tarjetas entre columnas", [{ type: "click_changes", params: { click: ["columna", "tarjeta"] } }]) === "Mover a En Progreso" && pick("Etiquetar tarjetas", [{ type: "field_exists" }]) === "🏷️ Añadir Etiqueta" && pick("Borrar tarjetas", [{ type: "click_changes" }]) === "🗑️ Eliminar Tarjeta");
   t("app: el traductor por archivos no ofrece chequeos de formulario", !(await import("./translator_rules.mjs")).APP_FILES_CATALOG.some((x) => /^(field_|submit_|valid_submit)/.test(x)));

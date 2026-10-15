@@ -189,6 +189,12 @@ t("v0.4.1, 6ª corrida: la compuerta sigue 6/6", g6.result === "PASS" && g6.rows
   const p15f = await probePage(join(d15f, "probe.html"));
   const x15f = await xs(d15f);
   t("el mismo dibujo sin el contenedor → sin aviso y las 3 columnas lado a lado", fixed15.includes("const boardWrapper = appDiv;") && !fixed15.includes("'columnas'") && p15f.probe.wrapper === null && new Set(x15f).size === 3, JSON.stringify({ w: p15f.probe.wrapper, x15f }));
+  // build 2026-10-15T03-49-43 (v0.6.1, misma corrida que 02-27-10 a temperatura 0): el aviso nuevo saltó y en el
+  // reintento Gemma sacó .columnas → columnas directo en #app, lado a lado
+  const d16 = real(16);
+  const p16 = await probePage(join(d16, "probe.html"));
+  const x16 = await xs(d16);
+  t("build 03-49-43: después del aviso, sin contenedor y las 3 columnas lado a lado", p16.probe.wrapper === null && step("dibujo").expect(p16.probe).length === 0 && new Set(x16).size === 3, JSON.stringify({ w: p16.probe.wrapper, m: step("dibujo").expect(p16.probe), x16 }));
   {
     const fx = FX(15), css = readFileSync(join(fx, "styles.css"), "utf8").replace("flex-direction: column;\n    gap: 20px;\n    width: 100%;", "flex-direction: row;\n    gap: 20px;\n    width: 100%;");
     const dRow = app("kanban15_row", P(JSON.parse(readFileSync(join(fx, "contrato.json"), "utf8"))), readFileSync(join(fx, "js/dibujo.js"), "utf8"), css, readFileSync(join(fx, "js/logica.js"), "utf8"));

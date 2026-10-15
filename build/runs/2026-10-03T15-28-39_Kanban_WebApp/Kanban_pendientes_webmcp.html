@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-15a'; // tablero actualizado al 15/10 (enlace con Gemma: 13/13, 12 CUMPLIDAS; columnas apiladas → Standard v0.6.1)
+  const SEED = '2026-10-15b'; // tablero actualizado al 15/10 (punto 9 cerrado; p47 contador inventado resuelto)
   let state = loadState() || {
  "columns": [
   {
@@ -434,9 +434,9 @@
    "isDefault": true,
    "cards": [
     {
-     "id": "p47",
-     "title": "Traductor: agrega un contador que nadie pidió (R3 comentarios)",
-     "desc": "[#Validation #Traductor] Run 00-25-22: R3 'Agregar comentarios a las tarjetas' → action_changes + counter_on_action ('no hay ningún número junto a: comentarios') → FAIL. El brief no pide contador: Gemma-traductor sumó un chequeo inventado y el FAIL es falso. Ya pasó en builds anteriores ('R3 FAIL contador, conocido') y otra vez en 02-27-10. Idea: counter_on_action solo si el texto del requisito nombra un número/contador/cantidad (regla determinista sobre la salida del traductor).",
+     "id": "p48",
+     "title": "Temperatura 0: repetir un build no da una muestra nueva",
+     "desc": "[#Evidencia #Método] 15/10: builds 02-27-10 y 03-49-43 dieron lo mismo byte a byte en contrato, lógica, CSS y enlace (mismos tokens). 'n=2' así es n=1 repetido. Para medir variación hace falta variar algo a propósito (temperatura > 0 o seed, con el valor registrado en evidence.json) y decidir cuántas corridas cuentan como réplica. Afecta cómo leemos todas las 'n' de antes en builds completos (los bancos de la receta sí variaban el pedido).",
      "priority": "medio"
     },
     {
@@ -579,12 +579,6 @@
    "isInbox": false,
    "isDefault": true,
    "cards": [
-    {
-     "id": "p35",
-     "title": "Punto 9 · Las tareas atómicas manejan la construcción",
-     "desc": "[#Specialist #Contrato #Atomizer #Validation] Los 3 pasos andan con Gemma (build 02-27-10, n=1): enlace 13/13 al 1er intento, por tarea 12 CUMPLIDAS · 0 NO_CUMPLIDAS · 16 SIN_EVIDENCIA. FALTA: repetir (n≥2) y cerrar el punto; las 16 SIN_EVIDENCIA (datos/vista/estilo) no tienen prueba propia: decidir si se aceptan o se les busca evidencia.",
-     "priority": "urgente"
-    }
    ]
   },
   {
@@ -593,6 +587,18 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h54",
+     "title": "15/10 · p47: el contador que el requisito no pide se saca (R3 dejaba FAIL falso)",
+     "desc": "[#Validation #Traductor] En 3 builds seguidos R3 'Agregar comentarios' traía counter_on_action → FAIL ('no hay ningún número junto a: comentarios'). Ahora web/app postprocessChecks saca counter_on_action si el TEXTO del requisito no nombra un número (contador, cantidad, número, puntaje, total, cuántos, movimientos…): lo decide el código. El log dice por qué ('[VALIDATION] R3: el harness ajustó chequeos … (counter_on_action fuera: el requisito no nombra ningún número)'). web/game no se toca. test_app 29/29.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h53",
+     "title": "15/10 · Punto 9 cerrado: las tareas atómicas manejan la construcción",
+     "desc": "[#Specialist #Atomizer #Validation] Paso 1 receta → Atomizer; paso 2 cada paso recibe SUS tareas; paso 3 veredicto por tarea vía enlace. Builds 02-27-10 y 03-49-43: enlace 13/13 al 1er intento, 12 CUMPLIDAS · 0 NO_CUMPLIDAS · 16 SIN_EVIDENCIA. OJO: a temperatura 0 el 2º build fue idéntico al 1º (CSS, lógica y enlace byte a byte) → no es n=2 independiente (p48). En el 2º el aviso v0.6.1 saltó y Gemma sacó el contenedor: columnas lado a lado (x 20/370/720). Fixture c16; test_controls 42/42.",
+     "priority": "bajo"
+    },
     {
      "id": "h52",
      "title": "15/10 · Enlace con Gemma: 13/13, 12 CUMPLIDAS · columnas apiladas → aviso v0.6.1",

@@ -98,13 +98,26 @@ export function actionWords(text, checks = []) {
   const seen = new Set();
   return [...fromText, ...fromParams].filter((w) => { const k = w.slice(0, 6); if (!w || seen.has(k)) return false; seen.add(k); return true; }).slice(0, 8);
 }
+// 15/10 (p47, builds 00-25-22, 02-27-10 y 03-49-43: R3 "Agregar comentarios a las tarjetas" → counter_on_action → FAIL
+// "no hay ningún número junto a: comentarios"): el traductor sumaba un contador que el requisito no pide. Un
+// counter_on_action solo queda si el TEXTO del requisito nombra un número (lo decide el código, no el modelo).
+const NUMBER_WORDS = /\b(contador(es)?|cantidad(es)?|n[uú]mero(s)?|puntaje(s)?|puntos?|total(es)?|cu[aá]nt[oa]s|conteo|cuenta|score|movimientos|pasos|intentos|vidas)\b/i;
+export const namesANumber = (text) => NUMBER_WORDS.test(String(text || ""));
 export function postprocessChecks(checks = [], id, text = "") {
   if (legacyFlag()) return checks;
-  const form = checks.filter((c) => FORM_CHECKS.has(c?.type));
-  if (!form.length) return checks;
-  const out = checks.filter((c) => !FORM_CHECKS.has(c?.type));
-  if (!out.some((c) => c?.type === "action_changes")) out.push({ type: "action_changes", params: { click: actionWords(text, checks) } });
-  return out;
+  const why = [];
+  let out = checks;
+  if (!namesANumber(text) && out.some((c) => c?.type === "counter_on_action")) {
+    out = out.filter((c) => c?.type !== "counter_on_action");
+    why.push("counter_on_action fuera: el requisito no nombra ningún número");
+  }
+  if (out.some((c) => FORM_CHECKS.has(c?.type))) {
+    const rest = out.filter((c) => !FORM_CHECKS.has(c?.type));
+    if (!rest.some((c) => c?.type === "action_changes")) rest.push({ type: "action_changes", params: { click: actionWords(text, checks) } });
+    out = rest;
+    why.push("palabras que describen la pieza");
+  }
+  return why.length ? Object.assign(out, { why: why.join("; ") }) : checks;
 }
 
 // 12/10 (paso 2 del borde, decisión de Miche): la app se escribe POR ARCHIVOS con el Standard que

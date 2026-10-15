@@ -2,6 +2,24 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Punto 9 cerrado · p47: el contador que el requisito no pide se saca (15/10, build `2026-10-15T03-49-43`)**
+- *Build de repetición (v0.6.1):*
+  - El aviso nuevo saltó en dibujo ("…<div class="columnas"> que las pone una debajo de otra (flex-direction: column)…") y **en el reintento Gemma sacó el contenedor**: columnas lado a lado (Chromium: x = 20, 370, 720). Fixture `real_kanban_c16`.
+  - Enlace 13/13 y, por tarea, 12 CUMPLIDAS · 0 NO_CUMPLIDAS · 16 SIN_EVIDENCIA, igual que antes.
+- *Ojo con la "n":* a temperatura 0 este build salió **idéntico byte a byte** al `02-27-10` en contrato, lógica, CSS y enlace (mismos tokens en cada paso). No es una segunda muestra: es la misma con el aviso nuevo. Card p48.
+- *Punto 9:* los tres pasos andan con Gemma.
+  1. La receta guía al Atomizer.
+  2. Cada paso recibe sus tareas.
+  3. El veredicto por tarea sale vía el enlace.
+
+  Quedan abiertas las 16 SIN_EVIDENCIA (datos, vista, estilo y arrastrar), que no tienen prueba propia.
+- *p47:*
+  - En los 3 builds, R3 "Agregar comentarios a las tarjetas" llevó `counter_on_action` y dio FAIL ("no hay ningún número junto a: comentarios"). El requisito no pide contador.
+  - Ahora `postprocessChecks` de web/app saca `counter_on_action` cuando el **texto** del requisito no nombra un número (contador, cantidad, número, puntaje, total, cuántos, movimientos, pasos…). Lo decide el código; el pedido al traductor no cambia.
+  - `run_build` muestra el motivo del ajuste ("counter_on_action fuera: el requisito no nombra ningún número"). web/game tiene su propio postprocess y no se tocó.
+  - Con los 3 builds, R3 debería quedar PASS por `action_changes`; falta verlo en un build.
+- *Probado:* `test_app` 29/29 (+5), `test_controls` 42/42 y la suite completa en verde, menos `test_roles`.
+
 **Build con el paso enlace: funciona (13/13 al 1er intento) · columnas apiladas que nadie vio → Standard v0.6.1 (15/10, `2026-10-15T02-27-10`)**
 - *Enlace:*
   - **13/13 tareas ubicadas, 6/6 acciones con tareas, al 1er intento** (63 s, 762+1098 tokens). El reparto coincide con el que armé a mano.

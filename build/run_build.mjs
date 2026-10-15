@@ -210,9 +210,11 @@ for (const r of reqChecks) {
       : { id: r.id, text: r.text, verdict: "SIN_CHEQUEO", reason: r.error || r.sin_chequeo || "el traductor no produjo chequeos válidos", checks: [] });
     continue;
   }
-  const checks = B.postprocessChecks(r.checks, r.id, r.text).map(B.normalizeCheck);
+  const pp = B.postprocessChecks(r.checks, r.id, r.text);
+  const checks = pp.map(B.normalizeCheck);
   const before = r.checks.map((c) => c.type).join(","), after = checks.map((c) => c.type).join(",");
-  if (before !== after) log(`[VALIDATION] ${r.id}: el harness ajustó chequeos ${before} → ${after} (palabras que describen la pieza)`);
+  // 15/10: el profile dice por qué ajustó (pp.why); si no lo dice, el motivo de siempre
+  if (before !== after) log(`[VALIDATION] ${r.id}: el harness ajustó chequeos ${before} → ${after || "ninguno"} (${pp.why || "palabras que describen la pieza"})`);
   const res = await B.runChecks(artifact, checks);
   const ctl = await B.runChecks(baseline, checks);
   res.forEach((x, k) => { x.baseline = ctl[k].result; if (x.result === "PASS" && ctl[k].result === "PASS") x.trivial = true; });

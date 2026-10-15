@@ -12,6 +12,8 @@
 //   ... --validate build/runs/<dir> --retranslate   vuelve a traducir (el checks.json anterior queda archivado)
 //   ... --profile web/landing   tipo de proyecto si el snapshot no lo trae (corridas anteriores al 05/10)
 //   ... --gemma-writes-all   los pasos que el Standard escribe con código (st.write) los escribe el modelo (para comparar)
+//   ... --temperature 0.7 --seed 3   muestreo del Specialist (p48, 15/10). Por defecto temperatura 0 y sin seed: a
+//       temperatura 0 repetir un build da lo mismo byte a byte, no es otra muestra. Para réplicas: build/replicas.mjs
 //
 // Refactor de profiles (05/10): este archivo es CORE. No sabe de secciones,
 // páginas ni componentes: el plan, el Specialist, el esqueleto de control, las
@@ -25,13 +27,17 @@
 // Resultado en build/runs/<fecha>_<proyecto>/: HTML por paso, respuestas crudas,
 // checks.json y evidence.json.
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, readdirSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { join, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveProfiles, profileLabel, concernsFor } from "../profiles/registry.mjs";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const args = process.argv.slice(2);
+// p48 (15/10): muestreo del Specialist. El traductor de Validation y el resto no cambian (se mide el build, no el juez).
+const flagNum = (name) => { const i = args.indexOf(name); if (i < 0) return undefined; const v = Number(args[i + 1]); if (!Number.isFinite(v)) throw new Error(`${name} necesita un número`); return v; };
+const sampling = { temperature: flagNum("--temperature") ?? 0, seed: flagNum("--seed") ?? null };
 const log = (m) => console.log(m);
 
 // Tipo de proyecto: lo declara el snapshot (refined_prompt.profiles, elegido por
@@ -111,7 +117,7 @@ if (args[0] === "--validate") {
     else log(`[PLAN] ✗ plan inválido (${pp.errors.join("; ")}) → esqueleto mínimo sin secciones`);
   }
   // El Specialist lo pone el profile (web/landing: por componentes; --legacy = v0.6.1).
-  specialist = await B.build(input, outDir, { log, forbidden, resume: !!resumeDir, pagePlan, legacy: args.includes("--legacy"), noWrite: args.includes("--gemma-writes-all") });
+  specialist = await B.build(input, outDir, { log, forbidden, resume: !!resumeDir, pagePlan, legacy: args.includes("--legacy"), noWrite: args.includes("--gemma-writes-all"), temperature: sampling.temperature, seed: sampling.seed });
   writeFileSync(join(outDir, "build.json"), JSON.stringify({ input, specialist }, null, 2));
 }
 
@@ -234,6 +240,16 @@ for (const cp of concernsFor(profile)) {
   } catch (e) { concerns.push({ profile: cp.id, version: cp.version, status: cp.status, error: e.message, results: [] }); }
 }
 const count = (v) => coverage.filter((c) => c.verdict === v).length;
+function fingerprint(dir, base = "") {
+  if (!existsSync(dir)) return {};
+  const out = {};
+  for (const e of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    const rel = base ? `${base}/${e.name}` : e.name;
+    if (e.isDirectory()) Object.assign(out, fingerprint(join(dir, e.name), rel));
+    else out[rel] = createHash("sha1").update(readFileSync(join(dir, e.name))).digest("hex").slice(0, 12);
+  }
+  return out;
+}
 const evidence = {
   type: "EVIDENCE",
   kind: "build_validation",
@@ -247,6 +263,9 @@ const evidence = {
   validation: { profile: B.validationProfile || null, standard: specialist?.standard || null, always: always.map(({ type, result, detail, gate }) => ({ type, result, detail, gate })), standard_gates: profileGates },
   concerns,
   task_verdicts: taskV,
+  // p48 (15/10): con qué muestreo se construyó y una huella de cada archivo de la app (para comparar réplicas sin abrirlos)
+  muestreo: specialist?.sampling || { temperature: 0, seed: null, nota: "build anterior a files_engine v0.13.1: temperatura 0" },
+  huella: fingerprint(join(outDir, "app")),
   summary: { requisitos: coverage.length, PASS: count("PASS"), FAIL: count("FAIL"), SIN_EVIDENCIA: count("SIN_EVIDENCIA"), SIN_CHEQUEO: count("SIN_CHEQUEO") },
   control: "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
   coverage,

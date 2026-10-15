@@ -2,6 +2,25 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**p48: réplicas de verdad — `--temperature`/`--seed`, huella de archivos y `build/replicas.mjs` (15/10)**
+- *Por qué:*
+  - A temperatura 0, los builds `02-27-10`, `03-49-43` y `11-31-58` dieron lo mismo byte a byte en contrato, lógica, CSS y enlace.
+  - Repetir así no es una réplica, es la misma muestra otra vez. Tampoco se registraba con qué muestreo se construyó.
+- *Qué se hizo:*
+  - **`run_build`:** nuevas opciones `--temperature T` y `--seed N`, solo para el Specialist. El traductor de Validation no cambia: se mide el build, no el juez.
+    - Por defecto, todo sigue igual que antes: temperatura 0 y sin seed.
+    - `evidence.json` guarda `muestreo` ({temperature, seed}) y `huella`: un sha1 de 12 caracteres por cada archivo de `app/`, para comparar corridas sin abrirlas.
+  - **Motor v0.13.1:** el seed va en el pedido a LM Studio y el resultado trae `sampling`. El log del Specialist muestra la temperatura y el seed.
+  - **`build/replicas.mjs`** (con `replicas_summary.mjs`, funciones puras):
+    - Corre el mismo snapshot N veces (por defecto 3, a temperatura 0.7, con seeds 1..N) y compara.
+    - Compara por requisito (PASS k/N), por tarea (solo las que variaron) y por paso (intentos en cada corrida).
+    - Cuenta cuántas versiones distintas salieron de cada archivo.
+    - Si todas las huellas son iguales, lo dice: "no son réplicas".
+    - Con `--from DIR…` compara corridas que ya existen.
+    - Deja `build/replicas/<fecha>/replicas.json` y `resumen.md`.
+- *Decisión de método (propuesta, a confirmar con evidencia):* n=3 a temperatura 0.7 como réplica mínima, y se informa k/n. Si LM Studio ignorara el seed, se va a ver igual en las huellas.
+- *Probado:* `test_replicas` 8/8, `test_files_engine` 41/41 (con LM falso: temperatura y seed llegan al pedido) y la suite completa en verde, menos `test_roles`.
+
 **Punto 9 cerrado · p47: el contador que el requisito no pide se saca (15/10, build `2026-10-15T03-49-43`)**
 - *Build de repetición (v0.6.1):*
   - El aviso nuevo saltó en dibujo ("…<div class="columnas"> que las pone una debajo de otra (flex-direction: column)…") y **en el reintento Gemma sacó el contenedor**: columnas lado a lado (Chromium: x = 20, 370, 720). Fixture `real_kanban_c16`.

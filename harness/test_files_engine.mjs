@@ -158,5 +158,19 @@ t("motor sin plataforma → PLATFORM_REQUIRED", await (async () => { try { await
   t("skip va antes que needs: d (necesita b, roto) dice 'no aplica', no 'no funciona'", rec("d").not_applicable === true && rec("d").skipped === "tampoco");
   t("datos sin archivo: no aparece un archivo 'undefined' en la app", res.files.join() === "a.js", res?.files.join());
 }
+// v0.13.1 (p48): temperatura y seed llegan al pedido y quedan en el resultado; por defecto temperatura 0 y sin seed
+{
+  const bodies = [], realFetch = globalThis.fetch;
+  globalThis.fetch = async (_url, init) => { const b = JSON.parse(init.body); bodies.push(b);
+    return new Response(`data: ${JSON.stringify({ choices: [{ delta: { content: '### FILE: a.json\n```json\n{"n":1}\n```' }, finish_reason: "stop" }] })}\n\ndata: [DONE]\n`); };
+  const D1 = { id: "a", kind: "data", answer: "a.json", prompt: () => "P", parse: (j) => ({ items: [j], reports: [{}], dropped: [] }), need: () => 1, missing: () => "falta", emit: (i, r) => ({ items: i, reports: r, js: "" }) };
+  const S1 = { id: "toy", version: "0", status: "DRAFT", scripts: [], contract: "C", steps: [D1] };
+  const P1 = { id: "toy", systemPrompt: "s", prepare: () => ({ brief: "", notes: "" }), finish: () => [], kinds: {} };
+  const run = (o) => buildFiles({ refined: { project_name: "T", features: [] }, tasks: [] }, mkdtempSync(pjoin(tmpdir(), "smp-")), { standard: S1, platform: P1, log: () => {}, ...o });
+  const r0 = await run({}), r1 = await run({ temperature: 0.7, seed: 3 });
+  globalThis.fetch = realFetch;
+  t("muestreo por defecto: temperatura 0, sin seed en el pedido", bodies[0].temperature === 0 && !("seed" in bodies[0]) && r0.sampling.temperature === 0 && r0.sampling.seed === null);
+  t("muestreo de réplica: temperatura 0.7 y seed 3 en el pedido y en el resultado", bodies[1].temperature === 0.7 && bodies[1].seed === 3 && r1.sampling.seed === 3);
+}
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

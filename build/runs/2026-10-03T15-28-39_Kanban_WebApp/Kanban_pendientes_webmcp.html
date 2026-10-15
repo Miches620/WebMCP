@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-15c'; // tablero actualizado al 15/10 (p47 confirmado: 8 PASS · 0 FAIL)
+  const SEED = '2026-10-15d'; // tablero actualizado al 15/10 (p48 réplicas: --temperature/--seed, huella, replicas.mjs)
   let state = loadState() || {
  "columns": [
   {
@@ -433,12 +433,6 @@
    "isInbox": true,
    "isDefault": true,
    "cards": [
-    {
-     "id": "p48",
-     "title": "Temperatura 0: repetir un build no da una muestra nueva",
-     "desc": "[#Evidencia #Método] 15/10: builds 02-27-10 y 03-49-43 dieron lo mismo byte a byte en contrato, lógica, CSS y enlace (mismos tokens). 'n=2' así es n=1 repetido. Para medir variación hace falta variar algo a propósito (temperatura > 0 o seed, con el valor registrado en evidence.json) y decidir cuántas corridas cuentan como réplica. Afecta cómo leemos todas las 'n' de antes en builds completos (los bancos de la receta sí variaban el pedido).",
-     "priority": "medio"
-    },
     {
      "id": "p42",
      "title": "Controles del harness: se ven pesados",
@@ -587,6 +581,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h55",
+     "title": "15/10 · p48: réplicas de verdad (temperatura/seed, huella, replicas.mjs)",
+     "desc": "[#Evidencia #Método] run_build --temperature/--seed (solo Specialist; el traductor no cambia); evidence.json guarda muestreo + huella (sha1 de cada archivo de app/). build/replicas.mjs corre N veces (default 3 × t=0.7, seeds 1..3) y compara: requisitos y tareas k/N, intentos por paso, versiones distintas por archivo; avisa si no son réplicas. Motor v0.13.1. test_replicas 8/8, test_files_engine 41/41. FALTA: la 1ª corrida de réplicas con Gemma.",
+     "priority": "bajo"
+    },
     {
      "id": "h54",
      "title": "15/10 · p47: el contador que el requisito no pide se saca (R3 dejaba FAIL falso)",

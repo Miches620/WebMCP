@@ -30,7 +30,7 @@ import { assignByStep, assignmentText, assignmentSummary } from "./assignments.m
 // compatibilidad: las herramientas de JS se siguen pudiendo importar desde acá (viven en js_tools.mjs)
 export { loadScripts, syntaxOf, runAcceptance, findMember, replaceMember, stripComments, topNames, clashes, shadowProblems } from "./js_tools.mjs";
 
-export const ENGINE_VERSION = "files_engine v0.13.0";
+export const ENGINE_VERSION = "files_engine v0.13.1";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
@@ -157,6 +157,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
   if (!P?.kinds || !P.systemPrompt || !P.prepare || !P.finish) throw new Error("PLATFORM_REQUIRED: el motor por archivos necesita una plataforma (kit) con systemPrompt, kinds, prepare y finish");
   const log = opts.log || console.log;
   const model = opts.model || MODEL;
+  const sampling = { temperature: opts.temperature ?? 0, seed: opts.seed ?? null };
   const hints = S.hints ? S.hints(refined) : {};
   const prep = P.prepare({ refined, tasks }, opts, S);
   const { brief, notes } = prep;
@@ -183,7 +184,8 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
     const promptTokens = estTokens(system) + estTokens(user);
     const maxTokens = Math.max(1500, Math.min(cap, CONTEXT - promptTokens - 200));
     const t0 = Date.now();
-    const data = await chatStream(LM_STUDIO_URL, { model, messages: [{ role: "system", content: system }, { role: "user", content: user }], temperature: opts.temperature ?? 0, max_tokens: maxTokens });
+    // v0.13.1 (15/10, p48): temperatura y seed vienen de afuera (réplicas); por defecto temperatura 0 y sin seed, como siempre
+    const data = await chatStream(LM_STUDIO_URL, { model, messages: [{ role: "system", content: system }, { role: "user", content: user }], temperature: sampling.temperature, ...(sampling.seed != null ? { seed: sampling.seed } : {}), max_tokens: maxTokens });
     return { raw: data.content || "", ms: Date.now() - t0, finish_reason: data.finish_reason ?? null, reasoning_chars: data.reasoning_chars ?? 0, usage: data.usage ?? null, ttft_ms: data.ttft_ms ?? null, promptTokens, maxTokens };
   };
   const fence = (lang, s) => "```" + lang + "\n" + (String(s || "").trim() || "(vacío)") + "\n```";
@@ -291,7 +293,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
 
   log(`[SPECIALIST] tareas por paso: ${assignmentSummary(assignment)}`);
   if (opts.skills) log(`[SPECIALIST] Skills del Role ${opts.skills.role} (${opts.skills.status}): ${opts.skills.list.map((x) => x.id).join(", ")}`);
-  log(`[SPECIALIST] ${ENGINE_VERSION} · Standard ${S.id} v${S.version} (${S.status}) · plataforma ${P.id || "?"}: ${S.steps.length} pasos chicos (un archivo por paso)${S.hintsText ? ` · ${S.hintsText(hints)}` : ""}`);
+  log(`[SPECIALIST] ${ENGINE_VERSION} · Standard ${S.id} v${S.version} (${S.status}) · plataforma ${P.id || "?"}: ${S.steps.length} pasos chicos (un archivo por paso)${S.hintsText ? ` · ${S.hintsText(hints)}` : ""} · temperatura ${sampling.temperature}${sampling.seed != null ? ` · seed ${sampling.seed}` : ""}`);
   // v0.9.7 (10/10, banco por paso): opts.bench = { step, frozen: { files, fragment, raws }, maxAttempts, prefix, noRepair }.
   // Los pasos de antes NO se piden a Gemma: se cargan de un build anterior (entradas fijas); se corre
   // solo `step` y se corta. Así la diferencia entre muestras viene solo del pedido de ese paso.
@@ -327,7 +329,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
   log(`[SPECIALIST] app/: ${outFiles.join(", ")}${steps.some((s) => s.problems_final.length) ? ` · quedan problemas en: ${steps.filter((s) => s.problems_final.length).map((s) => s.task_id).join(", ")}` : " · todos los pasos OK"}`);
   const firstLogic = S.steps.find((s) => s.kind === "logic");
   return {
-    model, specialist_version: ENGINE_VERSION, platform: P.id || null, standard: { id: S.id, version: S.version, status: S.status },
+    model, sampling, specialist_version: ENGINE_VERSION, platform: P.id || null, standard: { id: S.id, version: S.version, status: S.status },
     skills: opts.skills ? { role: opts.skills.role, status: opts.skills.status, ids: opts.skills.list.map((x) => x.id) } : null,
     files: outFiles,
     hints, data: Object.fromEntries(Object.entries(ctx.data).map(([k, v]) => [k, v.summary])),

@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-14l'; // tablero actualizado al 14/10 (paso enlace: Standard v0.6, motor v0.13, task_verdict v0.2)
+  const SEED = '2026-10-15a'; // tablero actualizado al 15/10 (enlace con Gemma: 13/13, 12 CUMPLIDAS; columnas apiladas → Standard v0.6.1)
   let state = loadState() || {
  "columns": [
   {
@@ -436,7 +436,7 @@
     {
      "id": "p47",
      "title": "Traductor: agrega un contador que nadie pidió (R3 comentarios)",
-     "desc": "[#Validation #Traductor] Run 00-25-22: R3 'Agregar comentarios a las tarjetas' → action_changes + counter_on_action ('no hay ningún número junto a: comentarios') → FAIL. El brief no pide contador: Gemma-traductor sumó un chequeo inventado y el FAIL es falso. Ya pasó en builds anteriores ('R3 FAIL contador, conocido'). Idea: counter_on_action solo si el texto del requisito nombra un número/contador/cantidad (regla determinista sobre la salida del traductor).",
+     "desc": "[#Validation #Traductor] Run 00-25-22: R3 'Agregar comentarios a las tarjetas' → action_changes + counter_on_action ('no hay ningún número junto a: comentarios') → FAIL. El brief no pide contador: Gemma-traductor sumó un chequeo inventado y el FAIL es falso. Ya pasó en builds anteriores ('R3 FAIL contador, conocido') y otra vez en 02-27-10. Idea: counter_on_action solo si el texto del requisito nombra un número/contador/cantidad (regla determinista sobre la salida del traductor).",
      "priority": "medio"
     },
     {
@@ -582,7 +582,7 @@
     {
      "id": "p35",
      "title": "Punto 9 · Las tareas atómicas manejan la construcción",
-     "desc": "[#Specialist #Contrato #Atomizer #Validation] Pasos 1 y 2 andan. Paso 3: la relación tarea → acción sale del paso ENLACE (pedido chico al final, opcional; Standard v0.6). FALTA: build con Gemma de verdad para ver si el enlace sale bien y cuántas tareas quedan CUMPLIDAS.",
+     "desc": "[#Specialist #Contrato #Atomizer #Validation] Los 3 pasos andan con Gemma (build 02-27-10, n=1): enlace 13/13 al 1er intento, por tarea 12 CUMPLIDAS · 0 NO_CUMPLIDAS · 16 SIN_EVIDENCIA. FALTA: repetir (n≥2) y cerrar el punto; las 16 SIN_EVIDENCIA (datos/vista/estilo) no tienen prueba propia: decidir si se aceptan o se les busca evidencia.",
      "priority": "urgente"
     }
    ]
@@ -593,6 +593,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h52",
+     "title": "15/10 · Enlace con Gemma: 13/13, 12 CUMPLIDAS · columnas apiladas → aviso v0.6.1",
+     "desc": "[#Validation #Standard #Evidencia] Build 02-27-10: enlace 13/13 al 1er intento (63 s); F3.2 arrastrar → moverTarjeta, la regla lo dejó SIN_EVIDENCIA. Por tarea 12/0/16. Pero dibujar metió todo en .columnas y el CSS lo hizo flex EN COLUMNA: 3 columnas apiladas que ni el aviso ni Validation vieron. v0.6.1: contenedor flex en columna también es aviso. Fixture c15; test_controls 41/41, test_enlace 21/21.",
+     "priority": "bajo"
+    },
     {
      "id": "h51",
      "title": "14/10 · Punto 9 paso 3: paso ENLACE (qué acción hace cada tarea)",

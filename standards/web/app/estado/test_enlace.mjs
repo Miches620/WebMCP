@@ -47,6 +47,15 @@ t("no es un objeto → error", !!parseLinks([1], contract, mine).error && !!pars
 t("no ubica nada → error", /no ubica ninguna/.test(parseLinks({ otra: ["F2.4"] }, contract, mine).error || ""));
 t("de varios intentos se queda el mejor", bestLinks([pm.items[0], pg.items[0]], [rm, pg.reports[0]]) === 1);
 
+// ---------- 3b. la respuesta REAL de Gemma (build 2026-10-15T02-27-10, 1er intento, 63 s) ----------
+{
+  const fx = "../../../../profiles/web/validation/fixtures/real_kanban_c15/";
+  const c15 = J(fx + "contrato.json"), e15 = J(fx + "enlace.json");
+  const raw = { ...e15.enlace, [NINGUNA]: e15.ninguna };
+  const pr15 = parseLinks(raw, c15, mine);
+  t("respuesta real de Gemma: 13/13 ubicadas, sin problemas; F3.2 (arrastrar) va a moverTarjeta", !pr15.error && linkProblems(pr15.reports[0]).length === 0 && pr15.reports[0].porTarea["F3.2"].join() === "moverTarjeta" && linksSummary(pr15.items[0], pr15.reports[0]) === "enlace: 13/13 tareas ubicadas · 6/6 acciones con tareas", JSON.stringify(pr15.reports[0]));
+}
+
 // ---------- 4. con la clase de paso data del motor (como en un build) ----------
 {
   const env = { ctx, wrongNote: () => "" };

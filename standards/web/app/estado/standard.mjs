@@ -153,7 +153,11 @@ export const probeFor = (c, css = []) => `window.__probe = (function () {
       var isCtl = function (el) { return Array.prototype.some.call(el.classList, function (k) { return k.indexOf("ctl-") === 0; }); };
       var kids = Array.prototype.filter.call(box.children, function (el) { return !isCtl(el) && !(el.children.length && Array.prototype.every.call(el.children, isCtl)); });
       var w = kids.length === 1 ? kids[0] : null;
-      if (w && w.children.length >= 2 && !/flex|grid/.test(getComputedStyle(w).display)) wrapper = { app: appDisp, tag: w.tagName.toLowerCase(), cls: w.className || "" };
+      // v0.6.1 (build 2026-10-15T02-27-10): el contenedor SÍ era flex, pero en columna (.columnas { flex-direction: column }):
+      // las columnas igual quedaron apiladas y el chequeo no saltaba
+      var wcs = w ? getComputedStyle(w) : null;
+      var wCol = wcs && /flex/.test(wcs.display) && /column/.test(wcs.flexDirection);
+      if (w && w.children.length >= 2 && (!/flex|grid/.test(wcs.display) || wCol)) wrapper = { app: appDisp, tag: w.tagName.toLowerCase(), cls: w.className || "", dir: wCol ? wcs.flexDirection : null };
     }
     var res = { ok: true, wrapper: wrapper, children: box.children.length, total: texts.length, noButton: noButton, noId: noId, noField: noField, unstyled: unstyled, unused: unused, pairs: pairs, styledShare: els.length ? styledEls / els.length : 1,
       missing: texts.filter(function (t) { return txt.indexOf(norm(t)) < 0; }),
@@ -202,7 +206,7 @@ const validation = {
 
 const STANDARD = {
   id: "web/app/estado",
-  version: "0.6.0",
+  version: "0.6.1",
   status: "DRAFT",
   validation,
   label: "app de una pantalla con estado y acciones",
@@ -296,7 +300,7 @@ ${fence("json", CONTRACT_FMT)}`,
         if (p.unstyled?.length && p.unused?.length && (p.pairs?.length || (p.styledShare ?? 1) < 0.5)) out.push(`dibujar usa clases que no tienen estilo en styles.css (${p.unstyled.slice(0, 6).map((k) => "." + k).join(", ")}) y styles.css tiene estilo para clases que nadie usa (${p.unused.slice(0, 8).map((k) => "." + k).join(", ")})${p.pairs?.length ? `; parecen las mismas: ${p.pairs.slice(0, 4).map((x) => x.split("~").map((k) => "." + k).join(" ↔ ")).join(", ")}` : ""}: usá las clases de styles.css.`);
         if (!p.children) out.push("dibujar(App.crear()) no dibujó nada dentro de #app.");
         // v0.4.3: un contenedor de más entre #app y las piezas deshace la distribución del CSS
-        if (p.wrapper) out.push(`styles.css arma la distribución en #app (display: ${p.wrapper.app}), pero dibujar mete todo dentro de un solo <${p.wrapper.tag}${p.wrapper.cls ? ` class="${p.wrapper.cls}"` : ""}> que no la tiene: las piezas quedan apiladas una debajo de la otra. Poné los elementos directo dentro de #app, sin ese contenedor.`);
+        if (p.wrapper) out.push(`styles.css arma la distribución en #app (display: ${p.wrapper.app}), pero dibujar mete todo dentro de un solo <${p.wrapper.tag}${p.wrapper.cls ? ` class="${p.wrapper.cls}"` : ""}> ${p.wrapper.dir ? `que las pone una debajo de otra (flex-direction: ${p.wrapper.dir})` : "que no la tiene"}: las piezas quedan apiladas una debajo de la otra. Poné los elementos directo dentro de #app, sin ese contenedor.`);
         if (p.missing?.length) out.push(`estos textos del estado no se ven en #app: ${p.missing.slice(0, 5).map((t) => JSON.stringify(t)).join(", ")}${p.missing.length > 5 ? ` y ${p.missing.length - 5} más` : ""}. Todo lo que está en el estado se muestra.`);
         if (p.objectText) out.push(`en #app aparece "${p.objectText}": se escribió un objeto o un elemento como texto. Escribí sus propiedades (p.ej. item.texto) con textContent.`);
         // v0.4.2 (seguridad): el aviso vuelve al autor; Validation lo revisa aparte con el profile web/seguridad (SEG-1)

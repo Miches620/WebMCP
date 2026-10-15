@@ -177,6 +177,24 @@ t("v0.4.1, 6ª corrida: la compuerta sigue 6/6", g6.result === "PASS" && g6.rows
   const p14 = await probePage(join(d14, "probe.html"));
   const x14 = await xs(d14);
   t("build 00-25-22: columnas directo en #app + caja de controles → sin aviso y las 3 columnas lado a lado", p14.probe.wrapper === null && step("dibujo").expect(p14.probe).length === 0 && x14.length === 3 && new Set(x14).size === 3, JSON.stringify({ w: p14.probe.wrapper, m: step("dibujo").expect(p14.probe), x14 }));
+  // build 2026-10-15T02-27-10 (v0.6.0): dibujar metió todo en <div class="columnas"> y el CSS lo hizo flex EN COLUMNA:
+  // columnas apiladas (misma x) y el aviso no saltaba porque el contenedor sí era flex
+  const d15 = real(15);
+  const p15 = await probePage(join(d15, "probe.html"));
+  const x15 = await xs(d15);
+  t("build 02-27-10: contenedor flex en columna (.columnas) → aviso que lo dice, y en pantalla las 3 columnas apiladas", p15.probe.wrapper?.cls === "columnas" && p15.probe.wrapper?.dir === "column" && /las pone una debajo de otra \(flex-direction: column\)/.test(msg(p15)) && x15.length === 3 && new Set(x15).size === 1, JSON.stringify({ w: p15.probe.wrapper, x15 }));
+  // el mismo dibujo con las columnas directo en #app (como pide el aviso) → sin aviso y lado a lado
+  const fixed15 = readFileSync(join(FX(15), "js/dibujo.js"), "utf8").replace("const boardWrapper = document.createElement('div');", "const boardWrapper = appDiv;").replace("boardWrapper.className = 'columnas';", "").replace("appDiv.appendChild(boardWrapper);", "");
+  const d15f = real(15, fixed15);
+  const p15f = await probePage(join(d15f, "probe.html"));
+  const x15f = await xs(d15f);
+  t("el mismo dibujo sin el contenedor → sin aviso y las 3 columnas lado a lado", fixed15.includes("const boardWrapper = appDiv;") && !fixed15.includes("'columnas'") && p15f.probe.wrapper === null && new Set(x15f).size === 3, JSON.stringify({ w: p15f.probe.wrapper, x15f }));
+  {
+    const fx = FX(15), css = readFileSync(join(fx, "styles.css"), "utf8").replace("flex-direction: column;\n    gap: 20px;\n    width: 100%;", "flex-direction: row;\n    gap: 20px;\n    width: 100%;");
+    const dRow = app("kanban15_row", P(JSON.parse(readFileSync(join(fx, "contrato.json"), "utf8"))), readFileSync(join(fx, "js/dibujo.js"), "utf8"), css, readFileSync(join(fx, "js/logica.js"), "utf8"));
+    const pRow = await probePage(join(dRow, "probe.html"));
+    t("el mismo contenedor pero flex EN FILA → sin aviso (ya distribuye)", /flex-direction: row;\n    gap: 20px;\n    width: 100%/.test(css) && pRow.probe.wrapper === null, JSON.stringify(pRow.probe.wrapper));
+  }
 }
 
 console.log(`\n${ok}/${ok + fail} OK`);

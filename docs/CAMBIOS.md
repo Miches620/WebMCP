@@ -2,6 +2,27 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Build con el paso enlace: funciona (13/13 al 1er intento) · columnas apiladas que nadie vio → Standard v0.6.1 (15/10, `2026-10-15T02-27-10`)**
+- *Enlace:*
+  - **13/13 tareas ubicadas, 6/6 acciones con tareas, al 1er intento** (63 s, 762+1098 tokens). El reparto coincide con el que armé a mano.
+  - Gemma puso F3.2 ("arrastrar y soltar") en `moverTarjeta`, justo el caso que cubre la regla de arrastrar: quedó SIN_EVIDENCIA, no CUMPLIDA.
+  - **Por tarea: 12 CUMPLIDAS** (7 de lógica, cada una con 5 pruebas y la compuerta; 5 de controles), 0 NO_CUMPLIDAS y 16 SIN_EVIDENCIA. Es la primera vez que el veredicto por tarea sale de punta a punta con Gemma (n=1).
+- *Resto:*
+  - Contrato al 1er intento (6 acciones).
+  - Lógica: el 1er intento dio "App is not defined" y el reintento pasó 32/32.
+  - Compuerta 6/6 y SEG-1 PASS.
+  - Validation: 7 PASS, R3 FAIL (contador inventado, p47, segunda vez) y R7 SIN_EVIDENCIA.
+- *Lo que nadie vio:*
+  - `dibujar` metió todo en `<div class="columnas">`, y el CSS lo hizo `display: flex; flex-direction: column; width: 100%`. **Las 3 columnas quedaron apiladas** a todo el ancho (Chromium: x = 20, 20, 20).
+  - El aviso del contenedor (v0.4.3) no saltó, porque solo miraba contenedores que no fueran flex ni grid.
+  - Validation tampoco: ningún requisito habla de la distribución.
+- *Arreglo (v0.6.1):*
+  - Un contenedor único flex **en columna** también es aviso, y el mensaje lo dice: "que las pone una debajo de otra (flex-direction: column)".
+  - Un contenedor flex en fila no es aviso: ya distribuye.
+- *Fixture `real_kanban_c15`* (con `enlace.json` real; el `contrato.json` está reconstruido desde `js/datos.js` y las acciones, porque no vino en el run).
+  - `test_controls` 41/41: aviso con el run real; el mismo dibujo sin contenedor queda lado a lado; con `.columnas` en fila no hay aviso.
+  - `test_enlace` 21/21: la respuesta real de Gemma no tiene problemas.
+
 **Punto 9, paso 3: paso ENLACE (qué acción hace cada tarea) — Standard web/app/estado v0.6.0, files_engine v0.13.0, task_verdict v0.2 (14/10)**
 - *Decisión de Miche (14/10):* "seguimos con el paso enlace". Es un pedido chico aparte, después del contrato. Así no se vuelve a cargar el contrato, que se rompió con 18 tareas en el build `22-19-17`.
 - *Run de origen (`2026-10-15T00-25-22`, con v0.5.1):*

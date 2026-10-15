@@ -1,0 +1,113 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado) {
+    const appDiv = document.getElementById('app');
+    if (!appDiv) return;
+
+    // 1. Limpiar el contenedor principal
+    appDiv.innerHTML = '';
+
+    // 2. Crear el wrapper del tablero (Kanban Board Wrapper)
+    const boardWrapper = document.createElement('div');
+    boardWrapper.className = 'columnas';
+
+    // 3. Iterar sobre las columnas para renderizar cada columna
+    estado.columnas.forEach(columna => {
+        // Crear el contenedor de la columna
+        const colDiv = document.createElement('div');
+        colDiv.className = 'columna';
+        colDiv.id = columna.id;
+
+        // Título de la columna
+        const title = document.createElement('h2');
+        title.textContent = columna.nombre;
+        colDiv.appendChild(title);
+
+        // Contenedor donde irán las tarjetas (card-list)
+        const cardList = document.createElement('div');
+        cardList.className = 'card-list';
+        colDiv.appendChild(cardList);
+
+        // 4. Iterar sobre las tarjetas de la columna
+        columna.tarjetas.forEach(card => {
+            // Crear el elemento base de la tarjeta
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+            cardDiv.id = card.id;
+
+            // Título y Descripción
+            const titleEl = document.createElement('h3');
+            titleEl.className = 'card-titulo';
+            titleEl.textContent = card.titulo;
+            cardDiv.appendChild(titleEl);
+
+            const descriptionEl = document.createElement('p');
+            descriptionEl.className = 'card-descripcion';
+            descriptionEl.textContent = card.descripcion;
+            cardDiv.appendChild(descriptionEl);
+
+            // Etiquetas (F4.2)
+            if (card.etiquetas && card.etiquetas.length > 0) {
+                const tagsContainer = document.createElement('div');
+                tagsContainer.className = 'etiquetas-container';
+                card.etiquetas.forEach(tag => {
+                    const tagEl = document.createElement('span');
+                    tagEl.className = 'etiqueta';
+                    tagEl.style.backgroundColor = tag.color;
+                    tagEl.textContent = tag.nombre;
+                    tagsContainer.appendChild(tagEl);
+                });
+                cardDiv.appendChild(tagsContainer);
+            }
+
+            // Comentarios (F4.6)
+            if (card.comentarios && card.comentarios.length > 0) {
+                const commentsContainer = document.createElement('div');
+                commentsContainer.className = 'comentarios-container';
+                
+                // Renderizar comentarios en orden cronológico inverso (más reciente arriba, aunque el estado los dé ya listos)
+                card.comentarios.forEach(comment => {
+                    const commentDiv = document.createElement('div');
+                    commentDiv.className = 'comentario';
+
+                    const authorSpan = document.createElement('span');
+                    authorSpan.className = 'comentario-autor';
+                    authorSpan.textContent = `Por ${comment.autor}`;
+                    commentDiv.appendChild(authorSpan);
+
+                    const contentP = document.createElement('p');
+                    contentP.textContent = comment.contenido;
+                    commentDiv.appendChild(contentP);
+
+                    // Nota: El timestamp se puede mostrar, pero para mantener el código limpio y centrado en la estructura visible, solo mostramos autor/contenido.
+                    commentsContainer.appendChild(commentDiv);
+                });
+                cardDiv.appendChild(commentsContainer);
+            }
+
+
+            // Controles de acciones (F5)
+            const actionControls = controlesDe("tarjetas", card, estado);
+            if (actionControls) {
+                 cardDiv.appendChild(actionControls);
+            }
+
+            // Añadir la tarjeta al listado de la columna
+            cardList.appendChild(cardDiv);
+        });
+
+        // 5. Agregar el contenedor de la columna al wrapper del tablero
+        boardWrapper.appendChild(colDiv);
+    });
+
+    // 6. Agregar los controles generales (Crear Tarjeta) al final de #app
+    const generalControls = controlesDe("app", null, estado);
+    if (generalControls) {
+        boardWrapper.appendChild(document.createElement('hr')); // Separador visual
+        boardWrapper.appendChild(generalControls);
+    }
+
+    // 7. Insertar el tablero completo en #app
+    appDiv.appendChild(boardWrapper);
+}
+```

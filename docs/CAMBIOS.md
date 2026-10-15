@@ -17,7 +17,7 @@
   - En los 3 builds, R3 "Agregar comentarios a las tarjetas" llevó `counter_on_action` y dio FAIL ("no hay ningún número junto a: comentarios"). El requisito no pide contador.
   - Ahora `postprocessChecks` de web/app saca `counter_on_action` cuando el **texto** del requisito no nombra un número (contador, cantidad, número, puntaje, total, cuántos, movimientos, pasos…). Lo decide el código; el pedido al traductor no cambia.
   - `run_build` muestra el motivo del ajuste ("counter_on_action fuera: el requisito no nombra ningún número"). web/game tiene su propio postprocess y no se tocó.
-  - Con los 3 builds, R3 debería quedar PASS por `action_changes`; falta verlo en un build.
+  - **Confirmado en el build `2026-10-15T11-31-58`:** el log dice `[VALIDATION] R3: el harness ajustó chequeos action_changes,counter_on_action → action_changes (counter_on_action fuera: el requisito no nombra ningún número)`. R3 PASS, y Validation queda en **8 PASS · 0 FAIL · 1 SIN_EVIDENCIA** (R7). Contrato, lógica, CSS, dibujo y enlace salieron idénticos byte a byte a `real_kanban_c16` (temperatura 0): el único cambio es el chequeo.
 - *Probado:* `test_app` 29/29 (+5), `test_controls` 42/42 y la suite completa en verde, menos `test_roles`.
 
 **Build con el paso enlace: funciona (13/13 al 1er intento) · columnas apiladas que nadie vio → Standard v0.6.1 (15/10, `2026-10-15T02-27-10`)**

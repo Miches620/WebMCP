@@ -1,0 +1,63 @@
+```javascript
+moverTarjeta: function(estado, cardId, columnaOrigenId, columnaDestinoId) {
+    // 1. Encontrar índices y la tarjeta a mover en el estado de origen usando el estado original para consistencia
+    let origenIndex = -1;
+    let destinoIndex = -1;
+    let tarjetaAMoverData = null;
+
+    for (let i = 0; i < estado.columnas.length; i++) {
+        const columna = estado.columnas[i];
+
+        if (columna.id === columnaOrigenId) {
+            origenIndex = i;
+            // Buscar y clonar la tarjeta a mover
+            for (let j = 0; j < columna.tarjetas.length; j++) {
+                if (columna.tarjetas[j].id == cardId) {
+                    // Clonamos el objeto completo de la tarjeta para usarlo en el destino
+                    tarjetaAMoverData = JSON.parse(JSON.stringify(columna.tarjetas[j]));
+                    break;
+                }
+            }
+        }
+        if (columna.id === columnaDestinoId) {
+            destinoIndex = i;
+        }
+    }
+
+    // Validación de existencia o si el movimiento es redundante
+    if (origenIndex === -1 || destinoIndex === -1 || !tarjetaAMoverData || origenIndex === destinoIndex) {
+        return estado; 
+    }
+    
+    // Creamos una copia profunda del estado para garantizar inmutabilidad
+    const nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+    // --- Paso 2: Eliminar la tarjeta del origen ---
+    const columnaOrigenActual = nuevoEstado.columnas[origenIndex];
+    const tarjetasOrigenActuales = [...columnaOrigenActual.tarjetas];
+    
+    // Filtramos el array de tarjetas, excluyendo la que se va a mover
+    const nuevasTarjetasOrigen = tarjetasOrigenActuales.filter(card => card.id != cardId);
+
+    // Reemplazamos el objeto columna en el nuevo estado (manteniendo propiedades como titulo/comentarios)
+    nuevoEstado.columnas[origenIndex] = {
+        ...columnaOrigenActual, 
+        tarjetas: nuevasTarjetasOrigen
+    };
+
+    // --- Paso 3: Añadir la tarjeta al destino ---
+    const columnaDestinoActual = nuevoEstado.columnas[destinoIndex];
+    const tarjetasDestinoActuales = [...columnaDestinoActual.tarjetas];
+    
+    // Creamos el nuevo array de destino añadiendo la tarjeta clonada
+    const nuevasTarjetasDestino = [...tarjetasDestinoActuales, tarjetaAMoverData]; 
+
+    // Reemplazamos el objeto columna en el nuevo estado
+    nuevoEstado.columnas[destinoIndex] = {
+        ...columnaDestinoActual, 
+        tarjetas: nuevasTarjetasDestino
+    };
+
+    return nuevoEstado;
+}
+```

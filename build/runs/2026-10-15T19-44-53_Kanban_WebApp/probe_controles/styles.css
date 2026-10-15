@@ -1,0 +1,209 @@
+/* --------------------------------------- */
+/* Variables Globales y Reset Base          */
+/* --------------------------------------- */
+:root {
+    --color-background: #1a1a2e; /* Deep Dark Blue/Navy */
+    --color-surface: #2c2c4d;     /* Slightly lighter surface for containers */
+    --color-text-primary: #f0f0f0; /* Light text color */
+    --color-text-secondary: #aaaaaa; /* Secondary text color (placeholders, helpers) */
+    --color-accent-main: #e94560; /* Primary accent/action color (Reddish/Industrial) */
+    --color-accent-hover: #ff6b6b;/* Lighter hover state for accents */
+    --color-border: #3a3a6e;     /* Subtle border color */
+    --shadow-dark: 0 4px 12px rgba(0, 0, 0, 0.5); /* Deep shadow for industrial feel */
+    --radius: 8px;                /* Global radius */
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    line-height: 1.6;
+    padding: 20px;
+}
+
+h1 {
+    margin-bottom: 30px;
+    font-weight: 300; /* Industrial/Modern feel */
+    color: var(--color-text-primary);
+    border-bottom: 2px solid var(--color-accent-main);
+    display: inline-block;
+    padding-bottom: 5px;
+}
+
+/* --------------------------------------- */
+/* Contenedor Kanban Board (La App)          */
+/* --------------------------------------- */
+#app {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto; /* Allows horizontal scrolling if many columns exist */
+    padding-bottom: 10px;
+}
+
+/* Estilo de las Columnas (Estado.columnas[]) */
+.kanban-column {
+    min-width: 300px;
+    max-width: 350px;
+    background-color: var(--color-surface);
+    border-radius: var(--radius);
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.column-header h3 {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    color: var(--color-accent-main);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 5px;
+}
+
+/* Contenedor de Tarjetas dentro de la Columna */
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 50px; /* Ensures space even when empty */
+}
+
+
+/* --------------------------------------- */
+/* Tarjetas (Card) - Estilo principal     */
+/* --------------------------------------- */
+
+.card {
+    background-color: #232341; /* Slightly darker than surface for contrast */
+    border-radius: var(--radius);
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Default shadow */
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    border-left: 5px solid var(--color-accent-main); /* Industrial accent stripe */
+}
+
+/* Efecto Hover (Iluminación/Elevación) */
+.card:hover {
+    transform: translateY(-3px); /* Slight lift effect */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), 0 0 15px var(--color-accent-hover); /* Enhanced shadow/glow */
+}
+
+/* Estilo del Título de la Tarjeta */
+.card-title {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: var(--color-text-primary);
+}
+
+/* Descripción y Contenido Adicional */
+.card-description, .card-content-additional {
+    font-size: 0.9em;
+    color: var(--color-text-secondary);
+    margin-bottom: 12px;
+    white-space: pre-wrap; /* Respects formatting from content_adicional */
+}
+
+/* Etiquetas (Labels) */
+.labels-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.label {
+    font-size: 0.75em;
+    padding: 4px 8px;
+    border-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent background */
+    color: var(--color-text-primary);
+    display: inline-block;
+    font-weight: semi-bold;
+}
+
+/* Comentarios y Controles de Interacción (Área de acciones) */
+.card-meta {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--color-border);
+}
+
+.comment {
+    background-color: #2d2d4a;
+    padding: 8px;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    font-size: 0.85em;
+    border-left: 3px solid var(--color-accent-main);
+}
+
+.comment-author {
+    font-weight: bold;
+    color: #b3e5fc; /* Light blue for authors */
+    display: block;
+    margin-bottom: 2px;
+}
+
+/* Estilo general para los controles de acción (ControlesDe) */
+.ctl-controles {
+    padding: 10px;
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Estilo de los elementos de control (Inputs, Selects) */
+.ctl-accion input[type="text"],
+.ctl-accion textarea,
+.ctl-accion select {
+    padding: 8px;
+    border: 1px solid var(--color-border);
+    background-color: #1a1a30; /* Very dark background for inputs */
+    color: var(--color-text-primary);
+    border-radius: 4px;
+    flex-grow: 1; /* Allows fields to expand nicely */
+}
+
+/* Botones de Acción (ctl-boton) */
+.ctl-accion .ctl-boton {
+    padding: 8px 15px;
+    background-color: var(--color-accent-main);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.ctl-accion .ctl-boton:hover {
+    background-color: var(--color-accent-hover);
+    transform: translateY(-1px);
+}
+
+/* Controles para la creación de tarjetas (Al final de la columna) */
+.create-card-area {
+    padding: 20px 0;
+    border-top: 1px solid var(--color-border);
+    margin-top: 15px;
+}
+
+/* Media Queries for better responsiveness if needed, though flexbox handles most of it */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    #app {
+        flex-direction: column;
+    }
+    .kanban-column {
+        min-width: auto;
+        max-width: 100%;
+    }
+}

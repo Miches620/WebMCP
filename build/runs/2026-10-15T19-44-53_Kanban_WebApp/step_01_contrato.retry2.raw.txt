@@ -1,0 +1,121 @@
+### FILE: contrato.json
+```json
+{
+  "estado": {
+    "columnas": [
+      {
+        "id": "pendiente",
+        "titulo": "Pendiente",
+        "tarjetas": [
+          {
+            "id": 101,
+            "titulo": "Configurar base de datos",
+            "descripcion": "Definir la estructura inicial del estado y las columnas.",
+            "contenido_adicional": null,
+            "labels": [
+              {"nombre": "Backend", "color": "#ff6347"}
+            ],
+            "comentarios": [
+              {"autor": "Admin", "contenido": "Recordar validar el contrato antes de escribir código.", "timestamp": 1678886400},
+              {"autor": "Usuario A", "contenido": "Necesitamos que este paso quede documentado en la wiki.", "timestamp": 1678972800}
+            ]
+          },
+          {
+            "id": 102,
+            "titulo": "Diseño UI Oscuro",
+            "descripcion": null,
+            "contenido_adicional": "Usar paleta de colores oscura e industrial.",
+            "labels": [],
+            "comentarios": []
+          }
+        ]
+      },
+      {
+        "id": "en_curso",
+        "titulo": "En Curso",
+        "tarjetas": [
+          {
+            "id": 201,
+            "titulo": "Implementar lógica de movimiento",
+            "descripcion": "Mover tarjetas entre columnas usando la función App.moverTarjeta.",
+            "contenido_adicional": null,
+            "labels": [],
+            "comentarios": []
+          }
+        ]
+      },
+      {
+        "id": "completado",
+        "titulo": "Completado",
+        "tarjetas": [
+          {
+            "id": 301,
+            "titulo": "Definir contrato inicial",
+            "descripcion": "Contrato JSON completado y validado.",
+            "contenido_adicional": null,
+            "labels": [
+              {"nombre": "Diseño", "color": "#4682b4"}
+            ],
+            "comentarios": []
+          }
+        ]
+      }
+    ]
+  },
+  "acciones": [
+    {
+      "nombre": "agregarTarjeta",
+      "params": ["columnaId", "titulo", "descripcion"],
+      "ejemplo": ["pendiente", "Nueva Tarea", "Descripción inicial de la tarea."],
+      "hace": "Crea una nueva tarjeta en la columna especificada.",
+      "features": [1],
+      "cambia": ["columnas"]
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": ["cardId", "columnaOrigenId", "columnaDestinoId"],
+      "ejemplo": [201, "pendiente", "en_curso"],
+      "hace": "Mueve una tarjeta de su columna actual a la columna destino.",
+      "features": [2],
+      "cambia": ["columnas"]
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": ["cardId", "tituloNuevo", "descripcionNueva"],
+      "ejemplo": [101, "Configurar DB V2", "Descripción actualizada y detallada."],
+      "hace": "Actualiza el título y la descripción de una tarjeta existente.",
+      "features": [5],
+      "cambia": ["columnas"]
+    },
+    {
+      "nombre": "borrarTarjeta",
+      "params": ["cardId"],
+      "ejemplo": [102],
+      "hace": "Elimina completamente una tarjeta del tablero.",
+      "features": [6],
+      "cambia": ["columnas"]
+    },
+    {
+      "nombre": "agregarComentario",
+      "params": ["cardId", "contenidoComentario"],
+      "ejemplo": [101, "Revisé los comentarios. Todo correcto."],
+      "hace": "Añade un nuevo comentario a una tarjeta específica.",
+      "features": [3],
+      "cambia": ["columnas"]
+    },
+    {
+      "nombre": "añadirEtiqueta",
+      "params": ["cardId", "nombreEtiqueta", "colorEtiqueta"],
+      "ejemplo": [102, "UX/UI", "#add8e6"],
+      "hace": "Asocia una nueva etiqueta a la tarjeta.",
+      "features": [4],
+      "cambia": ["columnas"]
+    }
+  ],
+  "se_ve": [
+    7,
+    8,
+    9
+  ]
+}
+```

@@ -1,0 +1,193 @@
+/* ------------------------------------------ */
+/* F1.1 Configuración Global y Variables */
+/* Paleta Oscura e Industrial */
+/* ------------------------------------------ */
+:root {
+    --color-bg-primary: #1a1a2e; /* Fondo principal oscuro (Deep Navy/Indigo) */
+    --color-bg-secondary: #2c3e50; /* Fondo de contenedores más oscuros */
+    --color-text-main: #ecf0f1; /* Texto claro, casi blanco */
+    --color-accent-primary: #3498db; /* Azul brillante (Acento principal) */
+    --color-border: #4a4a6e; /* Bordes sutiles */
+    --color-success: #2ecc71; /* Verde éxito */
+    --color-warning: #f39c12; /* Naranja advertencia */
+    --color-danger: #e74c3c; /* Rojo peligro */
+    --shadow-default: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-main);
+    margin: 20px;
+    padding: 0;
+}
+
+/* Contenedor Principal del Kanban */
+#app {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start; /* Asegura que las columnas empiecen desde arriba */
+}
+
+/* ------------------------------------------ */
+/* Estilo de Columnas (Listas) */
+/* ------------------------------------------ */
+.columna {
+    flex: 1;
+    min-width: 300px;
+    background-color: var(--color-bg-secondary);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2); /* Sombra interna para el fondo */
+}
+
+.columna h2 {
+    color: var(--color-accent-primary);
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 10px;
+    margin-top: 0;
+    font-size: 1.5em;
+}
+
+/* Contenedor de Tarjetas dentro de la columna */
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espacio entre tarjetas */
+    padding-top: 10px;
+}
+
+/* ------------------------------------------ */
+/* F2.7, F4.9, F4.10: Estilo y Efectos de Tarjetas (.card) */
+/* ------------------------------------------ */
+.card {
+    background-color: #3b4d65; /* Fondo ligeramente más claro que la columna */
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: var(--shadow-default); /* Sombra normal */
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    position: relative; /* Necesario para posicionar elementos internos si es necesario */
+}
+
+/* Efecto Hover (Iluminación/Elevación) */
+.card:hover {
+    transform: translateY(-5px); /* Levantar la tarjeta */
+    box-shadow: 0 12px 20px rgba(52, 152, 219, 0.4), 0 6px 10px rgba(0, 0, 0, 0.3); /* Sombra más visible y azulada */
+    background-color: #3a506b;
+}
+
+/* Título de la Tarjeta */
+.card h3 {
+    margin-top: 0;
+    color: var(--color-text-main);
+    font-size: 1.2em;
+}
+
+/* Descripción y Contenido Adicional */
+.card p {
+    margin: 5px 0;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+/* Etiquetas (Labels) */
+.labels-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 10px 0 15px 0;
+}
+
+.label {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: bold;
+    color: var(--color-text-main); /* Texto blanco sobre etiqueta */
+}
+
+/* Comentarios */
+.comments-container {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid var(--color-border);
+}
+
+.comment {
+    background-color: #28364a; /* Fondo oscuro para el comentario */
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    color: var(--color-accent-primary);
+}
+
+/* ------------------------------------------ */
+/* Controles de Acciones (Inputs, Botones) */
+/* Estilo para los elementos generados por controlesDe() */
+/* ------------------------------------------ */
+.ctl-controles {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
+    border-top: 2px dashed var(--color-border);
+}
+
+.ctl-accion {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background-color: #3e5470; /* Fondo suave para agrupar acciones */
+    padding: 10px;
+    border-radius: 6px;
+}
+
+/* Inputs y Textareas */
+input[type="text"], input[type="date"], select, textarea {
+    width: calc(100% - 20px);
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    background-color: #2c3e50;
+    color: var(--color-text-main);
+    border-radius: 4px;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Botones */
+.ctl-boton {
+    background-color: var(--color-accent-primary);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease, transform 0.1s;
+}
+
+.ctl-boton:hover {
+    background-color: #3c7ecb; /* Tono más oscuro al pasar el mouse */
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-default);
+}
+
+/* Estilos específicos para acciones de botones (ej: botón de eliminar) */
+.ctl-accion .btn-eliminar {
+    background-color: var(--color-danger);
+}
+
+.ctl-accion .btn-eliminar:hover {
+    background-color: #c0392b;
+}

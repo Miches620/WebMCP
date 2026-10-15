@@ -1,0 +1,169 @@
+const App = {
+    /** Crea una copia profunda del estado inicial. */
+    crear: function() {
+        return JSON.parse(JSON.stringify(ESTADO_INICIAL));
+    },
+
+    /** Agrega una tarjeta nueva a la columna especificada. */
+    agregarTarjeta: function(estado, columnaId, titulo, descripcion) {
+        const newCard = {
+            id: Date.now() + Math.floor(Math.random() * 100), // ID único simple
+            titulo: titulo,
+            descripcion: descripcion || "",
+            contenido_adicional: null,
+            labels: [],
+            comentarios: []
+        };
+
+        const nuevoEstado = JSON.parse(JSON.stringify(estado));
+        let columnaEncontrada = false;
+
+        for (let i = 0; i < nuevoEstado.columnas.length; i++) {
+            if (nuevoEstado.columnas[i].id === columnaId) {
+                // Clonar la columna y añadir la tarjeta clonada
+                const nuevaColumna = JSON.parse(JSON.stringify(nuevoEstado.columnas[i]));
+                nuevaColumna.tarjetas = [...nuevoEstado.columnas[i].tarjetas, newCard];
+                
+                // Reemplazar la columna en el nuevo estado
+                nuevoEstado.columnas[i] = nuevaColumna;
+                columnaEncontrada = true;
+                break;
+            }
+        }
+
+        if (!columnaEncontrada) {
+            console.error("Columna no encontrada:", columnaId);
+            return estado; // Retorna el estado original si la columna no existe
+        }
+
+        return nuevoEstado;
+    },
+
+    /** Mueve una tarjeta de una columna a otra. */
+    moverTarjeta: function(estado, cardId, columnaOrigenId, columnaDestinoId) {
+        const nuevoEstado = JSON.parse(JSON.stringify(estado));
+        let cardMovida = null;
+        let indiceOrigenColumna = -1;
+
+        // 1. Encontrar la tarjeta y su índice de origen
+        for (let i = 0; i < nuevoEstado.columnas.length; i++) {
+            const columna = nuevoEstado.columnas[i];
+            if (columna.id === columnaOrigenId) {
+                indiceOrigenColumna = i;
+                cardMovida = columna.tarjetas.find(c => c.id == cardId);
+                break; 
+            }
+        }
+
+        if (!cardMovida || !nuevoEstado.columnas[indiceOrigenColumna]) {
+            return estado; // Tarjeta o columna de origen no encontrada
+        }
+
+        // 2. Eliminar la tarjeta del origen (clonando el array)
+        const tarjetasOrigen = nuevoEstado.columnas[indiceOrigenColumna].tarjetas;
+        const nuevasTarjetasOrigen = tarjetasOrigen.filter(card => card.id != cardId);
+        nuevoEstado.columnas[indiceOrigenColumna] = {
+            ...nuevoEstado.columnas[indiceOrigenColumna],
+            tarjetas: nuevasTarjetasOrigen
+        };
+
+        // 3. Añadir la tarjeta al destino (clonando el array)
+        for (let i = 0; i < nuevoEstado.columnas.length; i++) {
+            if (nuevoEstado.columnas[i].id === columnaDestinoId) {
+                const nuevaColumna = JSON.parse(JSON.stringify(nuevoEstado.columnas[i]));
+                nuevaColumna.tarjetas = [...nuevaColumna.tarjetas, cardMovida];
+                nuevoEstado.columnas[i] = nuevaColumna;
+                break;
+            }
+        }
+
+        return nuevoEstado;
+    },
+
+    /** Edita el título y la descripción de una tarjeta existente. */
+    editarTarjeta: function(estado, cardId, tituloNuevo, descripcionNueva) {
+        const nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        for (let i = 0; i < nuevoEstado.columnas.length; i++) {
+            const columna = nuevoEstado.columnas[i];
+            for (let j = 0; j < columna.tarjetas.length; j++) {
+                const tarjeta = columna.tarjetas[j];
+                if (tarjeta.id == cardId) {
+                    // Actualizar la copia
+                    columna.tarjetas[j] = {
+                        ...tarjeta, // Mantener otras propiedades
+                        titulo: tituloNuevo || tarjeta.titulo,
+                        descripcion: descripcionNueva || tarjeta.descripcion
+                    };
+                    return nuevoEstado;
+                }
+            }
+        }
+
+        console.error("Tarjeta no encontrada para editar:", cardId);
+        return estado;
+    },
+
+    /** Borra completamente una tarjeta del estado. */
+    borrarTarjeta: function(estado, cardId) {
+        const nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        for (let i = 0; i < nuevoEstado.columnas.length; i++) {
+            const columna = nuevoEstado.columnas[i];
+            // Filtrar tarjetas sin el ID dado
+            columna.tarjetas = columna.tarjetas.filter(card => card.id != cardId);
+
+            // Verificación temprana (solo para optimización, pero es suficiente iterar hasta el final)
+        }
+        return nuevoEstado;
+    },
+
+    /** Añade un comentario a una tarjeta específica. */
+    agregarComentario: function(estado, cardId, contenidoComentario) {
+        const nuevoEstado = JSON.parse(JSON.stringify(estado));
+        const nuevoComentario = {
+            autor: "Usuario", // Placeholder simple
+            contenido: contenidoComentario,
+            timestamp: Date.now() 
+        };
+
+        for (let i = 0; i < nuevoEstado.columnas.length; i++) {
+            const columna = nuevoEstado.columnas[i];
+            for (let j = 0; j < columna.tarjetas.length; j++) {
+                const tarjeta = columna.tarjetas[j];
+                if (tarjeta.id == cardId) {
+                    // Clonar el array de comentarios y añadir el nuevo comentario
+                    columna.tarjetas[j].comentarios = [...columna.tarjetas[j].comentarios, nuevoComentario];
+                    return nuevoEstado;
+                }
+            }
+        }
+
+        console.error("Tarjeta no encontrada para agregar comentario:", cardId);
+        return estado;
+    },
+
+    /** Asocia una etiqueta a la tarjeta. */
+    anadirEtiqueta: function(estado, cardId, nombreEtiqueta, colorEtiqueta) {
+        const nuevoEstado = JSON.parse(JSON.stringify(estado));
+        const nuevaEtiqueta = { 
+            nombre: nombreEtiqueta, 
+            color: colorEtiqueta 
+        };
+
+        for (let i = 0; i < nuevoEstado.columnas.length; i++) {
+            const columna = nuevoEstado.columnas[i];
+            for (let j = 0; j < columna.tarjetas.length; j++) {
+                const tarjeta = columna.tarjetas[j];
+                if (tarjeta.id == cardId) {
+                    // Clonar el array de etiquetas y añadir la nueva etiqueta
+                    columna.tarjetas[j].labels = [...columna.tarjetas[j].labels, nuevaEtiqueta];
+                    return nuevoEstado;
+                }
+            }
+        }
+
+        console.error("Tarjeta no encontrada para añadir etiqueta:", cardId);
+        return estado;
+    }
+};

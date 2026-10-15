@@ -30,7 +30,7 @@ import { assignByStep, assignmentText, assignmentSummary } from "./assignments.m
 // compatibilidad: las herramientas de JS se siguen pudiendo importar desde acá (viven en js_tools.mjs)
 export { loadScripts, syntaxOf, runAcceptance, findMember, replaceMember, stripComments, topNames, clashes, shadowProblems } from "./js_tools.mjs";
 
-export const ENGINE_VERSION = "files_engine v0.13.1";
+export const ENGINE_VERSION = "files_engine v0.13.2";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
@@ -231,6 +231,10 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
       return { content, rec };
     }
     let best = null, prev = null, problems = [];
+    // v0.13.2 (15/10, réplicas 19-09-35/19-28-17/19-44-53: enlace v0.2, 9 de 9 intentos con 1497 de 1500 tokens de
+    // razonamiento y la respuesta VACÍA, finish=length): si el modelo se queda sin espacio antes de escribir, el
+    // reintento con el mismo tope da lo mismo. Se duplica el tope (hasta lo que entra en el contexto).
+    let cap = st.cap || 4000;
     for (let k = 0; k < (opts.bench?.maxAttempts || 3); k++) {
       ctx.have = K.count ? K.count() : 0;
       // datos: lo válido ya quedó guardado; el reintento pide solo lo que falta (b11: los reintentos
@@ -244,7 +248,7 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
       const tareas = assignmentText(mine);
       // v0.13: st.bare = un pedido chico que no necesita el brief ni el contrato del Standard (solo su propio pedido)
       const user = (opts.bench?.prefix ? `${opts.bench.prefix}\n\n` : "") + (st.bare ? `${st.prompt(ctx)}\n\n` : `BRIEF:\n${brief}\n\n${contract()}\n\n${sk ? sk + "\n\n" : ""}${tareas ? tareas + "\n\n" : ""}${st.prompt(ctx)}\n\n`) + retry;
-      const r = await ask(P.systemPrompt, user, st.cap || 4000);
+      const r = await ask(P.systemPrompt, user, cap);
       writeFileSync(join(outDir, `step_${String(n).padStart(2, "0")}_${st.id}${k ? ".retry" + k : ""}.raw.txt`), r.raw, "utf8");
       const att = { k, ms: r.ms, finish_reason: r.finish_reason, reasoning_chars: r.reasoning_chars, prompt_tokens_est: r.promptTokens, max_tokens: r.maxTokens };
       // 12/10: tokens REALES que informa LM Studio (prompt_tokens_est es solo largo/3.2). Solo se registran.
@@ -264,6 +268,12 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
       // v0.9.9: arreglos deterministas de la clase de paso (sin Gemma), antes de juzgar
       if (K.fix) content = (await K.fix(content, att)) || content;
       problems = await judge(content);
+      if (r.finish_reason === "length" && !String(r.raw || "").trim()) {
+        att.out_of_budget = true;
+        const next = Math.min(cap * 2, CONTEXT - r.promptTokens - 200);
+        problems = fatal([`la respuesta se cortó antes de escribir nada: se usó todo el espacio (${r.maxTokens} tokens) en pensar. Respondé directo con ${names.join(" y ")}, sin explicar.`]);
+        if (next > cap) { att.next_cap = next; cap = next; }
+      }
       att.first_problems = [...problems]; // v0.9.7 (banco por paso): lo que dio la respuesta de Gemma, antes de reparar
       att.first_fatal = !!problems.fatal;
       if (problems.length && repair && !opts.bench?.noRepair) {

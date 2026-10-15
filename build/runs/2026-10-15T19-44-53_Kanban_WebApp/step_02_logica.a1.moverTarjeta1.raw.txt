@@ -1,0 +1,53 @@
+```javascript
+moverTarjeta: function(estado, cardId, columnaOrigenId, columnaDestinoId) {
+    const nuevoEstado = JSON.parse(JSON.stringify(estado));
+    let indiceOrigenColumna = -1;
+    let indiceDestinoColumna = -1;
+
+    // 1. Encontrar índices de las columnas de origen y destino
+    for (let i = 0; i < nuevoEstado.columnas.length; i++) {
+        const columna = nuevoEstado.columnas[i];
+        if (columna.id === columnaOrigenId) {
+            indiceOrigenColumna = i;
+        }
+        if (columna.id === columnaDestinoId) {
+            indiceDestinoColumna = i;
+        }
+    }
+
+    // Verificar si ambas columnas existen
+    if (indiceOrigenColumna === -1 || indiceDestinoColumna === -1) {
+        return estado;
+    }
+
+    let origenColumna = nuevoEstado.columnas[indiceOrigenColumna];
+    let destinoColumna = nuevoEstado.columnas[indiceDestinoColumna];
+
+    // 2. Encontrar la tarjeta y clonarla (Payload limpio)
+    const tarjetaA_mover = origenColumna.tarjetas.find(c => c.id == cardId);
+    if (!tarjetaA_mover) {
+        return estado; // Tarjeta no encontrada en la columna de origen
+    }
+
+    // Clonamos el payload de la tarjeta para asegurarnos que es un objeto nuevo e independiente
+    const cardPayloadCopy = JSON.parse(JSON.stringify(tarjetaA_mover));
+
+    // 3. Actualizar Origen: Filtrar y reemplazar la columna de origen
+    const nuevasTarjetasOrigen = origenColumna.tarjetas.filter(card => card.id != cardId);
+
+    nuevoEstado.columnas[indiceOrigenColumna] = {
+        ...origenColumna, // Mantener otras propiedades (título, etc.)
+        tarjetas: nuevasTarjetasOrigen
+    };
+
+    // 4. Actualizar Destino: Añadir la tarjeta clonada y reemplazar la columna de destino
+    const nuevasTarjetasDestino = [...destinoColumna.tarjetas, cardPayloadCopy];
+
+    nuevoEstado.columnas[indiceDestinoColumna] = {
+        ...destinoColumna, // Mantener otras propiedades (título, etc.)
+        tarjetas: nuevasTarjetasDestino
+    };
+
+    return nuevoEstado;
+}
+```

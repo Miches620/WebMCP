@@ -172,5 +172,19 @@ t("motor sin plataforma → PLATFORM_REQUIRED", await (async () => { try { await
   t("muestreo por defecto: temperatura 0, sin seed en el pedido", bodies[0].temperature === 0 && !("seed" in bodies[0]) && r0.sampling.temperature === 0 && r0.sampling.seed === null);
   t("muestreo de réplica: temperatura 0.7 y seed 3 en el pedido y en el resultado", bodies[1].temperature === 0.7 && bodies[1].seed === 3 && r1.sampling.seed === 3);
 }
+// v0.13.2: respuesta vacía cortada por límite (todo en razonamiento) → el reintento duplica el tope
+{
+  const bodies = [], realFetch = globalThis.fetch;
+  let n = 0;
+  globalThis.fetch = async (_url, init) => { bodies.push(JSON.parse(init.body)); n++;
+    const ev = n === 1 ? { choices: [{ delta: { reasoning_content: "pienso…" }, finish_reason: "length" }], usage: { prompt_tokens: 100, completion_tokens: 1500, completion_tokens_details: { reasoning_tokens: 1497 } } }
+      : { choices: [{ delta: { content: '### FILE: a.json\n```json\n{"n":1}\n```' }, finish_reason: "stop" }] };
+    return new Response(`data: ${JSON.stringify(ev)}\n\ndata: [DONE]\n`); };
+  const D1 = { id: "a", kind: "data", answer: "a.json", cap: 1500, prompt: () => "P", parse: (j) => ({ items: [j], reports: [{}], dropped: [] }), need: () => 1, missing: () => "falta", emit: (i, r) => ({ items: i, reports: r, js: "" }) };
+  const r = await buildFiles({ refined: { project_name: "T", features: [] }, tasks: [] }, mkdtempSync(pjoin(tmpdir(), "cap-")), { standard: { id: "toy", version: "0", status: "DRAFT", scripts: [], contract: "C", steps: [D1] }, platform: { id: "toy", systemPrompt: "s", prepare: () => ({ brief: "", notes: "" }), finish: () => [], kinds: {} }, log: () => {} });
+  globalThis.fetch = realFetch;
+  const a0 = r.steps[0].attempts[0];
+  t("sin espacio para responder (vacía + length) → el reintento pide el doble de tokens y el problema lo dice", bodies[0].max_tokens === 1500 && bodies[1].max_tokens === 3000 && a0.out_of_budget === true && /se usó todo el espacio \(1500 tokens\) en pensar/.test(a0.first_problems[0]) && r.steps[0].attempts.length === 2 && !r.steps[0].broken, JSON.stringify({ m: bodies.map((b) => b.max_tokens), a0 }));
+}
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

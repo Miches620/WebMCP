@@ -1,0 +1,122 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado) {
+    const app = document.getElementById('app');
+    if (!app) return;
+
+    // 1. Limpiar el contenedor principal
+    app.innerHTML = '';
+
+    // 2. Crear y configurar el wrapper del tablero (F1.2)
+    const boardWrapper = document.createElement('div');
+    boardWrapper.className = 'kanban-board';
+    app.appendChild(boardWrapper);
+
+    // Helper para renderizar etiquetas (F4.2)
+    function renderLabels(container, card) {
+        if (!card.etiquetas || card.etiquetas.length === 0) {
+            return;
+        }
+        const labelsContainer = document.createElement('div');
+        labelsContainer.className = 'labels-container';
+
+        card.etiquetas.forEach(label => {
+            const labelEl = document.createElement('span');
+            labelEl.className = 'label';
+            labelEl.style.backgroundColor = label.color;
+            labelEl.textContent = label.nombre;
+            labelsContainer.appendChild(labelEl);
+        });
+
+        // Insertar el contenedor de etiquetas justo después del cuerpo principal de la tarjeta
+        container.querySelector('.card-body')?.parentNode.insertBefore(labelsContainer, container.querySelector('.card-actions') || container.querySelector('.card-footer'));
+    }
+
+
+    // 3. Iterar sobre las columnas (F1.4)
+    estado.columnas.forEach(col => {
+        // Crear el contenedor de la columna
+        const columnEl = document.createElement('div');
+        columnEl.className = 'column';
+
+        // Header de la Columna
+        const header = document.createElement('div');
+        header.className = 'column-header';
+        header.textContent = col.nombre;
+        columnEl.appendChild(header);
+
+        // Contenedor donde irán las tarjetas (área drop)
+        const cardsContainer = document.createElement('div');
+        cardsContainer.className = 'card-list';
+        columnEl.appendChild(cardsContainer);
+
+
+        // Dibujar Tarjetas dentro de la columna (F2.2, F4.6, etc.)
+        col.cards.forEach(card => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card';
+
+            // Contenido principal de la tarjeta
+            cardEl.innerHTML = `
+                <div class="card-title">${card.titulo}</div>
+                <div class="card-description">${card.descripcion}</div>
+                <div class="card-body"></div> 
+            `;
+            const cardBody = cardEl.querySelector('.card-body');
+
+            // Renderizar Etiquetas (F4.2)
+            renderLabels(cardEl, card);
+
+
+            // Dibujar el área de comentarios y su contenido (F4.6)
+            const commentsContainer = document.createElement('div');
+            commentsContainer.className = 'comments-container';
+            
+            if (card.comentarios && card.comentarios.length > 0) {
+                card.comentarios.forEach(comment => {
+                    const commentEl = document.createElement('div');
+                    commentEl.className = 'comment';
+                    commentEl.innerHTML = `
+                        <p class="comment-author">${comment.autor}</p>
+                        <p class="comment-contenido">${comment.contenido}</p>
+                        <p class="comment-timestamp">Hace ${Math.floor((Date.now() - comment.timestamp) / (1000 * 60)) / 60} minutos</p>
+                    `;
+                    commentsContainer.appendChild(commentEl);
+                });
+            } else {
+                 // Si no hay comentarios, solo el contenedor vacío para mantener la estructura
+                const emptyCommentPlaceholder = document.createElement('div');
+                emptyCommentPlaceholder.className = 'comment-placeholder';
+                emptyCommentPlaceholder.textContent = 'Aún no hay comentarios.';
+                commentsContainer.appendChild(emptyCommentPlaceholder);
+            }
+
+            // Añadir el contenedor de comentarios al final del cardBody o justo antes de acciones
+            cardBody.appendChild(document.createElement('hr')); // Separador visual
+            cardBody.appendChild(commentsContainer);
+
+
+            // 4. Agregar Controles de Acciones para la Tarjeta (F3.3, F2.2)
+            const controls = controlesDe("cards", card, estado);
+            if (controls) {
+                // Colocar los controles al final del cuerpo de la tarjeta
+                cardBody.appendChild(document.createElement('div')); // Espaciador antes de acciones
+                cardBody.appendChild(controls);
+            }
+
+            // Añadir la tarjeta al contenedor visible de tarjetas
+            cardsContainer.appendChild(cardEl);
+        });
+
+        // 5. Agregar Controles de Acciones para Columnas (Crear Tarjeta)
+        const columnControls = controlesDe("columnas", col, estado);
+        if (columnControls) {
+            // Colocar los controles debajo del header y arriba de las tarjetas
+             document.querySelector('.column-header')?.parentNode.appendChild(columnControls);
+        }
+
+        // Añadir la columna completa al wrapper del tablero
+        boardWrapper.appendChild(columnEl);
+    });
+}
+```

@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-15f'; // tablero actualizado al 15/10 (camino 1: enlace v0.2, vista/datos/estilo con evidencia)
+  const SEED = '2026-10-15g'; // tablero actualizado al 15/10 (enlace v0.2 sin espacio → tope 3000 + motor duplica el tope)
   let state = loadState() || {
  "columns": [
   {
@@ -581,6 +581,12 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h58",
+     "title": "15/10 · 3ª tanda: el enlace v0.2 se quedó sin espacio (9/9 vacíos) → tope 3000 + motor v0.13.2",
+     "desc": "[#Harness #Enlace #Evidencia] Réplicas 19-xx: Validation 8/8/6 PASS; por tarea 28 SIN_EVIDENCIA (enlace roto 3/3): 1497 de 1500 tokens de razonamiento, respuesta vacía, finish=length; el reintento pedía lo mismo. Enlace cap 3000; motor: respuesta vacía por tope → el problema lo dice y el reintento duplica el tope. Contrato: los 2 chequeos nuevos (lista doble, tildes) corrigieron la forma en la 3ª corrida; su FAIL fue moverTarjeta (lógica mal 3/3), visto por la compuerta. Probado con step_bench + LM falso. FALTA: step_bench --step enlace con Gemma.",
+     "priority": "bajo"
+    },
     {
      "id": "h57",
      "title": "15/10 · Camino 1 (p49): vista, datos y estilo con evidencia (enlace v0.2)",

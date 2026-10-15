@@ -212,7 +212,7 @@ const validation = {
 
 const STANDARD = {
   id: "web/app/estado",
-  version: "0.8.0",
+  version: "0.8.1",
   status: "DRAFT",
   validation,
   label: "app de una pantalla con estado y acciones",
@@ -329,10 +329,12 @@ ${fence("json", CONTRACT_FMT)}`,
       prompt: (c) => `${c.notes ? `NOTAS DEL TECHLEADER (contexto):\n${c.notes}\n\n` : ""}YA EXISTEN: ESTADO_INICIAL, App (crear, ${contractOf(c).acciones.map((a) => a.nombre).join(", ")}) y dibujar(estado), que dibuja un botón por acción con sus ids en b.dataset y sus campos al lado.\n\n${c.paso}: escribí js/controles.js: let estado = App.crear(); UN listener click en #app con const b = ev.target.closest("[data-accion]"), y por cada acción:\n${contractOf(c).acciones.map((a) => `- "${a.nombre}": estado = ${callOf(a)};`).join("\n")}\ndespués dibujar(estado). Al final del archivo: dibujar(estado).`,
     },
     {
+      // v0.8.1 (15/10, réplicas 19-xx): con 28 tareas Gemma razonaba >1500 tokens y no llegaba a responder: cap 3000
+      // (y el motor v0.13.2 lo duplica si igual se queda sin espacio)
       // v0.6.0 (14/10, punto 9 paso 3, decisión de Miche): qué acción hace cada tarea de lógica y de controles,
       // en un pedido CHICO aparte (dentro del contrato lo rompió: build 2026-10-14T22-19-17). Opcional: si falla,
       // se pierde solo el veredicto por tarea. Va al final: no cambia nada de los pasos de antes.
-      id: "enlace", kind: "data", answer: "enlace.json", cap: 1500, needs: ["contrato"], optional: true, bare: true,
+      id: "enlace", kind: "data", answer: "enlace.json", cap: 3000, needs: ["contrato"], optional: true, bare: true,
       skip: (ctx) => (linkTasksOf(ctx.tasks).length ? null : "ningún pedido del Atomizer trae pieza (corrida sin receta)"),
       answerHint: 'Respondé SOLO con ### FILE: enlace.json, un JSON como el del formato.',
       prompt: (c) => enlacePrompt(contractOf(c), linkTasksOf(c.tasks), c.hints?.features || [], c.paso),

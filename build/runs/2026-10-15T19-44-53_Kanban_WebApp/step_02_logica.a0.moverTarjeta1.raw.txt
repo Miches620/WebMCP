@@ -1,0 +1,56 @@
+```javascript
+moverTarjeta: function(estado, cardId, columnaOrigenId, columnaDestinoId) {
+    // 1. Clonar el estado completo para asegurar la inmutabilidad
+    const nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+    let indiceOrigenColumna = -1;
+    let tarjetaMovidaData = null;
+
+    // 2. Encontrar la tarjeta y su columna de origen
+    for (let i = 0; i < nuevoEstado.columnas.length; i++) {
+        const columna = nuevoEstado.columnas[i];
+        if (columna.id === columnaOrigenId) {
+            indiceOrigenColumna = i;
+            // Identificar la tarjeta a mover en el estado clonado
+            tarjetaMovidaData = columna.tarjetas.find(c => c.id == cardId);
+            break; 
+        }
+    }
+
+    if (!tarjetaMovidaData || indiceOrigenColumna === -1) {
+        return estado; // Tarjeta o columna de origen no encontrada
+    }
+    
+    // Buscar el índice de la columna destino
+    const indiceDestinoColumna = nuevoEstado.columnas.findIndex(col => col.id === columnaDestinoId);
+
+    if (indiceDestinoColumna === -1) {
+        return estado; // Columna destino no encontrada
+    }
+
+
+    // 3. Actualizar la columna de origen: Eliminar la tarjeta
+    const tarjetasOrigen = nuevoEstado.columnas[indiceOrigenColumna].tarjetas;
+    // Filtrar crea un nuevo array sin la tarjeta movida
+    const nuevasTarjetasOrigen = tarjetasOrigen.filter(card => card.id != cardId);
+
+    nuevoEstado.columnas[indiceOrigenColumna] = {
+        ...nuevoEstado.columnas[indiceOrigenColumna], // Mantener otras propiedades de la columna
+        tarjetas: nuevasTarjetasOrigen // Reemplazar el array de tarjetas
+    };
+
+
+    // 4. Actualizar la columna destino: Añadir la tarjeta
+    const columnaDestinoActual = nuevoEstado.columnas[indiceDestinoColumna];
+    
+    // Crear un nuevo array para las tarjetas del destino, incluyendo la tarjeta movida
+    const nuevasTarjetasDestino = [...columnaDestinoActual.tarjetas, tarjetaMovidaData];
+
+    nuevoEstado.columnas[indiceDestinoColumna] = {
+        ...columnaDestinoActual, // Mantener otras propiedades de la columna
+        tarjetas: nuevasTarjetasDestino // Reemplazar el array de tarjetas
+    };
+
+    return nuevoEstado;
+}
+```

@@ -2,6 +2,23 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**3ª tanda de réplicas: el enlace v0.2 se quedó sin espacio (9/9 intentos vacíos) → enlace con tope 3000 y el motor duplica el tope si la respuesta vuelve vacía (files_engine v0.13.2, Standard v0.8.1) (15/10)**
+- *Réplicas* (corridas `19-09-35`, `19-28-17`, `19-44-53`):
+  - Validation: 8 / 8 / 6 PASS. R3–R6, R8 y R9 dieron PASS en las 3.
+  - Por tarea: **28 SIN_EVIDENCIA en las 3**, porque el enlace quedó roto en las 3.
+- *Causa:* los 9 intentos del enlace terminaron con `finish_reason: length`, 1497 de 1500 tokens de razonamiento y la respuesta **vacía**. Con 28 tareas, Gemma piensa más que con 13 y no llega a escribir. El reintento pedía lo mismo, con el mismo tope.
+- *Arreglos:*
+  1. El tope del enlace sube a 3000 (`cap`).
+  2. **Motor v0.13.2** (universal): si la respuesta vuelve vacía y cortada por el tope, el problema lo dice ("se usó todo el espacio (N tokens) en pensar: respondé directo…") y el reintento **duplica** el tope, hasta lo que entra en el contexto. Antes decía "no trajo ### FILE", que no era la causa.
+- *Lo que sí se vio en esta tanda:*
+  - En la 3ª corrida el contrato pasó por los dos chequeos nuevos: primero "lista en dos lugares", después "claves con tilde" (v0.7.1), y salió sano al 3er intento.
+  - Esa corrida falló después por la lógica de `moverTarjeta`, mal en los 3 intentos, y la compuerta lo marcó. Es una falla honesta de Gemma: Validation la vio.
+- *Probado:*
+  - `test_files_engine` 42/42: un LM falso devuelve una respuesta vacía con `length`, y el 2º pedido sale con el doble de tokens.
+  - `step_bench --step enlace`, con una corrida real de esta tanda y un LM falso en el puerto 1234: el pedido lleva las 28 tareas, y el reintento pasa de 3000 a 6000 tokens y queda bien.
+  - Suite completa en verde, menos `test_roles`.
+- *Para medir rápido sin un build completo:* `step_bench --step enlace` con las 3 corridas de esta tanda. Usa los mismos contratos y tareas y cambia solo el enlace: unos 15 minutos en lugar de una hora.
+
 **Camino 1 (p49): las tareas de vista, datos y estilo tienen evidencia — enlace v0.2, Standard v0.8.0, calls_gate v0.3, task_verdict v0.4 · 2ª tanda de réplicas (15/10)**
 - *2ª tanda de réplicas (con v0.7, corridas `14-17-39`, `14-33-40`, `14-47-35`):*
   - Validation dio 8 / 8 / 2 PASS, y por tarea 12 / 12 / 0 CUMPLIDAS: **ahora coinciden**.

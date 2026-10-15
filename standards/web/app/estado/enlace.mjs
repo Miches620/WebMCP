@@ -30,8 +30,11 @@ export const linkTasksOf = (tasks = []) => tasks.filter((t) => ENLACE_PIEZAS.inc
 
 /** Requisitos de aspecto: los que el contrato dice que "se_ve" (o todos, si no lo dice). */
 export function aspectReqs(contract, features = []) {
-  const nums = (contract?.se_ve || []).map(Number).filter((n) => n >= 1 && n <= features.length);
-  return (nums.length ? nums : features.map((_, i) => i + 1)).map((n) => ({ id: `R${n}`, text: String(features[n - 1] || "") }));
+  // 15/10 (step_bench del enlace): un contrato puso en "se_ve" también requisitos de acciones (1–5); Gemma mandó
+  // tareas de vista a "R3: Agregar comentarios". De aspecto = los que ninguna acción cumple.
+  const deAccion = new Set((contract?.acciones || []).flatMap((a) => (a.features || []).map(Number)));
+  const nums = (contract?.se_ve || []).map(Number).filter((n) => n >= 1 && n <= features.length && !deAccion.has(n));
+  return (nums.length ? nums : features.map((_, i) => i + 1).filter((n) => !deAccion.has(n))).map((n) => ({ id: `R${n}`, text: String(features[n - 1] || "") }));
 }
 
 const FMT = `{

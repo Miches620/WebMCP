@@ -184,6 +184,17 @@ t("motor sin plataforma → PLATFORM_REQUIRED", await (async () => { try { await
   const r = await buildFiles({ refined: { project_name: "T", features: [] }, tasks: [] }, mkdtempSync(pjoin(tmpdir(), "cap-")), { standard: { id: "toy", version: "0", status: "DRAFT", scripts: [], contract: "C", steps: [D1] }, platform: { id: "toy", systemPrompt: "s", prepare: () => ({ brief: "", notes: "" }), finish: () => [], kinds: {} }, log: () => {} });
   globalThis.fetch = realFetch;
   const a0 = r.steps[0].attempts[0];
+  // v0.13.3: cortada a la mitad (no vacía) también
+  {
+    const bodies2 = []; let m = 0;
+    globalThis.fetch = async (_url, init) => { bodies2.push(JSON.parse(init.body)); m++;
+      const ev = m === 1 ? { choices: [{ delta: { content: '### FILE: a.json\n```json\n{"n":' }, finish_reason: "length" }], usage: { prompt_tokens: 100, completion_tokens: 1500, completion_tokens_details: { reasoning_tokens: 1400 } } }
+        : { choices: [{ delta: { content: '### FILE: a.json\n```json\n{"n":1}\n```' }, finish_reason: "stop" }] };
+      return new Response(`data: ${JSON.stringify(ev)}\n\ndata: [DONE]\n`); };
+    const r2 = await buildFiles({ refined: { project_name: "T", features: [] }, tasks: [] }, mkdtempSync(pjoin(tmpdir(), "cap2-")), { standard: { id: "toy", version: "0", status: "DRAFT", scripts: [], contract: "C", steps: [D1] }, platform: { id: "toy", systemPrompt: "s", prepare: () => ({ brief: "", notes: "" }), finish: () => [], kinds: {} }, log: () => {} });
+    globalThis.fetch = realFetch;
+    t("respuesta cortada a la mitad por el tope → también se duplica y el problema dice 'se cortó a la mitad (1400 pensando)'", bodies2[1].max_tokens === 3000 && /se cortó a la mitad: llegó al límite de 1500 tokens \(1400 pensando\)/.test(r2.steps[0].attempts[0].first_problems[0]), JSON.stringify(r2.steps[0].attempts[0].first_problems));
+  }
   t("sin espacio para responder (vacía + length) → el reintento pide el doble de tokens y el problema lo dice", bodies[0].max_tokens === 1500 && bodies[1].max_tokens === 3000 && a0.out_of_budget === true && /se usó todo el espacio \(1500 tokens\) en pensar/.test(a0.first_problems[0]) && r.steps[0].attempts.length === 2 && !r.steps[0].broken, JSON.stringify({ m: bodies.map((b) => b.max_tokens), a0 }));
 }
 console.log(`\n${ok}/${ok + fail} OK`);

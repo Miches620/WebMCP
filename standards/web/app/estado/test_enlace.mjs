@@ -31,6 +31,8 @@ const pr = step.prompt(ctx);
 t("pedido: acciones, listas del estado (con cuántos elementos), requisitos de aspecto y las 28 tareas", contract.acciones.every((a) => pr.includes(`- ${a.nombre}:`)) && /- columnas\[\]\.tarjetas\[\]\.etiquetas \(\d+ elementos? con: nombre, color\)/.test(pr) && /- R8: Sombras en tarjetas/.test(pr) && !/- R1:/.test(pr) && mine.every((x) => pr.includes(`- ${x.id} [${x.pieza}]`)), pr.slice(0, 1500));
 t(`pedido chico (${pr.length} caracteres, < 5000)`, pr.length < 5000, String(pr.length));
 t("requisitos de aspecto = los 'se_ve' del contrato (R7, R8, R9); sin se_ve, todos", aspectReqs(contract, features).map((r) => r.id).join() === "R7,R8,R9" && aspectReqs({ se_ve: [] }, ["a", "b"]).map((r) => r.id).join() === "R1,R2");
+// 15/10 (step_bench del enlace): contrato real 19-09-35 con "se_ve" [1,2,3,4,5,7,8,9] (1–5 son de acciones)
+t("requisitos de aspecto: los de 'se_ve' que ninguna acción cumple (contrato real con se_ve contaminado → R7, R8, R9)", aspectReqs(J("../../../../profiles/web/validation/fixtures/real_kanban_c20/contrato.json"), features).map((r) => r.id).join() === "R7,R8,R9");
 const toy = enlacePrompt({ acciones: [{ nombre: "x", hace: "y" }], estado: { cosas: [{ id: 1, n: "a" }] } }, [{ id: "Z1", pieza: "logica", task: "w" }], ["f"]);
 const dom = [...new Set(toy.match(/\b(kanban|columnas?|tarjetas?|tablero|contador|juego)\b/gi) || [])];
 t("el texto fijo del pedido no nombra ninguna app", dom.length === 0, dom.join(", "));

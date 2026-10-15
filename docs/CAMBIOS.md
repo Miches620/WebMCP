@@ -2,6 +2,23 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Banco del enlace v0.2 con Gemma: caro e inestable → 3 arreglos mecánicos y una decisión pendiente (files_engine v0.13.3, step_bench, enlace) (15/10)**
+- *Banco* (`step_bench --step enlace --k 3`, t=0.7, `build/bench/2026-10-15T20-51-58_enlace`):
+  - **Bug del banco:** las 3 corridas tienen el mismo nombre de proyecto, así que las carpetas de las muestras chocaron ("ya estaba"). Hubo **3 muestras, no 9**, todas de la corrida 19-09-35. Ahora el caso se llama como la carpeta de la corrida.
+  - Resultados:
+    - muestra 1: queda 1 tarea mal ubicada (F2.3 [datos] en una acción); 27/28 se pueden usar;
+    - muestra 2: bien después de reintentar;
+    - muestra 3: 6 tareas mal ubicadas.
+  - **8 minutos por muestra**, contra unos 60 s del enlace v0.1.
+- *Causas:*
+  1. **La respuesta llegó cortada a la mitad del JSON:** unos 2800 tokens pensando, con un tope de 3000. El motor v0.13.2 solo agrandaba el tope si la respuesta volvía *vacía*. **v0.13.3:** también si llega cortada por el tope y no sirve. El problema dice "se cortó a la mitad (N pensando)".
+  2. **Requisitos "de aspecto" contaminados:** el contrato de esa corrida puso en `se_ve` también los requisitos 1–5, que son de acciones. Gemma mandó tareas de vista a "R3: Agregar comentarios" y "R4: Etiquetar". Ahora son de aspecto solo los que ninguna acción cumple (fixture `real_kanban_c20`, contrato real).
+  3. Aun así, Gemma tiende a mezclar "vista de comentarios" con el requisito de comentarios. Es una confusión de significado, no de formato.
+- *Decisión pendiente (Miche):*
+  - **(A)** volver el enlace con Gemma a lógica y controles (v0.1: 1 minuto, 9/9 bien), y ubicar vista, datos y estilo **por código**, comparando palabras de la tarea con los nombres de las listas y el texto de los requisitos;
+  - **(B)** seguir con el enlace v0.2 y medirlo con los arreglos.
+- *Tests:* `test_enlace` 24/24 y `test_files_engine` 43/43. Suite completa en verde, menos `test_roles`.
+
 **3ª tanda de réplicas: el enlace v0.2 se quedó sin espacio (9/9 intentos vacíos) → enlace con tope 3000 y el motor duplica el tope si la respuesta vuelve vacía (files_engine v0.13.2, Standard v0.8.1) (15/10)**
 - *Réplicas* (corridas `19-09-35`, `19-28-17`, `19-44-53`):
   - Validation: 8 / 8 / 6 PASS. R3–R6, R8 y R9 dieron PASS en las 3.

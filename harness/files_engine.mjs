@@ -30,7 +30,7 @@ import { assignByStep, assignmentText, assignmentSummary } from "./assignments.m
 // compatibilidad: las herramientas de JS se siguen pudiendo importar desde acá (viven en js_tools.mjs)
 export { loadScripts, syntaxOf, runAcceptance, findMember, replaceMember, stripComments, topNames, clashes, shadowProblems } from "./js_tools.mjs";
 
-export const ENGINE_VERSION = "files_engine v0.13.2";
+export const ENGINE_VERSION = "files_engine v0.13.3";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = "google/gemma-4-e4b";
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
@@ -268,10 +268,15 @@ export async function buildFiles({ refined, tasks }, outDir, opts = {}) {
       // v0.9.9: arreglos deterministas de la clase de paso (sin Gemma), antes de juzgar
       if (K.fix) content = (await K.fix(content, att)) || content;
       problems = await judge(content);
-      if (r.finish_reason === "length" && !String(r.raw || "").trim()) {
+      // v0.13.3 (15/10, step_bench del enlace: la respuesta llegó CORTADA a la mitad del JSON, ~2800 tokens pensando):
+      // también si se cortó por el tope y lo que trajo no sirve (problema que rompe)
+      const empty = !String(r.raw || "").trim();
+      if (r.finish_reason === "length" && (empty || problems.fatal)) {
         att.out_of_budget = true;
         const next = Math.min(cap * 2, CONTEXT - r.promptTokens - 200);
-        problems = fatal([`la respuesta se cortó antes de escribir nada: se usó todo el espacio (${r.maxTokens} tokens) en pensar. Respondé directo con ${names.join(" y ")}, sin explicar.`]);
+        problems = fatal([empty
+          ? `la respuesta se cortó antes de escribir nada: se usó todo el espacio (${r.maxTokens} tokens) en pensar. Respondé directo con ${names.join(" y ")}, sin explicar.`
+          : `la respuesta se cortó a la mitad: llegó al límite de ${r.maxTokens} tokens${r.usage?.completion_tokens_details?.reasoning_tokens ? ` (${r.usage.completion_tokens_details.reasoning_tokens} pensando)` : ""}. Respondé directo con ${names.join(" y ")} completo, sin explicar.`]);
         if (next > cap) { att.next_cap = next; cap = next; }
       }
       att.first_problems = [...problems]; // v0.9.7 (banco por paso): lo que dio la respuesta de Gemma, antes de reparar

@@ -58,7 +58,9 @@ function caseFrom(dir, S) {
     const re = new RegExp(`^step_\\d+_${st.id}(\\.retry(\\d+))?\\.raw\\.txt$`);
     raws[st.id] = readdirSync(dir).filter((f) => re.test(f)).sort((a, b) => Number(a.match(re)[2] || 0) - Number(b.match(re)[2] || 0)).map((f) => readFileSync(join(dir, f), "utf8"));
   }
-  return { name: input.refined?.project_name || basename(dir), dir, input, pagePlan, frozen: { files, fragment: fm ? fm[1] : "", raws } };
+  // 15/10: el caso se llama como la carpeta de la corrida (el nombre del proyecto se repite entre corridas del mismo
+  // snapshot y las muestras chocaban: "ya estaba")
+  return { name: basename(dir), dir, input, pagePlan, frozen: { files, fragment: fm ? fm[1] : "", raws } };
 }
 
 const norm = (p) => String(p).replace(/\d+/g, "#").replace(/`[^`]*`/g, "`…`").slice(0, 90);

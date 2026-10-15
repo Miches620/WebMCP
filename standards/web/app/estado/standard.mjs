@@ -16,7 +16,7 @@
 // Nada de un dominio acá (ni Kanban ni contador): lo prueba test_estado.mjs con dos apps distintas.
 // DRAFT: no tiene evidencia todavía. Primera corrida: el Kanban (Project23/24).
 
-import { parseContract, contractProblems, bestContract, datosJs, signature, idsOf, idKeysOf, MAX_STATE_CHARS } from "./contract.mjs";
+import { parseContract, contractProblems, bestContract, datosJs, signature, idsOf, idKeysOf, listPaths, itemsAt, shapeProblems, MAX_STATE_CHARS } from "./contract.mjs";
 import { logicTests, observeChanges } from "./acceptance.mjs";
 import { controlsPlan, accionesJs, controlesFromPlan, whereOf } from "./controls.mjs";
 import { linkTasksOf, enlacePrompt, parseLinks, linkProblems, bestLinks, linksSummary, ENLACE_VERSION } from "./enlace.mjs";
@@ -202,13 +202,17 @@ const validation = {
   actions: (c) => c.acciones.map(({ nombre, params, ids, campos, features, ejemplo }) => ({ nombre, params, ids, campos, features, ejemplo })),
   /** v0.7: de qué clase de elemento es cada id (sus claves), para saber si un botón manda el id correcto. */
   idKeys: (c) => idKeysOf(c.estado),
+  /** v0.8 (p49): las listas del estado ({ "a[].b": {n, keys} }), sus elementos, y si la forma del estado está sana. */
+  lists: (c) => listPaths(c.estado),
+  itemsAt: (c, path) => itemsAt(c.estado, path),
+  shape: (c) => shapeProblems(c.estado),
   /** Ids que existen en el estado inicial (para saber si un id que llega es de verdad). */
   idValues: (c) => [...idsOf(c.estado)].map((x) => JSON.parse(x)),
 };
 
 const STANDARD = {
   id: "web/app/estado",
-  version: "0.7.0",
+  version: "0.8.0",
   status: "DRAFT",
   validation,
   label: "app de una pantalla con estado y acciones",
@@ -328,11 +332,11 @@ ${fence("json", CONTRACT_FMT)}`,
       // v0.6.0 (14/10, punto 9 paso 3, decisión de Miche): qué acción hace cada tarea de lógica y de controles,
       // en un pedido CHICO aparte (dentro del contrato lo rompió: build 2026-10-14T22-19-17). Opcional: si falla,
       // se pierde solo el veredicto por tarea. Va al final: no cambia nada de los pasos de antes.
-      id: "enlace", kind: "data", answer: "enlace.json", cap: 1200, needs: ["contrato"], optional: true, bare: true,
-      skip: (ctx) => (linkTasksOf(ctx.tasks).length ? null : "ningún pedido del Atomizer trae pieza logica o controles (corrida sin receta)"),
+      id: "enlace", kind: "data", answer: "enlace.json", cap: 1500, needs: ["contrato"], optional: true, bare: true,
+      skip: (ctx) => (linkTasksOf(ctx.tasks).length ? null : "ningún pedido del Atomizer trae pieza (corrida sin receta)"),
       answerHint: 'Respondé SOLO con ### FILE: enlace.json, un JSON como el del formato.',
-      prompt: (c) => enlacePrompt(contractOf(c), linkTasksOf(c.tasks), c.paso),
-      parse: (json, c) => parseLinks(json, contractOf(c), linkTasksOf(c.tasks)),
+      prompt: (c) => enlacePrompt(contractOf(c), linkTasksOf(c.tasks), c.hints?.features || [], c.paso),
+      parse: (json, c) => parseLinks(json, contractOf(c), linkTasksOf(c.tasks), c.hints?.features || []),
       need: () => 1,
       missing: () => "el enlace no ubica nada.",
       emit: (items, reports) => { if (!items.length) return { items: [], reports: [], js: null }; const i = bestLinks(items, reports); return { items: [items[i]], reports: [reports[i]], js: null }; },

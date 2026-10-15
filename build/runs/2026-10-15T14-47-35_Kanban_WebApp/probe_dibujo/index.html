@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kanban WebApp</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main id="principal" data-feature="R1 R2 R3 R4 R5 R6 R7 R8 R9">
+<h1>Kanban Board</h1>
+<div id="app"></div>
+</main>
+<script src="js/datos.js"></script>
+<script src="js/logica.js"></script>
+<script src="js/acciones.js"></script>
+<script src="js/dibujo.js"></script>
+<script>
+window.__probe = (function () {
+  try {
+    var ACTS = [{"n":"crearTarjeta","t":"columnas","ids":["columnid"],"campos":["titulo","descripcion"]},{"n":"moverTarjeta","t":"tarjetas","ids":["cardid","columnaorigenid"],"campos":["columnaDestinoId"]},{"n":"agregarComentario","t":"tarjetas","ids":["cardid"],"campos":["autor","contenido"]},{"n":"editarTarjeta","t":"tarjetas","ids":["cardid"],"campos":["tituloNuevo","descripcionNueva"]},{"n":"borrarTarjeta","t":"tarjetas","ids":["cardid"],"campos":[]},{"n":"agregarEtiqueta","t":"tarjetas","ids":["cardid"],"campos":["nombreEtiqueta","colorHex"]}], CSS = ["kanban-column","column-header","column-title","card-list","card","card-title","card-description","labels-container","label","comments-section","comment","comment-author","ctl-controles","ctl-accion","ctl-boton","danger"];
+    var e = App.crear(); dibujar(e);
+    var box = document.getElementById("app");
+    if (!box) return { ok: false, error: "no existe #app" };
+    var norm = function (s) { return String(s).replace(/\s+/g, " ").trim().toLowerCase(); };
+    var txt = norm(box.textContent || "");
+    var texts = [];
+    (function walk(v) {
+      // v0.5.1 (build 2026-10-14T22-19-17): una fecha ISO ("2023-10-26T10:00:00Z") se muestra formateada, no tal cual
+      if (typeof v === "string") { var t = v.trim(); if (t.length > 1 && /\s|[A-ZÁÉÍÓÚÑ]/.test(t) && !/^\d{4}-\d{2}-\d{2}([T ][\d:.]+)?(Z|[+-]\d{2}:?\d{2})?$/.test(t) && texts.indexOf(t) < 0) texts.push(t); }
+      else if (Array.isArray(v)) v.forEach(walk);
+      else if (v && typeof v === "object") Object.keys(v).forEach(function (k) { walk(v[k]); });
+    })(ESTADO_INICIAL);
+    var inState = norm(JSON.stringify(ESTADO_INICIAL));
+    var noButton = [], noId = [], noField = [];
+    ACTS.forEach(function (a) {
+      var bs = Array.prototype.filter.call(box.querySelectorAll("[data-accion]"), function (b) { return b.dataset.accion === a.n; });
+      if (!bs.length) { noButton.push(a.n + "@" + a.t); return; }
+      // v0.2.2 (3ª corrida real): vale CUALQUIER botón de la acción (Gemma dibujó un ícono ✏️ y un "Guardar"
+      // al lado de los campos); se queda con el que menos le falta. Un campo oculto (display:none) no cuenta.
+      var vis = function (el) { return el.getClientRects().length > 0; };
+      var best = null;
+      bs.forEach(function (b) {
+        var ids = a.ids.filter(function (p) { return b.dataset[p] === undefined || b.dataset[p] === ""; });
+        var fs = a.campos.filter(function (p) { var f = b.parentElement && b.parentElement.querySelector('[data-campo="' + p + '"]'); return !f || !vis(f) || !vis(b); }).map(function (p) {
+          var f = b.parentElement && b.parentElement.querySelector('[data-campo="' + p + '"]'); return p + (f && !vis(f) ? "!" : "") + (!vis(b) ? "?" : ""); });
+        // un campo que existe pero está oculto pesa un poco menos que uno que falta: así el mensaje dice "oculto"
+        var miss = ids.length + fs.reduce(function (n, f) { return n + (/[!?]/.test(f) ? 0.9 : 1); }, 0);
+        if (!best || miss < best.miss) best = { miss: miss, ids: ids, fs: fs };
+      });
+      best.ids.forEach(function (p) { noId.push(a.n + ":" + p); });
+      best.fs.forEach(function (p) { noField.push(a.n + ":" + p); });
+    });
+    var cssCls = {};
+    CSS.forEach(function (k) { cssCls[k] = 1; });
+    var used = {};
+    Array.prototype.forEach.call(document.querySelectorAll("[class]"), function (el) { Array.prototype.forEach.call(el.classList, function (k) { used[k] = used[k] || (box.contains(el) ? 2 : 1); }); });
+    var unstyled = Object.keys(used).filter(function (k) { return used[k] === 2 && !cssCls[k] && k.indexOf("ctl-") !== 0; });
+    var unused = Object.keys(cssCls).filter(function (k) { return !used[k]; });
+    // v0.2.1 (2ª corrida real): una clase sin estilo propio no es un error (.tag se pinta con ".etiquetas span").
+    // Es error si se PARECE a una del CSS que nadie usa (kanban-card ~ card) o si la mayoría no tiene estilo.
+    var near = function (a, b) { return a.length >= 3 && b.length >= 3 && (a.indexOf(b) >= 0 || b.indexOf(a) >= 0); };
+    var pairs = [];
+    unstyled.forEach(function (u) { unused.forEach(function (v) { if (near(u, v)) pairs.push(u + "~" + v); }); });
+    var els = Array.prototype.filter.call(box.querySelectorAll("[class]"), function (el) { return el.classList.length; });
+    var styledEls = els.filter(function (el) { return Array.prototype.some.call(el.classList, function (k) { return cssCls[k]; }); }).length;
+    // v0.4.3 (14/10, builds 2026-10-14T19-22-44 y T20-08-35): styles.css arma la distribución en #app (flex/grid)
+    // y dibujar mete todo dentro de UN solo contenedor que no la tiene → las piezas quedan apiladas.
+    var wrapper = null;
+    var appDisp = getComputedStyle(box).display;
+    if (/flex|grid/.test(appDisp)) {
+      // los controles del harness (ctl-…) no cuentan, tampoco una caja que solo envuelve controles
+      // (v0.5.1, build 2026-10-14T22-19-17: <div class="global-actions"> con los controles de "app" adentro)
+      var isCtl = function (el) { return Array.prototype.some.call(el.classList, function (k) { return k.indexOf("ctl-") === 0; }); };
+      var kids = Array.prototype.filter.call(box.children, function (el) { return !isCtl(el) && !(el.children.length && Array.prototype.every.call(el.children, isCtl)); });
+      var w = kids.length === 1 ? kids[0] : null;
+      // v0.6.1 (build 2026-10-15T02-27-10): el contenedor SÍ era flex, pero en columna (.columnas { flex-direction: column }):
+      // las columnas igual quedaron apiladas y el chequeo no saltaba
+      var wcs = w ? getComputedStyle(w) : null;
+      var wCol = wcs && /flex/.test(wcs.display) && /column/.test(wcs.flexDirection);
+      if (w && w.children.length >= 2 && (!/flex|grid/.test(wcs.display) || wCol)) wrapper = { app: appDisp, tag: w.tagName.toLowerCase(), cls: w.className || "", dir: wCol ? wcs.flexDirection : null };
+    }
+    var res = { ok: true, wrapper: wrapper, children: box.children.length, total: texts.length, noButton: noButton, noId: noId, noField: noField, unstyled: unstyled, unused: unused, pairs: pairs, styledShare: els.length ? styledEls / els.length : 1,
+      missing: texts.filter(function (t) { return txt.indexOf(norm(t)) < 0; }),
+      objectText: ((box.textContent || "").match(/\[object \w+\]/) || [])[0] || "",
+      undef: ["undefined", "nan", "null"].filter(function (w) { return new RegExp("\\b" + w + "\\b").test(txt) && inState.indexOf(w) < 0; }) };
+    // v0.4.2 (seguridad, SEG-1): los textos del estado son lo que escribe una persona. Se dibuja otra vez con
+    // cada texto convertido en HTML con una trampa (onerror): si se ejecuta o aparece como elemento, dibujar
+    // escribe datos con innerHTML (XSS). Los ids no se tocan (no son textos para personas).
+    try {
+      window.__xssd = 0;
+      var trap = '<img src=x data-xssd="1" onerror="window.__xssd=(window.__xssd||0)+1">';
+      var hit = [];
+      var tr = (function walk(v) {
+        if (typeof v === "string") { var t = v.trim(); return t.length > 1 && /\s|[A-ZÁÉÍÓÚÑ]/.test(t) ? trap + v : v; }
+        if (Array.isArray(v)) return v.map(walk);
+        if (v && typeof v === "object") { var o = {}; Object.keys(v).forEach(function (k) { o[k] = walk(v[k]); }); return o; }
+        return v;
+      })(App.crear());
+      dibujar(tr);
+      var els2 = box.querySelectorAll("[data-xssd]");
+      Array.prototype.forEach.call(els2, function (el) { var p = el.parentElement; var s = p ? (p.textContent || "").trim().slice(0, 40) : ""; if (s && hit.indexOf(s) < 0 && hit.length < 3) hit.push(s); });
+      res.htmlInText = els2.length ? (hit.length ? hit : ["(sin texto)"]) : [];
+      dibujar(e);
+    } catch (err) { res.htmlInText = []; }
+    return res;
+  } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
+})();
+</script>
+</body>
+</html>

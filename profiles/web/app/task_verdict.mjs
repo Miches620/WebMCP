@@ -12,7 +12,7 @@
 //   El enlace es lo que dice Gemma (trazabilidad); la evidencia sigue siendo la de la acción.
 // Funciones puras: la página y los pasos ya corrieron; esto solo cruza resultados.
 
-export const TASK_VERDICT_VERSION = "task_verdict v0.3";
+export const TASK_VERDICT_VERSION = "task_verdict v0.4";
 const PROBADAS = new Set(["logica", "controles"]);
 // v0.2: los controles que arma el harness son BOTONES (Standard web/app/estado). Una tarea de controles que pide
 // arrastrar o teclado no queda probada porque el botón de su acción ande (el Standard: "arrastrar y teclado no se prueban").
@@ -33,7 +33,15 @@ function testsOf(acceptance, nombre) {
 //   las 12 tareas salían CUMPLIDAS mientras Validation veía que 5 y 6 acciones no cambiaban nada en la pantalla.
 //   Ahora también cuenta lo que vio Validation al usar la acción (screen: { R<n>: action_changes }): si su requisito
 //   dio FAIL en pantalla, la tarea es NO_CUMPLIDA. Sin ese dato, no se agrega nada (no se inventa).
-export function taskVerdicts({ tasks = [], contract = null, links = null, acceptance = null, gateRows = null, screen = null }) {
+// v0.4 (15/10, p49, camino 1): vista, datos y estilo dejan de ser "sin prueba propia" cuando el enlace dice a qué
+//   parte de la app pertenecen (links.listaDe / links.requisitosDe):
+//   - vista → su LISTA del estado: CUMPLIDA si se ven todos sus elementos al cargar (lists: gate.listas); si falta
+//     alguno, NO_CUMPLIDA con el texto que no se ve;
+//   - datos → su LISTA: CUMPLIDA si existe en el contrato con elementos y la forma del estado está sana
+//     (data: gate.datos, shape: gate.forma); NO_CUMPLIDA si está vacía o la forma tiene problemas;
+//   - estilo → sus REQUISITOS: CUMPLIDA si todos dieron PASS en Validation (un PASS ya excluye lo trivial: el
+//     esqueleto vacío no lo pasa); NO_CUMPLIDA si alguno dio FAIL; si no, SIN_EVIDENCIA (su chequeo no discrimina).
+export function taskVerdicts({ tasks = [], contract = null, links = null, acceptance = null, gateRows = null, screen = null, lists = null, data = null, shape = null, requirements = null }) {
   const acciones = contract?.acciones || [];
   const ids = new Set(tasks.map((t) => t.id));
   const deTarea = {};
@@ -43,11 +51,43 @@ export function taskVerdicts({ tasks = [], contract = null, links = null, accept
   const desconocidas = Object.keys(deTarea).filter((id) => !ids.has(id));
   const enVariasAcciones = Object.keys(deTarea).filter((id) => ids.has(id) && deTarea[id].length > 1);
   const gate = Object.fromEntries((gateRows || []).map((r) => [r.nombre, r]));
+  const sinPrueba = (t) => ({ verdict: "SIN_EVIDENCIA", reason: `no hay prueba propia para una tarea de ${t.pieza}` });
+  const pieceVerdict = (t) => {
+    if (ninguna.has(t.id)) return { verdict: "SIN_EVIDENCIA", reason: "el enlace dice que ninguna parte de la app la hace" };
+    if (t.pieza === "vista" || t.pieza === "datos") {
+      const path = links?.listaDe?.[t.id];
+      if (!path) return links?.listaDe ? { verdict: "SIN_EVIDENCIA", reason: "el enlace no la ubicó en ninguna lista del estado" } : sinPrueba(t);
+      if (t.pieza === "vista") {
+        const L = lists?.[path];
+        if (!L) return { verdict: "SIN_EVIDENCIA", lista: path, reason: `no se pudo mirar la pantalla para ${path}` };
+        if (!L.total) return { verdict: "SIN_EVIDENCIA", lista: path, reason: `${path} no tiene textos que mostrar` };
+        return L.shown === L.total
+          ? { verdict: "CUMPLIDA", lista: path, reason: `se ven los ${L.total} elementos de ${path}` }
+          : { verdict: "NO_CUMPLIDA", lista: path, reason: `de ${path} se ven ${L.shown}/${L.total} (no se ve: ${L.missing.map((x) => JSON.stringify(String(x).slice(0, 40))).join(", ")})` };
+      }
+      const n = data?.[path];
+      if (n === undefined) return { verdict: "SIN_EVIDENCIA", lista: path, reason: `no se pudo leer ${path} del contrato` };
+      if (shape?.length) return { verdict: "NO_CUMPLIDA", lista: path, reason: `la forma del estado tiene problemas: ${String(shape[0]).slice(0, 120)}` };
+      return n > 0
+        ? { verdict: "CUMPLIDA", lista: path, reason: `${path} está en el contrato con ${n} elemento${n === 1 ? "" : "s"} y la forma del estado es sana` }
+        : { verdict: "NO_CUMPLIDA", lista: path, reason: `${path} está vacía en el estado inicial` };
+    }
+    if (t.pieza === "estilo") {
+      const rs = links?.requisitosDe?.[t.id] || [];
+      if (!rs.length) return links?.requisitosDe ? { verdict: "SIN_EVIDENCIA", reason: "el enlace no la ubicó en ningún requisito" } : sinPrueba(t);
+      const vs = rs.map((r) => [r, requirements?.[r]?.verdict || null]);
+      const fail = vs.filter(([, v]) => v === "FAIL"), pass = vs.filter(([, v]) => v === "PASS");
+      if (fail.length) return { verdict: "NO_CUMPLIDA", requisitos: rs, reason: `${fail.map(([r]) => r).join(", ")} dio FAIL en Validation${requirements[fail[0][0]]?.detail ? `: ${String(requirements[fail[0][0]].detail).slice(0, 100)}` : ""}` };
+      if (pass.length === vs.length) return { verdict: "CUMPLIDA", requisitos: rs, reason: `${rs.join(", ")} dio PASS en Validation` };
+      return { verdict: "SIN_EVIDENCIA", requisitos: rs, reason: `${vs.filter(([, v]) => v !== "PASS").map(([r, v]) => `${r} ${v || "sin veredicto"}`).join(", ")}: su chequeo no discrimina` };
+    }
+    return sinPrueba(t);
+  };
 
   const rows = tasks.map((t) => {
     const base = { id: t.id, pieza: t.pieza || null, task: t.task };
     if (!t.pieza) return { ...base, verdict: "SIN_EVIDENCIA", reason: "la tarea no trae pieza" };
-    if (!PROBADAS.has(t.pieza)) return { ...base, verdict: "SIN_EVIDENCIA", reason: `no hay prueba propia para una tarea de ${t.pieza}` };
+    if (!PROBADAS.has(t.pieza)) return { ...base, ...pieceVerdict(t) };
     const names = deTarea[t.id] || [];
     if (t.pieza === "controles" && NO_PROBADO.test(`${t.task || ""} ${t.description || ""}`))
       return { ...base, verdict: "SIN_EVIDENCIA", ...(names.length ? { accion: names.join(", ") } : {}), reason: "pide arrastrar o teclado: el harness arma botones y eso no se prueba" };

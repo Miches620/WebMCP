@@ -1,0 +1,244 @@
+// Helper function to find a card object globally by its ID across all columns in the state
+const findCard = (state, cardId) => {
+    for (const col of state.columnas) {
+        const card = col.cards.find(c => c.id === cardId);
+        if (card) return { card, column: col };
+    }
+    return null;
+};
+
+// Helper function to deep clone the entire state
+const deepCloneState = (state) => JSON.parse(JSON.stringify(state));
+
+/**
+ * Crea una copia profunda del estado inicial.
+ * @param {Object} estado - El estado actual (usado para clonar).
+ * @returns {Object} Un nuevo estado sin modificar el original.
+ */
+const crear = () => deepCloneState(ESTADO_INICIAL);
+
+/**
+ * Crea una nueva tarjeta y la añade a la columna especificada.
+ * @param {Object} estado - El estado actual.
+ * @param {string} columnId - ID de la columna destino.
+ * @param {string} titulo - Título de la tarjeta.
+ * @param {string} descripcion - Descripción de la tarjeta.
+ * @returns {Object} El nuevo estado.
+ */
+const crearTarjeta = (estado, columnId, titulo, descripcion) => {
+    const newCardId = 'card-' + Date.now();
+
+    // Clonar el estado para garantizar inmutabilidad
+    const newState = deepCloneState(estado);
+
+    // Encontrar la columna destino y añadir la nueva tarjeta
+    const targetColumn = newState.columnas.find(col => col.id === columnId);
+    if (targetColumn) {
+        const newCard = {
+            id: newCardId,
+            titulo: titulo,
+            descripcion: descripcion,
+            etiquetas: [],
+            comentarios: []
+        };
+        // Copiamos el array de cards y agregamos el nuevo elemento
+        newState.columnas = newState.columnas.map(col => {
+            if (col.id === columnId) {
+                return { ...col, cards: [...col.cards, newCard] };
+            }
+            return col;
+        });
+    }
+
+    return newState;
+};
+
+/**
+ * Mueve una tarjeta de su columna actual a la columna destino.
+ * @param {Object} estado - El estado actual.
+ * @param {string} cardId - ID de la tarjeta a mover.
+ * @param {string} targetColumnId - ID de la columna destino.
+ * @returns {Object} El nuevo estado.
+ */
+const moverTarjeta = (estado, cardId, targetColumnId) => {
+    // Clonar el estado para garantizar inmutabilidad
+    let newState = deepCloneState(estado);
+
+    // 1. Encontrar la tarjeta y su columna de origen
+    let sourceColumnIndex = -1;
+    let cardToMove = null;
+
+    for (let i = 0; i < newState.columnas.length; i++) {
+        const col = newState.columnas[i];
+        const cardIndex = col.cards.findIndex(card => card.id === cardId);
+
+        if (cardIndex !== -1) {
+            sourceColumnIndex = i;
+            // Crear una copia del objeto tarjeta para moverlo
+            cardToMove = JSON.parse(JSON.stringify(col.cards[cardIndex]));
+            break;
+        }
+    }
+
+    if (!cardToMove || sourceColumnIndex === -1) {
+        return estado; // Tarjeta no encontrada
+    }
+
+    // 2. Filtrar la tarjeta de su columna original (copia el array sin ella)
+    newState.columnas[sourceColumnIndex].cards = newState.columnas[sourceColumnIndex].cards.filter(card => card.id !== cardId);
+
+    // 3. Encontrar o crear la columna destino y añadir la tarjeta
+    const targetColumn = newState.columnas.find(col => col.id === targetColumnId);
+    if (targetColumn) {
+        newState.columnas = newState.columnas.map((col, index) => {
+            if (index === sourceColumnIndex && col !== newState.columnas[sourceColumnIndex]) return col; // Mantener la referencia si se modificó fuera del loop
+
+            if (col.id === targetColumnId) {
+                // Añadir el objeto tarjeta movido al array de destino
+                return { ...col, cards: [...col.cards, cardToMove] };
+            }
+            return col;
+        });
+    } else {
+        console.error("Columna destino no encontrada:", targetColumnId);
+    }
+
+    return newState;
+};
+
+/**
+ * Añade un nuevo comentario a una tarjeta existente.
+ * @param {Object} estado - El estado actual.
+ * @param {string} cardId - ID de la tarjeta objetivo.
+ * @param {string} autor - Nombre del autor del comentario.
+ * @param {string} contenido - Contenido del mensaje.
+ * @returns {Object} El nuevo estado.
+ */
+const agregarComentario = (estado, cardId, autor, contenido) => {
+    let newState = deepCloneState(estado);
+
+    // Recorrer todas las columnas para encontrar la tarjeta y añadir el comentario
+    newState.columnas = newState.columnas.map(col => {
+        const cardIndex = col.cards.findIndex(card => card.id === cardId);
+
+        if (cardIndex !== -1) {
+            // Clonar el array de comentarios para inmutabilidad
+            const newComment = {
+                autor: autor,
+                contenido: contenido,
+                timestamp: Math.floor(Date.now() / 1000) // Unix timestamp actual
+            };
+
+            // Actualizar la tarjeta específica en la columna copiada
+            const updatedCards = col.cards.map((card, index) => {
+                if (index === cardIndex) {
+                    return { ...card, comentarios: [...card.comentarios, newComment] };
+                }
+                return card;
+            });
+
+            return { ...col, cards: updatedCards };
+        }
+        return col; // Si no es la columna que contiene la tarjeta, devolverla igual
+    });
+
+    return newState;
+};
+
+/**
+ * Añade una nueva etiqueta a una tarjeta.
+ * @param {Object} estado - El estado actual.
+ * @param {string} cardId - ID de la tarjeta objetivo.
+ * @param {string} nombre - Nombre de la etiqueta.
+ * @param {string} color - Color hexadecimal de la etiqueta.
+ * @returns {Object} El nuevo estado.
+ */
+const agregarEtiqueta = (estado, cardId, nombre, color) => {
+    let newState = deepCloneState(estado);
+
+    // Recorrer todas las columnas para encontrar la tarjeta y añadir la etiqueta
+    newState.columnas = newState.columnas.map(col => {
+        const cardIndex = col.cards.findIndex(card => card.id === cardId);
+
+        if (cardIndex !== -1) {
+            const newLabel = { nombre: nombre, color: color };
+
+            // Actualizar la tarjeta específica en la columna copiada
+            const updatedCards = col.cards.map((card, index) => {
+                if (index === cardIndex) {
+                    return { ...card, etiquetas: [...card.etiquetas, newLabel] };
+                }
+                return card;
+            });
+
+            return { ...col, cards: updatedCards };
+        }
+        return col; // Si no es la columna que contiene la tarjeta, devolverla igual
+    });
+
+    return newState;
+};
+
+
+/**
+ * Edita el título y la descripción de una tarjeta.
+ * @param {Object} estado - El estado actual.
+ * @param {string} cardId - ID de la tarjeta a editar.
+ * @param {string} titulo - Nuevo título.
+ * @param {string} descripcion - Nueva descripción.
+ * @returns {Object} El nuevo estado.
+ */
+const editarTarjeta = (estado, cardId, titulo, descripcion) => {
+    let newState = deepCloneState(estado);
+
+    // Recorrer todas las columnas para encontrar la tarjeta y actualizar sus datos
+    newState.columnas = newState.columnas.map(col => {
+        const cardIndex = col.cards.findIndex(card => card.id === cardId);
+
+        if (cardIndex !== -1) {
+            // Actualizar la tarjeta específica en el array de cards copiado
+            const updatedCards = col.cards.map((card, index) => {
+                if (index === cardIndex) {
+                    return { ...card, titulo: titulo, descripcion: descripcion };
+                }
+                return card;
+            });
+
+            return { ...col, cards: updatedCards };
+        }
+        return col; // Si no es la columna que contiene la tarjeta, devolverla igual
+    });
+
+    return newState;
+};
+
+
+/**
+ * Elimina completamente una tarjeta del estado.
+ * @param {Object} estado - El estado actual.
+ * @param {string} cardId - ID de la tarjeta a borrar.
+ * @returns {Object} El nuevo estado.
+ */
+const borrarTarjeta = (estado, cardId) => {
+    // Clonar el estado para garantizar inmutabilidad
+    let newState = deepCloneState(estado);
+
+    // Recorrer todas las columnas y filtrar la tarjeta de su array de cards
+    newState.columnas = newState.columnas.map(col => ({
+        ...col,
+        cards: col.cards.filter(card => card.id !== cardId)
+    }));
+
+    return newState;
+};
+
+
+const App = { 
+    crear: crear, 
+    crearTarjeta: crearTarjeta, 
+    moverTarjeta: moverTarjeta, 
+    agregarComentario: agregarComentario, 
+    agregarEtiqueta: agregarEtiqueta, 
+    editarTarjeta: editarTarjeta, 
+    borrarTarjeta: borrarTarjeta 
+};

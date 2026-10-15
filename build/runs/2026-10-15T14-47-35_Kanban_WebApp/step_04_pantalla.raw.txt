@@ -1,0 +1,229 @@
+### FILE: app.html
+```html
+<h1>Kanban Board</h1>
+<div id="app"></div>
+```
+
+### FILE: styles.css
+```css
+/* ========================================= */
+/* F1.1 Global Style & Dark/Industrial Palette Variables */
+/* ========================================= */
+
+:root {
+    /* Paleta Oscura Industrial */
+    --color-background: #1a1a2e; /* Fondo muy oscuro, azulado noche */
+    --color-surface: #2c394b; /* Superficie principal (paneles, columnas) */
+    --color-text-primary: #e9ecef; /* Texto claro */
+    --color-text-secondary: #adb5bd; /* Texto secundario/placeholder */
+    --color-accent-main: #ff6b6b; /* Rojo coral para énfasis (acciones, labels) */
+    --color-accent-secondary: #4ecdc4; /* Cyan/Turquesa para contraste o éxito */
+    --color-border: #3e4d60; /* Bordes sutiles */
+    --shadow-dark: rgba(0, 0, 0, 0.5); /* Sombra profunda */
+
+    /* Transiciones y efectos */
+    --transition-speed: 0.2s ease-out;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Tipografía moderna */
+    line-height: 1.6;
+}
+
+/* Contenedor principal de la app (donde dibuja dibujar()) */
+#app {
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    overflow-x: auto; /* Permite scroll horizontal si hay muchas columnas */
+}
+
+/* ========================================= */
+/* Columnas (Containers) */
+/* ========================================= */
+
+.kanban-column {
+    flex: 0 0 300px; /* Ancho fijo de las columnas */
+    background-color: var(--color-surface);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Sombra inicial en la columna */
+    height: fit-content; /* Ajusta altura al contenido */
+}
+
+.column-header {
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--color-border);
+}
+
+.column-title {
+    font-size: 1.4em;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+/* Lista de tarjetas dentro de la columna */
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espacio entre tarjetas */
+    min-height: 50px; /* Para que se vea el espacio incluso si está vacía */
+}
+
+
+/* ========================================= */
+/* Tarjetas (Cards) - F2.7, F4.9, F4.10 */
+/* ========================================= */
+
+.card {
+    background-color: #3a4c65; /* Fondo ligeramente más claro que la superficie para diferenciación */
+    border-radius: 6px;
+    padding: 15px;
+    box-shadow: 0 2px 8px var(--shadow-dark); /* Sombra sutil (normal) */
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed), background-color var(--transition-speed);
+    cursor: pointer;
+}
+
+/* Efecto Hover / Iluminación - F4.9 */
+.card:hover {
+    transform: translateY(-3px); /* Elevación visible */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), 0 0 15px var(--color-accent-secondary); /* Sombra más pronunciada y brillo sutil */
+}
+
+/* Estilo del Título de la tarjeta */
+.card-title {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: var(--color-text-primary);
+}
+
+/* Descripción de la tarjeta */
+.card-description {
+    font-size: 0.95em;
+    color: var(--color-text-secondary);
+    margin-bottom: 12px;
+}
+
+/* Etiquetas (Labels) - F4.10 */
+.labels-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.label {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    background-color: #5c6b82; /* Fondo base de la etiqueta */
+}
+
+/* Estilo específico para etiquetas con color definido en el estado (aunque solo se usa el background) */
+.label[style*="background-color"] {
+    background-color: var(--label-bg, #5c6b82); 
+    color: var(--label-text, #1a1a2e); /* Asegura contraste si el color es muy claro */
+}
+
+
+/* ========================================= */
+/* Comentarios y Contenido Adicional */
+/* ========================================= */
+
+.comments-section {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--color-border);
+}
+
+.comment {
+    background-color: #364a68; /* Fondo más oscuro para el comentario */
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.comment-author {
+    font-weight: bold;
+    color: var(--color-accent-secondary); /* Destacar el autor */
+    display: block;
+    margin-bottom: 3px;
+}
+
+/* ========================================= */
+/* Controles de Acción (Harness Generated) */
+/* ========================================= */
+
+.ctl-controles {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--color-border);
+}
+
+.ctl-accion {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.2); /* Fondo semi-transparente para agrupar acciones */
+    border-radius: 4px;
+}
+
+input[type="text"], textarea, select {
+    width: 100%;
+    padding: 8px;
+    background-color: #1f2a3b; /* Fondo de input oscuro */
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    border-radius: 4px;
+}
+
+textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+.ctl-boton {
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 4px;
+    transition: background-color var(--transition-speed);
+    /* Estilo base para botones de acción */
+}
+
+.ctl-boton[type="submit"] {
+    background-color: var(--color-accent-main); /* Botón principal (Ej: Guardar) */
+    color: white;
+}
+
+.ctl-boton[type="submit"]:hover {
+    background-color: #ff8b8b;
+}
+
+/* Estilos para botones secundarios o de eliminación */
+.ctl-boton.danger {
+    background-color: #d9534f; /* Rojo peligroso */
+    color: white;
+}
+
+.ctl-boton.danger:hover {
+    background-color: #c9302c;
+}
+```

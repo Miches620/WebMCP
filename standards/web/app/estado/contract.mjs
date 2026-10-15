@@ -29,6 +29,30 @@ export function idsOf(v, out = new Set(), inList = false) {
 }
 const isPlain = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 
+/** v0.8 (15/10, p49): las listas de elementos del estado y cuántos elementos tiene cada una, con las claves
+ *  de sus elementos: { "a": {n, keys}, "a[].b": {n, keys} }. Para el enlace (vista/datos → lista) y Validation. */
+export function listPaths(estado) {
+  const out = {};
+  const walk = (v, path) => {
+    if (Array.isArray(v)) {
+      if (path && v.some(isPlain)) { const o = (out[path] ||= { n: 0, keys: new Set() }); for (const x of v) if (isPlain(x)) { o.n++; Object.keys(x).forEach((k) => o.keys.add(k)); } }
+      v.forEach((x) => walk(x, `${path}[]`));
+    } else if (isPlain(v)) for (const [k, x] of Object.entries(v)) walk(x, path ? `${path}.${k}` : k);
+  };
+  walk(estado, "");
+  return Object.fromEntries(Object.entries(out).map(([p, o]) => [p, { n: o.n, keys: [...o.keys] }]));
+}
+/** Los elementos de una lista (por su camino "a[].b"). */
+export function itemsAt(estado, path) {
+  let cur = [estado];
+  for (const seg of String(path).split(".")) {
+    const k = seg.replace(/\[\]$/, ""); const next = [];
+    for (const o of cur) { const v = isPlain(o) ? o[k] : undefined; if (Array.isArray(v)) next.push(...v); else if (v !== undefined) next.push(v); }
+    cur = next;
+  }
+  return cur.filter(isPlain);
+}
+
 /** v0.7 (15/10, p48: réplicas 12-31-25 y 13-02-02). Las claves de cada elemento con id: { "<id>": ["id","titulo",…] }.
  *  Sirve para saber de QUÉ CLASE de elemento es un id (una tarjeta no es una columna) sin nombrar dominios. */
 export function idKeysOf(v, out = {}, inList = false) {
@@ -61,6 +85,12 @@ export function shapeProblems(estado) {
     }
   };
   walk(estado, "");
+  // v0.7.1 (réplica 14-47-35, seed 3): claves con tilde ("título", "descripción"): dibujo y lógica escriben
+  // .titulo y no encuentran nada (3 intentos de dibujo sin textos ni botones)
+  const accented = new Set();
+  const keysWalk = (v) => { if (Array.isArray(v)) v.forEach(keysWalk); else if (isPlain(v)) for (const [k, x] of Object.entries(v)) { if (!ids.has(k) && !/^[A-Za-z_][A-Za-z0-9_]*$/.test(k)) accented.add(k); keysWalk(x); } };
+  keysWalk(estado);
+  if (accented.size) out.push(`en "estado", estas claves tienen tildes, espacios o signos: ${[...accented].slice(0, 5).map((k) => `"${k}"`).join(", ")}. Las claves van en letras simples sin tilde (por ejemplo "${[...accented][0].normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9_]/g, "_")}"): el código las escribe así.`);
   for (const [k, ps] of Object.entries(where)) if (ps.size > 1) out.push(`en "estado", la lista "${k}" está en dos lugares (${[...ps].join(" y ")}): cada cosa se guarda en UN solo lugar (si no, una acción cambia una y la pantalla muestra la otra). Dejá una sola.`);
   return out;
 }

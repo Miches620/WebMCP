@@ -2,6 +2,36 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Camino 1 (p49): las tareas de vista, datos y estilo tienen evidencia — enlace v0.2, Standard v0.8.0, calls_gate v0.3, task_verdict v0.4 · 2ª tanda de réplicas (15/10)**
+- *2ª tanda de réplicas (con v0.7, corridas `14-17-39`, `14-33-40`, `14-47-35`):*
+  - Validation dio 8 / 8 / 2 PASS, y por tarea 12 / 12 / 0 CUMPLIDAS: **ahora coinciden**.
+  - En la 1 y la 3 el contrato tuvo un problema de forma (ids como claves, y lista en dos lugares). **Gemma lo corrigió en el reintento** las dos veces.
+  - La 3 cayó por otra causa: el contrato quedó con claves con tilde (`"título"`, `"descripción"`). El dibujo, que escribe `.titulo`, falló 3 veces sin textos ni botones.
+  - **Contrato v0.7.1:** las claves con tildes, espacios o signos ahora son problema de forma, con la clave sugerida. Las claves que son ids no cuentan, porque eso lo cubre "ids como claves". Fixture `real_kanban_c19` (contrato real).
+- *Camino 1 (decisión de Miche):*
+  - **Enlace v0.2:** el mismo pedido chico (≈4.000 caracteres) ubica las 28 tareas según su pieza:
+    - logica y controles → una **acción**;
+    - vista y datos → una **lista del estado** (`listPaths`: `"columnas[].tarjetas[].etiquetas"`, con cuántos elementos tiene y sus claves);
+    - estilo → uno o más **requisitos de aspecto** (los `se_ve` del contrato).
+
+    El harness valida varias cosas: una tarea en un destino que no es de su pieza (queda "mal ubicada" y Gemma reintenta), destinos que no existen y repetidas (las de estilo pueden ir en varios requisitos). Acepta una lista nombrada solo por su último tramo ("comentarios"), si no es ambigua.
+  - **calls_gate v0.3** (no cambia el resultado de la compuerta). Agrega:
+    - `listas`: qué elementos de cada lista se ven al cargar. Un elemento se ve si se ven todos sus textos; no se exigen ids, colores, fechas ISO ni números (`page_tools.pageText`).
+    - `datos`: cuántos elementos tiene cada lista en el contrato.
+    - `forma`: los problemas de forma del estado.
+  - **task_verdict v0.4:**
+    - **vista** → CUMPLIDA si se ven todos los elementos de su lista; si no, NO_CUMPLIDA con el texto que no se ve.
+    - **datos** → CUMPLIDA si su lista está en el contrato con elementos y la forma es sana.
+    - **estilo** → CUMPLIDA si todos sus requisitos dieron PASS en Validation; NO_CUMPLIDA si alguno dio FAIL; si no, SIN_EVIDENCIA ("su chequeo no discrimina").
+- *Comprobado con c16* (el build que anda, idéntico al `11-31-58`), con la pantalla real en Chromium y el enlace completo:
+  - Las 4 listas se ven completas y la forma es sana.
+  - Resultado: **24 CUMPLIDAS, 0 NO_CUMPLIDAS y 4 SIN_EVIDENCIA**, donde antes eran 12/0/16.
+  - Las 4 que quedan SIN_EVIDENCIA tienen motivo: F1.1 y F4.10 dependen de R7, que no discrimina; F3.2 pide arrastrar; F2.3 va en "ninguna".
+  - c17 (forma rota): los datos quedan NO_CUMPLIDA.
+- *Límite conocido:* F1.3 pide "columnas vacías" y el Standard exige ejemplos. El veredicto mira si la lista existe, no si la tarea pedía otra cosa: queda CUMPLIDA porque la lista está.
+- *Falta:* ver el enlace v0.2 con Gemma (el pedido creció de 13 a 28 tareas). Va con la próxima tanda de réplicas.
+- *Tests:* `test_enlace` 23/23 (reescrito para v0.2), `test_calls_gate` 37/37 (+7), `test_estado` 60/60 (+1). Suite completa en verde, menos `test_roles`.
+
 **Primeras réplicas (3 × t=0.7): 2 de 3 builds rotos que la compuerta y el veredicto por tarea daban por buenos → contrato v0.7 (forma del estado), calls_gate v0.2, task_verdict v0.3 (15/10)**
 - *Réplicas* (`build/replicas.mjs`, seeds 1, 2, 3; corridas `12-31-25`, `12-47-56`, `13-02-02`):
   - Los seeds funcionan: salieron 3 versiones distintas de cada archivo (`index.html`, 2 de 3).

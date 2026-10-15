@@ -20,15 +20,32 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { parseJsonLoose } from "../../../json_loose.mjs";
-import { runCallsProbe } from "../validation/page_tools.mjs";
+import { runCallsProbe, pageText } from "../validation/page_tools.mjs";
 import { getStandard } from "../../../standards/registry.mjs";
 
-export const CALLS_GATE_VERSION = "calls_gate v0.2";
+export const CALLS_GATE_VERSION = "calls_gate v0.3";
 const EMPTY = new Set(["__undefined__", "__NaN__", "__object__", "__array__", "__function__", "undefined", "null", "NaN", "[object Object]", ""]);
 const isEmpty = (v) => v === null || (typeof v === "string" && EMPTY.has(v.trim()));
 // ¿dos elementos son de la misma clase? comparten la mayoría de sus claves (los campos opcionales no los separan)
 const sameKind = (a = [], b = []) => { const A = new Set(a), B = new Set(b); return [...A].filter((k) => B.has(k)).length / (new Set([...A, ...B]).size || 1) >= 0.5; };
 const show = (v) => (v === "__undefined__" ? "undefined" : v === "__NaN__" ? "NaN" : JSON.stringify(v));
+// v0.3 (15/10, p49): qué elementos de cada lista del estado se ven en la pantalla al cargar. Un elemento se ve si
+// TODOS sus textos aparecen (los ids, colores, fechas ISO y números no se exigen: se muestran de otra forma).
+const nrmTxt = (t) => String(t || "").normalize("NFC").toLowerCase().replace(/\s+/g, " ").trim();
+const skipKey = (k) => /(^|_)id$|Id$/i.test(k);
+const skipVal = (v) => typeof v !== "string" || v.trim().length < 2 || /^#[0-9a-f]{3,8}$/i.test(v.trim()) || /^\d{4}-\d{2}-\d{2}(T[\d:.]+Z?)?$/.test(v.trim()) || /^https?:\/\//.test(v.trim());
+export function listsShown(lists, itemsOf, text) {
+  const page = nrmTxt(text), out = {};
+  for (const path of Object.keys(lists || {})) {
+    const items = itemsOf(path).map((o) => Object.entries(o).filter(([k, v]) => !skipKey(k) && !skipVal(v)).map(([, v]) => v)).filter((ts) => ts.length);
+    const missing = [];
+    let shown = 0;
+    for (const ts of items) { const miss = ts.filter((x) => !page.includes(nrmTxt(x))); if (miss.length) missing.push(miss[0]); else shown++; }
+    out[path] = { total: items.length, shown, missing: missing.slice(0, 3) };
+  }
+  return out;
+}
+
 const ctlName = (k) => String(k || "").replace(/^accion:/, "data-accion=").replace(/^[A-Z]+:/, "");
 
 /**
@@ -110,8 +127,14 @@ export async function validationGates({ artifact, outDir, input, specialist }) {
   const spec = S.validation.calls(c);
   const probe = await runCallsProbe(artifact, spec);
   const { rows, gates } = judgeCalls(probe, S.validation.actions(c), S.validation.idValues(c), spec, typeof S.validation.idKeys === "function" ? S.validation.idKeys(c) : null);
+  // v0.3 (p49): para el veredicto de las tareas de vista y datos (no cambia el resultado de la compuerta)
+  const lists = typeof S.validation.lists === "function" ? S.validation.lists(c) : null;
+  const listas = lists ? listsShown(lists, (p) => S.validation.itemsAt(c, p), await pageText(artifact)) : null;
   return {
     ...base,
+    listas,
+    datos: lists ? Object.fromEntries(Object.entries(lists).map(([p, o]) => [p, o.n])) : null,
+    forma: typeof S.validation.shape === "function" ? S.validation.shape(c) : null,
     result: rows.some((r) => r.problem) ? "FAIL" : "PASS",
     detail: `${rows.filter((r) => !r.problem).length}/${rows.length} acciones se usan desde la pantalla con datos de verdad`,
     errors: probe.errors.slice(0, 3),

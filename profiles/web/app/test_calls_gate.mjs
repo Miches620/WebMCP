@@ -4,7 +4,8 @@ import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { judgeCalls, validationGates } from "./calls_gate.mjs";
+import { judgeCalls, validationGates, listsShown } from "./calls_gate.mjs";
+import { taskVerdicts as fromBuild } from "./build.mjs";
 import { pageHtml } from "../specialist/files_kit.mjs";
 import { getStandard } from "../../../standards/registry.mjs";
 import { datosJs } from "../../../standards/web/app/estado/contract.mjs";
@@ -136,6 +137,34 @@ t("Kanban 3ª corrida: R1–R5 FAIL y R6 sin compuerta (lo que de verdad pasaba 
   t("réplica 12-31-25 (seed 1): los botones mandan ids de columna como cardId → R2–R6 FAIL (antes PASS 6/6)", ["R2", "R3", "R4", "R5", "R6"].every((r) => /otra clase de elemento/.test(c17.gates[r]?.detail || "")) && !c17.gates.R1, Object.keys(c17.gates).join());
   const c18 = await real(18);
   t("réplica 13-02-02 (seed 3): lógica sobre una lista y dibujo sobre otra → R2–R6 FAIL 'no cambia nada' (antes PASS 6/6)", ["R2", "R3", "R4", "R5", "R6"].every((r) => /siempre devuelve el mismo estado/.test(c18.gates[r]?.detail || "")), Object.keys(c18.gates).join());
+}
+
+// ---------- v0.3 (15/10, p49): qué se ve de cada lista del estado, y el veredicto de vista/datos/estilo ----------
+{
+  // el juez de listas (sin navegador)
+  const L = { "a": { n: 2 }, "a[].b": { n: 2 } };
+  const items = { "a": [{ id: 1, nombre: "Uno" }, { id: 2, nombre: "Dos" }], "a[].b": [{ texto: "hola", color: "#ff0000", fecha: "2023-10-26T10:00:00Z" }, { texto: "chau" }] };
+  const ls = listsShown(L, (p) => items[p], "UNO  dos\nHola");
+  t("listas: se ve un elemento si se ven todos sus textos (mayúsculas y espacios no importan; ids, colores y fechas ISO no se exigen)", ls.a.shown === 2 && ls["a[].b"].shown === 1 && ls["a[].b"].missing.join() === "chau", JSON.stringify(ls));
+  // el build que anda (c16 = build 11-31-58 byte a byte): pantalla real + enlace completo + su cobertura
+  const g16 = await real(16);
+  t("c16: las 4 listas se ven completas al cargar; forma sana; datos del contrato", Object.values(g16.listas).every((x) => x.total > 0 && x.shown === x.total) && Object.keys(g16.listas).length === 4 && g16.forma.length === 0 && g16.datos["columnas[].tarjetas"] === 4, JSON.stringify({ l: g16.listas, f: g16.forma }));
+  const snap = JSON.parse((await import("node:fs")).readFileSync(fileURLToPath(new URL("../../../build/snapshots/kanban_receta_v03_snapshot.json", import.meta.url)), "utf8"));
+  const porTarea = { "F2.4": ["crearTarjeta"], "F2.5": ["crearTarjeta"], "F2.6": ["moverTarjeta"], "F3.1": ["moverTarjeta"], "F3.4": ["editarTarjeta"], "F3.5": ["editarTarjeta"], "F3.6": ["borrarTarjeta"], "F3.7": ["borrarTarjeta"], "F4.3": ["etiquetarTarjeta"], "F4.4": ["etiquetarTarjeta"], "F4.7": ["agregarComentario"], "F4.8": ["agregarComentario"], "F3.2": ["moverTarjeta"] };
+  const listaDe = { "F1.2": "columnas", "F1.3": "columnas", "F1.4": "columnas", "F2.1": "columnas[].tarjetas", "F2.2": "columnas[].tarjetas", "F3.3": "columnas[].tarjetas", "F4.1": "columnas[].tarjetas[].etiquetas", "F4.2": "columnas[].tarjetas[].etiquetas", "F4.5": "columnas[].tarjetas[].comentarios", "F4.6": "columnas[].tarjetas[].comentarios" };
+  const requisitosDe = { "F1.1": ["R7"], "F4.10": ["R7"], "F2.7": ["R8", "R9"], "F4.9": ["R8", "R9"] };
+  // cobertura del build 11-31-58 (mismos archivos que c16): R1–R6 y R8–R9 PASS, R7 SIN_EVIDENCIA
+  const coverage = ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9"].map((id) => ({ id, verdict: id === "R7" ? "SIN_EVIDENCIA" : "PASS", checks: id <= "R6" ? [{ type: "action_changes", result: "PASS", detail: "" }] : [] }));
+  const accept = { passed: g16.rows.flatMap((r) => [1, 2, 3, 4, 5].map((k) => `${r.nombre} prueba ${k}`)), failed: [] };
+  const v = fromBuild({ input: { tasks: snap.atomicTasks }, specialist: { rule_tests: accept, data: { enlace: { report: [{ porTarea, ninguna: ["F2.3"], listaDe, requisitosDe }] } } }, gates: g16, coverage });
+  const r = (id) => v.rows.find((x) => x.id === id);
+  t("c16 + enlace v0.2: vista CUMPLIDA porque sus textos se ven (F4.2 etiquetas)", r("F4.2").verdict === "CUMPLIDA" && /se ven los 3 elementos de columnas\[\]\.tarjetas\[\]\.etiquetas/.test(r("F4.2").reason), JSON.stringify(r("F4.2")));
+  t("c16: datos CUMPLIDA (la lista está con elementos y la forma es sana)", r("F4.5").verdict === "CUMPLIDA" && /con 2 elementos/.test(r("F4.5").reason), JSON.stringify(r("F4.5")));
+  t("c16: estilo CUMPLIDA si sus requisitos dieron PASS (F4.9 → R8, R9); SIN_EVIDENCIA si su requisito no discrimina (F1.1 → R7)", r("F4.9").verdict === "CUMPLIDA" && r("F1.1").verdict === "SIN_EVIDENCIA" && /R7 SIN_EVIDENCIA/.test(r("F1.1").reason), JSON.stringify([r("F4.9"), r("F1.1")]));
+  t("c16: en total 24 CUMPLIDAS, 0 NO_CUMPLIDAS, 4 SIN_EVIDENCIA (F1.1 y F4.10 por R7, F3.2 arrastrar, F2.3 'ninguna')", v.counts.CUMPLIDA === 24 && !v.counts.NO_CUMPLIDA && v.counts.SIN_EVIDENCIA === 4, JSON.stringify(v.counts));
+  // el mismo veredicto en la réplica rota por la forma (c17): los datos no se dan por buenos
+  const g17 = await real(17);
+  t("c17 (forma rota): la compuerta informa la forma; los datos quedarían NO_CUMPLIDA", g17.forma.length === 1 && fromBuild({ input: { tasks: snap.atomicTasks }, specialist: { data: { enlace: { report: [{ porTarea: {}, ninguna: [], listaDe: { "F2.1": Object.keys(g17.datos)[0] }, requisitosDe: {} }] } } }, gates: g17, coverage: [] }).rows.find((x) => x.id === "F2.1").verdict === "NO_CUMPLIDA", JSON.stringify(g17.forma));
 }
 
 console.log(`\n${ok}/${ok + fail} OK`);

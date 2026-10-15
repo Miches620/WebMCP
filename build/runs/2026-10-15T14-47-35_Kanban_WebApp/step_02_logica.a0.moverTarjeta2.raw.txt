@@ -1,0 +1,55 @@
+```javascript
+moverTarjeta: function(estado, cardId, columnaOrigenId, columnaDestinoId) {
+    if (columnaOrigenId === columnaDestinoId) {
+        return estado; 
+    }
+
+    let tarjetaAMover = null;
+    let origenEncontrado = false;
+
+    // 1. Intentar encontrar la tarjeta y actualizar el estado de origen en una copia profunda
+    const nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+    for (let i = 0; i < nuevoEstado.columnas.length; i++) {
+        const col = nuevoEstado.columnas[i];
+
+        if (!origenEncontrado && col.id === columnaOrigenId) {
+            // Extraer la tarjeta a mover del estado actual antes de modificar el array en nuevoEstado
+            tarjetaAMover = col.tarjetas.find(card => card.id === cardId);
+            
+            if (!tarjetaAMover) {
+                console.error("Tarjeta no encontrada en la columna origen.");
+                return estado; 
+            }
+
+            // Crear una nueva estructura de columna para nuevoEstado, sin incluir la tarjeta movida
+            const nuevasTarjetas = col.tarjetas.filter(card => card.id !== cardId);
+            nuevoEstado.columnas[i] = { ...col, tarjetas: [...nuevasTarjetas] };
+            origenEncontrado = true;
+        } 
+    }
+
+    // Si no se encontró la columna de origen o la tarjeta (debería haber sido manejado arriba, pero como chequeo extra)
+    if (!origenEncontrado || !tarjetaAMover) {
+         return estado;
+    }
+
+
+    // 2. Añadir la tarjeta a la columna de destino en nuevoEstado
+    for (let i = 0; i < nuevoEstado.columnas.length; i++) {
+        const col = nuevoEstado.columnas[i];
+
+        if (col.id === columnaDestinoId) {
+            // Actualizar el array de tarjetas de la columna destino en nuevoEstado
+            nuevoEstado.columnas[i] = { 
+                ...col, 
+                tarjetas: [...col.tarjetas, tarjetaAMover] 
+            };
+            return nuevoEstado; // Éxito: devolver el estado modificado
+        }
+    }
+
+    console.error("Columna destino no encontrada:", columnaDestinoId);
+    return estado; // Fallo: devolver el estado original
+}
+```

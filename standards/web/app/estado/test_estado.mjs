@@ -218,6 +218,9 @@ dibujar(estado);`;
   t("forma v0.7: la misma lista en dos lugares (c18) → problema", shapeProblems(e18).length === 1 && /está en dos lugares \(columnas\[\]\.tarjetas y tarjetas\)/.test(shapeProblems(e18)[0]), JSON.stringify(shapeProblems(e18)));
   t("forma v0.7: contractProblems lo incluye (se reintenta)", contractProblems({ items: [{ ...FXE(17), acciones: [] }], reports: [{}] }, { features: [] }).some((p) => /ids como claves/.test(p)));
   t("forma v0.7: entre intentos, gana el de forma sana aunque deje una feature más afuera", bestContract([{ estado: e17, acciones: [{ features: [1, 2] }], se_ve: [] }, { estado: e16, acciones: [{ features: [1] }], se_ve: [] }], [{}, {}], { features: ["a", "b"], style: [] }) === 1);
+  // v0.7.1: réplica 14-47-35 (seed 3, después del reintento por forma): claves "título", "descripción" → dibujo sin textos ni botones
+  const s19 = shapeProblems(FXE(19).estado);
+  t("forma v0.7.1: claves con tilde (c19, contrato real) → problema con la clave sugerida; las claves que son ids no cuentan (c17)", s19.length === 1 && /"título", "descripción"/.test(s19[0]) && /por ejemplo "titulo"/.test(s19[0]) && shapeProblems(e17).length === 1, JSON.stringify(s19));
   t("idKeysOf: la clase de cada id (columnas ≠ tarjetas)", idKeysOf(e16)["col_pendiente"].join() === "id,nombre,tarjetas" && idKeysOf(e16)["card_1"].includes("titulo"), JSON.stringify(idKeysOf(e16)).slice(0, 200));
 }
 console.log(`\n${ok}/${ok + fail} OK`);

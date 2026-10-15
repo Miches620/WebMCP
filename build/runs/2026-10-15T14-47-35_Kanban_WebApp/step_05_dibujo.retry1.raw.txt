@@ -1,0 +1,181 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado) {
+    const appContainer = document.getElementById('app');
+    if (!appContainer) return;
+
+    // 1. Vaciar el contenedor principal
+    appContainer.innerHTML = '';
+
+    /**
+     * Crea y añade la estructura de una etiqueta (label).
+     * @param {Array<object>} labels - Array de objetos etiqueta.
+     * @returns {HTMLElement} Elemento div con clase .labels-container.
+     */
+    function renderizarEtiquetas(labels) {
+        const container = document.createElement('div');
+        container.className = 'labels-container';
+        if (!labels || labels.length === 0) return container;
+
+        labels.forEach(label => {
+            const labelEl = document.createElement('span');
+            labelEl.className = 'label';
+            // Usamos style.backgroundColor para asegurar que el color se aplique correctamente
+            labelEl.style.backgroundColor = label.color; 
+            labelEl.textContent = label.nombre;
+            container.appendChild(labelEl);
+        });
+        return container;
+    }
+
+    /**
+     * Crea y añade el contenido de la sección de comentarios.
+     * @param {Array<object>} comentarios - Array de objetos comentario.
+     * @returns {HTMLElement} Elemento div con clase .comments-section.
+     */
+    function renderizarComentarios(comentarios) {
+        const section = document.createElement('div');
+        section.className = 'comments-section';
+        if (!comentarios || comentarios.length === 0) return section;
+
+        // Ordenar por timestamp (el más antiguo primero, aunque el estado ya lo debería proveer)
+        const sortedComments = [...comentarios].sort((a, b) => a.timestamp - b.timestamp);
+
+        sortedComments.forEach(comment => {
+            const commentEl = document.createElement('div');
+            commentEl.className = 'comment';
+
+            // Autor y timestamp (usando un formato simple para el ejemplo)
+            const authorAuthor = document.createElement('span');
+            authorAuthor.className = 'comment-author';
+            // Formateo básico de fecha, ya que no tenemos librerías externas
+            const dateString = new Date(comment.timestamp).toLocaleString(); 
+            authorAuthor.textContent = `${comment.autor} (${dateString})`;
+
+            const contentP = document.createElement('p');
+            contentP.innerHTML = comment.contenido; // Usamos innerHTML por si contiene formato (aunque el contrato no lo indica, es buena práctica)
+
+            commentEl.appendChild(authorAuthor);
+            // Añadimos un separador visual simple si los estilos CSS no proveen uno explícito
+            const separatorBr = document.createElement('br'); 
+            commentEl.appendChild(separatorBr);
+            commentEl.appendChild(contentP);
+            section.appendChild(commentEl);
+        });
+
+        return section;
+    }
+
+
+    /**
+     * Crea el componente Card completo.
+     * @param {object} card - El objeto tarjeta del estado.
+     * @returns {HTMLElement} Elemento div con clase .card.
+     */
+    function renderizarTarjeta(card) {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card';
+
+        // 1. Título y Descripción
+        const titleEl = document.createElement('h3');
+        titleEl.className = 'card-title';
+        titleEl.textContent = card.título;
+
+        const descriptionEl = document.createElement('p');
+        descriptionEl.className = 'card-description';
+        descriptionEl.textContent = card.descripción || '';
+
+        // 2. Etiquetas
+        const labelsContainer = renderizarEtiquetas(card.labels);
+        cardEl.appendChild(document.createElement('hr')); // Separador visual antes de etiquetas/comentarios
+        cardEl.appendChild(labelsContainer);
+
+        // 3. Comentarios
+        const commentsSection = renderizarComentarios(card.comentarios);
+        if (commentsSection.children.length > 0) { // Solo añadir si hay comentarios
+             cardEl.appendChild(document.createElement('hr')); // Separador visual antes de comentarios
+            cardEl.appendChild(commentsSection);
+        }
+
+
+        // 4. Controles de acciones (Mover, Comentar, Editar, Borrar, Etiquetar)
+        const controlsContainer = document.createElement('div');
+        controlsContainer.className = 'ctl-controles';
+
+        // Mover tarjeta (Requiere el ID de la columna actual para saber dónde moverla)
+        const moverControls = controlesDe("mover", null, card);
+        if (moverControls) controlsContainer.appendChild(moverControls);
+
+        // Agregar comentario
+        const comentarioControls = controlesDe("comentario", null, card);
+        if (comentarioControls) controlsContainer.appendChild(comentarioControls);
+
+
+        // Editar tarjeta
+        const editarControls = controlesDe("editar", null, card);
+        if (editarControls) controlsContainer.appendChild(editarControls);
+
+        // Borrar tarjeta
+        const borrarControls = controlesDe("borrar", null, card);
+        if (borrarControls) controlsContainer.appendChild(borrarControls);
+
+
+        // Agregar etiqueta
+        const etiquetaControls = controlesDe("etiqueta", null, card);
+        if (etiquetaControls) controlsContainer.appendChild(etiquetaControls);
+
+        cardEl.appendChild(controlsContainer);
+
+        return cardEl;
+    }
+
+    /**
+     * Crea y añade el componente Columna completa.
+     * @param {object} column - El objeto columna del estado.
+     * @returns {HTMLElement} Elemento div con clase .kanban-column.
+     */
+    function renderizarColumna(column) {
+        const colEl = document.createElement('div');
+        colEl.className = 'kanban-column';
+
+        // 1. Header y Título de Columna
+        const header = document.createElement('div');
+        header.className = 'column-header';
+        const title = document.createElement('h2');
+        title.className = 'column-title';
+        title.textContent = column.nombre;
+        header.appendChild(title);
+
+        // Controles para crear tarjeta (acción de columna)
+        const createCardControls = controlesDe("crear", null, { columnaId: column.id });
+        if (createCardControls) header.appendChild(createCardControls);
+
+
+        // 2. Lista de Tarjetas
+        const cardList = document.createElement('div');
+        cardList.className = 'card-list';
+
+        column.tarjetas.forEach(card => {
+            const cardEl = renderizarTarjeta(card);
+            cardList.appendChild(cardEl);
+        });
+
+        colEl.appendChild(header);
+        colEl.appendChild(cardList);
+
+        return colEl;
+    }
+
+
+    // 3. Iterar sobre todas las columnas y dibujar el tablero
+    const columnsContainer = document.createElement('div');
+    columnsContainer.className = 'kanban-board'; // Clase para el wrapper de nivel superior
+
+    estado.columnas.forEach(col => {
+        const colEl = renderizarColumna(col);
+        columnsContainer.appendChild(colEl);
+    });
+
+    appContainer.appendChild(columnsContainer);
+}
+```

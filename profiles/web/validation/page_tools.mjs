@@ -307,3 +307,20 @@ export async function runCallsProbe(htmlPath, { global, methods, draw, fill = "P
   } finally { await browser.close(); }
   return out;
 }
+
+// v0.2.5 (15/10, p49): el texto que se ve en la página al cargar (sin tocar nada), para saber qué datos del
+// estado se muestran. innerText solo trae lo visible (display:none no cuenta).
+export async function pageText(htmlPath) {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    await page.route(/^https?:/, (r) => r.abort());
+    await page.goto(pathToFileURL(htmlPath).href, { waitUntil: "load" });
+    await page.waitForTimeout(100);
+    return await page.evaluate(() => document.body.innerText || "");
+  } catch (e) {
+    return "";
+  } finally {
+    await browser.close();
+  }
+}

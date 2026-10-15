@@ -38,7 +38,10 @@ export function taskVerdicts({ input, specialist, gates, coverage = null }) {
     tasks: input.tasks,
     contract: gates?.tareas ? { acciones: Object.entries(gates.tareas).map(([nombre, tareas]) => ({ nombre, tareas })) } : null,
     // v0.2 (Standard v0.6): el paso enlace deja en su resumen qué acción hace cada tarea
-    links: specialist?.data?.enlace?.report?.[0]?.porTarea ? { porTarea: specialist.data.enlace.report[0].porTarea, ninguna: specialist.data.enlace.report[0].ninguna || [] } : null,
+    links: specialist?.data?.enlace?.report?.[0]?.porTarea ? (({ porTarea, ninguna, listaDe, requisitosDe }) => ({ porTarea, ninguna: ninguna || [], ...(listaDe ? { listaDe } : {}), ...(requisitosDe ? { requisitosDe } : {}) }))(specialist.data.enlace.report[0]) : null,
+    // 15/10 (p49): vista → qué se ve de cada lista; datos → listas del contrato y su forma; estilo → veredicto por requisito
+    lists: gates?.listas || null, data: gates?.datos || null, shape: gates?.forma || null,
+    requirements: coverage ? Object.fromEntries(coverage.map((c) => [c.id, { verdict: c.verdict, detail: c.reason || (c.checks || []).find((k) => k.result !== "PASS")?.detail || "" }])) : null,
     acceptance: specialist?.rule_tests || null,
     gateRows: gates?.rows?.length ? gates.rows : null,
     // 15/10 (p48): lo que vio Validation en la pantalla al usar cada acción (action_changes por requisito)

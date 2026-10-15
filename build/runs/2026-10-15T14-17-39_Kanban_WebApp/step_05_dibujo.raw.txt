@@ -1,0 +1,107 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado) {
+    const appContainer = document.getElementById('app');
+    if (!appContainer) return;
+
+    // 1. Limpiar contenedor principal
+    appContainer.innerHTML = '';
+
+    // 2. Renderizar Controles de Aplicación (Crear Tarjeta)
+    // Se coloca al inicio o final según el diseño, aquí lo pondremos primero para un flujo lógico.
+    const appControls = controlesDe("app", null, estado);
+    if (appControls && appContainer.firstChild === null) {
+        appContainer.appendChild(appControls);
+        // Agregar algo de margen visual si es necesario
+    }
+
+    // 3. Renderizar Columnas y Tarjetas
+    estado.columnas.forEach(columna => {
+        const columnaEl = document.createElement('div');
+        columnaEl.className = 'columna';
+        columnaEl.setAttribute('data-columna-id', columna.id);
+
+        // Título y Descripción de la Columna
+        columnaEl.innerHTML = `<h2>${columna.titulo}</h2><p class="descripcion-columna">${columna.descripcion_columna}</p>`;
+
+        // Contenedor de tarjetas (donde se apilan las cards)
+        const cardListContainer = document.createElement('div');
+        cardListContainer.className = 'card-list';
+        columnaEl.appendChild(cardListContainer);
+
+        // 3a. Renderizar Tarjetas dentro de la Columna
+        columna.tarjetas.forEach(card => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card';
+            cardEl.setAttribute('data-card-id', card.id);
+
+            // Contenido principal de la tarjeta
+            let htmlContent = `<h3>${card.titulo}</h3>`;
+            if (card.descripcion) {
+                htmlContent += `<p class="descripcion">${card.descripcion}</p>`;
+            }
+            if (card.contenido_adicional) {
+                htmlContent += `<div class="contenido-adicional"><strong>Detalle:</strong> ${card.contenido_adicional}</div>`;
+            }
+
+            // 3b. Renderizar Labels
+            let labelsHtml = '<div class="labels-container">';
+            if (card.labels && card.labels.length > 0) {
+                card.labels.forEach(label => {
+                    labelsHtml += `<span class="label" style="background-color: ${label.color};">${label.nombre}</span>`;
+                });
+            } else {
+                 labelsHtml += '<p>Sin etiquetas.</p>';
+            }
+            labelsHtml += '</div>';
+
+            // 3c. Renderizar Comentarios
+            let commentsHtml = '<div class="comments-container">';
+            if (card.comentarios && card.comentarios.length > 0) {
+                card.comentarios.forEach(comment => {
+                    const date = new Date(comment.timestamp);
+                    const formattedDate = date.toLocaleString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' });
+
+                    commentsHtml += `
+                        <div class="comment">
+                            <div class="comment-header">
+                                <strong>${comment.autor}</strong> - ${formattedDate}
+                            </div>
+                            <p>${comment.contenido}</p>
+                        </div>`;
+                });
+            } else {
+                commentsHtml += '<p class="sin-comentarios">Aún no hay comentarios.</p>';
+            }
+            commentsHtml += '</div>';
+
+
+            // Ensamblar el HTML de la tarjeta
+            cardEl.innerHTML = `
+                ${htmlContent}
+                ${labelsHtml}
+                <div class="acciones-tarjeta">
+                    <!-- Controles se añadirán aquí por controlesDe -->
+                </div>
+                ${commentsHtml}
+            `;
+
+            // 3d. Añadir controles de acción a la tarjeta (Mover, Comentar, Editar, Eliminar, Etiquetar)
+            const cardActionsContainer = cardEl.querySelector('.acciones-tarjeta');
+            if (cardActionsContainer) {
+                // NOTA: Los controlesDe ya maneja la inyección dentro del contenedor especificado
+                const controls = controlesDe("tarjetas", card, estado);
+                if (controls) {
+                    cardActionsContainer.appendChild(controls);
+                }
+            }
+
+            // 3e. Añadir tarjeta al listado de columnas
+            cardListContainer.appendChild(cardEl);
+        });
+
+        // 4. Añadir columna completa al contenedor principal
+        appContainer.appendChild(columnaEl);
+    });
+}
+```

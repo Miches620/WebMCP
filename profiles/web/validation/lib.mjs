@@ -109,6 +109,10 @@ export const SEEN_WORDS = (el) => {
 export const ITEM_LEFTS = () => [...document.querySelectorAll("[data-vc-item]")].map((e) => Math.round(e.getBoundingClientRect().left));
 // v0.4: estilo comparable para hover
 export const STYLE_SNAP = (el) => { const c = getComputedStyle(el); return [c.color, c.backgroundColor, c.boxShadow, c.transform, c.borderColor, c.opacity, c.textDecorationLine, c.outlineStyle].join("|"); };
+// 16/10 (build 2026-10-16T15-48-47): ".card:hover .card-actions { opacity: 1 }" — al pasar el mouse cambia algo ADENTRO
+// de la tarjeta (los botones aparecen), no la tarjeta. Con STYLE_SNAP solo del elemento daba "sin cambio" (R14 FAIL
+// falso: "display on hover" es justo eso). Foto del elemento y de hasta 40 elementos de adentro.
+export const STYLE_SNAP_TREE = (el) => { const one = (e) => { const c = getComputedStyle(e); return [c.color, c.backgroundColor, c.boxShadow, c.transform, c.borderColor, c.opacity, c.textDecorationLine, c.outlineStyle, c.visibility, c.display].join("|"); }; return [el, ...Array.prototype.slice.call(el.querySelectorAll("*"), 0, 40)].map(one).join("#"); };
 export const HOVER_KINDS = [
   { re: /(bot|button|btn|cta)/, sel: "button, .btn, [class*=button], [class*=cta], input[type=submit], a[class*=btn]", label: "botón" },
   // 12/10 (Kanban real): class="tarjeta" no entraba ("tarjeta: no hay" con .tarjeta:hover en el CSS)

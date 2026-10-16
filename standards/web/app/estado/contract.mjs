@@ -106,9 +106,38 @@ const featNum = (f) => { const m = String(f ?? "").match(/(\d+)/); return m ? Nu
 const textNorm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
 const briefNorm = (features = []) => textNorm((features || []).join(" \n "));
 
+/**
+ * v0.8.3 (16/10, builds 2026-10-16T15-48-47 y 16-24-56): Gemma armó "columns": { "Pendiente": {title, counter},
+ * "En_Curso": {...} } — una colección como objeto con ids de claves. El aviso de forma se repitió 3 intentos y el
+ * build siguió roto (botones sin ids, mover con texto libre). Eso tiene un arreglo MECÁNICO, sin modelo: un objeto
+ * con 2 o más entradas que son todas objetos de la misma clase es una lista; cada clave pasa a ser su "id".
+ * (Una lista agrupada por clave — { "<id>": [ ... ] } — no se toca: ahí no se sabe sola cómo armarla.)
+ */
+export function listifyKeyed(estado) {
+  const notes = [];
+  const walk = (v, path) => {
+    if (Array.isArray(v)) return v.map((x) => walk(x, `${path}[]`));
+    if (!isPlain(v)) return v;
+    const out = {};
+    for (const [k, x] of Object.entries(v)) {
+      const here = path ? `${path}.${k}` : k;
+      const vals = isPlain(x) ? Object.values(x) : [];
+      const first = vals[0];
+      const collection = vals.length >= 2 && vals.every(isPlain) && vals.every((y) => sameKind(Object.keys(y), Object.keys(first)));
+      if (collection) {
+        out[k] = Object.entries(x).map(([key, y]) => walk(y.id !== undefined ? y : { id: key, ...y }, `${here}[]`));
+        notes.push(`${here}: era un objeto con ids como claves (${Object.keys(x).slice(0, 3).map((q) => `"${q}"`).join(", ")}); el harness lo pasó a una lista donde cada elemento lleva su "id".`);
+      } else out[k] = walk(x, here);
+    }
+    return out;
+  };
+  return { estado: walk(estado, ""), notes };
+}
+
 export function parseContract(json, h = {}) {
   if (!isPlain(json)) return { error: 'el JSON tiene que ser { "estado": {...}, "acciones": [...], "se_ve": [...] }.' };
-  const estado = json.estado;
+  const keyed = isPlain(json.estado) ? listifyKeyed(json.estado) : { estado: json.estado, notes: [] };
+  const estado = keyed.estado;
   if (!isPlain(estado) || !Object.keys(estado).length) return { error: '"estado" tiene que ser un objeto con datos (el estado inicial de la app, con ejemplos).' };
   const stateTxt = JSON.stringify(estado);
   if (stateTxt.length > MAX_STATE_CHARS) return { error: `"estado" es muy largo (${stateTxt.length} caracteres; hasta ${MAX_STATE_CHARS}): dejá 2 o 3 ejemplos por lista.` };
@@ -116,7 +145,7 @@ export function parseContract(json, h = {}) {
   const nFeat = (h.features || []).length;
   const keys = Object.keys(estado);
   const idValues = idsOf(estado);
-  const dropped = [], renamed = [], acciones = [];
+  const dropped = [], renamed = [...keyed.notes], acciones = [];
   const used = new Set();
   json.acciones.slice(0, MAX_ACTIONS).forEach((a, i) => {
     const label = `acción ${i + 1}${a?.nombre ? ` ("${String(a.nombre).slice(0, 40)}")` : ""}`;

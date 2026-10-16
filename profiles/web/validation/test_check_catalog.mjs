@@ -193,6 +193,13 @@ if (kf.every(Boolean)) { ok++; console.log("✓ keysFrom"); } else { fail++; con
   if (c2.result === "FAIL" && /no cambia/.test(c2.detail)) { ok++; console.log("✓ counter_on_action: contador suelto que NO cambia → FAIL"); } else { fail++; console.log(`✗ counter_on_action suelto sin cambio ${c2.result} ${c2.detail}`); }
 }
 
+// 16/10: hover_changes ve lo que cambia ADENTRO del elemento (".card:hover .card-actions { opacity: 1 }")
+{
+  const hv = [normalizeCheck({ type: "hover_changes", params: { elementos: ["tarjeta"] } })];
+  const [h1] = await runChecks(S("hover_adentro"), hv), [h2] = await runChecks(S("hover_nada"), hv);
+  if (h1.result === "PASS" && h2.result === "FAIL") { ok++; console.log("✓ hover_changes: aparecen los botones de adentro → PASS; nada cambia → FAIL"); } else { fail++; console.log(`✗ hover_changes adentro ${h1.result} ${h1.detail} / nada ${h2.result} ${h2.detail}`); }
+}
+
 const bad = [normalizeCheck({ type: "inventado" }), normalizeCheck({ type: "field_exists", params: {} }), normalizeCheck({ type: "click_reveals", params: { click: ["x"] } })];
 if (bad.every((b) => b === null)) { ok++; console.log("✓ normalizeCheck rechaza tipos y params inválidos"); } else { fail++; console.log("✗ normalizeCheck", bad); }
 console.log(`\n${ok}/${ok + fail} OK`);

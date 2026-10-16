@@ -38,7 +38,7 @@ t("web/landing no tiene Standard → sin stack (y no falla)", resolveProfiles(["
 
 // ---------- 4. TechLeader y Atomizer reciben el stack como dato ----------
 const tl = buildTechLeaderPrompt(A);
-t("TechLeader: STACK del Standard, sin servidor, y ya no pide stack_sugerido", tl.includes("STACK (lo fija el Standard web/app/estado v0.8.1") && /NO hay servidor/.test(tl) && !/stack_sugerido/.test(tl));
+t("TechLeader: STACK del Standard, sin servidor, y ya no pide stack_sugerido", tl.includes(`STACK (lo fija el Standard web/app/estado v${standardMeta("web/app/estado").version}`) && /NO hay servidor/.test(tl) && !/stack_sugerido/.test(tl));
 t("TechLeader con plantillas: dice Handlebars", buildTechLeaderPrompt(B).includes("plantillas Handlebars"));
 t("TechLeader sin Standard (landing): sin bloque STACK", !/STACK \(/.test(buildTechLeaderPrompt(resolveProfiles(["web/landing"]))));
 t("Atomizer: también recibe el STACK", buildDecomposePrompt({ id: "F1", name: "x" }, "Frontend", [], A).includes("STACK (lo fija el Standard web/app/estado"));

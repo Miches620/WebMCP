@@ -1,4 +1,4 @@
-// standard.mjs — Standard "app con estado" (web/app/estado) · DRAFT v0.2.0 (12/10; v0.1.0 el mismo día, ver docs/CAMBIOS.md).
+// standard.mjs — Standard "app con estado" (web/app/estado) · DRAFT (versión en meta.mjs; historia en docs/CAMBIOS.md).
 //
 // Paso 2 del borde (12/10, diseño aprobado por Miche: "construilo así"): web/app por archivos, con su
 // propio Standard, y el Kanban como piloto. Lo que cambia respecto de grilla: en una app el contrato NO
@@ -64,7 +64,7 @@ export function tiposText(c) {
   const own = [...new Set(plan.acciones.map((a) => a.owner))];
   return own.map((t) => {
     const acts = plan.acciones.filter((a) => a.owner === t).map((a) => a.label).join(", ");
-    return t === "app" ? `  - "app" (acciones generales, elemento null): una vez, al final de #app → ${acts}` : `  - "${t}": cada elemento de ${whereOf(plan.kinds[t])} → ${acts}`;
+    return t === "app" ? `  - "app" (acciones generales, elemento null): una vez, al final de #app o adentro del elemento donde el brief dice que va → ${acts}` : `  - "${t}": cada elemento de ${whereOf(plan.kinds[t])} → ${acts}`;
   }).join("\n");
 }
 
@@ -99,7 +99,9 @@ const acts = (c) => (c ? controlsPlan(c).acciones : []).map((a) => ({ n: a.nombr
 export const probeFor = (c, css = []) => `window.__probe = (function () {
   try {
     var ACTS = ${JSON.stringify(acts(c))}, CSS = ${JSON.stringify(css)};
+    window.__ctlDom = [];
     var e = App.crear(); dibujar(e);
+    var domElem = (window.__ctlDom || []).slice();
     var box = document.getElementById("app");
     if (!box) return { ok: false, error: "no existe #app" };
     var norm = function (s) { return String(s).replace(/\\s+/g, " ").trim().toLowerCase(); };
@@ -160,7 +162,12 @@ export const probeFor = (c, css = []) => `window.__probe = (function () {
       var wCol = wcs && /flex/.test(wcs.display) && /column/.test(wcs.flexDirection);
       if (w && w.children.length >= 2 && (!/flex|grid/.test(wcs.display) || wCol)) wrapper = { app: appDisp, tag: w.tagName.toLowerCase(), cls: w.className || "", dir: wCol ? wcs.flexDirection : null };
     }
-    var res = { ok: true, wrapper: wrapper, children: box.children.length, total: texts.length, noButton: noButton, noId: noId, noField: noField, unstyled: unstyled, unused: unused, pairs: pairs, styledShare: els.length ? styledEls / els.length : 1,
+    // v0.8.3 (build 2026-10-16T15-48-47): un botón o campo que dibujó dibujar() fuera de controlesDe y SIN
+    // data-accion / data-campo no hace nada: Validation lo apretaba ("➕ Agregar tarjeta" → no cambia nada).
+    // (uno propio con data-accion sí funciona: lo conecta controles.js; v0.2.2, 3ª corrida real)
+    var ownControls = Array.prototype.filter.call(box.querySelectorAll("button, input, select, textarea"), function (el) { return !el.closest(".ctl-controles") && !el.closest("[data-accion]") && !el.hasAttribute("data-campo"); })
+      .map(function (el) { return (el.textContent || el.getAttribute("placeholder") || el.tagName.toLowerCase()).trim().slice(0, 30); }).filter(function (t, i, a) { return a.indexOf(t) === i; }).slice(0, 4);
+    var res = { ok: true, domElem: domElem, ownControls: ownControls, wrapper: wrapper, children: box.children.length, total: texts.length, noButton: noButton, noId: noId, noField: noField, unstyled: unstyled, unused: unused, pairs: pairs, styledShare: els.length ? styledEls / els.length : 1,
       missing: texts.filter(function (t) { return txt.indexOf(norm(t)) < 0; }),
       objectText: ((box.textContent || "").match(/\\[object \\w+\\]/) || [])[0] || "",
       undef: ["undefined", "nan", "null"].filter(function (w) { return new RegExp("\\\\b" + w + "\\\\b").test(txt) && inState.indexOf(w) < 0; }) };
@@ -174,7 +181,10 @@ export const probeFor = (c, css = []) => `window.__probe = (function () {
       var tr = (function walk(v) {
         if (typeof v === "string") { var t = v.trim(); return t.length > 1 && /\\s|[A-ZÁÉÍÓÚÑ]/.test(t) ? trap + v : v; }
         if (Array.isArray(v)) return v.map(walk);
-        if (v && typeof v === "object") { var o = {}; Object.keys(v).forEach(function (k) { o[k] = walk(v[k]); }); return o; }
+        // v0.8.3 (build 2026-10-16T15-48-47): un valor que es un id ("columnaId": "Pendiente") no es texto para
+        // personas; con la trampa adentro ninguna tarjeta encontraba su columna, no se dibujaba y el XSS (innerHTML
+        // con card.titulo) pasaba sin aviso
+        if (v && typeof v === "object") { var o = {}; Object.keys(v).forEach(function (k) { o[k] = /(^|_)id$|Id$/i.test(k) ? v[k] : walk(v[k]); }); return o; }
         return v;
       })(App.crear());
       dibujar(tr);
@@ -299,8 +309,10 @@ ${fence("json", CONTRACT_FMT)}`,
         const out = [];
         // v0.4.0: los botones los arma controlesDe; si falta uno, es que no se agregó controlesDe en ese tipo de elemento
         if (p.noButton?.length) { const by = {}; p.noButton.forEach((x) => { const [a, t] = x.split("@"); (by[t || "?"] ||= []).push(a); });
-          out.push(`faltan los controles de: ${Object.entries(by).map(([t, as]) => `${as.join(", ")} (agregá ${t === "app" ? 'controlesDe("app", null, estado) una vez al final de #app' : `controlesDe("${t}", elemento, estado) adentro de cada elemento de ese tipo`})`).join("; ")}.`); }
-        if (p.noId?.length) out.push(`a estos botones les falta el id en b.dataset: ${p.noId.map((x) => { const [a, k] = x.split(":"); return `${a} (b.dataset.${k}, en HTML data-${k})`; }).join(", ")}. La clave va en minúsculas: el HTML pasa data-cardId a data-cardid. Si ese id no es del elemento donde está el botón (un destino), dibujá un botón por cada valor posible.`);
+          out.push(`faltan los controles de: ${Object.entries(by).map(([t, as]) => `${as.join(", ")} (agregá ${t === "app" ? 'controlesDe("app", null, estado) una vez: al final de #app, o adentro del elemento donde el brief dice que va' : `controlesDe("${t}", elemento, estado) adentro de cada elemento de ese tipo`})`).join("; ")}.`); }
+        if (p.domElem?.length) out.push(`a controlesDe(${p.domElem.map((t) => `"${t}"`).join(", ")}, …) le pasaste un elemento de la PÁGINA (el que armaste con createElement), no el del ESTADO: pasale el objeto del estado que estás recorrendo (p.ej. controlesDe("${p.domElem[0]}", item, estado), con el item del estado, no el div). Por eso los botones salen sin id.`);
+        if (p.ownControls?.length) out.push(`dibujar arma botones o campos propios que no hacen nada: ${p.ownControls.map((x) => JSON.stringify(x)).join(", ")}. Sacalos: los botones de las acciones los pone controlesDe (ya conectados). Si el brief dice DÓNDE va un botón, poné ahí el controlesDe de ese elemento.`);
+        if (p.noId?.length && !p.domElem?.length) out.push(`a estos botones les falta el id en b.dataset: ${p.noId.map((x) => { const [a, k] = x.split(":"); return `${a} (b.dataset.${k}, en HTML data-${k})`; }).join(", ")}. La clave va en minúsculas: el HTML pasa data-cardId a data-cardid. Si ese id no es del elemento donde está el botón (un destino), dibujá un botón por cada valor posible.`);
         if (p.noField?.length) {
           const fl = p.noField.map((x) => { const [a, k] = x.split(":"); return { a, k: k.replace(/[!?]/g, ""), hidden: k.includes("!"), btnHidden: k.includes("?") }; });
           const miss = fl.filter((f) => !f.hidden && !f.btnHidden), hid = fl.filter((f) => f.hidden || f.btnHidden);

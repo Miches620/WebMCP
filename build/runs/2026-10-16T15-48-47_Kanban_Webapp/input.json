@@ -1,0 +1,630 @@
+{
+  "source": "project26_snapshot.json",
+  "refined": {
+    "project_name": "Kanban Webapp",
+    "objetivo": "Webapp estilo Kanban",
+    "features": [
+      "Crear tarjetas",
+      "Primera columna -> div contenedor de columna 'Pendiente' + botón 'Agregar tarjeta' debajo",
+      "Asignar prioridad a una tarjeta desde una lista (etiqueta: alta: color rojo, media: color amarillo, baja: color verde) en el modal de creación o edición de tarjetas",
+      "Campos que tendrá cada tarjeta al momento de crearla: Titulo, descripción, y prioridad (etiqueta)",
+      "Campos que se pueden editar al presionar el botón 'editar tarjeta': Titulo, descripción, y prioridad (etiqueta)",
+      "Usar funcionalidad de drag&drop: la tarjeta estara compuesta por un contenedor con 2 divs dentro; Un div de 24px (⠿) sera el encargado de la funcion drag&drop (class='drag-handle' draggable='true' ondragstart / ondragend)",
+      "Comportamiento al borrar una tarjeta: Eliminar(🗑️) abre un modal para consultarle al usuario 'Esta seguro de borrar la tarjeta?' y si el usuario confirma, la tarjeta sera eliminada de la columna donde se encontrara, reduciendo el contador de tarjetas de dicha columna",
+      "Campos que tendrá cada columna: title ('Pendiente', 'En Curso', 'Completa'), y counter (contador de tarjetas dentro de la columna); La Columna 'Pendiente' sera la unica que tendra debajo el botón 'Agregar tarjeta'",
+      "Fondo: #102C54, columnas: #8FB3C7, tarjetas: #F2E9D8",
+      "Columnas con overflow:scroll, width:248px, header con title ('Pendiente', 'En Curso', o 'Completa') y contador de tarjetas en columna",
+      "Botón 'Agregar tarjeta': padding: 8px, border: 1px dashed, border radius: 8px, abre modal de creación de tarjetas",
+      "Tarjetas con overflow-y:scroll, height:250px, width: 223px (24px para drag&drop y 199px restantes para el body)",
+      "Div 'top' con title y actions",
+      "Actions: botón eliminar y botón editar tarjeta, display on hover",
+      "Sombras en tarjetas, efecto de movimiento durante drag&drop, actualización de contadores al mover tarjetas",
+      "Tarjetas de la misma prioridad: Se prioriza la más reciente; en cada columna, las tarjetas se mostrarán y ordenarán de forma descendente sobre la columna, con las de prioridad alta arriba, luego las de prioridad media y debajo de todo las de prioridad baja",
+      "Botones 'Eliminar' y 'Editar': Eliminar: 🗑️, Editar: ✏️ (visibles solo al hacer hover en la tarjeta)"
+    ],
+    "criterios_holdout": [
+      "Se puede crear una tarjeta",
+      "Se pueden leer las tarjetas (verlas)",
+      "Se pueden actualizar las tarjetas (editar)",
+      "Se pueden eliminar las tarjetas",
+      "Se pueden arrastrar y mover las tarjetas entre columnas (nombre de columnas: Pendiente, En Curso, Completado)",
+      "Se guardan los datos en localstorage",
+      "Se muestran los colores especificados para el fondo, columnas y tarjetas",
+      "Las columnas tienen overflow:scroll, width:248px, header con title ('Pendiente', 'En Curso', o 'Completa') y contador de tarjetas en columna",
+      "El botón 'Agregar tarjeta' abre un modal para crear nuevas tarjetas",
+      "Las tarjetas tienen overflow-y:scroll, height:250px, width: 223px (24px para drag&drop y 199px restantes para el body)",
+      "Las tarjetas tienen div 'top' con title y actions",
+      "Los botones 'Eliminar' y 'Editar' se muestran al hacer hover en la tarjeta",
+      "Se muestra un mensaje de confirmación antes de eliminar una tarjeta",
+      "Se guardan los campos que tendrá cada columna: title ('Pendiente', 'En Curso', 'Completa'), y counter (contador de tarjetas dentro de la columna)",
+      "La Columna 'Pendiente' tiene el botón 'Agregar tarjeta' debajo"
+    ],
+    "restricciones": [
+      "Sin base de datos",
+      "Sin crear nuevas columnas, permitir tarjetas vacías, eliminar tarjetas en columna 'Completa'",
+      "Sin búsqueda de tarjetas por título o contenido",
+      "Sin agregar subtarjetas o tareas dentro de una tarjeta"
+    ],
+    "estilo": [
+      "Fondo: #102C54, columnas: #8FB3C7, tarjetas: #F2E9D8",
+      "Columnas con overflow:scroll, width:248px, header con title ('Pendiente', 'En Curso', o 'Completa') y contador de tarjetas en columna",
+      "Botón 'Agregar tarjeta': padding: 8px, border: 1px dashed, border radius: 8px, abre modal de creación de tarjetas",
+      "Tarjetas con overflow-y:scroll, height:250px, width: 223px (24px para drag&drop y 199px restantes para el body)",
+      "Div 'top' con title y actions",
+      "Actions: botón eliminar y botón editar tarjeta, display on hover",
+      "Sombras en tarjetas, efecto de movimiento durante drag&drop, actualización de contadores al mover tarjetas",
+      "Tarjetas de la misma prioridad: Se prioriza la más reciente; en cada columna, las tarjetas se mostrarán y ordenarán de forma descendente sobre la columna, con las de prioridad alta arriba, luego las de prioridad media y debajo de todo las de prioridad baja",
+      "Botones 'Eliminar' y 'Editar': Eliminar: 🗑️, Editar: ✏️ (visibles solo al hacer hover en la tarjeta)"
+    ],
+    "contexto": [
+      "Webapp estilo Kanban"
+    ],
+    "brief": {
+      "version": "intent_brief v0.9",
+      "lines": [
+        {
+          "id": "L1",
+          "field": "construir",
+          "text": "Webapp estilo Kanban"
+        },
+        {
+          "id": "L2",
+          "field": "hacer",
+          "text": "CRUD para tarjetas, permitir arrastrarlas y moverlas (drag&drop) entre columnas (nombre de columnas: Pendiente, En Curso, Completado)"
+        },
+        {
+          "id": "L3",
+          "field": "hacer",
+          "text": "Guardar datos en localstorage"
+        },
+        {
+          "id": "L4",
+          "field": "ver",
+          "text": "//Colores -> fondo: #102C54, columnas: #8FB3C7, tarjetas: #F2E9D8"
+        },
+        {
+          "id": "L5",
+          "field": "ver",
+          "text": "//Columnas: overflow:scroll, width:248px, header con title ('Pendiente', 'En Curso', o 'Completa') y contador de tarjetas en columna"
+        },
+        {
+          "id": "L6",
+          "field": "ver",
+          "text": "primer columna -> div contenedor de columna 'Pendiente' + buttom 'Agregar tarjeta' debajo"
+        },
+        {
+          "id": "L7",
+          "field": "ver",
+          "text": "*Buttom 'Agregar tarjeta' -> padding: 8px, border: 1px dashed, border radius: 8px, Abre modal de creacion de tarjetas"
+        },
+        {
+          "id": "L8",
+          "field": "ver",
+          "text": "//Tarjetas: overflow-y:scroll, height:250px, width: 223px de los cuales -> 24px 1 div para drag&drop y 199px restantes para el body de la tarjeta"
+        },
+        {
+          "id": "L9",
+          "field": "ver",
+          "text": "div 'top' con title y actions"
+        },
+        {
+          "id": "L10",
+          "field": "ver",
+          "text": "*Actions: buttom eliminar y buttom editar tarjeta, display on hover"
+        },
+        {
+          "id": "L11",
+          "field": "ver",
+          "text": "sombras en tarjetas, efecto de movimiento durante drag&drop, actualizacion de contadores al mover tarjetas"
+        },
+        {
+          "id": "L12",
+          "field": "no",
+          "text": "crear nuevas columnas, permitir tarjetas vacias, eliminar tarjetas en columna 'Completa'"
+        },
+        {
+          "id": "L13",
+          "field": "respuesta",
+          "text": "Cada tarjeta tendra una etiqueta que indica su prioridad (alta:color rojo, media: color amarillo, baja: color verde)",
+          "pregunta": "¿Cómo se elige la prioridad de las tarjetas?"
+        },
+        {
+          "id": "L14",
+          "field": "respuesta",
+          "text": "Dicha etiqueta podra asignarse en el Modal de creacion de nueva tarjeta o cambiarla mediante el boton de edicion de tarjeta",
+          "pregunta": "¿Cómo se elige la prioridad de las tarjetas?"
+        },
+        {
+          "id": "L15",
+          "field": "respuesta",
+          "text": "NO",
+          "pregunta": "¿Se podrán buscar tarjetas por título o contenido?"
+        },
+        {
+          "id": "L16",
+          "field": "respuesta",
+          "text": "Titulo, descripcion, y prioridad (etiqueta)",
+          "pregunta": "¿Cuáles son los campos que tendrá cada tarjeta al momento de crearla?"
+        },
+        {
+          "id": "L17",
+          "field": "respuesta",
+          "text": "Titulo, descripcion, y prioridad (etiqueta)",
+          "pregunta": "¿Cuáles son los campos que se pueden editar al presionar el botón 'editar tarjeta'?"
+        },
+        {
+          "id": "L18",
+          "field": "respuesta",
+          "text": "de forma descendente sobre la columna, posicionando las de prioridad alta arriba, luego las de prioridad media y debajo de todo las de prioridad baja",
+          "pregunta": "¿Cómo se mostrarán y ordenarán las tarjetas según su prioridad en cada columna?"
+        },
+        {
+          "id": "L19",
+          "field": "respuesta",
+          "text": "Tarjetas de misma prioridad: Se prioriza la mas reciente",
+          "pregunta": "¿Cómo se mostrarán y ordenarán las tarjetas según su prioridad en cada columna?"
+        },
+        {
+          "id": "L20",
+          "field": "respuesta",
+          "text": "la tarjeta estara compuesta por un contenedor con 2 divs dentro",
+          "pregunta": "¿Cómo se usará la funcionalidad de drag&drop?"
+        },
+        {
+          "id": "L21",
+          "field": "respuesta",
+          "text": "Un div de 24px (⠿), sera el encargado de la funcion drag&drop (class=\"drag-handle\" draggable=\"true\" ondragstart / ondragend)",
+          "pregunta": "¿Cómo se usará la funcionalidad de drag&drop?"
+        },
+        {
+          "id": "L22",
+          "field": "respuesta",
+          "text": "No",
+          "pregunta": "¿Se podrán agregar subtarjetas o tareas dentro de una tarjeta?"
+        },
+        {
+          "id": "L23",
+          "field": "respuesta",
+          "text": "Eliminar: 🗑️ , Editar: ✏️ (visibles solo al hacer hover en la tarjeta)",
+          "pregunta": "¿Cómo se mostrarán visualmente los botones 'Eliminar' y 'Editar' en la tarjeta?"
+        },
+        {
+          "id": "L24",
+          "field": "respuesta",
+          "text": "Eliminar(🗑️) Abre un modal para consultarle al usuario 'Esta seguro de borrar la tarjeta?' y si el usuario confirma, la tarjeta sera eliminada de la columna donde se encontrara, reduciendo el contador de tarjetas de dicha columna",
+          "pregunta": "¿Cómo se comporta al borrar una tarjeta?"
+        },
+        {
+          "id": "L25",
+          "field": "respuesta",
+          "text": "title ('Pendiente', 'En Curso', 'Completa'), y counter (contador de tarjetas dentro de la columna)",
+          "pregunta": "¿Cuáles son los campos que tendrá cada columna?"
+        },
+        {
+          "id": "L26",
+          "field": "respuesta",
+          "text": "La Columna 'Pendiente' sera la unica que tendra debajo el buttom 'Agregar tarjeta'",
+          "pregunta": "¿Cuáles son los campos que tendrá cada columna?"
+        }
+      ],
+      "items": [
+        {
+          "de": [
+            "L1"
+          ],
+          "tipo": "contexto",
+          "texto": "Webapp estilo Kanban"
+        },
+        {
+          "de": [
+            "L2"
+          ],
+          "tipo": "feature",
+          "texto": "Crear tarjetas"
+        },
+        {
+          "de": [
+            "L3"
+          ],
+          "tipo": "restriccion",
+          "texto": "Sin base de datos"
+        },
+        {
+          "de": [
+            "L4"
+          ],
+          "tipo": "estilo",
+          "texto": "Fondo: #102C54, columnas: #8FB3C7, tarjetas: #F2E9D8"
+        },
+        {
+          "de": [
+            "L5"
+          ],
+          "tipo": "estilo",
+          "texto": "Columnas con overflow:scroll, width:248px, header con title ('Pendiente', 'En Curso', o 'Completa') y contador de tarjetas en columna"
+        },
+        {
+          "de": [
+            "L6"
+          ],
+          "tipo": "feature",
+          "texto": "Primera columna -> div contenedor de columna 'Pendiente' + botón 'Agregar tarjeta' debajo"
+        },
+        {
+          "de": [
+            "L7"
+          ],
+          "tipo": "estilo",
+          "texto": "Botón 'Agregar tarjeta': padding: 8px, border: 1px dashed, border radius: 8px, abre modal de creación de tarjetas"
+        },
+        {
+          "de": [
+            "L8"
+          ],
+          "tipo": "estilo",
+          "texto": "Tarjetas con overflow-y:scroll, height:250px, width: 223px (24px para drag&drop y 199px restantes para el body)"
+        },
+        {
+          "de": [
+            "L9"
+          ],
+          "tipo": "estilo",
+          "texto": "Div 'top' con title y actions"
+        },
+        {
+          "de": [
+            "L10"
+          ],
+          "tipo": "estilo",
+          "texto": "Actions: botón eliminar y botón editar tarjeta, display on hover"
+        },
+        {
+          "de": [
+            "L11"
+          ],
+          "tipo": "estilo",
+          "texto": "Sombras en tarjetas, efecto de movimiento durante drag&drop, actualización de contadores al mover tarjetas"
+        },
+        {
+          "de": [
+            "L12"
+          ],
+          "tipo": "restriccion",
+          "texto": "Sin crear nuevas columnas, permitir tarjetas vacías, eliminar tarjetas en columna 'Completa'"
+        },
+        {
+          "de": [
+            "L13",
+            "L14"
+          ],
+          "tipo": "feature",
+          "texto": "Asignar prioridad a una tarjeta desde una lista (etiqueta: alta: color rojo, media: color amarillo, baja: color verde) en el modal de creación o edición de tarjetas"
+        },
+        {
+          "de": [
+            "L15"
+          ],
+          "tipo": "restriccion",
+          "texto": "Sin búsqueda de tarjetas por título o contenido"
+        },
+        {
+          "de": [
+            "L16"
+          ],
+          "tipo": "feature",
+          "texto": "Campos que tendrá cada tarjeta al momento de crearla: Titulo, descripción, y prioridad (etiqueta)"
+        },
+        {
+          "de": [
+            "L17"
+          ],
+          "tipo": "feature",
+          "texto": "Campos que se pueden editar al presionar el botón 'editar tarjeta': Titulo, descripción, y prioridad (etiqueta)"
+        },
+        {
+          "de": [
+            "L18",
+            "L19"
+          ],
+          "tipo": "estilo",
+          "texto": "Tarjetas de la misma prioridad: Se prioriza la más reciente; en cada columna, las tarjetas se mostrarán y ordenarán de forma descendente sobre la columna, con las de prioridad alta arriba, luego las de prioridad media y debajo de todo las de prioridad baja"
+        },
+        {
+          "de": [
+            "L20",
+            "L21"
+          ],
+          "tipo": "feature",
+          "texto": "Usar funcionalidad de drag&drop: la tarjeta estara compuesta por un contenedor con 2 divs dentro; Un div de 24px (⠿) sera el encargado de la funcion drag&drop (class='drag-handle' draggable='true' ondragstart / ondragend)"
+        },
+        {
+          "de": [
+            "L22"
+          ],
+          "tipo": "restriccion",
+          "texto": "Sin agregar subtarjetas o tareas dentro de una tarjeta"
+        },
+        {
+          "de": [
+            "L23"
+          ],
+          "tipo": "estilo",
+          "texto": "Botones 'Eliminar' y 'Editar': Eliminar: 🗑️, Editar: ✏️ (visibles solo al hacer hover en la tarjeta)"
+        },
+        {
+          "de": [
+            "L24"
+          ],
+          "tipo": "feature",
+          "texto": "Comportamiento al borrar una tarjeta: Eliminar(🗑️) abre un modal para consultarle al usuario 'Esta seguro de borrar la tarjeta?' y si el usuario confirma, la tarjeta sera eliminada de la columna donde se encontrara, reduciendo el contador de tarjetas de dicha columna"
+        },
+        {
+          "de": [
+            "L25",
+            "L26"
+          ],
+          "tipo": "feature",
+          "texto": "Campos que tendrá cada columna: title ('Pendiente', 'En Curso', 'Completa'), y counter (contador de tarjetas dentro de la columna); La Columna 'Pendiente' sera la unica que tendra debajo el botón 'Agregar tarjeta'"
+        }
+      ],
+      "repairs": 2,
+      "preguntas": [
+        "¿Cómo se elige la prioridad de las tarjetas?",
+        "¿Se podrán buscar tarjetas por título o contenido?",
+        "¿Cuáles son los campos que tendrá cada tarjeta al momento de crearla?",
+        "¿Cuáles son los campos que se pueden editar al presionar el botón 'editar tarjeta'?",
+        "¿Cómo se mostrarán y ordenarán las tarjetas según su prioridad en cada columna?",
+        "¿Cómo se usará la funcionalidad de drag&drop?",
+        "¿Se podrán agregar subtarjetas o tareas dentro de una tarjeta?",
+        "¿Cómo se mostrarán visualmente los botones 'Eliminar' y 'Editar' en la tarjeta?",
+        "¿Cómo se comporta al borrar una tarjeta?",
+        "¿Cuáles son los campos que tendrá cada columna?"
+      ]
+    },
+    "project_stage": "PROTOTYPE",
+    "profiles": [
+      "web/app"
+    ],
+    "exclusiones": [],
+    "standard": "web/app/estado"
+  },
+  "tasks": [
+    {
+      "id": "F1.1",
+      "role": "Frontend",
+      "task": "Definición del Esquema de Estado Global y Datos Iniciales",
+      "description": "Establecer el esquema de estado global para el tablero Kanban, definiendo la estructura que contendrá las tres columnas ('Pendiente', 'En Curso', 'Completa') y los campos requeridos para cada tarjeta (ej: título, descripción, ID, estado). Se deben incluir ejemplos iniciales de datos en este esquema.",
+      "depends_on": [],
+      "pieza": "datos"
+    },
+    {
+      "id": "F1.2",
+      "role": "Frontend",
+      "task": "Implementación de Persistencia del Estado Local",
+      "description": "Implementar la lógica para inicializar el estado global cargando los datos desde LocalStorage y definir las funciones básicas para guardar cualquier cambio en este estado en LocalStorage.",
+      "depends_on": [
+        "F1.1"
+      ],
+      "pieza": "logica"
+    },
+    {
+      "id": "F1.3",
+      "role": "Frontend",
+      "task": "Configuración del Layout Estructural Kanban",
+      "description": "Establecer el contenedor principal del tablero y los contenedores estructurales para las tres columnas ('Pendiente', 'En Curso', 'Completa'), asegurando que la estructura base esté lista para recibir tarjetas.",
+      "depends_on": [],
+      "pieza": "vista"
+    },
+    {
+      "id": "F1.4",
+      "role": "Frontend",
+      "task": "Definición de Estilos Base del Componente Kanban",
+      "description": "Definir los estilos base (colores, dimensiones, manejo de overflow) para el contenedor principal del tablero, las columnas y las tarjetas individuales, siguiendo los requisitos visuales.",
+      "depends_on": [],
+      "pieza": "estilo"
+    },
+    {
+      "id": "F2.1",
+      "role": "Frontend",
+      "task": "Implementar la visualización de tarjetas existentes en el tablero Kanban (Read)",
+      "description": "Mostrar las tarjetas cargadas desde el estado global, mapeando los campos Título, Descripción y Prioridad dentro de su columna correspondiente.",
+      "depends_on": [
+        "F1.3",
+        "F1.1"
+      ],
+      "pieza": "vista"
+    },
+    {
+      "id": "F2.2",
+      "role": "Frontend",
+      "task": "Diseñar el modal/formulario para la creación de tarjetas (Vista)",
+      "description": "Implementar el componente modal que contiene los campos Título, Descripción y Prioridad para crear una nueva tarjeta.",
+      "depends_on": [],
+      "pieza": "vista"
+    },
+    {
+      "id": "F2.3",
+      "role": "Frontend",
+      "task": "Definir la lógica de creación de tarjetas (Lógica)",
+      "description": "Implementar la función que recibe Título, Descripción y Prioridad, crea un nuevo objeto Tarjeta con el estado inicial y lo añade al estado global. Esta acción debe actualizar los contadores de columna.",
+      "depends_on": [
+        "F1.1"
+      ],
+      "pieza": "logica"
+    },
+    {
+      "id": "F2.4",
+      "role": "Frontend",
+      "task": "Implementar el control para disparar la creación de tarjetas (Controles)",
+      "description": "Implementar un botón o control que abra el modal de creación y, al enviar los datos del formulario, dispare la lógica de creación.",
+      "depends_on": [
+        "F2.2"
+      ],
+      "pieza": "controles"
+    },
+    {
+      "id": "F2.5",
+      "role": "Frontend",
+      "task": "Diseñar el modal/formulario para la edición de tarjetas (Vista)",
+      "description": "Implementar un componente modal que permita pre-llenar y editar los campos Título, Descripción y Prioridad de una tarjeta existente.",
+      "depends_on": [],
+      "pieza": "vista"
+    },
+    {
+      "id": "F2.6",
+      "role": "Frontend",
+      "task": "Definir la lógica de edición y persistencia de tarjetas (Lógica)",
+      "description": "Implementar la función que recibe el ID de la tarjeta y los nuevos datos, actualiza el estado global, persiste el cambio en LocalStorage y ajusta correctamente los contadores de columna afectados.",
+      "depends_on": [
+        "F1.2",
+        "F1.1"
+      ],
+      "pieza": "logica"
+    },
+    {
+      "id": "F2.7",
+      "role": "Frontend",
+      "task": "Implementar la lógica de movimiento de tarjetas entre columnas (Lógica)",
+      "description": "Implementar la función que recibe el ID de la tarjeta y la nueva columna, actualiza su estado en el estado global, persiste el cambio en LocalStorage y ajusta los contadores de las columnas origen y destino.",
+      "depends_on": [
+        "F1.2"
+      ],
+      "pieza": "logica"
+    },
+    {
+      "id": "F2.8",
+      "role": "Frontend",
+      "task": "Implementar el control de arrastrar y soltar tarjetas (Controles)",
+      "description": "Implementar la funcionalidad de arrastrar una tarjeta desde una columna a otra, disparando la acción de movimiento.",
+      "depends_on": [
+        "F1.3"
+      ],
+      "pieza": "controles"
+    },
+    {
+      "id": "F3.1",
+      "role": "Frontend",
+      "task": "Implementar el estado visual de los botones 'Editar' y 'Eliminar' al pasar el mouse (hover) sobre una tarjeta.",
+      "description": "Ajustar estilos para que los botones 'Editar' y 'Eliminar' sean invisibles por defecto en la tarjeta, pero se muestren con un efecto visual claro al hacer hover sobre el cuerpo de la tarjeta.",
+      "depends_on": [
+        "F2.1"
+      ],
+      "pieza": "estilo"
+    },
+    {
+      "id": "F3.2",
+      "role": "Frontend",
+      "task": "Definir la lógica de visibilidad para los botones 'Editar' y 'Eliminar'.",
+      "description": "Implementar el comportamiento que alterna la visibilidad de los botones 'Editar' y 'Eliminar' en función del evento de hover sobre la tarjeta.",
+      "depends_on": [
+        "F3.1"
+      ],
+      "pieza": "vista"
+    },
+    {
+      "id": "F3.3",
+      "role": "Frontend",
+      "task": "Mejorar el feedback visual durante el proceso de Drag&Drop (ej. sombra, resaltado del área de destino).",
+      "description": "Aplicar estilos y efectos visuales para guiar al usuario mientras arrastra una tarjeta y mostrar claramente la columna o el espacio donde se depositará la tarjeta.",
+      "depends_on": [
+        "F1.4",
+        "F2.8"
+      ],
+      "pieza": "estilo"
+    },
+    {
+      "id": "F3.4",
+      "role": "Frontend",
+      "task": "Diseñar y mostrar el modal de confirmación para la eliminación de una tarjeta.",
+      "description": "Crear un componente modal que se muestre al intentar eliminar una tarjeta, solicitando al usuario una confirmación explícita (ej. '¿Está seguro de que desea eliminar esta tarjeta?').",
+      "depends_on": [],
+      "pieza": "vista"
+    },
+    {
+      "id": "F3.5",
+      "role": "Frontend",
+      "task": "Definir la lógica para eliminar una tarjeta del estado global.",
+      "description": "Implementar la función que recibe el ID de la tarjeta y elimina su registro del estado, asegurando que esta acción sea reversible o manejada correctamente en caso de fallo.",
+      "depends_on": [
+        "F2.6"
+      ],
+      "pieza": "logica"
+    },
+    {
+      "id": "F3.6",
+      "role": "Frontend",
+      "task": "Implementar el control para disparar la eliminación y mostrar el modal de confirmación.",
+      "description": "Asociar un evento click al botón 'Eliminar' (visible en hover) que, al ser activado, muestre el Modal de Confirmación (F3.4). Tras la confirmación positiva, debe disparar la lógica de eliminación.",
+      "depends_on": [
+        "F3.2",
+        "F3.4",
+        "F3.5"
+      ],
+      "pieza": "controles"
+    },
+    {
+      "id": "F3.7",
+      "role": "Frontend",
+      "task": "Actualizar los contadores de tarjetas en tiempo real tras cualquier movimiento o modificación.",
+      "description": "Implementar la lógica que escucha cambios en el estado global (movimiento, creación, eliminación) y recalcula automáticamente el número total de tarjetas presentes en cada columna y/o en el tablero general. Esta actualización debe ser reactiva.",
+      "depends_on": [
+        "F2.7",
+        "F3.5"
+      ],
+      "pieza": "logica"
+    },
+    {
+      "id": "F4.1",
+      "role": "Frontend",
+      "task": "Aplicar estilos detallados restantes (sombras y efectos visuales) a las tarjetas y columnas del tablero Kanban.",
+      "description": "Implementar sombras consistentes en todas las tarjetas y contenedores de columna. Aplicar cualquier efecto visual restante o transiciones menores que mejoren la experiencia general, más allá de los efectos ya cubiertos por F3.3.",
+      "depends_on": [
+        "F1.4",
+        "F3.1",
+        "F3.3"
+      ],
+      "pieza": "estilo"
+    },
+    {
+      "id": "F4.2",
+      "role": "Frontend",
+      "task": "Implementar la lógica de ordenamiento avanzado para las tarjetas dentro de cada columna.",
+      "description": "Modificar el estado global o la función de renderizado para ordenar automáticamente las tarjetas en cada columna. La prioridad de ordenamiento debe ser: 1) Alta > Media > Baja, y secundariamente (en caso de empate de prioridad), por fecha descendente.",
+      "depends_on": [
+        "F2.1",
+        "F2.7"
+      ],
+      "pieza": "logica"
+    },
+    {
+      "id": "F4.3",
+      "role": "Frontend",
+      "task": "Controlar la visibilidad del botón 'Agregar tarjeta' basado en la columna activa.",
+      "description": "Asegurar que el componente de control para agregar una nueva tarjeta (el botón 'Agregar tarjeta') solo sea visible cuando el usuario esté visualizando o interactuando con la columna cuyo estado es 'Pendiente'.",
+      "depends_on": [
+        "F1.3"
+      ],
+      "pieza": "vista"
+    }
+  ],
+  "holdout": {
+    "forbidden": [
+      "Se puede crear una tarjeta",
+      "Se pueden leer las tarjetas (verlas)",
+      "Se pueden actualizar las tarjetas (editar)",
+      "Se pueden eliminar las tarjetas",
+      "Se pueden arrastrar y mover las tarjetas entre columnas (nombre de columnas: Pendiente, En Curso, Completado)",
+      "Se guardan los datos en localstorage",
+      "Se muestran los colores especificados para el fondo, columnas y tarjetas",
+      "Las columnas tienen overflow:scroll, width:248px, header con title ('Pendiente', 'En Curso', o 'Completa') y contador de tarjetas en columna",
+      "El botón 'Agregar tarjeta' abre un modal para crear nuevas tarjetas",
+      "Las tarjetas tienen overflow-y:scroll, height:250px, width: 223px (24px para drag&drop y 199px restantes para el body)",
+      "Las tarjetas tienen div 'top' con title y actions",
+      "Los botones 'Eliminar' y 'Editar' se muestran al hacer hover en la tarjeta",
+      "Se muestra un mensaje de confirmación antes de eliminar una tarjeta",
+      "Se guardan los campos que tendrá cada columna: title ('Pendiente', 'En Curso', 'Completa'), y counter (contador de tarjetas dentro de la columna)",
+      "La Columna 'Pendiente' tiene el botón 'Agregar tarjeta' debajo"
+    ],
+    "repeated_in_features": []
+  }
+}

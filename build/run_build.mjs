@@ -133,7 +133,8 @@ if (args[0] === "--validate") {
     else log(`[PLAN] ✗ plan inválido (${pp.errors.join("; ")}) → esqueleto mínimo sin secciones`);
   }
   // El Specialist lo pone el profile (web/landing: por componentes; --legacy = v0.6.1).
-  specialist = await B.build(input, outDir, { log, forbidden, resume: !!resumeDir, pagePlan, legacy: args.includes("--legacy"), noWrite: args.includes("--gemma-writes-all"), temperature: sampling.temperature, seed: sampling.seed });
+  // 16/10: el Standard y la receta del profile RESUELTO (con refined_prompt.standard o --standard)
+  specialist = await B.build(input, outDir, { standardId: profile.standard, recipe: profile.atomizerRecipe || null, log, forbidden, resume: !!resumeDir, pagePlan, legacy: args.includes("--legacy"), noWrite: args.includes("--gemma-writes-all"), temperature: sampling.temperature, seed: sampling.seed });
   writeFileSync(join(outDir, "build.json"), JSON.stringify({ input, specialist }, null, 2));
 }
 

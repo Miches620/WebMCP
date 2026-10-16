@@ -139,6 +139,9 @@ function ancestroDe(estado, tipo, el, anc) {
   return elementosDe(estado, A.path).filter(function (a) { return elementosDe(a, resto).some(function (x) { return x[T.id] === el[T.id]; }); })[0];
 }
 function controlesDe(tipo, elemento, estado) {
+  // v0.8.3: si llega un elemento de la PÁGINA (lo que armó dibujar) en vez del del estado, los botones salen sin
+  // ids; se anota para que la sonda de dibujo lo diga con esas palabras (build 2026-10-16T15-48-47)
+  if (elemento && elemento.nodeType === 1 && typeof window !== "undefined") { window.__ctlDom = window.__ctlDom || []; if (window.__ctlDom.indexOf(tipo) < 0) window.__ctlDom.push(tipo); }
   var box = document.createElement("div");
   box.className = "ctl-controles";
   ACCIONES.filter(function (a) { return a.owner === tipo; }).forEach(function (a) {

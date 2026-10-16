@@ -50,7 +50,7 @@ export function lugaresText(c) {
   return own.map((t) => {
     const acts = plan.acciones.filter((a) => a.owner === t).map((a) => a.label).join(", ");
     return t === "app"
-      ? `  - "app" (acciones generales): una vez, al final → <div data-controles="app"></div> → ${acts}`
+      ? `  - "app" (acciones generales): una vez, al final o adentro del elemento donde el brief dice que va → <div data-controles="app"></div> → ${acts}`
       : `  - "${t}": adentro de cada elemento de ${whereOf(plan.kinds[t])} → <div data-controles="${t}" data-id="{{${plan.kinds[t].id}}}"></div> → ${acts}`;
   }).join("\n");
 }
@@ -70,7 +70,7 @@ export function plantillasContractText(ctx) {
 // mensajes de la sonda de dibujo pensados para DOM a mano → los mismos, dichos para una plantilla
 export function forTemplate(msgs = []) {
   return msgs.map((m) => m
-    .replace(/agregá controlesDe\("app", null, estado\) una vez al final de #app/g, 'poné <div data-controles="app"></div> una vez al final de la plantilla')
+    .replace(/agregá controlesDe\("app", null, estado\) una vez: al final de #app, o adentro del elemento donde el brief dice que va/g, 'poné <div data-controles="app"></div> una vez en la plantilla: al final, o adentro del elemento donde el brief dice que va')
     .replace(/agregá controlesDe\("([^"]+)", elemento, estado\) adentro de cada elemento de ese tipo/g, 'poné <div data-controles="$1" data-id="{{id}}"></div> (con el id de ese elemento) adentro de cada elemento de ese tipo en la plantilla, y llamá a montarControles(app, estado) después de llenarla')
     .replace(/Mostrá cada texto con textContent \(o document\.createTextNode\), nunca metido dentro de innerHTML\./g, "En la plantilla escribí cada texto con DOS llaves ({{texto}}): Handlebars lo escapa. Nunca tres llaves ({{{texto}}}) ni HTML armado a mano con los textos.")
     .replace(/Escribí sus propiedades \(p\.ej\. item\.texto\) con textContent\./g, "En la plantilla usá sus propiedades ({{texto}}), no el objeto entero."));

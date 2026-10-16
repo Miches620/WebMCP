@@ -73,7 +73,7 @@ const rc = await runCallsProbe(join(dl, "index.html"), cs);
 t("Chromium lista: todas las acciones se llaman, con ids numéricos, y se dibuja", callsProblems(rc, cs).length === 0 && (rc.args.borrarItem || []).every((a) => typeof a[1] === "number"), JSON.stringify(rc));
 const dlSin = app("lista_sin_app", LISTA, DIB_LISTA.replace('app.appendChild(controlesDe("app", null, estado));', ""), ".item{color:red}", LOGICA_LISTA);
 const ps = await probePage(join(dlSin, "probe.html"));
-t("Chromium lista: si dibujo no agrega controlesDe(\"app\") el mensaje dice exactamente eso", /faltan los controles de: agregarItem \(agregá controlesDe\("app", null, estado\) una vez al final de #app\)/.test(step("dibujo").expect(ps.probe).join(" | ")), step("dibujo").expect(ps.probe).join(" | "));
+t("Chromium lista: si dibujo no agrega controlesDe(\"app\") el mensaje dice exactamente eso", /faltan los controles de: agregarItem \(agregá controlesDe\("app", null, estado\) una vez: al final de #app, o adentro del elemento donde el brief dice que va\)/.test(step("dibujo").expect(ps.probe).join(" | ")), step("dibujo").expect(ps.probe).join(" | "));
 
 // ---------- 3. el Kanban real (contrato y lógica de la 4ª corrida) con un dibujo simple ----------
 const FX = fileURLToPath(new URL("../../../../profiles/web/validation/fixtures/real_kanban_c4/", import.meta.url));
@@ -218,6 +218,30 @@ t("v0.4.1, 6ª corrida: la compuerta sigue 6/6", g6.result === "PASS" && g6.rows
   t("'boton' que está en el brief → el botón dice eso ('Agregar tarjeta')", row(pb, "crearTarjeta").label === "Agregar tarjeta");
   t("'boton' que NO está en el brief → no se usa (nombre de la acción) y no es un problema del contrato", row(pb, "borrarTarjeta").label === "Borrar tarjeta" && !(kb.reports?.[0]?.dropped || []).some((d) => /mágico/.test(d)));
   t("el pedido del contrato explica 'boton'", /"boton" con ese texto tal cual/.test(step("contrato").prompt({ paso: "PASO 1", hints: { features: feats, style: [] } })));
+}
+
+// ---------- 16/10 tarde (builds 2026-10-16T15-48-47 y 16-24-56, fixture real_kanban_c22) ----------
+{
+  const { listifyKeyed, shapeProblems } = await import("./contract.mjs");
+  const FX22 = fileURLToPath(new URL("../../../../profiles/web/validation/fixtures/real_kanban_c22/", import.meta.url));
+  const C22 = JSON.parse(readFileSync(join(FX22, "contrato.json"), "utf8"));
+  // el contrato real: "columns" como objeto con ids de claves → el harness lo pasa a lista
+  const k22 = parseContract(C22, {}).items[0];
+  t("contrato real 16/10: 'columns' objeto con ids de claves → lista con id, sin problemas de forma", Array.isArray(k22.estado.columns) && k22.estado.columns.map((c) => c.id).join() === "Pendiente,En_Curso,Completa" && shapeProblems(k22.estado).length === 0, JSON.stringify(k22.estado.columns));
+  const p22 = controlsPlan(k22);
+  t("con la lista, mover elige la columna destino (antes: texto libre)", row(p22, "moverTarjeta").choice.map((c) => c.kind).join() === "columns" && !row(p22, "moverTarjeta").campos.length);
+  t("el arreglo queda anotado (renamed), no es un problema que haga reintentar", parseContract(C22, {}).reports[0].renamed.some((r) => /columns: era un objeto con ids como claves/.test(r)));
+  t("un objeto de configuración (claves distintas) NO se toca", JSON.stringify(listifyKeyed({ config: { tema: { color: "x" }, idioma: { codigo: "es", nombre: "Español" } } }).estado.config) === JSON.stringify({ tema: { color: "x" }, idioma: { codigo: "es", nombre: "Español" } }));
+  t("una lista agrupada por clave ({ id: [...] }) tampoco se toca", !Array.isArray(listifyKeyed({ porColumna: { a: [{ id: 1 }], b: [{ id: 2 }] } }).estado.porColumna));
+  // la sonda de dibujo con lo que hizo Gemma ese día (estado con la forma de ESE día, sin arreglar)
+  const raw22 = { ...k22, estado: C22.estado };
+  const LOG22 = "const App = { crear() { return JSON.parse(JSON.stringify(ESTADO_INICIAL)); } };";
+  const d22 = app("kanban22", raw22, readFileSync(join(FX22, "dibujo.js"), "utf8"), readFileSync(join(FX22, "styles.css"), "utf8"), LOG22);
+  const q22 = await probePage(join(d22, "probe.html"));
+  const m22 = step("dibujo").expect(q22.probe).join(" | ");
+  t("dibujo real 16/10: controlesDe('cards', cardElement, …) → el aviso dice que pasó un elemento de la PÁGINA y no del estado", (q22.probe.domElem || []).join() === "cards" && /le pasaste un elemento de la PÁGINA/.test(m22) && !/a estos botones les falta el id/.test(m22), m22);
+  t("dibujo real 16/10: innerHTML con card.titulo → la sonda ve el XSS (la trampa ya no rompe 'columnaId')", (q22.probe.htmlInText || []).includes("Diseñar wireframe inicial") && /se ejecuta código/.test(m22), JSON.stringify(q22.probe.htmlInText));
+  t("dibujo real 16/10: el '➕ Agregar tarjeta' propio (no hace nada) → aviso", (q22.probe.ownControls || []).includes("➕ Agregar tarjeta") && /botones o campos propios que no hacen nada: "➕ Agregar tarjeta"/.test(m22), JSON.stringify(q22.probe.ownControls));
 }
 
 console.log(`\n${ok}/${ok + fail} OK`);

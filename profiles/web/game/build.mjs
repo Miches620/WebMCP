@@ -87,7 +87,8 @@ export function build(input, outDir, opts = {}) {
     const role = withSkills ? await loadRole(profile.role, { placebo }) : null;
     // banco (11/10): opts.skills puede traer ya un subconjunto ({ role, status, list }) para medir una Skill sola
     const skills = opts.skills?.list ? opts.skills : role ? { role: role.id, status: role.status, list: role.skills } : null;
-    return buildFiles(input, outDir, { ...opts, skills, standard: getStandard(profile.standard), platform: WEB_FILES });
+    // 16/10: el Standard resuelto por run_build (opts.standardId); si no viene, el del profile
+    return buildFiles(input, outDir, { ...opts, skills, standard: getStandard(opts.standardId || profile.standard), platform: WEB_FILES });
   })();
 }
 export function writeBaseline(baselineDir, input, basePlan, specialist) {

@@ -140,6 +140,9 @@ export function postprocessChecks(checks = [], id, text = "") {
   return why.length ? Object.assign(out, { why: why.join("; ") }) : checks;
 }
 
+/** El Standard con el que se construye: el que resolvió run_build (opts.standardId) o, si no viene, el del profile. */
+export const standardOf = (opts = {}) => opts.standardId || profile.standard;
+
 // 12/10 (paso 2 del borde, decisión de Miche): la app se escribe POR ARCHIVOS con el Standard que
 // declara el profile (standards/web/app/estado, DRAFT), con el mismo motor universal que web/game.
 // --legacy-components vuelve al componente único (motor de landing), para comparar.
@@ -147,7 +150,10 @@ export function build(input, outDir, opts = {}) {
   if (opts.legacy) return APP.build(input, outDir, opts); // tira el error de siempre (--legacy es de landing)
   if (legacyFlag(opts)) return APP.build(input, outDir, opts);
   // 14/10 (punto 9): la receta del Standard le dice al motor a qué paso va cada tarea (por su pieza)
-  return buildFiles(input, outDir, { ...opts, standard: getStandard(profile.standard), platform: WEB_FILES, recipe: profile.atomizerRecipe || null });
+  // 16/10 (BUG: las corridas 15-48-47 y 16-24-56 dieron byte a byte lo mismo): el Standard y la receta salían del
+  // profile fijo de este archivo, no del RESUELTO (refined_prompt.standard o --standard). Ahora los pasa run_build.
+  const std = standardOf(opts);
+  return buildFiles(input, outDir, { ...opts, standard: getStandard(std), platform: WEB_FILES, recipe: "recipe" in opts ? opts.recipe : profile.atomizerRecipe || null });
 }
 export function writeBaseline(baselineDir, input, basePlan, specialist) {
   if (!specialist?.standard) return APP.writeBaseline(baselineDir, input, basePlan, specialist);

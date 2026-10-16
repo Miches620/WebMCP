@@ -6,7 +6,7 @@
 
 export default {
   id: "web/app/estado",
-  version: "0.8.1",
+  version: "0.8.3",
   status: "DRAFT",
   label: "app de una pantalla con estado y acciones",
   profiles: ["web/app"],

@@ -2,6 +2,30 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**La 1ª comparación estado/plantillas no valió (bug de --standard) + 5 arreglos con las corridas 15-48-47 y 16-24-56 (Standard web/app/estado v0.8.3) (16/10 tarde)**
+- *Evidencia:*
+  - las dos corridas del mismo snapshot, una con `--standard web/app/estado` y otra con `--standard web/app/plantillas`, dieron **byte a byte lo mismo**, y las dos dicen "Standard web/app/estado";
+  - fixture `real_kanban_c22`: contrato, dibujo, styles y checks reales de esas corridas.
+- **1. BUG:** `profiles/web/app/build.mjs` (y `web/game`) tomaba el Standard y la receta del profile fijo del archivo, no del profile RESUELTO. Ahora `run_build` le pasa `standardId` y `recipe` del resuelto, y `standardOf(opts)` decide. `test_app` lo verifica sin modelo (fetch falla y se mira qué Standard anuncia el motor).
+- **2. Contrato** (`listifyKeyed`):
+  - *Problema:* Gemma armó `"columns": { "Pendiente": {title, counter}, "En_Curso": {...} }`; el aviso de forma se repitió 3 intentos y el build siguió roto.
+  - *Arreglo mecánico, sin modelo:* un objeto con 2 o más entradas que son objetos de la misma clase pasa a ser una lista, y cada clave pasa a ser su `id`. Queda anotado en `renamed` (no hace reintentar).
+  - Con eso, "mover" elige la columna destino; antes era texto libre.
+  - No se tocan los objetos de configuración (claves distintas) ni las listas agrupadas por clave.
+- **3. Sonda de dibujo:**
+  - `controlesDe("cards", cardElement, …)` con el div de la PÁGINA en vez del item del estado: `acciones.js` lo anota y el aviso lo dice con esas palabras. Antes decía "faltan ids" 3 veces.
+  - Botones o campos propios sin `data-accion` / `data-campo` (el "➕ Agregar tarjeta" de Gemma, que no hacía nada y era el que apretaba Validation) → aviso.
+  - El control de "app" puede ir donde dice el brief: Gemma lo había puesto solo en Pendiente, como pidió Miche.
+- **4. Trampa de XSS:** ya no mete la trampa en valores de claves que son ids (`columnaId`). Con la trampa adentro ninguna tarjeta encontraba su columna y el `innerHTML` con `card.titulo` pasaba sin aviso.
+- **5. `hover_changes`:** compara el elemento y hasta 40 de adentro (`STYLE_SNAP_TREE`). `.card:hover .card-actions { opacity: 1 }` daba FAIL falso en R14, R15, R16 y R17.
+- *Tests:*
+  - `test_controls` 55;
+  - `test_app` 37;
+  - `test_check_catalog` 56 (fixtures `hover_adentro` y `hover_nada`);
+  - `test_estado` 60;
+  - `test_plantillas` 14 (la parte con Handlebars se saltea sin instalar);
+  - `test_plan_stack_check` 24 (la versión del Standard se lee de la ficha).
+
 **Pipeline del Kanban del 16/10: reviewer en tandas, el stack lo fija el Standard, instalación con confirmación, snapshot automático, juez sin chequeos de más y un segundo Standard DRAFT para comparar (16/10)**
 - *Evidencia:*
   - pipeline completo del Kanban (17 requisitos; 28 tareas y después 22);

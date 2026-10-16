@@ -1,7 +1,7 @@
 // validation_web.mjs — Validation profile "web" (plataforma): lo que vale para cualquier página.
 // Sale de check_catalog.mjs (paso 2, 06/10) sin cambios de conducta.
 
-import { ARROWS, BOARD_SNAP, HOVER_KINDS, ITEM_LEFTS, LABELED_NUMBERS, MARK_SECTION, NAV_RE, NUMBERS_IN, RENDER_AFTER, RENDER_STATIC, SEEN_SRC, SEEN_WORDS, SNAP, STYLE_SNAP, WIN_AT_LOAD, WIN_WORDS, diffCount, diffSample, fieldText, findControl, keysFrom, matches, norm, visibleTexts, words, INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle } from "./lib.mjs";
+import { ARROWS, BOARD_SNAP, HOVER_KINDS, ITEM_LEFTS, LABELED_NUMBERS, MARK_SECTION, NAV_RE, NUMBERS_IN, RENDER_AFTER, RENDER_STATIC, SEEN_SRC, SEEN_WORDS, SNAP, STYLE_SNAP, STYLE_SNAP_TREE, WIN_AT_LOAD, WIN_WORDS, diffCount, diffSample, fieldText, findControl, keysFrom, matches, norm, visibleTexts, words, INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle } from "./lib.mjs";
 
 export default {
   id: "web",
@@ -181,12 +181,13 @@ export default {
             await el.scrollIntoViewIfNeeded().catch(() => {});
             await page.mouse.move(0, 0);
             await page.waitForTimeout(150); await waitForSettle(page);
-            const before = await el.evaluate(STYLE_SNAP).catch(() => null);
+            // 16/10: el elemento y lo que tiene adentro (al pasar el mouse por la tarjeta aparecen sus botones)
+            const before = await el.evaluate(STYLE_SNAP_TREE).catch(() => null);
             if (before === null) continue;
             tried++;
             await el.hover({ timeout: 2000 }).catch(() => {});
             await page.waitForTimeout(500);
-            const after = await el.evaluate(STYLE_SNAP).catch(() => before);
+            const after = await el.evaluate(STYLE_SNAP_TREE).catch(() => before);
             changed = before !== after;
           }
           if (!changed) ok = false;

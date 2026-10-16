@@ -82,5 +82,25 @@ t("specialistSees = lo que el brief suma (guardia de holdout)", gameBuild.specia
   t("16/10: lo que el requisito sí pide se queda (R1 action_changes, R2 control_visible, R14 hover)", types("R1") === "action_changes" && /control_visible/.test(types("R2")) && /hover_changes/.test(types("R14")));
   t("16/10: 'responsive' / 'celular' / 'flechas' sí los dejan", appBuild.namesResponsive("Que sea responsive") && appBuild.namesResponsive("Se tiene que ver bien en el celular") && appBuild.namesKeys("Mover con las flechas") && !appBuild.namesResponsive("Fondo: #102C54") && !appBuild.namesKeys("Sombras en tarjetas"));
 }
+// 16/10 (BUG): con --standard web/app/plantillas el build igual usó web/app/estado (corridas 15-48-47 y 16-24-56
+// idénticas). El build tiene que construir con el Standard que le pasa run_build. Sin modelo: fetch falla al toque
+// y se mira qué Standard anunció el motor antes del primer pedido.
+{
+  const { mkdtempSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const real = globalThis.fetch;
+  const announced = async (opts) => {
+    const logs = [];
+    globalThis.fetch = async () => { throw new Error("sin modelo (test)"); };
+    try { await appBuild.build({ refined: { project_name: "T", features: ["Crear items"] }, tasks: [] }, mkdtempSync(join(tmpdir(), "std-")), { ...opts, log: (m) => logs.push(m), bench: { maxAttempts: 1 } }); } catch { /* sin modelo */ }
+    finally { globalThis.fetch = real; }
+    return (logs.find((l) => /files_engine .* · Standard /.test(l)) || "").match(/Standard (\S+)/)?.[1] || null;
+  };
+  t("16/10: el build construye con el Standard que le pasa run_build (plantillas), no con el del profile", (await announced({ standardId: "web/app/plantillas" })) === "web/app/plantillas");
+  t("16/10: sin standardId, el del profile (estado)", (await announced({})) === "web/app/estado" && appBuild.standardOf({}) === "web/app/estado");
+  const { readFileSync } = await import("node:fs");
+  t("16/10: run_build le pasa al build el Standard y la receta del profile RESUELTO", /B\.build\(input, outDir, \{ standardId: profile\.standard, recipe: profile\.atomizerRecipe/.test(readFileSync(new URL("../../../build/run_build.mjs", import.meta.url), "utf8")));
+}
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

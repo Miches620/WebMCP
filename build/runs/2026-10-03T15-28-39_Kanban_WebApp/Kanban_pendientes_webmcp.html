@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-16a'; // tablero actualizado al 16/10 (reviewer en tandas, stack del Standard, requisitos, juez, Standard plantillas)
+  const SEED = '2026-10-16b'; // tablero limpio al 16/10 tarde: Hecho / Pendiente real / Estacionado
   let state = loadState() || {
  "columns": [
   {
@@ -436,7 +436,7 @@
     {
      "id": "p51",
      "title": "Primera comparación: el mismo snapshot con web/app/estado y web/app/plantillas",
-     "desc": "[#Standards #Experimento] Standard DRAFT nuevo (16/10): igual a estado salvo js/dibujo.js (plantilla Handlebars en vez de DOM a mano). Pasos: (1) instalar handlebars (botón 'Instalar' en la UI al elegir el Standard, o node build/requisitos.mjs --standard web/app/plantillas --instalar); (2) npm test (corre la parte de test_plantillas con Handlebars de verdad); (3) run_build del snapshot de hoy con --standard web/app/estado y con --standard web/app/plantillas, temperatura 0; (4) comparar intentos del paso dibujo, tokens, problemas de la sonda y Validation. n=1 por Standard no alcanza: después, 2–3 proyectos distintos.",
+     "desc": "[#Standards #Experimento] 1er intento (16/10 tarde) NO valió: por un bug, --standard no llegaba al build y las dos corridas fueron con estado (byte a byte iguales; arreglado y con test). Repetir: (1) instalar handlebars (botón 'Instalar' o node build/requisitos.mjs --standard web/app/plantillas --instalar); (2) npm test; (3) run_build del mismo snapshot con --standard web/app/estado y --standard web/app/plantillas, temperatura 0; (4) comparar intentos del paso dibujo, tokens, avisos de la sonda y Validation. Después 2–3 proyectos distintos (n=1 no alcanza).",
      "priority": "urgente"
     },
     {
@@ -446,9 +446,9 @@
      "priority": "urgente"
     },
     {
-     "id": "p50",
-     "title": "DECIDIR: enlace de vista/datos/estilo por Gemma (v0.2) o por código",
-     "desc": "[#Enlace #Decisión] Banco 15/10 (3 muestras reales): 8 min por muestra (v0.1: ~1 min), 1/3 limpia, 1/3 con 1 mal ubicada, 1/3 con 6; respuesta cortada por pensar ~2800 tokens; confunde 'vista de comentarios' con el requisito de comentarios. (A) Gemma solo logica/controles (v0.1: 9/9) + vista/datos → lista y estilo → requisito por palabras (código, reproducible, gratis). (B) seguir con v0.2 y medir con los arreglos (v0.13.3, aspectReqs).",
+     "id": "p54",
+     "title": "Persistencia en localStorage como parte del Standard (guardar y cargar del harness)",
+     "desc": "[#Standard] Pedido del brief del Kanban ('Guardar datos en localstorage'), que Intent Forge perdió ('Sin base de datos'). Como los controles: no lo escribe Gemma. El harness envuelve App: después de cada acción guarda el estado y al cargar lo lee (si hay uno válido con la misma forma). Validation: recargar la página y ver que lo creado sigue. Y en Intent Forge: 'localStorage' no es 'base de datos' (que no lo descarte).",
      "priority": "urgente"
     },
     {
@@ -466,13 +466,13 @@
     {
      "id": "p45",
      "title": "Arrastrar generado por el harness (además del botón)",
-     "desc": "[#Standard #Diseño] Pregunta de Miche (14/10): arrastrar es más elegante y el Standard no lo prohíbe ('puede ir además, nunca en vez del botón'). Idea: cuando el plan de controles ve una 'elección' de destino de un tipo de más arriba (tarjeta → columna), el harness agrega soltar sobre ese destino y llama a la MISMA acción. El botón queda como respaldo y es lo que prueba Validation; después, una prueba propia de arrastrar.",
-     "priority": "medio"
+     "desc": "[#Standard #Diseño] Pedido del brief del Kanban (R6) y de Miche. Es trabajo del Standard, no de conocimiento (Gemma sabe hacerlo): cuando el plan de controles ve una 'elección' de destino de otro tipo (tarjeta → columna), el harness agrega arrastrar-y-soltar sobre ese destino y llama a la MISMA acción (moverTarjeta). El botón queda de respaldo; después, una prueba propia de arrastrar en Validation (hoy F2.8 queda SIN_EVIDENCIA siempre).",
+     "priority": "urgente"
     },
     {
      "id": "p40",
      "title": "Validation: 'algo cambió' no alcanza para aprobar una acción",
-     "desc": "[#Validation] 6ª corrida: mover a la misma columna cambiaba el orden y last_updated → action_changes PASS. Hace falta saber QUÉ tiene que cambiar (el elemento queda en otro lugar, el valor editado queda, +1/−1 al crear/borrar). Va con n5 (flujo de datos). Ojo: sin leer el contrato de Gemma para aprobar.",
+     "desc": "[#Validation] (incluye n5) Hace falta saber QUÉ tiene que cambiar: crear → +1, mover → queda en otra columna, editar → el valor queda, borrar → −1. 6ª corrida: mover a la misma columna cambiaba el orden y last_updated → action_changes PASS falso. Casos: bugs del Kanban v1 (editar borra etiquetas, [object HTMLDivElement]…). Ojo: sin leer el contrato de Gemma para aprobar.",
      "priority": "urgente"
     },
     {
@@ -489,15 +489,15 @@
     },
     {
      "id": "p39",
-     "title": "WEBMCP_CONTEXT: el motor asume 16000 y LM Studio está en 12000",
-     "desc": "[#Infra] Hoy no pasa nada (pico ~6k), pero con prompts de 7k el harness le permite a Gemma una respuesta que no entra. Opciones: default 12000 o leerlo de LM Studio.",
-     "priority": "bajo"
+     "title": "D3 · Tope = lo que entra: el motor asume 16000 de contexto y Gemma está en 12000",
+     "desc": "[#Infra #D3] El reviewer ya calcula su tope desde el contexto (REVIEWER_CONTEXT). Falta el motor del Specialist: WEBMCP_CONTEXT por defecto 16000 vs 12000 de Gemma en LM Studio. Opciones: default 12000, o leerlo de LM Studio (/api/v0/models). Antes de que un pedido de 7k pida una respuesta que no entra.",
+     "priority": "medio"
     },
     {
      "id": "p34",
-     "title": "Investigador v0: búsqueda → ficha → banco con/sin",
-     "desc": "[#Investigador] Idea de Miche (12/10): usar búsqueda (web; Context7 para docs de librerías) para traer ejemplos (Kanban, estilos tipo Awwwards). No en el Specialist (16k) ni en Validation (objetiva): el Investigador busca una vez, destila una ficha corta (Skill / patrón / catálogo de efectos) y se mide con y sin. Después de que web/app quede estable.",
-     "priority": "medio"
+     "title": "Searcher (Investigador v0): informe de 'qué existe parecido' antes de Intent Forge",
+     "desc": "[#Investigador #IntentForge] Propuesta de Miche (16/10): proyecto → Searcher busca proyectos parecidos → informe → Intent Forge pregunta con ese informe → resto igual. Reglas propuestas por Claude: el informe NO agrega requisitos, solo PREGUNTAS cerradas que Miche confirma (cada línea del refined sigue saliendo de lo que dijo Miche); el informe queda como evidencia (fuentes, fecha); el harness hace las búsquedas y baja las páginas, el modelo solo resume en una ficha de rasgos con su fuente. Specialist/Validation no buscan en el momento: el Investigador arma fichas antes y se miden con/sin (como las Skills). FALTA decidir: con qué buscar (SearXNG local, una API con clave, …).",
+     "priority": "urgente"
     },
     {
      "id": "p32",
@@ -512,9 +512,36 @@
      "priority": "medio"
     },
     {
-     "id": "p31",
-     "title": "Tablero de 9x9 desborda a 390 px",
-     "desc": "[#Validation web/game] Invernadero R8 FAIL sin y con Skills (26 y 7 px). Celdas de tamaño fijo × 9 columnas no entran en un celular. ¿El Standard pide un tamaño de celda que dependa del ancho, o se acepta como límite?",
+     "id": "n6",
+     "title": "5 · Transversales: estilo que el Specialist respete",
+     "desc": "[#Transversales] Las restricciones ya llegan al Specialist en app/game (hoy). Falta: el estilo (R8 'Family NES 8 bits') llega como transversal pero Gemma lo ignora en los 6 builds; y en landing las restricciones todavía no llegan. 12/10: en el Kanban R7 (paleta oscura) da SIN_EVIDENCIA en todas las corridas: no hay chequeo de estilo que discrimine.",
+     "priority": "medio"
+    },
+    {
+     "id": "n7",
+     "title": "6 · Infra: TechLeader/Atomic por server.mjs + reconectar SQLite",
+     "desc": "[#Infra] TechLeader llama a LM Studio desde el navegador (CORS). /api/projects se perdió; persistProject() no lo llama nadie. Requisito para 'Proyectos'.",
+     "priority": "bajo"
+    }
+   ]
+  },
+  {
+   "id": "col-2",
+   "name": "⚙️ En Progreso",
+   "isInbox": false,
+   "isDefault": true,
+   "cards": []
+  },
+  {
+   "id": "col-5",
+   "name": "🅿️ Estacionado (no es el foco hoy, o superado)",
+   "isInbox": false,
+   "isDefault": false,
+   "cards": [
+    {
+     "id": "p50",
+     "title": "DECIDIR: enlace de vista/datos/estilo por Gemma (v0.2) o por código",
+     "desc": "[#Enlace] SUPERADO por el diagnóstico 16/10: no se recortan tareas (Miche: 'nunca cortar porque el modelo no puede') y los nombres van a salir de la planilla (D2, p52). El enlace v0.2 sigue inestable (16/10 tarde: 21/22 y F2.7 sin ubicar en las dos corridas). Se retoma con D2. — Antes: [#Enlace #Decisión] Banco 15/10 (3 muestras reales): 8 min por muestra (v0.1: ~1 min), 1/3 limpia, 1/3 con 1 mal ubicada, 1/3 con 6; respuesta cortada por pensar ~2800 tokens; confunde 'vista de comentarios' con el requisito de comentarios. (A) Gemma solo logica/controles (v0.1: 9/9) + vista/datos → lista y estilo → requisito por palabras (código, reproducible, gratis). (B) seguir con v0.2 y medir con los arreglos (v0.13.3, aspectReqs).",
      "priority": "bajo"
     },
     {
@@ -530,27 +557,9 @@
      "priority": "bajo"
     },
     {
-     "id": "n3",
-     "title": "2 · Gate: reviewer que devuelve {} o schema incompleto aprueba",
-     "desc": "[#Gate] Hueco que quedó del gate de hoy: si el reviewer corre pero devuelve vacío / schema_complete false, pasa como aprobado. Tiene que contar como REVIEW_NOT_RUN.",
-     "priority": "medio"
-    },
-    {
-     "id": "n5",
-     "title": "4 · Validation: chequeos de flujo de datos para apps",
-     "desc": "[#Validation] crear → +1, arrastrar → cambia de columna, editar → el valor queda, borrar → −1. Casos: bugs del Kanban v1 (editar borra etiquetas, [object HTMLDivElement], modal sin scroll, doble confirm, título no editable, + Añadir Columna muerto). Ya existen key_changes / click_changes / counter_on_action como base. Avance 12/10: calls_gate (punto 7) ya revisa que cada acción se llame con datos de verdad; falta 'el valor queda' (editar) y contar elementos.",
-     "priority": "medio"
-    },
-    {
-     "id": "n6",
-     "title": "5 · Transversales: estilo que el Specialist respete",
-     "desc": "[#Transversales] Las restricciones ya llegan al Specialist en app/game (hoy). Falta: el estilo (R8 'Family NES 8 bits') llega como transversal pero Gemma lo ignora en los 6 builds; y en landing las restricciones todavía no llegan. 12/10: en el Kanban R7 (paleta oscura) da SIN_EVIDENCIA en todas las corridas: no hay chequeo de estilo que discrimine.",
-     "priority": "medio"
-    },
-    {
-     "id": "n7",
-     "title": "6 · Infra: TechLeader/Atomic por server.mjs + reconectar SQLite",
-     "desc": "[#Infra] TechLeader llama a LM Studio desde el navegador (CORS). /api/projects se perdió; persistProject() no lo llama nadie. Requisito para 'Proyectos'.",
+     "id": "p31",
+     "title": "Tablero de 9x9 desborda a 390 px",
+     "desc": "[#Validation web/game] Invernadero R8 FAIL sin y con Skills (26 y 7 px). Celdas de tamaño fijo × 9 columnas no entran en un celular. ¿El Standard pide un tamaño de celda que dependa del ancho, o se acepta como límite?",
      "priority": "bajo"
     },
     {
@@ -574,23 +583,27 @@
    ]
   },
   {
-   "id": "col-2",
-   "name": "⚙️ En Progreso",
-   "isInbox": false,
-   "isDefault": true,
-   "cards": [
-   ]
-  },
-  {
    "id": "col-4",
-   "name": "✅ Hecho 05–12/10",
+   "name": "✅ Hecho 05–16/10",
    "isInbox": false,
    "isDefault": false,
    "cards": [
     {
+     "id": "h63",
+     "title": "16/10 tarde · 2ª comparación revisada: bug de --standard + 5 arreglos con las corridas 15-48-47/16-24-56",
+     "desc": "[#Standard #Validation] (1) BUG: el build usaba el Standard del profile fijo, no el elegido → las 2 corridas fueron con estado, byte a byte iguales; ahora run_build pasa el Standard resuelto (test). (2) Contrato: 'columns' como objeto con ids de claves → el harness lo pasa a lista (sin modelo; antes 3 reintentos fallidos). (3) Dibujo: controlesDe con el div de la página en vez del item del estado → aviso con esas palabras; botones propios que no hacen nada ('➕ Agregar tarjeta') → aviso; el control de 'app' puede ir donde dice el brief (p.ej. en Pendiente). (4) La trampa de XSS ya no rompe los ids (se le escapaba el innerHTML con card.titulo). (5) hover_changes mira también lo de adentro (.card:hover .card-actions). Standard estado v0.8.3. Tests: test_controls 55, test_app 37, test_check_catalog 56.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h62",
+     "title": "16/10 · Gate del reviewer: vacío o incompleto ya no aprueba (n3)",
+     "desc": "[#Gate] Con el reviewer v0.8, si después de 3 intentos faltan veredictos (respuesta vacía, {} o cortada) devuelve SYSTEM_ERROR con el motivo y el gate lo trata como 'no corrió' → decide Miche. Cierra n3.",
+     "priority": "bajo"
+    },
+    {
      "id": "h61",
      "title": "16/10 · Juez: fuera los chequeos que el requisito no pide + 2 arreglos del Standard",
-     "desc": "[#Validation #Standard] Build 16/10: 6 de los 9 FAIL eran del juez. no_horizontal_scroll solo si el requisito habla de responsive/celular; key_changes solo si nombra teclado/teclas (como p47 con el contador; cierra p38). Sin chequeos después del ajuste → SIN_CHEQUEO con motivo. counter_on_action acepta un número suelto '(2)' que cambie. Standard estado: el formulario de crear ya no sale relleno con 'Pendiente'; 'boton' en el contrato = texto del botón del brief. Tests: test_app 34, test_check_catalog 55, test_controls 47.",
+     "desc": "[#Validation #Standard] Build 16/10: 6 de los 9 FAIL eran del juez. no_horizontal_scroll solo si el requisito habla de responsive/celular; key_changes solo si nombra teclado/teclas (como p47 con el contador; cierra p38). n5 (flujo de datos) queda junto con p40. Sin chequeos después del ajuste → SIN_CHEQUEO con motivo. counter_on_action acepta un número suelto '(2)' que cambie. Standard estado: el formulario de crear ya no sale relleno con 'Pendiente'; 'boton' en el contrato = texto del botón del brief. Tests: test_app 34, test_check_catalog 55, test_controls 47.",
      "priority": "bajo"
     },
     {

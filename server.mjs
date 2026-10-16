@@ -11,6 +11,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const STATIC_DIR = __dirname;
 const PORT = 3000;
 const STAGE_FILE = join(__dirname, "context", "ProjectStage.md");
+// Completeness Reviewer: modelo y contexto con el que está cargado en LM Studio.
+const REVIEWER_MODEL = process.env.REVIEWER_MODEL || "qwen2.5-7b-instruct";
+const REVIEWER_CONTEXT = Number(process.env.REVIEWER_CONTEXT) || 16000;
 
 // Se lee en cada uso (no se cachea): si ProjectStage.md cambia, la corrida
 // siguiente usa la versión nueva y el sha256 del log lo deja registrado.
@@ -55,10 +58,10 @@ const server = createServer(async (req, res) => {
   // intent_forge_v02.ps1 quedó desactualizado (v0.2): no lo usa el pipeline.
   if (req.method === "POST" && req.url === "/api/intent-forge") {
     try {
-      const { conversation, iteration, profiles } = await getBody(req);
-      // Tipo de proyecto (profiles, 05/10): lo elige Miche en la UI. Falla
+      const { conversation, iteration, profiles, standard } = await getBody(req);
+      // Tipo de proyecto (profiles, 05/10) y Standard (16/10): los elige Miche en la UI. Falla
       // antes de llamar al modelo si falta o no existe.
-      resolveProfiles(profiles);
+      const resolved = resolveProfiles(profiles, { standard });
       const { runIntentForge, BRIEF_VERSION } = await import("./intent_brief.mjs");
       const calls = [];
       const callModel = async (messages) => {
@@ -95,6 +98,8 @@ const server = createServer(async (req, res) => {
         refined_prompt.project_stage = currentStage().stage;
         // El tipo de proyecto también lo declara Miche (selector de la UI).
         refined_prompt.profiles = profiles;
+        // Y el Standard (16/10): con qué se construye. Sin elegir, el del tipo.
+        if (resolved.standard) refined_prompt.standard = resolved.standard;
         await writeFile(
           join(STATIC_DIR, "refined_prompt.json"),
           JSON.stringify({ status: "COMPLETE", refined_prompt }, null, 2),
@@ -135,7 +140,7 @@ const server = createServer(async (req, res) => {
     try {
       const { refined_prompt } = await getBody(req);
       if (!refined_prompt) throw new Error("No refined_prompt");
-      resolveProfiles(refined_prompt.profiles); // sin tipo de proyecto no se aprueba
+      resolveProfiles(refined_prompt.profiles, { standard: refined_prompt.standard }); // sin tipo de proyecto no se aprueba
       await writeFile(
         join(STATIC_DIR, "refined_prompt.json"),
         JSON.stringify(refined_prompt, null, 2),
@@ -210,6 +215,63 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  // === API SNAPSHOT: el graph quedó aprobado → se guarda el estado para run_build (16/10) ===
+  if (req.method === "POST" && req.url === "/api/snapshot") {
+    try {
+      const { state, motivo } = await getBody(req);
+      const { snapshotProblems, snapshotFileName, snapshotContent } = await import("./build/snapshot_auto.mjs");
+      const probs = snapshotProblems(state);
+      if (probs.length) throw new Error(`el estado no sirve como snapshot: ${probs.join("; ")}`);
+      const now = new Date();
+      const dir = join(STATIC_DIR, "build", "snapshots", "auto");
+      await mkdir(dir, { recursive: true });
+      const name = snapshotFileName(state, now);
+      await writeFile(join(dir, name), JSON.stringify(snapshotContent(state, motivo, now), null, 2));
+      const rel = `build/snapshots/auto/${name}`;
+      console.log(`[SNAPSHOT] ${motivo} → ${rel}`);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: true, path: rel }));
+    } catch (e) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+    return;
+  }
+
+  // === API REQUISITOS (16/10): qué necesita instalado un Standard, e instalarlo con el OK de Miche ===
+  if (req.method === "GET" && req.url.startsWith("/api/requisitos?")) {
+    try {
+      const std = new URL(req.url, "http://x").searchParams.get("standard");
+      const { checkStandard, requisitosText } = await import("./build/requisitos.mjs");
+      const r = await checkStandard(std);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ...r, texto: requisitosText(r) }));
+    } catch (e) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+    return;
+  }
+  if (req.method === "POST" && req.url === "/api/requisitos/instalar") {
+    try {
+      // Solo el comando que declara la ficha del Standard (installCommand); lo pide un clic de Miche en la UI.
+      const { standard, requisito } = await getBody(req);
+      const { installCommand, runInstall, checkRequirement, writeInstallEvidence } = await import("./build/requisitos.mjs");
+      const { standardMeta } = await import("./standards/catalog.mjs");
+      const cmd = installCommand(standard, requisito);
+      console.log(`[REQUISITOS] instalando ${requisito} para ${standard}: ${cmd}`);
+      const r = await runInstall(cmd, { onData: (d) => process.stdout.write(d) });
+      const after = await checkRequirement(standardMeta(standard).requiere.find((x) => x.id === requisito));
+      const evidencia = writeInstallEvidence({ standard, requisito, comando: cmd, aprobado_por: "Miche (UI)", code: r.code, ok_despues: after.ok, detalle: after.detalle, salida: r.out });
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: after.ok, code: r.code, detalle: after.detalle, comando: cmd, salida: r.out.slice(-1500), evidencia }));
+    } catch (e) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+    return;
+  }
+
   // === API TERM LABEL: Miche etiqueta un aviso de cobertura ===
   if (req.method === "POST" && req.url === "/api/term-label") {
     try {
@@ -256,11 +318,28 @@ const server = createServer(async (req, res) => {
       const { runCompletenessReview } =
         await import("./completeness_reviewer3.mjs");
       const logs = [];
+      // Revisor de otra familia que el que planifica (decisión de Miche: Gemma planifica, Qwen revisa).
+      // REVIEWER_CONTEXT = el contexto con que está cargado ese modelo en LM Studio (16/10: 16000).
       const result = await runCompletenessReview(prompt, atomicTasks, {
         requirements,
-        model: "qwen2.5-7b-instruct",
+        model: REVIEWER_MODEL,
+        contextTokens: REVIEWER_CONTEXT,
         logCallback: (m) => logs.push(m),
       });
+      // v0.8 (16/10): cada llamada (respuesta cruda, finish_reason, uso) queda como evidencia, corra bien o no.
+      try {
+        const rid = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+        const rdir = join(STATIC_DIR, "evidence", "reviewer");
+        await mkdir(rdir, { recursive: true });
+        await writeFile(
+          join(rdir, `${rid}.json`),
+          JSON.stringify({ review_id: rid, run_meta: result.run_meta, requirements, tasks: atomicTasks.map(({ id, task }) => ({ id, task })), findings: result.findings, calls: result.calls || [] }, null, 2),
+        );
+        logs.push(`evidencia: evidence/reviewer/${rid}.json`);
+      } catch (e) {
+        logs.push(`evidencia del reviewer: ERROR ${e.message}`);
+      }
+      delete result.calls; // el navegador no necesita las respuestas crudas
       // Aviso determinista de cobertura por palabras (no bloquea). Cada
       // revisión se guarda en evidence/term_coverage/ para etiquetarla después.
       let term_coverage = null;

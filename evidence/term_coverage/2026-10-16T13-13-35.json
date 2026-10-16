@@ -1,0 +1,397 @@
+{
+  "version": "term_coverage v0.1",
+  "review_id": "2026-10-16T13-13-35",
+  "requirements": [
+    {
+      "id": "R1",
+      "text": "Crear tarjetas"
+    },
+    {
+      "id": "R2",
+      "text": "Primera columna -> div contenedor de columna 'Pendiente' + botón 'Agregar tarjeta' debajo"
+    },
+    {
+      "id": "R3",
+      "text": "Asignar prioridad a una tarjeta desde una lista (etiqueta: alta: color rojo, media: color amarillo, baja: color verde) en el modal de creación o edición de tarjetas"
+    },
+    {
+      "id": "R4",
+      "text": "Campos que tendrá cada tarjeta al momento de crearla: Titulo, descripción, y prioridad (etiqueta)"
+    },
+    {
+      "id": "R5",
+      "text": "Campos que se pueden editar al presionar el botón 'editar tarjeta': Titulo, descripción, y prioridad (etiqueta)"
+    },
+    {
+      "id": "R6",
+      "text": "Usar funcionalidad de drag&drop: la tarjeta estara compuesta por un contenedor con 2 divs dentro; Un div de 24px (⠿) sera el encargado de la funcion drag&drop (class='drag-handle' draggable='true' ondragstart / ondragend)"
+    },
+    {
+      "id": "R7",
+      "text": "Comportamiento al borrar una tarjeta: Eliminar(🗑️) abre un modal para consultarle al usuario 'Esta seguro de borrar la tarjeta?' y si el usuario confirma, la tarjeta sera eliminada de la columna donde se encontrara, reduciendo el contador de tarjetas de dicha columna"
+    },
+    {
+      "id": "R8",
+      "text": "Campos que tendrá cada columna: title ('Pendiente', 'En Curso', 'Completa'), y counter (contador de tarjetas dentro de la columna); La Columna 'Pendiente' sera la unica que tendra debajo el botón 'Agregar tarjeta'"
+    },
+    {
+      "id": "R9",
+      "text": "Fondo: #102C54, columnas: #8FB3C7, tarjetas: #F2E9D8"
+    },
+    {
+      "id": "R10",
+      "text": "Columnas con overflow:scroll, width:248px, header con title ('Pendiente', 'En Curso', o 'Completa') y contador de tarjetas en columna"
+    },
+    {
+      "id": "R11",
+      "text": "Botón 'Agregar tarjeta': padding: 8px, border: 1px dashed, border radius: 8px, abre modal de creación de tarjetas"
+    },
+    {
+      "id": "R12",
+      "text": "Tarjetas con overflow-y:scroll, height:250px, width: 223px (24px para drag&drop y 199px restantes para el body)"
+    },
+    {
+      "id": "R13",
+      "text": "Div 'top' con title y actions"
+    },
+    {
+      "id": "R14",
+      "text": "Actions: botón eliminar y botón editar tarjeta, display on hover"
+    },
+    {
+      "id": "R15",
+      "text": "Sombras en tarjetas, efecto de movimiento durante drag&drop, actualización de contadores al mover tarjetas"
+    },
+    {
+      "id": "R16",
+      "text": "Tarjetas de la misma prioridad: Se prioriza la más reciente; en cada columna, las tarjetas se mostrarán y ordenarán de forma descendente sobre la columna, con las de prioridad alta arriba, luego las de prioridad media y debajo de todo las de prioridad baja"
+    },
+    {
+      "id": "R17",
+      "text": "Botones 'Eliminar' y 'Editar': Eliminar: 🗑️, Editar: ✏️ (visibles solo al hacer hover en la tarjeta)"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "F1.1",
+      "task": "Establecer el contenedor principal del tablero Kanban y sus tres columnas (Pendiente, En Curso, Completa).",
+      "description": "Crear la estructura HTML base que contenga un contenedor principal para el tablero y tres contenedores hijos específicos para las columnas 'Pendiente', 'En Curso' y 'Completa'. Estos contenedores deben estar vacíos inicialmente."
+    },
+    {
+      "id": "F1.2",
+      "task": "Definir el estado inicial global del tablero (datos de columnas y tarjetas).",
+      "description": "Establecer la estructura de datos inicial para el estado global, incluyendo los nombres de las tres columnas y al menos una tarjeta de ejemplo en cada columna con campos definidos (ej: Título, Descripción, Etiquetas)."
+    },
+    {
+      "id": "F1.3",
+      "task": "Implementar la lógica de persistencia básica usando LocalStorage.",
+      "description": "Crear las funciones para cargar el estado global desde LocalStorage al iniciar la aplicación y guardar el estado actualizado en LocalStorage cada vez que cambie una tarjeta o columna. Debe usar la estructura de datos definida en F1.2."
+    },
+    {
+      "id": "F1.4",
+      "task": "Definir los estilos base del tablero y las columnas.",
+      "description": "Aplicar estilos CSS globales al contenedor principal del tablero (dimensiones, overflow) y a cada una de las tres columnas, asegurando que se muestren correctamente en un layout horizontal o flexible."
+    },
+    {
+      "id": "F1.5",
+      "task": "Definir la vista y estructura de una tarjeta Kanban individual.",
+      "description": "Diseñar el componente visual (HTML/CSS) para representar una única tarjeta dentro de las columnas, incluyendo espacios definidos para mostrar su título, descripción y etiquetas. Esta vista debe ser reutilizable."
+    },
+    {
+      "id": "F1.6",
+      "task": "Integrar la visualización del estado inicial en el layout.",
+      "description": "Implementar la lógica de renderizado que tome los datos definidos en F1.2 y muestre las tarjetas correspondientes dentro de sus columnas respectivas, utilizando la estructura visual definida en F1.5."
+    },
+    {
+      "id": "F2.1",
+      "task": "Definir la estructura de datos para una tarjeta Kanban que incluya Título, Descripción y Prioridad.",
+      "description": "Actualizar el esquema de datos de las tarjetas para incluir los campos: Título (string), Descripción (string) y Prioridad (enum o string). El estado inicial debe reflejar esta estructura en todas las tarjetas existentes."
+    },
+    {
+      "id": "F2.2",
+      "task": "Implementar la vista del modal de creación/edición de tarjetas, incluyendo los campos Título, Descripción y Prioridad.",
+      "description": "Crear el componente modal que contenga un formulario con tres inputs: uno para Título (texto), uno para Descripción (textarea) y un selector o dropdown para Prioridad. Debe ser visible pero inicialmente oculto."
+    },
+    {
+      "id": "F2.3",
+      "task": "Implementar los controles de activación del modal de creación/edición de tarjetas.",
+      "description": "Añadir un botón visible en el tablero para 'Crear Tarjeta' y la lógica de control para abrir este modal. Además, implementar los controles dentro del modal para guardar (crear/editar) y cancelar."
+    },
+    {
+      "id": "F2.4",
+      "task": "Implementar la lógica pura para crear un nuevo objeto de tarjeta a partir de los datos ingresados en el formulario.",
+      "description": "Crear una función que reciba Título, Descripción y Prioridad como argumentos y devuelva un nuevo objeto de tarjeta con la estructura definida (F2.1). Esta función debe asignar automáticamente el ID único y la columna actual."
+    },
+    {
+      "id": "F2.5",
+      "task": "Implementar la lógica de guardado en LocalStorage al crear una tarjeta, actualizando el estado global y los contadores de columna.",
+      "description": "Desarrollar la función que recibe un nuevo objeto de tarjeta (F2.4). Esta función debe: 1) Añadir la tarjeta al array de estado en LocalStorage, 2) Actualizar el contador numérico de la columna correspondiente y 3) Disparar una actualización del estado global."
+    },
+    {
+      "id": "F2.6",
+      "task": "Implementar la lógica pura para actualizar un objeto de tarjeta existente a partir de los datos del formulario.",
+      "description": "Crear una función que reciba el ID de la tarjeta a editar y los nuevos valores (Título, Descripción, Prioridad). Debe devolver un nuevo objeto de tarjeta con los campos actualizados sin modificar el resto del estado."
+    },
+    {
+      "id": "F2.7",
+      "task": "Implementar la lógica de guardado en LocalStorage al editar una tarjeta, actualizando el estado global y los contadores de columna.",
+      "description": "Desarrollar la función que recibe un ID de tarjeta y los nuevos datos (F2.6). Esta función debe: 1) Reemplazar el objeto antiguo por el nuevo en LocalStorage, 2) Actualizar el contador numérico de la columna correspondiente y 3) Disparar una actualización del estado global."
+    },
+    {
+      "id": "F3.1",
+      "task": "Implementar el comportamiento de arrastrar (drag) en la tarjeta Kanban para que pueda ser movida entre columnas.",
+      "description": "Añadir los listeners y la lógica visual necesaria para que una tarjeta sea arrastrable, permitiendo su movimiento sobre las áreas de destino (columnas)."
+    },
+    {
+      "id": "F3.2",
+      "task": "Implementar la lógica pura para mover una tarjeta de un estado/columna a otro.",
+      "description": "Desarrollar la función que recibe el ID de la tarjeta y el nuevo ID de columna, devolviendo el objeto de tarjeta actualizado con la nueva ubicación. Esta lógica debe ser independiente del estado global."
+    },
+    {
+      "id": "F3.3",
+      "task": "Implementar el efecto visual de mostrar los botones 'Editar' y 'Eliminar' al pasar el cursor (hover) sobre una tarjeta Kanban.",
+      "description": "Añadir la lógica CSS/JS para que los controles de acción ('Editar', 'Eliminar') sean visibles solo cuando el usuario pasa el mouse sobre la tarjeta, y ocultos en caso contrario."
+    },
+    {
+      "id": "F3.4",
+      "task": "Añadir el control de botón 'Eliminar' en la tarjeta Kanban, visible al hacer hover.",
+      "description": "Integrar el botón 'Eliminar' dentro del componente de tarjeta, asegurando que su visibilidad dependa de la lógica implementada en F3.3."
+    },
+    {
+      "id": "F3.5",
+      "task": "Implementar la vista del modal de confirmación para la acción de eliminación.",
+      "description": "Crear el componente visual (modal) que se mostrará al intentar eliminar una tarjeta, conteniendo un mensaje de advertencia y los botones 'Confirmar'/'Cancelar'."
+    },
+    {
+      "id": "F3.6",
+      "task": "Implementar la lógica pura para eliminar un objeto de tarjeta del estado global.",
+      "description": "Desarrollar la función que recibe el ID de la tarjeta y devuelve el nuevo estado global sin esa tarjeta. Esta es una función pura de manipulación de datos."
+    },
+    {
+      "id": "F3.7.R2.1",
+      "task": "Llamar al servicio para validar y obtener el nuevo estado global tras mover una tarjeta.",
+      "description": "Implementar la función que maneja la interacción de movimiento (Drag&Drop), llamando a F3.2 para enviar los datos del cambio y recibir la validación y el nuevo estado global desde el backend."
+    },
+    {
+      "id": "F3.7.R2.2",
+      "task": "Actualizar LocalStorage con el nuevo estado global validado.",
+      "description": "Tomar el nuevo estado global recibido exitosamente de la API (subtarea 0) y actualizar la persistencia local (LocalStorage), asegurando que este estado sea la fuente única de verdad para futuras lecturas."
+    },
+    {
+      "id": "F3.7.R2.3",
+      "task": "Recalcular y actualizar los contadores de todas las columnas afectadas en la UI.",
+      "description": "Consumir el estado global recién persistido (subtarea 1) para recalcular todos los métricos y contadores necesarios, actualizando únicamente la interfaz de usuario sin modificar la lógica de negocio o la persistencia."
+    },
+    {
+      "id": "F3.8.R2.1",
+      "task": "Actualizar LocalStorage con el nuevo estado global reducido tras la eliminación de una tarjeta.",
+      "description": "Implementar la lógica para tomar el estado global actualizado (después de llamar a F3.6) y persistirlo en LocalStorage, asegurando que solo se almacene el estado relevante y reducido."
+    },
+    {
+      "id": "F3.8.R2.2",
+      "task": "Recalcular y actualizar los contadores de todas las columnas afectadas tras la eliminación de una tarjeta.",
+      "description": "Implementar la lógica de negocio para iterar sobre el estado global actualizado (ya persistido) y recalcular todos los contadores de columna afectados, actualizando la UI en consecuencia. Esta tarea depende de que el estado haya sido guardado correctamente."
+    },
+    {
+      "id": "F4.1",
+      "task": "Aplicar sombras y refinamientos visuales detallados a las tarjetas Kanban.",
+      "description": "Añadir estilos de sombra (box-shadow) y ajustes visuales menores para mejorar la profundidad y el acabado general de las tarjetas dentro del tablero."
+    },
+    {
+      "id": "F4.2",
+      "task": "Implementar efectos visuales de movimiento durante el arrastrar y soltar (drag&drop).",
+      "description": "Añadir transiciones CSS o clases dinámicas para que las tarjetas muestren un efecto visual suave al ser arrastradas entre columnas, mejorando la experiencia de usuario."
+    },
+    {
+      "id": "F4.3",
+      "task": "Implementar la lógica de ordenamiento de tarjetas dentro de cada columna por prioridad y fecha.",
+      "description": "Crear una función que tome el array de tarjetas de una columna y lo ordene: 1. Por Prioridad (Alta > Media > Baja). 2. En caso de empate, por Fecha de creación/actualización en orden descendente."
+    },
+    {
+      "id": "F4.4",
+      "task": "Controlar la visibilidad del botón 'Agregar tarjeta' basado en la columna activa.",
+      "description": "Implementar una lógica de renderizado condicional para asegurar que el botón 'Agregar tarjeta' solo sea visible cuando se está visualizando o interactuando con la columna cuyo nombre es 'Pendiente'."
+    }
+  ],
+  "items": [
+    {
+      "id": "R1",
+      "text": "Crear tarjetas",
+      "present": 1,
+      "total": 1,
+      "missing": []
+    },
+    {
+      "id": "R2",
+      "text": "Primera columna -> div contenedor de columna 'Pendiente' + botón 'Agregar tarjeta' debajo",
+      "present": 0,
+      "total": 1,
+      "missing": [
+        "primera"
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "Asignar prioridad a una tarjeta desde una lista (etiqueta: alta: color rojo, media: color amarillo, baja: color verde) en el modal de creación o edición de tarjetas",
+      "present": 2,
+      "total": 7,
+      "missing": [
+        "lista",
+        "color",
+        "rojo",
+        "amarillo",
+        "verde"
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "Campos que tendrá cada tarjeta al momento de crearla: Titulo, descripción, y prioridad (etiqueta)",
+      "present": 0,
+      "total": 2,
+      "missing": [
+        "momento",
+        "crearla"
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "Campos que se pueden editar al presionar el botón 'editar tarjeta': Titulo, descripción, y prioridad (etiqueta)",
+      "present": 0,
+      "total": 1,
+      "missing": [
+        "presionar"
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "Usar funcionalidad de drag&drop: la tarjeta estara compuesta por un contenedor con 2 divs dentro; Un div de 24px (⠿) sera el encargado de la funcion drag&drop (class='drag-handle' draggable='true' ondragstart / ondragend)",
+      "present": 1,
+      "total": 10,
+      "missing": [
+        "estara",
+        "compuesta",
+        "divs",
+        "encargado",
+        "class",
+        "handle",
+        "draggable",
+        "true",
+        "ondragstart"
+      ]
+    },
+    {
+      "id": "R7",
+      "text": "Comportamiento al borrar una tarjeta: Eliminar(🗑️) abre un modal para consultarle al usuario 'Esta seguro de borrar la tarjeta?' y si el usuario confirma, la tarjeta sera eliminada de la columna donde se encontrara, reduciendo el contador de tarjetas de dicha columna",
+      "present": 5,
+      "total": 9,
+      "missing": [
+        "borrar",
+        "seguro",
+        "encontrara",
+        "dicha"
+      ]
+    },
+    {
+      "id": "R8",
+      "text": "Campos que tendrá cada columna: title ('Pendiente', 'En Curso', 'Completa'), y counter (contador de tarjetas dentro de la columna); La Columna 'Pendiente' sera la unica que tendra debajo el botón 'Agregar tarjeta'",
+      "present": 0,
+      "total": 1,
+      "missing": [
+        "counter"
+      ]
+    },
+    {
+      "id": "R9",
+      "text": "Fondo: #102C54, columnas: #8FB3C7, tarjetas: #F2E9D8",
+      "present": 0,
+      "total": 4,
+      "missing": [
+        "fondo",
+        "102c54",
+        "8fb3c7",
+        "f2e9d8"
+      ]
+    },
+    {
+      "id": "R10",
+      "text": "Columnas con overflow:scroll, width:248px, header con title ('Pendiente', 'En Curso', o 'Completa') y contador de tarjetas en columna",
+      "present": 0,
+      "total": 2,
+      "missing": [
+        "248px",
+        "header"
+      ]
+    },
+    {
+      "id": "R11",
+      "text": "Botón 'Agregar tarjeta': padding: 8px, border: 1px dashed, border radius: 8px, abre modal de creación de tarjetas",
+      "present": 0,
+      "total": 4,
+      "missing": [
+        "padding",
+        "border",
+        "dashed",
+        "radius"
+      ]
+    },
+    {
+      "id": "R12",
+      "text": "Tarjetas con overflow-y:scroll, height:250px, width: 223px (24px para drag&drop y 199px restantes para el body)",
+      "present": 0,
+      "total": 6,
+      "missing": [
+        "height",
+        "250px",
+        "223px",
+        "199px",
+        "restantes",
+        "body"
+      ]
+    },
+    {
+      "id": "R13",
+      "text": "Div 'top' con title y actions",
+      "present": 0,
+      "total": 2,
+      "missing": [
+        "title",
+        "actions"
+      ]
+    },
+    {
+      "id": "R14",
+      "text": "Actions: botón eliminar y botón editar tarjeta, display on hover",
+      "present": 0,
+      "total": 1,
+      "missing": [
+        "display"
+      ]
+    },
+    {
+      "id": "R15",
+      "text": "Sombras en tarjetas, efecto de movimiento durante drag&drop, actualización de contadores al mover tarjetas",
+      "present": 6,
+      "total": 6,
+      "missing": []
+    },
+    {
+      "id": "R16",
+      "text": "Tarjetas de la misma prioridad: Se prioriza la más reciente; en cada columna, las tarjetas se mostrarán y ordenarán de forma descendente sobre la columna, con las de prioridad alta arriba, luego las de prioridad media y debajo de todo las de prioridad baja",
+      "present": 3,
+      "total": 6,
+      "missing": [
+        "mostraran",
+        "arriba",
+        "luego"
+      ]
+    },
+    {
+      "id": "R17",
+      "text": "Botones 'Eliminar' y 'Editar': Eliminar: 🗑️, Editar: ✏️ (visibles solo al hacer hover en la tarjeta)",
+      "present": 1,
+      "total": 1,
+      "missing": []
+    }
+  ],
+  "labels": {}
+}

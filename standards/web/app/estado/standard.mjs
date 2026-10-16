@@ -16,6 +16,7 @@
 // Nada de un dominio acá (ni Kanban ni contador): lo prueba test_estado.mjs con dos apps distintas.
 // DRAFT: no tiene evidencia todavía. Primera corrida: el Kanban (Project23/24).
 
+import META from "./meta.mjs";
 import { parseContract, contractProblems, bestContract, datosJs, signature, idsOf, idKeysOf, listPaths, itemsAt, shapeProblems, MAX_STATE_CHARS } from "./contract.mjs";
 import { logicTests, observeChanges } from "./acceptance.mjs";
 import { controlsPlan, accionesJs, controlesFromPlan, whereOf } from "./controls.mjs";
@@ -211,9 +212,12 @@ const validation = {
 };
 
 const STANDARD = {
-  id: "web/app/estado",
-  version: "0.8.1",
-  status: "DRAFT",
+  // 16/10: id, versión, estado y stack salen de la ficha (meta.mjs), que también lee el navegador
+  id: META.id,
+  version: META.version,
+  status: META.status,
+  stack: META.stack,
+  requiere: META.requiere,
   validation,
   label: "app de una pantalla con estado y acciones",
   describe: "App de una pantalla por archivos: el contrato (estado inicial + acciones) lo propone Gemma como datos y el harness lo valida; js/logica.js (lógica pura probada en Node con pruebas que salen del contrato), app.html + styles.css, js/dibujo.js (probado en Chromium), js/controles.js (cada acción se puede usar desde la pantalla).",
@@ -244,7 +248,7 @@ const STANDARD = {
       answerHint: 'Respondé SOLO con ### FILE: contrato.json, un JSON como el del formato (no escribas código).',
       prompt: (c) => `${c.paso}: antes de programar, definí el CONTRATO de la app como JSON (no escribas código). El harness lo valida y con él arma js/datos.js y las pruebas.
 - "estado": el estado INICIAL de la app, solo datos (objetos, listas, textos, números, true/false), con ejemplos reales para que la pantalla no arranque vacía (2 o 3 por lista). Cada cosa que se pueda editar, mover o borrar lleva un "id" único. Corto: hasta ${MAX_STATE_CHARS} caracteres.
-- "acciones": lo que el usuario puede hacer. Cada una: "nombre" (verbo en camelCase), "params" (lo que recibe ADEMÁS del estado), "ejemplo" (un valor por param, que funcione con el estado inicial: ids que existan), "hace" (una frase), "features" (números de las features del brief que cumple) y "cambia" (qué claves de "estado" cambia).
+- "acciones": lo que el usuario puede hacer. Cada una: "nombre" (verbo en camelCase), "params" (lo que recibe ADEMÁS del estado), "ejemplo" (un valor por param, que funcione con el estado inicial: ids que existan), "hace" (una frase), "features" (números de las features del brief que cumple), "cambia" (qué claves de "estado" cambia) y, si el brief nombra el texto del botón (entre comillas), "boton" con ese texto tal cual.
 - "se_ve": números de las features que solo se VEN en la pantalla (no son acciones), también las de aspecto: colores, estilo, sombras, efectos al pasar el mouse.
 Toda acción la dispara un botón (arrastrar puede ir además, nunca en vez del botón). Lo que el usuario escribe es un texto o un número por param (una lista no: que la acción reciba un elemento por vez).
 Cada feature del brief va en "features" de alguna acción o en "se_ve"${c.hints.style.length ? ` (salvo las de estilo: ${c.hints.style.join(", ")})` : ""}.

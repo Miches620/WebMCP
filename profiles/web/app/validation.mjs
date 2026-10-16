@@ -1,7 +1,7 @@
 // validation.mjs — Validation profile "web/app": lo que el usuario puede HACER en una pantalla.
 // Sale de check_catalog.mjs (paso 2, 06/10) sin cambios de conducta.
 
-import { ARROWS, BOARD_SNAP, HOVER_KINDS, ITEM_LEFTS, LABELED_NUMBERS, MARK_SECTION, NAV_RE, NUMBERS_IN, RENDER_AFTER, RENDER_STATIC, SEEN_SRC, SEEN_WORDS, SNAP, STYLE_SNAP, WIN_AT_LOAD, WIN_WORDS, diffCount, diffSample, fieldText, findControl, keysFrom, matches, norm, visibleTexts, words, INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle, bestControl } from "../validation/lib.mjs";
+import { ARROWS, BOARD_SNAP, HOVER_KINDS, ITEM_LEFTS, LABELED_NUMBERS, BARE_NUMBERS, MARK_SECTION, NAV_RE, NUMBERS_IN, RENDER_AFTER, RENDER_STATIC, SEEN_SRC, SEEN_WORDS, SNAP, STYLE_SNAP, WIN_AT_LOAD, WIN_WORDS, diffCount, diffSample, fieldText, findControl, keysFrom, matches, norm, visibleTexts, words, INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle, bestControl } from "../validation/lib.mjs";
 
 export default {
   id: "web/app",
@@ -83,8 +83,15 @@ export default {
       // do { … } while (false): los "break" de cada chequeo cortan acá, como en el switch de antes
       run: async ({ page, c, r, ctx, fields, findField, reload, browser, url, env }) => { do {
         const ws = words(c.params.label);
-        const before = await page.evaluate(LABELED_NUMBERS, ws);
-        if (!before.length) { r.detail = `no hay ningún número junto a: ${c.params.label.join(" / ")}`; break; }
+        // 16/10: si ningún número tiene la etiqueta, valen los números sueltos ("(2)") — igual tienen que CAMBIAR
+        let read = (ws2) => page.evaluate(LABELED_NUMBERS, ws2), bare = false;
+        let before = await read(ws);
+        if (!before.length) {
+          before = await page.evaluate(BARE_NUMBERS);
+          if (!before.length) { r.detail = `no hay ningún número junto a: ${c.params.label.join(" / ")} (ni números sueltos)`; break; }
+          bare = true;
+          read = () => page.evaluate(BARE_NUMBERS);
+        }
         let did = "";
         if (c.params.click?.length) {
           const ctl = await findControl(page, c.params.click);
@@ -96,10 +103,10 @@ export default {
           did = keys.join(", ");
         }
         await waitForSettle(page);
-        const after = await page.evaluate(LABELED_NUMBERS, ws);
+        const after = await read(ws);
         const changed = after.join(" | ") !== before.join(" | ");
         r.result = changed ? "PASS" : "FAIL";
-        r.detail = `${did}: "${before.join(" | ").slice(0, 60)}" → ${changed ? `"${after.join(" | ").slice(0, 60)}"` : "no cambia"}`;
+        r.detail = `${did}: ${bare ? `(sin "${c.params.label.join(" / ")}": números sueltos) ` : ""}"${before.join(" | ").slice(0, 60)}" → ${changed ? `"${after.join(" | ").slice(0, 60)}"` : "no cambia"}`;
         break;
       } while (false); },
     },

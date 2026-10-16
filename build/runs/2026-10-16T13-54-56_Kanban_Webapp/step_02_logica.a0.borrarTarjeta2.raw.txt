@@ -1,0 +1,30 @@
+```javascript
+borrarTarjeta(estado, id, columnaId) {
+        // Creamos una copia profunda del estado para garantizar la inmutabilidad
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        const columnIndex = nuevoEstado.columnas.findIndex(c => c.id === columnaId);
+
+        if (columnIndex !== -1) {
+            const originalColumn = nuevoEstado.columnas[columnIndex];
+            
+            // Filtrar la tarjeta por ID
+            const tarjetasFiltradas = originalColumn.tarjetas.filter(t => t.id !== id);
+            
+            // Crear una nueva columna con las tarjetas filtradas para mantener la inmutabilidad
+            const nuevaColumna = {
+                ...originalColumn,
+                tarjetas: tarjetasFiltradas
+            };
+
+            // Reconstruir el array de columnas reemplazando la columna antigua por la nueva
+            nuevoEstado.columnas = [
+                ...nuevoEstado.columnas.slice(0, columnIndex),
+                nuevaColumna,
+                ...nuevoEstado.columnas.slice(columnIndex + 1)
+            ];
+        }
+
+        return nuevoEstado;
+    },
+```

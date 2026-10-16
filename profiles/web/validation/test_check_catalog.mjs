@@ -184,6 +184,15 @@ if (normalizeCheck({ type: "game_levels", params: { min: ["5"] } })) { ok++; con
 const kf = [keysFrom(["flechas"]).length === 4, keysFrom(["espacio"]).join() === "Space", keysFrom([]).length === 4, keysFrom(["arriba", "w"]).join() === "ArrowUp,w"];
 if (kf.every(Boolean)) { ok++; console.log("✓ keysFrom"); } else { fail++; console.log("✗ keysFrom", kf); }
 
+// 16/10: counter_on_action con un contador SIN la palabra de la etiqueta ("(2)") → vale si el número cambia
+{
+  const appV = validationFor(["web", "web/app"]);
+  const [c1] = await appV.runChecks(S("contador_suelto"), [appV.normalizeCheck({ type: "counter_on_action", params: { label: ["tarjetas"], click: ["crear", "tarjeta"] } })]);
+  if (c1.result === "PASS" && /números sueltos/.test(c1.detail) && /\(3\)/.test(c1.detail)) { ok++; console.log("✓ counter_on_action: contador suelto '(2)' que cambia a '(3)' → PASS"); } else { fail++; console.log(`✗ counter_on_action suelto ${c1.result} ${c1.detail}`); }
+  const [c2] = await appV.runChecks(S("contador_suelto"), [appV.normalizeCheck({ type: "counter_on_action", params: { label: ["tarjetas"], click: ["borrar", "todo"] } })]);
+  if (c2.result === "FAIL" && /no cambia/.test(c2.detail)) { ok++; console.log("✓ counter_on_action: contador suelto que NO cambia → FAIL"); } else { fail++; console.log(`✗ counter_on_action suelto sin cambio ${c2.result} ${c2.detail}`); }
+}
+
 const bad = [normalizeCheck({ type: "inventado" }), normalizeCheck({ type: "field_exists", params: {} }), normalizeCheck({ type: "click_reveals", params: { click: ["x"] } })];
 if (bad.every((b) => b === null)) { ok++; console.log("✓ normalizeCheck rechaza tipos y params inválidos"); } else { fail++; console.log("✗ normalizeCheck", bad); }
 console.log(`\n${ok}/${ok + fail} OK`);

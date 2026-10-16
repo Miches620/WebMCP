@@ -1,0 +1,176 @@
+{
+  "estado": {
+    "columnas": [
+      {
+        "id": "pendiente",
+        "titulo": "Pendiente",
+        "tarjetas": [
+          {
+            "id": 1,
+            "titulo": "Diseñar Wireframe",
+            "descripcion": "Crear el esquema visual inicial de la app.",
+            "prioridad": "alta",
+            "timestamp": 1678886400
+          },
+          {
+            "id": 2,
+            "titulo": "Revisión UX/UI",
+            "descripcion": "Asegurar que la experiencia del usuario sea fluida.",
+            "prioridad": "media",
+            "timestamp": 1678886500
+          }
+        ]
+      },
+      {
+        "id": "en_curso",
+        "titulo": "En Curso",
+        "tarjetas": [
+          {
+            "id": 3,
+            "titulo": "Implementar Drag & Drop",
+            "descripcion": "Asegurar la funcionalidad de arrastrar y soltar tarjetas.",
+            "prioridad": "alta",
+            "timestamp": 1678886600
+          }
+        ]
+      },
+      {
+        "id": "completa",
+        "titulo": "Completa",
+        "tarjetas": [
+          {
+            "id": 4,
+            "titulo": "Configurar Estilos Base",
+            "descripcion": "Aplicar los colores y estilos definidos en el brief.",
+            "prioridad": "baja",
+            "timestamp": 1678886700
+          }
+        ]
+      }
+    ],
+    "nextCardId": 5
+  },
+  "acciones": [
+    {
+      "nombre": "crearTarjeta",
+      "params": [
+        "titulo",
+        "descripcion",
+        "prioridad",
+        "columnaOrigenId"
+      ],
+      "ejemplo": [
+        "Nueva Tarea",
+        "Descripción de la nueva tarea.",
+        "media",
+        "pendiente"
+      ],
+      "hace": "Crea una tarjeta en la columna especificada con los datos proporcionados.",
+      "ids": [
+        "columnaOrigenId"
+      ],
+      "campos": [
+        "titulo",
+        "descripcion",
+        "prioridad"
+      ],
+      "features": [
+        1,
+        4
+      ],
+      "cambia": [
+        "columnas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": [
+        "id",
+        "nuevoTitulo",
+        "nuevaDescripcion",
+        "nuevaPrioridad"
+      ],
+      "ejemplo": [
+        2,
+        "Revisión UX/UI Mejorada",
+        "Asegurar que la experiencia del usuario sea fluida.",
+        "alta"
+      ],
+      "hace": "Actualiza los detalles de una tarjeta existente.",
+      "ids": [
+        "id"
+      ],
+      "campos": [
+        "nuevoTitulo",
+        "nuevaDescripcion",
+        "nuevaPrioridad"
+      ],
+      "features": [
+        5
+      ],
+      "cambia": [
+        "columnas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "borrarTarjeta",
+      "params": [
+        "id",
+        "columnaId"
+      ],
+      "ejemplo": [
+        4,
+        "completa"
+      ],
+      "hace": "Elimina permanentemente una tarjeta de la columna especificada.",
+      "ids": [
+        "id",
+        "columnaId"
+      ],
+      "campos": [],
+      "features": [
+        7
+      ],
+      "cambia": [
+        "columnas"
+      ],
+      "cumple": []
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": [
+        "cardId",
+        "origenColumnaId",
+        "destinoColumnaId"
+      ],
+      "ejemplo": [
+        1,
+        "pendiente",
+        "en_curso"
+      ],
+      "hace": "Mueve una tarjeta de una columna a otra (Drag & Drop).",
+      "ids": [
+        "cardId",
+        "origenColumnaId",
+        "destinoColumnaId"
+      ],
+      "campos": [],
+      "features": [
+        6
+      ],
+      "cambia": [
+        "columnas"
+      ],
+      "cumple": []
+    }
+  ],
+  "se_ve": [
+    2,
+    3,
+    14,
+    17,
+    16
+  ]
+}

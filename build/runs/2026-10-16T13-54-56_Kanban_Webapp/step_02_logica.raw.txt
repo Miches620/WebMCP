@@ -1,0 +1,139 @@
+### FILE: js/logica.js
+```javascript
+const App = {
+    /**
+     * Crea una copia profunda del estado inicial.
+     * @returns {Object} El estado inicial copiado.
+     */
+    crear() {
+        return JSON.parse(JSON.stringify(ESTADO_INICIAL));
+    },
+
+    /**
+     * Crea una nueva tarjeta y la añade a la columna especificada.
+     * @param {Object} estado - Estado actual de la aplicación.
+     * @param {string} titulo - Título de la nueva tarjeta.
+     * @param {string} descripcion - Descripción de la nueva tarjeta.
+     * @param {('alta'|'media'|'baja')} prioridad - Prioridad de la tarjeta.
+     * @param {string} columnaOrigenId - ID de la columna donde se creará la tarjeta.
+     * @returns {Object} Nuevo estado con la tarjeta añadida y contadores actualizados.
+     */
+    crearTarjeta(estado, titulo, descripcion, prioridad, columnaOrigenId) {
+        // 1. Crear nueva tarjeta
+        const nuevaTarjeta = {
+            id: estado.nextCardId,
+            titulo: titulo,
+            descripcion: descripcion,
+            prioridad: prioridad,
+            timestamp: Date.now()
+        };
+
+        // 2. Copiar el estado para mantener la inmutabilidad
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        // 3. Añadir tarjeta a la columna destino
+        const columnaDestino = nuevoEstado.columnas.find(c => c.id === columnaOrigenId);
+        if (columnaDestino) {
+            columnaDestino.tarjetas.push(nuevaTarjeta);
+            // 4. Actualizar contador y ID
+            columnaDestino.counter += 1;
+            nuevoEstado.nextCardId += 1;
+        }
+
+        return nuevoEstado;
+    },
+
+    /**
+     * Edita los detalles de una tarjeta existente.
+     * @param {Object} estado - Estado actual de la aplicación.
+     * @param {number} id - ID de la tarjeta a editar.
+     * @param {string} nuevoTitulo - Nuevo título.
+     * @param {string} nuevaDescripcion - Nueva descripción.
+     * @param {('alta'|'media'|'baja')} nuevaPrioridad - Nueva prioridad.
+     * @returns {Object} Nuevo estado con la tarjeta actualizada.
+     */
+    editarTarjeta(estado, id, nuevoTitulo, nuevaDescripcion, nuevaPrioridad) {
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        // Buscar y actualizar la tarjeta en todas las columnas
+        for (let i = 0; i < nuevoEstado.columnas.length; i++) {
+            const columna = nuevoEstado.columnas[i];
+            const tarjetaEncontrada = columna.tarjetas.find(t => t.id === id);
+
+            if (tarjetaEncontrada) {
+                // Actualizar campos y timestamp
+                Object.assign(tarjetaEncontrada, {
+                    titulo: nuevoTitulo,
+                    descripcion: nuevaDescripcion,
+                    prioridad: nuevaPrioridad,
+                    timestamp: Date.now() // Actualiza el tiempo de edición
+                });
+                // El contador no cambia al editar, solo los datos internos.
+            }
+        }
+
+        return nuevoEstado;
+    },
+
+    /**
+     * Elimina una tarjeta del estado global.
+     * @param {Object} estado - Estado actual de la aplicación.
+     * @param {number} id - ID de la tarjeta a borrar.
+     * @param {string} columnaId - ID de la columna donde se encuentra la tarjeta.
+     * @returns {Object} Nuevo estado sin la tarjeta eliminada y con contadores ajustados.
+     */
+    borrarTarjeta(estado, id, columnaId) {
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        const columna = nuevoEstado.columnas.find(c => c.id === columnaId);
+        if (columna) {
+            // Filtrar la tarjeta por ID
+            const tarjetasFiltradas = columna.tarjetas.filter(t => t.id !== id);
+            
+            // Actualizar el estado de la columna
+            columna.tarjetas = tarjetasFiltradas;
+            columna.counter -= 1;
+        }
+
+        return nuevoEstado;
+    },
+
+    /**
+     * Mueve una tarjeta de una columna a otra.
+     * @param {Object} estado - Estado actual de la aplicación.
+     * @param {number} cardId - ID de la tarjeta a mover.
+     * @param {string} origenColumnaId - ID de la columna de origen.
+     * @param {string} destinoColumnaId - ID de la columna de destino.
+     * @returns {Object} Nuevo estado con la tarjeta movida y contadores actualizados.
+     */
+    moverTarjeta(estado, cardId, origenColumnaId, destinoColumnaId) {
+        let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+        const columnaOrigen = nuevoEstado.columnas.find(c => c.id === origenColumnaId);
+        const columnaDestino = nuevoEstado.columnas.find(c => c.id === destinoColumnaId);
+
+        if (!columnaOrigen || !columnaDestino) {
+            // Si alguna columna no existe, devolver el estado original sin cambios
+            return estado; 
+        }
+
+        // 1. Encontrar y remover la tarjeta del origen
+        const tarjetasOrigen = [...columnaOrigen.tarjetas];
+        const tarjetaAMover = tarjetasOrigen.find(t => t.id === cardId);
+
+        if (!tarjetaAMover) {
+            return estado; // Tarjeta no encontrada en el origen
+        }
+
+        // 2. Actualizar la columna de origen (filtrar y decrementar contador)
+        columnaOrigen.tarjetas = tarjetasOrigen.filter(t => t.id !== cardId);
+        columnaOrigen.counter -= 1;
+
+        // 3. Añadir tarjeta al destino e incrementar contador
+        columnaDestino.tarjetas.push(tarjetaAMover);
+        columnaDestino.counter += 1;
+
+        return nuevoEstado;
+    }
+};
+```

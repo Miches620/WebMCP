@@ -29,6 +29,7 @@
 // Pendiente: la pista "en estado.mapa no hay cajas" está en el contrato pero es una SKILL
 // (saber hacer), no contrato: se mueve cuando existan las skills (paso 3 del plan).
 
+import META from "./meta.mjs";
 import { RULE_TESTS, LEVEL_TESTS } from "./acceptance.mjs";
 import { levelsFromSpecs, nivelesJs } from "./levels.mjs";
 import { examplesPrompt, parseExamples, runExample, SKELETON } from "./examples.mjs";
@@ -98,9 +99,12 @@ const fence = (lang, s) => "```" + lang + "\n" + s + "\n```";
 const size = (h) => ({ rows: h.rows || 10, cols: h.cols || 10, min: Math.max(h.minLevels || 1, 1) });
 
 const STANDARD = {
-  id: "web/game/grilla",
-  version: "0.1.8",
-  status: "DRAFT",
+  // 16/10: id, versión, estado y stack salen de la ficha (meta.mjs), que también lee el navegador
+  id: META.id,
+  version: META.version,
+  status: META.status,
+  stack: META.stack,
+  requiere: META.requiere,
   label: "juego de grilla: empujar piezas hasta sus objetivos",
   describe: "Juego de una pantalla sobre una grilla, por archivos: juego.html, styles.css, js/niveles.js (datos verificados con solver), js/reglas.js (lógica pura probada en Node), js/dibujo.js (probado en Chromium), js/controles.js (chequeos de juego).",
   evidence: [

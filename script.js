@@ -4,6 +4,8 @@ import { reviewStatus } from "./review_gate.mjs";
 import { parseJsonLoose } from "./json_loose.mjs";
 import { resolveProfiles, SELECTABLE, profileLabel } from "./profiles/registry.mjs";
 import { buildTechLeaderPrompt } from "./techleader_prompt.mjs";
+import { checkPlanStack, checkTasksStack } from "./plan_stack_check.mjs";
+import { standardsFor, standardMeta, stackRequest } from "./standards/catalog.mjs";
 import {
   TEMPLATE_TEXT,
   TEMPLATE_EXAMPLE,
@@ -19,7 +21,7 @@ import {
 // (/api/version) y, si no coincide con el de la pestaña abierta, la UI avisa
 // que hay que recargar. Origen: Project21 corrió con el JS viejo en una
 // pestaña abierta desde antes del cambio (reiniciar el server no alcanza).
-const BUILD_ID = "2026-10-05.3";
+const BUILD_ID = "2026-10-16.1";
 
 const STORAGE_KEY = "webmcp_state";
 const MAX_TECHLEADER_ATTEMPTS = 3;
@@ -93,6 +95,11 @@ function syncChatUI() {
   if (sel) {
     if (webmcpState.profiles?.length) sel.value = webmcpState.profiles[0];
     sel.disabled = phase !== "IDLE";
+  }
+  const stdSel = document.getElementById("projectStandard");
+  if (stdSel) {
+    if (!stdSel.options.length) populateStandardSelect();
+    stdSel.disabled = phase !== "IDLE";
   }
   // IDLE: la plantilla de 4 campos precargada (Intent Forge v0.3). El resto
   // de las fases usa el input chico de siempre.
@@ -191,8 +198,10 @@ async function sendToIntentForge(userMessage, { auto = false } = {}) {
       appendToIntentForgeChat("orchestrator", "Elegí el <b>tipo de proyecto</b> (arriba del cuadro de texto) antes de mandar la plantilla.");
       return;
     }
-    resolveProfiles([chosen]); // falla fuerte si el id no existe
+    const std = document.getElementById("projectStandard")?.value || null;
+    resolveProfiles([chosen], { standard: std }); // falla fuerte si el id (o el Standard) no existe
     webmcpState.profiles = [chosen];
+    webmcpState.standard = std; // 16/10: el Standard también lo elige Miche, como el tipo
   }
 
   // El primer mensaje que se manda (fase IDLE) ES el prompt crudo del
@@ -240,6 +249,7 @@ async function sendToIntentForge(userMessage, { auto = false } = {}) {
         conversation: webmcpState.intentForge.history,
         iteration: INTENT_FORGE_ITERATION,
         profiles: webmcpState.profiles,
+        standard: webmcpState.standard || null,
       }),
     });
     if (!res.ok)
@@ -343,7 +353,75 @@ function profileChip(ids) {
 
 /** Profile del proyecto en curso. Falla fuerte si no declara tipo (estado de antes del 05/10). */
 function activeProfile() {
-  return resolveProfiles(webmcpState.intentForge?.refined_prompt?.profiles || webmcpState.profiles);
+  // 16/10: el Standard lo elige Miche (selector "Standard", como el tipo); sin elegir, el del tipo.
+  const standard = webmcpState.intentForge?.refined_prompt?.standard || webmcpState.standard || null;
+  return resolveProfiles(webmcpState.intentForge?.refined_prompt?.profiles || webmcpState.profiles, { standard });
+}
+
+/**
+ * 16/10: ¿está instalado lo que necesita el Standard elegido? Si falta algo, lo dice en el chat con el comando
+ * que declara el Standard y un botón para instalarlo. Instalar toca la máquina: solo con el clic de Miche.
+ */
+async function checkStandardRequirements(standard) {
+  if (!standard) return;
+  try {
+    const r = await (await fetch(`/api/requisitos?standard=${encodeURIComponent(standard)}`)).json();
+    if (r.error) throw new Error(r.error);
+    if (r.ok) return;
+    const box = document.getElementById("intentForgeChatHistory");
+    box.innerHTML += `
+      <div class="bg-yellow-900/30 border border-yellow-600 p-3 rounded text-xs my-2">
+        <b class="text-yellow-400">ORCHESTRATOR:</b> Para construir con <b>${escapeHTML(r.standard)}</b> (${escapeHTML(r.status)}) falta instalar:<br>
+        ${r.faltan.map((x) => `- <b>${escapeHTML(x.id)}</b>: ${escapeHTML(x.detalle)} (${escapeHTML(x.para)})<br>${x.instalar
+          ? `&nbsp;&nbsp;comando: <code>${escapeHTML(x.instalar)}</code> <button class="ml-1 px-2 py-0.5 rounded bg-yellow-700 hover:bg-yellow-600" data-instalar="${escapeHTML(x.id)}" data-standard="${escapeHTML(r.standard)}">Instalar</button><br>`
+          : `&nbsp;&nbsp;a mano: ${escapeHTML(x.manual || "")}<br>`}`).join("")}
+        El botón corre ese comando en esta máquina (en la carpeta de webmcp) y deja evidencia en <code>evidence/requisitos/</code>.
+      </div>`;
+  } catch (e) {
+    appendToReasoning(`<div class="text-red-400 text-xs">✗ No se pudieron verificar los requisitos de ${escapeHTML(standard)} (${escapeHTML(e.message)})</div>`);
+  }
+}
+
+async function installRequirement(btn) {
+  const { instalar: requisito, standard } = btn.dataset;
+  btn.disabled = true;
+  btn.textContent = "Instalando…";
+  try {
+    const r = await (await fetch("/api/requisitos/instalar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ standard, requisito }) })).json();
+    if (r.error) throw new Error(r.error);
+    btn.textContent = r.ok ? "✓ Instalado" : "✗ Sigue faltando";
+    appendToReasoning(`<div class="${r.ok ? "text-green-400" : "text-red-400"} text-xs">${r.ok ? "✓" : "✗"} ${escapeHTML(requisito)}: ${escapeHTML(r.detalle)} (código ${r.code}) · evidencia: <code>${escapeHTML(r.evidencia)}</code></div>`);
+  } catch (e) {
+    btn.textContent = "✗ Error";
+    appendToReasoning(`<div class="text-red-400 text-xs">✗ No se pudo instalar ${escapeHTML(requisito)}: ${escapeHTML(e.message)}</div>`);
+  }
+}
+
+/** 16/10: opciones del selector de Standard para el tipo elegido (del catálogo; los SUPERSEDED no aparecen). */
+function populateStandardSelect() {
+  const sel = document.getElementById("projectStandard");
+  const tipo = document.getElementById("projectProfile")?.value || webmcpState.profiles?.[0] || "";
+  if (!sel) return;
+  const current = webmcpState.standard || sel.value;
+  sel.innerHTML = "";
+  const list = tipo ? standardsFor(tipo) : [];
+  if (!list.length) {
+    const o = document.createElement("option");
+    o.value = "";
+    o.textContent = tipo ? "— el tipo no usa Standard —" : "— elegí el tipo primero —";
+    sel.appendChild(o);
+    return;
+  }
+  let def = null;
+  try { def = resolveProfiles([tipo]).standard; } catch { /* tipo sin resolver */ }
+  for (const m of list) {
+    const o = document.createElement("option");
+    o.value = m.id;
+    o.textContent = `${m.id} v${m.version} (${m.status})${m.id === def ? " · por defecto" : ""}`;
+    o.title = m.stack.nombre;
+    sel.appendChild(o);
+  }
+  sel.value = list.some((m) => m.id === current) ? current : def || list[0].id;
 }
 
 /** Opciones del selector de tipo, desde profiles/registry.mjs. */
@@ -543,12 +621,29 @@ function requestHumanDecision(type, payload) {
     );
   }
 
+  // 16/10: el brief nombra tecnología que el Standard elegido no usa. Lo decide Miche, nunca un modelo.
+  if (type === "STACK_CONFLICT") {
+    const otros = (payload.otros || []).filter((o) => o.standards.length);
+    chatHistory.innerHTML += `
+      <div class="bg-yellow-900/30 border border-yellow-600 p-3 rounded text-xs my-2">
+        <b class="text-yellow-400">ORCHESTRATOR:</b> El proyecto nombra <b>${escapeHTML(payload.fuera.join(", "))}</b>, y el Standard elegido (<b>${escapeHTML(payload.standard)}</b>: ${escapeHTML(payload.stackNombre)}) no lo usa.<br>
+        ${otros.length ? `Lo usa${otros.length > 1 ? "n" : ""}: ${otros.map((o) => `${escapeHTML(o.tech)} → <b>${escapeHTML(o.standards.join(", "))}</b>`).join("; ")}. Para usarlo, empezá de nuevo eligiendo ese Standard.<br>` : `Ningún Standard lo usa todavía: para usarlo hay que crear un Standard nuevo (nace DRAFT). Queda anotado en el estado (stackRequests).<br>`}<br>
+        ¿Qué hacemos?<br>
+        - <code>seguir con ${escapeHTML(payload.standard)}</code> (el TechLeader planifica con este stack; lo nombrado no se usa)<br>
+        - <code>cancelar</code> (no se planifica nada)
+      </div>`;
+    document.getElementById("refinementPrompt").placeholder = `seguir con ${payload.standard} / cancelar`;
+    appendToReasoning(`<div class="text-yellow-400 font-bold">[HUMAN DECISION] STACK_CONFLICT - Chat habilitado</div>`);
+  }
+
   if (type === "REVIEW_NOT_RUN") {
     chatHistory.innerHTML += `
       <div class="bg-red-900/30 border border-red-600 p-3 rounded text-xs my-2">
         <b class="text-red-400">ORCHESTRATOR:</b> El Completeness Reviewer <b>no corrió</b> (${escapeHTML(payload.error)}).<br>
         El graph está generado (role_dependencies: <b>${escapeHTML(payload.validationStatus)}</b>), pero nadie revisó si cubre los requisitos.<br>
-        Revisá que LM Studio esté levantado y con el modelo cargado.<br><br>
+        ${/LM Studio no respondió|fetch failed|Backend 5/.test(String(payload.error))
+          ? "LM Studio no contestó: revisá que esté levantado y con el modelo del reviewer cargado."
+          : "El reviewer ya hizo 3 intentos por tanda (pidiendo solo lo que faltaba). La respuesta cruda de cada llamada quedó en <code>evidence/reviewer/</code>."}<br><br>
         ¿Qué hacemos?<br>
         - <code>reintentar revisión</code> (mismo graph, solo vuelve a llamar al reviewer)<br>
         - <code>aprobar sin revisión</code> (queda marcado como no revisado)<br>
@@ -599,6 +694,7 @@ async function retryReviewOnly() {
   appendToReasoning(`<div class="text-green-400 font-bold mt-3">✅ GENERACIÓN APROBADA (revisión reintentada: GAP=0 EXCESS=0)</div>`);
   appendToIntentForgeChat("orchestrator", "La revisión corrió bien y no encontró huecos. Graph aprobado.");
   saveState();
+  saveSnapshot("aprobado_revision_reintentada");
   syncChatUI();
 }
 
@@ -609,6 +705,24 @@ function handleHumanDecisionResponse(userMessage) {
   appendToIntentForgeChat("user", userMessage);
   document.getElementById("refinementPrompt").value = "";
   webmcpState.awaitingDecision = null;
+
+  if (decision.type === "STACK_CONFLICT") {
+    const lower = userMessage.toLowerCase();
+    if (lower.includes("seguir")) {
+      webmcpState.stackAck = { at: new Date().toISOString(), standard: decision.payload.standard, fuera: decision.payload.fuera };
+      appendToIntentForgeChat("orchestrator", `Seguimos con ${escapeHTML(decision.payload.standard)}. Queda registrado que el proyecto nombraba ${escapeHTML(decision.payload.fuera.join(", "))}.`);
+      saveState();
+      handleContinuePlan();
+    } else if (lower.includes("cancelar")) {
+      appendToIntentForgeChat("orchestrator", "Cancelado: no se planificó nada. Podés empezar de nuevo eligiendo otro Standard.");
+      saveState();
+      syncChatUI();
+    } else {
+      appendToIntentForgeChat("orchestrator", `No entendí: "${escapeHTML(userMessage)}". Escribí "seguir con ${escapeHTML(decision.payload.standard)}" o "cancelar".`);
+      webmcpState.awaitingDecision = decision;
+    }
+    return;
+  }
 
   if (decision.type === "VALIDATION_FAIL_3_STRIKES") {
     const lower = userMessage.toLowerCase();
@@ -661,9 +775,13 @@ function handleHumanDecisionResponse(userMessage) {
       webmcpState.reviewSkipped = true;
       appendToReasoning(`<div class="text-amber-400 font-bold">⚠️ GENERACIÓN APROBADA SIN REVISIÓN (decisión humana)</div>`);
       appendToIntentForgeChat("orchestrator", "Aprobado sin revisión. Queda marcado (reviewSkipped) en el estado del proyecto.");
+      saveState();
+      saveSnapshot("aprobado_sin_revision");
     } else if (decision.type === "REVIEW_FINDINGS" && lower.includes("seguir")) {
       appendToReasoning(`<div class="text-amber-400 font-bold">⚠️ GENERACIÓN APROBADA CON HALLAZGOS DEL REVIEWER (decisión humana)</div>`);
       appendToIntentForgeChat("orchestrator", "Seguimos con los hallazgos registrados.");
+      saveState();
+      saveSnapshot("aprobado_con_hallazgos");
     } else if (lower.includes("rehacer")) {
       appendToIntentForgeChat("orchestrator", "Rehaciendo el plan con TechLeader...");
       saveState();
@@ -824,8 +942,11 @@ async function runCompletenessReviewFromGraph_V3(atomicTasks, promptText) {
     const gaps = findings.filter((f) => f.type === "GAP");
     const excess = findings.filter((f) => f.type === "EXCESS");
     const ambiguous = findings.filter((f) => f.type === "AMBIGUOUS");
+    const sysErr = findings.filter((f) => f.type === "SYSTEM_ERROR");
     appendToLog(
-      `RESULT GAP=${gaps.length} EXCESS=${excess.length} AMBIGUOUS=${ambiguous.length} coverage=${result.coverage_score}`,
+      sysErr.length
+        ? `NO CORRIÓ: ${sysErr.map((f) => f.reason).join(" | ").substring(0, 600)}`
+        : `RESULT GAP=${gaps.length} EXCESS=${excess.length} AMBIGUOUS=${ambiguous.length} coverage=${result.coverage_score}`,
     );
     if (result.schema_complete === false) {
       appendToLog(
@@ -881,6 +1002,8 @@ let webmcpState = {
   stageChecks: [],
   deferredWork: [],
   profiles: [],
+  standard: null,
+  stackAck: null,
 };
 
 // El system prompt de TechLeader vive en techleader_prompt.mjs y sale del
@@ -923,6 +1046,26 @@ function loadState() {
   }
 }
 
+// Snapshot automático (16/10): al quedar aprobado el graph, el server guarda el estado en
+// build/snapshots/auto/ (lo que antes era copy(localStorage.getItem("webmcp_state")) a mano).
+// Si falla, se avisa y no se corta nada: el estado sigue en localStorage como siempre.
+async function saveSnapshot(motivo) {
+  try {
+    const res = await fetch("/api/snapshot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state: webmcpState, motivo }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    appendToReasoning(
+      `<div class="text-cyan-300 text-xs mt-1">📦 Snapshot guardado: <code>${escapeHTML(data.path)}</code><br>Para construir: <code>node build/run_build.mjs ${escapeHTML(data.path)}</code></div>`,
+    );
+  } catch (e) {
+    appendToReasoning(`<div class="text-red-400 text-xs">✗ No se pudo guardar el snapshot (${escapeHTML(e.message)}). El estado sigue en localStorage.</div>`);
+  }
+}
+
 function saveState() {
   webmcpState.lastGlobalId = GLOBAL_ID;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(webmcpState));
@@ -958,6 +1101,8 @@ function clearState() {
     stageChecks: [],
     deferredWork: [],
     profiles: [],
+    standard: null,
+    stackAck: null,
   };
   GLOBAL_ID = 1;
   INTENT_FORGE_ITERATION = 0;
@@ -968,6 +1113,7 @@ function clearState() {
   if (inp) inp.value = "";
   const sel = document.getElementById("projectProfile");
   if (sel) sel.value = "";
+  populateStandardSelect();
   showTemplateIntro();
   OrchestrationLock.unlock();
   updateUIFromState();
@@ -1464,25 +1610,35 @@ async function generateStageCheckedPlan(promptText, previousFeedback = "") {
       flagged: check ? check.flagged : null,
       schema_complete: check ? check.schema_complete : null,
     });
+    // 16/10: además de la etapa, el stack. El plan no puede nombrar lo que el Standard no usa (React, API, backend…).
+    const prof = activeProfile();
+    const sc = checkPlanStack(plan.fases, prof.stack, prof.standard);
+    webmcpState.stackChecks = webmcpState.stackChecks || [];
+    webmcpState.stackChecks.push({ at: new Date().toISOString(), where: "plan", plan_retry: retry, standard: prof.standard, flagged: sc.flagged });
+    if (prof.stack)
+      appendToReasoning(sc.flagged.length
+        ? `<div class="text-yellow-400 text-xs">⚠️ STACK CHECK: ${sc.flagged.map((f) => `${escapeHTML(f.id)} nombra ${escapeHTML(f.terms.join(", "))}`).join(" · ")}</div>`
+        : `<div class="text-green-400 text-xs">✓ STACK CHECK: el plan usa solo el stack de ${escapeHTML(prof.standard)}</div>`);
     saveState();
-    if (!check || !check.flagged.length) break;
+    const stageFlagged = !!(check && check.flagged.length);
+    if (!stageFlagged && !sc.flagged.length) break;
     if (retry >= MAX_PLAN_STAGE_RETRIES) {
       appendToReasoning(
-        `<div class="text-yellow-400 font-bold text-xs">⚠️ STAGE CHECK: ${check.flagged.length} fase(s) siguen marcadas tras ${MAX_PLAN_STAGE_RETRIES} reintentos de plan. Sigue al atomizado; el Completeness Reviewer decide.</div>`,
+        `<div class="text-yellow-400 font-bold text-xs">⚠️ ${stageFlagged ? `STAGE CHECK: ${check.flagged.length} fase(s)` : ""}${stageFlagged && sc.flagged.length ? " y " : ""}${sc.flagged.length ? `STACK CHECK: ${sc.flagged.length} fase(s)` : ""} siguen marcadas tras ${MAX_PLAN_STAGE_RETRIES} reintentos de plan. Sigue al atomizado; el Completeness Reviewer decide.</div>`,
       );
       break;
     }
     // Lo marcado se registra como diferido ANTES de rehacer: si TechLeader lo
     // saca, no se pierde (ProjectStage: "se difiere, no se descarta").
-    addDeferred(
+    if (stageFlagged) addDeferred(
       check.flagged
         .filter((f) => f.verdict === "DEFERRED")
         .map((f) => ({ text: f.deferred_part || f.phase_name, source: "stage_check", phase: f.phase_id, reason: f.reason })),
     );
     appendToReasoning(
-      `<div class="text-yellow-400 font-bold">↻ Rehaciendo plan por etapa (${retry + 1}/${MAX_PLAN_STAGE_RETRIES})</div>`,
+      `<div class="text-yellow-400 font-bold">↻ Rehaciendo plan por ${[stageFlagged && "etapa", sc.flagged.length && "stack"].filter(Boolean).join(" y ")} (${retry + 1}/${MAX_PLAN_STAGE_RETRIES})</div>`,
     );
-    plan = await generateTechLeaderPlan(promptText, previousFeedback + check.feedback);
+    plan = await generateTechLeaderPlan(promptText, previousFeedback + (stageFlagged ? check.feedback : "") + sc.feedback);
   }
   addDeferred(plan.diferido.map((t) => ({ text: t, source: "techleader" })));
   if (webmcpState.deferredWork?.length) {
@@ -1500,9 +1656,18 @@ async function runGenerationAttempt(promptText, previousFeedback = "") {
   webmcpState.prompt = promptText;
   saveState();
   appendToReasoning(
-    `<div class="text-cyan-400 mt-2">Stack: ${Array.isArray(plan.stack_sugerido) ? plan.stack_sugerido.join(", ") : plan.stack_sugerido || "N/D"}</div>`,
+    `<div class="text-cyan-400 mt-2">Stack: ${(() => { const p = activeProfile(); return p.standard ? `${escapeHTML(standardMeta(p.standard).stack.nombre)} (Standard ${escapeHTML(p.standard)})` : "sin Standard"; })()}</div>`,
   );
   const graphResult = await runGraph(plan);
+  // 16/10: aviso (no compuerta) si alguna Atomic Task nombra otro stack: el Completeness Reviewer y Miche lo ven.
+  {
+    const prof = activeProfile();
+    const tc = checkTasksStack(graphResult.atomicTasks || [], prof.stack);
+    webmcpState.stackChecks = webmcpState.stackChecks || [];
+    webmcpState.stackChecks.push({ at: new Date().toISOString(), where: "tareas", standard: prof.standard, flagged: tc.flagged });
+    if (tc.flagged.length)
+      appendToReasoning(`<div class="text-yellow-400 text-xs">⚠️ STACK CHECK (tareas): ${tc.flagged.map((f) => `${escapeHTML(f.id)} nombra ${escapeHTML(f.terms.join(", "))}`).join(" · ")}</div>`);
+  }
   if (graphResult.status === "FAIL") {
     return {
       status: "FAIL",
@@ -1592,6 +1757,22 @@ async function handleContinuePlan() {
   const promptText = webmcpState.prompt;
   if (!promptText) return alert("No hay un prompt cargado todavía");
 
+  // 16/10: ¿el proyecto nombra tecnología que el Standard elegido no usa? Antes de gastar el TechLeader, decide Miche.
+  {
+    const prof = activeProfile();
+    if (prof.standard && !webmcpState.stackAck) {
+      const req = stackRequest(promptText, prof.standard);
+      if (req.fuera.length) {
+        webmcpState.stackRequests = webmcpState.stackRequests || [];
+        webmcpState.stackRequests.push({ at: new Date().toISOString(), standard: prof.standard, ...req });
+        requestHumanDecision("STACK_CONFLICT", { ...req, standard: prof.standard, stackNombre: standardMeta(prof.standard).stack.nombre });
+        saveState();
+        syncChatUI();
+        return;
+      }
+    }
+  }
+
   OrchestrationLock.lock("GENERANDO PLAN");
 
   let previousFeedback = "";
@@ -1609,6 +1790,7 @@ async function handleContinuePlan() {
         );
         OrchestrationLock.unlock();
         saveState();
+        saveSnapshot("aprobado");
         return;
       }
       if (finalAttempt.status === "REVIEW_ERROR") {
@@ -1677,6 +1859,17 @@ async function checkBuild() {
 function initializeApp() {
   populateProfileSelect();
   loadState();
+  populateStandardSelect();
+  document.getElementById("projectProfile")?.addEventListener("change", () => {
+    webmcpState.standard = null; // otro tipo: vuelve al Standard por defecto de ese tipo
+    populateStandardSelect();
+    checkStandardRequirements(document.getElementById("projectStandard")?.value);
+  });
+  document.getElementById("projectStandard")?.addEventListener("change", (ev) => checkStandardRequirements(ev.target.value));
+  document.getElementById("intentForgeChatHistory")?.addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-instalar]");
+    if (b && !b.disabled) installRequirement(b);
+  });
   appendToReasoning(`<div class="text-gray-500 text-[10px]">[BUILD] script.js ${BUILD_ID}</div>`);
   checkBuild();
   renderTaskList(); // siempre renderiza

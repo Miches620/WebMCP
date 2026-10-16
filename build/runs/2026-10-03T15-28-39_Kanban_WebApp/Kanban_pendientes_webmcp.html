@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-15h'; // tablero actualizado al 15/10 (banco del enlace v0.2: caro e inestable; decisión A/B)
+  const SEED = '2026-10-16a'; // tablero actualizado al 16/10 (reviewer en tandas, stack del Standard, requisitos, juez, Standard plantillas)
   let state = loadState() || {
  "columns": [
   {
@@ -433,6 +433,18 @@
    "isInbox": true,
    "isDefault": true,
    "cards": [
+    {
+     "id": "p51",
+     "title": "Primera comparación: el mismo snapshot con web/app/estado y web/app/plantillas",
+     "desc": "[#Standards #Experimento] Standard DRAFT nuevo (16/10): igual a estado salvo js/dibujo.js (plantilla Handlebars en vez de DOM a mano). Pasos: (1) instalar handlebars (botón 'Instalar' en la UI al elegir el Standard, o node build/requisitos.mjs --standard web/app/plantillas --instalar); (2) npm test (corre la parte de test_plantillas con Handlebars de verdad); (3) run_build del snapshot de hoy con --standard web/app/estado y con --standard web/app/plantillas, temperatura 0; (4) comparar intentos del paso dibujo, tokens, problemas de la sonda y Validation. n=1 por Standard no alcanza: después, 2–3 proyectos distintos.",
+     "priority": "urgente"
+    },
+    {
+     "id": "p52",
+     "title": "D2 · Planilla: los valores concretos del brief no tienen dónde vivir",
+     "desc": "[#IntentForge #Standard #D2] Build 16/10: 'Agregar tarjeta' solo en Pendiente, prioridad elegida de una lista (alta/media/baja), íconos 🗑️ ✏️, modal de confirmación, contador por columna, orden por más reciente. Ninguno tiene un campo propio → Gemma y el harness rellenan con nombres propios. Ya hay un primer campo ('boton' en el contrato, solo si está en el brief). Falta diseñar la planilla en papel (diagnóstico 16/10, paso 2) antes de codear.",
+     "priority": "urgente"
+    },
     {
      "id": "p50",
      "title": "DECIDIR: enlace de vista/datos/estilo por Gemma (v0.2) o por código",
@@ -449,12 +461,6 @@
      "id": "p44",
      "title": "Skill de Frontend: texto del usuario con textContent (al 1er intento)",
      "desc": "[#Skills #Seguridad] El aviso ya lo corrige en 1 reintento (79 s). Una Skill solo ahorraría ese reintento a cambio de texto en cada pedido de dibujo. Medir con step_bench (con / sin / placebo) cuando haya más proyectos web/app; no es urgente.",
-     "priority": "medio"
-    },
-    {
-     "id": "p46",
-     "title": "TechLeader no conoce el Standard: sus fases le ganan a la receta",
-     "desc": "[#TechLeader #Standard] 1ª corrida de la receta: las fases decían 'columnas vacías' y hacían del Drag and Drop el mecanismo principal. El Atomizer no puede cambiar el alcance de una fase, así que la receta pierde. Opción: una versión cortita de la receta para TechLeader (qué piezas existen, que el estado arranca con ejemplos, que los controles los pone el harness). Medir aparte del Atomizer.",
      "priority": "medio"
     },
     {
@@ -479,12 +485,6 @@
      "id": "p37",
      "title": "Punto 10 · Al terminar, el Orchestrator pregunta si cumple",
      "desc": "[#Orchestrator] Se reabre el chat: si sí, el proyecto termina; si no, nueva ronda de Intent Forge sobre el proyecto en curso. Separar 'no cumple algo pedido' (falla del pipeline, evidencia) de 'quiero algo nuevo' (+ Feature).",
-     "priority": "medio"
-    },
-    {
-     "id": "p38",
-     "title": "Traductor: R3 pide un contador de comentarios que nadie pidió",
-     "desc": "[#Validation] 'Agregar comentarios' → action_changes + counter_on_action. El contador no está en el requisito: FAIL que no corresponde (pasa en todas las corridas).",
      "priority": "medio"
     },
     {
@@ -587,6 +587,24 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h61",
+     "title": "16/10 · Juez: fuera los chequeos que el requisito no pide + 2 arreglos del Standard",
+     "desc": "[#Validation #Standard] Build 16/10: 6 de los 9 FAIL eran del juez. no_horizontal_scroll solo si el requisito habla de responsive/celular; key_changes solo si nombra teclado/teclas (como p47 con el contador; cierra p38). Sin chequeos después del ajuste → SIN_CHEQUEO con motivo. counter_on_action acepta un número suelto '(2)' que cambie. Standard estado: el formulario de crear ya no sale relleno con 'Pendiente'; 'boton' en el contrato = texto del botón del brief. Tests: test_app 34, test_check_catalog 55, test_controls 47.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h60",
+     "title": "16/10 · El stack lo fija el Standard (p46) + instalación con confirmación + Standard plantillas DRAFT",
+     "desc": "[#Standards #TechLeader] Catálogo de fichas (standards/catalog.mjs): estado DRAFT/OFICIAL/SUPERSEDED, stack, requiere. TechLeader y Atomizer reciben el STACK como dato (sin stack_sugerido); chequeo sin modelo del plan (rehace) y de las tareas (avisa). Selector 'Standard' en la UI; run_build --standard. Brief que nombra otra tecnología → decide Miche (STACK_CONFLICT). build/requisitos.mjs: verifica antes del build e instala SOLO con el sí de Miche (consola o botón), con evidencia. Nuevo web/app/plantillas DRAFT v0.1.0 (Handlebars). Tests: 24 + 12 + 14.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h59",
+     "title": "16/10 · Reviewer v0.8 en tandas + snapshot automático",
+     "desc": "[#Reviewer #UI] Causa de los 3 fallos de hoy: max_tokens 2048 para 45 veredictos (tope fijo, como el enlace). Ahora tandas de 10, tope = lo que entra en los 16000 de Qwen, rescate de veredictos de una respuesta cortada, hasta 3 intentos por tanda según el error, evidencia cruda en evidence/reviewer/, aviso que no culpa a LM Studio si no fue. Al aprobar el graph, el snapshot se guarda solo en build/snapshots/auto/. Tests: 25 + 8.",
+     "priority": "bajo"
+    },
     {
      "id": "h58",
      "title": "15/10 · 3ª tanda: el enlace v0.2 se quedó sin espacio (9/9 vacíos) → tope 3000 + motor v0.13.2",

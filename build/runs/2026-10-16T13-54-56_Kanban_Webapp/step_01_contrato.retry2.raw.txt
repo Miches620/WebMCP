@@ -1,0 +1,55 @@
+### FILE: contrato.json
+```json
+{ 
+  "estado": { 
+    "columnas": [
+      {"id": "pendiente", "titulo": "Pendiente", "contador": 0, "tarjetas": []},
+      {"id": "en_curso", "titulo": "En Curso", "contador": 0, "tarjetas": []},
+      {"id": "completa", "titulo": "Completa", "contador": 0, "tarjetas": []}
+    ],
+    "tarjetas": [
+      { "id": 1, "titulo": "Alta Prioridad - Proyecto X", "descripcion": "Revisar requisitos iniciales del proyecto.", "prioridad": "alta", "columnaId": "pendiente" },
+      { "id": 2, "titulo": "Media Prioridad - Documentación", "descripcion": "Actualizar la documentación de usuario.", "prioridad": "media", "columnaId": "pendiente" },
+      { "id": 3, "titulo": "Baja Prioridad - Testeo Beta", "descripcion": "Realizar pruebas funcionales en entorno beta.", "prioridad": "baja", "columnaId": "en_curso"}
+    ],
+    "modalAbierto": null
+  },
+  "acciones": [
+    { 
+      "nombre": "agregarTarjeta", 
+      "params": ["titulo", "descripcion", "prioridad"], 
+      "ejemplo": ["Nuevo Título", "Descripción de prueba.", "media"], 
+      "hace": "Crea una nueva tarjeta y la asigna a la columna 'Pendiente'.", 
+      "features": [1, 4], 
+      "cambia": ["tarjetas", "columnas"] 
+    },
+    { 
+      "nombre": "editarTarjeta", 
+      "params": ["id", "titulo", "descripcion", "prioridad"], 
+      "ejemplo": [2, "Título Editado", "Nueva descripción.", "alta"], 
+      "hace": "Actualiza los detalles de una tarjeta existente.", 
+      "features": [5], 
+      "cambia": ["tarjetas"] 
+    },
+    { 
+      "nombre": "borrarTarjeta", 
+      "params": ["id"], 
+      "ejemplo": [3], 
+      "hace": "Elimina una tarjeta del tablero después de confirmación.", 
+      "features": [7], 
+      "cambia": ["tarjetas", "columnas"] 
+    },
+    { 
+      "nombre": "moverTarjeta", 
+      "params": ["id", "nuevaColumnaId"], 
+      "ejemplo": [1, "en_curso"], 
+      "hace": "Mueve una tarjeta de su columna actual a la nueva columna.", 
+      "features": [6], 
+      "cambia": ["tarjetas", "columnas"] 
+    }
+  ],
+  "se_ve": [
+    2, 3, 8, 14, 15, 16, 17
+  ]
+}
+```

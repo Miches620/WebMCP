@@ -11,6 +11,8 @@
 //   node build/run_build.mjs snapshot.json --legacy    Specialist v0.6.1 (tareas del graph); por defecto v0.7 por componentes
 //   ... --validate build/runs/<dir> --retranslate   vuelve a traducir (el checks.json anterior queda archivado)
 //   ... --profile web/landing   tipo de proyecto si el snapshot no lo trae (corridas anteriores al 05/10)
+//   ... --standard web/app/plantillas   construye con otro Standard del mismo tipo (16/10: para comparar Standards
+//       con el mismo snapshot). Sin esto: el que eligió Miche en la UI (refined_prompt.standard) o el del tipo.
 //   ... --gemma-writes-all   los pasos que el Standard escribe con código (st.write) los escribe el modelo (para comparar)
 //   ... --temperature 0.7 --seed 3   muestreo del Specialist (p48, 15/10). Por defecto temperatura 0 y sin seed: a
 //       temperatura 0 repetir un build da lo mismo byte a byte, no es otra muestra. Para réplicas: build/replicas.mjs
@@ -44,12 +46,19 @@ const log = (m) => console.log(m);
 // Miche en la UI) o --profile para snapshots viejos. Falla fuerte si no hay ninguno.
 const pi = args.indexOf("--profile");
 const flagProfile = pi >= 0 ? args[pi + 1] : null;
+const si = args.indexOf("--standard");
+const flagStandard = si >= 0 ? args[si + 1] : null;
 function declareProfiles(refined) {
   const declared = Array.isArray(refined.profiles) && refined.profiles.length ? refined.profiles : null;
   if (declared && flagProfile && !(declared.length === 1 && declared[0] === flagProfile))
     throw new Error(`el snapshot declara ${declared.join(" + ")} y --profile dice ${flagProfile}: no se pisa`);
   if (!declared && flagProfile) { refined.profiles = [flagProfile]; log(`[PROFILE] el snapshot no declara tipo: se usa --profile ${flagProfile}`); }
-  return resolveProfiles(refined.profiles);
+  // 16/10: --standard construye el MISMO snapshot con otro Standard (para comparar); si no, el que eligió Miche
+  // en la UI (refined_prompt.standard); si no, el del tipo. Queda en refined.standard y en la evidencia.
+  if (flagStandard && refined.standard && refined.standard !== flagStandard) log(`[STANDARD] el snapshot eligió ${refined.standard}; --standard lo cambia por ${flagStandard} (comparación)`);
+  const resolved = resolveProfiles(refined.profiles, { standard: flagStandard || refined.standard || null });
+  refined.standard = resolved.standard || undefined;
+  return resolved;
 }
 async function loadBuild(profile) {
   if (!profile.build) throw new Error(`el profile ${profile.ids.join(" + ")} no tiene build`);
@@ -73,6 +82,13 @@ if (args[0] === "--validate") {
   const refined = { ...(snap.intentForge?.refined_prompt || {}), exclusiones: snap.intentForge?.exclusiones || [] };
   if (!refined.features?.length) throw new Error("el snapshot no trae intentForge.refined_prompt.features");
   profile = declareProfiles(refined);
+  // 16/10: lo que el Standard necesita instalado se verifica ANTES de gastar el modelo. Instalar no pasa acá:
+  // lo hace Miche (node build/requisitos.mjs --standard X --instalar, o el botón de la UI), con su confirmación.
+  if (profile.standard) {
+    const { checkStandard, requisitosText } = await import("./requisitos.mjs");
+    const req = await checkStandard(profile.standard);
+    if (!req.ok) throw new Error(`REQUISITOS: faltan cosas para construir con ${profile.standard}\n${requisitosText(req)}`);
+  }
   B = await loadBuild(profile);
   // 14/10 (punto 9): se conserva la "pieza" de cada tarea (receta del Standard): decide a qué paso del Specialist va
   const tasks = (snap.atomicTasks || []).map(({ id, role, responsable_sugerido, task, description, depends_on, pieza }) => ({
@@ -219,6 +235,13 @@ for (const r of reqChecks) {
   const before = r.checks.map((c) => c.type).join(","), after = checks.map((c) => c.type).join(",");
   // 15/10: el profile dice por qué ajustó (pp.why); si no lo dice, el motivo de siempre
   if (before !== after) log(`[VALIDATION] ${r.id}: el harness ajustó chequeos ${before} → ${after || "ninguno"} (${pp.why || "palabras que describen la pieza"})`);
+  // 16/10: si el ajuste no deja ningún chequeo (R9 "Fondo: #102C54…" solo tenía no_horizontal_scroll), es SIN_CHEQUEO
+  // con el motivo, no SIN_EVIDENCIA (que quiere decir "se chequeó y no se pudo distinguir del esqueleto")
+  if (!checks.length) {
+    coverage.push(gate ? { id: r.id, text: r.text, verdict: "FAIL", reason: gateReason(gates), checks: gates }
+      : { id: r.id, text: r.text, verdict: "SIN_CHEQUEO", reason: `el harness sacó los chequeos del traductor: ${pp.why || "no correspondían"}${r.sin_chequeo ? ` · ${r.sin_chequeo}` : ""}`, checks: [] });
+    continue;
+  }
   const res = await B.runChecks(artifact, checks);
   const ctl = await B.runChecks(baseline, checks);
   res.forEach((x, k) => { x.baseline = ctl[k].result; if (x.result === "PASS" && ctl[k].result === "PASS") x.trivial = true; });

@@ -104,8 +104,14 @@ export function controlsPlan(c) {
       if (anc.includes(k) && !ctx.some((x) => x.kind === k) && here) ctx.push({ p, kind: k });
       else choice.push({ p, kind: k, notHere: anc.includes(k) });
     }
-    const campos = a.params.filter((p) => !ids.includes(p)).map((p) => ({ p, num: typeof a.ejemplo[a.params.indexOf(p)] === "number", prefill: owner !== "app" }));
-    return { nombre: a.nombre, label: humanize(a.nombre), owner, ownerParam, ctx, choice, campos, params: a.params };
+    // v0.8.2 (16/10, build 2026-10-16T13-54-56): crearTarjeta es de la columna y su campo "titulo" salía relleno con
+    // el título de la COLUMNA ("Pendiente"). Un campo se rellena con el valor del elemento solo si ese nombre no es
+    // también de un elemento de adentro (ahí no se sabe de quién es: es para crear uno nuevo).
+    const inner = owner === "app" ? [] : Object.keys(kinds).filter((k) => ancestorsOf(kinds, k).includes(owner));
+    const innerKeys = new Set(inner.flatMap((k) => itemsAt(c.estado, kinds[k].path).flatMap((x) => (x && typeof x === "object" ? Object.keys(x) : []))));
+    const campos = a.params.filter((p) => !ids.includes(p)).map((p) => ({ p, num: typeof a.ejemplo[a.params.indexOf(p)] === "number", prefill: owner !== "app" && !innerKeys.has(p) }));
+    // v0.8.2: si el brief nombra el texto del botón (contrato "boton"), ese; si no, el nombre de la acción
+    return { nombre: a.nombre, label: a.boton || humanize(a.nombre), owner, ownerParam, ctx, choice, campos, params: a.params };
   });
   return { kinds, acciones, warnings };
 }

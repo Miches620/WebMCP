@@ -2,6 +2,65 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Pipeline del Kanban del 16/10: reviewer en tandas, el stack lo fija el Standard, instalación con confirmación, snapshot automático, juez sin chequeos de más y un segundo Standard DRAFT para comparar (16/10)**
+- *Evidencia:*
+  - pipeline completo del Kanban (17 requisitos; 28 tareas y después 22);
+  - build `2026-10-16T13-54-56` con ese snapshot (fixture `real_kanban_c21`);
+  - Project docs `claude/diagnostico_2026-10-16.md` y `claude/evidencia_run_kanban_pipeline_2026-10-16.md`.
+- **1. Completeness Reviewer v0.8-tandas** (`completeness_reviewer3.mjs`):
+  - *Problema:* se cortó 3 veces ("Unterminated string … 6312", "Unexpected end of JSON input", "… 6743"). Pedía 45 veredictos con su motivo en UNA llamada con `max_tokens: 2048`; el propio código lo tenía anotado como límite conocido. Es el mismo error que el enlace (D3): un tope fijo.
+  - *Tandas:* los requisitos en grupos de 10 y las tareas en grupos de 10. Cada llamada ve todo el contexto, pero emite solo los veredictos de su tanda. AMBIGUOUS va en la primera.
+  - *Tope = lo que entra:* contexto del modelo − pedido − margen. `REVIEWER_CONTEXT` (16000, el de Qwen en LM Studio) y `REVIEWER_MODEL` se pueden cambiar por variable de entorno. Qwen sigue siendo el revisor: otra familia que el que planifica (decisión de Miche).
+  - *Respuesta cortada:* `json_loose`, y si igual no se puede leer, se rescatan los veredictos completos.
+  - *Reintentos según el error, hasta 3 por tanda:*
+    - red / HTTP → se repite igual;
+    - cortada, ilegible o faltan ids → se piden SOLO los que faltan.
+    - Después de 3 → `SYSTEM_ERROR`, con el motivo en palabras ("tanda 1: faltan R1… tras 3 intentos (la respuesta se cortó por largo…)"), y decide Miche.
+  - *Evidencia:* cada llamada (respuesta cruda, `finish_reason`, uso) queda en `evidence/reviewer/<fecha>.json`.
+  - *UI:* el aviso de "no corrió" solo culpa a LM Studio si LM Studio no contestó. El log dice "NO CORRIÓ: …" en vez de "RESULT GAP=0 … coverage=null".
+  - *Tests:* `test_completeness_reviewer` 25/25, con los requisitos y tareas reales del 16/10 (`fixtures/reviewer/`).
+- **2. Snapshot automático** (`build/snapshot_auto.mjs`, `POST /api/snapshot`):
+  - Al quedar aprobado el graph (aprobado, revisión reintentada, aprobado sin revisión, o seguir con hallazgos), la UI manda el estado y el server lo guarda en `build/snapshots/auto/<fecha>_<proyecto>.json`, con `_snapshot` (motivo, si fue revisado).
+  - El log muestra la ruta y el comando `node build/run_build.mjs …`. Ya no hace falta `copy(localStorage…)`.
+  - *Tests:* 8/8.
+- **3. El stack lo fija el Standard** (`standards/catalog.mjs`, `meta.mjs` de cada Standard, `plan_stack_check.mjs`):
+  - *Problema:* el TechLeader "sugería" React + Tailwind, nadie lo leía, y con eso planificaba de otro stack ("estado recibido de la API", "desde el backend" en una app sin servidor).
+  - *Ficha de cada Standard* (solo datos; la lee también el navegador): estado (DRAFT / OFICIAL / SUPERSEDED), `stack` (qué usa, qué no, si hay servidor) y `requiere`. `standard.mjs` toma id, versión y estado de la ficha.
+  - *TechLeader y Atomizer* reciben el bloque STACK como dato; se saca `stack_sugerido`.
+  - *Chequeo sin modelo* (palabras enteras; no cuentan las negadas, "sin servidor", ni "la API de localStorage"):
+    - en el plan, rehace el plan junto con el chequeo de etapa;
+    - en las tareas, avisa.
+  - *Si el brief nombra una tecnología* que el Standard elegido no usa, decide Miche antes del TechLeader (`STACK_CONFLICT`: seguir o cancelar), con qué Standard la usa, o "hay que crear uno DRAFT".
+  - *Standard elegido por Miche:* nuevo selector "Standard" en la UI (como el tipo) → `refined_prompt.standard`. `resolveProfiles(ids, { standard })` lo valida (que exista, que sea de ese tipo, que no esté SUPERSEDED). `run_build --standard X` construye el mismo snapshot con otro Standard.
+  - *Tests:* `test_plan_stack_check` 24/24, con las 28 tareas reales del 16/10: marca 2, las de "la API" y "el backend".
+- **4. Instalación declarada en el Standard** (`build/requisitos.mjs`, `GET /api/requisitos`, `POST /api/requisitos/instalar`):
+  - Cada requisito dice para qué es, cómo verificarlo (node mínimo, módulo, archivo de un módulo, Chromium de Playwright) y cómo instalarlo.
+  - `run_build` verifica antes de gastar el modelo y, si falta algo, corta con el comando.
+  - Se instala solo con el sí de Miche: `node build/requisitos.mjs --standard X --instalar` (pregunta s/N por cada uno), o el botón "Instalar" que aparece en el chat al elegir un Standard al que le falta algo.
+  - Se corre SOLO el comando de la ficha. Queda evidencia en `evidence/requisitos/`.
+  - *Tests:* 12/12.
+- **5. El juez** (`profiles/web/app/build.mjs`, `web/app/validation.mjs`, `run_build`):
+  - *Problema:* 6 de los 9 FAIL del build eran chequeos que el requisito no pide:
+    - `no_horizontal_scroll` en colores, tamaños y orden;
+    - `key_changes` en sombras al arrastrar.
+  - *Arreglo:* como p47, esos chequeos quedan solo si el TEXTO del requisito habla de responsive / celular o de teclado / teclas.
+  - Si el ajuste deja un requisito sin chequeos, el veredicto es SIN_CHEQUEO con el motivo (antes daba SIN_EVIDENCIA).
+  - `counter_on_action`: si ningún número tiene la etiqueta, vale un número suelto ("(2)" junto al título) que cambie con la acción.
+  - *Tests:* `test_app` 34/34, `test_check_catalog` 55/55 (fixture `contador_suelto`).
+- **6. Standard web/app/estado v0.8.1 (contract, controls):**
+  - *Bug:* el campo "titulo" de crear (de la columna) salía relleno con "Pendiente". Ahora no se rellena un campo cuyo nombre también es de un elemento de adentro.
+  - *Texto del botón:* "boton" en el contrato = el texto del botón tal cual lo nombra el brief ("Agregar tarjeta"). Se usa solo si está en el brief, y si no está no es un problema (no se reintenta por eso).
+  - *Tests:* `test_controls` 47/47.
+- **7. Standard nuevo `web/app/plantillas` DRAFT v0.1.0** (`standards/web/app/plantillas/`, elegido por Claude por pedido de Miche):
+  - *Qué cambia:* es web/app/estado salvo en UNA cosa: `js/dibujo.js` llena una plantilla Handlebars en vez de armar el DOM a mano.
+    - El harness copia Handlebars (paso nuevo `handlebars`) y agrega `montarControles` a `acciones.js`.
+    - La plantilla marca dónde van los controles (`<div data-controles="tipo" data-id="{{id}}">`).
+    - Los demás pasos son los mismos objetos que en estado.
+  - *Pregunta del experimento:* ¿un modelo chico escribe mejor una plantilla declarativa que DOM a mano?
+  - *Requisito:* `handlebars@4.7.8` (npm).
+  - *Tests:* `test_plantillas` 14/14. La parte con Handlebars de verdad se saltea si no está instalado; acá no se pudo instalar (sin acceso a npm), así que corre en la máquina de Miche.
+- *Suite:* todo en verde, menos `test_roles` en la copia de trabajo (le falta `roles/web-game/placebo`, que está en el equipo).
+
 **Banco del enlace v0.2 con Gemma: caro e inestable → 3 arreglos mecánicos y una decisión pendiente (files_engine v0.13.3, step_bench, enlace) (15/10)**
 - *Banco* (`step_bench --step enlace --k 3`, t=0.7, `build/bench/2026-10-15T20-51-58_enlace`):
   - **Bug del banco:** las 3 corridas tienen el mismo nombre de proyecto, así que las carpetas de las muestras chocaron ("ya estaba"). Hubo **3 muestras, no 9**, todas de la corrida 19-09-35. Ahora el caso se llama como la carpeta de la corrida.

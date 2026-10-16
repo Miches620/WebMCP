@@ -4,12 +4,19 @@
 // lo único que viene del profile del proyecto es la lista de roles y el rol del
 // ejemplo de formato (antes fijos: Backend/Frontend/DBA/DevOps/QA y "DBA").
 // Lo importan script.js (navegador) y los tests (Node).
+//
+// 16/10 (decisión de Miche): se saca "stack_sugerido". El TechLeader proponía "React, Tailwind" que nadie leía
+// (el Specialist construye con el Standard) y con eso planificaba fases de otro stack (API/Servicio en una app
+// sin servidor, pipeline del Kanban 16/10). Ahora el stack lo fija el Standard y llega como dato (profile.stack,
+// resuelto en profiles/registry.mjs desde standards/catalog.mjs).
+import { stackText, standardMeta } from "./standards/catalog.mjs";
 
-/** @param {{roles:string[], exampleRole:string}} profile  resultado de resolveProfiles() */
+/** @param {{roles:string[], exampleRole:string, standard?:string, stack?:object}} profile  resultado de resolveProfiles() */
 export function buildTechLeaderPrompt(profile) {
   if (!profile?.roles?.length || !profile.exampleRole)
     throw new Error("TechLeader: falta el profile del proyecto (roles); ¿qué tipo de proyecto es?");
   const roleList = profile.roles.map((r) => `"${r}"`).join("\n");
+  const stack = profile.standard ? stackText(standardMeta(profile.standard)) : "";
   return `Eres un TechLeader Senior.
 
 Tu responsabilidad es analizar el proyecto solicitado y construir su PLAN DE FASES.
@@ -19,7 +26,7 @@ NO debes ejecutar tareas.
 NO debes diseñar cada implementación en detalle.
 
 Tu salida debe representar únicamente las fases necesarias para organizar la ejecución del proyecto.
-
+${stack ? `\n${stack}\nLas fases y sus descripciones usan SOLO lo que permite este stack.\n` : ""}
 ETAPA DEL PROYECTO:
 
 El PROYECTO trae su ETAPA y el criterio de pertenencia de esa etapa.
@@ -62,7 +69,6 @@ RESPONDE ÚNICAMENTE CON JSON VÁLIDO.
 FORMATO OBLIGATORIO:
 
 {
-  "stack_sugerido": ["..."],
   "fases": [
     {
       "id": "F1",

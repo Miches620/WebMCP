@@ -1,0 +1,261 @@
+### FILE: app.html
+```html
+<h1>Kanban Board</h1>
+<div id="app"></div>
+```
+
+### FILE: styles.css
+```css
+/* ------------------------------------ */
+/* Colores y Estilos Base (Brief)        */
+/* ------------------------------------ */
+
+body {
+    background-color: #102C54; /* Fondo principal */
+    font-family: sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+#app {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    min-height: 80vh;
+}
+
+/* Estilos de Columna */
+.columna {
+    background-color: #8FB3C7; /* Color columna */
+    width: 248px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header de la Columna */
+.columna-header {
+    padding: 15px;
+    border-bottom: 1px solid #6b93a2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Contenedor de Tarjetas (Scrollable) */
+.tarjetas-container {
+    flex-grow: 1;
+    overflow-y: auto; /* Scroll vertical para las tarjetas */
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Botón Agregar Tarjeta (Solo en 'Pendiente') */
+.agregar-tarjeta-btn {
+    width: calc(100% - 20px); /* Ajuste para el padding del contenedor */
+    padding: 8px;
+    margin: 10px;
+    border: 1px dashed #3a5c7d;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: #ffffff;
+}
+
+/* Estilos de Tarjeta */
+.tarjeta {
+    width: 223px;
+    height: 250px;
+    background-color: #F2E9D8; /* Color tarjeta */
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative; /* Necesario para posicionar acciones */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Efecto al pasar el mouse sobre la tarjeta (para mostrar acciones) */
+.tarjeta:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Drag Handle */
+.drag-handle {
+    width: 24px;
+    cursor: grab;
+    background: none; /* Aseguramos que no haya fondo visible */
+    border: none;
+    padding: 5px 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Contenedor de contenido principal de la tarjeta (excluyendo handle y acciones) */
+.tarjeta-body {
+    flex-grow: 1;
+    overflow-y: auto; /* Scroll interno si el contenido es muy largo */
+}
+
+/* Título, Descripción, Prioridad */
+.tarjeta h4 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-size: 1em;
+}
+
+.tarjeta p {
+    margin-bottom: 10px;
+    font-size: 0.9em;
+    color: #333;
+}
+
+/* Etiquetas de Prioridad */
+.prioridad-etiqueta {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: bold;
+    color: white;
+}
+
+/* Colores de Prioridad */
+.prioridad-alta { background-color: #d9534f; } /* Rojo */
+.prioridad-media { background-color: #f0ad4e; } /* Amarillo/Naranja */
+.prioridad-baja { background-color: #5cb85c; } /* Verde */
+
+/* ------------------------------------ */
+/* Acciones (Editar y Eliminar)          */
+/* ------------------------------------ */
+
+.tarjeta-actions {
+    position: absolute;
+    top: -10px; /* Posicionamiento fuera del flujo normal, visible al hover */
+    right: 15px;
+    display: flex;
+    gap: 8px;
+}
+
+/* Inicialmente ocultos y posicionados para aparecer en el hover de la tarjeta */
+.tarjeta-actions button {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    opacity: 0; /* Oculto por defecto */
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Mostrar acciones al hacer hover en la tarjeta (el contenedor principal) */
+.tarjeta:hover .tarjeta-actions button {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Estilos de los botones individuales de acción */
+.btn-editar, .btn-eliminar {
+    font-size: 1em;
+}
+
+
+/* ------------------------------------ */
+/* Modal y Formularios (Creación/Edición)  */
+/* ------------------------------------ */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 10px;
+    width: 450px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Estilos de los campos de formulario */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+input[type="text"], textarea, select {
+    width: calc(100% - 20px);
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Botones de acción dentro del modal */
+.modal-actions button {
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.btn-guardar {
+    background-color: #5cb85c;
+    color: white;
+}
+
+.btn-cancelar, .btn-cerrar {
+    background-color: #ccc;
+    color: #333;
+}
+
+/* Estilos para el mensaje de confirmación (Modal de Borrado) */
+.confirm-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001;
+}
+
+.confirm-modal-content {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    width: 300px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.confirm-modal-content button {
+    margin-top: 15px;
+}
+```

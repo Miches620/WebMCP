@@ -108,6 +108,13 @@ export function actionWords(text, checks = []) {
 // counter_on_action solo queda si el TEXTO del requisito nombra un número (lo decide el código, no el modelo).
 const NUMBER_WORDS = /\b(contador(es)?|cantidad(es)?|n[uú]mero(s)?|puntaje(s)?|puntos?|total(es)?|cu[aá]nt[oa]s|conteo|cuenta|score|movimientos|pasos|intentos|vidas)\b/i;
 export const namesANumber = (text) => NUMBER_WORDS.test(String(text || ""));
+// 16/10 (build 2026-10-16T13-54-56, la misma clase de error que p47): el traductor puso no_horizontal_scroll a
+// R9 (colores), R12 y R16 (orden de tarjetas), y key_changes con flechas a R15 (sombras al arrastrar). 6 de los 9
+// FAIL eran del juez, no de la app. Esos chequeos quedan solo si el TEXTO del requisito los nombra.
+const RESPONSIVE_WORDS = /\b(responsive|responsiv[oa]s?|m[oó]vil(es)?|celular(es)?|tel[eé]fonos?|tablets?|pantallas? (chica|peque[nñ]a)s?|scroll horizontal|desplazamiento horizontal|ancho de (la )?pantalla|adaptables?|se adapta)\b/i;
+const KEY_WORDS = /\b(teclado|teclas?|flechas?|atajos?|enter|escape|esc|barra espaciadora|keyboard)\b/i;
+export const namesResponsive = (text) => RESPONSIVE_WORDS.test(String(text || ""));
+export const namesKeys = (text) => KEY_WORDS.test(String(text || ""));
 export function postprocessChecks(checks = [], id, text = "") {
   if (legacyFlag()) return checks;
   const why = [];
@@ -115,6 +122,14 @@ export function postprocessChecks(checks = [], id, text = "") {
   if (!namesANumber(text) && out.some((c) => c?.type === "counter_on_action")) {
     out = out.filter((c) => c?.type !== "counter_on_action");
     why.push("counter_on_action fuera: el requisito no nombra ningún número");
+  }
+  if (!namesResponsive(text) && out.some((c) => c?.type === "no_horizontal_scroll")) {
+    out = out.filter((c) => c?.type !== "no_horizontal_scroll");
+    why.push("no_horizontal_scroll fuera: el requisito no habla de pantallas chicas ni de responsive");
+  }
+  if (!namesKeys(text) && out.some((c) => c?.type === "key_changes")) {
+    out = out.filter((c) => c?.type !== "key_changes");
+    why.push("key_changes fuera: el requisito no nombra el teclado ni teclas");
   }
   if (out.some((c) => FORM_CHECKS.has(c?.type))) {
     const rest = out.filter((c) => !FORM_CHECKS.has(c?.type));

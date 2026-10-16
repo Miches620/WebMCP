@@ -1,3 +1,4 @@
+import { stackText, standardMeta } from "./standards/catalog.mjs";
 const LLAMA_URL = "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL_NAME = "google/gemma-4-e4b";
 
@@ -81,8 +82,9 @@ const DECOMPOSE_PROMPT = (
   rolePadre,
   roles,
   recipe = null,
+  stack = "",
 ) => `Eres un especialista Senior en el rol "${rolePadre}".
-
+${stack ? `\n${stack}\n` : ""}
 Tu única responsabilidad es ATOMIZAR la fase recibida en
 Atomic Tasks ejecutables.
 
@@ -288,7 +290,8 @@ function requireProfile(profile, where) {
 
 export const buildDecomposePrompt = (phase, rolePadre, previousTasks = [], profile) => {
   return (
-    DECOMPOSE_PROMPT(phase, rolePadre, profile.roles, profile.atomizerRecipe || null) +
+    // 16/10: el stack del Standard también le llega al Atomizer (en el Kanban salieron tareas "de la API" sin servidor)
+    DECOMPOSE_PROMPT(phase, rolePadre, profile.roles, profile.atomizerRecipe || null, profile.standard ? stackText(standardMeta(profile.standard)) : "") +
     DECOMPOSE_CONTEXT_ADDENDUM(previousTasks, profile.atomizerRoleRules)
   );
 };

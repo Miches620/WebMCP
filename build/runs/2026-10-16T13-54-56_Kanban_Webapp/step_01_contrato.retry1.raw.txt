@@ -1,0 +1,112 @@
+### FILE: contrato.json
+```json
+{
+  "estado": {
+    "columnas": {
+      "Pendiente": {
+        "title": "Pendiente",
+        "tarjetas": [
+          {
+            "id": 1,
+            "titulo": "Configurar proyecto Kanban",
+            "descripcion": "Definir estructura de columnas y tarjetas.",
+            "prioridad": "alta",
+            "columnaId": "Pendiente"
+          },
+          {
+            "id": 2,
+            "titulo": "Diseñar UI/UX inicial",
+            "descripcion": "Crear maquetación base para el tablero.",
+            "prioridad": "media",
+            "columnaId": "Pendiente"
+          }
+        ],
+        "contador": 2
+      },
+      "En Curso": {
+        "title": "En Curso",
+        "tarjetas": [
+          {
+            "id": 3,
+            "titulo": "Implementar Drag & Drop",
+            "descripcion": "Asegurar la funcionalidad de arrastrar tarjetas entre columnas.",
+            "prioridad": "alta",
+            "columnaId": "En Curso"
+          }
+        ],
+        "contador": 1
+      },
+      "Completa": {
+        "title": "Completa",
+        "tarjetas": [],
+        "contador": 0
+      }
+    },
+    "nextCardId": 4
+  },
+  "acciones": [
+    {
+      "nombre": "crearTarjeta",
+      "params": ["titulo", "descripcion", "prioridad"],
+      "ejemplo": ["Nueva tarea", "Descripción de la nueva tarea", "baja"],
+      "hace": "Crea una tarjeta en la columna 'Pendiente' con los datos proporcionados.",
+      "features": [
+        1,
+        4
+      ],
+      "cambia": [
+        "columnas.Pendiente.tarjetas",
+        "columnas.Pendiente.contador",
+        "nextCardId"
+      ]
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": ["id", "titulo", "descripcion", "prioridad"],
+      "ejemplo": [1, "Título actualizado", "Descripción revisada", "media"],
+      "hace": "Edita el título, descripción y prioridad de una tarjeta existente.",
+      "features": [
+        5
+      ],
+      "cambia": [
+        "columnas.Pendiente.tarjetas[0].titulo",
+        "columnas.Pendiente.tarjetas[0].descripcion",
+        "columnas.Pendiente.tarjetas[0].prioridad"
+      ]
+    },
+    {
+      "nombre": "eliminarTarjeta",
+      "params": ["id", "columnaId"],
+      "ejemplo": [2, "Pendiente"],
+      "hace": "Elimina una tarjeta de la columna especificada después de confirmación.",
+      "features": [
+        7
+      ],
+      "cambia": [
+        "columnas.Pendiente.tarjetas",
+        "columnas.Pendiente.contador"
+      ]
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": ["cardId", "columnaId"],
+      "ejemplo": [1, "En Curso"],
+      "hace": "Mueve una tarjeta de su columna actual a la nueva columna.",
+      "features": [
+        6,
+        15
+      ],
+      "cambia": [
+        "columnas.Pendiente.tarjetas",
+        "columnas.Pendiente.contador",
+        "columnas.En Curso.tarjetas",
+        "columnas.En Curso.contador"
+      ]
+    }
+  ],
+  "se_ve": [
+    8,
+    17
+  ]
+}
+```

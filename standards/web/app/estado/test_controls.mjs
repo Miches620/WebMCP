@@ -203,5 +203,22 @@ t("v0.4.1, 6ª corrida: la compuerta sigue 6/6", g6.result === "PASS" && g6.rows
   }
 }
 
+// ---------- 16/10 (build 2026-10-16T13-54-56, fixture real_kanban_c21) ----------
+{
+  const C21 = JSON.parse(readFileSync(fileURLToPath(new URL("../../../../profiles/web/validation/fixtures/real_kanban_c21/contrato.json", import.meta.url)), "utf8"));
+  const feats = ["Crear tarjetas", "Primera columna -> div contenedor de columna 'Pendiente' + botón 'Agregar tarjeta' debajo"];
+  const k21 = parseContract(C21, { features: feats }).items[0];
+  const p21 = controlsPlan(k21);
+  const crear = row(p21, "crearTarjeta"), editar = row(p21, "editarTarjeta");
+  t("crear (de la columna): 'titulo' NO se rellena con el título de la columna (era 'Pendiente')", crear.owner === "columnas" && crear.campos.find((f) => f.p === "titulo").prefill === false, JSON.stringify(crear.campos));
+  t("editar (de la tarjeta): sus campos se pueden rellenar (la tarjeta no tiene nada adentro)", editar.owner === "tarjetas" && editar.campos.every((f) => f.prefill === true));
+  const conBoton = { ...C21, acciones: C21.acciones.map((a) => (a.nombre === "crearTarjeta" ? { ...a, boton: "Agregar tarjeta" } : a.nombre === "borrarTarjeta" ? { ...a, boton: "Botón mágico" } : a)) };
+  const kb = parseContract(conBoton, { features: feats });
+  const pb = controlsPlan(kb.items[0]);
+  t("'boton' que está en el brief → el botón dice eso ('Agregar tarjeta')", row(pb, "crearTarjeta").label === "Agregar tarjeta");
+  t("'boton' que NO está en el brief → no se usa (nombre de la acción) y no es un problema del contrato", row(pb, "borrarTarjeta").label === "Borrar tarjeta" && !(kb.reports?.[0]?.dropped || []).some((d) => /mágico/.test(d)));
+  t("el pedido del contrato explica 'boton'", /"boton" con ese texto tal cual/.test(step("contrato").prompt({ paso: "PASO 1", hints: { features: feats, style: [] } })));
+}
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

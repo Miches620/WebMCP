@@ -17,6 +17,7 @@ import landing from "./web/landing/profile.mjs";
 import app from "./web/app/profile.mjs";
 import game from "./web/game/profile.mjs";
 import seguridad from "./web/seguridad/profile.mjs";
+import { CATALOG, standardMeta } from "../standards/catalog.mjs";
 
 const ALL = [web, landing, app, game];
 export const PROFILES = Object.freeze(Object.fromEntries(ALL.map((p) => [p.id, p])));
@@ -39,8 +40,11 @@ const SINGULAR = ["defaultRole", "exampleRole"];
  * Falla fuerte si falta la declaración, si un id no existe o si dos profiles
  * se contradicen: nunca "el tipo por defecto" en silencio.
  * @param {string[]} ids  p.ej. ["web/landing"]
+ * @param {{standard?: string|null}} [opts]  16/10: el Standard elegido para el proyecto (refined_prompt.standard, lo
+ *   elige Miche en la UI, o --standard en run_build para comparar). Sin elegir: el del profile. Tiene que ser un
+ *   Standard del catálogo que sirva para ese tipo (su ficha lo declara en "profiles").
  */
-export function resolveProfiles(ids) {
+export function resolveProfiles(ids, opts = {}) {
   const choices = SELECTABLE.map((p) => p.id).join(", ");
   if (!Array.isArray(ids) || !ids.length)
     throw new Error(`PROFILE_REQUIRED: el proyecto no declara su tipo (refined_prompt.profiles). Tipos: ${choices}`);
@@ -78,6 +82,19 @@ export function resolveProfiles(ids) {
   const withStd = chain.slice().reverse().find((p) => p.standard);
   merged.standard = withStd?.standard || null;
   merged.atomizerRecipe = withStd?.atomizerRecipe || null;
+  // 16/10: Standard elegido (para comparar Standards con el mismo proyecto). La receta del Atomizer va con su
+  // Standard: un Standard que deriva del del profile ("base") usa la misma; otro, ninguna (hasta que tenga la suya).
+  if (opts.standard && opts.standard !== merged.standard) {
+    const meta = CATALOG[opts.standard];
+    if (!meta) throw new Error(`STANDARD_UNKNOWN: "${opts.standard}". Standards: ${Object.keys(CATALOG).join(", ")}`);
+    if (!meta.profiles.some((id) => merged.chain.includes(id)))
+      throw new Error(`STANDARD_NOT_FOR_PROFILE: "${opts.standard}" sirve para ${meta.profiles.join(", ")}, no para ${merged.chain.join(" → ")}`);
+    if (meta.status === "SUPERSEDED") throw new Error(`STANDARD_SUPERSEDED: "${opts.standard}" fue reemplazado; no se usa en proyectos nuevos`);
+    if (meta.base !== merged.standard) merged.atomizerRecipe = null;
+    merged.standard = opts.standard;
+  }
+  // El stack lo fija el Standard (16/10): TechLeader y Atomizer lo reciben como dato.
+  merged.stack = merged.standard ? standardMeta(merged.standard).stack : null;
   const builds = [...new Set(leaves.map((p) => p.build).filter(Boolean))];
   if (builds.length > 1) throw new Error(`PROFILE_MULTI_BUILD: ${ids.join(" + ")} necesitan builds distintos (${builds.join(", ")}); el build multi-artefacto todavía no existe`);
   merged.build = builds[0] || null;

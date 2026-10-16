@@ -1,0 +1,48 @@
+```javascript
+moverTarjeta(estado, cardId, origenColumnaId, destinoColumnaId) {
+    // Crear una copia profunda del estado para garantizar inmutabilidad
+    let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+    // Encontrar los índices de las columnas en el nuevo estado
+    const origenColumnaIndex = nuevoEstado.columnas.findIndex(c => c.id === origenColumnaId);
+    const destinoColumnaIndex = nuevoEstado.columnas.findIndex(c => c.id === destinoColumnaId);
+
+    if (origenColumnaIndex === -1 || destinoColumnaIndex === -1) {
+        return estado; 
+    }
+
+    // Obtener referencias a las columnas en el nuevo estado
+    const columnaOrigen = nuevoEstado.columnas[origenColumnaIndex];
+    const columnaDestino = nuevoEstado.columnas[destinoColumnaIndex];
+
+    // 1. Encontrar la tarjeta a mover
+    const tarjetasOrigenActuales = [...columnaOrigen.tarjetas];
+    const tarjetaAMover = tarjetasOrigenActuales.find(t => t.id === cardId);
+
+    if (!tarjetaAMover) {
+        return estado; // Tarjeta no encontrada en el origen
+    }
+
+    // 2. Actualizar la columna de origen (filtrar y actualizar contador)
+    const tarjetasOrigenActualizadas = tarjetasOrigenActuales.filter(t => t.id !== cardId);
+    
+    // Reemplazar el objeto columna en el nuevo estado para mantener inmutabilidad
+    nuevoEstado.columnas[origenColumnaIndex] = {
+        ...columnaOrigen, 
+        tarjetas: tarjetasOrigenActualizadas,
+        counter: tarjetasOrigenActualizadas.length // Se calcula la longitud para evitar NaN
+    };
+
+    // 3. Actualizar la columna de destino (añadir tarjeta y actualizar contador)
+    const tarjetasDestinoActualizadas = [...columnaDestino.tarjetas, tarjetaAMover];
+
+    // Reemplazar el objeto columna en el nuevo estado
+    nuevoEstado.columnas[destinoColumnaIndex] = {
+        ...columnaDestino, 
+        tarjetas: tarjetasDestinoActualizadas,
+        counter: tarjetasDestinoActualizadas.length // Se calcula la longitud para evitar NaN
+    };
+
+    return nuevoEstado;
+}
+```

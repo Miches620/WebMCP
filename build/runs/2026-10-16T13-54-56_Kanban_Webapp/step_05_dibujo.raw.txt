@@ -1,0 +1,76 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado) {
+    const app = document.getElementById('app');
+    if (!app) return;
+
+    // 1. Limpiar el contenido actual del tablero
+    app.innerHTML = '';
+
+    // 2. Iterar sobre las columnas para construir la estructura principal
+    estado.columnas.forEach(columna => {
+        const columnaDiv = document.createElement('div');
+        columnaDiv.className = 'columna';
+        columnaDiv.dataset.columnaId = columna.id;
+
+        // --- Header de Columna ---
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'columna-header';
+        headerDiv.innerHTML = `<h3>${columna.titulo}</h3><p class="card-counter">${columna.tarjetas.length}</p>`;
+        columnaDiv.appendChild(headerDiv);
+
+        // --- Botón Agregar Tarjeta (Solo en Pendiente) ---
+        if (columna.id === 'pendiente') {
+            const agregarBtn = document.createElement('button');
+            agregarBtn.className = 'agregar-tarjeta-btn';
+            agregarBtn.textContent = '➕ Agregar tarjeta';
+            // Nota: El listener para este botón se añade en js/controles.js
+            columnaDiv.appendChild(agregarBtn);
+        }
+
+        // --- Contenedor de Tarjetas ---
+        const tarjetasContainer = document.createElement('div');
+        tarjetasContainer.className = 'tarjetas-container';
+        tarjetasContainer.dataset.columnaId = columna.id;
+
+        // 3. Renderizar las tarjetas dentro del contenedor
+        columna.tarjetas.forEach(tarjeta => {
+            const tarjetaDiv = document.createElement('div');
+            tarjetaDiv.className = 'tarjeta';
+            tarjetaDiv.dataset.cardId = tarjeta.id;
+
+            // Contenedor de Drag & Drop (24px)
+            const dragHandle = document.createElement('div');
+            dragHandle.className = 'drag-handle';
+            dragHandle.setAttribute('draggable', 'true');
+            dragHandle.innerHTML = '⠿'; // Icono de arrastre
+            tarjetaDiv.appendChild(dragHandle);
+
+            // Cuerpo de la tarjeta (Título, Descripción, Prioridad)
+            const bodyDiv = document.createElement('div');
+            bodyDiv.className = 'tarjeta-body';
+            bodyDiv.innerHTML = `<h4>${tarjeta.titulo}</h4><p>${tarjeta.descripcion}</p>`;
+
+            // Etiqueta de prioridad
+            const priorityLabel = document.createElement('span');
+            priorityLabel.className = `prioridad-etiqueta prioridad-${tarjeta.prioridad}`;
+            priorityLabel.textContent = tarjeta.prioridad;
+            bodyDiv.appendChild(priorityLabel);
+
+            tarjetaDiv.appendChild(bodyDiv);
+
+            // Acciones (Editar/Eliminar) - Aquí se inyectan los controles de js/acciones.js
+            const actionsContainer = document.createElement('div');
+            actionsContainer.className = 'tarjeta-actions';
+            // Se pasa el tipo "tarjetas" porque la tarjeta tiene acciones asociadas
+            actionsContainer.appendChild(controlesDe("tarjetas", tarjeta, estado)); 
+
+            tarjetaDiv.appendChild(actionsContainer);
+            tarjetasContainer.appendChild(tarjetaDiv);
+        });
+
+        columnaDiv.appendChild(tarjetasContainer);
+        app.appendChild(columnaDiv);
+    });
+}
+```

@@ -6,8 +6,10 @@
 
 import grilla from "./web/game/grilla/standard.mjs";
 import estado from "./web/app/estado/standard.mjs";
+// 16/10: segundo Standard de web/app (DRAFT), para comparar con estado. Ver standards/catalog.mjs.
+import plantillas from "./web/app/plantillas/standard.mjs";
 
-const ALL = [grilla, estado];
+const ALL = [grilla, estado, plantillas];
 export const STANDARDS = Object.freeze(Object.fromEntries(ALL.map((s) => [s.id, s])));
 
 /** Devuelve el Standard o falla fuerte (nunca "uno por defecto" en silencio). */

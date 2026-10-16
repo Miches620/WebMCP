@@ -69,5 +69,18 @@ t("specialistSees = lo que el brief suma (guardia de holdout)", gameBuild.specia
   t("app: el control elegido es el del verbo (Kanban real)", pick("Crear tarjetas", [{ type: "submit_empty_blocked" }]) === "+ Crear Tarjeta" && pick("Agregar comentarios a las tarjetas", [{ type: "field_exists", params: { field: ["comentario"] } }]) === "💬 Añadir Comentario" && pick("Mover tarjetas entre columnas", [{ type: "click_changes", params: { click: ["columna", "tarjeta"] } }]) === "Mover a En Progreso" && pick("Etiquetar tarjetas", [{ type: "field_exists" }]) === "🏷️ Añadir Etiqueta" && pick("Borrar tarjetas", [{ type: "click_changes" }]) === "🗑️ Eliminar Tarjeta");
   t("app: el traductor por archivos no ofrece chequeos de formulario", !(await import("./translator_rules.mjs")).APP_FILES_CATALOG.some((x) => /^(field_|submit_|valid_submit)/.test(x)));
 }
+
+// 16/10 (build 2026-10-16T13-54-56, fixture real_kanban_c21): 6 de los 9 FAIL eran chequeos que el requisito no pide
+{
+  const { readFileSync } = await import("node:fs");
+  const real = JSON.parse(readFileSync(new URL("../validation/fixtures/real_kanban_c21/checks.json", import.meta.url), "utf8"));
+  const after = Object.fromEntries(real.map((r) => [r.id, appBuild.postprocessChecks(r.checks, r.id, r.text)]));
+  const types = (id) => after[id].map((c) => c.type).join();
+  t("16/10: R9 (colores) pierde no_horizontal_scroll → sin chequeos (SIN_CHEQUEO, no FAIL)", types("R9") === "" && /no habla de pantallas chicas/.test(after.R9.why), JSON.stringify(after.R9));
+  t("16/10: R12 y R16 (tamaños, orden) pierden no_horizontal_scroll", !/no_horizontal_scroll/.test(types("R12")) && !/no_horizontal_scroll/.test(types("R16")), types("R12") + " | " + types("R16"));
+  t("16/10: R15 (sombras al arrastrar) pierde key_changes; nadie pidió teclado", !/key_changes/.test(types("R15")) && /no nombra el teclado/.test(after.R15.why), types("R15"));
+  t("16/10: lo que el requisito sí pide se queda (R1 action_changes, R2 control_visible, R14 hover)", types("R1") === "action_changes" && /control_visible/.test(types("R2")) && /hover_changes/.test(types("R14")));
+  t("16/10: 'responsive' / 'celular' / 'flechas' sí los dejan", appBuild.namesResponsive("Que sea responsive") && appBuild.namesResponsive("Se tiene que ver bien en el celular") && appBuild.namesKeys("Mover con las flechas") && !appBuild.namesResponsive("Fondo: #102C54") && !appBuild.namesKeys("Sombras en tarjetas"));
+}
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

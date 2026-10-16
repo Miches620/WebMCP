@@ -1,0 +1,36 @@
+```javascript
+crearTarjeta(estado, titulo, descripcion, prioridad, columnaOrigenId) {
+    // 1. Crear nueva tarjeta
+    const nuevaTarjeta = {
+        id: estado.nextCardId,
+        titulo: titulo,
+        descripcion: descripcion,
+        prioridad: prioridad,
+        timestamp: Date.now()
+    };
+
+    // 2. Copiar el estado para mantener la inmutabilidad (Deep copy)
+    let nuevoEstado = JSON.parse(JSON.stringify(estado));
+
+    // 3. Encontrar y actualizar la columna destino de forma inmutable
+    const columnasActualizadas = nuevoEstado.columnas.map(columna => {
+        if (columna.id === columnaOrigenId) {
+            // Crear una nueva columna con el array de tarjetas actualizado
+            return {
+                ...columna, // Copiar todas las propiedades existentes
+                tarjetas: [...columna.tarjetas, nuevaTarjeta] // Crear nuevo array de tarjetas
+            };
+        }
+        return columna; // Devolver la columna sin cambios
+    });
+
+    // 4. Reemplazar el array de columnas en el estado y actualizar nextCardId
+    nuevoEstado = {
+        ...nuevoEstado,
+        columnas: columnasActualizadas,
+        nextCardId: estado.nextCardId + 1 // Incrementamos solo el ID
+    };
+
+    return nuevoEstado;
+}
+```

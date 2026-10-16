@@ -1,0 +1,481 @@
+[
+  {
+    "id": "R1",
+    "text": "Crear tarjetas",
+    "checks": [
+      {
+        "type": "action_changes",
+        "params": {
+          "click": [
+            "crear",
+            "tarjeta"
+          ]
+        },
+        "covers": "Permitir crear una nueva tarjeta"
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R2",
+    "text": "Primera columna -> div contenedor de columna 'Pendiente' + botón 'Agregar tarjeta' debajo",
+    "checks": [
+      {
+        "type": "text_visible",
+        "params": {
+          "text": [
+            "Pendiente"
+          ]
+        },
+        "covers": "Verifica que la primera columna tenga el título 'Pendiente'."
+      },
+      {
+        "type": "control_visible",
+        "params": {
+          "text": [
+            "Agregar tarjeta"
+          ]
+        },
+        "covers": "Verifica que haya un botón visible para agregar una nueva tarjeta en la primera columna."
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R3",
+    "text": "Asignar prioridad a una tarjeta desde una lista (etiqueta: alta: color rojo, media: color amarillo, baja: color verde) en el modal de creación o edición de tarjetas",
+    "checks": [
+      {
+        "type": "counter_on_action",
+        "params": {
+          "label": [
+            "prioridad",
+            "puntaje"
+          ],
+          "keys": [
+            "alta",
+            "media",
+            "baja"
+          ],
+          "click": [
+            "etiquetar"
+          ]
+        },
+        "covers": "El contador de prioridad cambia cuando se etiqueta una tarjeta con alta, media o baja."
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R4",
+    "text": "Campos que tendrá cada tarjeta al momento de crearla: Titulo, descripción, y prioridad (etiqueta)",
+    "checks": [
+      {
+        "type": "action_changes",
+        "params": {
+          "click": [
+            "crear",
+            "tarjeta"
+          ]
+        },
+        "covers": "Botón para crear una tarjeta con campos de título, descripción y prioridad."
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R5",
+    "text": "Campos que se pueden editar al presionar el botón 'editar tarjeta': Titulo, descripción, y prioridad (etiqueta)",
+    "checks": [
+      {
+        "type": "action_changes",
+        "params": {
+          "click": [
+            "editar",
+            "tarjeta"
+          ]
+        },
+        "covers": "Verifica que al presionar el botón 'editar tarjeta' se abren campos para editar el título, descripción y prioridad de la tarjeta."
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R6",
+    "text": "Usar funcionalidad de drag&drop: la tarjeta estara compuesta por un contenedor con 2 divs dentro; Un div de 24px (⠿) sera el encargado de la funcion drag&drop (class='drag-handle' draggable='true' ondragstart / ondragend)",
+    "checks": [],
+    "dropped": [],
+    "sin_chequeo": "El requisito especifica funcionalidades técnicas relacionadas con drag&drop y clases CSS, que no pueden ser verificadas mediante chequeos de interfaz de usuario.",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R7",
+    "text": "Comportamiento al borrar una tarjeta: Eliminar(🗑️) abre un modal para consultarle al usuario 'Esta seguro de borrar la tarjeta?' y si el usuario confirma, la tarjeta sera eliminada de la columna donde se encontrara, reduciendo el contador de tarjetas de dicha columna",
+    "checks": [
+      {
+        "type": "action_changes",
+        "params": {
+          "click": [
+            "borrar",
+            "eliminar"
+          ]
+        },
+        "covers": "Botón para borrar una tarjeta y el comportamiento al hacer clic en él."
+      },
+      {
+        "type": "counter_on_action",
+        "params": {
+          "label": [
+            "tarjetas"
+          ],
+          "keys": [
+            "confirmar",
+            "aceptar"
+          ],
+          "click": [
+            "borrar"
+          ]
+        },
+        "covers": "Contador de tarjetas que cambia después de confirmar la eliminación."
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R8",
+    "text": "Campos que tendrá cada columna: title ('Pendiente', 'En Curso', 'Completa'), y counter (contador de tarjetas dentro de la columna); La Columna 'Pendiente' sera la unica que tendra debajo el botón 'Agregar tarjeta'",
+    "checks": [
+      {
+        "type": "text_visible",
+        "params": {
+          "text": [
+            "title",
+            "Pendiente",
+            "En Curso",
+            "Completa"
+          ]
+        },
+        "covers": "Verifica que los títulos de las columnas estén visibles."
+      },
+      {
+        "type": "counter_on_action",
+        "params": {
+          "label": [
+            "tarjetas"
+          ],
+          "click": [
+            "Agregar tarjeta"
+          ]
+        },
+        "covers": "Verifica que el contador de tarjetas cambie al hacer clic en 'Agregar tarjeta' en la columna 'Pendiente'."
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R9",
+    "text": "Fondo: #102C54, columnas: #8FB3C7, tarjetas: #F2E9D8",
+    "checks": [
+      {
+        "type": "no_horizontal_scroll",
+        "params": {},
+        "covers": "Responsive y se adapta a celular"
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "Los colores del fondo y las columnas no son verificables con los chequeos disponibles en el catálogo.",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R10",
+    "text": "Columnas con overflow:scroll, width:248px, header con title ('Pendiente', 'En Curso', o 'Completa') y contador de tarjetas en columna",
+    "checks": [
+      {
+        "type": "no_horizontal_scroll",
+        "params": {},
+        "covers": "La columna tiene overflow:scroll"
+      },
+      {
+        "type": "text_visible",
+        "params": {
+          "text": [
+            "Pendiente",
+            "En Curso",
+            "Completa"
+          ]
+        },
+        "covers": "El header de la columna muestra el título ('Pendiente', 'En Curso', o 'Completa')"
+      },
+      {
+        "type": "counter_on_action",
+        "params": {
+          "label": [
+            "tarjetas"
+          ],
+          "click": [
+            "agregar",
+            "añadir"
+          ]
+        },
+        "covers": "El contador de tarjetas en columna cambia después de agregar una tarjeta"
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R11",
+    "text": "Botón 'Agregar tarjeta': padding: 8px, border: 1px dashed, border radius: 8px, abre modal de creación de tarjetas",
+    "checks": [
+      {
+        "type": "control_visible",
+        "params": {
+          "text": [
+            "agregar",
+            "tarjeta"
+          ]
+        },
+        "covers": "Botón 'Agregar tarjeta' visible con el texto correcto"
+      },
+      {
+        "type": "action_changes",
+        "params": {
+          "click": [
+            "agregar",
+            "tarjeta"
+          ]
+        },
+        "covers": "Clic en 'Agregar tarjeta' abre modal de creación de tarjetas"
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R12",
+    "text": "Tarjetas con overflow-y:scroll, height:250px, width: 223px (24px para drag&drop y 199px restantes para el body)",
+    "checks": [
+      {
+        "type": "no_horizontal_scroll",
+        "params": {},
+        "covers": "La tarjetas no tienen scroll horizontal"
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "El requisito especifica dimensiones y overflow, pero no menciona texto visible, botones u otras interacciones que puedan ser verificadas con los chequeos del catálogo.",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R13",
+    "text": "Div 'top' con title y actions",
+    "checks": [
+      {
+        "type": "text_visible",
+        "params": {
+          "text": [
+            "title",
+            "título"
+          ]
+        },
+        "covers": "Verifica que el título del div top esté visible en la página."
+      },
+      {
+        "type": "control_visible",
+        "params": {
+          "text": [
+            "actions",
+            "acciones",
+            "botón"
+          ]
+        },
+        "covers": "Verifica que existan botones de acciones dentro del div top."
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R14",
+    "text": "Actions: botón eliminar y botón editar tarjeta, display on hover",
+    "checks": [
+      {
+        "type": "control_visible",
+        "params": {
+          "text": [
+            "eliminar",
+            "editar"
+          ]
+        },
+        "covers": "botón eliminar y botón editar tarjeta"
+      },
+      {
+        "type": "hover_changes",
+        "params": {
+          "elementos": [
+            "tarjeta"
+          ]
+        },
+        "covers": "display on hover"
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R15",
+    "text": "Sombras en tarjetas, efecto de movimiento durante drag&drop, actualización de contadores al mover tarjetas",
+    "checks": [
+      {
+        "type": "hover_changes",
+        "params": {
+          "elementos": [
+            "tarjeta"
+          ]
+        },
+        "covers": "Efecto de sombras en tarjetas al pasar el mouse"
+      },
+      {
+        "type": "key_changes",
+        "params": {},
+        "covers": "Se maneja con el teclado / las flechas durante drag&drop"
+      },
+      {
+        "type": "counter_on_action",
+        "params": {
+          "label": [
+            "tarjetas",
+            "movimientos"
+          ]
+        },
+        "covers": "Actualización de contadores al mover tarjetas"
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R16",
+    "text": "Tarjetas de la misma prioridad: Se prioriza la más reciente; en cada columna, las tarjetas se mostrarán y ordenarán de forma descendente sobre la columna, con las de prioridad alta arriba, luego las de prioridad media y debajo de todo las de prioridad baja",
+    "checks": [
+      {
+        "type": "counter_on_action",
+        "params": {
+          "label": [
+            "prioridad",
+            "tarjeta"
+          ],
+          "keys": [
+            "abajo",
+            "arriba"
+          ]
+        },
+        "covers": "Se maneja con el teclado / las flechas"
+      },
+      {
+        "type": "no_horizontal_scroll",
+        "params": {},
+        "covers": "Responsive"
+      },
+      {
+        "type": "hover_changes",
+        "params": {
+          "elementos": [
+            "tarjeta"
+          ]
+        },
+        "covers": "Hover o sombras al pasar el mouse"
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  },
+  {
+    "id": "R17",
+    "text": "Botones 'Eliminar' y 'Editar': Eliminar: 🗑️, Editar: ✏️ (visibles solo al hacer hover en la tarjeta)",
+    "checks": [
+      {
+        "type": "hover_changes",
+        "params": {
+          "elementos": [
+            "tarjeta"
+          ]
+        },
+        "covers": "Al pasar el mouse por encima de una tarjeta, aparecen botones 'Eliminar' y 'Editar'."
+      }
+    ],
+    "dropped": [],
+    "sin_chequeo": "",
+    "versions": {
+      "translator": "check_translator v0.4",
+      "catalog": "check_catalog v0.9"
+    }
+  }
+]

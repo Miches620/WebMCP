@@ -237,6 +237,18 @@ export const LABELED_NUMBERS = (ws) => {
   // el más chico: fuera los que contienen a otro que ya nombra la etiqueta
   return out.filter((x) => !out.some((y) => y !== x && x.e.contains(y.e))).map((x) => x.t);
 };
+// 16/10 (build 2026-10-16T13-54-56): el contador de cada columna era "(2)" junto al título, SIN la palabra
+// "tarjetas"; counter_on_action daba FAIL "no hay ningún número junto a: tarjetas". Números SUELTOS: elementos
+// sin hijos cuyo texto es solo un número ("2", "(2)", "[2]", "2/5"). Se usan si no hay ninguno con etiqueta.
+export const BARE_NUMBERS = () => {
+  const out = [];
+  for (const e of document.querySelectorAll("body *")) {
+    if (e.closest("script, style") || e.children.length) continue;
+    const t = (e.innerText || "").trim();
+    if (/^[(\[]?\s*\d+(\s*\/\s*\d+)?\s*[)\]]?$/.test(t)) out.push(t);
+  }
+  return out;
+};
 // El tablero: dentro de <main>, el elemento con más hijos directos (≥ 9, una grilla) o el
 // <canvas> más grande. Foto de su subárbol: tag, clases, data-*, style (y píxeles si es canvas).
 export const BOARD_SNAP = () => {

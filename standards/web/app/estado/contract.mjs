@@ -103,6 +103,9 @@ const featNum = (f) => { const m = String(f ?? "").match(/(\d+)/); return m ? Nu
  * @param {{features: string[], style: number[]}} h   features del brief (1..N) y cuáles son de estilo
  * @returns {{error}|{items:[contract], reports:[report], dropped:string[]}}
  */
+const textNorm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
+const briefNorm = (features = []) => textNorm((features || []).join(" \n "));
+
 export function parseContract(json, h = {}) {
   if (!isPlain(json)) return { error: 'el JSON tiene que ser { "estado": {...}, "acciones": [...], "se_ve": [...] }.' };
   const estado = json.estado;
@@ -148,8 +151,15 @@ export function parseContract(json, h = {}) {
     // de controles). Solo se guardan; Validation los cruza con las tareas reales (veredicto por tarea).
     // (el campo no se llama "tareas": el Standard no nombra dominios y "tareas" es el de muchas apps)
     const cumple = [...new Set([].concat(a.cumple ?? []).map((x) => String(x).trim()).filter((x) => /^[A-Za-z]+[\w.-]*$/.test(x) && x.length <= 30))];
+    // v0.8.2 (16/10, build 2026-10-16T13-54-56): el brief decía "botón 'Agregar tarjeta'" y el harness escribió
+    // "Crear tarjeta" (sale del nombre de la acción). "boton" = el texto del botón TAL CUAL lo nombra el brief; se
+    // guarda solo si aparece en el brief (no se inventa: si no está, el botón usa el nombre de la acción).
+    const brief = briefNorm(h.features);
+    const boton0 = String(a.boton ?? "").replace(/\s+/g, " ").trim().replace(/^['"«“]|['"»”]$/g, "");
+    const boton = boton0.length >= 2 && boton0.length <= 40 && brief.includes(textNorm(boton0)) ? boton0 : null;
+    // (un "boton" que no está en el brief no es un problema del contrato: no se reintenta por eso, solo no se usa)
     used.add(nombre);
-    acciones.push({ nombre, params, ejemplo, hace, ids, campos, features, cambia, cumple });
+    acciones.push({ nombre, params, ejemplo, hace, ids, campos, features, cambia, cumple, ...(boton ? { boton } : {}) });
   });
   if (json.acciones.length > MAX_ACTIONS) dropped.push(`hay ${json.acciones.length} acciones; se usan las primeras ${MAX_ACTIONS}.`);
   if (!acciones.length) return { error: `ninguna acción sirve: ${dropped.slice(0, 3).join(" | ")}` };

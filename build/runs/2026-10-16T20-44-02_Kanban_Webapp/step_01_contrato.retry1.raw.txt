@@ -1,0 +1,89 @@
+### FILE: contrato.json
+```json
+{
+  "estado": {
+    "columnas": {
+      "pendiente": {
+        "title": "Pendiente",
+        "contador": 2,
+        "tarjetas": [
+          {
+            "id": "card-1",
+            "titulo": "Diseñar wireframes iniciales",
+            "descripcion": "Crear bocetos de la interfaz principal.",
+            "prioridad": "alta",
+            "columnaId": "pendiente"
+          },
+          {
+            "id": "card-2",
+            "titulo": "Revisión de requisitos",
+            "descripcion": "Validar el alcance con el cliente.",
+            "prioridad": "media",
+            "columnaId": "pendiente"
+          }
+        ]
+      },
+      "enCurso": {
+        "title": "En Curso",
+        "contador": 1,
+        "tarjetas": [
+          {
+            "id": "card-3",
+            "titulo": "Implementar backend API",
+            "descripcion": "Configurar endpoints de datos.",
+            "prioridad": "alta",
+            "columnaId": "enCurso"
+          }
+        ]
+      },
+      "completa": {
+        "title": "Completa",
+        "contador": 0,
+        "tarjetas": []
+      }
+    },
+    "estadoGlobal": true
+  },
+  "acciones": [
+    {
+      "nombre": "agregarTarjeta",
+      "params": ["titulo", "descripcion", "prioridad"],
+      "ejemplo": ["Nueva tarea", "Descripción de la nueva tarea", "media"],
+      "hace": "Crea una tarjeta en la columna 'Pendiente'.",
+      "features": [1, 4],
+      "cambia": ["columnas.pendiente.tarjetas"]
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": ["idTarj", "titulo", "descripcion", "prioridad"],
+      "ejemplo": ["card-2", "Revisión de requisitos actualizada", "Validar el alcance con el cliente.", "alta"],
+      "hace": "Actualiza los detalles de una tarjeta existente.",
+      "features": [5],
+      "cambia": ["columnas.*.tarjetas"]
+    },
+    {
+      "nombre": "borrarTarjeta",
+      "params": ["idTarj", "columnaId"],
+      "ejemplo": ["card-1", "pendiente"],
+      "hace": "Elimina una tarjeta después de confirmación.",
+      "features": [2, 7],
+      "cambia": ["columnas.*.tarjetas"]
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": ["idTarj", "columnaOrigenId", "columnaDestinoId"],
+      "ejemplo": ["card-2", "pendiente", "enCurso"],
+      "hace": "Mueve una tarjeta de una columna a otra (Drag & Drop).",
+      "features": [6, 15],
+      "cambia": ["columnas.*.tarjetas"]
+    }
+  ],
+  "se_ve": [
+    2,
+    8,
+    13,
+    14,
+    17
+  ]
+}
+```

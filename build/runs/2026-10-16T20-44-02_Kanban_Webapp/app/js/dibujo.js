@@ -1,0 +1,48 @@
+// Helper para verificar igualdad (necesario porque el harness reportó "Missing helper: 'eq'")
+Handlebars.registerHelper('eq', function(id, target) {
+    return (this && this.toString()) === (target ? target.toString() : '');
+});
+
+const PLANTILLA = `
+{{#each columnas}}
+<div class="columna" data-id="{{id}}">
+    <div class="columna-header">
+        <h2 class="columna-title">{{title}}</h2>
+        <span class="columna-counter">{{counter}}</span>
+    </div>
+
+    <div class="tarjetas-container">
+        {{#each tarjetas}}
+        <div class="tarjeta" data-id="{{id}}">
+            <div class="drag-handle" draggable="true" ondragstart="" ondragend="">⠿</div>
+            <div class="tarjeta-body">
+                <h3>{{titulo}}</h3>
+                <p>{{descripcion}}</p>
+            </div>
+            <div class="top">
+                <div class="prioridad prioridad-{{prioridad}}">{{prioridad}}</div>
+                <div class="tarjeta-actions">
+                    <!-- Controles de tarjeta (Editar, Eliminar, Mover) -->
+                    <div data-controles="tarjetas" data-id="{{id}}"></div>
+                </div>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+
+    {{#if (eq this.id "pendiente")}}
+        <!-- Controles de acción general para crear tarjeta -->
+        <div data-controles="app"></div> 
+        <button class="agregar-tarjeta">Agregar tarjeta</button>
+    {{/if}}
+</div>
+{{/each}}
+`;
+
+function dibujar(estado) {
+    var app = document.getElementById("app");
+    // Renderiza la plantilla con el estado actual
+    app.innerHTML = Handlebars.compile(PLANTILLA)(estado);
+    // Monta los controles de acción (Editar, Eliminar, Mover, Agregar)
+    montarControles(app, estado);
+}

@@ -1,0 +1,93 @@
+### FILE: contrato.json
+```json
+{
+  "estado": {
+    "columnas": {
+      "pendiente": {
+        "title": "Pendiente",
+        "counter": 2,
+        "tarjetas": [
+          {
+            "id": "t1",
+            "titulo": "Diseñar wireframes iniciales",
+            "descripcion": "Crear bocetos de la interfaz principal.",
+            "prioridad": "alta"
+          },
+          {
+            "id": "t2",
+            "titulo": "Revisión de requisitos del cliente",
+            "descripcion": "Confirmar alcance y funcionalidades clave.",
+            "prioridad": "media"
+          }
+        ]
+      },
+      "en_curso": {
+        "title": "En Curso",
+        "counter": 1,
+        "tarjetas": [
+          {
+            "id": "t3",
+            "titulo": "Implementar estructura base",
+            "descripcion": "Configurar el esqueleto HTML y CSS.",
+            "prioridad": "alta"
+          }
+        ]
+      },
+      "completa": {
+        "title": "Completa",
+        "counter": 1,
+        "tarjetas": [
+          {
+            "id": "t4",
+            "titulo": "Pruebas de usabilidad iniciales",
+            "descripcion": "Recoger feedback de usuarios beta.",
+            "prioridad": "baja"
+          }
+        ]
+      }
+    },
+    "columnaActivaId": "pendiente"
+  },
+  "acciones": [
+    {
+      "nombre": "crearTarjeta",
+      "params": ["titulo", "descripcion", "prioridad"],
+      "ejemplo": ["Nuevo Título", "Descripción de prueba", "media"],
+      "hace": "Crea una nueva tarjeta en la columna activa.",
+      "features": [1, 4],
+      "cambia": ["columnas[columnaActivaId].tarjetas"]
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": ["id", "titulo", "descripcion", "prioridad"],
+      "ejemplo": ["t1", "Título editado", "Nueva descripción", "baja"],
+      "hace": "Edita los detalles de una tarjeta existente.",
+      "features": [5],
+      "cambia": ["columnas[columnaId].tarjetas"]
+    },
+    {
+      "nombre": "borrarTarjeta",
+      "params": ["id", "columnaId"],
+      "ejemplo": ["t2", "pendiente"],
+      "hace": "Elimina una tarjeta después de confirmación.",
+      "features": [7],
+      "cambia": ["columnas[columnaId].tarjetas"]
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": ["cardId", "nuevaColumnaId"],
+      "ejemplo": ["t1", "en_curso"],
+      "hace": "Mueve una tarjeta de su columna actual a la nueva.",
+      "features": [6],
+      "cambia": ["columnas[viejaColumnaId].tarjetas", "columnas[nuevaColumnaId].tarjetas"]
+    }
+  ],
+  "se_ve": [
+    2,
+    3,
+    4,
+    7,
+    16
+  ]
+}
+```

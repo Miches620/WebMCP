@@ -1,0 +1,284 @@
+### FILE: js/logica.js
+```javascript
+/**
+ * App object containing all core application logic functions.
+ * All actions return a NEW state object and do not modify the input state.
+ */
+const App = {
+
+    /**
+     * Returns a deep copy of the initial state.
+     * @returns {Object} A new state object.
+     */
+    crear: function() {
+        // Deep clone ESTADO_INICIAL to ensure immutability
+        return JSON.parse(JSON.stringify(ESTADO_INICIAL));
+    },
+
+    /**
+     * Opens the modal for creating a new card in 'Pendiente'.
+     * @param {Object} estado - The current state.
+     * @returns {Object} New state with modal visible.
+     */
+    mostrarCrearTarjeta: function(estado) {
+        if (estado.columnas[0].id !== "Pendiente") {
+            // Safety check, though contract implies 'Pendiente' is always first
+            return estado; 
+        }
+
+        const newState = JSON.parse(JSON.stringify(estado));
+        newState.modalVisible.crear = true;
+        return newState;
+    },
+
+    /**
+     * Closes any open modal.
+     * @param {Object} estado - The current state.
+     * @returns {Object} New state with all modals closed.
+     */
+    cerrarModal: function(estado) {
+        const newState = JSON.parse(JSON.stringify(estado));
+        newState.modalVisible.crear = false;
+        newState.modalVisible.editar = false;
+        newState.modalVisible.borrar = false;
+        return newState;
+    },
+
+    /**
+     * Creates a new card in the 'Pendiente' column.
+     * @param {Object} estado - The current state.
+     * @param {string} titulo - Title of the new card.
+     * @param {string} descripcion - Description of the new card.
+     * @param {string} prioridad - Priority (alta, media, baja).
+     * @returns {Object} New state with the added card and updated counters.
+     */
+    crearTarjeta: function(estado, titulo, descripcion, prioridad) {
+        const newState = JSON.parse(JSON.stringify(estado));
+        const pendienteColumna = newState.columnas[0];
+
+        // 1. Generate ID
+        let maxId = 0;
+        for (const col of newState.columnas) {
+            for (const card of col.cards) {
+                if (card.id > maxId) {
+                    maxId = card.id;
+                }
+            }
+        }
+        const newId = maxId + 1;
+
+        // 2. Create Card
+        const nuevaTarjeta = {
+            id: newId,
+            titulo: titulo,
+            descripcion: descripcion,
+            prioridad: prioridad,
+            fechaCreacion: Date.now()
+        };
+
+        // 3. Update State (Pendiente column)
+        const nuevoCards = [...pendienteColumna.cards, nuevaTarjeta];
+        
+        // 4. Sort cards before assigning to new state
+        nuevoCards.sort((a, b) => {
+            const priorityMap = { 'alta': 3, 'media': 2, 'baja': 1 };
+            const pA = priorityMap[a.prioridad] || 0;
+            const pB = priorityMap[b.prioridad] || 0;
+
+            if (pA !== pB) {
+                return pB - pA; // Higher priority first
+            }
+            // Secondary sort: descending date (newest first)
+            return b.fechaCreacion - a.fechaCreacion;
+        });
+
+
+        newState.columnas[0] = {
+            ...pendienteColumna,
+            cards: nuevoCards,
+            contador: pendienteColumna.contador + 1
+        };
+
+        return newState;
+    },
+
+    /**
+     * Updates the details of an existing card and closes the modal.
+     * @param {Object} estado - The current state.
+     * @param {number} id - ID of the card to edit.
+     * @param {string} titulo - New title.
+     * @param {string} descripcion - New description.
+     * @param {string} prioridad - New priority.
+     * @returns {Object} New state with updated card and closed modal.
+     */
+    editarTarjeta: function(estado, id, titulo, descripcion, prioridad) {
+        const newState = JSON.parse(JSON.stringify(estado));
+
+        // 1. Find the column containing the card
+        let foundColumnIndex = -1;
+        let targetColumna = null;
+
+        for (let i = 0; i < newState.columnas.length; i++) {
+            const col = newState.columnas[i];
+            if (col.cards.some(card => card.id === id)) {
+                foundColumnIndex = i;
+                targetColumna = col;
+                break;
+            }
+        }
+
+        if (!targetColumna) return estado; // Card not found
+
+        // 2. Update the card object
+        const updatedCards = targetColumna.cards.map(card => {
+            if (card.id === id) {
+                return { ...card, titulo: titulo, descripcion: descripcion, prioridad: prioridad };
+            }
+            return card;
+        });
+
+        // 3. Re-sort the cards in place
+        updatedCards.sort((a, b) => {
+            const priorityMap = { 'alta': 3, 'media': 2, 'baja': 1 };
+            const pA = priorityMap[a.prioridad] || 0;
+            const pB = priorityMap[b.prioridad] || 0;
+
+            if (pA !== pB) {
+                return pB - pA;
+            }
+            return b.fechaCreacion - a.fechaCreacion;
+        });
+
+
+        // 4. Update the state structure and close modal
+        newState.columnas[foundColumnIndex] = {
+            ...targetColumna,
+            cards: updatedCards,
+            // Counter remains the same as we only edited content
+        };
+
+        newState.modalVisible.editar = false;
+        return newState;
+    },
+
+    /**
+     * Eliminates a card from a specified column after confirmation.
+     * @param {Object} estado - The current state.
+     * @param {number} id - ID of the card to delete.
+     * @param {string} columnaId - ID of the column where the card resides.
+     * @returns {Object} New state with the card removed and counter adjusted.
+     */
+    eliminarTarjeta: function(estado, id, columnaId) {
+        const newState = JSON.parse(JSON.stringify(estado));
+
+        // 1. Find the column index
+        let columnIndex = -1;
+        for (let i = 0; i < newState.columnas.length; i++) {
+            if (newState.columnas[i].id === columnaId) {
+                columnIndex = i;
+                break;
+            }
+        }
+
+        if (columnIndex === -1) return estado; // Column not found
+
+        const originalColumn = newState.columnas[columnIndex];
+
+        // 2. Filter out the card
+        const newCards = originalColumn.cards.filter(card => card.id !== id);
+
+        // 3. Update state and counter
+        newState.columnas[columnIndex] = {
+            ...originalColumn,
+            cards: newCards,
+            contador: Math.max(0, originalColumn.contador - 1) // Ensure counter doesn't go below zero
+        };
+
+        return newState;
+    },
+
+    /**
+     * Moves a card from an origin column to a destination column.
+     * @param {Object} estado - The current state.
+     * @param {number} id - ID of the card to move.
+     * @param {string} origenColumnaId - ID of the source column.
+     * @param {string} destinoColumnaId - ID of the target column.
+     * @returns {Object} New state with the card moved and counters adjusted.
+     */
+    moverTarjeta: function(estado, id, origenColumnaId, destinoColumnaId) {
+        const newState = JSON.parse(JSON.stringify(estado));
+
+        let origenIndex = -1;
+        let destinoIndex = -1;
+
+        // 1. Find indices of columns
+        for (let i = 0; i < newState.columnas.length; i++) {
+            if (newState.columnas[i].id === origenColumnaId) {
+                origenIndex = i;
+            } else if (newState.columnas[i].id === destinoColumnaId) {
+                destinoIndex = i;
+            }
+        }
+
+        if (origenIndex === -1 || destinoIndex === -1) return estado; // Invalid columns
+
+        const origenColumn = newState.columnas[origenIndex];
+        const destinoColumn = newState.columnas[destinoIndex];
+
+        // 2. Check if card exists in origin column
+        const cardIndexInOrigin = origenColumn.cards.findIndex(card => card.id === id);
+        if (cardIndexInOrigin === -1) return estado; // Card not found in source
+
+        // 3. Perform the move operation
+        const [cardToMove] = origenColumn.cards.splice(cardIndexInOrigin, 1);
+
+        // Update Origin Column: Remove card and decrement counter
+        newState.columnas[origenIndex] = {
+            ...origenColumn,
+            cards: [...origenColumn.cards], // Already modified by splice above, but for clarity/safety
+            contador: Math.max(0, origenColumn.contador - 1)
+        };
+
+        // Update Destination Column: Add card and increment counter
+        const newDestinationCards = [
+            ...destinoColumn.cards,
+            cardToMove
+        ];
+
+        // Re-sort destination cards after adding the moved card
+        newDestinationCards.sort((a, b) => {
+            const priorityMap = { 'alta': 3, 'media': 2, 'baja': 1 };
+            const pA = priorityMap[a.prioridad] || 0;
+            const pB = priorityMap[b.prioridad] || 0;
+
+            if (pA !== pB) {
+                return pB - pA;
+            }
+            return b.fechaCreacion - a.fechaCreacion;
+        });
+
+
+        newState.columnas[destinoIndex] = {
+            ...destinoColumn,
+            cards: newDestinationCards,
+            contador: destinoColumn.contador + 1
+        };
+
+        // Re-sort origin cards after removing the card (though splice handles array modification)
+        // We must ensure the remaining cards in the source column are still sorted correctly.
+        newState.columnas[origenIndex].cards.sort((a, b) => {
+            const priorityMap = { 'alta': 3, 'media': 2, 'baja': 1 };
+            const pA = priorityMap[a.prioridad] || 0;
+            const pB = priorityMap[b.prioridad] || 0;
+
+            if (pA !== pB) {
+                return pB - pA;
+            }
+            return b.fechaCreacion - a.fechaCreacion;
+        });
+
+
+        return newState;
+    }
+};
+```

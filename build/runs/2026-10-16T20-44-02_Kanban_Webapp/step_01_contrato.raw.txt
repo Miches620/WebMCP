@@ -1,0 +1,112 @@
+### FILE: contrato.json
+```json
+{
+  "estado": {
+    "columnas": {
+      "Pendiente": {
+        "title": "Pendiente",
+        "contador": 2,
+        "tarjetas": [
+          {
+            "id": "card-1",
+            "titulo": "Diseñar wireframes iniciales",
+            "descripcion": "Crear el flujo de usuario para la primera versión del tablero.",
+            "prioridad": "alta",
+            "fechaCreacion": 1678886400000
+          },
+          {
+            "id": "card-2",
+            "titulo": "Revisar requisitos de usuario",
+            "descripcion": "Entrevistar a los stakeholders para definir el alcance.",
+            "prioridad": "media",
+            "fechaCreacion": 1678800000000
+          }
+        ]
+      },
+      "En Curso": {
+        "title": "En Curso",
+        "contador": 2,
+        "tarjetas": [
+          {
+            "id": "card-3",
+            "titulo": "Implementar estructura base",
+            "descripcion": "Configurar el layout y los estilos CSS iniciales.",
+            "prioridad": "alta",
+            "fechaCreacion": 1678900000000
+          },
+          {
+            "id": "card-4",
+            "titulo": "Desarrollar lógica de drag&drop",
+            "descripcion": "Asegurar que el estado se actualice correctamente al mover tarjetas.",
+            "prioridad": "baja",
+            "fechaCreacion": 1678950000000
+          }
+        ]
+      },
+      "Completa": {
+        "title": "Completa",
+        "contador": 1,
+        "tarjetas": [
+          {
+            "id": "card-5",
+            "titulo": "Definición de alcance inicial",
+            "descripcion": "Documento finalizado y aprobado por el cliente.",
+            "prioridad": "alta",
+            "fechaCreacion": 1678700000000
+          }
+        ]
+      }
+    },
+    "modalVisible": false,
+    "columnaOrigenId": null
+  },
+  "acciones": [
+    {
+      "nombre": "agregarTarjeta",
+      "params": ["titulo", "descripcion", "prioridad"],
+      "ejemplo": ["Nuevo Título", "Descripción de prueba", "media"],
+      "hace": "Crea una nueva tarjeta en la columna activa.",
+      "features": [1, 3, 4],
+      "cambia": ["columnas"]
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": ["id", "titulo", "descripcion", "prioridad"],
+      "ejemplo": ["card-2", "Título Editado", "Nueva descripción", "alta"],
+      "hace": "Actualiza los detalles de una tarjeta existente.",
+      "features": [5],
+      "cambia": ["columnas"]
+    },
+    {
+      "nombre": "borrarTarjeta",
+      "params": ["id", "columnaId"],
+      "ejemplo": ["card-4", "En Curso"],
+      "hace": "Elimina una tarjeta del tablero después de confirmación.",
+      "features": [7],
+      "cambia": ["columnas"]
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": ["cardId", "columnaDestinoId"],
+      "ejemplo": ["card-2", "Completa"],
+      "hace": "Mueve una tarjeta de su columna actual a la columna destino.",
+      "features": [6, 15],
+      "cambia": ["columnas"]
+    }
+  ],
+  "se_ve": [
+    3,
+    4,
+    7,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17
+  ]
+}
+```

@@ -1,0 +1,278 @@
+### FILE: app.html
+```html
+<h1>Kanban Board</h1>
+<div id="app"></div>
+```
+
+### FILE: styles.css
+```css
+/* -------------------------------------- */
+/* Colores y Estilos Base del Kanban          */
+/* -------------------------------------- */
+
+body {
+    font-family: sans-serif;
+    background-color: #102C54; /* Fondo principal */
+    padding: 20px;
+}
+
+#app {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    min-height: 80vh;
+}
+
+/* Contenedor de Columna (Kanban Column) */
+.columna {
+    background-color: #8FB3C7; /* Color columna */
+    width: 248px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Header de la Columna */
+.columna-header {
+    padding: 15px;
+    border-bottom: 1px solid #6A93A0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.columna-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #102C54;
+}
+
+/* Área de Contenido de Tarjetas */
+.card-container {
+    flex-grow: 1;
+    overflow-y: auto; /* Scroll vertical para las tarjetas */
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Botón 'Agregar Tarjeta' (Solo en Pendiente) */
+.agregar-tarjeta-btn {
+    width: calc(100% - 20px); /* Ajuste para el padding interno */
+    margin: 10px;
+    padding: 8px;
+    border: 1px dashed #3A5F7B;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: #E6F2FF;
+}
+
+/* Tarjeta Individual (Card) */
+.tarjeta {
+    width: 223px;
+    height: 250px;
+    background-color: #F2E9D8; /* Color tarjeta */
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    position: relative; /* Necesario para posicionar los botones de acción */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Efecto al pasar el mouse sobre la tarjeta (para mostrar acciones) */
+.tarjeta:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Drag Handle (El área de arrastre) */
+.drag-handle {
+    width: 24px;
+    height: 100%;
+    background: none; /* Transparente para que no interfiera con el contenido */
+    cursor: grab;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 2; /* Asegura que esté por encima del cuerpo de la tarjeta */
+}
+
+/* Contenido principal visible de la tarjeta (Título, Descripción) */
+.card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: calc(100% - 24px); /* Ajuste para el drag handle */
+}
+
+/* Título y Descripción */
+.tarjeta h3 {
+    margin-top: 0;
+    font-size: 1.1em;
+    word-wrap: break-word;
+    flex-shrink: 1;
+}
+
+.tarjeta p {
+    font-size: 0.9em;
+    color: #555;
+    margin-bottom: 10px;
+    flex-grow: 1;
+}
+
+/* Etiqueta de Prioridad */
+.prioridad-etiqueta {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 0.75em;
+    font-weight: bold;
+    color: white;
+}
+
+/* Colores de Prioridad */
+.prioridad-alta { background-color: #D93025; } /* Rojo */
+.prioridad-media { background-color: #FFC107; color: #333; } /* Amarillo/Naranja */
+.prioridad-baja { background-color: #4CAF50; } /* Verde */
+
+/* Acciones (Botones Editar y Eliminar) */
+.tarjeta .acciones {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    opacity: 0; /* Oculto por defecto */
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+/* Mostrar acciones al hacer hover en la tarjeta */
+.tarjeta:hover .acciones {
+    opacity: 1;
+    visibility: visible;
+}
+
+.ctl-accion {
+    display: flex;
+    gap: 5px;
+}
+
+.ctl-boton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+    padding: 2px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.ctl-boton:hover {
+    opacity: 1;
+}
+
+
+/* -------------------------------------- */
+/* Estilos de Modal (Simulación)            */
+/* -------------------------------------- */
+
+/* El modal se manejará con JS, pero definimos estilos básicos para los inputs/selects que lo componen. */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-contenido {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    width: 400px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Estilos de Inputs y Selects dentro del modal */
+.modal-contenido label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+    color: #333;
+}
+
+.modal-contenido input[type="text"],
+.modal-contenido textarea,
+.modal-contenido select {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* Controles de acción dentro del modal */
+.modal-acciones {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.ctl-boton[data-action="cancelar"] {
+    background-color: #ccc;
+    border: none;
+    cursor: pointer;
+}
+
+/* -------------------------------------- */
+/* Estilos de Drag & Drop Feedback          */
+/* -------------------------------------- */
+
+/* Clase aplicada al contenedor cuando se arrastra algo sobre él (Dropzone) */
+.drag-over {
+    background-color: #A0C4D2; /* Color más claro para indicar destino */
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo de la tarjeta arrastrada (simulando sombra y movimiento) */
+[draggable="true"] {
+    cursor: grab;
+}
+
+.dragging {
+    opacity: 0.4; /* Efecto visual al arrastrar */
+    transform: scale(1.02);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Estilo para el área donde se deposita la tarjeta (Drop Target visual) */
+.drop-target-placeholder {
+    height: 20px; /* Altura visible del espacio vacío */
+    background-color: rgba(139, 179, 199, 0.5);
+    border-radius: 4px;
+    margin-bottom: 15px;
+    transition: all 0.2s ease;
+}
+
+/* Estilo para el contador de tarjetas */
+.columna-contador {
+    font-size: 0.9em;
+    color: #3A5F7B;
+    padding: 5px 10px;
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: 5px;
+}
+
+/* Estilo para el botón de agregar tarjeta */
+.agregar-tarjeta-btn {
+    cursor: pointer;
+    transition: background-color 0.1s;
+}
+```

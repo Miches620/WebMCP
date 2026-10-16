@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-16b'; // tablero limpio al 16/10 tarde: Hecho / Pendiente real / Estacionado
+  const SEED = '2026-10-16c'; // tablero limpio al 16/10 tarde: Hecho / Pendiente real / Estacionado
   let state = loadState() || {
  "columns": [
   {
@@ -433,6 +433,18 @@
    "isInbox": true,
    "isDefault": true,
    "cards": [
+    {
+     "id": "p40",
+     "title": "Validation de FLUJO: lo que escribo aparece, lo que borro desaparece, lo que muevo cambia de columna, recargo y sigue",
+     "desc": "[#Validation #Prioridad1] 16/10 noche: Gemma sola (crear roto) y Gemma sola arreglada dieron IGUAL en Validation (6 PASS): 'clic → se abrió el modal → 1 cambio' cuenta como crear. Sin esto no se puede medir la línea base ni armar el ciclo de correcciones (los FAIL tienen que ser verdad). Flujos genéricos como una persona: clic → completar los campos que aparezcan (también en un modal) con un texto único → confirmar → el texto se ve; editar → el texto nuevo queda; borrar → el texto desaparece (aceptando el confirm); arrastrar/mover → cambia de contenedor; recargar → sigue (localStorage). Incluye n5. [#Validation] (incluye n5) Hace falta saber QUÉ tiene que cambiar: crear → +1, mover → queda en otra columna, editar → el valor queda, borrar → −1. 6ª corrida: mover a la misma columna cambiaba el orden y last_updated → action_changes PASS falso. Casos: bugs del Kanban v1 (editar borra etiquetas, [object HTMLDivElement]…). Ojo: sin leer el contrato de Gemma para aprobar.",
+     "priority": "urgente"
+    },
+    {
+     "id": "p55",
+     "title": "Línea base: Gemma sola + ciclo de correcciones (Standard candidato web/app/libre)",
+     "desc": "[#Experimento #Standards] Gemma sola hizo el Kanban en 6618 tokens con drag & drop y localStorage andando (crear roto por 1 línea, XSS, sin prioridad). Ya existe build/validate_external.mjs para medirla con la misma Validation. Idea: Gemma escribe la app entera a su manera; el harness valida y le devuelve los FAIL concretos, cada corrección en un contexto NUEVO (solo el archivo a tocar completo + el resto resumido, y cambios por función, para que entre en 12k). Depende de p40 (sin juez de flujo, los FAIL no son ciertos).",
+     "priority": "urgente"
+    },
     {
      "id": "p51",
      "title": "Primera comparación: el mismo snapshot con web/app/estado y web/app/plantillas",
@@ -467,12 +479,6 @@
      "id": "p45",
      "title": "Arrastrar generado por el harness (además del botón)",
      "desc": "[#Standard #Diseño] Pedido del brief del Kanban (R6) y de Miche. Es trabajo del Standard, no de conocimiento (Gemma sabe hacerlo): cuando el plan de controles ve una 'elección' de destino de otro tipo (tarjeta → columna), el harness agrega arrastrar-y-soltar sobre ese destino y llama a la MISMA acción (moverTarjeta). El botón queda de respaldo; después, una prueba propia de arrastrar en Validation (hoy F2.8 queda SIN_EVIDENCIA siempre).",
-     "priority": "urgente"
-    },
-    {
-     "id": "p40",
-     "title": "Validation: 'algo cambió' no alcanza para aprobar una acción",
-     "desc": "[#Validation] (incluye n5) Hace falta saber QUÉ tiene que cambiar: crear → +1, mover → queda en otra columna, editar → el valor queda, borrar → −1. 6ª corrida: mover a la misma columna cambiaba el orden y last_updated → action_changes PASS falso. Casos: bugs del Kanban v1 (editar borra etiquetas, [object HTMLDivElement]…). Ojo: sin leer el contrato de Gemma para aprobar.",
      "priority": "urgente"
     },
     {

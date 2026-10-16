@@ -1,0 +1,138 @@
+### FILE: contrato.json
+```json
+{
+  "estado": {
+    "columnas": {
+      "Pendiente": {
+        "title": "Pendiente",
+        "cards": [
+          {
+            "id": 1,
+            "titulo": "Implementar Login",
+            "descripcion": "Crear la funcionalidad de autenticación.",
+            "prioridad": "alta",
+            "fechaCreacion": 1678886400000
+          },
+          {
+            "id": 2,
+            "titulo": "Diseñar UI Dashboard",
+            "descripcion": "Bocetos iniciales para el dashboard.",
+            "prioridad": "media",
+            "fechaCreacion": 1678886500000
+          },
+          {
+            "id": 3,
+            "titulo": "Revisar documentación",
+            "descripcion": "Leer la guía de estilo del proyecto.",
+            "prioridad": "baja",
+            "fechaCreacion": 1678886600000
+          }
+        ],
+        "contador": 3,
+        "tieneAgregarBtn": true
+      },
+      "En Curso": {
+        "title": "En Curso",
+        "cards": [
+          {
+            "id": 4,
+            "titulo": "Integrar API de pagos",
+            "descripcion": "Conectar el servicio de Stripe.",
+            "prioridad": "alta",
+            "fechaCreacion": 1678887000000
+          }
+        ],
+        "contador": 1,
+        "tieneAgregarBtn": false
+      },
+      "Completa": {
+        "title": "Completa",
+        "cards": [
+          {
+            "id": 5,
+            "titulo": "Configurar entorno base",
+            "descripcion": "Instalar dependencias iniciales.",
+            "prioridad": "baja",
+            "fechaCreacion": 1678885000000
+          }
+        ],
+        "contador": 1,
+        "tieneAgregarBtn": false
+      }
+    },
+    "modalVisible": {
+      "crear": false,
+      "editar": false,
+      "borrar": false
+    }
+  },
+  "acciones": [
+    {
+      "nombre": "mostrarCrearTarjeta",
+      "params": [],
+      "ejemplo": [],
+      "hace": "Abre el modal para crear una nueva tarjeta en la columna 'Pendiente'.",
+      "features": [1],
+      "cambia": ["modalVisible.crear"]
+    },
+    {
+      "nombre": "cerrarModal",
+      "params": [],
+      "ejemplo": [],
+      "hace": "Cierra cualquier modal abierto.",
+      "features": [],
+      "cambia": ["modalVisible.crear", "modalVisible.editar", "modalVisible.borrar"]
+    },
+    {
+      "nombre": "crearTarjeta",
+      "params": ["titulo", "descripcion", "prioridad"],
+      "ejemplo": ["Nuevo Título", "Descripción de prueba", "media"],
+      "hace": "Crea una nueva tarjeta en la columna 'Pendiente' y actualiza el contador.",
+      "features": [1, 3],
+      "cambia": ["columnas.Pendiente.cards", "columnas.Pendiente.contador"]
+    },
+    {
+      "nombre": "editarTarjeta",
+      "params": ["id", "titulo", "descripcion", "prioridad"],
+      "ejemplo": [1, "Título Editado", "Nueva descripción", "alta"],
+      "hace": "Actualiza los detalles de una tarjeta existente y cierra el modal.",
+      "features": [5],
+      "cambia": ["columnas.Pendiente.cards", "columnas.En Curso.cards", "columnas.Completa.cards"]
+    },
+    {
+      "nombre": "eliminarTarjeta",
+      "params": ["id", "columna"],
+      "ejemplo": [2, "Pendiente"],
+      "hace": "Elimina una tarjeta de la columna especificada después de confirmación.",
+      "features": [7],
+      "cambia": ["columnas.Pendiente.cards", "columnas.En Curso.cards", "columnas.Completa.cards"]
+    },
+    {
+      "nombre": "moverTarjeta",
+      "params": ["id", "origenColumna", "destinoColumna"],
+      "ejemplo": [1, "Pendiente", "En Curso"],
+      "hace": "Mueve una tarjeta de su columna actual a la destino y ajusta los contadores.",
+      "features": [6],
+      "cambia": ["columnas.Pendiente.cards", "columnas.En Curso.cards", "columnas.Completa.cards"]
+    }
+  ],
+  "se_ve": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17
+  ]
+}
+```

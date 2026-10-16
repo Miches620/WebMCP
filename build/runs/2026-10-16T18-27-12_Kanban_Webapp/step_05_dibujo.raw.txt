@@ -1,0 +1,119 @@
+### FILE: js/dibujo.js
+```javascript
+function dibujar(estado) {
+    const appDiv = document.getElementById('app');
+    if (!appDiv) return;
+
+    // 1. Limpiar el contenedor principal
+    appDiv.innerHTML = '';
+
+    // --- Función auxiliar para obtener valor de prioridad numérico ---
+    function getPriorityValue(prioridad) {
+        switch (prioridad) {
+            case 'alta': return 1;
+            case 'media': return 2;
+            case 'baja': return 3;
+            default: return 4;
+        }
+    }
+
+    // --- Función auxiliar para renderizar una tarjeta individual ---
+    function crearElementoTarjeta(tarjeta, estado) {
+        const card = document.createElement('div');
+        card.className = 'tarjeta';
+        card.setAttribute('data-id', tarjeta.id);
+
+        // Estructura interna de la tarjeta (Drag Handle + Body/Actions)
+        card.innerHTML = `
+            <div class="drag-handle" draggable="true">⠿</div>
+            <div class="card-body">
+                <div class="top">
+                    <h3 class="columna-title">${tarjeta.titulo}</h3>
+                    <div class="acciones">
+                        <button class="ctl-accion ctl-boton eliminar-btn" data-id="${tarjeta.id}" title="Eliminar tarjeta">🗑️</button>
+                        <button class="ctl-accion ctl-boton editar-btn" data-id="${tarjeta.id}" title="Editar tarjeta">✏️</button>
+                    </div>
+                </div>
+                <p>${tarjeta.descripcion}</p>
+                <div class="prioridad-etiqueta prioridad-${tarjeta.prioridad}">Prioridad: ${tarjeta.prioridad}</div>
+            </div>
+        `;
+
+        // Añadir controles de acción (Editar, Eliminar, Mover)
+        const cardBody = card.querySelector('.card-body');
+        if (cardBody) {
+             // Nota: Los botones 'Eliminar' y 'Editar' ya están en el HTML estático para manejar hover/visibilidad.
+            controlesDe("cards", card, estado); 
+        }
+
+        return card;
+    }
+
+
+    // --- 2. Renderizar Columnas ---
+    const contenedorColumnas = document.createElement('div');
+    contenedorColumnas.className = 'kanban-board'; // Clase contenedora general si es necesario
+
+    estado.columnas.forEach(columna => {
+        const columnaDiv = document.createElement('div');
+        columnaDiv.className = 'columna';
+
+        // Header de la Columna (Título y Contador)
+        const header = document.createElement('div');
+        header.className = 'columna-header';
+        header.innerHTML = `
+            <h2 class="columna-title">${columna.title}</h2>
+            <span class="columna-contador">(${columna.contador})</span>
+        `;
+        columnaDiv.appendChild(header);
+
+        // Botón Agregar Tarjeta (Solo en 'Pendiente')
+        if (columna.tieneAgregarBtn) {
+            const agregarBtn = document.createElement('button');
+            agregarBtn.className = 'agregar-tarjeta-btn';
+            agregarBtn.textContent = '➕ Agregar tarjeta';
+            columnaDiv.appendChild(agregarBtn);
+        }
+
+        // Contenedor de Tarjetas (Scrollable)
+        const cardContainer = document.createElement('div');
+        cardContainer.className = 'card-container';
+        cardContainer.setAttribute('data-column-id', columna.id); // Usar data attribute para identificar la columna en drag&drop
+
+        // 3. Ordenamiento de Tarjetas: Alta > Media > Baja, luego por fecha descendente
+        const sortedCards = [...columna.cards].sort((a, b) => {
+            const pA = getPriorityValue(a.prioridad);
+            const pB = getPriorityValue(b.prioridad);
+
+            // 1. Comparar prioridad (menor valor numérico es mayor prioridad)
+            if (pA !== pB) {
+                return pA - pB;
+            }
+            // 2. Si la prioridad es igual, comparar por fecha de creación (más reciente primero)
+            return b.fechaCreacion - a.fechaCreacion;
+        });
+
+        // Renderizar tarjetas ordenadas
+        sortedCards.forEach(tarjeta => {
+            const cardElement = crearElementoTarjeta(tarjeta, estado);
+            cardContainer.appendChild(cardElement);
+        });
+
+        columnaDiv.appendChild(cardContainer);
+        contenedorColumnas.appendChild(columnaDiv);
+    });
+
+    appDiv.appendChild(contenedorColumnas);
+
+
+    // --- 4. Renderizar Controles de Aplicación (App Actions) ---
+    const appControls = document.createElement('div');
+    appControls.className = 'app-controls'; // Clase para agrupar controles generales
+    
+    // Usamos el contenedor principal #app, pero lo colocaremos al final del contenido renderizado.
+    appDiv.appendChild(document.createElement('hr')); 
+
+    // Controles de App: Mostrar Crear Modal, Cerrar Modal, Crear Tarjeta
+    controlesDe("app", null, estado);
+}
+```

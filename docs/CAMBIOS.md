@@ -2,6 +2,19 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Validar una app hecha FUERA de webmcp con la misma Validation (`build/validate_external.mjs`) — y lo que mostró del juez (16/10 noche)**
+- *Origen:* Miche le pidió el Kanban a Gemma 4 E4B sola en LM Studio (6618 tokens, sin webmcp ni harness). Con tarjetas cargadas a mano, el drag & drop y localStorage andan; crear no anda (bug de 1 línea). Ver el Project doc `claude/evidencia_gemma_sola_2026-10-16.md`.
+- *Qué hace:*
+  - `node build/validate_external.mjs <carpeta> <snapshot> --checks <checks.json de un build> [--name x]` arma `build/runs/<fecha>_externo_<nombre>/` con una COPIA de la app y corre `run_build --validate`.
+  - Con `--checks` usa los MISMOS chequeos ya traducidos (no cambia el juez). Si son de otro snapshot, falla.
+  - No aplican, y se dice: la compuerta de acciones del Standard (no hay contrato) y el veredicto por tarea (las tareas van sin "pieza").
+- *Resultado:* la app de Gemma sola **tal cual** (crear tira error) y **arreglada** (crear anda) dan **lo mismo**: PASS 6 · FAIL 7 · SIN_CHEQUEO 4.
+  - R1/R4/R5 PASS en las dos: el chequeo vio "clic en Agregar → 1 cambio" (se abrió el modal) y lo dio por bueno.
+  - R16 (orden por prioridad, que no está hecho) y R17 PASS también.
+  - R7/R14 FAIL porque la app arranca sin tarjetas.
+  - **Validation hoy no distingue una app que crea de una que no crea.** Es p40 ("algo cambió no alcanza"): antes de comparar contra la línea base o de armar un ciclo de correcciones, el juez tiene que probar el FLUJO (lo que escribo aparece, lo que borro desaparece, lo que muevo cambia de columna, recargo y sigue).
+- *Tests:* `build/test_validate_external.mjs` 8/8.
+
 **La 1ª comparación estado/plantillas no valió (bug de --standard) + 5 arreglos con las corridas 15-48-47 y 16-24-56 (Standard web/app/estado v0.8.3) (16/10 tarde)**
 - *Evidencia:*
   - las dos corridas del mismo snapshot, una con `--standard web/app/estado` y otra con `--standard web/app/plantillas`, dieron **byte a byte lo mismo**, y las dos dicen "Standard web/app/estado";

@@ -1,0 +1,959 @@
+{
+  "type": "EVIDENCE",
+  "kind": "build_validation",
+  "project": "Kanban Webapp",
+  "source": "project26_snapshot.json",
+  "catalog": "check_catalog v0.9",
+  "profiles": {
+    "ids": [
+      "web/app"
+    ],
+    "chain": [
+      "web",
+      "web/app"
+    ],
+    "status": {
+      "web": "DRAFT",
+      "web/app": "DRAFT"
+    },
+    "borrowed": [
+      {
+        "id": "web/app",
+        "from": "web/landing",
+        "what": [
+          "plan de una pantalla y traductor de requisitos; el motor por componentes queda solo con --legacy-components"
+        ]
+      }
+    ]
+  },
+  "artifact_loads_without_js_errors": true,
+  "sections_visible": {
+    "result": "PASS",
+    "features": {
+      "R1": "PASS",
+      "R2": "PASS",
+      "R3": "PASS",
+      "R4": "PASS",
+      "R5": "PASS",
+      "R6": "PASS",
+      "R7": "PASS",
+      "R8": "PASS"
+    },
+    "anchors": [
+      {
+        "id": "principal",
+        "features": [
+          "R1",
+          "R2",
+          "R3",
+          "R4",
+          "R5",
+          "R6",
+          "R7",
+          "R8"
+        ],
+        "seen": 45,
+        "total": 80,
+        "ondemand": 0,
+        "ok": true
+      }
+    ],
+    "detail": "#principal: 45/80 palabras visibles"
+  },
+  "components_render": {
+    "result": "NOT_APPLICABLE",
+    "components": [],
+    "detail": "ningún componente con JS nombra contenedores"
+  },
+  "validation": {
+    "profile": [
+      "web",
+      "web/app"
+    ],
+    "standard": {
+      "id": "web/app/plantillas",
+      "version": "0.1.0",
+      "status": "DRAFT"
+    },
+    "always": [],
+    "standard_gates": {
+      "version": "calls_gate v0.3",
+      "standard": "web/app/plantillas v0.1.0",
+      "listas": {
+        "columnas": {
+          "total": 3,
+          "shown": 3,
+          "missing": []
+        },
+        "columnas[].tarjetas": {
+          "total": 4,
+          "shown": 4,
+          "missing": []
+        }
+      },
+      "datos": {
+        "columnas": 3,
+        "columnas[].tarjetas": 4
+      },
+      "forma": [],
+      "result": "FAIL",
+      "detail": "3/4 acciones se usan desde la pantalla con datos de verdad",
+      "errors": [],
+      "rows": [
+        {
+          "nombre": "crearTarjeta",
+          "features": [
+            1,
+            4
+          ],
+          "called": 0,
+          "via": null,
+          "problem": "ningún botón de la pantalla llama a App.crearTarjeta (se apretaron todos los botones con los campos completos)"
+        },
+        {
+          "nombre": "editarTarjeta",
+          "features": [
+            5
+          ],
+          "called": 1,
+          "via": "accion:editarTarjeta",
+          "problem": null
+        },
+        {
+          "nombre": "borrarTarjeta",
+          "features": [
+            7
+          ],
+          "called": 1,
+          "via": "accion:borrarTarjeta",
+          "problem": null
+        },
+        {
+          "nombre": "moverTarjeta",
+          "features": [
+            6
+          ],
+          "called": 1,
+          "via": "accion:moverTarjeta",
+          "problem": null
+        }
+      ],
+      "gates": {
+        "R1": {
+          "type": "calls_probe",
+          "gate": true,
+          "result": "FAIL",
+          "detail": "ningún botón de la pantalla llama a App.crearTarjeta (se apretaron todos los botones con los campos completos)"
+        },
+        "R4": {
+          "type": "calls_probe",
+          "gate": true,
+          "result": "FAIL",
+          "detail": "ningún botón de la pantalla llama a App.crearTarjeta (se apretaron todos los botones con los campos completos)"
+        }
+      },
+      "tareas": {
+        "crearTarjeta": [],
+        "editarTarjeta": [],
+        "borrarTarjeta": [],
+        "moverTarjeta": []
+      }
+    }
+  },
+  "concerns": [
+    {
+      "profile": "web/seguridad",
+      "version": "0.1",
+      "status": "DRAFT",
+      "results": [
+        {
+          "id": "SEG-1",
+          "text": "Lo que escribe el usuario se muestra como texto: no se ejecuta como HTML ni como código (XSS)",
+          "verdict": "PASS",
+          "detail": "3 campo(s) muestran el HTML como texto (titulo, descripcion, prioridad)",
+          "check": "text_stays_text",
+          "tried": 12
+        }
+      ]
+    }
+  ],
+  "task_verdicts": {
+    "version": "task_verdict v0.4",
+    "rows": [
+      {
+        "id": "F1.1",
+        "pieza": "datos",
+        "task": "Definición del Esquema de Estado Global y Datos Iniciales",
+        "verdict": "CUMPLIDA",
+        "lista": "columnas",
+        "reason": "columnas está en el contrato con 3 elementos y la forma del estado es sana"
+      },
+      {
+        "id": "F1.2",
+        "pieza": "logica",
+        "task": "Implementación de Persistencia del Estado Local",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "el enlace dice que ninguna acción de la app la hace"
+      },
+      {
+        "id": "F1.3",
+        "pieza": "vista",
+        "task": "Configuración del Layout Estructural Kanban",
+        "verdict": "CUMPLIDA",
+        "lista": "columnas",
+        "reason": "se ven los 3 elementos de columnas"
+      },
+      {
+        "id": "F1.4",
+        "pieza": "estilo",
+        "task": "Definición de Estilos Base del Componente Kanban",
+        "verdict": "NO_CUMPLIDA",
+        "requisitos": [
+          "R2",
+          "R3",
+          "R16"
+        ],
+        "reason": "R2, R3 dio FAIL en Validation: ningún control menciona: Agregar tarjeta"
+      },
+      {
+        "id": "F2.1",
+        "pieza": "vista",
+        "task": "Implementar la visualización de tarjetas existentes en el tablero Kanban (Read)",
+        "verdict": "CUMPLIDA",
+        "lista": "columnas[].tarjetas",
+        "reason": "se ven los 4 elementos de columnas[].tarjetas"
+      },
+      {
+        "id": "F2.2",
+        "pieza": "vista",
+        "task": "Diseñar el modal/formulario para la creación de tarjetas (Vista)",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "el enlace dice que ninguna parte de la app la hace"
+      },
+      {
+        "id": "F2.3",
+        "pieza": "logica",
+        "task": "Definir la lógica de creación de tarjetas (Lógica)",
+        "verdict": "NO_CUMPLIDA",
+        "accion": "crearTarjeta",
+        "reason": "crearTarjeta: ningún botón de la pantalla llama a App.crearTarjeta (se apretaron todos los botones con los campos completos)"
+      },
+      {
+        "id": "F2.4",
+        "pieza": "controles",
+        "task": "Implementar el control para disparar la creación de tarjetas (Controles)",
+        "verdict": "NO_CUMPLIDA",
+        "accion": "crearTarjeta",
+        "reason": "crearTarjeta: ningún botón de la pantalla llama a App.crearTarjeta (se apretaron todos los botones con los campos completos)"
+      },
+      {
+        "id": "F2.5",
+        "pieza": "vista",
+        "task": "Diseñar el modal/formulario para la edición de tarjetas (Vista)",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "el enlace dice que ninguna parte de la app la hace"
+      },
+      {
+        "id": "F2.6",
+        "pieza": "logica",
+        "task": "Definir la lógica de edición y persistencia de tarjetas (Lógica)",
+        "verdict": "CUMPLIDA",
+        "accion": "editarTarjeta",
+        "reason": "editarTarjeta: 5 pruebas de lógica; editarTarjeta: la pantalla cambia (R5); editarTarjeta: se usa desde la pantalla"
+      },
+      {
+        "id": "F2.7",
+        "pieza": "logica",
+        "task": "Implementar la lógica de movimiento de tarjetas entre columnas (Lógica)",
+        "verdict": "CUMPLIDA",
+        "accion": "moverTarjeta",
+        "reason": "moverTarjeta: 5 pruebas de lógica; moverTarjeta: se usa desde la pantalla"
+      },
+      {
+        "id": "F2.8",
+        "pieza": "controles",
+        "task": "Implementar el control de arrastrar y soltar tarjetas (Controles)",
+        "verdict": "SIN_EVIDENCIA",
+        "accion": "moverTarjeta",
+        "reason": "pide arrastrar o teclado: el harness arma botones y eso no se prueba"
+      },
+      {
+        "id": "F3.1",
+        "pieza": "estilo",
+        "task": "Implementar el estado visual de los botones 'Editar' y 'Eliminar' al pasar el mouse (hover) sobre una tarjeta.",
+        "verdict": "NO_CUMPLIDA",
+        "requisitos": [
+          "R3",
+          "R16"
+        ],
+        "reason": "R3 dio FAIL en Validation: ningún control menciona: alta / media / baja"
+      },
+      {
+        "id": "F3.2",
+        "pieza": "vista",
+        "task": "Definir la lógica de visibilidad para los botones 'Editar' y 'Eliminar'.",
+        "verdict": "CUMPLIDA",
+        "lista": "columnas[].tarjetas",
+        "reason": "se ven los 4 elementos de columnas[].tarjetas"
+      },
+      {
+        "id": "F3.3",
+        "pieza": "estilo",
+        "task": "Mejorar el feedback visual durante el proceso de Drag&Drop (ej. sombra, resaltado del área de destino).",
+        "verdict": "NO_CUMPLIDA",
+        "requisitos": [
+          "R2",
+          "R3",
+          "R16"
+        ],
+        "reason": "R2, R3 dio FAIL en Validation: ningún control menciona: Agregar tarjeta"
+      },
+      {
+        "id": "F3.4",
+        "pieza": "vista",
+        "task": "Diseñar y mostrar el modal de confirmación para la eliminación de una tarjeta.",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "el enlace dice que ninguna parte de la app la hace"
+      },
+      {
+        "id": "F3.5",
+        "pieza": "logica",
+        "task": "Definir la lógica para eliminar una tarjeta del estado global.",
+        "verdict": "CUMPLIDA",
+        "accion": "borrarTarjeta",
+        "reason": "borrarTarjeta: 5 pruebas de lógica; borrarTarjeta: la pantalla cambia (R7); borrarTarjeta: se usa desde la pantalla"
+      },
+      {
+        "id": "F3.6",
+        "pieza": "controles",
+        "task": "Implementar el control para disparar la eliminación y mostrar el modal de confirmación.",
+        "verdict": "CUMPLIDA",
+        "accion": "borrarTarjeta",
+        "reason": "borrarTarjeta: la pantalla cambia (R7); borrarTarjeta: se usa desde la pantalla"
+      },
+      {
+        "id": "F3.7",
+        "pieza": "logica",
+        "task": "Actualizar los contadores de tarjetas en tiempo real tras cualquier movimiento o modificación.",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "el enlace no la ubicó en ninguna acción"
+      },
+      {
+        "id": "F4.1",
+        "pieza": "estilo",
+        "task": "Aplicar estilos detallados restantes (sombras y efectos visuales) a las tarjetas y columnas del tablero Kanban.",
+        "verdict": "NO_CUMPLIDA",
+        "requisitos": [
+          "R2",
+          "R3",
+          "R16"
+        ],
+        "reason": "R2, R3 dio FAIL en Validation: ningún control menciona: Agregar tarjeta"
+      },
+      {
+        "id": "F4.2",
+        "pieza": "logica",
+        "task": "Implementar la lógica de ordenamiento avanzado para las tarjetas dentro de cada columna.",
+        "verdict": "SIN_EVIDENCIA",
+        "reason": "el enlace no la ubicó en ninguna acción"
+      },
+      {
+        "id": "F4.3",
+        "pieza": "vista",
+        "task": "Controlar la visibilidad del botón 'Agregar tarjeta' basado en la columna activa.",
+        "verdict": "CUMPLIDA",
+        "lista": "columnas",
+        "reason": "se ven los 3 elementos de columnas"
+      }
+    ],
+    "counts": {
+      "CUMPLIDA": 9,
+      "SIN_EVIDENCIA": 7,
+      "NO_CUMPLIDA": 6
+    },
+    "desconocidas": [],
+    "enVariasAcciones": []
+  },
+  "muestreo": {
+    "temperature": 0,
+    "seed": null
+  },
+  "huella": {
+    "index.html": "58b02fab5760",
+    "js/acciones.js": "50e9ee18048a",
+    "js/controles.js": "ba00624cf955",
+    "js/datos.js": "ac8538609bf1",
+    "js/dibujo.js": "7087e8ff86d7",
+    "js/logica.js": "8c955e31093f",
+    "js/vendor/handlebars.js": "146d1fa623a7",
+    "styles.css": "e581b453a7bf"
+  },
+  "summary": {
+    "requisitos": 17,
+    "PASS": 6,
+    "FAIL": 8,
+    "SIN_EVIDENCIA": 0,
+    "SIN_CHEQUEO": 3
+  },
+  "control": "mismos chequeos sobre baseline/ (esqueleto vacío del harness); PASS en ambos = trivial",
+  "coverage": [
+    {
+      "id": "R1",
+      "text": "Crear tarjetas",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "action_changes",
+          "params": {
+            "click": [
+              "crear",
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "3 campo(s) completado(s), clic \"Editar tarjeta\" → 3 cambios",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "calls_probe",
+          "gate": true,
+          "result": "FAIL",
+          "detail": "ningún botón de la pantalla llama a App.crearTarjeta (se apretaron todos los botones con los campos completos)"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Primera columna -> div contenedor de columna 'Pendiente' + botón 'Agregar tarjeta' debajo",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "text_visible",
+          "params": {
+            "text": [
+              "Pendiente"
+            ]
+          },
+          "result": "PASS",
+          "detail": "visible: \"pendiente\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "Agregar tarjeta"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "ningún control menciona: Agregar tarjeta",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "text": "Asignar prioridad a una tarjeta desde una lista (etiqueta: alta: color rojo, media: color amarillo, baja: color verde) en el modal de creación o edición de tarjetas",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "alta",
+              "media",
+              "baja"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "ningún control menciona: alta / media / baja",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "text": "Campos que tendrá cada tarjeta al momento de crearla: Titulo, descripción, y prioridad (etiqueta)",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "action_changes",
+          "params": {
+            "click": [
+              "crear",
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "3 campo(s) completado(s), clic \"Editar tarjeta\" → 3 cambios",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "calls_probe",
+          "gate": true,
+          "result": "FAIL",
+          "detail": "ningún botón de la pantalla llama a App.crearTarjeta (se apretaron todos los botones con los campos completos)"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "Campos que se pueden editar al presionar el botón 'editar tarjeta': Titulo, descripción, y prioridad (etiqueta)",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "action_changes",
+          "params": {
+            "click": [
+              "editar",
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "3 campo(s) completado(s), clic \"Editar tarjeta\" → 3 cambios",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "Usar funcionalidad de drag&drop: la tarjeta estara compuesta por un contenedor con 2 divs dentro; Un div de 24px (⠿) sera el encargado de la funcion drag&drop (class='drag-handle' draggable='true' ondragstart / ondragend)",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El requisito especifica funcionalidades relacionadas con drag&drop, pero no menciona elementos visibles en la interfaz que puedan ser verificados con los chequeos del catálogo proporcionados. Los eventos de drag&drop no se pueden verificar mediante el catálogo actual.",
+      "checks": []
+    },
+    {
+      "id": "R7",
+      "text": "Comportamiento al borrar una tarjeta: Eliminar(🗑️) abre un modal para consultarle al usuario 'Esta seguro de borrar la tarjeta?' y si el usuario confirma, la tarjeta sera eliminada de la columna donde se encontrara, reduciendo el contador de tarjetas de dicha columna",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "action_changes",
+          "params": {
+            "click": [
+              "borrar",
+              "eliminar"
+            ]
+          },
+          "result": "PASS",
+          "detail": "clic \"Borrar tarjeta\" → 24 cambios",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "counter_on_action",
+          "params": {
+            "label": [
+              "tarjetas"
+            ],
+            "keys": [
+              "confirmar",
+              "aceptar"
+            ],
+            "click": [
+              "borrar"
+            ]
+          },
+          "result": "PASS",
+          "detail": "clic \"Borrar tarjeta\": (sin \"tarjetas\": números sueltos) \"2 | 1 | 1\" → \"1 | 1 | 1\"",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "text": "Campos que tendrá cada columna: title ('Pendiente', 'En Curso', 'Completa'), y counter (contador de tarjetas dentro de la columna); La Columna 'Pendiente' sera la unica que tendra debajo el botón 'Agregar tarjeta'",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "text_visible",
+          "params": {
+            "text": [
+              "title",
+              "Pendiente",
+              "En Curso",
+              "Completa"
+            ]
+          },
+          "result": "PASS",
+          "detail": "visible: \"pendiente\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "counter_on_action",
+          "params": {
+            "label": [
+              "tarjetas"
+            ],
+            "click": [
+              "Agregar tarjeta"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "ningún control visible menciona: Agregar tarjeta",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "text": "Fondo: #102C54, columnas: #8FB3C7, tarjetas: #F2E9D8",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "el harness sacó los chequeos del traductor: no_horizontal_scroll fuera: el requisito no habla de pantallas chicas ni de responsive · Los colores del fondo y las columnas no se pueden verificar con un chequeo del catálogo, ya que estos verifican la presencia de elementos interactivos o comportamientos específicos en la interfaz.",
+      "checks": []
+    },
+    {
+      "id": "R10",
+      "text": "Columnas con overflow:scroll, width:248px, header con title ('Pendiente', 'En Curso', o 'Completa') y contador de tarjetas en columna",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "text_visible",
+          "params": {
+            "text": [
+              "Pendiente",
+              "En Curso",
+              "Completa"
+            ]
+          },
+          "result": "PASS",
+          "detail": "visible: \"pendiente\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "counter_on_action",
+          "params": {
+            "label": [
+              "tarjetas"
+            ],
+            "click": [
+              "agregar",
+              "añadir"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "ningún control visible menciona: agregar / añadir",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R11",
+      "text": "Botón 'Agregar tarjeta': padding: 8px, border: 1px dashed, border radius: 8px, abre modal de creación de tarjetas",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "agregar",
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"Editar tarjeta\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "action_changes",
+          "params": {
+            "click": [
+              "agregar",
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "3 campo(s) completado(s), clic \"Editar tarjeta\" → 3 cambios",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R12",
+      "text": "Tarjetas con overflow-y:scroll, height:250px, width: 223px (24px para drag&drop y 199px restantes para el body)",
+      "verdict": "SIN_CHEQUEO",
+      "reason": "El requisito especifica dimensiones CSS de tarjetas pero no hay elementos interactivos o cambios visibles que puedan ser verificados con los chequeos del catálogo.",
+      "checks": []
+    },
+    {
+      "id": "R13",
+      "text": "Div 'top' con title y actions",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "text_visible",
+          "params": {
+            "text": [
+              "title",
+              "título"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "no aparece: title / título",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "actions",
+              "acciones"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "ningún control menciona: actions / acciones",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R14",
+      "text": "Actions: botón eliminar y botón editar tarjeta, display on hover",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "control_visible",
+          "params": {
+            "text": [
+              "eliminar",
+              "editar"
+            ]
+          },
+          "result": "PASS",
+          "detail": "control: \"Editar tarjeta\"",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "hover_changes",
+          "params": {
+            "elementos": [
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "tarjeta: cambia al pasar el mouse",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R15",
+      "text": "Sombras en tarjetas, efecto de movimiento durante drag&drop, actualización de contadores al mover tarjetas",
+      "verdict": "FAIL",
+      "checks": [
+        {
+          "type": "hover_changes",
+          "params": {
+            "elementos": [
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "tarjeta: cambia al pasar el mouse",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "counter_on_action",
+          "params": {
+            "label": [
+              "tarjetas",
+              "movimientos"
+            ]
+          },
+          "result": "FAIL",
+          "detail": "ArrowUp, ArrowDown, ArrowLeft, ArrowRight: (sin \"tarjetas / movimientos\": números sueltos) \"2 | 1 | 1\" → no cambia",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R16",
+      "text": "Tarjetas de la misma prioridad: Se prioriza la más reciente; en cada columna, las tarjetas se mostrarán y ordenarán de forma descendente sobre la columna, con las de prioridad alta arriba, luego las de prioridad media y debajo de todo las de prioridad baja",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "hover_changes",
+          "params": {
+            "elementos": [
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "tarjeta: cambia al pasar el mouse",
+          "baseline": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "R17",
+      "text": "Botones 'Eliminar' y 'Editar': Eliminar: 🗑️, Editar: ✏️ (visibles solo al hacer hover en la tarjeta)",
+      "verdict": "PASS",
+      "checks": [
+        {
+          "type": "hover_changes",
+          "params": {
+            "elementos": [
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "tarjeta: cambia al pasar el mouse",
+          "baseline": "FAIL"
+        },
+        {
+          "type": "hover_changes",
+          "params": {
+            "elementos": [
+              "tarjeta"
+            ]
+          },
+          "result": "PASS",
+          "detail": "tarjeta: cambia al pasar el mouse",
+          "baseline": "FAIL"
+        }
+      ]
+    }
+  ],
+  "specialist": {
+    "model": "google/gemma-4-e4b",
+    "version": "files_engine v0.13.3",
+    "standard": {
+      "id": "web/app/plantillas",
+      "version": "0.1.0",
+      "status": "DRAFT"
+    },
+    "skills": null,
+    "files": [
+      "index.html",
+      "styles.css",
+      "js/datos.js",
+      "js/logica.js",
+      "js/acciones.js",
+      "js/vendor/handlebars.js",
+      "js/dibujo.js",
+      "js/controles.js"
+    ],
+    "rule_tests": {
+      "passed": [
+        "crear devuelve ESTADO_INICIAL",
+        "crearTarjeta devuelve un estado",
+        "crearTarjeta no modifica el estado que recibe",
+        "crearTarjeta conserva las claves del estado",
+        "crearTarjeta hace algo",
+        "crearTarjeta: el estado son solo datos",
+        "editarTarjeta devuelve un estado",
+        "editarTarjeta no modifica el estado que recibe",
+        "editarTarjeta conserva las claves del estado",
+        "editarTarjeta hace algo",
+        "editarTarjeta: el estado son solo datos",
+        "borrarTarjeta devuelve un estado",
+        "borrarTarjeta no modifica el estado que recibe",
+        "borrarTarjeta conserva las claves del estado",
+        "borrarTarjeta hace algo",
+        "borrarTarjeta: el estado son solo datos",
+        "moverTarjeta devuelve un estado",
+        "moverTarjeta no modifica el estado que recibe",
+        "moverTarjeta conserva las claves del estado",
+        "moverTarjeta hace algo",
+        "moverTarjeta: el estado son solo datos",
+        "crear devuelve una copia nueva"
+      ],
+      "failed": []
+    },
+    "steps": [
+      {
+        "n": 1,
+        "task_id": "contrato",
+        "by": "modelo",
+        "ms": 373300,
+        "finish_reason": "stop",
+        "changed": [
+          "contrato.json"
+        ],
+        "rejected": [
+          "la feature 3 (\"Asignar prioridad a una tarjeta desde una lista (etiqueta: alta: color rojo, med\") no está en \"features\" de ninguna acción ni en \"se_ve\"."
+        ]
+      },
+      {
+        "n": 2,
+        "task_id": "logica",
+        "by": "modelo",
+        "ms": 194017,
+        "finish_reason": "stop",
+        "changed": [
+          "js/logica.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 3,
+        "task_id": "acciones",
+        "by": "harness",
+        "ms": 1,
+        "changed": [
+          "js/acciones.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 4,
+        "task_id": "handlebars",
+        "by": "harness",
+        "ms": 1,
+        "changed": [
+          "js/vendor/handlebars.js"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 5,
+        "task_id": "pantalla",
+        "by": "modelo",
+        "ms": 367465,
+        "finish_reason": "stop",
+        "changed": [
+          "app.html",
+          "styles.css"
+        ],
+        "rejected": []
+      },
+      {
+        "n": 6,
+        "task_id": "dibujo",
+        "by": "modelo",
+        "ms": 254961,
+        "finish_reason": "stop",
+        "changed": [
+          "js/dibujo.js"
+        ],
+        "rejected": [
+          "faltan los controles de: crearTarjeta (poné <div data-controles=\"app\"></div> una vez en la plantilla: al final, o adentro del elemento donde el brief dice que va)."
+        ]
+      },
+      {
+        "n": 7,
+        "task_id": "controles",
+        "by": "harness",
+        "ms": 1528,
+        "changed": [
+          "js/controles.js"
+        ],
+        "rejected": [
+          "ningún control de la pantalla llama a App.crearTarjeta (el listener click de #app, con b.dataset.accion === \"crearTarjeta\", hace estado = App.crearTarjeta(estado, b.parentElement.querySelector('[data-campo=\"titulo\"]').value, b.parentElement.querySelector('[data-campo=\"descripcion\"]').value, b.parentElement.querySelector('[data-campo=\"prioridad\"]').value) y dibujar(estado))."
+        ]
+      },
+      {
+        "n": 8,
+        "task_id": "enlace",
+        "by": "modelo",
+        "ms": 435395,
+        "finish_reason": "stop",
+        "changed": [
+          "enlace.json"
+        ],
+        "rejected": [
+          "estas tareas están en un lugar que no es de su pieza: F3.3 [estilo] va en un REQUISITO, no en \"moverTarjeta\"; F1.4 [estilo] va en un REQUISITO, no en \"columnas\"; F3.7 [logica] va en una ACCIÓN, no en \"columnas\"; F4.1 [estilo] va en un REQUISITO, no en \"columnas\"; F3.1 [estilo] va en un REQUISITO, no en \"columnas[].tarjetas\"; F4.3 [vista] va en una LISTA DEL ESTADO, no en \"R2\"; F2.2 [vista] va en una LISTA DEL ESTADO, no en \"R3\"; F2.5 [vista] va en una LISTA DEL ESTADO, no en \"R3\"; F4.2 [logica] va en una ACCIÓN, no en \"R16\"."
+        ]
+      }
+    ]
+  }
+}

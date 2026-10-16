@@ -1,0 +1,259 @@
+### FILE: app.html
+```html
+<h1>Kanban Board</h1>
+<div id="app"></div>
+```
+
+### FILE: styles.css
+```css
+/* ------------------------------------------ */
+/* Global Styles and Layout */
+/* ------------------------------------------ */
+
+body {
+    margin: 0;
+    padding: 20px;
+    background-color: #102C54; /* Fondo principal */
+    font-family: sans-serif;
+}
+
+#app {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 10px;
+}
+
+/* ------------------------------------------ */
+/* Column Styles (Pendiente, En Curso, Completa) */
+/* ------------------------------------------ */
+
+.columna {
+    background-color: #8FB3C7; /* Color de columna */
+    width: 248px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header de la columna */
+.columna-header {
+    padding: 15px;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #7a98b0; /* Tono más oscuro para el header */
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.columna-header h2 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+/* Contador de tarjetas */
+.columna-counter {
+    background-color: #5c7893;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 50%;
+    font-size: 0.9em;
+}
+
+/* Contenedor de tarjetas (Scrollable area) */
+.tarjetas-container {
+    flex-grow: 1;
+    overflow-y: auto; /* Scroll vertical para las tarjetas */
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Botón 'Agregar tarjeta' */
+.agregar-tarjeta {
+    padding: 8px;
+    border: 1px dashed #aaa;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 10px;
+    background-color: #e6f2ff;
+}
+
+/* ------------------------------------------ */
+/* Card Styles (Tarjetas) */
+/* ------------------------------------------ */
+
+.tarjeta {
+    width: 223px; /* Ancho total de la tarjeta */
+    height: 250px;
+    background-color: #F2E9D8; /* Color de fondo de la tarjeta */
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    position: relative; /* Necesario para posicionar los botones de acción */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Efecto al hacer hover en la tarjeta (para mostrar acciones) */
+.tarjeta:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Drag Handle (El área de arrastre) */
+.drag-handle {
+    width: 24px;
+    height: 100%;
+    cursor: grab;
+    background: none; /* Aseguramos que no haya fondo visible */
+    position: absolute;
+    left: -12px; /* Ajuste para que el handle quede pegado al borde izquierdo */
+    top: 0;
+    z-index: 10;
+}
+
+/* Contenedor interno del cuerpo de la tarjeta (el contenido) */
+.tarjeta-body {
+    display: flex;
+    flex-direction: column;
+    width: calc(223px - 24px); /* Ancho restante después del handle */
+    padding-left: 15px; /* Espacio para separar el contenido del handle */
+}
+
+/* Título y Descripción */
+.tarjeta h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+}
+
+.tarjeta p {
+    margin-bottom: 15px;
+    flex-grow: 1; /* Permite que el texto ocupe espacio */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* Prioridad (Etiqueta) */
+.prioridad {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+/* Colores de prioridad */
+.prioridad-alta { background-color: #ffdddd; color: red; }
+.prioridad-media { background-color: #ffffdd; color: orange; }
+.prioridad-baja { background-color: #ddffdd; color: green; }
+
+/* Acciones (Botones Editar/Eliminar) */
+.tarjeta-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    opacity: 0; /* Oculto por defecto */
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+/* Mostrar acciones al hacer hover en la tarjeta */
+.tarjeta:hover .tarjeta-actions {
+    opacity: 1;
+    visibility: visible;
+}
+
+.ctl-accion {
+    display: flex;
+    gap: 5px;
+}
+
+.ctl-boton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 5px;
+    transition: background-color 0.1s;
+}
+
+/* ------------------------------------------ */
+/* Drag & Drop Feedback Styles (F3.3) */
+/* ------------------------------------------ */
+
+/* Estilo cuando una tarjeta está siendo arrastrada */
+.dragging {
+    opacity: 0.5;
+    transform: scale(1); /* Mantiene el tamaño, pero con semi-transparencia */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Estilo para la columna de destino (resaltado) */
+.dragover {
+    background-color: #c4d6e1; /* Color más claro que el fondo de columna */
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo para la tarjeta al ser eliminada o movida (transición) */
+.removing {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease-out;
+}
+
+
+/* ------------------------------------------ */
+/* Control Elements Styles (.ctl-* classes) */
+/* ------------------------------------------ */
+
+.ctl-controles {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
+    border-top: 1px solid #ccc;
+}
+
+.ctl-accion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Estilo general para inputs y selects dentro de controles */
+input[type="text"], input[type="description"], select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: calc(100% - 20px); /* Ajuste para el contenedor */
+}
+
+/* Botones de acción (Ej. botón de guardar o confirmar) */
+.ctl-boton {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #007bff; /* Azul primario para botones principales */
+    color: white;
+    transition: background-color 0.2s;
+}
+
+.ctl-boton:hover {
+    background-color: #0056b3;
+}
+
+/* Estilo específico para el botón de agregar tarjeta (ya definido en la columna, pero se refuerza) */
+.agregar-tarjeta {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+```

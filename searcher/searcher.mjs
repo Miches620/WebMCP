@@ -20,7 +20,7 @@ import { createHash } from "node:crypto";
 import { parseJsonLoose } from "../json_loose.mjs";
 import { SEARXNG_URL } from "./check_searxng.mjs";
 
-export const SEARCHER_VERSION = "searcher v0.2.1";
+export const SEARCHER_VERSION = "searcher v0.3";
 const LM_URL = process.env.LM_STUDIO_URL || "http://localhost:1234/v1/chat/completions";
 const MODEL = process.env.SEARCHER_MODEL || process.env.REVIEWER_MODEL || "qwen2.5-7b-instruct";
 const SOURCE_CHARS = 6000; // por fuente: entra holgado en 16k con el pedido
@@ -121,7 +121,13 @@ export function outOfStack(g, rasgos, servidor = false) {
 }
 
 // ---------- pedidos a Qwen ----------
-export const QUERIES_SYSTEM = `Proponés búsquedas web cortas para encontrar LISTAS DE FUNCIONALIDADES de apps parecidas a la idea del usuario (no páginas de venta). Respondé SOLO JSON: { "consultas": ["…", "…", "…"] }. Tres consultas, de 3 a 7 palabras: 1) en inglés, del tipo "<tipo de app> features list"; 2) en inglés, del tipo "open source <tipo de app> github"; 3) en castellano, del tipo "funcionalidades de una app de <tipo>". Sin comillas ni operadores.`;
+// v0.3 (3ª corrida: Qwen copió el molde "<tipo de app> features list" como "web app features list"): Qwen dice SOLO de
+// qué tipo de app se trata; el harness arma las 3 consultas con los moldes.
+export const QUERIES_SYSTEM = `Decís de qué TIPO de app se trata la idea del usuario, en 1 a 3 palabras, como se busca en la web (p. ej. "kanban", "lista de tareas", "recetario", "control de gastos"). Respondé SOLO JSON: { "tipo": "…", "tipo_en": "lo mismo en inglés" }.`;
+export function queriesFor(tipo, tipoEn) {
+  const t = String(tipo || "").trim(), en = String(tipoEn || tipo || "").trim();
+  return t ? [`${en} app features list`, `open source ${en} app github`, `funcionalidades de una app de ${t}`] : [];
+}
 export const TRAITS_SYSTEM = `Leés UNA página web sobre apps parecidas a la idea del usuario y anotás las FUNCIONALIDADES que la página describe (lo que una persona puede hacer o ver en la app). Respondé SOLO JSON: { "rasgos": [ { "rasgo": "frase corta en castellano, empezando con un verbo en infinitivo (p. ej. 'arrastrar tarjetas entre columnas')", "cita": "texto COPIADO tal cual de la página que lo dice (de 5 a 25 palabras)" } ] }.
 Reglas: solo lo que la página DICE (la cita se verifica contra la página: si no está, se descarta); un rasgo es algo que una persona HACE en la app o VE en la pantalla (mover, etiquetar, filtrar, ver un contador…), NO un beneficio ni un uso ("mejorar la productividad", "adaptarse a proyectos", "generar en minutos", "gestionar stakeholders"); nada de precios, planes, empresas ni opiniones; como mucho 8 rasgos; si la página no describe funcionalidades, { "rasgos": [] }.`;
 // (v0.1 tenía MERGE_SYSTEM: Qwen agrupaba; en la 1ª corrida real falló — ver arriba)
@@ -150,9 +156,15 @@ const json = (res) => { const j = parseJsonLoose(res?.content); return j.ok ? j.
 export async function runSearcher({ idea, tipo = "web/app", max = 8, stack = null, call = callLM, search = searx, fetchPage = download, log = () => {} }) {
   const ev = { version: SEARCHER_VERSION, model: MODEL, searxng: SEARXNG_URL, fecha: new Date().toISOString(), idea, tipo, stack: stack?.nombre || null, consultas: [], fuentes: [], rasgos: [], descartados: [], grupos: [], preguntas: [], otros: [], llamadas: [] };
   // 1. consultas
-  let qs = null;
-  try { const r = await call([{ role: "system", content: QUERIES_SYSTEM }, { role: "user", content: `Tipo: ${tipo}\nIdea: ${idea}` }], 300); ev.llamadas.push({ paso: "consultas", raw: r.content }); qs = json(r)?.consultas; } catch (e) { ev.llamadas.push({ paso: "consultas", error: e.message }); }
-  ev.consultas = (Array.isArray(qs) ? qs : []).map(String).map((x) => x.trim()).filter((x) => x.length >= 3).slice(0, 3);
+  let qs = [];
+  try {
+    const r = await call([{ role: "system", content: QUERIES_SYSTEM }, { role: "user", content: `Idea: ${idea}` }], 120);
+    ev.llamadas.push({ paso: "consultas", raw: r.content });
+    const j = json(r) || {};
+    const ok = (x) => typeof x === "string" && x.trim().length >= 2 && x.trim().split(/\s+/).length <= 4;
+    if (ok(j.tipo)) { ev.tipo_app = { es: j.tipo.trim(), en: ok(j.tipo_en) ? j.tipo_en.trim() : j.tipo.trim() }; qs = queriesFor(ev.tipo_app.es, ev.tipo_app.en); }
+  } catch (e) { ev.llamadas.push({ paso: "consultas", error: e.message }); }
+  ev.consultas = qs;
   if (!ev.consultas.length) ev.consultas = [String(idea).slice(0, 80)];
   log(`consultas: ${ev.consultas.join(" | ")}`);
   // 2. buscar y bajar (el harness)

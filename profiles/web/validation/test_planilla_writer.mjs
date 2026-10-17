@@ -2,12 +2,13 @@
 //   node profiles/web/validation/test_planilla_writer.mjs
 import { readFileSync } from "node:fs";
 import { validateRow, normalizeRow, writeRequirement, writePlanilla, systemPrompt, userPrompt, WRITER_VERSION } from "./planilla_writer.mjs";
+import { rowsFromChoices, systemPromptPlantillas, PLANTILLAS, PLANTILLAS_VERSION } from "./planilla_plantillas.mjs";
 
 let ok = 0, fail = 0;
 const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
 const P = JSON.parse(readFileSync(new URL("./fixtures/planilla_kanban_c22.json", import.meta.url), "utf8"));
 
-t("versión", WRITER_VERSION === "planilla_writer v0.2.1");
+t("versión", WRITER_VERSION === "planilla_writer v0.3");
 // calibración: la planilla hecha a mano (la vara) cumple el validador entera
 const hand = P.filas.map((f) => [f.id, validateRow(f, 17)]);
 t("las 22 filas de la planilla a mano pasan el validador", hand.every(([, v]) => v.ok), hand.filter(([, v]) => !v.ok).map(([id, v]) => `${id}: ${v.problems.join("; ")}`).join(" | "));
@@ -61,21 +62,43 @@ t("el pedido de un requisito trae todos como contexto y dice cuál escribir", /R
 // ciclo con un modelo de mentira
 const feats = ["Crear tarjetas en la columna Pendiente", "Div 'top' con title y actions"];
 const replies = (list) => { let i = 0; return async () => ({ content: list[Math.min(i++, list.length - 1)] }); };
-const r1 = await writeRequirement({ id: "R1", text: feats[0], features: feats, call: replies([
+const r1 = await writeRequirement({ id: "R1", text: feats[0], features: feats, modo: "libre", call: replies([
   `{"filas":[{"r":"R1","hago":{"agregar":"QA Alfa"},"veo":[{"esta":".card"}]}]}`,
   `{"filas":[{"r":"R1","hago":{"agregar":"QA Alfa"},"veo":[{"esta":"QA Alfa","en":"Pendiente"}]}]}`,
 ]) });
 t("fila mala → reintento con el problema escrito → buena (2 llamadas, id R1.1)", r1.filas.length === 1 && r1.filas[0].id === "R1.1" && r1.calls.length === 2 && r1.calls[0].rejected[0].some((x) => /cómo está programado/.test(x)), JSON.stringify(r1.calls.map((c) => c.rejected)));
-const r13 = await writeRequirement({ id: "R2", text: feats[1], features: feats, call: replies([`{"sin_fila":"dice cómo está armada la tarjeta por dentro"}`]) });
+const r13 = await writeRequirement({ id: "R2", text: feats[1], features: feats, modo: "libre", call: replies([`{"sin_fila":"dice cómo está armada la tarjeta por dentro"}`]) });
 t("sin_fila con motivo → SIN_CHEQUEO, una sola llamada", r13.sin_fila && !r13.filas.length && r13.calls.length === 1);
-const rx = await writeRequirement({ id: "R1", text: feats[0], features: feats, call: replies(["no sé"]) });
+const rx = await writeRequirement({ id: "R1", text: feats[0], features: feats, modo: "libre", call: replies(["no sé"]) });
 t("nunca da JSON → 3 intentos y sin filas (no inventa nada)", rx.filas.length === 0 && rx.calls.length === 3);
-const rr = await writeRequirement({ id: "R1", text: feats[0], features: feats, call: replies([`{"filas":[{"r":"R2","veo":[{"esta":"x"}]}]}`, `{"filas":[{"hago":{"agregar":"QA Alfa"},"veo":[{"esta":"QA Alfa"}]}]}`]) });
+const rr = await writeRequirement({ id: "R1", text: feats[0], features: feats, modo: "libre", call: replies([`{"filas":[{"r":"R2","veo":[{"esta":"x"}]}]}`, `{"filas":[{"hago":{"agregar":"QA Alfa"},"veo":[{"esta":"QA Alfa"}]}]}`]) });
 t("fila de otro requisito → rechazada; sin 'r' → toma el del pedido", rr.filas.length === 1 && rr.filas[0].r === "R1" && /no de R1/.test(rr.calls[0].rejected[0][0]));
-const pl = await writePlanilla({ features: feats, call: async (m) => ({ content: /SOLO de R1/.test(m[1].content) ? `{"filas":[{"r":"R1","hago":{"agregar":"QA Alfa"},"veo":[{"esta":"QA Alfa"}]}]}` : `{"sin_fila":"es el cómo"}` }) });
-t("planilla entera: filas de R1, R2 sin fila con su motivo, y quién la escribió", pl.filas.length === 1 && pl.sin_fila.R2 === "es el cómo" && /planilla_writer v0\.2/.test(pl.autor));
+const pl = await writePlanilla({ features: feats, modo: "libre", call: async (m) => ({ content: /SOLO de R1/.test(m[1].content) ? `{"filas":[{"r":"R1","hago":{"agregar":"QA Alfa"},"veo":[{"esta":"QA Alfa"}]}]}` : `{"sin_fila":"es el cómo"}` }) });
+t("planilla entera: filas de R1, R2 sin fila con su motivo, y quién la escribió", pl.filas.length === 1 && pl.sin_fila.R2 === "es el cómo" && /planilla_writer v0\.3 .*modo libre/.test(pl.autor));
 const caida = await writePlanilla({ features: ["x"], call: async () => { throw new Error("fetch failed"); } });
 t("LM Studio caído → el requisito queda sin fila, con el error (no se inventa)", /fetch failed/.test(caida.sin_fila.R1));
+
+// ---------- v0.3: modo PLANTILLAS (Qwen elige, el harness arma) ----------
+t("plantillas: versión y 13 plantillas", PLANTILLAS_VERSION === "planilla_plantillas v0.1" && Object.keys(PLANTILLAS).length === 13);
+const IDEAL = JSON.parse(readFileSync(new URL("./fixtures/real_qwen_c22/elecciones_ideales_c22.json", import.meta.url), "utf8"));
+const built = Object.entries(IDEAL).filter(([r]) => /^R\d+$/.test(r) && IDEAL[r].usa).flatMap(([r, a]) => { const x = rowsFromChoices(a.usa, r); return [...x.filas.map((f) => [r, validateRow(normalizeRow(f).row, 17, { features: FEATS })]), ...x.problems.map((p) => [r, { ok: false, problems: [p] }])]; });
+t("techo: las elecciones IDEALES para c22 arman 28 filas y TODAS pasan el validador (con los chequeos de sentido)", built.length === 28 && built.every(([, v]) => v.ok), built.filter(([, v]) => !v.ok).map(([r, v]) => `${r}: ${v.problems.join("; ")}`).join(" | "));
+// (el techo contra la vara, en las 4 apps: 67 de 68 — evidencia del 17/10; la única diferencia es R5 en plantillas, donde la plantilla tiene razón)
+const ord = rowsFromChoices([{ plantilla: "orden_por_campo", campo: "prioridad", valores: ["alta", "media", "baja"], columna: "Pendiente", reciente_primero: true }], "R16").filas[0];
+t("orden_por_campo: crea en un orden DISTINTO al esperado (si no, no prueba que ordene) y prueba el desempate por reciente", ord.dado.map((d) => d.agregar).join() === "QA Alta Vieja,QA Baja,QA Media,QA Alta Nueva" && ord.veo[0].orden.join() === "QA Alta Nueva,QA Alta Vieja,QA Media,QA Baja", JSON.stringify(ord));
+const est = rowsFromChoices([{ plantilla: "estilo", de: "tarjeta", prop: "box-shadow", valor: "con sombra" }, { plantilla: "estilo", de: "boton", nombre: "Agregar tarjeta", prop: "padding", valor: "8px" }], "R9").filas;
+t("estilo: 'con sombra' → distinta de none, crea la tarjeta; botón → sus palabras", est[0].veo[0].estilo.valor.distinto === "none" && est[0].dado[0].agregar === "QA Alfa" && est[1].veo[0].estilo.de.control.join() === "Agregar,tarjeta");
+const malas = rowsFromChoices([{ plantilla: "volar" }, { plantilla: "mover" }, { plantilla: "estilo", de: "columna", prop: "width", valor: "248px" }], "R6").problems;
+t("elecciones mal completadas → afuera, cada una con qué falta", malas.length === 3 && /no existe/.test(malas[0]) && /"a": la columna de destino/.test(malas[1]) && /"nombre": el nombre de la columna/.test(malas[2]), malas.join(" | "));
+const sp = systemPromptPlantillas();
+t("pedido de plantillas: lista las 13, ejemplos de otra app (recetas), sin_fila", Object.keys(PLANTILLAS).every((k) => sp.includes(`- ${k}:`)) && /recetas/.test(sp) && /sin_fila/.test(sp) && !/Pendiente|En Curso/.test(sp));
+const tp = await writeRequirement({ id: "R1", text: feats[0], features: feats, call: replies([
+  `{"usa":[{"plantilla":"crear","columna":"Columna Pendiente"},{"plantilla":"volar"}]}`,
+  `{"usa":[{"plantilla":"crear","columna":"Pendiente"}]}`,
+]) });
+t("modo plantillas (por defecto): elección inventada → reintento con el motivo → bien; la fila sale armada por el harness", tp.filas.length === 1 && tp.filas[0].hago.agregar === "QA Alfa" && tp.filas[0]._plantilla === "crear" && tp.calls.length === 2 && tp.calls[0].rejected.some((x) => /no existe/.test(x.join())), JSON.stringify(tp.calls.map((c) => c.rejected)));
+const tps = await writeRequirement({ id: "R2", text: feats[1], features: feats, call: replies([`{"sin_fila":"es el cómo"}`]) });
+t("modo plantillas: sin_fila con motivo, una llamada", tps.sin_fila === "es el cómo" && tps.calls.length === 1);
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

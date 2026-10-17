@@ -2,6 +2,20 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Plantillas de fila (planilla_writer v0.3) y Searcher v0.3 (17/10, madrugada; decisión de Miche)**
+- *Origen:* en 3 corridas reales, cuando Qwen escribía la fila entera acertaba en 28 de 32 celdas, pero en 8 de 16 requisitos no lograba armar una fila válida. Ver Project doc `claude/evidencia_qwen_planilla_searcher_2026-10-17.md`, secciones 4 y 5.
+- **`profiles/web/validation/planilla_plantillas.mjs`:** 13 plantillas.
+  - Cuáles: crear, crear_con_campos, editar, borrar, mover, contador_al_crear, recargar_sigue, se_ven_textos, boton_en, al_pasar_mouse, estilo, color_segun_valor, orden_por_campo.
+  - Qwen elige las que aplican y completa 2 o 3 casilleros; el harness arma la fila.
+  - Una elección mal completada queda afuera con lo que falta, y vuelve en el reintento.
+  - `orden_por_campo` crea las tarjetas en un orden DISTINTO al esperado (si no, no prueba que ordene) y prueba el desempate por la más reciente.
+  - Las filas pasan por el MISMO validador.
+- **Techo, medido:** con elecciones ideales escritas a mano (`fixtures/real_qwen_c22/elecciones_ideales_c22.json`), las filas juzgan igual que la vara en **67 de 68** celdas. La única diferencia es R5 en plantillas, y ahí la plantilla tiene razón: edita una tarjeta que ya existe, mientras que la vara exige crearla antes. O sea, las plantillas alcanzan.
+- **planilla_writer v0.3:** `--modo plantillas` es el modo por defecto; `--modo libre` es la v0.2.1, para comparar.
+- **Searcher v0.3:** Qwen dice solo el tipo de app ("kanban") y el harness arma las 3 consultas: "… app features list", "open source … app github", "funcionalidades de una app de …". La 3ª corrida había salido "web app features list".
+- *Tests:* `test_planilla_writer` 39/39, `test_searcher` 25/25.
+- *Falta:* correr Qwen en modo plantillas y comparar contra la vara.
+
 **planilla_writer v0.2.1, searcher v0.2.1 y corrección de la vara (2ª corrida real, 17/10)**
 - *Evidencia:* Project doc `claude/evidencia_qwen_planilla_searcher_2026-10-17.md`, sección 3. Fixture: `profiles/web/validation/fixtures/real_qwen_c22/evidencia_v02.json`.
 - **Planilla v0.2: 28 de 68 contra la vara.** Ya no entra basura, pero en 9 requisitos Qwen repite el mismo error en los 3 intentos. Donde sí dio filas, coincide en 24 de 32 celdas (75%).

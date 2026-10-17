@@ -1,12 +1,13 @@
 // test_searcher.mjs — el Searcher sin red ni modelo: buscar, bajar, citas verificadas, agrupar, preguntas.
 //   node searcher/test_searcher.mjs
 import { readFileSync } from "node:fs";
+import { queriesFor } from "./searcher.mjs";
 import { runSearcher, htmlToText, quoteInSource, quoteSupports, pickSources, questionsFrom, groupTraits, sameTrait, alreadyAsked, outOfStack, SEARCHER_VERSION, TRAITS_SYSTEM, MAX_PREGUNTAS } from "./searcher.mjs";
 
 let ok = 0, fail = 0;
 const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
 
-t("versión", SEARCHER_VERSION === "searcher v0.2.1");
+t("versión", SEARCHER_VERSION === "searcher v0.3");
 t("HTML → texto: sin scripts, estilos ni menú; entidades", htmlToText('<nav>Menú</nav><script>x()</script><p>Arrastrá &amp; soltá</p><style>.a{}</style>') === "Arrastrá & soltá");
 t("cita: tolera tildes, mayúsculas y espacios; corta (<12) no vale; inventada no está", quoteInSource("Podés ARRASTRAR las tarjetas  entre columnas", "...podes arrastrar las tarjetas entre columnas y...") && !quoteInSource("arrastrar", "arrastrar") && !quoteInSource("guarda todo en la nube automáticamente", "arrastrá tarjetas"));
 const ps = pickSources([{ results: [{ url: "https://a.com/1", title: "A1" }, { url: "https://a.com/2" }, { url: "https://a.com/3" }, { url: "https://www.youtube.com/watch" }] }, { results: [{ url: "https://b.com/1#x" }, { url: "https://a.com/1" }] }], 6);
@@ -31,14 +32,15 @@ const search = async (q) => ({ results: [{ url: "https://a.com/1", title: "Trell
 const fetchPage = async (u) => { if (!PAGES[u]) throw new Error("timeout"); return PAGES[u]; };
 const call = async (messages) => {
   const sys = messages[0].content, user = messages[1].content;
-  if (/búsquedas web/.test(sys)) return { content: `{"consultas":["app kanban funcionalidades","kanban board features","tablero de tareas web"]}` };
+  if (/TIPO de app/.test(sys)) return { content: `{"tipo":"kanban","tipo_en":"kanban board"}` };
   if (/UNA página/.test(sys) && /Página S1/.test(user)) return { content: `{"rasgos":[{"rasgo":"arrastrar tarjetas entre columnas","cita":"Podés arrastrar las tarjetas entre columnas"},{"rasgo":"poner etiquetas de colores","cita":"puede tener etiquetas de colores"},{"rasgo":"sincronizar con la nube","cita":"se sincroniza automáticamente con la nube"}]}` };
   if (/UNA página/.test(sys) && /Página S2/.test(user)) return { content: `{"rasgos":[{"rasgo":"crear tarjetas","cita":"te deja crear tarjetas y moverlas"},{"rasgo":"mover tarjetas arrastrándolas","cita":"moverlas entre columnas arrastrándolas con el mouse"},{"rasgo":"guardar los datos al recargar","cita":"siguen ahí al recargar la página"}]}` };
   if (/Agrupás/.test(sys)) return { content: `{"grupos":[{"rasgo":"arrastrar tarjetas entre columnas","de":["T1","T4"],"ya_pedido":false},{"rasgo":"crear tarjetas","de":["T3"],"ya_pedido":true},{"rasgo":"inventado sin T","de":["T99"]}]}` };
   return { content: "{}" };
 };
 const ev = await runSearcher({ idea: "Un Kanban para crear tarjetas", call, search, fetchPage });
-t("consultas de Qwen (3)", ev.consultas.length === 3);
+t("consultas: Qwen dice el tipo ('kanban') y el harness arma las 3 con los moldes", ev.consultas.join(" | ") === "kanban board app features list | open source kanban board app github | funcionalidades de una app de kanban", ev.consultas.join(" | "));
+t("moldes: sin tipo no hay consultas armadas (se busca con la idea)", queriesFor("", "").length === 0 && queriesFor("recetario", "recipe").length === 3);
 t("fuentes: 2 bajadas, la que no baja queda descartada con el motivo", ev.fuentes.length === 2 && ev.descartados.some((d) => /c\.com/.test(d.fuente) && /no se pudo bajar/.test(d.motivo)));
 t("cada fuente con su huella (sha) para poder repetir", ev.fuentes.every((s) => /^[0-9a-f]{12}$/.test(s.sha)));
 t("la cita inventada ('sincroniza con la nube') NO entra: sin fuente no hay rasgo", !ev.rasgos.some((r) => /nube/.test(r.rasgo)) && ev.descartados.some((d) => /nube/.test(d.rasgo || "") && /cita no está/.test(d.motivo)), JSON.stringify(ev.descartados));

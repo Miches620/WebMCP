@@ -12,14 +12,17 @@
 //   - Qwen puede decir que un requisito no se prueba como comportamiento (sin_fila + motivo): queda SIN_CHEQUEO.
 //   - Regla de Intent Forge: no agregar comportamientos que el requisito no dice.
 //
-//   node profiles/web/validation/planilla_writer.mjs <snapshot.json> [--out planilla.json]
+//   node profiles/web/validation/planilla_writer.mjs <snapshot.json> [--out planilla.json] [--modo plantillas|libre]
+//   v0.3: por defecto "plantillas" (Qwen elige plantillas de planilla_plantillas.mjs); "libre" = Qwen escribe la fila (v0.2.1)
 
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseJsonLoose } from "../../../json_loose.mjs";
+// v0.3 (17/10, decisión de Miche): modo "plantillas" — Qwen elige plantillas y completa casilleros; el harness arma la fila
+import { rowsFromChoices, systemPromptPlantillas, PLANTILLAS_VERSION } from "./planilla_plantillas.mjs";
 
-export const WRITER_VERSION = "planilla_writer v0.2.1";
+export const WRITER_VERSION = "planilla_writer v0.3";
 const MAX_ATTEMPTS = 3;
 const LM_URL = process.env.LM_STUDIO_URL || "http://localhost:1234/v1/chat/completions";
 const MODEL = process.env.PLANILLA_MODEL || process.env.REVIEWER_MODEL || "qwen2.5-7b-instruct";
@@ -252,9 +255,10 @@ const callLM = async (messages) => {
 };
 
 /** Escribe la planilla de un requisito, con reintentos. call(messages) → {content}: inyectable (tests). */
-export async function writeRequirement({ id, text, features, context = "", call = callLM }) {
+export async function writeRequirement({ id, text, features, context = "", call = callLM, modo = "plantillas" }) {
   const n = features.length;
-  const messages = [{ role: "system", content: systemPrompt() }, { role: "user", content: userPrompt({ id, text, features, context }) }];
+  const tpl = modo === "plantillas";
+  const messages = [{ role: "system", content: tpl ? systemPromptPlantillas() : systemPrompt() }, { role: "user", content: userPrompt({ id, text, features, context }) }];
   const calls = [];
   let last = null;
   for (let a = 1; a <= MAX_ATTEMPTS; a++) {
@@ -262,10 +266,14 @@ export async function writeRequirement({ id, text, features, context = "", call 
     try { res = await call(messages); } catch (e) { calls.push({ attempt: a, error: e.message }); last = { error: e.message }; continue; }
     try { const j = parseJsonLoose(res.content); parsed = j.ok ? j.data : null; } catch { parsed = null; }
     if (!parsed || typeof parsed !== "object") problems.push("la respuesta no es JSON");
-    else if (isText(parsed.sin_fila) && !(parsed.filas || []).length) { calls.push({ attempt: a, raw: res.content, usage: res.usage, sin_fila: parsed.sin_fila }); return { id, sin_fila: parsed.sin_fila, filas: [], rejected: [], calls }; }
-    else if (!Array.isArray(parsed.filas) || !parsed.filas.length) problems.push(`falta "filas" (o "sin_fila" con el motivo)`);
+    else if (isText(parsed.sin_fila) && !(parsed.filas || []).length && !(parsed.usa || []).length) { calls.push({ attempt: a, raw: res.content, usage: res.usage, sin_fila: parsed.sin_fila }); return { id, sin_fila: parsed.sin_fila, filas: [], rejected: [], calls }; }
+    else if (tpl && (!Array.isArray(parsed.usa) || !parsed.usa.length)) problems.push(`falta "usa": la lista de plantillas que aplican (o "sin_fila" con el motivo)`);
+    else if (!tpl && (!Array.isArray(parsed.filas) || !parsed.filas.length)) problems.push(`falta "filas" (o "sin_fila" con el motivo)`);
     const good = [], bad = [];
-    if (!problems.length) parsed.filas.forEach((f, k) => {
+    // modo plantillas: las elecciones de Qwen → filas que arma el harness (las elecciones mal completadas, afuera con su motivo)
+    let entrada = tpl ? [] : parsed?.filas || [];
+    if (tpl && !problems.length) { const r = rowsFromChoices(parsed.usa, id); entrada = r.filas; r.problems.forEach((x) => bad.push({ fila: null, problems: [x] })); }
+    if (!problems.length) entrada.forEach((f, k) => {
       const { row, cambios } = normalizeRow({ ...f, r: f.r || id });
       if (row.r !== id) { bad.push({ fila: f, problems: [`es de ${row.r}, no de ${id}`] }); return; }
       const v = validateRow(row, n, { features });
@@ -275,18 +283,18 @@ export async function writeRequirement({ id, text, features, context = "", call 
     last = { good, bad, problems };
     if (!problems.length && !bad.length) return { id, filas: good, rejected: [], calls };
     // reintento con los problemas escritos (las filas buenas se piden de nuevo junto con las corregidas)
-    const why = [...problems, ...bad.flatMap((b, i) => b.problems.map((x) => `fila ${i + 1}: ${x}`))];
+    const why = [...problems, ...bad.flatMap((b, i) => b.problems.map((x) => (b.fila?._plantilla ? `${b.fila._plantilla}: ${x}` : b.fila === null ? x : `fila ${i + 1}: ${x}`)))];
     messages.push({ role: "assistant", content: res.content }, { role: "user", content: `No cumple el formato:\n- ${why.join("\n- ")}\nRespondé de nuevo el JSON completo de ${id}, corregido.` });
   }
   return { id, filas: last?.good || [], rejected: last?.bad || [], error: last?.error || null, calls };
 }
 
 /** La planilla entera. features = refined_prompt.features. */
-export async function writePlanilla({ features, context = "", call = callLM, onProgress = null }) {
-  const out = { version: "planilla v0.1", autor: `${WRITER_VERSION} (${MODEL})`, filas: [], sin_fila: {}, rechazadas: {}, calls: {} };
+export async function writePlanilla({ features, context = "", call = callLM, onProgress = null, modo = "plantillas" }) {
+  const out = { version: "planilla v0.1", autor: `${WRITER_VERSION} (${MODEL}, modo ${modo}${modo === "plantillas" ? `, ${PLANTILLAS_VERSION}` : ""})`, modo, filas: [], sin_fila: {}, rechazadas: {}, calls: {} };
   for (const [i, text] of features.entries()) {
     const id = `R${i + 1}`;
-    const r = await writeRequirement({ id, text, features, context, call });
+    const r = await writeRequirement({ id, text, features, context, call, modo });
     out.filas.push(...r.filas);
     if (r.sin_fila) out.sin_fila[id] = r.sin_fila;
     else if (!r.filas.length) out.sin_fila[id] = `Qwen no dio filas válidas${r.error ? ` (${r.error})` : ""}`;
@@ -299,14 +307,18 @@ export async function writePlanilla({ features, context = "", call = callLM, onP
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   const args = process.argv.slice(2);
-  const snapPath = args.find((a) => !a.startsWith("--"));
-  if (!snapPath) { console.log("uso: node profiles/web/validation/planilla_writer.mjs <snapshot.json> [--out planilla.json]"); process.exit(2); }
+  const snapPath = args.find((a, i) => !a.startsWith("--") && !(i > 0 && args[i - 1].startsWith("--")));
+  if (!snapPath) { console.log("uso: node profiles/web/validation/planilla_writer.mjs <snapshot.json> [--out planilla.json] [--modo plantillas|libre]"); process.exit(2); }
   const snap = JSON.parse(readFileSync(snapPath, "utf8"));
   const rp = snap.intentForge?.refined_prompt || snap.refined_prompt || snap;
   if (!rp.features?.length) throw new Error("el snapshot no trae refined_prompt.features");
   const context = [rp.project_name, rp.objetivo].filter(Boolean).join(": ");
   const t0 = Date.now();
-  const p = await writePlanilla({ features: rp.features, context, onProgress: (id, r) => console.log(`[PLANILLA] ${id}: ${r.sin_fila ? `sin fila (${r.sin_fila})` : `${r.filas.length} fila(s)`}${r.rejected.length ? ` · ${r.rejected.length} rechazada(s)` : ""} · ${r.calls.length} llamada(s)`) });
+  const mi = args.indexOf("--modo");
+  const modo = mi >= 0 ? args[mi + 1] : "plantillas";
+  if (!["plantillas", "libre"].includes(modo)) { console.log('--modo plantillas (por defecto) | libre'); process.exit(2); }
+  console.log(`[PLANILLA] ${WRITER_VERSION} · modo ${modo}`);
+  const p = await writePlanilla({ features: rp.features, context, modo, onProgress: (id, r) => console.log(`[PLANILLA] ${id}: ${r.sin_fila ? `sin fila (${r.sin_fila})` : `${r.filas.length} fila(s)`}${r.rejected.length ? ` · ${r.rejected.length} rechazada(s)` : ""} · ${r.calls.length} llamada(s)`) });
   const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
   const i = args.indexOf("--out");
   const outPath = i >= 0 ? args[i + 1] : join(dirname(resolve(snapPath)), `planilla_qwen_${stamp}.json`);

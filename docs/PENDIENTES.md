@@ -5,7 +5,7 @@
 ## Nuevos (16/10)
 
 - **Contexto de Gemma: el Specialist calcula con 16000 y Gemma está cargada con 12000.** `harness/files_engine.mjs` usa `WEBMCP_CONTEXT` (por defecto 16000) para decidir cuánto puede responder cada paso, y cuánto pedir en un reintento. Con Gemma en 12000, un paso largo puede pedir más de lo que entra. Hasta decidir el valor por defecto: `WEBMCP_CONTEXT=12000`.
-- **Qwen ya escribe la planilla (`planilla_writer`), pero falta medirlo** contra la planilla a mano del Kanban (`npm run comparar`). Hasta que no coincida bien, la planilla de Qwen no reemplaza a la vara. Miche la edita y la aprueba (decisión del 16/10).
+- **Qwen arma la planilla con plantillas de fila (`planilla_writer` v0.3), pero falta medirlo** contra la planilla a mano del Kanban (`npm run comparar`). El techo de las plantillas ya está medido (67/68 con elecciones ideales). Hasta que coincida bien, la planilla de Qwen no reemplaza a la vara. Miche la edita y la aprueba (decisión del 16/10).
 - **La planilla todavía no llega a la UI ni al Specialist.** `run_build` la usa si viene en `refined_prompt.planilla`, pero Intent Forge todavía no la arma, y el Specialist no la ve como "esto es lo que se va a probar" (paso del librito libre).
 - **Searcher v0.1 solo por consola.** Falta llevar sus preguntas a la UI de Intent Forge (Miche acepta o no cada una), medir con y sin Searcher (cuántas preguntas nuevas, cuántas acepta Miche, cuántas terminan PASS) y correrlo de verdad con SearXNG.
 - **`flow_delete` busca la confirmación igual que hacía la planilla antes del arreglo** (cualquier botón "Borrar" fuera de la tarjeta marcada). Su veredicto no cambia (mira que el texto desaparezca), pero puede borrar una tarjeta de más.

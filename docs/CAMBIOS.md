@@ -2,6 +2,15 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**2ª corrida con plantillas: 55 de 68 → planilla_plantillas v0.2.1 (17/10, 13:10)**
+- *Evidencia:* Project doc `claude/evidencia_qwen_planilla_searcher_2026-10-17.md`, sección 7. Fixture: `fixtures/real_qwen_c22/planilla_v031.json`.
+- **Tres reglas sin modelo:**
+  - un valor exacto de estilo (`#…`, `…px`) tiene que estar en ESE requisito (R10 copiaba el color de R9);
+  - lo que está entre comillas es un nombre y no cuenta para la pertinencia (R2 elegía "crear" por "botón 'Agregar tarjeta'");
+  - los campos de texto libre llevan "QA …" (R5 usaba "Nueva descripción").
+- Las elecciones ideales siguen pasando todo. *Tests:* `test_planilla_writer` 49/49.
+- *Decisión de Claude:* se para de ajustar con el Kanban. La mejora grande ya la dieron las plantillas (32 → 55); lo que sigue es probar con un proyecto nuevo.
+
 **1ª corrida real con plantillas: 54 de 68 (antes 32) → planilla_writer v0.3.1 y searcher v0.3.1 (17/10)**
 - *Evidencia:* Project doc `claude/evidencia_qwen_planilla_searcher_2026-10-17.md`, sección 6. Fixtures: `fixtures/real_qwen_c22/evidencia_v03.json`, `planilla_v03.json` y `searcher/fixtures/searcher_kanban_2026-10-17_v03.json`.
 - **Plantillas v0.3: 54 de 68 contra la vara** (modo libre: 32), con **16 de 17 requisitos con filas** (libre: 8). El techo es 67.

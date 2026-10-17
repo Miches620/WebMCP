@@ -79,7 +79,7 @@ const caida = await writePlanilla({ features: ["x"], call: async () => { throw n
 t("LM Studio caído → el requisito queda sin fila, con el error (no se inventa)", /fetch failed/.test(caida.sin_fila.R1));
 
 // ---------- v0.3: modo PLANTILLAS (Qwen elige, el harness arma) ----------
-t("plantillas: versión y 13 plantillas", PLANTILLAS_VERSION === "planilla_plantillas v0.2" && Object.keys(PLANTILLAS).length === 13);
+t("plantillas: versión y 13 plantillas", PLANTILLAS_VERSION === "planilla_plantillas v0.2.1" && Object.keys(PLANTILLAS).length === 13);
 const IDEAL = JSON.parse(readFileSync(new URL("./fixtures/real_qwen_c22/elecciones_ideales_c22.json", import.meta.url), "utf8"));
 const built = Object.entries(IDEAL).filter(([r]) => /^R\d+$/.test(r) && IDEAL[r].usa).flatMap(([r, a]) => { const x = rowsFromChoices(a.usa, r); return [...x.filas.map((f) => [r, validateRow(normalizeRow(f).row, 17, { features: FEATS })]), ...x.problems.map((p) => [r, { ok: false, problems: [p] }])]; });
 t("techo: las elecciones IDEALES para c22 arman 28 filas y TODAS pasan el validador (con los chequeos de sentido)", built.length === 28 && built.every(([, v]) => v.ok), built.filter(([, v]) => !v.ok).map(([r, v]) => `${r}: ${v.problems.join("; ")}`).join(" | "));
@@ -116,6 +116,13 @@ t("campos sin valor: el título se saca, la descripción la completa el harness,
 const w4 = rowsFromChoices(ans("R4").usa, "R4").problems.join();
 t("R4 real: el reintento pide un valor de ejemplo para la prioridad", /un valor de ejemplo para "Prioridad"/.test(w4), w4);
 t("lista de campos (['Titulo', 'descripción', 'prioridad']) también vale", camposDe(["Titulo", "descripción", "prioridad"]).faltan.join() === "prioridad");
+
+// ---------- v0.2.1 de las plantillas: la 2ª corrida real con plantillas (17/10, 55 de 68) ----------
+const P31 = JSON.parse(readFileSync(new URL("./fixtures/real_qwen_c22/planilla_v031.json", import.meta.url), "utf8"));
+const ch10 = P31.filas.filter((f) => f.r === "R10" && f._plantilla === "estilo" && f.veo[0].estilo.prop === "background-color").map((f) => ({ plantilla: "estilo", de: "columna", nombre: f.veo[0].estilo.de.columna, prop: "background-color", valor: f.veo[0].estilo.valor }));
+t("R10: un color que el requisito no dice (#102C54 era el fondo de R9) → afuera", ch10.length === 3 && relevanceProblems(ch10, FEATS[9]).filter((x) => /no está en este requisito/.test(x)).length === 3);
+t("R2: 'crear' no corresponde aunque el texto diga botón 'Agregar tarjeta' (lo citado es un nombre)", relevanceProblems([{ plantilla: "crear", columna: "Pendiente" }], FEATS[1]).some((x) => /no habla de eso/.test(x)) && !relevanceProblems([{ plantilla: "crear", columna: "Pendiente" }], FEATS[0]).length);
+t("R5: un texto libre que no dijo el usuario ('Nueva descripción') pasa a texto de prueba 'QA …'", camposDe({ "Descripción": "Nueva descripción", Prioridad: "alta" }).campos["Descripción"] === "QA Nueva descripción" && rowsFromChoices([{ plantilla: "editar", campos: { "Descripción": "Nueva descripción", Prioridad: "alta" } }], "R5").filas.every((f) => validateRow(normalizeRow(f).row, 17, { features: FEATS }).ok));
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

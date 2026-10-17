@@ -9,7 +9,7 @@
 //
 // Una respuesta de Qwen:  { "usa": [ { "plantilla": "borrar", "columna": "Pendiente" }, … ] }   o   { "sin_fila": "motivo" }
 
-export const PLANTILLAS_VERSION = "planilla_plantillas v0.2";
+export const PLANTILLAS_VERSION = "planilla_plantillas v0.2.1";
 const A = "QA Alfa", B = "QA Beta";
 const isText = (x) => typeof x === "string" && x.trim().length > 0 && x.length <= 120;
 // v0.2 (1ª corrida): Qwen nombra los campos sin valor (["Titulo", "descripción", "prioridad"] o { "Prioridad": "" }).
@@ -21,7 +21,8 @@ export function camposDe(raw) {
   for (const [k, v] of Object.entries(obj)) {
     if (/^t[ií]tulo$/i.test(k.trim())) continue;
     const val = String(v ?? "").trim();
-    if (val) out[k] = val; else if (FREE.test(k)) out[k] = `QA ${k.trim()}`; else faltan.push(k);
+    // texto libre: siempre un texto de prueba "QA …" (2ª corrida: "Nueva descripción" no lo dijo el usuario y se rechazaba 3 veces)
+    if (FREE.test(k)) out[k] = val ? (/^qa\b/i.test(val) ? val : `QA ${val}`) : `QA ${k.trim()}`; else if (val) out[k] = val; else faltan.push(k);
   }
   return { campos: out, faltan };
 }
@@ -132,11 +133,16 @@ export const PERTINENCIA = {
 };
 const STYLE_WORDS = /\d+\s*px|#[0-9a-f]{6}|padding|border|radius|overflow|width|height|sombra/i;
 /** ¿Las elecciones tienen que ver con el requisito? ¿Falta una parte que el requisito nombra? → problemas (para el reintento). */
-export function relevanceProblems(choices, text) {
+export function relevanceProblems(choices, text0) {
   const p = [];
+  // lo que está entre comillas es el NOMBRE de algo ("botón 'Agregar tarjeta'"), no lo que pide el requisito (2ª corrida: R2 → crear)
+  const text = String(text0).replace(/(['"“”‘’«»]).*?\1/g, " ");
+  const said = String(text0).toLowerCase();
   const used = new Set((Array.isArray(choices) ? choices : []).map((c) => c?.plantilla));
   (Array.isArray(choices) ? choices : []).forEach((ch, i) => { const re = PERTINENCIA[ch?.plantilla]; if (re && !re.test(String(text))) p.push(`elección ${i + 1} (${ch.plantilla}): el requisito no habla de eso; usá solo plantillas de lo que dice`); });
-  if (STYLE_WORDS.test(String(text)) && !used.has("estilo")) p.push(`AVISO: el requisito nombra estilos medibles (${String(text).match(STYLE_WORDS)[0]}…): agregá una elección "estilo" por cada uno`);
+  // un valor exacto de estilo (#rrggbb, Npx) tiene que estar escrito en ESTE requisito (2ª corrida: R10 copió el #102C54 de R9)
+  (Array.isArray(choices) ? choices : []).forEach((ch, i) => { if (ch?.plantilla === "estilo" && typeof ch.valor === "string" && /^#[0-9a-f]{3,6}$|^\d+(\.\d+)?px$/i.test(ch.valor.trim()) && !said.includes(ch.valor.trim().toLowerCase())) p.push(`elección ${i + 1} (estilo): el valor "${ch.valor}" no está en este requisito; usá solo los valores que dice`); });
+  if (STYLE_WORDS.test(String(text0)) && !used.has("estilo")) p.push(`AVISO: el requisito nombra estilos medibles (${String(text).match(STYLE_WORDS)[0]}…): agregá una elección "estilo" por cada uno`);
   return p;
 }
 

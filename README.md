@@ -16,7 +16,7 @@ Lo que lo guía:
 ```
 Tipo de proyecto + Standard (los elige Miche en la UI)                 → profiles/, standards/
 Idea de Miche
-   ↓  [próximo] Searcher: busca en la web (SearXNG local) y deja fichas con fuentes
+   ↓  Searcher v0.1 (CLI, todavía no en la UI): busca en la web (SearXNG local) → preguntas cerradas con fuentes
    ↓  Intent Forge: plantilla → entrevista (≤10 preguntas) → un ítem tipado por línea
 refined_prompt  (+ confirmación humana: Confirmar / Ajustar)
    ↓  TechLeader: plan de fases, con la ETAPA (context/ProjectStage.md) y el STACK del Standard
@@ -38,9 +38,9 @@ Evidence por requisito: PASS / FAIL / SIN_EVIDENCIA / SIN_CHEQUEO
 | **Node.js 22+** | todo | [nodejs.org](https://nodejs.org) |
 | **LM Studio** | los modelos | servidor en `http://127.0.0.1:1234`, con **CORS habilitado** (TechLeader y el Atomic Engine llaman desde el navegador) |
 | `google/gemma-4-e4b` | TechLeader, Atomic Engine, Specialist | cargado con **12000** de contexto (ver variables abajo) |
-| `qwen2.5-7b-instruct` | Intent Forge, Completeness Reviewer, traductor de chequeos; **filas de la planilla** (próximo) | cargado con **16000** de contexto |
+| `qwen2.5-7b-instruct` | Intent Forge, Completeness Reviewer, traductor de chequeos, **filas de la planilla** y el **Searcher** | cargado con **16000** de contexto |
 | Paquetes de npm + Chromium | build y Validation (Playwright), Standard `web/app/plantillas` (Handlebars) | `npm install` y `npx playwright install chromium` (una vez) |
-| **SearXNG** (Docker) | el **Searcher** (en construcción): busca en la web antes de Intent Forge | paso a paso abajo. Hasta que el Searcher exista, el pipeline anda sin él |
+| **SearXNG** (Docker) | el **Searcher**: busca en la web antes de Intent Forge | paso a paso abajo. El resto del pipeline anda sin él |
 
 Los requisitos de cada Standard (Node, Playwright, Chromium, Handlebars…) los verifica webmcp antes de construir. Si falta algo, te ofrece instalarlo (botón en la UI, o `s/N` en la consola) y corre solo el comando escrito en la ficha del Standard. También a mano: `npm run requisitos`.
 
@@ -110,6 +110,9 @@ node build/run_build.mjs --validate build/runs/<carpeta>               # solo va
 node build/validate_external.mjs <carpeta de la app> <snapshot> --planilla <planilla.json>   # app hecha afuera (Gemma sola)
 npm test                                              # todos los tests deterministas (sin LM Studio)
 npm run searxng                                       # ¿SearXNG está listo?
+npm run searcher "<idea>"                             # Searcher: preguntas con fuentes para Intent Forge
+npm run planilla <snapshot>                           # Qwen escribe la planilla de comportamientos
+npm run comparar <planilla_vara> <planilla_otra>      # ¿juzgan igual? (sobre las 4 apps reales)
 ```
 
 - El snapshot se guarda solo al terminar el Atomic Tree (o al aprobar sin revisión), en `build/snapshots/auto/`.
@@ -126,7 +129,7 @@ npm run searxng                                       # ¿SearXNG está listo?
 | `harness/` | **Motor general por archivos** (`files_engine.mjs`): corre los pasos que declara un Standard. No nombra ningún dominio |
 | `standards/` | **Standards**: `catalog.mjs` (fichas: estado, stack, requisitos) y `registry.mjs`. Hoy: `web/app/estado` (DRAFT), `web/app/plantillas` (DRAFT, Handlebars), `web/game/grilla` (DRAFT) |
 | `profiles/` | **Tipos de proyecto** (`web`, `web/landing`, `web/app`, `web/game`): plan, traductor, Validation (flujos y planilla en `profiles/web/validation/`). Ver [`profiles/README.md`](profiles/README.md) |
-| `searcher/` | **Searcher** (en construcción). Hoy: `check_searxng.mjs` |
+| `searcher/` | **Searcher v0.1** (`searcher.mjs`): busca en SearXNG, cita sus fuentes y devuelve preguntas cerradas; `check_searxng.mjs` |
 | `roles/` | roles y Skills de `web/game` (los `.md` de `roles/web-game/skills/` son entrada de los prompts) |
 | `pilot/`, `experiments/` | piloto del formulario (30/09) y experimentos del reviewer y del traductor |
 | `evidence/`, `build/runs/`, `build/snapshots/` | salidas de cada corrida (evidencia) |

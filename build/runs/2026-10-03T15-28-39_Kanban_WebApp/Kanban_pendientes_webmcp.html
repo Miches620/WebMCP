@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-16g'; // 16/10 noche: docs al día, SearXNG documentado, Qwen escribe las filas
+  const SEED = '2026-10-16h'; // 16/10 noche: searcher v0.1 + planilla_writer + compare_planillas
   let state = loadState() || {
  "columns": [
   {
@@ -436,7 +436,7 @@
     {
      "id": "p34",
      "title": "1 · Searcher (SearXNG local) + Intent Forge arma la PLANILLA: fichas con fuentes escritas como filas dado / hago / veo; Miche edita y aprueba; se compara contra la planilla a mano del Kanban",
-     "desc": "[Decisión Miche 16/10] Las filas las propone QWEN (no Gemma: que no vea su propio examen); Miche edita y aprueba. SearXNG: paso a paso en el README (Docker, 127.0.0.1:8888, formats json, limiter false) y npm run searxng para probarlo. — [#Investigador #IntentForge] Propuesta de Miche (16/10): proyecto → Searcher busca proyectos parecidos → informe → Intent Forge pregunta con ese informe → resto igual. Reglas propuestas por Claude: el informe NO agrega requisitos, solo PREGUNTAS cerradas que Miche confirma (cada línea del refined sigue saliendo de lo que dijo Miche); el informe queda como evidencia (fuentes, fecha); el harness hace las búsquedas y baja las páginas, el modelo solo resume en una ficha de rasgos con su fuente. Specialist/Validation no buscan en el momento: el Investigador arma fichas antes y se miden con/sin (como las Skills). FALTA decidir: con qué buscar (SearXNG local, una API con clave, …).",
+     "desc": "[HECHO 16/10 noche, falta medir con LM Studio] searcher v0.1 (npm run searcher \"idea\": SearXNG + citas verificadas → preguntas cerradas), planilla_writer (npm run planilla: Qwen escribe filas, validador sin modelo, 3 intentos) y compare_planillas (npm run comparar: contra la vara, sobre las 4 apps). Próximo: correr Qwen sobre c22 y comparar; después las preguntas del Searcher en la UI de Intent Forge. — [Decisión Miche 16/10] Las filas las propone QWEN (no Gemma: que no vea su propio examen); Miche edita y aprueba. SearXNG: paso a paso en el README (Docker, 127.0.0.1:8888, formats json, limiter false) y npm run searxng para probarlo. — [#Investigador #IntentForge] Propuesta de Miche (16/10): proyecto → Searcher busca proyectos parecidos → informe → Intent Forge pregunta con ese informe → resto igual. Reglas propuestas por Claude: el informe NO agrega requisitos, solo PREGUNTAS cerradas que Miche confirma (cada línea del refined sigue saliendo de lo que dijo Miche); el informe queda como evidencia (fuentes, fecha); el harness hace las búsquedas y baja las páginas, el modelo solo resume en una ficha de rasgos con su fuente. Specialist/Validation no buscan en el momento: el Investigador arma fichas antes y se miden con/sin (como las Skills). FALTA decidir: con qué buscar (SearXNG local, una API con clave, …).",
      "priority": "urgente"
     },
     {

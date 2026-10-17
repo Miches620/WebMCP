@@ -2,6 +2,27 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Searcher v0.1 + Qwen escribe la planilla + comparador contra la vara (16/10 noche)**
+- *Origen:* paso 3 del orden acordado. Searcher e Intent Forge arman la planilla; las filas las propone **Qwen**, no Gemma (decisión de Miche).
+- **`profiles/web/validation/planilla_writer.mjs`** (`npm run planilla <snapshot>`): Qwen escribe la planilla de cada requisito.
+  - Un pedido por requisito, con los demás como contexto. El ejemplo del pedido es de otra app (recetas), para no darle las respuestas del Kanban.
+  - `validateRow` (sin modelo) acepta solo el vocabulario cerrado. Rechaza clases, ids, selectores y código (es el CÓMO), dos acciones juntas, "mover" sin destino, props o valores de estilo inventados. Si algo no cumple, se vuelve a pedir con el problema escrito (hasta 3 veces).
+  - Qwen puede decir `sin_fila` con el motivo. Si LM Studio no responde, el requisito queda sin filas, dicho; no se inventa.
+  - Calibración: las 22 filas de la planilla a mano pasan el validador.
+  - Deja la planilla y la evidencia de cada llamada en `evidence/planilla/`.
+- **`build/compare_planillas.mjs`** (`npm run comparar <vara> <otra>`): corre las dos planillas sobre las 4 apps reales y compara el veredicto por requisito. Muestra cuántos coinciden y de qué tipo son las diferencias (más blanda, más dura, no prueba). Probado de punta a punta con una copia sin R11 ni R16: 60/68, con las 8 diferencias justas.
+- **`searcher/searcher.mjs`** (`npm run searcher "<idea>"`), con las reglas de la propuesta del 16/10:
+  - Qwen propone 3 búsquedas.
+  - El **harness** busca en SearXNG y baja hasta 6 páginas: sin repetir, máximo 2 por dominio, sin videos ni redes.
+  - Qwen anota los rasgos de cada fuente con una **cita**, y el harness verifica que la cita esté en la página: lo inventado no entra.
+  - Qwen agrupa y marca lo que la idea ya pide.
+  - Sale una **pregunta cerrada** por rasgo nuevo ("¿Querés poder arrastrar tarjetas entre columnas? — lo tienen 2 de 2 fuentes").
+  - **No agrega requisitos.** Lo que Miche acepta pasa a ser un requisito, y sus filas las escribe `planilla_writer`: un solo escritor de filas, el que se mide contra la vara.
+  - Evidencia en `evidence/searcher/`: consultas, fuentes con huella, citas, descartados y fecha.
+- *Fixture:* `profiles/web/validation/fixtures/real_kanban_c22/snapshot_min.json` (los 17 requisitos de c22), para correr todo sin la UI.
+- *Tests:* `test_planilla_writer` 19/19, `searcher/test_searcher` 14/14, `test_compare_planillas` 5/5. Sin red ni modelo: SearXNG, las páginas y Qwen son de mentira.
+- *Falta:* correr Qwen de verdad (con LM Studio) y medirlo contra la vara; llevar las preguntas del Searcher a la UI de Intent Forge.
+
 **Docs al día + SearXNG para el Searcher (16/10 noche)**
 - *Origen:* Miche pidió el paso a paso de SearXNG en el README y todos los `.md` actualizados con lo que hace webmcp hoy.
 - *README:* el pipeline de hoy (Standard y STACK, Stack Check, reviewer por tandas, snapshot automático, requisitos, planilla y flujos); qué hay que instalar, con contextos (Gemma 12000, Qwen 16000); variables (`WEBMCP_CONTEXT`, `REVIEWER_MODEL`, `REVIEWER_CONTEXT`, `SEARXNG_URL`); **SearXNG paso a paso en Windows** (Docker Desktop, `docker run` solo en 127.0.0.1:8888, `formats: - json`, `limiter: false`); uso, estructura y documentación. Se sacó el link a `standards/README.md`, que no existe.

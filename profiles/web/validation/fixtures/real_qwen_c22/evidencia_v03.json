@@ -1,0 +1,1122 @@
+{
+  "type": "EVIDENCE",
+  "kind": "planilla_writer",
+  "version": "planilla_writer v0.3",
+  "model": "qwen2.5-7b-instruct",
+  "snapshot": "E:\\Proyectos 2026\\webmcp\\profiles\\web\\validation\\fixtures\\real_kanban_c22\\snapshot_min.json",
+  "ms": 111206,
+  "planilla": {
+    "version": "planilla v0.1",
+    "autor": "planilla_writer v0.3 (qwen2.5-7b-instruct, modo plantillas, planilla_plantillas v0.1)",
+    "modo": "plantillas",
+    "filas": [
+      {
+        "r": "R1",
+        "hago": {
+          "agregar": "QA Alfa"
+        },
+        "veo": [
+          {
+            "esta": "QA Alfa",
+            "en": "Pendiente"
+          }
+        ],
+        "_plantilla": "crear",
+        "id": "R1.1"
+      },
+      {
+        "r": "R2",
+        "hago": {
+          "agregar": "QA Alfa"
+        },
+        "veo": [
+          {
+            "esta": "QA Alfa",
+            "en": "Pendiente"
+          }
+        ],
+        "_plantilla": "crear",
+        "id": "R2.1"
+      },
+      {
+        "r": "R2",
+        "veo": [
+          {
+            "control": [
+              "Agregar",
+              "tarjeta"
+            ],
+            "solo_en": "Pendiente"
+          }
+        ],
+        "_plantilla": "boton_en",
+        "id": "R2.2",
+        "_normalizado": [
+          "veo[0] control: [\"Agregar tarjeta\"] → [\"Agregar\",\"tarjeta\"]"
+        ]
+      },
+      {
+        "r": "R3",
+        "hago": {
+          "agregar": "QA Alfa",
+          "campos": {
+            "prioridad": "alta"
+          }
+        },
+        "veo": [
+          {
+            "en_item": "QA Alfa",
+            "contiene": [
+              "alta"
+            ]
+          },
+          {
+            "color_en_item": "QA Alfa",
+            "texto": "alta",
+            "familia": "rojo"
+          }
+        ],
+        "_plantilla": "color_segun_valor",
+        "id": "R3.1"
+      },
+      {
+        "r": "R3",
+        "hago": {
+          "agregar": "QA Alfa",
+          "campos": {
+            "prioridad": "media"
+          }
+        },
+        "veo": [
+          {
+            "en_item": "QA Alfa",
+            "contiene": [
+              "media"
+            ]
+          },
+          {
+            "color_en_item": "QA Alfa",
+            "texto": "media",
+            "familia": "amarillo"
+          }
+        ],
+        "_plantilla": "color_segun_valor",
+        "id": "R3.2"
+      },
+      {
+        "r": "R3",
+        "hago": {
+          "agregar": "QA Alfa",
+          "campos": {
+            "prioridad": "baja"
+          }
+        },
+        "veo": [
+          {
+            "en_item": "QA Alfa",
+            "contiene": [
+              "baja"
+            ]
+          },
+          {
+            "color_en_item": "QA Alfa",
+            "texto": "baja",
+            "familia": "verde"
+          }
+        ],
+        "_plantilla": "color_segun_valor",
+        "id": "R3.3"
+      },
+      {
+        "r": "R5",
+        "dado": [
+          {
+            "agregar": "QA Alfa"
+          }
+        ],
+        "hago": {
+          "editar": "QA Alfa",
+          "a": "QA Beta",
+          "campos": [
+            "Titulo",
+            "descripción",
+            "prioridad"
+          ]
+        },
+        "veo": [
+          {
+            "esta": "QA Beta"
+          },
+          {
+            "no_esta": "QA Alfa"
+          },
+          {
+            "en_item": "QA Beta",
+            "contiene": [
+              "Titulo",
+              "descripción",
+              "prioridad"
+            ]
+          }
+        ],
+        "_plantilla": "editar",
+        "id": "R5.1"
+      },
+      {
+        "r": "R6",
+        "dado": [
+          {
+            "agregar": "QA Alfa"
+          }
+        ],
+        "hago": {
+          "mover": "QA Alfa",
+          "a": "En Curso"
+        },
+        "veo": [
+          {
+            "esta": "QA Alfa",
+            "en": "En Curso"
+          },
+          {
+            "contador": "Pendiente",
+            "cambia": -1
+          },
+          {
+            "contador": "En Curso",
+            "cambia": 1
+          }
+        ],
+        "_plantilla": "mover",
+        "id": "R6.1"
+      },
+      {
+        "r": "R7",
+        "dado": [
+          {
+            "agregar": "QA Alfa"
+          }
+        ],
+        "hago": {
+          "eliminar": "QA Alfa"
+        },
+        "veo": [
+          {
+            "no_esta": "QA Alfa"
+          },
+          {
+            "contador": "Pendiente",
+            "cambia": -1
+          }
+        ],
+        "_plantilla": "borrar",
+        "id": "R7.1"
+      },
+      {
+        "r": "R8",
+        "veo": [
+          {
+            "esta": "Pendiente"
+          },
+          {
+            "esta": "En Curso"
+          },
+          {
+            "esta": "Completa"
+          }
+        ],
+        "_plantilla": "se_ven_textos",
+        "id": "R8.1"
+      },
+      {
+        "r": "R8",
+        "hago": {
+          "agregar": "QA Alfa"
+        },
+        "veo": [
+          {
+            "contador": "Pendiente",
+            "cambia": 1
+          }
+        ],
+        "_plantilla": "contador_al_crear",
+        "id": "R8.2"
+      },
+      {
+        "r": "R8",
+        "veo": [
+          {
+            "control": [
+              "Agregar",
+              "tarjeta"
+            ],
+            "solo_en": "Pendiente"
+          }
+        ],
+        "_plantilla": "boton_en",
+        "id": "R8.3",
+        "_normalizado": [
+          "veo[0] control: [\"Agregar tarjeta\"] → [\"Agregar\",\"tarjeta\"]"
+        ]
+      },
+      {
+        "r": "R9",
+        "veo": [
+          {
+            "estilo": {
+              "de": "pagina",
+              "prop": "background-color",
+              "valor": "#102C54"
+            }
+          }
+        ],
+        "_plantilla": "estilo",
+        "id": "R9.1",
+        "_normalizado": [
+          "veo[0].estilo.de: \"pagina\" → \"pagina\""
+        ]
+      },
+      {
+        "r": "R9",
+        "veo": [
+          {
+            "estilo": {
+              "de": {
+                "columna": "Pendiente"
+              },
+              "prop": "background-color",
+              "valor": "#8FB3C7"
+            }
+          }
+        ],
+        "_plantilla": "estilo",
+        "id": "R9.2"
+      },
+      {
+        "r": "R9",
+        "veo": [
+          {
+            "estilo": {
+              "de": {
+                "columna": "En Curso"
+              },
+              "prop": "background-color",
+              "valor": "#8FB3C7"
+            }
+          }
+        ],
+        "_plantilla": "estilo",
+        "id": "R9.3"
+      },
+      {
+        "r": "R9",
+        "veo": [
+          {
+            "estilo": {
+              "de": {
+                "columna": "Completa"
+              },
+              "prop": "background-color",
+              "valor": "#8FB3C7"
+            }
+          }
+        ],
+        "_plantilla": "estilo",
+        "id": "R9.4"
+      },
+      {
+        "r": "R9",
+        "dado": [
+          {
+            "agregar": "QA Alfa"
+          }
+        ],
+        "veo": [
+          {
+            "estilo": {
+              "de": {
+                "tarjeta": "QA Alfa"
+              },
+              "prop": "background-color",
+              "valor": "#F2E9D8"
+            }
+          }
+        ],
+        "_plantilla": "estilo",
+        "id": "R9.5"
+      },
+      {
+        "r": "R10",
+        "veo": [
+          {
+            "estilo": {
+              "de": {
+                "columna": "Pendiente"
+              },
+              "prop": "overflow-y",
+              "valor": [
+                "scroll",
+                "auto"
+              ]
+            }
+          }
+        ],
+        "_plantilla": "estilo",
+        "id": "R10.1"
+      },
+      {
+        "r": "R10",
+        "veo": [
+          {
+            "estilo": {
+              "de": {
+                "columna": "En Curso"
+              },
+              "prop": "overflow-y",
+              "valor": [
+                "scroll",
+                "auto"
+              ]
+            }
+          }
+        ],
+        "_plantilla": "estilo",
+        "id": "R10.2"
+      },
+      {
+        "r": "R10",
+        "veo": [
+          {
+            "estilo": {
+              "de": {
+                "columna": "Completa"
+              },
+              "prop": "overflow-y",
+              "valor": [
+                "scroll",
+                "auto"
+              ]
+            }
+          }
+        ],
+        "_plantilla": "estilo",
+        "id": "R10.3"
+      },
+      {
+        "r": "R10",
+        "veo": [
+          {
+            "estilo": {
+              "de": {
+                "columna": "Pendiente"
+              },
+              "prop": "width",
+              "valor": "248px"
+            }
+          }
+        ],
+        "_plantilla": "estilo",
+        "id": "R10.4"
+      },
+      {
+        "r": "R10",
+        "veo": [
+          {
+            "esta": "Pendiente"
+          },
+          {
+            "esta": "En Curso"
+          },
+          {
+            "esta": "Completa"
+          }
+        ],
+        "_plantilla": "se_ven_textos",
+        "id": "R10.5"
+      },
+      {
+        "r": "R11",
+        "veo": [
+          {
+            "control": [
+              "Agregar",
+              "tarjeta"
+            ]
+          }
+        ],
+        "_plantilla": "boton_en",
+        "id": "R11.1",
+        "_normalizado": [
+          "veo[0] control: [\"Agregar tarjeta\"] → [\"Agregar\",\"tarjeta\"]"
+        ]
+      },
+      {
+        "r": "R12",
+        "dado": [
+          {
+            "agregar": "QA Alfa"
+          }
+        ],
+        "veo": [
+          {
+            "estilo": {
+              "de": {
+                "tarjeta": "QA Alfa"
+              },
+              "prop": "overflow-y",
+              "valor": [
+                "scroll",
+                "auto"
+              ]
+            }
+          }
+        ],
+        "_plantilla": "estilo",
+        "id": "R12.1"
+      },
+      {
+        "r": "R12",
+        "dado": [
+          {
+            "agregar": "QA Alfa"
+          }
+        ],
+        "veo": [
+          {
+            "estilo": {
+              "de": {
+                "tarjeta": "QA Alfa"
+              },
+              "prop": "height",
+              "valor": "250px"
+            }
+          }
+        ],
+        "_plantilla": "estilo",
+        "id": "R12.2"
+      },
+      {
+        "r": "R12",
+        "dado": [
+          {
+            "agregar": "QA Alfa"
+          }
+        ],
+        "veo": [
+          {
+            "estilo": {
+              "de": {
+                "tarjeta": "QA Alfa"
+              },
+              "prop": "width",
+              "valor": "223px"
+            }
+          }
+        ],
+        "_plantilla": "estilo",
+        "id": "R12.3"
+      },
+      {
+        "r": "R13",
+        "veo": [
+          {
+            "esta": "title"
+          },
+          {
+            "esta": "actions"
+          }
+        ],
+        "_plantilla": "se_ven_textos",
+        "id": "R13.1"
+      },
+      {
+        "r": "R14",
+        "dado": [
+          {
+            "agregar": "QA Alfa"
+          }
+        ],
+        "hago": {
+          "pasar_mouse": "QA Alfa"
+        },
+        "veo": [
+          {
+            "al_pasar": [
+              "🗑️",
+              "✏️"
+            ],
+            "en_item": "QA Alfa"
+          }
+        ],
+        "_plantilla": "al_pasar_mouse",
+        "id": "R14.1"
+      },
+      {
+        "r": "R15",
+        "dado": [
+          {
+            "agregar": "QA Alfa"
+          }
+        ],
+        "veo": [
+          {
+            "estilo": {
+              "de": {
+                "tarjeta": "QA Alfa"
+              },
+              "prop": "box-shadow",
+              "valor": {
+                "distinto": "none"
+              }
+            }
+          }
+        ],
+        "_plantilla": "estilo",
+        "id": "R15.1"
+      },
+      {
+        "r": "R15",
+        "dado": [
+          {
+            "agregar": "QA Alfa"
+          }
+        ],
+        "hago": {
+          "pasar_mouse": "QA Alfa"
+        },
+        "veo": [
+          {
+            "al_pasar": [
+              "⠿"
+            ],
+            "en_item": "QA Alfa"
+          }
+        ],
+        "_plantilla": "al_pasar_mouse",
+        "id": "R15.2"
+      },
+      {
+        "r": "R15",
+        "dado": [
+          {
+            "agregar": "QA Alta Vieja",
+            "campos": {
+              "prioridad": "alta"
+            }
+          },
+          {
+            "agregar": "QA Baja",
+            "campos": {
+              "prioridad": "baja"
+            }
+          },
+          {
+            "agregar": "QA Media",
+            "campos": {
+              "prioridad": "media"
+            }
+          },
+          {
+            "agregar": "QA Alta Nueva",
+            "campos": {
+              "prioridad": "alta"
+            }
+          }
+        ],
+        "veo": [
+          {
+            "orden": [
+              "QA Alta Nueva",
+              "QA Alta Vieja",
+              "QA Media",
+              "QA Baja"
+            ],
+            "en": "Pendiente, En Curso, Completa"
+          }
+        ],
+        "_plantilla": "orden_por_campo",
+        "id": "R15.3"
+      },
+      {
+        "r": "R16",
+        "dado": [
+          {
+            "agregar": "QA Alta Vieja",
+            "campos": {
+              "prioridad": "alta"
+            }
+          },
+          {
+            "agregar": "QA Baja",
+            "campos": {
+              "prioridad": "baja"
+            }
+          },
+          {
+            "agregar": "QA Media",
+            "campos": {
+              "prioridad": "media"
+            }
+          },
+          {
+            "agregar": "QA Alta Nueva",
+            "campos": {
+              "prioridad": "alta"
+            }
+          }
+        ],
+        "veo": [
+          {
+            "orden": [
+              "QA Alta Nueva",
+              "QA Alta Vieja",
+              "QA Media",
+              "QA Baja"
+            ],
+            "en": "Pendiente, En Curso, Completa"
+          }
+        ],
+        "_plantilla": "orden_por_campo",
+        "id": "R16.1"
+      },
+      {
+        "r": "R17",
+        "dado": [
+          {
+            "agregar": "QA Alfa"
+          }
+        ],
+        "hago": {
+          "pasar_mouse": "QA Alfa"
+        },
+        "veo": [
+          {
+            "al_pasar": [
+              "🗑️",
+              "✏️"
+            ],
+            "en_item": "QA Alfa"
+          }
+        ],
+        "_plantilla": "al_pasar_mouse",
+        "id": "R17.1"
+      }
+    ],
+    "sin_fila": {
+      "R4": "Qwen no dio filas válidas"
+    },
+    "rechazadas": {
+      "R4": [
+        {
+          "fila": {
+            "r": "R4",
+            "hago": {
+              "agregar": "QA Alfa",
+              "campos": {
+                "Titulo": "",
+                "Descripción": "",
+                "Prioridad": ""
+              }
+            },
+            "veo": [
+              {
+                "en_item": "QA Alfa",
+                "contiene": [
+                  "",
+                  "",
+                  ""
+                ]
+              }
+            ],
+            "_plantilla": "crear_con_campos"
+          },
+          "problems": [
+            "\"hago.campos\": { \"nombre del campo\": \"valor\" }",
+            "veo[0]: { \"en_item\": \"texto de la tarjeta\", \"contiene\": [\"…\"] }"
+          ]
+        }
+      ]
+    }
+  },
+  "calls": {
+    "R1": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"crear\",\n      \"columna\": \"Pendiente\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1992,
+          "completion_tokens": 36,
+          "total_tokens": 2028,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R2": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"crear\",\n      \"columna\": \"Pendiente\"\n    },\n    {\n      \"plantilla\": \"boton_en\",\n      \"palabras\": [\"Agregar tarjeta\"],\n      \"solo_en\": \"Pendiente\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2012,
+          "completion_tokens": 71,
+          "total_tokens": 2083,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 2,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R3": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"color_segun_valor\",\n      \"campo\": \"prioridad\",\n      \"valor\": \"alta\",\n      \"familia\": \"rojo\"\n    },\n    {\n      \"plantilla\": \"color_segun_valor\",\n      \"campo\": \"prioridad\",\n      \"valor\": \"media\",\n      \"familia\": \"amarillo\"\n    },\n    {\n      \"plantilla\": \"color_segun_valor\",\n      \"campo\": \"prioridad\",\n      \"valor\": \"baja\",\n      \"familia\": \"verde\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2034,
+          "completion_tokens": 135,
+          "total_tokens": 2169,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 3,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R4": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"crear_con_campos\",\n      \"campos\": {\n        \"Titulo\": \"\",\n        \"Descripción\": \"\",\n        \"Prioridad\": \"\"\n      }\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2013,
+          "completion_tokens": 54,
+          "total_tokens": 2067,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "\"hago.campos\": { \"nombre del campo\": \"valor\" }",
+            "veo[0]: { \"en_item\": \"texto de la tarjeta\", \"contiene\": [\"…\"] }"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"crear_con_campos\",\n      \"campos\": {\n        \"Titulo\": \"\",\n        \"Descripción\": \"\",\n        \"Prioridad\": \"\"\n      }\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2150,
+          "completion_tokens": 54,
+          "total_tokens": 2204,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "\"hago.campos\": { \"nombre del campo\": \"valor\" }",
+            "veo[0]: { \"en_item\": \"texto de la tarjeta\", \"contiene\": [\"…\"] }"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"crear_con_campos\",\n      \"campos\": { \"Titulo\": \"\", \"Descripción\": \"\", \"Prioridad\": \"\" }\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2287,
+          "completion_tokens": 50,
+          "total_tokens": 2337,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "\"hago.campos\": { \"nombre del campo\": \"valor\" }",
+            "veo[0]: { \"en_item\": \"texto de la tarjeta\", \"contiene\": [\"…\"] }"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R5": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": [\"Titulo\", \"descripción\", \"prioridad\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2018,
+          "completion_tokens": 43,
+          "total_tokens": 2061,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R6": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"mover\",\n      \"a\": \"En Curso\",\n      \"desde\": \"Pendiente\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2055,
+          "completion_tokens": 45,
+          "total_tokens": 2100,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R7": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"borrar\",\n      \"columna\": \"Pendiente\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2057,
+          "completion_tokens": 37,
+          "total_tokens": 2094,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R8": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"Pendiente\", \"En Curso\", \"Completa\"]\n    },\n    {\n      \"plantilla\": \"contador_al_crear\",\n      \"columna\": \"Pendiente\"\n    },\n    {\n      \"plantilla\": \"boton_en\",\n      \"palabras\": [\"Agregar tarjeta\"],\n      \"solo_en\": \"Pendiente\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2046,
+          "completion_tokens": 108,
+          "total_tokens": 2154,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 3,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R9": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"pagina\",\n      \"prop\": \"background-color\",\n      \"valor\": \"#102C54\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"columna\",\n      \"nombre\": \"Pendiente\",\n      \"prop\": \"background-color\",\n      \"valor\": \"#8FB3C7\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"columna\",\n      \"nombre\": \"En Curso\",\n      \"prop\": \"background-color\",\n      \"valor\": \"#8FB3C7\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"columna\",\n      \"nombre\": \"Completa\",\n      \"prop\": \"background-color\",\n      \"valor\": \"#8FB3C7\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"tarjeta\",\n      \"prop\": \"background-color\",\n      \"valor\": \"#F2E9D8\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2020,
+          "completion_tokens": 240,
+          "total_tokens": 2260,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 5,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R10": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"columna\",\n      \"prop\": \"overflow-y\",\n      \"valor\": \"scroll\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"columna\",\n      \"prop\": \"width\",\n      \"valor\": \"248px\"\n    },\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"Pendiente\", \"En Curso\", \"Completa\"]\n    },\n    {\n      \"plantilla\": \"contador_al_crear\",\n      \"columna\": \"columna con contador\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2028,
+          "completion_tokens": 148,
+          "total_tokens": 2176,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [
+          [
+            "elección 1 (estilo): falta \"nombre\": el nombre de la columna"
+          ],
+          [
+            "elección 2 (estilo): falta \"nombre\": el nombre de la columna"
+          ],
+          [
+            "veo[0].contador: el usuario no nombra ningún contenedor \"con contador\" (usá los nombres de los requisitos, p. ej. las columnas)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"columna\",\n      \"nombre\": \"Pendiente\",\n      \"prop\": \"overflow-y\",\n      \"valor\": \"scroll\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"columna\",\n      \"nombre\": \"En Curso\",\n      \"prop\": \"overflow-y\",\n      \"valor\": \"scroll\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"columna\",\n      \"nombre\": \"Completa\",\n      \"prop\": \"overflow-y\",\n      \"valor\": \"scroll\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"columna\",\n      \"nombre\": \"Pendiente\",\n      \"prop\": \"width\",\n      \"valor\": \"248px\"\n    },\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"Pendiente\", \"En Curso\", \"Completa\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2289,
+          "completion_tokens": 228,
+          "total_tokens": 2517,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 5,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R11": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"boton_en\",\n      \"palabras\": [\"Agregar tarjeta\"],\n      \"de\": \"columna\",\n      \"prop\": \"padding\",\n      \"valor\": \"8px\",\n      \"border\": \"1px dashed\",\n      \"border_radius\": \"8px\",\n      \"abre_modal\": \"creación de tarjetas\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2025,
+          "completion_tokens": 93,
+          "total_tokens": 2118,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R12": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"tarjeta\",\n      \"prop\": \"overflow-y\",\n      \"valor\": \"scroll\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"tarjeta\",\n      \"prop\": \"height\",\n      \"valor\": \"250px\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"tarjeta\",\n      \"prop\": \"width\",\n      \"valor\": \"223px\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2031,
+          "completion_tokens": 126,
+          "total_tokens": 2157,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 3,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R13": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"title\", \"actions\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1997,
+          "completion_tokens": 41,
+          "total_tokens": 2038,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R14": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"al_pasar_mouse\",\n      \"textos\": [\"🗑️\", \"✏️\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2004,
+          "completion_tokens": 43,
+          "total_tokens": 2047,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R15": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"tarjeta\",\n      \"prop\": \"box-shadow\",\n      \"valor\": \"con sombra\"\n    },\n    {\n      \"plantilla\": \"al_pasar_mouse\",\n      \"textos\": [\"⠿\"]\n    },\n    {\n      \"plantilla\": \"orden_por_campo\",\n      \"campo\": \"prioridad\",\n      \"valores\": [\"alta\", \"media\", \"baja\"],\n      \"columna\": \"Pendiente, En Curso, Completa\",\n      \"reciente_primero\": true\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2015,
+          "completion_tokens": 139,
+          "total_tokens": 2154,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 3,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R16": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"orden_por_campo\",\n      \"campo\": \"prioridad\",\n      \"valores\": [\"alta\", \"media\", \"baja\"],\n      \"columna\": \"Pendiente, En Curso, Completa\",\n      \"reciente_primero\": true\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2054,
+          "completion_tokens": 77,
+          "total_tokens": 2131,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R17": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"al_pasar_mouse\",\n      \"textos\": [\"🗑️\", \"✏️\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2023,
+          "completion_tokens": 43,
+          "total_tokens": 2066,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ]
+  }
+}

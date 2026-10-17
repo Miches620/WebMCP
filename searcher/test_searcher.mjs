@@ -7,7 +7,7 @@ import { runSearcher, htmlToText, quoteInSource, quoteSupports, pickSources, que
 let ok = 0, fail = 0;
 const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
 
-t("versión", SEARCHER_VERSION === "searcher v0.3");
+t("versión", SEARCHER_VERSION === "searcher v0.3.1");
 t("HTML → texto: sin scripts, estilos ni menú; entidades", htmlToText('<nav>Menú</nav><script>x()</script><p>Arrastrá &amp; soltá</p><style>.a{}</style>') === "Arrastrá & soltá");
 t("cita: tolera tildes, mayúsculas y espacios; corta (<12) no vale; inventada no está", quoteInSource("Podés ARRASTRAR las tarjetas  entre columnas", "...podes arrastrar las tarjetas entre columnas y...") && !quoteInSource("arrastrar", "arrastrar") && !quoteInSource("guarda todo en la nube automáticamente", "arrastrá tarjetas"));
 const ps = pickSources([{ results: [{ url: "https://a.com/1", title: "A1" }, { url: "https://a.com/2" }, { url: "https://a.com/3" }, { url: "https://www.youtube.com/watch" }] }, { results: [{ url: "https://b.com/1#x" }, { url: "https://a.com/1" }] }], 6);
@@ -55,6 +55,15 @@ t("real: v0.1 hacía 25 preguntas de 1 fuente cada una; v0.2 agrupa (22 grupos) 
 t("real: 'arrastrar' ya NO figura como pedido (la idea no lo dice) y es la 1ª pregunta, con 2 fuentes", /arrastrar/.test(RQ[0].rasgo) && /2 de 6 fuentes/.test(RQ[0].porque), RQ[0] && RQ[0].pregunta);
 t("real: compartir / integración / stakeholders quedan fuera del stack (no se preguntan)", RG.filter((g) => g.fuera_del_stack).length >= 4 && !RQ.some((q) => /compart|integraci|stakeholder/i.test(q.rasgo)));
 t("real: 'crear tareas en la columna' NO se junta con 'arrastrar' (distinto verbo)", !RG.find((g) => /arrastrar/.test(g.rasgo)).de.some((id) => /crear tareas/.test(REAL.rasgos.find((x) => x.id === id).rasgo)));
+// ---------- v0.3.1: la 4ª corrida REAL (17/10, consultas armadas por el harness) ----------
+const R4 = JSON.parse(readFileSync(new URL("./fixtures/searcher_kanban_2026-10-17_v03.json", import.meta.url), "utf8"));
+const SRC = Object.fromEntries(R4.fuentes.map((s) => [s.id, s.text]));
+const ALL = R4.llamadas.filter((c) => c.paso === "rasgos" && c.raw).flatMap((c) => { try { return (JSON.parse(c.raw.replace(/^```json|```$/g, "").trim()).rasgos || []).map((t) => ({ fuente: c.fuente, ...t })); } catch { return []; } });
+const KEPT = ALL.filter((t) => SRC[t.fuente] && quoteInSource(t.cita, SRC[t.fuente]) && quoteSupports(t.rasgo, t.cita)).map((t, i) => ({ ...t, id: `T${i + 1}` }));
+const Q4 = questionsFrom(groupTraits(KEPT).map((g) => ({ ...g, ya_pedido: alreadyAsked(g.rasgo, R4.idea), fuera_del_stack: outOfStack(g, KEPT, false) })), R4.fuentes.length);
+t("4ª corrida: citas en inglés, con '…' o con entidades HTML ya cuentan (v0.3 guardaba 10 rasgos; v0.3.1, más)", KEPT.length > R4.rasgos.length, `${R4.rasgos.length} → ${KEPT.length}`);
+t("4ª corrida: 'mover tarjetas entre columnas' es la 1ª pregunta, con 3 fuentes (antes, 1 de 7 y en el puesto 6)", /mover|arrastrar/.test(Q4[0].rasgo) && /3 de 7 fuentes/.test(Q4[0].porque), Q4[0] && `${Q4[0].rasgo} — ${Q4[0].porque}`);
+t("cita en inglés con entidades: 'Drag-and-drop cards … &#8220;To Do&#8221;' está en la página", quoteInSource("Drag-and-drop cards between customizable lists to track progress from 'To Do' to 'Done'", "x Drag-and-drop cards between customizable lists to track progress from &#8220;To Do&#8221; to &#8220;Done&#8221; y"));
 const nada = await runSearcher({ idea: "x", call: async () => { throw new Error("LM caído"); }, search: async () => { throw new Error("SearXNG 403"); }, fetchPage });
 t("sin Qwen ni SearXNG: busca con la idea tal cual, no inventa nada y deja los errores", nada.consultas.join() === "x" && !nada.preguntas.length && nada.llamadas.some((l) => /SearXNG 403/.test(l.error || "")));
 

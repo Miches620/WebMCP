@@ -20,11 +20,12 @@ import { createHash } from "node:crypto";
 import { parseJsonLoose } from "../json_loose.mjs";
 import { SEARXNG_URL } from "./check_searxng.mjs";
 
-export const SEARCHER_VERSION = "searcher v0.3";
+export const SEARCHER_VERSION = "searcher v0.3.1";
 const LM_URL = process.env.LM_STUDIO_URL || "http://localhost:1234/v1/chat/completions";
 const MODEL = process.env.SEARCHER_MODEL || process.env.REVIEWER_MODEL || "qwen2.5-7b-instruct";
 const SOURCE_CHARS = 6000; // por fuente: entra holgado en 16k con el pedido
-const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
+const ent = (t) => String(t || "").replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16))).replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d))).replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&raquo;|&laquo;/g, "").replace(/&copy;|&reg;/g, "");
+const nrm = (t) => ent(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/['"\u2018\u2019\u201c\u201d\u00ab\u00bb`]/g, "").replace(/[\u2013\u2014]/g, "-").replace(/\s+/g, " ").trim();
 
 // ---------- piezas puras (las usan los tests) ----------
 /** HTML → texto legible (sin scripts, estilos, menús ni pies). */
@@ -33,7 +34,7 @@ export function htmlToText(html) {
     .replace(/<(script|style|noscript|svg|nav|footer|header|form|iframe)[\s\S]*?<\/\1>/gi, " ")
     .replace(/<br\s*\/?>|<\/(p|div|li|h[1-6]|tr)>/gi, "\n")
     .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&[#\w]+;/g, (m) => ent(m))
     .replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n").trim()
     // 2ª corrida: Google Play y Microsoft Store devolvían CSS como "texto" (y Qwen inventaba citas): se saca
     .replace(/@[\w-]+[^{}]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, " ").replace(/[^{}\n]{1,300}\{[^{}]*:[^{}]*\}/g, " ").replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n").trim();
@@ -44,8 +45,10 @@ export function htmlToText(html) {
 export function quoteSupports(rasgo, cita) { const r = stemList(rasgo), c = stems(cita); return r.length > 0 && (c.has(r[0]) || new Set(r.filter((x) => c.has(x))).size >= 2); }
 /** ¿La cita está en la fuente? (normalizada: sin tildes, mayúsculas ni espacios de más; ≥ 12 caracteres) */
 export function quoteInSource(quote, text) {
-  const q = nrm(quote).replace(/^["'“”«»]+|["'“”«».…]+$/g, "");
-  return q.length >= 12 && nrm(text).includes(q);
+  // v0.3.1: una cita con "…" o "..." vale si cada pedazo (de 12 o más caracteres) está en la página
+  const parts = nrm(quote).replace(/^["'“”«»]+|["'“”«».…]+$/g, "").split(/\s*(?:…|\.\.\.)\s*/).map((x) => x.replace(/^["'“”«»]+|["'“”«»]+$/g, "").trim()).filter(Boolean);
+  const T = nrm(text);
+  return parts.length > 0 && parts.some((x) => x.length >= 12) && parts.every((x) => x.length < 12 || T.includes(x));
 }
 /** Resultados de SearXNG de varias consultas → fuentes únicas: UNA por sitio (2ª corrida: Manus en /es y /es-419 contaba como 2 fuentes). */
 export function pickSources(resultsByQuery, max = 6) {
@@ -79,10 +82,13 @@ export function questionsFrom(grupos, nSources, max = MAX_PREGUNTAS) {
 // 1ª corrida real (17/10): el agrupado de Qwen devolvió 2 grupos de 26 rasgos y marcó "arrastrar tarjetas" como ya
 // pedido (la idea no lo decía): escondió la pregunta más útil. Ahora es por palabras, con sinónimos del dominio de apps.
 const STOP = new Set("para por con sin una uno unos unas los las del que mas muy todo toda todos todas tus sus mis este esta estos estas como entre sobre desde hasta cada otro otra otros otras puede pueden poder hacer usar tener ver".split(" "));
+// v0.3.1 (4ª corrida: las citas en inglés — "cards are dragged…", "Drag-and-drop cards" — no coincidían con rasgos en
+// castellano): sinónimos en los dos idiomas.
 const SYN = [
-  [/^(tarea|tarje|nota|item|eleme|ficha|card)/, "ITEM"], [/^(arras|solta|mover|muev|drag)/, "MOVER"], [/^(crear|crea|agreg|añadi|anadi|nuev|sumar)/, "CREAR"],
-  [/^(table|board)/, "TABLERO"], [/^(colum|lista|carri)/, "COLUMNA"], [/^(borra|elimi|quita)/, "BORRAR"], [/^(edita|modif)/, "EDITAR"],
-  [/^(etiqu|label|categ)/, "ETIQUETA"], [/^(color)/, "COLOR"], [/^(compart)/, "COMPARTIR"], [/^(perso|confi|ajust)/, "PERSONALIZAR"], [/^(guard|persi|recar)/, "GUARDAR"],
+  [/^(tarea|tarje|nota|item|eleme|ficha|card|task|ticket)/, "ITEM"], [/^(arras|solta|mover|muev|movid|drag|drop|move)/, "MOVER"], [/^(crear|crea|cread|agreg|añadi|anadi|nuev|sumar|add)/, "CREAR"],
+  [/^(table|board)/, "TABLERO"], [/^(colum|lista|carri|list|lane|swiml)/, "COLUMNA"], [/^(borra|elimi|quita|delet|remov)/, "BORRAR"], [/^(edita|modif|edit)/, "EDITAR"],
+  [/^(etiqu|label|categ|tag)/, "ETIQUETA"], [/^(color|colour)/, "COLOR"], [/^(compart|shar)/, "COMPARTIR"], [/^(perso|confi|ajust|custo)/, "PERSONALIZAR"], [/^(guard|persi|recar|save|reloa)/, "GUARDAR"],
+  [/^(filtr|filte)/, "FILTRAR"], [/^(fecha|venci|deadl|due)/, "FECHA"], [/^(notif|alert|aviso)/, "AVISO"], [/^(busc|search|encontr|find)/, "BUSCAR"], [/^(histo|activ|regis|log)/, "HISTORIAL"],
 ];
 export function stems(text) { return new Set(stemList(text)); }
 function stemList(text) {

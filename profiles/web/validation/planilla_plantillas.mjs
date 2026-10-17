@@ -9,9 +9,22 @@
 //
 // Una respuesta de Qwen:  { "usa": [ { "plantilla": "borrar", "columna": "Pendiente" }, … ] }   o   { "sin_fila": "motivo" }
 
-export const PLANTILLAS_VERSION = "planilla_plantillas v0.1";
+export const PLANTILLAS_VERSION = "planilla_plantillas v0.2";
 const A = "QA Alfa", B = "QA Beta";
 const isText = (x) => typeof x === "string" && x.trim().length > 0 && x.length <= 120;
+// v0.2 (1ª corrida): Qwen nombra los campos sin valor (["Titulo", "descripción", "prioridad"] o { "Prioridad": "" }).
+// El título es el texto de "agregar"; los de texto libre los completa el harness; los de opciones necesitan un valor.
+const FREE = /desc|nota|detalle|coment|texto|observ|nombre/i;
+export function camposDe(raw) {
+  const obj = Array.isArray(raw) ? Object.fromEntries(raw.map((k) => [String(k), ""])) : raw && typeof raw === "object" ? raw : {};
+  const out = {}, faltan = [];
+  for (const [k, v] of Object.entries(obj)) {
+    if (/^t[ií]tulo$/i.test(k.trim())) continue;
+    const val = String(v ?? "").trim();
+    if (val) out[k] = val; else if (FREE.test(k)) out[k] = `QA ${k.trim()}`; else faltan.push(k);
+  }
+  return { campos: out, faltan };
+}
 const list = (x) => (Array.isArray(x) ? x : isText(x) ? [x] : []).map(String).map((s) => s.trim()).filter(Boolean);
 
 /** Cada plantilla: qué dice (para el pedido), sus casilleros, y cómo arma la fila. */
@@ -23,14 +36,15 @@ export const PLANTILLAS = {
   },
   crear_con_campos: {
     dice: "al crear se cargan campos y la tarjeta los muestra",
-    casilleros: { campos: '{ "nombre del campo": "valor" } (descripcion, prioridad…; el título no)' },
-    arma: (c) => ({ hago: { agregar: A, campos: c.campos }, veo: [{ en_item: A, contiene: Object.values(c.campos) }] }),
-    necesita: (c) => (!c.campos || typeof c.campos !== "object" || !Object.keys(c.campos).length ? `"campos" con al menos un campo y su valor` : null),
+    casilleros: { campos: '{ "nombre del campo": "valor de ejemplo" } (descripcion, prioridad…; el título no)' },
+    arma: (c) => { const { campos } = camposDe(c.campos); return { hago: { agregar: A, campos }, veo: [{ en_item: A, contiene: Object.values(campos) }] }; },
+    necesita: (c) => { const { campos, faltan } = camposDe(c.campos); return faltan.length ? `un valor de ejemplo para ${faltan.map((k) => `"${k}"`).join(", ")} (uno de los que nombra el usuario)` : !Object.keys(campos).length ? `"campos" con al menos un campo (que no sea el título) y su valor` : null; },
   },
   editar: {
     dice: "se puede editar un elemento (el texto nuevo queda y el viejo no)",
     casilleros: { campos: "opcional: campos que se cambian al editar, con el valor nuevo" },
-    arma: (c) => ({ dado: [{ agregar: A }], hago: { editar: A, a: B, ...(c.campos ? { campos: c.campos } : {}) }, veo: [{ esta: B }, { no_esta: A }, ...(c.campos ? [{ en_item: B, contiene: Object.values(c.campos) }] : [])] }),
+    arma: (c) => { const { campos } = camposDe(c.campos); const has = Object.keys(campos).length > 0; return { dado: [{ agregar: A }], hago: { editar: A, a: B, ...(has ? { campos } : {}) }, veo: [{ esta: B }, { no_esta: A }, ...(has ? [{ en_item: B, contiene: Object.values(campos) }] : [])] }; },
+    necesita: (c) => { const { faltan } = camposDe(c.campos); return faltan.length ? `un valor nuevo para ${faltan.map((k) => `"${k}"`).join(", ")} (uno de los que nombra el usuario)` : null; },
   },
   borrar: {
     dice: "se puede borrar un elemento (desaparece; si hay contador, baja)",
@@ -106,6 +120,25 @@ export const PLANTILLAS = {
     necesita: (c) => (!isText(c.campo) ? `"campo"` : list(c.valores).length < 2 ? `"valores": al menos 2, de arriba abajo` : !isText(c.columna) ? `"columna"` : null),
   },
 };
+
+// v0.2 (1ª corrida real con plantillas, 17/10): Qwen usó "orden_por_campo" y "al_pasar_mouse" en R15, que no habla de
+// ordenar ni de pasar el mouse. Cada plantilla necesita que el requisito la NOMBRE (palabras en castellano o inglés).
+export const PERTINENCIA = {
+  crear: /crea|agreg|añad|anad|nuev|add\b/i, crear_con_campos: /crea|agreg|añad|anad|nuev|campo/i, editar: /edit|modific|cambi/i,
+  borrar: /borr|elimin|quit|delet/i, mover: /mov|arrastr|drag|solt/i, contador_al_crear: /contador|cantidad|counter|cuenta/i,
+  recargar_sigue: /guard|recarg|persist|localstorage|se mantien|no se pierd/i, al_pasar_mouse: /hover|pasar|mouse|encima/i,
+  orden_por_campo: /orden|priori|arriba|abajo|primer|recient|descend|ascend/i, color_segun_valor: /color|rojo|verde|amarill|azul/i,
+  estilo: /\d+\s*px|#[0-9a-f]{3,6}|padding|border|borde|radius|redond|sombra|shadow|overflow|scroll|width|height|ancho|alto|fondo|color/i,
+};
+const STYLE_WORDS = /\d+\s*px|#[0-9a-f]{6}|padding|border|radius|overflow|width|height|sombra/i;
+/** ¿Las elecciones tienen que ver con el requisito? ¿Falta una parte que el requisito nombra? → problemas (para el reintento). */
+export function relevanceProblems(choices, text) {
+  const p = [];
+  const used = new Set((Array.isArray(choices) ? choices : []).map((c) => c?.plantilla));
+  (Array.isArray(choices) ? choices : []).forEach((ch, i) => { const re = PERTINENCIA[ch?.plantilla]; if (re && !re.test(String(text))) p.push(`elección ${i + 1} (${ch.plantilla}): el requisito no habla de eso; usá solo plantillas de lo que dice`); });
+  if (STYLE_WORDS.test(String(text)) && !used.has("estilo")) p.push(`AVISO: el requisito nombra estilos medibles (${String(text).match(STYLE_WORDS)[0]}…): agregá una elección "estilo" por cada uno`);
+  return p;
+}
 
 /** Lo que eligió Qwen → filas (sin validar todavía) + problemas por elección. Función pura. */
 export function rowsFromChoices(choices, id) {

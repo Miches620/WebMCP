@@ -20,9 +20,9 @@ import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseJsonLoose } from "../../../json_loose.mjs";
 // v0.3 (17/10, decisión de Miche): modo "plantillas" — Qwen elige plantillas y completa casilleros; el harness arma la fila
-import { rowsFromChoices, systemPromptPlantillas, PLANTILLAS_VERSION } from "./planilla_plantillas.mjs";
+import { rowsFromChoices, relevanceProblems, systemPromptPlantillas, PLANTILLAS_VERSION } from "./planilla_plantillas.mjs";
 
-export const WRITER_VERSION = "planilla_writer v0.3";
+export const WRITER_VERSION = "planilla_writer v0.3.1";
 const MAX_ATTEMPTS = 3;
 const LM_URL = process.env.LM_STUDIO_URL || "http://localhost:1234/v1/chat/completions";
 const MODEL = process.env.PLANILLA_MODEL || process.env.REVIEWER_MODEL || "qwen2.5-7b-instruct";
@@ -131,8 +131,8 @@ export function meaningProblems(row, features) {
   const made = createdTexts(row);
   const isQA = (x) => /^qa\b/i.test(String(x).trim());
   const card = (x, where) => { if (!isText(x)) return; if (!made.has(x)) p.push(`${where}: "${x}" no se creó en esta fila (ponelo en "dado")`); };
-  const box = (x, where) => { if (!isText(x)) return; if (isQA(x)) p.push(`${where}: "${x}" es un contenedor: va con el nombre que escribió el usuario, sin "QA"`); else if (NOT_BOX.test(nrm(x))) p.push(`${where}: "${x}" no es un contenedor que vea una persona (es un campo o una pieza del código); usá el nombre de la columna`); else if (!said(x)) p.push(`${where}: el usuario no nombra ningún contenedor "${x}" (usá los nombres de los requisitos, p. ej. las columnas)`); };
-  const seen = (x, where) => { if (!isText(x)) return; if (/['"“”«»]/.test(x)) p.push(`${where}: "${x}" va sin comillas, tal como se ve en la pantalla`); else if (/^bot[oó]n\b/i.test(x)) p.push(`${where}: "${x}": para un botón usá { "control": ["palabras del botón"] }`); else if (isQA(x)) { if (!made.has(x)) p.push(`${where}: "${x}" no se creó en esta fila`); } else if (!said(x)) p.push(`${where}: "${x}" no lo escribió el usuario (los textos de prueba empiezan con "QA" y se crean en la fila)`); };
+  const box = (x, where) => { if (!isText(x)) return; if (isQA(x)) p.push(`${where}: "${x}" es un contenedor: va con el nombre que escribió el usuario, sin "QA"`); else if (/,/.test(x)) p.push(`${where}: "${x}" es una lista: va UN contenedor`); else if (NOT_BOX.test(nrm(x))) p.push(`${where}: "${x}" no es un contenedor que vea una persona (es un campo o una pieza del código); usá el nombre de la columna`); else if (!said(x)) p.push(`${where}: el usuario no nombra ningún contenedor "${x}" (usá los nombres de los requisitos, p. ej. las columnas)`); };
+  const seen = (x, where) => { if (!isText(x)) return; if (NOT_BOX.test(nrm(x))) p.push(`${where}: "${x}" es el nombre de un campo o de una pieza del código, no un texto que se vea en la pantalla`); else if (/['"“”«»]/.test(x)) p.push(`${where}: "${x}" va sin comillas, tal como se ve en la pantalla`); else if (/^bot[oó]n\b/i.test(x)) p.push(`${where}: "${x}": para un botón usá { "control": ["palabras del botón"] }`); else if (isQA(x)) { if (!made.has(x)) p.push(`${where}: "${x}" no se creó en esta fila`); } else if (!said(x)) p.push(`${where}: "${x}" no lo escribió el usuario (los textos de prueba empiezan con "QA" y se crean en la fila)`); };
   const h = row.hago || {};
   if (h.agregar && (row.dado || []).some((d) => d?.agregar === h.agregar)) p.push(`"hago.agregar": "${h.agregar}" ya se creó en "dado" (si la acción es crear, no va en dado)`);
   for (const k of ["editar", "eliminar", "mover", "pasar_mouse"]) if (h[k]) card(h[k], `hago.${k}`);
@@ -272,7 +272,15 @@ export async function writeRequirement({ id, text, features, context = "", call 
     const good = [], bad = [];
     // modo plantillas: las elecciones de Qwen → filas que arma el harness (las elecciones mal completadas, afuera con su motivo)
     let entrada = tpl ? [] : parsed?.filas || [];
-    if (tpl && !problems.length) { const r = rowsFromChoices(parsed.usa, id); entrada = r.filas; r.problems.forEach((x) => bad.push({ fila: null, problems: [x] })); }
+    if (tpl && !problems.length) {
+      // v0.3.1: las elecciones que no tienen que ver con el requisito quedan afuera; si falta una parte, el reintento lo dice
+      const rel = relevanceProblems(parsed.usa, text);
+      const offIdx = new Set(rel.map((x) => Number((x.match(/^elección (\d+)/) || [])[1]) - 1).filter((n) => n >= 0));
+      const r = rowsFromChoices(parsed.usa.filter((_, i) => !offIdx.has(i)), id);
+      entrada = r.filas;
+      // un AVISO (faltan estilos) pide un reintento solo la 1ª vez: si Qwen insiste, puede ser el CÓMO (p. ej. el ancho del handle)
+      [...rel.filter((x) => !/^AVISO/.test(x) || a === 1), ...r.problems].forEach((x) => bad.push({ fila: null, problems: [x] }));
+    }
     if (!problems.length) entrada.forEach((f, k) => {
       const { row, cambios } = normalizeRow({ ...f, r: f.r || id });
       if (row.r !== id) { bad.push({ fila: f, problems: [`es de ${row.r}, no de ${id}`] }); return; }

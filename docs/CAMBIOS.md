@@ -2,6 +2,19 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**1ª corrida real con plantillas: 54 de 68 (antes 32) → planilla_writer v0.3.1 y searcher v0.3.1 (17/10)**
+- *Evidencia:* Project doc `claude/evidencia_qwen_planilla_searcher_2026-10-17.md`, sección 6. Fixtures: `fixtures/real_qwen_c22/evidencia_v03.json`, `planilla_v03.json` y `searcher/fixtures/searcher_kanban_2026-10-17_v03.json`.
+- **Plantillas v0.3: 54 de 68 contra la vara** (modo libre: 32), con **16 de 17 requisitos con filas** (libre: 8). El techo es 67.
+- **v0.3.1:**
+  - *Pertinencia:* una plantilla necesita que el requisito la nombre (R15 usaba "ordenar" y "al pasar el mouse").
+  - "title" y "actions" no son textos que se vean (R13).
+  - Un contenedor no puede ser una lista con comas (R16).
+  - Campos sin valor: el título se saca, los de texto libre los completa el harness y para los de opciones se pide un valor (R4, R5).
+  - Aviso de "faltan estilos" solo en el 1er reintento (R11).
+- **Searcher v0.3.1:** sinónimos en castellano e inglés, citas con "…", entidades HTML y comillas tipográficas. Sobre la corrida real: 10 → 17 rasgos, y la 1ª pregunta es "mover tarjetas entre columnas — 3 de 7 fuentes".
+- *Tests:* `test_planilla_writer` 46/46, `test_searcher` 28/28.
+- *Cuidado:* las reglas se ajustaron con un solo proyecto (c22). Falta probarlas con otro que no hayamos visto.
+
 **Plantillas de fila (planilla_writer v0.3) y Searcher v0.3 (17/10, madrugada; decisión de Miche)**
 - *Origen:* en 3 corridas reales, cuando Qwen escribía la fila entera acertaba en 28 de 32 celdas, pero en 8 de 16 requisitos no lograba armar una fila válida. Ver Project doc `claude/evidencia_qwen_planilla_searcher_2026-10-17.md`, secciones 4 y 5.
 - **`profiles/web/validation/planilla_plantillas.mjs`:** 13 plantillas.

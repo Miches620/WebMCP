@@ -1,0 +1,733 @@
+{
+  "version": "planilla v0.1",
+  "autor": "planilla_writer v0.3 (qwen2.5-7b-instruct, modo plantillas, planilla_plantillas v0.1)",
+  "modo": "plantillas",
+  "filas": [
+    {
+      "r": "R1",
+      "hago": {
+        "agregar": "QA Alfa"
+      },
+      "veo": [
+        {
+          "esta": "QA Alfa",
+          "en": "Pendiente"
+        }
+      ],
+      "_plantilla": "crear",
+      "id": "R1.1"
+    },
+    {
+      "r": "R2",
+      "hago": {
+        "agregar": "QA Alfa"
+      },
+      "veo": [
+        {
+          "esta": "QA Alfa",
+          "en": "Pendiente"
+        }
+      ],
+      "_plantilla": "crear",
+      "id": "R2.1"
+    },
+    {
+      "r": "R2",
+      "veo": [
+        {
+          "control": [
+            "Agregar",
+            "tarjeta"
+          ],
+          "solo_en": "Pendiente"
+        }
+      ],
+      "_plantilla": "boton_en",
+      "id": "R2.2",
+      "_normalizado": [
+        "veo[0] control: [\"Agregar tarjeta\"] → [\"Agregar\",\"tarjeta\"]"
+      ]
+    },
+    {
+      "r": "R3",
+      "hago": {
+        "agregar": "QA Alfa",
+        "campos": {
+          "prioridad": "alta"
+        }
+      },
+      "veo": [
+        {
+          "en_item": "QA Alfa",
+          "contiene": [
+            "alta"
+          ]
+        },
+        {
+          "color_en_item": "QA Alfa",
+          "texto": "alta",
+          "familia": "rojo"
+        }
+      ],
+      "_plantilla": "color_segun_valor",
+      "id": "R3.1"
+    },
+    {
+      "r": "R3",
+      "hago": {
+        "agregar": "QA Alfa",
+        "campos": {
+          "prioridad": "media"
+        }
+      },
+      "veo": [
+        {
+          "en_item": "QA Alfa",
+          "contiene": [
+            "media"
+          ]
+        },
+        {
+          "color_en_item": "QA Alfa",
+          "texto": "media",
+          "familia": "amarillo"
+        }
+      ],
+      "_plantilla": "color_segun_valor",
+      "id": "R3.2"
+    },
+    {
+      "r": "R3",
+      "hago": {
+        "agregar": "QA Alfa",
+        "campos": {
+          "prioridad": "baja"
+        }
+      },
+      "veo": [
+        {
+          "en_item": "QA Alfa",
+          "contiene": [
+            "baja"
+          ]
+        },
+        {
+          "color_en_item": "QA Alfa",
+          "texto": "baja",
+          "familia": "verde"
+        }
+      ],
+      "_plantilla": "color_segun_valor",
+      "id": "R3.3"
+    },
+    {
+      "r": "R5",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "hago": {
+        "editar": "QA Alfa",
+        "a": "QA Beta",
+        "campos": [
+          "Titulo",
+          "descripción",
+          "prioridad"
+        ]
+      },
+      "veo": [
+        {
+          "esta": "QA Beta"
+        },
+        {
+          "no_esta": "QA Alfa"
+        },
+        {
+          "en_item": "QA Beta",
+          "contiene": [
+            "Titulo",
+            "descripción",
+            "prioridad"
+          ]
+        }
+      ],
+      "_plantilla": "editar",
+      "id": "R5.1"
+    },
+    {
+      "r": "R6",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "hago": {
+        "mover": "QA Alfa",
+        "a": "En Curso"
+      },
+      "veo": [
+        {
+          "esta": "QA Alfa",
+          "en": "En Curso"
+        },
+        {
+          "contador": "Pendiente",
+          "cambia": -1
+        },
+        {
+          "contador": "En Curso",
+          "cambia": 1
+        }
+      ],
+      "_plantilla": "mover",
+      "id": "R6.1"
+    },
+    {
+      "r": "R7",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "hago": {
+        "eliminar": "QA Alfa"
+      },
+      "veo": [
+        {
+          "no_esta": "QA Alfa"
+        },
+        {
+          "contador": "Pendiente",
+          "cambia": -1
+        }
+      ],
+      "_plantilla": "borrar",
+      "id": "R7.1"
+    },
+    {
+      "r": "R8",
+      "veo": [
+        {
+          "esta": "Pendiente"
+        },
+        {
+          "esta": "En Curso"
+        },
+        {
+          "esta": "Completa"
+        }
+      ],
+      "_plantilla": "se_ven_textos",
+      "id": "R8.1"
+    },
+    {
+      "r": "R8",
+      "hago": {
+        "agregar": "QA Alfa"
+      },
+      "veo": [
+        {
+          "contador": "Pendiente",
+          "cambia": 1
+        }
+      ],
+      "_plantilla": "contador_al_crear",
+      "id": "R8.2"
+    },
+    {
+      "r": "R8",
+      "veo": [
+        {
+          "control": [
+            "Agregar",
+            "tarjeta"
+          ],
+          "solo_en": "Pendiente"
+        }
+      ],
+      "_plantilla": "boton_en",
+      "id": "R8.3",
+      "_normalizado": [
+        "veo[0] control: [\"Agregar tarjeta\"] → [\"Agregar\",\"tarjeta\"]"
+      ]
+    },
+    {
+      "r": "R9",
+      "veo": [
+        {
+          "estilo": {
+            "de": "pagina",
+            "prop": "background-color",
+            "valor": "#102C54"
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R9.1",
+      "_normalizado": [
+        "veo[0].estilo.de: \"pagina\" → \"pagina\""
+      ]
+    },
+    {
+      "r": "R9",
+      "veo": [
+        {
+          "estilo": {
+            "de": {
+              "columna": "Pendiente"
+            },
+            "prop": "background-color",
+            "valor": "#8FB3C7"
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R9.2"
+    },
+    {
+      "r": "R9",
+      "veo": [
+        {
+          "estilo": {
+            "de": {
+              "columna": "En Curso"
+            },
+            "prop": "background-color",
+            "valor": "#8FB3C7"
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R9.3"
+    },
+    {
+      "r": "R9",
+      "veo": [
+        {
+          "estilo": {
+            "de": {
+              "columna": "Completa"
+            },
+            "prop": "background-color",
+            "valor": "#8FB3C7"
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R9.4"
+    },
+    {
+      "r": "R9",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "veo": [
+        {
+          "estilo": {
+            "de": {
+              "tarjeta": "QA Alfa"
+            },
+            "prop": "background-color",
+            "valor": "#F2E9D8"
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R9.5"
+    },
+    {
+      "r": "R10",
+      "veo": [
+        {
+          "estilo": {
+            "de": {
+              "columna": "Pendiente"
+            },
+            "prop": "overflow-y",
+            "valor": [
+              "scroll",
+              "auto"
+            ]
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R10.1"
+    },
+    {
+      "r": "R10",
+      "veo": [
+        {
+          "estilo": {
+            "de": {
+              "columna": "En Curso"
+            },
+            "prop": "overflow-y",
+            "valor": [
+              "scroll",
+              "auto"
+            ]
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R10.2"
+    },
+    {
+      "r": "R10",
+      "veo": [
+        {
+          "estilo": {
+            "de": {
+              "columna": "Completa"
+            },
+            "prop": "overflow-y",
+            "valor": [
+              "scroll",
+              "auto"
+            ]
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R10.3"
+    },
+    {
+      "r": "R10",
+      "veo": [
+        {
+          "estilo": {
+            "de": {
+              "columna": "Pendiente"
+            },
+            "prop": "width",
+            "valor": "248px"
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R10.4"
+    },
+    {
+      "r": "R10",
+      "veo": [
+        {
+          "esta": "Pendiente"
+        },
+        {
+          "esta": "En Curso"
+        },
+        {
+          "esta": "Completa"
+        }
+      ],
+      "_plantilla": "se_ven_textos",
+      "id": "R10.5"
+    },
+    {
+      "r": "R11",
+      "veo": [
+        {
+          "control": [
+            "Agregar",
+            "tarjeta"
+          ]
+        }
+      ],
+      "_plantilla": "boton_en",
+      "id": "R11.1",
+      "_normalizado": [
+        "veo[0] control: [\"Agregar tarjeta\"] → [\"Agregar\",\"tarjeta\"]"
+      ]
+    },
+    {
+      "r": "R12",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "veo": [
+        {
+          "estilo": {
+            "de": {
+              "tarjeta": "QA Alfa"
+            },
+            "prop": "overflow-y",
+            "valor": [
+              "scroll",
+              "auto"
+            ]
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R12.1"
+    },
+    {
+      "r": "R12",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "veo": [
+        {
+          "estilo": {
+            "de": {
+              "tarjeta": "QA Alfa"
+            },
+            "prop": "height",
+            "valor": "250px"
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R12.2"
+    },
+    {
+      "r": "R12",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "veo": [
+        {
+          "estilo": {
+            "de": {
+              "tarjeta": "QA Alfa"
+            },
+            "prop": "width",
+            "valor": "223px"
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R12.3"
+    },
+    {
+      "r": "R13",
+      "veo": [
+        {
+          "esta": "title"
+        },
+        {
+          "esta": "actions"
+        }
+      ],
+      "_plantilla": "se_ven_textos",
+      "id": "R13.1"
+    },
+    {
+      "r": "R14",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "hago": {
+        "pasar_mouse": "QA Alfa"
+      },
+      "veo": [
+        {
+          "al_pasar": [
+            "🗑️",
+            "✏️"
+          ],
+          "en_item": "QA Alfa"
+        }
+      ],
+      "_plantilla": "al_pasar_mouse",
+      "id": "R14.1"
+    },
+    {
+      "r": "R15",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "veo": [
+        {
+          "estilo": {
+            "de": {
+              "tarjeta": "QA Alfa"
+            },
+            "prop": "box-shadow",
+            "valor": {
+              "distinto": "none"
+            }
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R15.1"
+    },
+    {
+      "r": "R15",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "hago": {
+        "pasar_mouse": "QA Alfa"
+      },
+      "veo": [
+        {
+          "al_pasar": [
+            "⠿"
+          ],
+          "en_item": "QA Alfa"
+        }
+      ],
+      "_plantilla": "al_pasar_mouse",
+      "id": "R15.2"
+    },
+    {
+      "r": "R15",
+      "dado": [
+        {
+          "agregar": "QA Alta Vieja",
+          "campos": {
+            "prioridad": "alta"
+          }
+        },
+        {
+          "agregar": "QA Baja",
+          "campos": {
+            "prioridad": "baja"
+          }
+        },
+        {
+          "agregar": "QA Media",
+          "campos": {
+            "prioridad": "media"
+          }
+        },
+        {
+          "agregar": "QA Alta Nueva",
+          "campos": {
+            "prioridad": "alta"
+          }
+        }
+      ],
+      "veo": [
+        {
+          "orden": [
+            "QA Alta Nueva",
+            "QA Alta Vieja",
+            "QA Media",
+            "QA Baja"
+          ],
+          "en": "Pendiente, En Curso, Completa"
+        }
+      ],
+      "_plantilla": "orden_por_campo",
+      "id": "R15.3"
+    },
+    {
+      "r": "R16",
+      "dado": [
+        {
+          "agregar": "QA Alta Vieja",
+          "campos": {
+            "prioridad": "alta"
+          }
+        },
+        {
+          "agregar": "QA Baja",
+          "campos": {
+            "prioridad": "baja"
+          }
+        },
+        {
+          "agregar": "QA Media",
+          "campos": {
+            "prioridad": "media"
+          }
+        },
+        {
+          "agregar": "QA Alta Nueva",
+          "campos": {
+            "prioridad": "alta"
+          }
+        }
+      ],
+      "veo": [
+        {
+          "orden": [
+            "QA Alta Nueva",
+            "QA Alta Vieja",
+            "QA Media",
+            "QA Baja"
+          ],
+          "en": "Pendiente, En Curso, Completa"
+        }
+      ],
+      "_plantilla": "orden_por_campo",
+      "id": "R16.1"
+    },
+    {
+      "r": "R17",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "hago": {
+        "pasar_mouse": "QA Alfa"
+      },
+      "veo": [
+        {
+          "al_pasar": [
+            "🗑️",
+            "✏️"
+          ],
+          "en_item": "QA Alfa"
+        }
+      ],
+      "_plantilla": "al_pasar_mouse",
+      "id": "R17.1"
+    }
+  ],
+  "sin_fila": {
+    "R4": "Qwen no dio filas válidas"
+  },
+  "rechazadas": {
+    "R4": [
+      {
+        "fila": {
+          "r": "R4",
+          "hago": {
+            "agregar": "QA Alfa",
+            "campos": {
+              "Titulo": "",
+              "Descripción": "",
+              "Prioridad": ""
+            }
+          },
+          "veo": [
+            {
+              "en_item": "QA Alfa",
+              "contiene": [
+                "",
+                "",
+                ""
+              ]
+            }
+          ],
+          "_plantilla": "crear_con_campos"
+        },
+        "problems": [
+          "\"hago.campos\": { \"nombre del campo\": \"valor\" }",
+          "veo[0]: { \"en_item\": \"texto de la tarjeta\", \"contiene\": [\"…\"] }"
+        ]
+      }
+    ]
+  }
+}

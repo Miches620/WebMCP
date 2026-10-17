@@ -2,13 +2,13 @@
 //   node profiles/web/validation/test_planilla_writer.mjs
 import { readFileSync } from "node:fs";
 import { validateRow, normalizeRow, writeRequirement, writePlanilla, systemPrompt, userPrompt, WRITER_VERSION } from "./planilla_writer.mjs";
-import { rowsFromChoices, systemPromptPlantillas, PLANTILLAS, PLANTILLAS_VERSION } from "./planilla_plantillas.mjs";
+import { rowsFromChoices, relevanceProblems, camposDe, systemPromptPlantillas, PLANTILLAS, PLANTILLAS_VERSION } from "./planilla_plantillas.mjs";
 
 let ok = 0, fail = 0;
 const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
 const P = JSON.parse(readFileSync(new URL("./fixtures/planilla_kanban_c22.json", import.meta.url), "utf8"));
 
-t("versión", WRITER_VERSION === "planilla_writer v0.3");
+t("versión", WRITER_VERSION === "planilla_writer v0.3.1");
 // calibración: la planilla hecha a mano (la vara) cumple el validador entera
 const hand = P.filas.map((f) => [f.id, validateRow(f, 17)]);
 t("las 22 filas de la planilla a mano pasan el validador", hand.every(([, v]) => v.ok), hand.filter(([, v]) => !v.ok).map(([id, v]) => `${id}: ${v.problems.join("; ")}`).join(" | "));
@@ -46,7 +46,7 @@ t("normalizar: 'columna X', border → border-top-style, border-radius → borde
 // ---------- v0.2.1: la 2ª corrida REAL (17/10, con v0.2): 8 filas, 9 requisitos sin fila ----------
 const E2 = JSON.parse(readFileSync(new URL("./fixtures/real_qwen_c22/evidencia_v02.json", import.meta.url), "utf8"));
 const ok2 = E2.planilla.filas.filter((f) => validateRow(normalizeRow(f).row, 17, { features: FEATS }).ok).map((f) => f.id);
-t("2ª corrida: siguen R4, R9, R11, R12; caen R6 (crea dos veces), R8 ('title' no es un contenedor), R14 ('Tarjeta'), R16 (orden = creación)", ok2.join() === "R4.1,R9.1,R11.1,R12.1", ok2.join());
+t("2ª corrida: siguen R9, R11, R12; caen R4 (espera ver 'Titulo', un nombre de campo), R6 (crea dos veces), R8 ('title'), R14 ('Tarjeta'), R16 (orden = creación)", ok2.join() === "R9.1,R11.1,R12.1", ok2.join());
 const w16 = validateRow(normalizeRow(E2.planilla.filas.find((f) => f.r === "R16")).row, 17, { features: FEATS }).problems.join();
 t("R16: crear Alta, Media, Baja y esperar ese orden no prueba que ordene", /no prueba que la app ordene/.test(w16), w16);
 const resc = [];
@@ -74,12 +74,12 @@ t("nunca da JSON → 3 intentos y sin filas (no inventa nada)", rx.filas.length 
 const rr = await writeRequirement({ id: "R1", text: feats[0], features: feats, modo: "libre", call: replies([`{"filas":[{"r":"R2","veo":[{"esta":"x"}]}]}`, `{"filas":[{"hago":{"agregar":"QA Alfa"},"veo":[{"esta":"QA Alfa"}]}]}`]) });
 t("fila de otro requisito → rechazada; sin 'r' → toma el del pedido", rr.filas.length === 1 && rr.filas[0].r === "R1" && /no de R1/.test(rr.calls[0].rejected[0][0]));
 const pl = await writePlanilla({ features: feats, modo: "libre", call: async (m) => ({ content: /SOLO de R1/.test(m[1].content) ? `{"filas":[{"r":"R1","hago":{"agregar":"QA Alfa"},"veo":[{"esta":"QA Alfa"}]}]}` : `{"sin_fila":"es el cómo"}` }) });
-t("planilla entera: filas de R1, R2 sin fila con su motivo, y quién la escribió", pl.filas.length === 1 && pl.sin_fila.R2 === "es el cómo" && /planilla_writer v0\.3 .*modo libre/.test(pl.autor));
+t("planilla entera: filas de R1, R2 sin fila con su motivo, y quién la escribió", pl.filas.length === 1 && pl.sin_fila.R2 === "es el cómo" && /planilla_writer v0\.3(\.\d+)? .*modo libre/.test(pl.autor));
 const caida = await writePlanilla({ features: ["x"], call: async () => { throw new Error("fetch failed"); } });
 t("LM Studio caído → el requisito queda sin fila, con el error (no se inventa)", /fetch failed/.test(caida.sin_fila.R1));
 
 // ---------- v0.3: modo PLANTILLAS (Qwen elige, el harness arma) ----------
-t("plantillas: versión y 13 plantillas", PLANTILLAS_VERSION === "planilla_plantillas v0.1" && Object.keys(PLANTILLAS).length === 13);
+t("plantillas: versión y 13 plantillas", PLANTILLAS_VERSION === "planilla_plantillas v0.2" && Object.keys(PLANTILLAS).length === 13);
 const IDEAL = JSON.parse(readFileSync(new URL("./fixtures/real_qwen_c22/elecciones_ideales_c22.json", import.meta.url), "utf8"));
 const built = Object.entries(IDEAL).filter(([r]) => /^R\d+$/.test(r) && IDEAL[r].usa).flatMap(([r, a]) => { const x = rowsFromChoices(a.usa, r); return [...x.filas.map((f) => [r, validateRow(normalizeRow(f).row, 17, { features: FEATS })]), ...x.problems.map((p) => [r, { ok: false, problems: [p] }])]; });
 t("techo: las elecciones IDEALES para c22 arman 28 filas y TODAS pasan el validador (con los chequeos de sentido)", built.length === 28 && built.every(([, v]) => v.ok), built.filter(([, v]) => !v.ok).map(([r, v]) => `${r}: ${v.problems.join("; ")}`).join(" | "));
@@ -99,6 +99,23 @@ const tp = await writeRequirement({ id: "R1", text: feats[0], features: feats, c
 t("modo plantillas (por defecto): elección inventada → reintento con el motivo → bien; la fila sale armada por el harness", tp.filas.length === 1 && tp.filas[0].hago.agregar === "QA Alfa" && tp.filas[0]._plantilla === "crear" && tp.calls.length === 2 && tp.calls[0].rejected.some((x) => /no existe/.test(x.join())), JSON.stringify(tp.calls.map((c) => c.rejected)));
 const tps = await writeRequirement({ id: "R2", text: feats[1], features: feats, call: replies([`{"sin_fila":"es el cómo"}`]) });
 t("modo plantillas: sin_fila con motivo, una llamada", tps.sin_fila === "es el cómo" && tps.calls.length === 1);
+
+// ---------- v0.3.1: la 1ª corrida REAL con plantillas (17/10): 54 de 68 contra la vara, 16 de 17 requisitos con filas ----------
+const E3 = JSON.parse(readFileSync(new URL("./fixtures/real_qwen_c22/evidencia_v03.json", import.meta.url), "utf8"));
+const ans = (r) => JSON.parse(E3.calls[r][E3.calls[r].length - 1].raw.replace(/^```json|```$/g, "").trim());
+const idealRel = Object.entries(IDEAL).filter(([r, a]) => /^R\d+$/.test(r) && a.usa).flatMap(([r, a]) => relevanceProblems(a.usa, FEATS[Number(r.slice(1)) - 1]).map((x) => `${r}: ${x}`));
+t("las elecciones ideales pasan la pertinencia (solo un AVISO en R6: '24px' es el ancho del handle, el CÓMO)", idealRel.length === 1 && /^R6: AVISO/.test(idealRel[0]), idealRel.join(" | "));
+const rel15 = relevanceProblems(ans("R15").usa, FEATS[14]);
+t("R15: 'al_pasar_mouse' y 'orden_por_campo' no tienen que ver con el requisito → afuera", rel15.filter((x) => /no habla de eso/.test(x)).length === 2, rel15.join(" | "));
+const v13 = rowsFromChoices(ans("R13").usa, "R13").filas.map((f) => validateRow(normalizeRow(f).row, 17, { features: FEATS }));
+t("R13: 'title' y 'actions' no son textos que se vean (piezas del código) → rechazada", v13.every((v) => !v.ok && v.problems.some((x) => /pieza del código/.test(x))));
+const r16 = rowsFromChoices(ans("R16").usa, "R16").filas.map((f) => validateRow(normalizeRow(f).row, 17, { features: FEATS }).problems.join());
+t("R16: un contenedor 'Pendiente, En Curso, Completa' es una lista → rechazada", /es una lista/.test(r16[0]), r16[0]);
+const c4 = camposDe({ Titulo: "", "Descripción": "", Prioridad: "" });
+t("campos sin valor: el título se saca, la descripción la completa el harness, la prioridad se pide", !("Titulo" in c4.campos) && c4.campos["Descripción"] === "QA Descripción" && c4.faltan.join() === "Prioridad");
+const w4 = rowsFromChoices(ans("R4").usa, "R4").problems.join();
+t("R4 real: el reintento pide un valor de ejemplo para la prioridad", /un valor de ejemplo para "Prioridad"/.test(w4), w4);
+t("lista de campos (['Titulo', 'descripción', 'prioridad']) también vale", camposDe(["Titulo", "descripción", "prioridad"]).faltan.join() === "prioridad");
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

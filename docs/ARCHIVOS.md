@@ -1,33 +1,38 @@
 # Archivos de webmcp
 
-> Qué hace cada archivo, por carpeta, y la API del server. Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
+> Qué hace cada archivo, por carpeta, y la API del server. Movido desde el README el 06/10/2026; el pipeline detallado y la API se pusieron al día el 16/10. Volver al [README](../README.md).
 
-## Pipeline detallado
+## Pipeline detallado (16/10)
 
 ```
-Tipo de proyecto (lo elige Miche: web/landing, web/app…)  → profiles/   [ver profiles/README.md]
-Intención del usuario
+Tipo de proyecto + Standard (los elige Miche)  → profiles/, standards/catalog.mjs   [ver profiles/README.md]
+Idea de Miche
+   ↓  [próximo] Searcher (searcher/, SearXNG local): fichas con fuentes, escritas como filas de planilla
    ↓  Intent Forge v0.4 (plantilla de 4 campos → entrevista de completitud, hasta 10 preguntas → Qwen clasifica cada línea)
-refined_prompt + answer_key_requirements
+refined_prompt (+ standard) + answer_key_requirements
    ↓  confirmación humana (Confirmar / Ajustar)
-TechLeader  → plan de fases   (recibe la ETAPA y su criterio desde context/ProjectStage.md)
+TechLeader  → plan de fases   (recibe la ETAPA de context/ProjectStage.md y el STACK del Standard)
    ↓
 Stage Check del plan (Qwen, un veredicto por fase)  → si hay fases fuera de etapa, rehace el plan (máx. 2)
+Stack Check del plan (sin modelo, plan_stack_check.mjs) → si una fase nombra otro stack, rehace el plan; STACK_CONFLICT = decisión humana
    ↓
-Atomic Graph (Atomizer → Checker → Re-Atomizer) + reconciliación de dependencias
+Atomic Graph (Atomizer, con el STACK y la receta del Standard → Checker → Re-Atomizer) + reconciliación de dependencias
    ↓
 Validation Profile: role_dependencies  (determinista, sin LLM)
    ↓
-Completeness Reviewer v3 (schema acotado + reglas del harness)
+Completeness Reviewer v0.8 (Qwen, por tandas de 10, 3 reintentos según el error; después SYSTEM_ERROR con el motivo)
    ↓
 APPROVED  ·  o reintento de TechLeader con feedback (máx. 3)  ·  o decisión humana
-   ↓  snapshot del estado (localStorage "webmcp_state" → JSON)
-Specialist (Gemma)  → lo pone el profile (landing: por componentes)   [build/ + profiles/<tipo>/]
-   ↓   esqueleto del harness + contrato api.js↔app.js
-Artefacto: app/index.html + styles.css + api.js (mock) + app.js
+   ↓  snapshot automático (POST /api/snapshot → build/snapshots/auto/<fecha>_<proyecto>.json)
+Requisitos del Standard (build/requisitos.mjs): verifica; instala solo con el OK de Miche
    ↓
-Validation: requisito → chequeos del catálogo (Qwen elige, el código ejecuta en Chromium)   [profiles/web/validation/]
-   ↓   control: los mismos chequeos sobre el esqueleto vacío
+Specialist (Gemma) por pasos del Standard (harness/files_engine.mjs): contrato → lógica → acciones → pantalla → dibujo → controles
+Artefacto: build/runs/<fecha>_<proyecto>/app/
+   ↓
+Validation (profiles/web/validation/):
+   · con PLANILLA (refined_prompt.planilla): cada fila dado / hago / veo es un chequeo (planilla.mjs), sin traductor
+   · sin planilla: requisito → chequeos del catálogo (Qwen elige) + FLUJOS según el verbo (flows.mjs)
+   · control: los mismos chequeos sobre el esqueleto vacío
 Evidence por requisito: PASS / FAIL / SIN_EVIDENCIA / SIN_CHEQUEO   (build/runs/<fecha>/evidence.json)
 ```
 
@@ -64,6 +69,7 @@ Evidence por requisito: PASS / FAIL / SIN_EVIDENCIA / SIN_CHEQUEO   (build/runs/
 | `build/validate_external.mjs` + `build/test_validate_external.mjs` | Pasa una app hecha FUERA de webmcp (p.ej. Gemma sola en LM Studio) por la misma Validation: copia la app a `build/runs/<fecha>_externo_<nombre>/`, mismos requisitos del snapshot y, con `--checks`, los mismos chequeos de un build (mismo juez). Sin compuerta de Standard ni veredicto por tarea. (16/10) |
 | `profiles/web/validation/flows.mjs` + `test_flows.mjs` + fixtures `flow_*` | Validation de FLUJO v0.1: crear / editar / borrar / mover (drag & drop o control) / guardar (recarga), usando la app como una persona. Los agrega `postprocessChecks` de web/app según el verbo del requisito. Fixtures: Gemma sola rota y arreglada, builds estado 18-27-12 y plantillas 20-44-02. (16/10) |
 | `profiles/web/validation/planilla.mjs` + `test_planilla.mjs` + `fixtures/planilla_kanban_c22.json` | Planilla de comportamientos v0.1: filas dado / hago / veo con vocabulario cerrado, que Validation ejecuta como una persona (chequeo `planilla_fila`). `run_build` la usa en vez del traductor si viene en `refined.planilla`; `validate_external --planilla`. La del Kanban está hecha a mano (22 filas, 16 de 17 requisitos). (16/10) |
+| `searcher/check_searxng.mjs` + `test_check_searxng.mjs` | ¿SearXNG está listo para el Searcher? Hace una búsqueda en JSON contra `SEARXNG_URL` (por defecto `http://127.0.0.1:8888`) y dice qué falta: no responde, 403 (falta `json` en `formats`), 429 (limitador). `npm run searxng`. (16/10) |
 | `build/requisitos.mjs` + `build/test_requisitos.mjs` | Requisitos de instalación de un Standard (16/10). `node build/requisitos.mjs --standard X [--instalar]` (pregunta s/N por cada uno y corre SOLO el comando de la ficha). Lo usan `run_build` (verifica antes de construir), `GET /api/requisitos` y `POST /api/requisitos/instalar` (botón de la UI). Evidencia en `evidence/requisitos/`. Tests: 12. |
 | `context/ProjectStage.md` | Definición de etapas (PROTOTYPE / MVP / FINAL). El bloque entre `BEGIN_STAGE_BLOCK` / `END_STAGE_BLOCK` se inyecta en el reviewer. |
 | `context/stage_loader.mjs` | Extrae ese bloque (con hash SHA-256) y **falla fuerte** si falta. También devuelve `stage` (p.ej. `PROTOTYPE`) y `criterion` (el bloque hasta "Cómo aplicarlo al revisar:", que es lo que recibe TechLeader). |
@@ -123,7 +129,7 @@ Las reglas 5-6 del traductor (secciones, hero, footer, estadísticas) y el ancla
 | `web/validation/form_runtime.mjs` | Utilidades compartidas con el holdout del piloto: llenar y enviar formularios, juzgar envío bloqueado/aceptado, y `waitForSettle` (espera a que el DOM quede quieto, sin timers cortos pendientes ni "Cargando…"). |
 | `web/validation/test_check_catalog.mjs` + `web/validation/fixtures/` | 27 casos (v0.6.1: `real_boxworld_b3`; v0.6: `render_ok/mal`, `real_boxworld_b2` y `real_p22_v071` para `components_render`; incluye `visible_ok/mal` y las dos corridas reales de Project22 `real_p22_v05` / `real_p22_v061` como control positivo y negativo de `sections_visible`); antes 13 casos de resultado conocido (formularios del piloto + secciones: ok, grilla sin carrusel, vacía, carga lenta). `node profiles/web/validation/test_check_catalog.mjs` |
 
-Veredicto por requisito: **PASS** (todo pasa y al menos un chequeo falla en el esqueleto vacío) · **FAIL** · **SIN_EVIDENCIA** (todo pasa, pero también en el esqueleto: no discrimina) · **SIN_CHEQUEO** (el traductor no encontró chequeos).
+Veredicto por requisito: **PASS** (todo pasa y al menos un chequeo falla en el esqueleto vacío) · **FAIL** · **SIN_EVIDENCIA** (todo pasa, pero también en el esqueleto: no discrimina) · **SIN_CHEQUEO** (el traductor no encontró chequeos, el harness sacó los que tenía, o la planilla no tiene filas para ese requisito y dice por qué).
 
 Experimentos del traductor (con control): `experiments/exp_translator.mjs` (formulario del piloto, 4/5 traducciones discriminan) y `experiments/exp_translator_sections.mjs` (R1/R3/R4 de la landing sobre esqueleto, v0.3, v0.4 y fixtures; v0.1 dio R1 0/5 → `anchorSections`).
 
@@ -135,7 +141,10 @@ Experimentos del traductor (con control): `experiments/exp_translator.mjs` (form
 | `POST /api/approve-intent` | Reescribe esos dos archivos con la versión aprobada. |
 | `GET /api/stage` | Etapa vigente + criterio + sha256 (leídos de `ProjectStage.md` en cada pedido). |
 | `POST /api/stage-check` | `{brief, fases}` → veredicto por fase, `flagged`, `schema_complete`, `feedback` y `logs`. |
-| `POST /api/completeness-review` | Corre el reviewer v3 sobre el grafo y devuelve `findings` (array plano con `.type`) + `logs` + `term_coverage` (aviso por palabras). Guarda cada revisión en `evidence/term_coverage/<review_id>.json`. |
+| `POST /api/completeness-review` | Corre el reviewer (v0.8, por tandas, con `REVIEWER_MODEL` y `REVIEWER_CONTEXT`) sobre el grafo y devuelve `findings` (array plano con `.type`) + `logs` + `term_coverage` (aviso por palabras). Guarda cada revisión en `evidence/term_coverage/<review_id>.json`. |
+| `POST /api/snapshot` | Guarda el estado (snapshot) al terminar el Atomic Tree o al aprobar sin revisión, en `build/snapshots/auto/<fecha>_<proyecto>.json`, con `_snapshot` (motivo, si fue revisado). |
+| `GET /api/requisitos?standard=<id>` | Qué necesita instalado ese Standard y qué falta (`build/requisitos.mjs`). |
+| `POST /api/requisitos/instalar` | Instala un requisito que falta, solo con el comando que declara la ficha del Standard; lo pide un clic de Miche. Deja evidencia en `evidence/requisitos/`. |
 | `GET /api/version` | `BUILD_ID` de `script.js` tal como está en disco. Si la pestaña abierta tiene otro, la UI avisa y bloquea "Confirmar" (evita correr JS viejo). Los estáticos se sirven con `Cache-Control: no-store`. |
 | `POST /api/term-label` | `{review_id, requirement_id, label: "hueco_real" \| "falso_aviso" \| null}` → guarda la etiqueta de Miche en ese archivo. |
 

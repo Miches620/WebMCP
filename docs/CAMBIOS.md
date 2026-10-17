@@ -2,6 +2,15 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Docs al día + SearXNG para el Searcher (16/10 noche)**
+- *Origen:* Miche pidió el paso a paso de SearXNG en el README y todos los `.md` actualizados con lo que hace webmcp hoy.
+- *README:* el pipeline de hoy (Standard y STACK, Stack Check, reviewer por tandas, snapshot automático, requisitos, planilla y flujos); qué hay que instalar, con contextos (Gemma 12000, Qwen 16000); variables (`WEBMCP_CONTEXT`, `REVIEWER_MODEL`, `REVIEWER_CONTEXT`, `SEARXNG_URL`); **SearXNG paso a paso en Windows** (Docker Desktop, `docker run` solo en 127.0.0.1:8888, `formats: - json`, `limiter: false`); uso, estructura y documentación. Se sacó el link a `standards/README.md`, que no existe.
+- *`searcher/check_searxng.mjs`* (`npm run searxng`): una búsqueda en JSON y, si no anda, qué falta (no responde / 403 / 429). Tests: `searcher/test_check_searxng.mjs` 7/7, sin red.
+- *PENDIENTES:* revisado contra el código. Nuevos: el contexto de Gemma (el Specialist calcula con 16000 si no se le dice `WEBMCP_CONTEXT`), la planilla todavía a mano, `flow_delete`. Sacados: "n=1" y "restricciones no llegan" (solo sigue siendo cierto en landing).
+- *EXPERIMENTOS:* tabla de los experimentos del 10 al 16/10, con su doc del Project. *DISENO_pruebas_primero:* en qué quedó. *profiles/README:* Standards de web/app, flujos, planilla y el catálogo. *ARCHIVOS:* pipeline detallado y API al día.
+- *Decisión de Miche (16/10):* las filas de la planilla las propone **Qwen**, no Gemma, para que Gemma no vea su propio examen.
+- *No se tocaron* `context/ProjectStage.md` ni `roles/web-game/skills/*.md`: son entrada de los prompts, y cambiarlos cambia lo que ven los modelos.
+
 **Planilla de comportamientos v0.1 (`profiles/web/validation/planilla.mjs`): cada requisito dice qué tiene que pasar, con palabras de una persona (16/10 noche)**
 - *Origen:* el traductor adivinaba el chequeo desde el texto libre: R3 ("prioridad desde una lista") → `counter_on_action`; R16 ("orden por prioridad") → contador + scroll + hover, que daba un PASS falso; R9 (colores) y R12 (medidas) quedaban SIN_CHEQUEO aunque se pueden medir. Paso 1 del orden acordado con Miche: primero el formato y la planilla hecha a mano (la vara); después el Searcher e Intent Forge la generan y se compara contra esta.
 - *Qué es:* filas `{ r, dado, hago, veo }` con vocabulario CERRADO, sin clases ni ids (estricto en el QUÉ, flexible en el CÓMO):

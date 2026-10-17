@@ -1,6 +1,11 @@
 # Diseño: "pruebas primero" para el Specialist (DRAFT, 11/10)
 
-> Estado: propuesta, sin código. Nace de la charla del 11/10 (Miche: "inculcarles una forma prolija de trabajar ANTES de tocar una línea de código") y de la evidencia del banco de reglas.
+> Estado original (11/10): propuesta, sin código. Nace de la charla del 11/10 (Miche: "inculcarles una forma prolija de trabajar ANTES de tocar una línea de código") y de la evidencia del banco de reglas.
+>
+> **En qué quedó (16/10):**
+> - **Paso 1, el contrato que fija los nombres:** existe en el Standard `web/app/estado` (paso `contrato` → `datos.js`). Todos los pasos siguientes reciben los nombres escritos.
+> - **Paso 2, ejemplos de Gemma como compuerta:** quedó como experimento. En grilla, 85% de los ejemplos fueron correctos, pero un solo ejemplo malo rechaza todas las versiones buenas (Project doc `evidencia_pruebas_primero_2026-10-12.md`). No entró al build.
+> - **La misma idea de "quien escribe no se valida a sí mismo" siguió por otro lado:** la **planilla de comportamientos** (16/10, `profiles/web/validation/planilla.mjs`). Las filas las escribe otro (hoy Claude a mano; después Qwen, decisión de Miche), no Gemma, y Validation las ejecuta como una persona.
 
 ## El problema que resuelve
 

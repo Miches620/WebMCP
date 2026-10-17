@@ -1,18 +1,34 @@
 # Pendientes conocidos
 
-> Deuda y huecos conocidos. Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
+> Deuda y huecos conocidos. Revisado contra el código el 16/10/2026: lo que ya no era cierto se sacó (abajo, al final, qué y por qué). Volver al [README](../README.md).
 
-> ⚠️ Revisar (06/10): algunos pueden haber quedado viejos con los cambios del 05–06/10 — "un solo proyecto validado (n=1)" (ya hubo landing de café, Project22 y Boxworld) y "restricciones y estilo no llegan al Specialist" (web/app y web/game las mandan como `REGLAS DEL USUARIO`; landing no). Se conservan hasta confirmarlo.
+## Nuevos (16/10)
 
-- **Persistencia en SQLite desconectada.** La ruta `/api/projects` (con `db.mjs`) existía en una versión anterior de `server.mjs` y se perdió; `persistProject()` sigue en `script.js` pero nada la llama. `db.mjs` y `test_db.mjs` quedan archivados hasta decidir si vuelve.
-- **Chequeo de etapa: evidencia parcial.** Bench 30/09 con v0.1: 30/30 corridas con veredicto **solo para F1** (JSON válido, `finish_reason=stop`, ~70 tokens): Qwen copiaba el ejemplo de un elemento del system prompt → 0 fases evaluadas más allá de F1. v0.2 cambia una sola variable: el pedido es un esqueleto con todas las fases precargadas (`"?"` a completar).
-  - **Bench v0.2 (30/09, 5 reps, `evidence/stage_check_2026-09-30T15-31-06.json`):** sin veredicto 0 (antes 21/25 por corrida). En los 4 casos **con descripción de fase**: 0 falsos OUT sobre 55 juicios IN (incluye "deploy pedido" 10/10 IN, regla 5 respetada) y 15/15 OUT detectados (hardening, admin no pedido). Todos los errores (14 falsos OUT, 5 OUT perdidos) caen en Project20 intentos 1-2, que **solo tienen nombre de fase**: marca "Formulario de contacto" como DEFERRED (4/5, es Feature explícita) y deja "Pruebas Funcionales, Optimización y Despliegue" IN_SCOPE (5/5, fase mixta leída por "Pruebas"). El admin no pedido sale DEFERRED en vez de EXCESS (para el reintento da igual). Límite conocido: fases con nombre ambiguo ("Configuración del entorno") quedan como `ANY` en la matriz.
-- **Los "criterios_holdout" no son holdout en el pipeline:** `buildTechLeaderInput` (intent_brief.mjs) los manda a TechLeader como "Criterios de éxito". El piloto los mantiene fuera del Specialist; falta decidir si TechLeader debe verlos.
-- **Gap que el reviewer no ve:** en Project20, F4.1 pide "nombre, email, mensaje" y no el campo de preferencias de la Feature 2; el reviewer v3 la dio por cubierta. El piloto (C4) lo detectó; el reviewer LLM no discrimina (experimentos 30/09).
-- **Build: un solo proyecto validado (n=1).** Falta correr el pipeline completo en un segundo proyecto de otro tipo.
-- **Build: cortes por `length`** en las últimas tareas (F5.1, F5.3) cuando los archivos crecen; se acepta lo que vino completo y se pierde el resto.
-- **El build se corre por consola** desde un snapshot exportado; todavía no está integrado a la UI ni a `server.mjs`.
-- **Intent Forge v0.3: `restricciones` y `estilo` no llegan todavía al Specialist** (lee solo `features`, donde el estilo sigue incluido).
-- `deferredWork` se guarda pero no se muestra en la UI ni se persiste fuera del navegador.
-- `runDependencyResolverTests()` — **TEST 7 falla** desde antes de este cambio: el motor sí rechaza la dependencia-objeto, pero el test busca el texto `INVALID_DEPENDENCY` y el mensaje real es otro. Además los tests usan `console.assert` e imprimen "✓" aunque fallen.
-- TechLeader y el Atomic Engine llaman a LM Studio desde el navegador (requiere CORS); pasarlos por `server.mjs` unificaría logs y errores.
+- **Contexto de Gemma: el Specialist calcula con 16000 y Gemma está cargada con 12000.** `harness/files_engine.mjs` usa `WEBMCP_CONTEXT` (por defecto 16000) para decidir cuánto puede responder cada paso, y cuánto pedir en un reintento. Con Gemma en 12000, un paso largo puede pedir más de lo que entra. Hasta decidir el valor por defecto: `WEBMCP_CONTEXT=12000`.
+- **La planilla de comportamientos la escribe Claude a mano.** Decisión de Miche (16/10): las filas las propone **Qwen** (no Gemma, para que no vea su propio examen), junto con el Searcher e Intent Forge; Miche las edita y aprueba. Falta construirlo. La planilla a mano del Kanban (`profiles/web/validation/fixtures/planilla_kanban_c22.json`) es la vara para comparar.
+- **La planilla todavía no llega a la UI ni al Specialist.** `run_build` la usa si viene en `refined_prompt.planilla`, pero Intent Forge todavía no la arma, y el Specialist no la ve como "esto es lo que se va a probar" (paso del librito libre).
+- **Searcher:** no existe todavía. SearXNG ya se puede instalar y probar (`npm run searxng`, ver README).
+- **`flow_delete` busca la confirmación igual que hacía la planilla antes del arreglo** (cualquier botón "Borrar" fuera de la tarjeta marcada). Su veredicto no cambia (mira que el texto desaparezca), pero puede borrar una tarjeta de más.
+- **Partes de requisitos que la planilla no prueba:** el "efecto de movimiento durante el drag" (R15) y la forma del handle (R6). Están escritos en la planilla como `parcial`.
+- **Temperatura 0 no es determinista en LM Studio** (hallazgo del 12/10): dos corridas iguales pueden diferir. Antes de concluir hay que sumar corridas.
+- **La comparación estado contra plantillas no fue controlada:** "PASO n de 7 / 8" cambió el contrato entre las dos. Rehacerla con la planilla, con el mismo número de pasos.
+- **El Kanban del equipo vive en `build/runs/2026-10-03T15-28-39_Kanban_WebApp/`**, junto con las corridas.
+
+## Siguen abiertos
+
+- **Persistencia en SQLite desconectada.** La ruta `/api/projects` (con `db.mjs`) existía en una versión anterior de `server.mjs` y se perdió. `persistProject()` sigue en `script.js`, pero nada la llama. `db.mjs` y `test_db.mjs` quedan archivados hasta decidir si vuelve.
+- **El build se corre por consola** (`node build/run_build.mjs <snapshot>`). La UI ya guarda el snapshot sola y verifica e instala los requisitos, pero no lanza el build.
+- **Los "criterios_holdout" no son holdout en el pipeline:** `buildTechLeaderInput` (`intent_brief.mjs`) se los manda a TechLeader como "Criterios de éxito". El piloto los mantiene fuera del Specialist; falta decidir si TechLeader debe verlos. Con la planilla puede dejar de importar: la planilla es el holdout de verdad.
+- **web/landing: `restricciones` y `estilo` no llegan al Specialist** (lee solo `features`). En web/app y web/game sí llegan, como `REGLAS DEL USUARIO` (`rulesBrief`).
+- **Cortes por `length` en web/landing** cuando los archivos crecen: se acepta lo que vino completo y se pierde el resto. El motor por archivos (web/app, web/game) reintenta con el doble de espacio.
+- **Chequeo de etapa: evidencia parcial** (bench v0.2, 30/09, `evidence/stage_check_2026-09-30T15-31-06.json`). En los 4 casos **con descripción de fase**: 0 falsos OUT sobre 55 juicios IN y 15/15 OUT detectados. Todos los errores (14 falsos OUT, 5 OUT perdidos) caen en fases que **solo tienen nombre** ("Formulario de contacto" como DEFERRED; "Pruebas Funcionales, Optimización y Despliegue" como IN_SCOPE). Las fases con nombre ambiguo ("Configuración del entorno") quedan como `ANY` en la matriz.
+- **Gap que el reviewer no ve** (30/09): en Project20, F4.1 pide "nombre, email, mensaje" y no el campo de preferencias de la Feature 2; el reviewer v3 la dio por cubierta. El piloto (C4) lo detectó; el reviewer LLM no discrimina. El reviewer de hoy (v0.8, por tandas) no cambió esa parte.
+- `deferredWork` se guarda en el estado del navegador, pero no se muestra en la UI ni se persiste fuera del navegador.
+- `runDependencyResolverTests()` (`atomic_engine_v5.js`): **el TEST 7 falla** desde antes del 06/10. El motor sí rechaza la dependencia-objeto, pero el test busca el texto `INVALID_DEPENDENCY` y el mensaje real es otro. Además, los tests usan `console.assert` e imprimen "✓" aunque fallen.
+- TechLeader y el Atomic Engine llaman a LM Studio desde el navegador (requiere CORS). Pasarlos por `server.mjs` unificaría logs y errores.
+
+## Sacados en esta revisión (16/10)
+
+- *"Build: un solo proyecto validado (n=1)":* ya se construyeron y validaron landing (café), Project22, Boxworld (web/game) y varias corridas del Kanban (web/app).
+- *"restricciones y estilo no llegan al Specialist"* como algo general: era cierto solo para web/landing; quedó escrito así arriba.
+- El aviso "⚠️ Revisar (06/10)": esta revisión lo resuelve.

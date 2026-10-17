@@ -2,6 +2,25 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**planilla_writer v0.2.1, searcher v0.2.1 y corrección de la vara (2ª corrida real, 17/10)**
+- *Evidencia:* Project doc `claude/evidencia_qwen_planilla_searcher_2026-10-17.md`, sección 3. Fixture: `profiles/web/validation/fixtures/real_qwen_c22/evidencia_v02.json`.
+- **Planilla v0.2: 28 de 68 contra la vara.** Ya no entra basura, pero en 9 requisitos Qwen repite el mismo error en los 3 intentos. Donde sí dio filas, coincide en 24 de 32 celdas (75%).
+- **Corrección de la vara:** R12 ahora prueba también `overflow-y: scroll` (Miche lo escribió; la fila a mano lo omitía y Qwen lo encontró). Estado pasa de 5 a 4 PASS y plantillas de 6 a 5. `test_planilla` actualizado.
+- **v0.2.1 del validador:**
+  - nombres de campos o piezas del código ("title", "counter", "Tarjeta") no valen como contenedores;
+  - `control` va sin comillas ni "botón";
+  - el orden esperado no puede ser el mismo en que se crean las tarjetas (R16 no probaba nada);
+  - no se crea dos veces la misma tarjeta.
+- **Normalización:** `esta` con `en_item` pasa a `contiene`; "columna X" pasa a X; el botón queda como sus palabras; `pasar_mouse` con `en_item` pasa a la tarjeta. Sobre la 2ª corrida rescata R7, R11 y R17.
+- **Searcher v0.2.1:**
+  - una fuente por sitio (Manus /es y /es-419 contaban como 2);
+  - se saca el CSS suelto (las tiendas de apps devolvían CSS y Qwen inventaba citas);
+  - la cita tiene que decir el rasgo (su verbo, o 2 palabras propias);
+  - las consultas apuntan a listas de funcionalidades y proyectos open source, no a páginas de venta;
+  - 8 fuentes por defecto.
+- *Tests:* `test_planilla_writer` 31/31, `test_searcher` 24/24, `test_planilla` 25/25.
+- *Propuesta abierta:* plantillas de fila. Qwen elige una plantilla y completa los casilleros, en lugar de escribir el JSON entero.
+
 **planilla_writer v0.2 y searcher v0.2: arreglos con la 1ª corrida REAL de Miche (17/10, madrugada)**
 - *Evidencia:* Project doc `claude/evidencia_qwen_planilla_searcher_2026-10-17.md`. Las dos corridas quedaron como fixtures: `profiles/web/validation/fixtures/real_qwen_c22/planilla_qwen_c22.json` y `searcher/fixtures/searcher_kanban_2026-10-17.json`.
 - **Planilla de Qwen v0.1: 30 de 68 contra la vara.** Casi todo eran filas sin sentido que el validador dejaba pasar: "QA Pendiente" como columna, `click` dentro de `hago`, `"Botón 'Agregar tarjeta'"`, "cambia: 0".

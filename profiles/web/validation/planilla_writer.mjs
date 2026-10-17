@@ -19,7 +19,7 @@ import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseJsonLoose } from "../../../json_loose.mjs";
 
-export const WRITER_VERSION = "planilla_writer v0.2";
+export const WRITER_VERSION = "planilla_writer v0.2.1";
 const MAX_ATTEMPTS = 3;
 const LM_URL = process.env.LM_STUDIO_URL || "http://localhost:1234/v1/chat/completions";
 const MODEL = process.env.PLANILLA_MODEL || process.env.REVIEWER_MODEL || "qwen2.5-7b-instruct";
@@ -39,7 +39,7 @@ const texts = (x) => Array.isArray(x) && x.length > 0 && x.every(isText);
 export function validateRow(row, nReq = Infinity, ctx = {}) {
   const p = [];
   if (!row || typeof row !== "object" || Array.isArray(row)) return { ok: false, problems: ["la fila no es un objeto"] };
-  const extra = Object.keys(row).filter((k) => !["id", "r", "dado", "hago", "veo"].includes(k));
+  const extra = Object.keys(row).filter((k) => !["id", "r", "dado", "hago", "veo"].includes(k) && !k.startsWith("_")); // _normalizado: lo anota el harness
   if (extra.length) p.push(`claves que no existen: ${extra.join(", ")} (solo id, r, dado, hago, veo)`);
   if (!/^R\d+$/.test(row.r || "") || Number(String(row.r).slice(1)) > nReq) p.push(`"r" tiene que ser el requisito (R1…R${nReq === Infinity ? "n" : nReq})`);
   // dado: tarjetas que se crean antes
@@ -128,9 +128,10 @@ export function meaningProblems(row, features) {
   const made = createdTexts(row);
   const isQA = (x) => /^qa\b/i.test(String(x).trim());
   const card = (x, where) => { if (!isText(x)) return; if (!made.has(x)) p.push(`${where}: "${x}" no se creó en esta fila (ponelo en "dado")`); };
-  const box = (x, where) => { if (!isText(x)) return; if (isQA(x)) p.push(`${where}: "${x}" es un contenedor: va con el nombre que escribió el usuario, sin "QA"`); else if (!said(x)) p.push(`${where}: el usuario no nombra ningún contenedor "${x}" (usá los nombres de los requisitos, p. ej. las columnas)`); };
+  const box = (x, where) => { if (!isText(x)) return; if (isQA(x)) p.push(`${where}: "${x}" es un contenedor: va con el nombre que escribió el usuario, sin "QA"`); else if (NOT_BOX.test(nrm(x))) p.push(`${where}: "${x}" no es un contenedor que vea una persona (es un campo o una pieza del código); usá el nombre de la columna`); else if (!said(x)) p.push(`${where}: el usuario no nombra ningún contenedor "${x}" (usá los nombres de los requisitos, p. ej. las columnas)`); };
   const seen = (x, where) => { if (!isText(x)) return; if (/['"“”«»]/.test(x)) p.push(`${where}: "${x}" va sin comillas, tal como se ve en la pantalla`); else if (/^bot[oó]n\b/i.test(x)) p.push(`${where}: "${x}": para un botón usá { "control": ["palabras del botón"] }`); else if (isQA(x)) { if (!made.has(x)) p.push(`${where}: "${x}" no se creó en esta fila`); } else if (!said(x)) p.push(`${where}: "${x}" no lo escribió el usuario (los textos de prueba empiezan con "QA" y se crean en la fila)`); };
   const h = row.hago || {};
+  if (h.agregar && (row.dado || []).some((d) => d?.agregar === h.agregar)) p.push(`"hago.agregar": "${h.agregar}" ya se creó en "dado" (si la acción es crear, no va en dado)`);
   for (const k of ["editar", "eliminar", "mover", "pasar_mouse"]) if (h[k]) card(h[k], `hago.${k}`);
   if (h.mover) box(h.a, "hago.mover → a");
   (Array.isArray(row.veo) ? row.veo : []).forEach((v, i) => {
@@ -139,16 +140,23 @@ export function meaningProblems(row, features) {
     if ("esta" in v) { seen(v.esta, w); if (v.en) box(v.en, `${w}.en`); }
     if ("no_esta" in v) { seen(v.no_esta, w); if (v.en) box(v.en, `${w}.en`); }
     if ("contiene" in v) { card(v.en_item, `${w}.en_item`); (v.contiene || []).forEach((x) => seen(x, `${w}.contiene`)); }
-    if ("orden" in v) { (v.orden || []).forEach((x) => card(x, `${w}.orden`)); box(v.en, `${w}.en`); }
+    if ("orden" in v) {
+      (v.orden || []).forEach((x) => card(x, `${w}.orden`)); box(v.en, `${w}.en`);
+      // 2ª corrida (R16): crear Alta, Media, Baja y esperar Alta, Media, Baja no prueba que ordene
+      const created = (row.dado || []).map((d) => d?.agregar).filter((x) => (v.orden || []).includes(x));
+      if (created.length >= 2 && created.join("\u0001") === (v.orden || []).filter((x) => created.includes(x)).join("\u0001")) p.push(`${w}.orden: es el mismo orden en que se crean en "dado": no prueba que la app ordene (creálos en otro orden)`);
+    }
     if ("contador" in v) box(v.contador, `${w}.contador`);
-    if ("control" in v) { (v.control || []).forEach((x) => { if (!said(x)) p.push(`${w}.control: "${x}" no está en lo que escribió el usuario`); }); if (v.solo_en) box(v.solo_en, `${w}.solo_en`); }
+    if ("control" in v) { (v.control || []).forEach((x) => { if (/['"“”«»]/.test(x)) p.push(`${w}.control: "${x}" va sin comillas: las palabras del botón`); else if (/^bot[oó]n\b/i.test(x)) p.push(`${w}.control: "${x}": solo las palabras del botón, sin "botón"`); else if (!said(x)) p.push(`${w}.control: "${x}" no está en lo que escribió el usuario`); }); if (v.solo_en) box(v.solo_en, `${w}.solo_en`); }
     if ("al_pasar" in v) { card(v.en_item, `${w}.en_item`); (v.al_pasar || []).forEach((x) => seen(x, `${w}.al_pasar`)); }
     if ("color_en_item" in v) { card(v.color_en_item, `${w}.color_en_item`); }
     if ("estilo" in v) { const de = v.estilo?.de; if (de?.columna) box(de.columna, `${w}.estilo.de.columna`); if (de?.tarjeta) card(de.tarjeta, `${w}.estilo.de.tarjeta`); if (de?.control) de.control.forEach((x) => { if (!said(x)) p.push(`${w}.estilo.de.control: "${x}" no está en lo que escribió el usuario`); }); }
   });
   return p;
 }
-const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
+const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/['"“”«»]/g, "").replace(/\s+/g, " ").trim();
+// nombres de CAMPOS o de piezas del código, no contenedores que ve una persona (2ª corrida: "en": "title", "counter")
+const NOT_BOX = /^(title|titulo|counter|contador|header|body|div|top|actions?|card|tarjeta|item|modal|lista|list|contenedor|container|boton|button)s?$/i;
 
 /** Lleva a la forma exacta lo que Qwen escribe "casi bien" (sin modelo). Devuelve { row, cambios[] }. */
 export function normalizeRow(row0) {
@@ -162,7 +170,16 @@ export function normalizeRow(row0) {
   const made = () => [...(row.dado || []).map((d) => d?.agregar).filter(Boolean), row.hago?.agregar].filter(Boolean);
   const ensureCard = () => { const m = made(); if (m.length) return m[0]; row.dado = [...(row.dado || []), { agregar: "QA Alfa" }]; cambios.push(`agregó "dado": QA Alfa (el estilo es de una tarjeta y no había ninguna)`); return "QA Alfa"; };
   const PROP_ALIAS = { "border-radius": "border-top-left-radius", "border-style": "border-top-style", overflow: "overflow-y", background: "background-color" };
+  if (row.hago?.pasar_mouse && isText(row.hago.en_item)) { cambios.push(`hago: pasar_mouse "${row.hago.pasar_mouse}" en "${row.hago.en_item}" → pasar_mouse "${row.hago.en_item}"`); row.hago = { pasar_mouse: row.hago.en_item }; }
+  const unCol = (x) => (typeof x === "string" && /^columnas?\s+\S/i.test(x.trim()) ? x.trim().replace(/^columnas?\s+/i, "").replace(/['"“”]/g, "") : x);
+  if (row.hago?.mover && row.hago.a !== unCol(row.hago.a)) { cambios.push(`hago.a: "${row.hago.a}" → "${unCol(row.hago.a)}"`); row.hago.a = unCol(row.hago.a); }
   (Array.isArray(row.veo) ? row.veo : []).forEach((v, i) => {
+    if (!v || typeof v !== "object") return;
+    // control: las PALABRAS del botón (2ª corrida: ["Botón 'Agregar tarjeta'"])
+    const words = (arr) => arr.flatMap((x) => String(x).replace(/['"“”«»]/g, " ").replace(/\bbot[oó]n\b/gi, " ").split(/\s+/)).filter(Boolean);
+    for (const holder of [v, v.estilo?.de]) if (holder && Array.isArray(holder.control) && holder.control.some((x) => /['"“”«»]|\bbot[oó]n\b|\s/i.test(String(x)))) { const w = words(holder.control); cambios.push(`veo[${i}] control: ${JSON.stringify(holder.control)} → ${JSON.stringify(w)}`); holder.control = w; }
+    if ("esta" in v && isText(v.en_item) && !("contiene" in v)) { cambios.push(`veo[${i}]: esta "${v.esta}" con en_item → { en_item, contiene }`); row.veo[i] = v = { en_item: v.en_item, contiene: [v.esta] }; }
+    for (const k of ["en", "solo_en", "contador"]) if (typeof v[k] === "string" && v[k] !== unCol(v[k])) { cambios.push(`veo[${i}].${k}: "${v[k]}" → "${unCol(v[k])}"`); v[k] = unCol(v[k]); }
     if (v && Array.isArray(v.al_pasar) && v.al_pasar.some(Array.isArray)) { v.al_pasar = v.al_pasar.flat(); cambios.push(`veo[${i}].al_pasar: lista aplanada`); }
     const e = v?.estilo;
     if (!e) return;

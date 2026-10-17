@@ -37,11 +37,12 @@ const ROWS = P.filas.map((f) => f.id);
 const EXPECT = {
   flow_gemma_sola_rota:      "FPFFFFFFFPFPPFPFFFFFFF",
   flow_gemma_sola_arreglada: "PPFFFFFPPPPPPPPFFPPPFP",
-  flow_pipeline_estado:      "FPFFFFFFFPFPPPPPPFPFFF",
-  flow_pipeline_plantillas:  "FFFFFFFPPPFPPPPFPFPPFF",
+  flow_pipeline_estado:      "FPFFFFFFFPFPPPPPFFPFFF",
+  flow_pipeline_plantillas:  "FFFFFFFPPPFPPPPFFFPPFF",
 };
 // por requisito (todas sus filas PASS → PASS; R13 sin filas): lo que da run_build --validate con la planilla
-const BY_REQ = { flow_gemma_sola_rota: [2, 14], flow_gemma_sola_arreglada: [10, 6], flow_pipeline_estado: [5, 11], flow_pipeline_plantillas: [6, 10] };
+// 17/10: R12 también prueba overflow-y (Miche lo escribió; la 1ª vara lo omitía y Qwen lo encontró) → estado y plantillas, −1
+const BY_REQ = { flow_gemma_sola_rota: [2, 14], flow_gemma_sola_arreglada: [10, 6], flow_pipeline_estado: [4, 12], flow_pipeline_plantillas: [5, 11] };
 const checks = P.filas.map((f) => V.normalizeCheck({ type: "planilla_fila", params: { fila: f, controles: P.controles } }));
 const res = {};
 for (const [app, exp] of Object.entries(EXPECT)) {
@@ -63,7 +64,7 @@ t("drag & drop de verdad y contadores: Pendiente −1, En Curso +1", /contador d
 t("plantillas no puede crear → usa una tarjeta que ya estaba para mover / borrar (y lo dice)", /no pudo crear "QA Alfa" .*usa la que ya estaba: "Diseñar wireframes iniciales"/.test(L["R6.1"].detail) && L["R6.1"].result === "PASS");
 t("borrar UNA tarjeta: el contador baja 1 (antes el juez apretaba el 'Borrar' de otra tarjeta como si fuera confirmar)", /contador de "Pendiente": 2 → 1/.test(L["R7.1"].detail), L["R7.1"].detail);
 t("con campos pedidos (prioridad) no se reemplaza: R16 de plantillas falla por no poder crear", /no se pudo preparar/.test(L["R16.1"].detail));
-t("estado: las tarjetas no tienen control de borrar (dicho), aunque su CSS cumple las medidas", /no tiene un control que diga "eliminar"/.test(E["R7.1"].detail) && E["R12.1"].result === "PASS");
+t("estado: las tarjetas no tienen control de borrar (dicho); su CSS cumple alto y ancho pero no el scroll (R12)", /no tiene un control que diga "eliminar"/.test(E["R7.1"].detail) && E["R12.1"].result === "FAIL" && /overflow-y .*visible \(se esperaba scroll o auto\)/.test(E["R12.1"].detail) && /height .*250px/.test(E["R12.1"].detail), E["R12.1"].detail);
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

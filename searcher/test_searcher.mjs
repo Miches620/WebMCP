@@ -1,16 +1,18 @@
 // test_searcher.mjs — el Searcher sin red ni modelo: buscar, bajar, citas verificadas, agrupar, preguntas.
 //   node searcher/test_searcher.mjs
 import { readFileSync } from "node:fs";
-import { runSearcher, htmlToText, quoteInSource, pickSources, questionsFrom, groupTraits, sameTrait, alreadyAsked, outOfStack, SEARCHER_VERSION, TRAITS_SYSTEM, MAX_PREGUNTAS } from "./searcher.mjs";
+import { runSearcher, htmlToText, quoteInSource, quoteSupports, pickSources, questionsFrom, groupTraits, sameTrait, alreadyAsked, outOfStack, SEARCHER_VERSION, TRAITS_SYSTEM, MAX_PREGUNTAS } from "./searcher.mjs";
 
 let ok = 0, fail = 0;
 const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
 
-t("versión", SEARCHER_VERSION === "searcher v0.2");
+t("versión", SEARCHER_VERSION === "searcher v0.2.1");
 t("HTML → texto: sin scripts, estilos ni menú; entidades", htmlToText('<nav>Menú</nav><script>x()</script><p>Arrastrá &amp; soltá</p><style>.a{}</style>') === "Arrastrá & soltá");
 t("cita: tolera tildes, mayúsculas y espacios; corta (<12) no vale; inventada no está", quoteInSource("Podés ARRASTRAR las tarjetas  entre columnas", "...podes arrastrar las tarjetas entre columnas y...") && !quoteInSource("arrastrar", "arrastrar") && !quoteInSource("guarda todo en la nube automáticamente", "arrastrá tarjetas"));
 const ps = pickSources([{ results: [{ url: "https://a.com/1", title: "A1" }, { url: "https://a.com/2" }, { url: "https://a.com/3" }, { url: "https://www.youtube.com/watch" }] }, { results: [{ url: "https://b.com/1#x" }, { url: "https://a.com/1" }] }], 6);
-t("fuentes: intercala consultas, sin repetir URL, máx. 2 por dominio, sin videos/redes", ps.map((s) => s.url).join() === "https://a.com/1,https://b.com/1,https://a.com/2", ps.map((s) => s.url).join());
+t("fuentes: intercala consultas, sin repetir URL, UNA por sitio, sin videos/redes", ps.map((s) => s.url).join() === "https://a.com/1,https://b.com/1", ps.map((s) => s.url).join());
+t("la cita tiene que decir el rasgo: su verbo, o 2 palabras propias", quoteSupports("arrastrar tarjetas entre columnas", "Arrastrá las tarjetas") && quoteSupports("personalizar nombres y tamaños de las columnas", "puedes cambiar los nombres y tamaños de las columnas") && !quoteSupports("arrastrar tarjetas entre columnas", "colaboren en tiempo real compartiendo tareas, información y comentarios"));
+t("HTML con CSS suelto (tiendas de apps) → casi sin texto", htmlToText("body,html{height:100%}.a{color:red}@media (x){.b{top:0}}<p>Hola mundo</p>") === "Hola mundo", JSON.stringify(htmlToText("body,html{height:100%}.a{color:red}@media (x){.b{top:0}}<p>Hola mundo</p>")));
 const qs = questionsFrom([{ rasgo: "arrastrar tarjetas entre columnas", fuentes: ["S1", "S2"], ya_pedido: false }, { rasgo: "crear tarjetas", fuentes: ["S1"], ya_pedido: true }], 3);
 t("preguntas: solo lo que la idea NO pide, cerradas (sin depender del infinitivo) y con cuántas fuentes", qs.length === 1 && qs[0].pregunta === "¿Querés que tu app tenga esto?: arrastrar tarjetas entre columnas" && /2 de 3 fuentes \(S1, S2\)/.test(qs[0].porque), JSON.stringify(qs));
 t("el pedido de rasgos excluye beneficios y usos ('generar en minutos', 'stakeholders')", /NO un beneficio ni un uso/.test(TRAITS_SYSTEM));

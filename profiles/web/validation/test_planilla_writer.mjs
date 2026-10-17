@@ -7,7 +7,7 @@ let ok = 0, fail = 0;
 const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
 const P = JSON.parse(readFileSync(new URL("./fixtures/planilla_kanban_c22.json", import.meta.url), "utf8"));
 
-t("versión", WRITER_VERSION === "planilla_writer v0.2");
+t("versión", WRITER_VERSION === "planilla_writer v0.2.1");
 // calibración: la planilla hecha a mano (la vara) cumple el validador entera
 const hand = P.filas.map((f) => [f.id, validateRow(f, 17)]);
 t("las 22 filas de la planilla a mano pasan el validador", hand.every(([, v]) => v.ok), hand.filter(([, v]) => !v.ok).map(([id, v]) => `${id}: ${v.problems.join("; ")}`).join(" | "));
@@ -29,7 +29,7 @@ const Q = JSON.parse(readFileSync(new URL("./fixtures/real_qwen_c22/planilla_qwe
 const handCtx = P.filas.filter((f) => !validateRow(f, 17, { features: FEATS }).ok).map((f) => f.id);
 t("la vara pasa también los chequeos de SENTIDO (textos QA creados, contenedores que el usuario nombró)", !handCtx.length, handCtx.join());
 const still = Q.filas.filter((f) => validateRow(normalizeRow(f).row, 17, { features: FEATS }).ok).map((f) => f.id);
-t("de las 18 filas que v0.1 dejó pasar, v0.2 rechaza 15 (quedan las 3 de orden de R16)", still.join() === "R16.1,R16.2,R16.3", still.join());
+t("de las 18 filas que v0.1 dejó pasar, v0.2.1 rechaza las 18 (las 3 de R16 esperaban el mismo orden en que se crean)", still.length === 0, still.join());
 const why = (id) => validateRow(normalizeRow(Q.filas.find((f) => f.id === id)).row, 17, { features: FEATS }).problems.join(" | ");
 t("R8: 'QA Pendiente' como nombre de columna → no se creó en la fila", /"QA Pendiente" no se creó/.test(why("R8.1")));
 t("R7.2: 'click' dentro de hago → no existe (una acción)", /no lleva: click/.test(why("R7.2")));
@@ -41,6 +41,16 @@ const n12 = normalizeRow({ r: "R12", veo: [{ estilo: { de: "tarjeta", prop: "hei
 t("normalizar: 'tarjeta' sin tarjeta creada → agrega dado QA Alfa y lo dice", n12.row.dado?.[0]?.agregar === "QA Alfa" && n12.row.veo[0].estilo.de.tarjeta === "QA Alfa" && n12.cambios.length === 2);
 const nb = normalizeRow({ r: "R11", veo: [{ estilo: { de: "columna Pendiente", prop: "border", valor: "1px dashed" } }, { estilo: { de: "pagina", prop: "border-radius", valor: "8px" } }, { estilo: { de: "pagina", prop: "box-shadow", valor: "0 2px 4px rgba(0,0,0,.3)" } }] }).row.veo;
 t("normalizar: 'columna X', border → border-top-style, border-radius → border-top-left-radius, sombra concreta → distinta de none", nb[0].estilo.de.columna === "Pendiente" && nb[0].estilo.prop === "border-top-style" && nb[0].estilo.valor === "dashed" && nb[1].estilo.prop === "border-top-left-radius" && nb[2].estilo.valor.distinto === "none");
+
+// ---------- v0.2.1: la 2ª corrida REAL (17/10, con v0.2): 8 filas, 9 requisitos sin fila ----------
+const E2 = JSON.parse(readFileSync(new URL("./fixtures/real_qwen_c22/evidencia_v02.json", import.meta.url), "utf8"));
+const ok2 = E2.planilla.filas.filter((f) => validateRow(normalizeRow(f).row, 17, { features: FEATS }).ok).map((f) => f.id);
+t("2ª corrida: siguen R4, R9, R11, R12; caen R6 (crea dos veces), R8 ('title' no es un contenedor), R14 ('Tarjeta'), R16 (orden = creación)", ok2.join() === "R4.1,R9.1,R11.1,R12.1", ok2.join());
+const w16 = validateRow(normalizeRow(E2.planilla.filas.find((f) => f.r === "R16")).row, 17, { features: FEATS }).problems.join();
+t("R16: crear Alta, Media, Baja y esperar ese orden no prueba que ordene", /no prueba que la app ordene/.test(w16), w16);
+const resc = [];
+for (const [r, calls] of Object.entries(E2.calls)) for (const c of calls) { if (!c.raw || c.accepted) continue; let j; try { j = JSON.parse(c.raw.replace(/^```json|```$/g, "")); } catch { continue; } for (const f of j.filas || []) if (validateRow(normalizeRow({ ...f, r: f.r || r }).row, 17, { features: FEATS }).ok) resc.push(r); }
+t("normalizar (esta+en_item → contiene, 'columna X' → X, botón → palabras) rescata respuestas que v0.2 tiraba: R7, R11, R17", ["R7", "R11", "R17"].every((r) => resc.includes(r)), [...new Set(resc)].join());
 
 // el pedido
 const sys = systemPrompt();

@@ -1,6 +1,6 @@
 // searcher/searcher.mjs — Searcher v0 (el INVESTIGADOR de la Fundación), delante de Intent Forge. 16/10 noche.
 //
-//   node searcher/searcher.mjs "<idea de Miche>" [--tipo web/app] [--standard web/app/estado] [--max 6]
+//   node searcher/searcher.mjs "<idea de Miche>" [--tipo web/app] [--standard web/app/estado] [--max 8]
 //
 // Qué hace (reglas de claude/propuesta_searcher_2026-10-16.md):
 //   1. Qwen propone 3 búsquedas cortas para la idea (si no responde, se busca con la idea tal cual).
@@ -20,11 +20,11 @@ import { createHash } from "node:crypto";
 import { parseJsonLoose } from "../json_loose.mjs";
 import { SEARXNG_URL } from "./check_searxng.mjs";
 
-export const SEARCHER_VERSION = "searcher v0.2";
+export const SEARCHER_VERSION = "searcher v0.2.1";
 const LM_URL = process.env.LM_STUDIO_URL || "http://localhost:1234/v1/chat/completions";
 const MODEL = process.env.SEARCHER_MODEL || process.env.REVIEWER_MODEL || "qwen2.5-7b-instruct";
 const SOURCE_CHARS = 6000; // por fuente: entra holgado en 16k con el pedido
-const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
+const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
 
 // ---------- piezas puras (las usan los tests) ----------
 /** HTML → texto legible (sin scripts, estilos, menús ni pies). */
@@ -34,14 +34,20 @@ export function htmlToText(html) {
     .replace(/<br\s*\/?>|<\/(p|div|li|h[1-6]|tr)>/gi, "\n")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-    .replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n").trim();
+    .replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n").trim()
+    // 2ª corrida: Google Play y Microsoft Store devolvían CSS como "texto" (y Qwen inventaba citas): se saca
+    .replace(/@[\w-]+[^{}]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, " ").replace(/[^{}\n]{1,300}\{[^{}]*:[^{}]*\}/g, " ").replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n").trim();
 }
+/** ¿La cita dice ESE rasgo? Su verbo (la 1ª raíz, con sinónimos) tiene que estar en la cita (2ª corrida: "arrastrar
+ *  tarjetas" con una cita sobre colaborar en equipo). O, si la cita usa otro verbo ("cambiar los nombres de las columnas"),
+ *  al menos 2 palabras propias del rasgo. */
+export function quoteSupports(rasgo, cita) { const r = stemList(rasgo), c = stems(cita); return r.length > 0 && (c.has(r[0]) || new Set(r.filter((x) => c.has(x))).size >= 2); }
 /** ¿La cita está en la fuente? (normalizada: sin tildes, mayúsculas ni espacios de más; ≥ 12 caracteres) */
 export function quoteInSource(quote, text) {
   const q = nrm(quote).replace(/^["'“”«»]+|["'“”«».…]+$/g, "");
   return q.length >= 12 && nrm(text).includes(q);
 }
-/** Resultados de SearXNG de varias consultas → fuentes únicas (por URL, sin repetir dominio más de 2 veces). */
+/** Resultados de SearXNG de varias consultas → fuentes únicas: UNA por sitio (2ª corrida: Manus en /es y /es-419 contaba como 2 fuentes). */
 export function pickSources(resultsByQuery, max = 6) {
   const out = [], seen = new Set(), perHost = {};
   const lists = resultsByQuery.map((r) => (r?.results || []).filter((x) => /^https?:\/\//.test(x.url || "")));
@@ -50,7 +56,7 @@ export function pickSources(resultsByQuery, max = 6) {
     if (!x || out.length >= max) continue;
     const url = x.url.split("#")[0];
     const host = new URL(url).hostname.replace(/^www\./, "");
-    if (seen.has(url) || (perHost[host] || 0) >= 2 || /youtube\.com|facebook\.com|instagram\.com|tiktok\.com|x\.com|twitter\.com/.test(host)) continue;
+    if (seen.has(url) || (perHost[host] || 0) >= 1 || /youtube\.com|facebook\.com|instagram\.com|tiktok\.com|x\.com|twitter\.com/.test(host)) continue;
     seen.add(url); perHost[host] = (perHost[host] || 0) + 1;
     out.push({ id: `S${out.length + 1}`, url, title: String(x.title || "").slice(0, 120), snippet: String(x.content || "").slice(0, 300) });
   }
@@ -80,7 +86,7 @@ const SYN = [
 ];
 export function stems(text) { return new Set(stemList(text)); }
 function stemList(text) {
-  return String(text || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").split(/[^a-zñ]+/)
+  return String(text || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[^a-zñ]+/)
     .filter((w) => w.length >= 4 && !STOP.has(w)).map((w) => { const s = SYN.find(([re]) => re.test(w)); return s ? s[1] : w.slice(0, 5); });
 }
 /** Mismo rasgo con otras palabras: MISMO verbo (la 1ª raíz) y ≥ 2/3 de las raíces del más corto en común. */
@@ -115,7 +121,7 @@ export function outOfStack(g, rasgos, servidor = false) {
 }
 
 // ---------- pedidos a Qwen ----------
-export const QUERIES_SYSTEM = `Proponés búsquedas web cortas para encontrar apps PARECIDAS a la idea del usuario y ver qué funcionalidades suelen tener. Respondé SOLO JSON: { "consultas": ["…", "…", "…"] }. Tres consultas, de 3 a 7 palabras, al menos una en inglés. Sin comillas ni operadores.`;
+export const QUERIES_SYSTEM = `Proponés búsquedas web cortas para encontrar LISTAS DE FUNCIONALIDADES de apps parecidas a la idea del usuario (no páginas de venta). Respondé SOLO JSON: { "consultas": ["…", "…", "…"] }. Tres consultas, de 3 a 7 palabras: 1) en inglés, del tipo "<tipo de app> features list"; 2) en inglés, del tipo "open source <tipo de app> github"; 3) en castellano, del tipo "funcionalidades de una app de <tipo>". Sin comillas ni operadores.`;
 export const TRAITS_SYSTEM = `Leés UNA página web sobre apps parecidas a la idea del usuario y anotás las FUNCIONALIDADES que la página describe (lo que una persona puede hacer o ver en la app). Respondé SOLO JSON: { "rasgos": [ { "rasgo": "frase corta en castellano, empezando con un verbo en infinitivo (p. ej. 'arrastrar tarjetas entre columnas')", "cita": "texto COPIADO tal cual de la página que lo dice (de 5 a 25 palabras)" } ] }.
 Reglas: solo lo que la página DICE (la cita se verifica contra la página: si no está, se descarta); un rasgo es algo que una persona HACE en la app o VE en la pantalla (mover, etiquetar, filtrar, ver un contador…), NO un beneficio ni un uso ("mejorar la productividad", "adaptarse a proyectos", "generar en minutos", "gestionar stakeholders"); nada de precios, planes, empresas ni opiniones; como mucho 8 rasgos; si la página no describe funcionalidades, { "rasgos": [] }.`;
 // (v0.1 tenía MERGE_SYSTEM: Qwen agrupaba; en la 1ª corrida real falló — ver arriba)
@@ -141,7 +147,7 @@ const download = async (url) => {
 const json = (res) => { const j = parseJsonLoose(res?.content); return j.ok ? j.data : null; };
 
 /** El Searcher entero. Todo lo de afuera se inyecta (tests): call (Qwen), search (SearXNG), fetchPage. */
-export async function runSearcher({ idea, tipo = "web/app", max = 6, stack = null, call = callLM, search = searx, fetchPage = download, log = () => {} }) {
+export async function runSearcher({ idea, tipo = "web/app", max = 8, stack = null, call = callLM, search = searx, fetchPage = download, log = () => {} }) {
   const ev = { version: SEARCHER_VERSION, model: MODEL, searxng: SEARXNG_URL, fecha: new Date().toISOString(), idea, tipo, stack: stack?.nombre || null, consultas: [], fuentes: [], rasgos: [], descartados: [], grupos: [], preguntas: [], otros: [], llamadas: [] };
   // 1. consultas
   let qs = null;
@@ -169,6 +175,7 @@ export async function runSearcher({ idea, tipo = "web/app", max = 6, stack = nul
     for (const t of (data?.rasgos || []).slice(0, 8)) {
       if (!t || typeof t.rasgo !== "string" || !t.rasgo.trim()) continue;
       if (!quoteInSource(t.cita, s.text)) { ev.descartados.push({ fuente: s.id, rasgo: t.rasgo, motivo: "la cita no está en la página" }); continue; }
+      if (!quoteSupports(t.rasgo, t.cita)) { ev.descartados.push({ fuente: s.id, rasgo: t.rasgo, motivo: "la cita está en la página pero no dice eso (no tiene el verbo del rasgo)" }); continue; }
       ev.rasgos.push({ id: `T${ev.rasgos.length + 1}`, fuente: s.id, rasgo: t.rasgo.trim().slice(0, 140), cita: String(t.cita).trim().slice(0, 300) });
     }
   }
@@ -197,7 +204,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
   const { standardsFor, standardMeta } = await import("../standards/catalog.mjs");
   const tipo = flag("--tipo") || "web/app";
   const std = flag("--standard") ? standardMeta(flag("--standard")) : standardsFor(tipo)[0] || null;
-  const ev = await runSearcher({ idea, tipo, stack: std?.stack || null, max: Number(flag("--max")) || 6, log: (m) => console.log(`[SEARCHER] ${m}`) });
+  const ev = await runSearcher({ idea, tipo, stack: std?.stack || null, max: Number(flag("--max")) || 8, log: (m) => console.log(`[SEARCHER] ${m}`) });
   const dir = join(dirname(fileURLToPath(import.meta.url)), "../evidence/searcher");
   mkdirSync(dir, { recursive: true });
   const file = join(dir, `searcher_${ev.fecha.replace(/[:.]/g, "-").slice(0, 19)}.json`);

@@ -116,6 +116,8 @@ export function normalizeCheck(c, catalog) {
   const params = {};
   for (const [k, t] of Object.entries(def.params)) {
     const v = c.params?.[k];
+    // planilla v0.1: una fila es un objeto (dado / hago / veo), no una lista de palabras
+    if (t === "object" || t === "object?") { if (v && typeof v === "object" && !Array.isArray(v)) params[k] = v; else if (t === "object") return null; continue; }
     const list = (Array.isArray(v) ? v : typeof v === "string" ? [v] : []).map(String).map((s) => s.trim()).filter(Boolean);
     if (t === "string[]" && !words(list).length && !list.some((x) => /\d/.test(x))) return null; // v0.8: un número ("5") también vale
     if (t === "string[]?" && !list.length) continue; // opcional (v0.7)

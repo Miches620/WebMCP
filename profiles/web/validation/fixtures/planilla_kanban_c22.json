@@ -1,0 +1,52 @@
+{
+  "version": "planilla v0.1",
+  "proyecto": "Kanban (requisitos de c22, 16/10)",
+  "autor": "Claude, a mano, desde los 17 requisitos de Miche",
+  "controles": { "agregar": ["agregar", "tarjeta"], "editar": ["editar"], "eliminar": ["eliminar", "borrar"], "mover": ["mover"] },
+  "filas": [
+    { "id": "R1.1", "r": "R1", "hago": { "agregar": "QA Alfa" }, "veo": [{ "esta": "QA Alfa", "en": "Pendiente" }] },
+
+    { "id": "R2.1", "r": "R2", "veo": [{ "esta": "Pendiente" }, { "control": ["agregar", "tarjeta"], "solo_en": "Pendiente" }] },
+
+    { "id": "R3.1", "r": "R3", "hago": { "agregar": "QA Alfa", "campos": { "prioridad": "alta" } }, "veo": [{ "en_item": "QA Alfa", "contiene": ["alta"] }, { "color_en_item": "QA Alfa", "texto": "alta", "familia": "rojo" }] },
+    { "id": "R3.2", "r": "R3", "hago": { "agregar": "QA Alfa", "campos": { "prioridad": "media" } }, "veo": [{ "en_item": "QA Alfa", "contiene": ["media"] }, { "color_en_item": "QA Alfa", "texto": "media", "familia": "amarillo" }] },
+    { "id": "R3.3", "r": "R3", "hago": { "agregar": "QA Alfa", "campos": { "prioridad": "baja" } }, "veo": [{ "en_item": "QA Alfa", "contiene": ["baja"] }, { "color_en_item": "QA Alfa", "texto": "baja", "familia": "verde" }] },
+
+    { "id": "R4.1", "r": "R4", "hago": { "agregar": "QA Alfa", "campos": { "descripcion": "QA detalle uno", "prioridad": "media" } }, "veo": [{ "en_item": "QA Alfa", "contiene": ["QA detalle uno", "media"] }] },
+
+    { "id": "R5.1", "r": "R5", "dado": [{ "agregar": "QA Alfa", "campos": { "descripcion": "QA detalle uno", "prioridad": "alta" } }], "hago": { "editar": "QA Alfa", "a": "QA Beta", "campos": { "descripcion": "QA detalle dos", "prioridad": "baja" } }, "veo": [{ "esta": "QA Beta" }, { "no_esta": "QA Alfa" }, { "en_item": "QA Beta", "contiene": ["QA detalle dos", "baja"] }] },
+
+    { "id": "R6.1", "r": "R6", "dado": [{ "agregar": "QA Alfa" }], "hago": { "mover": "QA Alfa", "a": "En Curso" }, "veo": [{ "esta": "QA Alfa", "en": "En Curso" }] },
+
+    { "id": "R7.1", "r": "R7", "dado": [{ "agregar": "QA Alfa" }], "hago": { "eliminar": "QA Alfa" }, "veo": [{ "no_esta": "QA Alfa" }, { "contador": "Pendiente", "cambia": -1 }] },
+
+    { "id": "R8.1", "r": "R8", "veo": [{ "esta": "Pendiente" }, { "esta": "En Curso" }, { "esta": "Completa" }] },
+    { "id": "R8.2", "r": "R8", "hago": { "agregar": "QA Alfa" }, "veo": [{ "contador": "Pendiente", "cambia": 1 }] },
+
+    { "id": "R9.1", "r": "R9", "veo": [{ "estilo": { "de": "pagina", "prop": "background-color", "valor": "#102C54" } }] },
+    { "id": "R9.2", "r": "R9", "veo": [{ "estilo": { "de": { "columna": "Pendiente" }, "prop": "background-color", "valor": "#8FB3C7" } }] },
+    { "id": "R9.3", "r": "R9", "dado": [{ "agregar": "QA Alfa" }], "veo": [{ "estilo": { "de": { "tarjeta": "QA Alfa" }, "prop": "background-color", "valor": "#F2E9D8" } }] },
+
+    { "id": "R10.1", "r": "R10", "veo": [{ "estilo": { "de": { "columna": "Pendiente" }, "prop": "width", "valor": "248px" } }, { "estilo": { "de": { "columna": "Pendiente" }, "prop": "overflow-y", "valor": ["scroll", "auto"] } }] },
+
+    { "id": "R11.1", "r": "R11", "veo": [{ "estilo": { "de": { "control": ["agregar", "tarjeta"] }, "prop": "padding", "valor": "8px" } }, { "estilo": { "de": { "control": ["agregar", "tarjeta"] }, "prop": "border-top-style", "valor": "dashed" } }, { "estilo": { "de": { "control": ["agregar", "tarjeta"] }, "prop": "border-top-left-radius", "valor": "8px" } }] },
+
+    { "id": "R12.1", "r": "R12", "dado": [{ "agregar": "QA Alfa" }], "veo": [{ "estilo": { "de": { "tarjeta": "QA Alfa" }, "prop": "height", "valor": "250px" } }, { "estilo": { "de": { "tarjeta": "QA Alfa" }, "prop": "width", "valor": "223px" } }] },
+
+    { "id": "R14.1", "r": "R14", "dado": [{ "agregar": "QA Alfa" }], "hago": { "pasar_mouse": "QA Alfa" }, "veo": [{ "al_pasar": ["🗑️", "✏️"], "en_item": "QA Alfa" }] },
+
+    { "id": "R15.1", "r": "R15", "dado": [{ "agregar": "QA Alfa" }], "veo": [{ "estilo": { "de": { "tarjeta": "QA Alfa" }, "prop": "box-shadow", "valor": { "distinto": "none" } } }] },
+    { "id": "R15.2", "r": "R15", "dado": [{ "agregar": "QA Alfa" }], "hago": { "mover": "QA Alfa", "a": "En Curso" }, "veo": [{ "contador": "Pendiente", "cambia": -1 }, { "contador": "En Curso", "cambia": 1 }] },
+
+    { "id": "R16.1", "r": "R16", "dado": [{ "agregar": "QA Baja", "campos": { "prioridad": "baja" } }, { "agregar": "QA Alta Vieja", "campos": { "prioridad": "alta" } }, { "agregar": "QA Media", "campos": { "prioridad": "media" } }, { "agregar": "QA Alta Nueva", "campos": { "prioridad": "alta" } }], "veo": [{ "orden": ["QA Alta Nueva", "QA Alta Vieja", "QA Media", "QA Baja"], "en": "Pendiente" }] },
+
+    { "id": "R17.1", "r": "R17", "dado": [{ "agregar": "QA Alfa" }], "hago": { "pasar_mouse": "QA Alfa" }, "veo": [{ "al_pasar": ["🗑️", "✏️"], "en_item": "QA Alfa" }] }
+  ],
+  "sin_fila": {
+    "R13": "dice CÓMO está armada la tarjeta por dentro (div 'top' con title y actions): es el cómo, no lo que ve una persona; lo visible ya lo prueban R14 y R17"
+  },
+  "parcial": {
+    "R6": "la forma del handle (24px, ⠿, draggable) es el cómo; lo que se prueba es que arrastrar mueva la tarjeta",
+    "R15": "el 'efecto de movimiento durante el drag' no se prueba (es una animación a mitad de gesto)"
+  }
+}

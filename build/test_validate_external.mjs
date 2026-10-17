@@ -25,6 +25,13 @@ t("tareas sin 'pieza' (el veredicto por tarea no aplica)", b.input.tasks.length 
 t("mismos chequeos copiados (mismo juez)", JSON.parse(readFileSync(join(out, "checks.json"), "utf8")).length === checks.length);
 writeFileSync(join(root, "otros.json"), JSON.stringify(checks.slice(1)));
 t("chequeos de otro snapshot → no se mezclan jueces", throws(() => prepareExternal({ appDir: app, snapshot: snap, checks: join(root, "otros.json"), runsDir: join(root, "runs") }), /no se mezclan jueces/));
+// 16/10 noche: --planilla (sin traductor; los requisitos de la planilla tienen que ser los del snapshot)
+const plan = { version: "planilla v0.1", filas: [{ id: "R1.1", r: "R1", hago: { agregar: "QA Alfa" }, veo: [{ esta: "QA Alfa" }] }] };
+writeFileSync(join(root, "plan.json"), JSON.stringify(plan));
+const outP = prepareExternal({ appDir: app, snapshot: snap, planilla: join(root, "plan.json"), runsDir: join(root, "runs2"), date: new Date("2026-10-16T22:00:00Z") });
+t("--planilla: la planilla va en el input de build.json (run_build la usa en vez del traductor) y se copia", JSON.parse(readFileSync(join(outP, "build.json"), "utf8")).input.refined.planilla.filas.length === 1 && existsSync(join(outP, "planilla.json")) && !existsSync(join(outP, "checks.json")));
+writeFileSync(join(root, "plan_mala.json"), JSON.stringify({ filas: [{ id: "R99.1", r: "R99", veo: [] }] }));
+t("--planilla con requisitos que el snapshot no tiene → no se mezclan jueces", throws(() => prepareExternal({ appDir: app, snapshot: snap, planilla: join(root, "plan_mala.json"), runsDir: join(root, "runs3") }), /no se mezclan jueces/));
 t("sin index.html → falla", throws(() => prepareExternal({ appDir: root + "/nada", snapshot: snap }), /no hay index.html/));
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

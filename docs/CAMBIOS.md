@@ -2,6 +2,54 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Planilla de comportamientos v0.1 (`profiles/web/validation/planilla.mjs`): cada requisito dice qué tiene que pasar, con palabras de una persona (16/10 noche)**
+- *Origen:* el traductor adivinaba el chequeo desde el texto libre: R3 ("prioridad desde una lista") → `counter_on_action`; R16 ("orden por prioridad") → contador + scroll + hover, que daba un PASS falso; R9 (colores) y R12 (medidas) quedaban SIN_CHEQUEO aunque se pueden medir. Paso 1 del orden acordado con Miche: primero el formato y la planilla hecha a mano (la vara); después el Searcher e Intent Forge la generan y se compara contra esta.
+- *Qué es:* filas `{ r, dado, hago, veo }` con vocabulario CERRADO, sin clases ni ids (estricto en el QUÉ, flexible en el CÓMO):
+  - *dado:* tarjetas que se crean antes, con la app misma. Si crear no anda y la fila no pide campos, usa una tarjeta que ya estaba (y lo dice).
+  - *hago:* una acción: agregar (con campos) · editar · eliminar · mover · recargar · pasar_mouse.
+  - *veo:* esta / no_esta (en un contenedor) · contiene · orden · contador (cambia / vale) · control solo_en · al_pasar (oculto antes, visible después) · estilo · color_en_item (rojo / amarillo / verde).
+- *Estilo (decisión 16/10):* colores exactos; medidas ±2px sobre el valor CSS calculado del elemento (como lo escribe Miche: `width: 248px`, no lo que ocupa con padding); palabras de una lista; `{distinto: "none"}`.
+- *Dónde corre:* el chequeo `planilla_fila` (web/app). `run_build` usa `refined.planilla` en vez del traductor y no le aplica el postproceso. `validate_external --planilla <archivo>` la corre sobre una app de afuera. Un requisito sin filas es SIN_CHEQUEO con el motivo que dice la planilla (R13: "es el cómo").
+- *Planilla del Kanban hecha a mano:* `fixtures/planilla_kanban_c22.json`, 22 filas para 16 de los 17 requisitos de c22.
+- *Resultado* (`run_build --validate` con la planilla, por requisito):
+
+  | App | PASS | FAIL | SIN_CHEQUEO | con flujos v0.1 |
+  |---|---|---|---|---|
+  | Gemma sola rota | 2 | 14 | 1 | 2 |
+  | Gemma sola arreglada | **10** | 6 | 1 | 7 |
+  | pipeline estado (18-27-12) | 5 | 11 | 1 | 2 |
+  | pipeline plantillas (20-44-02) | 6 | 10 | 1 | 6 |
+
+  - La arreglada falla justo en lo que no tiene: la prioridad (R3, R4, R5, R16), el padding `8px 15px` (R11) y el tamaño de la tarjeta (R12).
+  - Estado sube a 5 por el CSS del Standard (colores y medidas bien), pero no crea, no borra y no arrastra.
+  - Plantillas: no puede crear (falta el helper `eq`), pero mueve y borra las tarjetas con las que arranca.
+- *Arreglos del juez en el camino:*
+  - Borrar: el confirmar agarraba el "Borrar tarjeta" de OTRA tarjeta y borraba dos. Ahora solo busca confirmación si la tarjeta sigue, y nunca dentro de una tarjeta.
+  - Crear: hay que llenar todos los campos (la descripción de Gemma es obligatoria); al editar, los que no se nombran no se tocan.
+- *Tests:* `profiles/web/validation/test_planilla.mjs` 25/25 (lo esperado por fila sale de revisar cada app a mano); `test_validate_external` 10/10; `test_flows` 13/13 sin cambios.
+
+**La vara: Validation de FLUJO v0.1 (`profiles/web/validation/flows.mjs`) — ahora distingue la app que anda de la que no (16/10 noche)**
+- *Origen:* con `action_changes` ("clic → algo cambió") la app de Gemma sola rota y la arreglada daban lo mismo (6 PASS). Paso 1 del orden acordado con Miche (Project doc `claude/decision_vision_unificada_2026-10-16.md`).
+- *Qué hace:* 5 chequeos que usan la app como una persona, en Chromium, arrancando de cero (localStorage limpio):
+  - `flow_create` — busca el control con el VERBO ("agregar"), llena los campos que aparecen (al lado o en un modal), confirma, y el texto marcado tiene que verse (y, si el requisito lo dice, en la columna pedida).
+  - `flow_edit` / `flow_delete` — si la app arranca vacía, primero crea uno; después edita (el texto nuevo se ve) o borra (desaparece).
+  - `flow_move` — primero arrastra de verdad (drag & drop) a otro contenedor; si no, usa el control "mover" con su destino.
+  - `flow_persist` — crea, recarga la página y tiene que seguir.
+  - Un FAIL trae el error de JS con archivo:línea, que es la pista para la corrección.
+- *Cuándo se usan:* `postprocessChecks` (web/app) mira el verbo del requisito (crear/editar/borrar/mover/guardar X) y cambia `action_changes` y los chequeos de formulario por el flujo. El traductor no los elige (`APP_FILES_ADDED`). `run_build` pasa el estilo y usa los flujos aun cuando el traductor no devolvió chequeos.
+- *Resultado* (mismos requisitos y chequeos de c22, `validate_external`):
+
+  | App | PASS | FAIL | SIN_CHEQUEO |
+  |---|---|---|---|
+  | Gemma sola rota | 2 | 12 | 3 |
+  | Gemma sola arreglada | 7 | 7 | 3 |
+  | pipeline estado (18-27-12) | 2 | 12 | 3 |
+  | pipeline plantillas (20-44-02) | 6 | 8 | 3 |
+
+  Flujos (crear · editar · borrar · mover · guardar): rota FFFFF, arreglada PPPPP, estado FFFFF, plantillas FPPPF. Esperado sacado de probar cada app a mano, no del juez.
+- *Límite:* los PASS que le quedan a la rota (R16 orden por prioridad, R17 vacíos) son chequeos imprecisos; se arreglan con la planilla de comportamientos (paso siguiente).
+- *Tests:* `profiles/web/validation/test_flows.mjs` 13/13 (4 apps reales como fixtures `flow_*`), `test_app` 45/45, `test_profiles` 30/30.
+
 **Validar una app hecha FUERA de webmcp con la misma Validation (`build/validate_external.mjs`) — y lo que mostró del juez (16/10 noche)**
 - *Origen:* Miche le pidió el Kanban a Gemma 4 E4B sola en LM Studio (6618 tokens, sin webmcp ni harness). Con tarjetas cargadas a mano, el drag & drop y localStorage andan; crear no anda (bug de 1 línea). Ver el Project doc `claude/evidencia_gemma_sola_2026-10-16.md`.
 - *Qué hace:*

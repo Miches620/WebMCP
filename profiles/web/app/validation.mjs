@@ -2,11 +2,17 @@
 // Sale de check_catalog.mjs (paso 2, 06/10) sin cambios de conducta.
 
 import { ARROWS, BOARD_SNAP, HOVER_KINDS, ITEM_LEFTS, LABELED_NUMBERS, BARE_NUMBERS, MARK_SECTION, NAV_RE, NUMBERS_IN, RENDER_AFTER, RENDER_STATIC, SEEN_SRC, SEEN_WORDS, SNAP, STYLE_SNAP, WIN_AT_LOAD, WIN_WORDS, diffCount, diffSample, fieldText, findControl, keysFrom, matches, norm, visibleTexts, words, INIT, fieldsInfo, fillForm, submitAndJudge, waitForSettle, bestControl } from "../validation/lib.mjs";
+// 16/10 noche (visión unificada): chequeos de FLUJO, como una persona, sin saber cómo está programada la app
+import { FLOW_CHECKS } from "../validation/flows.mjs";
+// 16/10 noche: la PLANILLA de comportamientos (dado / hago / veo), una fila = un chequeo
+import { PLANILLA_CHECKS } from "../validation/planilla.mjs";
 
 export default {
   id: "web/app",
   extends: "web",
   checks: {
+    ...FLOW_CHECKS,
+    ...PLANILLA_CHECKS,
     key_changes: {
       describe: "Al apretar una tecla (flechas, espacio, enter o una letra) algo cambia en la pantalla. Usar para 'se mueve con las flechas / con el teclado'.",
       params: { keys: "string[]?" },

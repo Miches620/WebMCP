@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-16c'; // tablero limpio al 16/10 tarde: Hecho / Pendiente real / Estacionado
+  const SEED = '2026-10-16f'; // 16/10 noche: planilla v0.1 hecha; sigue el Searcher que arma la planilla con Intent Forge
   let state = loadState() || {
  "columns": [
   {
@@ -434,52 +434,22 @@
    "isDefault": true,
    "cards": [
     {
-     "id": "p40",
-     "title": "Validation de FLUJO: lo que escribo aparece, lo que borro desaparece, lo que muevo cambia de columna, recargo y sigue",
-     "desc": "[#Validation #Prioridad1] 16/10 noche: Gemma sola (crear roto) y Gemma sola arreglada dieron IGUAL en Validation (6 PASS): 'clic → se abrió el modal → 1 cambio' cuenta como crear. Sin esto no se puede medir la línea base ni armar el ciclo de correcciones (los FAIL tienen que ser verdad). Flujos genéricos como una persona: clic → completar los campos que aparezcan (también en un modal) con un texto único → confirmar → el texto se ve; editar → el texto nuevo queda; borrar → el texto desaparece (aceptando el confirm); arrastrar/mover → cambia de contenedor; recargar → sigue (localStorage). Incluye n5. [#Validation] (incluye n5) Hace falta saber QUÉ tiene que cambiar: crear → +1, mover → queda en otra columna, editar → el valor queda, borrar → −1. 6ª corrida: mover a la misma columna cambiaba el orden y last_updated → action_changes PASS falso. Casos: bugs del Kanban v1 (editar borra etiquetas, [object HTMLDivElement]…). Ojo: sin leer el contrato de Gemma para aprobar.",
+     "id": "p34",
+     "title": "1 · Searcher (SearXNG local) + Intent Forge arma la PLANILLA: fichas con fuentes escritas como filas dado / hago / veo; Miche edita y aprueba; se compara contra la planilla a mano del Kanban",
+     "desc": "[#Investigador #IntentForge] Propuesta de Miche (16/10): proyecto → Searcher busca proyectos parecidos → informe → Intent Forge pregunta con ese informe → resto igual. Reglas propuestas por Claude: el informe NO agrega requisitos, solo PREGUNTAS cerradas que Miche confirma (cada línea del refined sigue saliendo de lo que dijo Miche); el informe queda como evidencia (fuentes, fecha); el harness hace las búsquedas y baja las páginas, el modelo solo resume en una ficha de rasgos con su fuente. Specialist/Validation no buscan en el momento: el Investigador arma fichas antes y se miden con/sin (como las Skills). FALTA decidir: con qué buscar (SearXNG local, una API con clave, …).",
      "priority": "urgente"
     },
     {
      "id": "p55",
-     "title": "Línea base: Gemma sola + ciclo de correcciones (Standard candidato web/app/libre)",
+     "title": "2 · Librito libre: Standard web/app/libre (DRAFT) + ciclo de correcciones en contexto nuevo",
      "desc": "[#Experimento #Standards] Gemma sola hizo el Kanban en 6618 tokens con drag & drop y localStorage andando (crear roto por 1 línea, XSS, sin prioridad). Ya existe build/validate_external.mjs para medirla con la misma Validation. Idea: Gemma escribe la app entera a su manera; el harness valida y le devuelve los FAIL concretos, cada corrección en un contexto NUEVO (solo el archivo a tocar completo + el resto resumido, y cambios por función, para que entre en 12k). Depende de p40 (sin juez de flujo, los FAIL no son ciertos).",
      "priority": "urgente"
-    },
-    {
-     "id": "p51",
-     "title": "Primera comparación: el mismo snapshot con web/app/estado y web/app/plantillas",
-     "desc": "[#Standards #Experimento] 1er intento (16/10 tarde) NO valió: por un bug, --standard no llegaba al build y las dos corridas fueron con estado (byte a byte iguales; arreglado y con test). Repetir: (1) instalar handlebars (botón 'Instalar' o node build/requisitos.mjs --standard web/app/plantillas --instalar); (2) npm test; (3) run_build del mismo snapshot con --standard web/app/estado y --standard web/app/plantillas, temperatura 0; (4) comparar intentos del paso dibujo, tokens, avisos de la sonda y Validation. Después 2–3 proyectos distintos (n=1 no alcanza).",
-     "priority": "urgente"
-    },
-    {
-     "id": "p52",
-     "title": "D2 · Planilla: los valores concretos del brief no tienen dónde vivir",
-     "desc": "[#IntentForge #Standard #D2] Build 16/10: 'Agregar tarjeta' solo en Pendiente, prioridad elegida de una lista (alta/media/baja), íconos 🗑️ ✏️, modal de confirmación, contador por columna, orden por más reciente. Ninguno tiene un campo propio → Gemma y el harness rellenan con nombres propios. Ya hay un primer campo ('boton' en el contrato, solo si está en el brief). Falta diseñar la planilla en papel (diagnóstico 16/10, paso 2) antes de codear.",
-     "priority": "urgente"
-    },
-    {
-     "id": "p54",
-     "title": "Persistencia en localStorage como parte del Standard (guardar y cargar del harness)",
-     "desc": "[#Standard] Pedido del brief del Kanban ('Guardar datos en localstorage'), que Intent Forge perdió ('Sin base de datos'). Como los controles: no lo escribe Gemma. El harness envuelve App: después de cada acción guarda el estado y al cargar lo lee (si hay uno válido con la misma forma). Validation: recargar la página y ver que lo creado sigue. Y en Intent Forge: 'localStorage' no es 'base de datos' (que no lo descarte).",
-     "priority": "urgente"
-    },
-    {
-     "id": "p42",
-     "title": "Controles del harness: se ven pesados",
-     "desc": "[#Standard #Diseño] Cada tarjeta muestra 5 bloques apilados (campo + botón por acción). Placeholders con el nombre del param (textoComentario, nuevoContenido) en vez de algo legible. 'Editar' arranca vacío: el param (nuevoContenido) no se llama como el dato (content). 14/10: un param 'color' sale como texto libre (hay que escribir #ff6347; podría ser input type=color) y el CSS de Gemma usa .ctl-boton[data-tipo] / [data-action] que el harness no pone (pone data-accion): botones sin color. Para cuando entren las Skills de diseño.",
-     "priority": "medio"
     },
     {
      "id": "p44",
      "title": "Skill de Frontend: texto del usuario con textContent (al 1er intento)",
      "desc": "[#Skills #Seguridad] El aviso ya lo corrige en 1 reintento (79 s). Una Skill solo ahorraría ese reintento a cambio de texto en cada pedido de dibujo. Medir con step_bench (con / sin / placebo) cuando haya más proyectos web/app; no es urgente.",
      "priority": "medio"
-    },
-    {
-     "id": "p45",
-     "title": "Arrastrar generado por el harness (además del botón)",
-     "desc": "[#Standard #Diseño] Pedido del brief del Kanban (R6) y de Miche. Es trabajo del Standard, no de conocimiento (Gemma sabe hacerlo): cuando el plan de controles ve una 'elección' de destino de otro tipo (tarjeta → columna), el harness agrega arrastrar-y-soltar sobre ese destino y llama a la MISMA acción (moverTarjeta). El botón queda de respaldo; después, una prueba propia de arrastrar en Validation (hoy F2.8 queda SIN_EVIDENCIA siempre).",
-     "priority": "urgente"
     },
     {
      "id": "p36",
@@ -498,12 +468,6 @@
      "title": "D3 · Tope = lo que entra: el motor asume 16000 de contexto y Gemma está en 12000",
      "desc": "[#Infra #D3] El reviewer ya calcula su tope desde el contexto (REVIEWER_CONTEXT). Falta el motor del Specialist: WEBMCP_CONTEXT por defecto 16000 vs 12000 de Gemma en LM Studio. Opciones: default 12000, o leerlo de LM Studio (/api/v0/models). Antes de que un pedido de 7k pida una respuesta que no entra.",
      "priority": "medio"
-    },
-    {
-     "id": "p34",
-     "title": "Searcher (Investigador v0): informe de 'qué existe parecido' antes de Intent Forge",
-     "desc": "[#Investigador #IntentForge] Propuesta de Miche (16/10): proyecto → Searcher busca proyectos parecidos → informe → Intent Forge pregunta con ese informe → resto igual. Reglas propuestas por Claude: el informe NO agrega requisitos, solo PREGUNTAS cerradas que Miche confirma (cada línea del refined sigue saliendo de lo que dijo Miche); el informe queda como evidencia (fuentes, fecha); el harness hace las búsquedas y baja las páginas, el modelo solo resume en una ficha de rasgos con su fuente. Specialist/Validation no buscan en el momento: el Investigador arma fichas antes y se miden con/sin (como las Skills). FALTA decidir: con qué buscar (SearXNG local, una API con clave, …).",
-     "priority": "urgente"
     },
     {
      "id": "p32",
@@ -544,6 +508,30 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "p51",
+     "title": "Primera comparación: el mismo snapshot con web/app/estado y web/app/plantillas",
+     "desc": "ESTACIONADA por la visión unificada (16/10 noche, claude/decision_vision_unificada_2026-10-16.md): con el Standard 'libre' Gemma programa a su manera; esto lo resuelve ella y lo verifica Validation de flujo. — [#Standards #Experimento] 1er intento (16/10 tarde) NO valió: por un bug, --standard no llegaba al build y las dos corridas fueron con estado (byte a byte iguales; arreglado y con test). Repetir: (1) instalar handlebars (botón 'Instalar' o node build/requisitos.mjs --standard web/app/plantillas --instalar); (2) npm test; (3) run_build del mismo snapshot con --standard web/app/estado y --standard web/app/plantillas, temperatura 0; (4) comparar intentos del paso dibujo, tokens, avisos de la sonda y Validation. Después 2–3 proyectos distintos (n=1 no alcanza).",
+     "priority": "bajo"
+    },
+    {
+     "id": "p42",
+     "title": "Controles del harness: se ven pesados",
+     "desc": "ESTACIONADA por la visión unificada (16/10 noche, claude/decision_vision_unificada_2026-10-16.md): con el Standard 'libre' Gemma programa a su manera; esto lo resuelve ella y lo verifica Validation de flujo. — [#Standard #Diseño] Cada tarjeta muestra 5 bloques apilados (campo + botón por acción). Placeholders con el nombre del param (textoComentario, nuevoContenido) en vez de algo legible. 'Editar' arranca vacío: el param (nuevoContenido) no se llama como el dato (content). 14/10: un param 'color' sale como texto libre (hay que escribir #ff6347; podría ser input type=color) y el CSS de Gemma usa .ctl-boton[data-tipo] / [data-action] que el harness no pone (pone data-accion): botones sin color. Para cuando entren las Skills de diseño.",
+     "priority": "bajo"
+    },
+    {
+     "id": "p54",
+     "title": "Persistencia en localStorage como parte del Standard (guardar y cargar del harness)",
+     "desc": "ESTACIONADA por la visión unificada (16/10 noche, claude/decision_vision_unificada_2026-10-16.md): con el Standard 'libre' Gemma programa a su manera; esto lo resuelve ella y lo verifica Validation de flujo. — [#Standard] Pedido del brief del Kanban ('Guardar datos en localstorage'), que Intent Forge perdió ('Sin base de datos'). Como los controles: no lo escribe Gemma. El harness envuelve App: después de cada acción guarda el estado y al cargar lo lee (si hay uno válido con la misma forma). Validation: recargar la página y ver que lo creado sigue. Y en Intent Forge: 'localStorage' no es 'base de datos' (que no lo descarte).",
+     "priority": "bajo"
+    },
+    {
+     "id": "p45",
+     "title": "Arrastrar generado por el harness (además del botón)",
+     "desc": "ESTACIONADA por la visión unificada (16/10 noche, claude/decision_vision_unificada_2026-10-16.md): con el Standard 'libre' Gemma programa a su manera; esto lo resuelve ella y lo verifica Validation de flujo. — [#Standard #Diseño] Pedido del brief del Kanban (R6) y de Miche. Es trabajo del Standard, no de conocimiento (Gemma sabe hacerlo): cuando el plan de controles ve una 'elección' de destino de otro tipo (tarjeta → columna), el harness agrega arrastrar-y-soltar sobre ese destino y llama a la MISMA acción (moverTarjeta). El botón queda de respaldo; después, una prueba propia de arrastrar en Validation (hoy F2.8 queda SIN_EVIDENCIA siempre).",
+     "priority": "bajo"
+    },
     {
      "id": "p50",
      "title": "DECIDIR: enlace de vista/datos/estilo por Gemma (v0.2) o por código",
@@ -594,6 +582,18 @@
    "isInbox": false,
    "isDefault": false,
    "cards": [
+    {
+     "id": "h65",
+     "title": "16/10 noche · Planilla de comportamientos v0.1 (formato + la del Kanban a mano + Validation la ejecuta)",
+     "desc": "[#Validation #IntentForge] planilla.mjs: filas dado / hago / veo con vocabulario cerrado, sin clases ni ids (estricto en el QUÉ, flexible en el CÓMO). Estilo: colores exactos, medidas ±2px sobre el CSS calculado. run_build usa refined.planilla en vez del traductor; validate_external --planilla. Planilla del Kanban a mano: 22 filas, 16 de 17 requisitos (R13 es el cómo). Por requisito: Gemma sola rota 2 / arreglada 10 / estado 5 / plantillas 6 (con flujos: 2 / 7 / 2 / 6). La arreglada falla justo en lo que no tiene (prioridad, padding, tamaño de tarjeta). Arreglado de paso: borrar confirmaba con el 'Borrar' de otra tarjeta. Tests: test_planilla 25, test_validate_external 10.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h64",
+     "title": "16/10 noche · 1 · La vara: Validation de FLUJO v0.1 (crear / editar / borrar / mover / guardar)",
+     "desc": "[#Validation] flows.mjs: usa la app como una persona desde cero (localStorage limpio). Crear: control con el VERBO, llena los campos (al lado o en modal), confirma, el texto se ve (y en la columna pedida). Editar/borrar: si arranca vacía crea uno primero. Mover: drag & drop de verdad, si no el control con destino. Guardar: crea, recarga y sigue. El FAIL trae el error de JS con archivo:línea. Los agrega postprocessChecks según el verbo del requisito (reemplazan action_changes). Resultado con los chequeos de c22: Gemma sola rota 2 PASS / arreglada 7 / pipeline estado 2 / plantillas 6 (antes rota y arreglada daban 6 y 6). Flujos: rota FFFFF, arreglada PPPPP, estado FFFFF, plantillas FPPPF. Incluye n5. Queda: R16/R17 imprecisos hasta la planilla (p52). Tests: test_flows 13, test_app 45, test_profiles 30.",
+     "priority": "bajo"
+    },
     {
      "id": "h63",
      "title": "16/10 tarde · 2ª comparación revisada: bug de --standard + 5 arreglos con las corridas 15-48-47/16-24-56",

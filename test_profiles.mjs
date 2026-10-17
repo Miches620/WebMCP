@@ -56,7 +56,7 @@ const lp = buildSystemPrompt(LANDING_TRANSLATOR);
 t("landing: reglas 1–7 numeradas", /\n5\. La página ya trae/.test(lp) && /\n6\. Requisitos de cualidad/.test(lp) && /\n7\. No agregues/.test(lp));
 t("landing lista todos los tipos de su catálogo", LANDING_TRANSLATOR.catalog.every((k) => lp.includes(`- ${k}:`)));
 t("landing no ve los chequeos de juego", !lp.includes("- not_won_immediately:") && !lp.includes("- reset_restores:") && !lp.includes("- key_changes:"));
-t("todo tipo no-base del catálogo lo usa algún profile", Object.entries(CATALOG).filter(([, d]) => !d.base).every(([k]) => [LANDING_TRANSLATOR, APP_TRANSLATOR, APP_FILES_TRANSLATOR, GAME_TRANSLATOR].some((x) => x.catalog.includes(k))));
+t("todo tipo no-base del catálogo lo usa algún profile", Object.entries(CATALOG).filter(([, d]) => !d.base).every(([k]) => [LANDING_TRANSLATOR, APP_TRANSLATOR, APP_FILES_TRANSLATOR, GAME_TRANSLATOR].some((x) => x.catalog.includes(k) || (x.added || []).includes(k))));
 const ap = buildSystemPrompt(APP_TRANSLATOR), gp = buildSystemPrompt(GAME_TRANSLATOR);
 t("app: interacción sí, landing no (sin hero/carrusel/secciones)", ap.includes("- counter_on_action:") && !ap.includes("carousel") && !ap.includes("Hero") && !ap.includes("- section_items:") && !ap.includes("not_won_immediately"));
 t("game: app + chequeos de juego, reglas 5 y 6 propias", gp.includes("- reset_restores:") && gp.includes("- not_won_immediately:") && gp.includes("- board_changes:") && !ap.includes("- board_changes:") && /\n5\. Es una APP/.test(gp) && /\n6\. Es un JUEGO/.test(gp) && /\n7\. No agregues/.test(gp));

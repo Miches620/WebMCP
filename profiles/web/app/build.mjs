@@ -115,10 +115,42 @@ const RESPONSIVE_WORDS = /\b(responsive|responsiv[oa]s?|m[oó]vil(es)?|celular(e
 const KEY_WORDS = /\b(teclado|teclas?|flechas?|atajos?|enter|escape|esc|barra espaciadora|keyboard)\b/i;
 export const namesResponsive = (text) => RESPONSIVE_WORDS.test(String(text || ""));
 export const namesKeys = (text) => KEY_WORDS.test(String(text || ""));
-export function postprocessChecks(checks = [], id, text = "") {
+// 16/10 noche (visión unificada, "la vara"): el VERBO del requisito decide qué FLUJO se prueba, como una persona
+// (profiles/web/validation/flows.mjs). action_changes ("algo cambió") daba PASS a una app que no creaba nada.
+// crear/agregar → flow_create · editar → flow_edit · borrar/eliminar → flow_delete · mover/arrastrar → flow_move ·
+// guardar/localStorage/recargar → flow_persist. Las palabras del control salen del requisito (el verbo primero).
+// Un requisito de ESTILO no suma flujos (sombras "durante el drag&drop" es cómo se ve, no si se puede mover).
+const FLOW_VERBS = [
+  // solo VERBOS: "en el modal de creación o edición" (R3, prioridad) no pide probar editar; daba PASS falso
+  { re: /\b(crear|crearl[ao]s?|creo|agregar|agrega|añadir|anadir|sumar)\b/i, type: "flow_create", verb: "agregar" },
+  { re: /\b(editar|editarl[ao]s?|edita|modificar|renombrar)\b/i, type: "flow_edit", verb: "editar" },
+  { re: /\b(borrar|borra|eliminar|elimina|quitar)\b/i, type: "flow_delete", verb: "eliminar" },
+  { re: /\b(mover|mueve|arrastr\w*|drag\s*(&|and)?\s*drop|drag)\b/i, type: "flow_move", verb: "mover" },
+  { re: /\b(guardar|guarda|persist\w*|local\s*storage|recarg\w*)\b/i, type: "flow_persist", verb: "agregar" },
+];
+const ACTION_TYPES = new Set(["action_changes", ...FORM_CHECKS]);
+/** Los flujos que pide el texto de un requisito (en el orden en que aparecen los verbos). */
+export function flowsFor(text, { style = false } = {}) {
+  if (style) return [];
+  const t = String(text || "");
+  // el objeto del verbo = la primera palabra con contenido que viene DESPUÉS ("borrar una tarjeta" → tarjeta)
+  const objectAfter = (at) => (actionWords(t.slice(at).replace(/^\S+/, "")).find((w) => !FLOW_VERBS.some((f) => f.re.test(w))) || null);
+  return FLOW_VERBS.map((f) => ({ f, at: t.search(f.re) })).filter((x) => x.at >= 0).sort((a, b) => a.at - b.at)
+    .map(({ f, at }) => {
+      const obj = objectAfter(at), nouns = obj ? [obj] : [];
+      return { type: f.type, params: f.type === "flow_create" || f.type === "flow_persist" ? { abrir: [f.verb, ...nouns] } : { abrir: [f.verb, ...nouns], crear: ["agregar", ...nouns] } };
+    });
+}
+export function postprocessChecks(checks = [], id, text = "", opts = {}) {
   if (legacyFlag()) return checks;
   const why = [];
   let out = checks;
+  // flujos primero: reemplazan a los chequeos de "algo cambió" (y se suman aunque el traductor no haya dado nada)
+  const flows = flowsFor(text, opts);
+  if (flows.length) {
+    out = [...out.filter((c) => !ACTION_TYPES.has(c?.type)), ...flows.filter((f) => !out.some((c) => c?.type === f.type))];
+    why.push(`flujo como una persona: ${flows.map((f) => f.type).join(", ")}`);
+  }
   if (!namesANumber(text) && out.some((c) => c?.type === "counter_on_action")) {
     out = out.filter((c) => c?.type !== "counter_on_action");
     why.push("counter_on_action fuera: el requisito no nombra ningún número");
@@ -131,7 +163,7 @@ export function postprocessChecks(checks = [], id, text = "") {
     out = out.filter((c) => c?.type !== "key_changes");
     why.push("key_changes fuera: el requisito no nombra el teclado ni teclas");
   }
-  if (out.some((c) => FORM_CHECKS.has(c?.type))) {
+  if (!flows.length && out.some((c) => FORM_CHECKS.has(c?.type))) {
     const rest = out.filter((c) => !FORM_CHECKS.has(c?.type));
     if (!rest.some((c) => c?.type === "action_changes")) rest.push({ type: "action_changes", params: { click: actionWords(text, checks) } });
     out = rest;

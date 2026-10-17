@@ -52,18 +52,20 @@ t("specialistSees = lo que el brief suma (guardia de holdout)", gameBuild.specia
 {
   const { controlScore } = await import("../validation/lib.mjs");
   const btns = ["+ Crear Tarjeta", "Mover a En Progreso", "💬 Añadir Comentario", "🏷️ Añadir Etiqueta", "✏️ Editar", "🗑️ Eliminar Tarjeta"];
-  const pick = (t, ch) => { const ac = appBuild.postprocessChecks(ch, "R", t).find((c) => c.type === "action_changes"); return ac && btns.map((b) => [b, controlScore(b, ac.params.click)]).reduce((x, y) => (y[1] > x[1] ? y : x))[0]; };
-  t("app: submit/field/click_changes → un action_changes (control_visible se queda)", appBuild.postprocessChecks([{ type: "control_visible", params: { text: ["crear"] } }, { type: "submit_empty_blocked", params: {} }, { type: "field_exists", params: { field: ["x"] } }], "R1", "Crear tarjetas").map((c) => c.type).join() === "control_visible,action_changes");
+  // 16/10 noche: los verbos ya van a flujos; las palabras del control (actionWords) siguen eligiendo el del verbo
+  const pick = (t, ch) => { const w = appBuild.actionWords(t, ch); return btns.map((b) => [b, controlScore(b, w)]).reduce((x, y) => (y[1] > x[1] ? y : x))[0]; };
+  t("app: submit/field/click_changes → un action_changes si el requisito no nombra un verbo de flujo (control_visible se queda)", appBuild.postprocessChecks([{ type: "control_visible", params: { text: ["x"] } }, { type: "submit_empty_blocked", params: {} }, { type: "field_exists", params: { field: ["x"] } }], "R1", "Tablero con tarjetas").map((c) => c.type).join() === "control_visible,action_changes");
+  t("16/10 noche: con un verbo de flujo, los chequeos de formulario se cambian por el FLUJO (control_visible se queda)", appBuild.postprocessChecks([{ type: "control_visible", params: { text: ["crear"] } }, { type: "submit_empty_blocked", params: {} }, { type: "field_exists", params: { field: ["x"] } }], "R1", "Crear tarjetas").map((c) => c.type).join() === "control_visible,flow_create");
   // 15/10 (p47): el contador que el requisito no pide se saca; si lo nombra, se queda
   {
     const R3 = [{ type: "action_changes", params: { click: ["agregar", "comentario"] } }, { type: "counter_on_action", params: { label: ["comentarios"] } }];
     const o3 = appBuild.postprocessChecks(R3, "R3", "Agregar comentarios a las tarjetas");
-    t("app (p47): 'Agregar comentarios' → sin counter_on_action, con el motivo", o3.map((c) => c.type).join() === "action_changes" && /no nombra ningún número/.test(o3.why), JSON.stringify(o3));
+    t("app (p47): 'Agregar comentarios' → sin counter_on_action, con el motivo", o3.map((c) => c.type).join() === "flow_create" && /no nombra ningún número/.test(o3.why), JSON.stringify(o3));
     t("app (p47): 'Contador de tarjetas por columna' → el counter_on_action se queda", appBuild.postprocessChecks(R3, "R", "Contador de tarjetas por columna").map((c) => c.type).join() === "action_changes,counter_on_action");
     t("app (p47): 'Mostrar la cantidad de comentarios' y 'cuántos movimientos' también nombran un número", appBuild.namesANumber("Mostrar la cantidad de comentarios") && appBuild.namesANumber("Ver cuántos movimientos hice") && !appBuild.namesANumber("Etiquetar tarjetas") && !appBuild.namesANumber("Comentarios en las tarjetas"));
     const both = appBuild.postprocessChecks([...R3, { type: "submit_empty_blocked", params: {} }], "R3", "Agregar comentarios a las tarjetas");
-    t("app (p47): con chequeos de formulario además, los dos ajustes y los dos motivos", both.map((c) => c.type).join() === "action_changes" && /número/.test(both.why) && /palabras/.test(both.why), JSON.stringify(both));
-    t("app (p47): sin nada que ajustar devuelve lo mismo (sin motivo)", appBuild.postprocessChecks(R3.slice(0, 1), "R1", "Crear tarjetas") === undefined || !appBuild.postprocessChecks(R3.slice(0, 1), "R1", "Crear tarjetas").why);
+    t("app (p47): con chequeos de formulario además, los dos ajustes y los dos motivos", both.map((c) => c.type).join() === "flow_create" && /número/.test(both.why) && /flujo como una persona: flow_create/.test(both.why), JSON.stringify(both));
+    t("app (p47): sin nada que ajustar devuelve lo mismo (sin motivo)", !appBuild.postprocessChecks(R3.slice(0, 1), "R1", "Tablero con tarjetas").why);
   }
   t("app: sin chequeos de formulario no cambia nada", appBuild.postprocessChecks([{ type: "hover_changes", params: { elementos: ["tarjeta"] } }], "R8", "Sombras").length === 1);
   t("app: el control elegido es el del verbo (Kanban real)", pick("Crear tarjetas", [{ type: "submit_empty_blocked" }]) === "+ Crear Tarjeta" && pick("Agregar comentarios a las tarjetas", [{ type: "field_exists", params: { field: ["comentario"] } }]) === "💬 Añadir Comentario" && pick("Mover tarjetas entre columnas", [{ type: "click_changes", params: { click: ["columna", "tarjeta"] } }]) === "Mover a En Progreso" && pick("Etiquetar tarjetas", [{ type: "field_exists" }]) === "🏷️ Añadir Etiqueta" && pick("Borrar tarjetas", [{ type: "click_changes" }]) === "🗑️ Eliminar Tarjeta");
@@ -79,7 +81,7 @@ t("specialistSees = lo que el brief suma (guardia de holdout)", gameBuild.specia
   t("16/10: R9 (colores) pierde no_horizontal_scroll → sin chequeos (SIN_CHEQUEO, no FAIL)", types("R9") === "" && /no habla de pantallas chicas/.test(after.R9.why), JSON.stringify(after.R9));
   t("16/10: R12 y R16 (tamaños, orden) pierden no_horizontal_scroll", !/no_horizontal_scroll/.test(types("R12")) && !/no_horizontal_scroll/.test(types("R16")), types("R12") + " | " + types("R16"));
   t("16/10: R15 (sombras al arrastrar) pierde key_changes; nadie pidió teclado", !/key_changes/.test(types("R15")) && /no nombra el teclado/.test(after.R15.why), types("R15"));
-  t("16/10: lo que el requisito sí pide se queda (R1 action_changes, R2 control_visible, R14 hover)", types("R1") === "action_changes" && /control_visible/.test(types("R2")) && /hover_changes/.test(types("R14")));
+  t("16/10: lo que el requisito sí pide se queda (R1 → flujo crear, R2 control_visible, R14 hover)", types("R1") === "flow_create" && /control_visible/.test(types("R2")) && /hover_changes/.test(types("R14")));
   t("16/10: 'responsive' / 'celular' / 'flechas' sí los dejan", appBuild.namesResponsive("Que sea responsive") && appBuild.namesResponsive("Se tiene que ver bien en el celular") && appBuild.namesKeys("Mover con las flechas") && !appBuild.namesResponsive("Fondo: #102C54") && !appBuild.namesKeys("Sombras en tarjetas"));
 }
 // 16/10 (BUG): con --standard web/app/plantillas el build igual usó web/app/estado (corridas 15-48-47 y 16-24-56
@@ -101,6 +103,17 @@ t("specialistSees = lo que el brief suma (guardia de holdout)", gameBuild.specia
   t("16/10: sin standardId, el del profile (estado)", (await announced({})) === "web/app/estado" && appBuild.standardOf({}) === "web/app/estado");
   const { readFileSync } = await import("node:fs");
   t("16/10: run_build le pasa al build el Standard y la receta del profile RESUELTO", /B\.build\(input, outDir, \{ standardId: profile\.standard, recipe: profile\.atomizerRecipe/.test(readFileSync(new URL("../../../build/run_build.mjs", import.meta.url), "utf8")));
+}
+// 16/10 noche: el VERBO del requisito decide el flujo (requisitos reales del Kanban, fixture c22)
+{
+  const f = (t, o) => appBuild.flowsFor(t, o).map((x) => `${x.type}:${x.params.abrir.join("+")}`).join(" ");
+  t("flujos: 'Crear tarjetas' → crear con 'agregar tarjetas'", f("Crear tarjetas") === "flow_create:agregar+tarjetas");
+  t("flujos: drag&drop → mover (antes SIN_CHEQUEO)", /^flow_move:mover/.test(f("Usar funcionalidad de drag&drop: la tarjeta estara compuesta")));
+  t("flujos: 'al borrar una tarjeta: Eliminar…' → borrar con el objeto del verbo (tarjeta)", f("Comportamiento al borrar una tarjeta: Eliminar(🗑️) abre un modal") === "flow_delete:eliminar+tarjeta");
+  t("flujos: 'Guardar datos en localstorage' → guardar (recargar y sigue)", /^flow_persist/.test(f("Guardar datos en localstorage")));
+  t("flujos: sustantivos NO son verbos ('modal de creación o edición' no pide probar editar)", f("Asignar prioridad desde una lista en el modal de creación o edición") === "");
+  t("flujos: un requisito de ESTILO no suma flujos", f("Sombras en tarjetas, efecto de movimiento durante drag&drop", { style: true }) === "");
+  t("flujos: editar/borrar/mover traen 'crear' para tener con qué si la app arranca vacía", appBuild.flowsFor("Editar tarjetas")[0].params.crear.join() === "agregar,tarjetas");
 }
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

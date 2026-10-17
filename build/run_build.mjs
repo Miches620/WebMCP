@@ -154,6 +154,11 @@ let reqChecks;
 if (existsSync(checksPath)) {
   reqChecks = JSON.parse(readFileSync(checksPath, "utf8"));
   log(`[VALIDATION] usando chequeos ya traducidos (${checksPath})`);
+} else if (input.refined.planilla?.filas?.length) {
+  // 16/10 noche: con PLANILLA de comportamientos no hay traductor: cada fila es un chequeo (dado / hago / veo)
+  const { checksFromPlanilla, PLANILLA_VERSION } = await import("../profiles/web/validation/planilla.mjs");
+  reqChecks = checksFromPlanilla(input.refined.planilla, input.refined.features);
+  log(`[VALIDATION] ${PLANILLA_VERSION}: ${input.refined.planilla.filas.length} filas para ${reqChecks.filter((r) => r.checks.length).length} de ${reqChecks.length} requisitos (sin traductor)`);
 } else {
   const context = `Proyecto: ${input.refined.project_name}\n${input.refined.objetivo || ""}`;
   reqChecks = [];
@@ -223,15 +228,22 @@ const standardGate = (id) => profileGates?.gates?.[id] || null;
 const gateReason = (gs) => gs.some((g) => g.type === "components_render") ? "sin chequeos del traductor, pero su componente no dibujó nada"
   : gs.some((g) => g.type === "calls_probe") ? `sin chequeos del traductor, pero ${gs.find((g) => g.type === "calls_probe").detail}`
   : "sin chequeos del traductor, pero su pieza no se ve";
+// 16/10 noche: el profile puede sumar chequeos aunque el traductor no dé ninguno (flujos por el verbo del requisito);
+// los requisitos de ESTILO (refined.estilo) se le dicen para que no sume flujos ahí
+const styleSet = new Set((input.refined.estilo || []).map((x) => String(x).trim()));
 for (const r of reqChecks) {
   const gates = [visGate(r.id), renderGate(r.id), alwaysGate(r.id), standardGate(r.id)].filter(Boolean);
   const gate = gates[0] || null;
+  // las filas de la planilla ya dicen qué probar: el profile no las ajusta ni suma flujos
+  const fromPlan = !!r.fromPlanilla || (r.checks || []).some((c) => c?.type === "planilla_fila");
+  const pp0 = fromPlan ? [] : B.postprocessChecks([...(r.checks || [])], r.id, r.text, { style: styleSet.has(String(r.text).trim()) });
+  if (!(r.checks || []).length && pp0.length) r.checks = [...pp0], r.fromProfile = pp0.why || "el profile";
   if (!r.checks.length) {
     coverage.push(gate ? { id: r.id, text: r.text, verdict: "FAIL", reason: gateReason(gates), checks: gates }
       : { id: r.id, text: r.text, verdict: "SIN_CHEQUEO", reason: r.error || r.sin_chequeo || "el traductor no produjo chequeos válidos", checks: [] });
     continue;
   }
-  const pp = B.postprocessChecks(r.checks, r.id, r.text);
+  const pp = fromPlan ? r.checks : B.postprocessChecks(r.checks, r.id, r.text, { style: styleSet.has(String(r.text).trim()) });
   const checks = pp.map(B.normalizeCheck);
   const before = r.checks.map((c) => c.type).join(","), after = checks.map((c) => c.type).join(",");
   // 15/10: el profile dice por qué ajustó (pp.why); si no lo dice, el motivo de siempre

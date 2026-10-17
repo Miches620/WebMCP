@@ -33,4 +33,8 @@ export const APP_FILES_RULE = `Es una APP de UNA pantalla, sin formularios: cada
    - "Se maneja con el teclado / las flechas" → key_changes. "Contador / cantidad que cambia" → counter_on_action.
    - "Responsive" → no_horizontal_scroll. Hover o sombras al pasar el mouse → hover_changes. Colores, estilo, paleta → "checks": [] y explicalo en "sin_chequeo".`;
 // accept: si el modelo igual elige un chequeo de formulario, no se pierde: postprocessChecks lo cambia por action_changes
-export const APP_FILES_TRANSLATOR = { catalog: APP_FILES_CATALOG, rules: [APP_FILES_RULE], accept: ["field_exists", "field_required", "field_optional", "submit_empty_blocked", "valid_submit_passes", "click_changes", "click_reveals"] };
+// added (16/10, flows v0.1): los flujos NO los elige el traductor (el modelo no ve sus parámetros); los agrega
+// postprocessChecks según el verbo del requisito ("crear/editar/borrar/mover/guardar X") y reemplazan a action_changes.
+// planilla_fila (16/10 noche): la escribe el refinado (planilla de comportamientos), tampoco el traductor
+export const APP_FILES_ADDED = ["flow_create", "flow_edit", "flow_delete", "flow_move", "flow_persist", "planilla_fila"];
+export const APP_FILES_TRANSLATOR = { catalog: APP_FILES_CATALOG, rules: [APP_FILES_RULE], accept: ["field_exists", "field_required", "field_optional", "submit_empty_blocked", "valid_submit_passes", "click_changes", "click_reveals"], added: APP_FILES_ADDED };

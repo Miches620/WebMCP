@@ -1,6 +1,6 @@
 // build/validate_external.mjs — pasar una app hecha FUERA de webmcp por la MISMA Validation (16/10).
 //
-//   node build/validate_external.mjs <carpeta de la app> <snapshot.json> [--checks <checks.json>] [--name gemma_sola]
+//   node build/validate_external.mjs <carpeta de la app> <snapshot.json> [--checks <checks.json> | --planilla <planilla.json>] [--name gemma_sola]
 //
 // Por qué (experimento de Miche, 16/10): Gemma 4 E4B sola en LM Studio, sin webmcp ni harness, hizo un Kanban con
 // drag & drop y localStorage andando (y un bug que no deja crear, XSS, sin prioridad). Para saber si el harness
@@ -22,7 +22,7 @@ export const EXTERNAL_VERSION = "validate_external v0.1";
 const here = dirname(fileURLToPath(import.meta.url));
 
 /** Arma la carpeta de corrida para una app externa. Devuelve su ruta. Función pura salvo por el disco. */
-export function prepareExternal({ appDir, snapshot, checks = null, name = null, runsDir = join(here, "runs"), date = new Date() }) {
+export function prepareExternal({ appDir, snapshot, checks = null, planilla = null, name = null, runsDir = join(here, "runs"), date = new Date() }) {
   if (!existsSync(join(appDir, "index.html"))) throw new Error(`no hay index.html en ${appDir}`);
   const snap = JSON.parse(readFileSync(snapshot, "utf8"));
   const refined = { ...(snap.intentForge?.refined_prompt || {}), exclusiones: snap.intentForge?.exclusiones || [] };
@@ -36,7 +36,16 @@ export function prepareExternal({ appDir, snapshot, checks = null, name = null, 
   const input = { source: basename(snapshot), refined, tasks, external: { app: resolve(appDir), version: EXTERNAL_VERSION } };
   writeFileSync(join(out, "input.json"), JSON.stringify(input, null, 2));
   writeFileSync(join(out, "build.json"), JSON.stringify({ input, specialist: null, external: { app: resolve(appDir), version: EXTERNAL_VERSION, nota: "app hecha fuera de webmcp: sin Standard, sin contrato, sin pasos" } }, null, 2));
-  if (checks) {
+  if (planilla) {
+    // 16/10 noche: la PLANILLA de comportamientos en vez de chequeos traducidos (mismo juez para todas las apps)
+    const pl = JSON.parse(readFileSync(planilla, "utf8"));
+    input.refined.planilla = pl;
+    const bad = (pl.filas || []).filter((f) => !/^R\d+$/.test(f.r || "") || Number(f.r.slice(1)) > refined.features.length);
+    if (bad.length) throw new Error(`la planilla nombra requisitos que el snapshot no tiene (${bad.map((f) => f.id).join(", ")}): no se mezclan jueces`);
+    writeFileSync(join(out, "input.json"), JSON.stringify(input, null, 2));
+    writeFileSync(join(out, "build.json"), JSON.stringify({ input, specialist: null, external: { app: resolve(appDir), version: EXTERNAL_VERSION, nota: "app hecha fuera de webmcp: sin Standard, sin contrato, sin pasos" } }, null, 2));
+    writeFileSync(join(out, "planilla.json"), JSON.stringify(pl, null, 2));
+  } else if (checks) {
     const c = JSON.parse(readFileSync(checks, "utf8"));
     if (c.length !== refined.features.length || c.some((r, i) => r.text !== refined.features[i]))
       throw new Error(`los chequeos de ${checks} no son de estos requisitos (otro snapshot): no se mezclan jueces`);
@@ -51,11 +60,11 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const pos = args.filter((a, i) => !a.startsWith("--") && !(i > 0 && args[i - 1].startsWith("--")));
   const [appDir, snapshot] = pos;
   if (!appDir || !snapshot || !statSync(appDir).isDirectory()) {
-    console.log("uso: node build/validate_external.mjs <carpeta de la app> <snapshot.json> [--checks build/runs/<build>/checks.json] [--name gemma_sola]");
+    console.log("uso: node build/validate_external.mjs <carpeta de la app> <snapshot.json> [--checks build/runs/<build>/checks.json | --planilla <planilla.json>] [--name gemma_sola]");
     process.exit(2);
   }
-  const out = prepareExternal({ appDir, snapshot, checks: flag("--checks"), name: flag("--name") });
-  console.log(`[EXTERNO] ${EXTERNAL_VERSION} · app ${resolve(appDir)} → ${out}${flag("--checks") ? ` · chequeos de ${flag("--checks")} (mismo juez)` : " · se traducen los requisitos (traductor)"}`);
+  const out = prepareExternal({ appDir, snapshot, checks: flag("--checks"), planilla: flag("--planilla"), name: flag("--name") });
+  console.log(`[EXTERNO] ${EXTERNAL_VERSION} · app ${resolve(appDir)} → ${out}${flag("--planilla") ? ` · planilla ${flag("--planilla")} (sin traductor)` : flag("--checks") ? ` · chequeos de ${flag("--checks")} (mismo juez)` : " · se traducen los requisitos (traductor)"}`);
   const p = spawn(process.execPath, [join(here, "run_build.mjs"), "--validate", out], { stdio: "inherit" });
   p.on("close", (code) => process.exit(code ?? 1));
 }

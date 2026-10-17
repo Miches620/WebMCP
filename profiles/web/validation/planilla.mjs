@@ -5,7 +5,7 @@
 // requisito, QUÉ tiene que pasar, con palabras de una persona y un vocabulario CERRADO que Validation ejecuta sin
 // interpretar. No nombra clases, ids ni funciones (estricto en el QUÉ, flexible en el CÓMO).
 //
-// Una fila:
+// Una fila (los nombres "tarjeta" / "columna" de abajo son los del Kanban: en el código son item / grupo, ver glosario.mjs):
 //   { id: "R7.1", r: "R7", dado: [{ agregar: "QA Alfa", campos: { prioridad: "alta" } }],
 //     hago: { eliminar: "QA Alfa" }, veo: [{ no_esta: "QA Alfa" }, { contador: "Pendiente", cambia: -1 }] }
 // dado   tarjetas que se crean ANTES, con la app misma (como una persona). Si no se pueden crear → FAIL (tampoco podría ella).
@@ -15,12 +15,14 @@
 //        esta: texto [en: contenedor] · no_esta: texto · en_item: texto, contiene: [textos] ·
 //        orden: [textos], en: contenedor (de arriba abajo) · contador: contenedor, cambia: ±n | vale: n ·
 //        control: [palabras], solo_en: contenedor · al_pasar: [textos], en_item: texto (ocultos antes, visibles después) ·
-//        estilo: { de: "pagina" | {columna} | {tarjeta} | {control: [palabras]}, prop, valor } ·
+//        estilo: { de: "pagina" | {grupo} | {item} | {control: [palabras]}, prop, valor } (o con los nombres del glosario) ·
 //        color_en_item: texto, familia: rojo | amarillo | verde.
 // Estilo (decisión 16/10): colores exactos; medidas en px con ±2; palabras (dashed, scroll) de una lista; {distinto: "none"}.
 // La planilla se escribe por proyecto; las palabras de los controles ("agregar tarjeta", "editar", …) van en planilla.controles.
 
-import { ITEM_CLASS, MARK_FIELDS, SEEN, settle, errsSince, freshStart, verbControl, bestControlIn, useControl } from "./flows.mjs";
+import { SEEN, settle, errsSince, freshStart, verbControl, bestControlIn, useControl } from "./flows.mjs";
+// 17/10 (diseño de 3 capas): el juez conoce TIPOS (item, grupo, control, pagina); los nombres de la app vienen del glosario
+import { itemClassRe, palabra, filaATipos } from "./glosario.mjs";
 
 export const PLANILLA_VERSION = "planilla v0.1";
 const DEFAULT_CONTROLS = { agregar: ["agregar", "añadir", "nueva", "nuevo", "crear"], editar: ["editar", "modificar"], eliminar: ["eliminar", "borrar"], mover: ["mover"] };
@@ -145,7 +147,7 @@ export function colorFamily(v) {
 }
 
 // ---------- acciones ----------
-async function addCard(page, ctls, spec) {
+async function addCard(page, ctls, spec, w) {
   const text = typeof spec === "string" ? spec : spec.agregar;
   const ctl = await verbControl(page, ctls.agregar);
   if (!ctl) return { ok: false, why: `ningún control visible dice "${ctls.agregar[0]}"` };
@@ -153,24 +155,24 @@ async function addCard(page, ctls, spec) {
   const s = await page.evaluate(SEEN, [text, null]);
   return { ok: s.seen, why: s.seen ? `agregó "${text}"` : `agregar "${text}" (${steps.join(" · ")}): no aparece` };
 }
-async function itemControl(page, ctls, verb, text) {
-  if (!(await page.evaluate(ITEM_OF, [text, ITEM_CLASS.source]))) return { why: `"${text}" no está en ninguna tarjeta` };
+async function itemControl(page, ctls, verb, text, w) {
+  if (!(await page.evaluate(ITEM_OF, [text, w.src]))) return { why: `"${text}" no aparece como ${w.it}` };
   const item = page.locator("[data-plan-item]").first();
   await item.hover({ timeout: 1000 }).catch(() => {});
   await page.waitForTimeout(80);
   const ctl = await bestControlIn(page, item, ctls[verb]);
-  return ctl ? { item, ctl } : { item, why: `la tarjeta "${text}" no tiene un control que diga "${ctls[verb][0]}"` };
+  return ctl ? { item, ctl } : { item, why: `${w.it} "${text}" no tiene un control que diga "${ctls[verb][0]}"` };
 }
-async function act(page, ctls, h, ctx) {
-  if (h.agregar) { const r = await addCard(page, ctls, h); return r.ok ? r.why : { fail: r.why }; }
+async function act(page, ctls, h, ctx, w) {
+  if (h.agregar) { const r = await addCard(page, ctls, h, w); return r.ok ? r.why : { fail: r.why }; }
   if (h.editar) {
-    const x = await itemControl(page, ctls, "editar", h.editar);
+    const x = await itemControl(page, ctls, "editar", h.editar, w);
     if (!x.ctl) return { fail: x.why };
     const steps = await useControl(page, x.ctl.loc, h.a || h.editar, { replace: true, keep: true, campos: { ...(h.a ? { titulo: h.a } : {}), ...(h.campos || {}) } });
     return `editó "${h.editar}" (${steps.join(" · ")})`;
   }
   if (h.eliminar) {
-    const x = await itemControl(page, ctls, "eliminar", h.eliminar);
+    const x = await itemControl(page, ctls, "eliminar", h.eliminar, w);
     if (!x.ctl) return { fail: x.why };
     // la confirmación tiene que ser un botón que APARECE después del clic (antes agarraba el "Borrar" de otra tarjeta)
     await page.evaluate(() => document.querySelectorAll("button, [role=button]").forEach((b) => { if (b.getClientRects().length) b.setAttribute("data-plan-pre", "1"); else b.removeAttribute("data-plan-pre"); }));
@@ -183,19 +185,19 @@ async function act(page, ctls, h, ctx) {
       const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
       const b = [...document.querySelectorAll("button, [role=button]")].filter((x) => x.getClientRects().length && !x.hasAttribute("data-plan-pre") && !inItem(x)).find((x) => /^(si|confirmar|eliminar|borrar|aceptar|ok)\b/.test(nrm(x.innerText).replace(/^[^a-z]+/, "")));
       if (!b) return null; b.setAttribute("data-plan-yes", "1"); return b.innerText.trim().slice(0, 20);
-    }, ITEM_CLASS.source);
+    }, w.src);
     if (yes) { await page.locator("[data-plan-yes]").first().click({ timeout: 2000 }).catch(() => {}); await settle(page); }
     return `eliminó "${h.eliminar}"${yes ? ` (confirmó "${yes}")` : ctx.dialogs.length ? " (aceptó el aviso)" : ""}`;
   }
   if (h.mover) {
-    if (!(await page.evaluate(ITEM_OF, [h.mover, ITEM_CLASS.source]))) return { fail: `"${h.mover}" no está en ninguna tarjeta` };
-    if (!(await page.evaluate(COL_NAMED, [h.a, ITEM_CLASS.source, "data-plan-dest"]))) return { fail: `no hay un contenedor que se llame "${h.a}"` };
+    if (!(await page.evaluate(ITEM_OF, [h.mover, w.src]))) return { fail: `"${h.mover}" no aparece como ${w.it}` };
+    if (!(await page.evaluate(COL_NAMED, [h.a, w.src, "data-plan-dest"]))) return { fail: `no hay un contenedor que se llame "${h.a}"` };
     await page.locator("[data-plan-item]").first().dragTo(page.locator("[data-plan-dest]").first(), { timeout: 3000 }).catch(() => {});
     await settle(page);
-    const ok = await page.evaluate(([t, src]) => { const c = document.querySelector("[data-plan-dest]"); return !!c && (c.innerText || "").includes(t); }, [h.mover, ITEM_CLASS.source]);
+    const ok = await page.evaluate(([t, src]) => { const c = document.querySelector("[data-plan-dest]"); return !!c && (c.innerText || "").includes(t); }, [h.mover, w.src]);
     if (ok) return `arrastró "${h.mover}" a "${h.a}"`;
     // si no, su control de mover (eligiendo el destino en un select al lado, si hay)
-    const x = await itemControl(page, ctls, "mover", h.mover);
+    const x = await itemControl(page, ctls, "mover", h.mover, w);
     if (!x.ctl) return `arrastró "${h.mover}" a "${h.a}" (no se movió; tampoco hay control de mover)`;
     await x.ctl.loc.evaluate((b, dest) => { const nrm = (t) => String(t || "").toLowerCase(); const s = (b.parentElement || b).querySelector("select"); if (!s) return; const i = [...s.options].findIndex((o) => nrm(o.text).includes(nrm(dest))); if (i >= 0) { s.selectedIndex = i; s.dispatchEvent(new Event("change", { bubbles: true })); } }, h.a).catch(() => {});
     await x.ctl.loc.click({ timeout: 2000 }).catch(() => {});
@@ -204,7 +206,7 @@ async function act(page, ctls, h, ctx) {
   }
   if (h.recargar) { await page.reload({ waitUntil: "load" }); await settle(page); return "recargó"; }
   if (h.pasar_mouse) {
-    if (!(await page.evaluate(ITEM_OF, [h.pasar_mouse, ITEM_CLASS.source]))) return { fail: `"${h.pasar_mouse}" no está en ninguna tarjeta` };
+    if (!(await page.evaluate(ITEM_OF, [h.pasar_mouse, w.src]))) return { fail: `"${h.pasar_mouse}" no aparece como ${w.it}` };
     await page.locator("[data-plan-item]").first().hover({ timeout: 1000 }).catch(() => {});
     await page.waitForTimeout(250);
     return `pasó el mouse por "${h.pasar_mouse}"`;
@@ -213,32 +215,32 @@ async function act(page, ctls, h, ctx) {
 }
 
 // ---------- lo que se ve ----------
-async function pre(page, veo) {
+async function pre(page, veo, w) {
   // lo que hay que medir ANTES de la acción: contadores que cambian, y lo que tiene que estar oculto antes del hover
   const out = {};
   for (const [i, v] of veo.entries()) {
-    if (v.contador != null && v.cambia != null) out[i] = (await page.evaluate(COL_NAMED, [v.contador, ITEM_CLASS.source, "data-plan-col"]))?.count ?? null;
+    if (v.contador != null && v.cambia != null) out[i] = (await page.evaluate(COL_NAMED, [v.contador, w.src, "data-plan-col"]))?.count ?? null;
     if (v.al_pasar) {
       await page.mouse.move(1, 1); await page.waitForTimeout(250);
-      out[i] = (await page.evaluate(ITEM_OF, [v.en_item, ITEM_CLASS.source])) ? await page.evaluate(VISIBLE_IN_ITEM, v.al_pasar) : null;
+      out[i] = (await page.evaluate(ITEM_OF, [v.en_item, w.src])) ? await page.evaluate(VISIBLE_IN_ITEM, v.al_pasar) : null;
     }
   }
   return out;
 }
-async function see(page, v, before) {
+async function see(page, v, before, w) {
   if (v.esta) {
     const s = await page.evaluate(SEEN, [v.esta, v.en || null]);
     return [s.seen && s.donde !== false, s.seen ? (s.donde === false ? `"${v.esta}" se ve pero NO en "${v.en}"` : `"${v.esta}" se ve${v.en ? ` en "${v.en}"` : ""}`) : `"${v.esta}" NO se ve`];
   }
   if (v.no_esta) { const s = await page.evaluate(SEEN, [v.no_esta, null]); return [!s.seen, s.seen ? `"${v.no_esta}" SIGUE` : `"${v.no_esta}" ya no está`]; }
   if (v.contiene) {
-    if (!(await page.evaluate(ITEM_OF, [v.en_item, ITEM_CLASS.source]))) return [false, `"${v.en_item}" no está en ninguna tarjeta`];
+    if (!(await page.evaluate(ITEM_OF, [v.en_item, w.src]))) return [false, `"${v.en_item}" no aparece como ${w.it}`];
     const txt = (await page.locator("[data-plan-item]").first().innerText().catch(() => "")).toLowerCase();
     const miss = v.contiene.filter((t) => !txt.includes(String(t).toLowerCase()));
-    return [!miss.length, miss.length ? `la tarjeta "${v.en_item}" no muestra: ${miss.join(", ")}` : `la tarjeta "${v.en_item}" muestra ${v.contiene.join(", ")}`];
+    return [!miss.length, miss.length ? `${w.it} "${v.en_item}" no muestra: ${miss.join(", ")}` : `${w.it} "${v.en_item}" muestra ${v.contiene.join(", ")}`];
   }
   if (v.orden) {
-    if (!(await page.evaluate(COL_NAMED, [v.en, ITEM_CLASS.source, "data-plan-col"]))) return [false, `no hay un contenedor "${v.en}"`];
+    if (!(await page.evaluate(COL_NAMED, [v.en, w.src, "data-plan-col"]))) return [false, `no hay un contenedor "${v.en}"`];
     const tops = await page.evaluate(TOPS, v.orden);
     if (tops.some((t) => t == null)) return [false, `en "${v.en}" no están todas: ${v.orden.filter((_, i) => tops[i] == null).join(", ")}`];
     const got = v.orden.map((t, i) => [t, tops[i]]).sort((a, b) => a[1] - b[1]).map((x) => x[0]);
@@ -246,7 +248,7 @@ async function see(page, v, before) {
     return [ok, ok ? `orden en "${v.en}": ${got.join(" · ")}` : `orden en "${v.en}": ${got.join(" · ")} (se esperaba ${v.orden.join(" · ")})`];
   }
   if (v.contador != null) {
-    const c = await page.evaluate(COL_NAMED, [v.contador, ITEM_CLASS.source, "data-plan-col"]);
+    const c = await page.evaluate(COL_NAMED, [v.contador, w.src, "data-plan-col"]);
     if (!c) return [false, `no hay un contenedor "${v.contador}"`];
     if (c.count == null) return [false, `"${v.contador}" no muestra ningún número`];
     if (v.vale != null) return [c.count === v.vale, `contador de "${v.contador}": ${c.count}${c.count === v.vale ? "" : ` (se esperaba ${v.vale})`}`];
@@ -255,7 +257,7 @@ async function see(page, v, before) {
     return [c.count - b === v.cambia, `contador de "${v.contador}": ${b} → ${c.count}${c.count - b === v.cambia ? "" : ` (se esperaba ${v.cambia > 0 ? "+" : ""}${v.cambia})`}`];
   }
   if (v.control) {
-    if (v.solo_en && !(await page.evaluate(COL_NAMED, [v.solo_en, ITEM_CLASS.source, "data-plan-col"]))) return [false, `no hay un contenedor "${v.solo_en}"`];
+    if (v.solo_en && !(await page.evaluate(COL_NAMED, [v.solo_en, w.src, "data-plan-col"]))) return [false, `no hay un contenedor "${v.solo_en}"`];
     const again = await page.evaluate(([ws]) => {
       const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
       const c = document.querySelector("[data-plan-col]");
@@ -266,7 +268,7 @@ async function see(page, v, before) {
     return [ok, `control "${v.control.join(" ")}": ${again.n} visible(s)${v.solo_en ? `, ${again.inside} en "${v.solo_en}"` : ""}`];
   }
   if (v.al_pasar) {
-    if (!(await page.evaluate(ITEM_OF, [v.en_item, ITEM_CLASS.source]))) return [false, `"${v.en_item}" no está en ninguna tarjeta`];
+    if (!(await page.evaluate(ITEM_OF, [v.en_item, w.src]))) return [false, `"${v.en_item}" no aparece como ${w.it}`];
     await page.locator("[data-plan-item]").first().hover({ timeout: 1000 }).catch(() => {});
     await page.waitForTimeout(250);
     const after = await page.evaluate(VISIBLE_IN_ITEM, v.al_pasar);
@@ -277,13 +279,13 @@ async function see(page, v, before) {
   if (v.estilo) {
     const e = v.estilo;
     let sel = null, label = "la página";
-    if (e.de?.columna) { if (!(await page.evaluate(COL_NAMED, [e.de.columna, ITEM_CLASS.source, "data-plan-col"]))) return [false, `no hay un contenedor "${e.de.columna}"`]; sel = "[data-plan-col]"; label = `la columna "${e.de.columna}"`; }
-    else if (e.de?.tarjeta) { if (!(await page.evaluate(ITEM_OF, [e.de.tarjeta, ITEM_CLASS.source]))) return [false, `"${e.de.tarjeta}" no está en ninguna tarjeta`]; sel = "[data-plan-item]"; label = `la tarjeta "${e.de.tarjeta}"`; }
+    if (e.de?.grupo) { if (!(await page.evaluate(COL_NAMED, [e.de.grupo, w.src, "data-plan-col"]))) return [false, `no hay ${w.gr} "${e.de.grupo}"`]; sel = "[data-plan-col]"; label = `${w.gr} "${e.de.grupo}"`; }
+    else if (e.de?.item) { if (!(await page.evaluate(ITEM_OF, [e.de.item, w.src]))) return [false, `"${e.de.item}" no aparece como ${w.it}`]; sel = "[data-plan-item]"; label = `${w.it} "${e.de.item}"`; }
     else if (e.de?.control) {
       const ctl = await verbControl(page, e.de.control);
       if (!ctl) return [false, `ningún control dice "${e.de.control.join(" ")}"`];
       await ctl.loc.evaluate((b) => { document.querySelectorAll("[data-plan-ctl]").forEach((x) => x.removeAttribute("data-plan-ctl")); b.setAttribute("data-plan-ctl", "1"); });
-      sel = "[data-plan-ctl]"; label = `el control "${ctl.text.slice(0, 25)}"`;
+      sel = "[data-plan-ctl]"; label = `control "${ctl.text.slice(0, 25)}"`;
     }
     const got = await page.evaluate(STYLES_OF, [sel, e.prop, e.de === "pagina"]);
     const ok = got.some((g) => styleMatches(g, e.valor));
@@ -291,7 +293,7 @@ async function see(page, v, before) {
     return [ok, `${e.prop} de ${label}: ${[...new Set(got)].slice(0, 3).join(" | ") || "—"}${ok ? "" : ` (se esperaba ${want})`}`];
   }
   if (v.color_en_item) {
-    if (!(await page.evaluate(ITEM_OF, [v.color_en_item, ITEM_CLASS.source]))) return [false, `"${v.color_en_item}" no está en ninguna tarjeta`];
+    if (!(await page.evaluate(ITEM_OF, [v.color_en_item, w.src]))) return [false, `"${v.color_en_item}" no aparece como ${w.it}`];
     const cs = await page.evaluate(COLORS_IN_ITEM, v.texto || null);
     const fams = [...new Set(cs.map(colorFamily).filter(Boolean))];
     return [fams.includes(v.familia), `colores en "${v.color_en_item}"${v.texto ? ` (lo que dice "${v.texto}")` : ""}: ${fams.join(", ") || "ninguno de rojo/amarillo/verde"}${fams.includes(v.familia) ? "" : ` (se esperaba ${v.familia})`}`];
@@ -300,8 +302,9 @@ async function see(page, v, before) {
 }
 
 /** Corre UNA fila. Devuelve { result, detail, errors? }. */
-export async function runRow({ page, row: row0, controls, ctx, reload }) {
-  let row = row0;
+export async function runRow({ page, row: row0, controls, glosario, ctx, reload }) {
+  let row = filaATipos(row0, glosario);
+  const w = { src: itemClassRe(glosario).source, it: palabra(glosario, "item"), gr: palabra(glosario, "grupo") };
   const ctls = { ...DEFAULT_CONTROLS, ...(controls || {}) };
   await freshStart(page, reload);
   const e0 = ctx.pageErrors.length;
@@ -309,9 +312,9 @@ export async function runRow({ page, row: row0, controls, ctx, reload }) {
   const out = (result, last) => { const errs = errsSince(ctx, e0); return { result, detail: [...steps, last].filter(Boolean).join(" · ") + (errs.length ? ` · error de JS: ${errs[0].slice(0, 160)}` : ""), ...(errs.length ? { errors: errs } : {}) }; };
   const dado = row.dado || [];
   for (const d of dado) {
-    const r = await addCard(page, ctls, d);
+    const r = await addCard(page, ctls, d, w);
     if (r.ok) { steps.push(r.why); continue; }
-    // si crear no anda pero la app YA trae tarjetas, una tarjeta cualquiera (sin campos pedidos) se reemplaza por
+    // si crear no anda pero la app YA trae ítems, uno cualquiera (sin campos pedidos) se reemplaza por
     // una de las que están: mover / editar / borrar se pueden probar igual (plantillas 20-44-02: arranca con 3).
     const plain = dado.length === 1 && typeof d === "object" && !d.campos;
     const have = plain ? await page.evaluate(([src]) => {
@@ -320,31 +323,31 @@ export async function runRow({ page, row: row0, controls, ctx, reload }) {
       const roots = its.filter((e) => !its.some((o) => o !== e && o.contains(e)));
       const t = roots[0] && (roots[0].querySelector("h1,h2,h3,h4,h5,h6,strong,b,[class*=title],[class*=titulo]")?.textContent || roots[0].innerText || "").trim().split("\n")[0].slice(0, 60);
       return t || null;
-    }, [ITEM_CLASS.source]) : null;
+    }, [w.src]) : null;
     if (!have) return out("FAIL", `no se pudo preparar: ${r.why}`);
     steps.push(`no pudo crear "${d.agregar}" (${r.why.replace(/^agregar "[^"]+" /, "")}) → usa la que ya estaba: "${have}"`);
     row = JSON.parse(JSON.stringify({ ...row, dado: [] }).split(JSON.stringify(d.agregar)).join(JSON.stringify(have)));
   }
   const veo = row.veo || [];
-  const before = await pre(page, veo);
+  const before = await pre(page, veo, w);
   if (row.hago) {
-    const a = await act(page, ctls, row.hago, ctx);
+    const a = await act(page, ctls, row.hago, ctx, w);
     if (a?.fail) return out("FAIL", a.fail);
     steps.push(a);
   }
   const seen = [];
-  for (const [i, v] of veo.entries()) seen.push(await see(page, v, before[i]));
+  for (const [i, v] of veo.entries()) seen.push(await see(page, v, before[i], w));
   const ok = seen.every(([x]) => x);
   return out(ok ? "PASS" : "FAIL", "→ " + seen.map(([x, d]) => `${x ? "✓" : "✗"} ${d}`).join(" · "));
 }
 
-/** Chequeo para el catálogo de web/app: params.fila (la fila) y params.controles (palabras de los controles). */
+/** Chequeo para el catálogo de web/app: params.fila (la fila), params.controles (palabras de los controles) y params.glosario. */
 export const PLANILLA_CHECKS = {
   planilla_fila: {
-    describe: "Fila de la PLANILLA de comportamientos: dado (tarjetas que se crean antes) → hago (una acción) → veo (lo que tiene que pasar). La escribe el refinado, no el traductor.",
-    params: { fila: "object", controles: "object?" },
+    describe: "Fila de la PLANILLA de comportamientos: dado (ítems que se crean antes) → hago (una acción) → veo (lo que tiene que pasar). La escribe el refinado, no el traductor.",
+    params: { fila: "object", controles: "object?", glosario: "object?" },
     run: async ({ page, c, r, ctx, reload }) => {
-      const x = await runRow({ page, row: c.params.fila, controls: c.params.controles, ctx, reload });
+      const x = await runRow({ page, row: c.params.fila, controls: c.params.controles, glosario: c.params.glosario, ctx, reload });
       r.result = x.result; r.detail = x.detail; if (x.errors) r.errors = x.errors;
     },
   },
@@ -357,6 +360,6 @@ export function checksFromPlanilla(planilla, features) {
     const id = `R${i + 1}`;
     const mine = rows.filter((f) => f.r === id);
     const why = (planilla.sin_fila || {})[id];
-    return { id, text, fromPlanilla: true, checks: mine.map((f) => ({ type: "planilla_fila", params: { fila: f, ...(planilla.controles ? { controles: planilla.controles } : {}) } })), ...(mine.length ? {} : { sin_chequeo: why || "la planilla no tiene filas para este requisito" }) };
+    return { id, text, fromPlanilla: true, checks: mine.map((f) => ({ type: "planilla_fila", params: { fila: f, ...(planilla.controles ? { controles: planilla.controles } : {}), ...(planilla.glosario ? { glosario: planilla.glosario } : {}) } })), ...(mine.length ? {} : { sin_chequeo: why || "la planilla no tiene filas para este requisito" }) };
   });
 }

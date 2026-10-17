@@ -111,7 +111,7 @@ node build/validate_external.mjs <carpeta de la app> <snapshot> --planilla <plan
 npm test                                              # todos los tests deterministas (sin LM Studio)
 npm run searxng                                       # ¿SearXNG está listo?
 npm run searcher "<idea>"                             # Searcher: preguntas con fuentes para Intent Forge
-npm run planilla <snapshot> [--modo libre]            # Qwen arma la planilla (por defecto con plantillas de fila)
+npm run planilla <snapshot> [--glosario g.json] [--modo libre]   # Qwen arma la planilla (por defecto con plantillas de fila; el glosario dice cómo se llaman las cosas de la app)
 npm run comparar <planilla_vara> <planilla_otra>      # ¿juzgan igual? (sobre las 4 apps reales)
 ```
 

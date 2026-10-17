@@ -48,7 +48,7 @@ export function compareVerdicts(vara, otra) {
 async function judge(planilla, apps, nReq) {
   const { validationFor } = await import("../profiles/web/validation/check_catalog.mjs");
   const V = validationFor(["web", "web/app"]);
-  const checks = planilla.filas.map((f) => V.normalizeCheck({ type: "planilla_fila", params: { fila: f, ...(planilla.controles ? { controles: planilla.controles } : {}) } }));
+  const checks = planilla.filas.map((f) => V.normalizeCheck({ type: "planilla_fila", params: { fila: f, ...(planilla.controles ? { controles: planilla.controles } : {}), ...(planilla.glosario ? { glosario: planilla.glosario } : {}) } }));
   const table = {}, details = {};
   for (const app of apps) {
     const res = checks.length ? await V.runChecks(join(app, "index.html"), checks) : [];

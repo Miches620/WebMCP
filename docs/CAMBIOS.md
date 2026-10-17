@@ -2,6 +2,18 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Glosario de la app: el juez ya no sabe de tarjetas ni columnas (17/10, 14:30; diseño de Miche y Claude)**
+- *Origen:* con la hoja de cálculo, Claude propuso sumar plantillas por proyecto. Miche: "¿qué va a pasar cuando tengamos 20 ideas de proyectos distintos? No quiero una plantilla multiuso, quiero algo funcional, escalable y bien diseñado". Ver Project doc `claude/evidencia_qwen_planilla_searcher_2026-10-17.md`, sección 9.
+- **3 capas:**
+  1. acciones y observaciones genéricas (`planilla.mjs`), un conjunto chico y cerrado;
+  2. cómo se encuentran las cosas: los *tipos* `item` (se crea, edita y borra; se encuentra por su texto) y `grupo` (contenedor con título), más `control` y `pagina`;
+  3. el **glosario**, un dato de cada proyecto: Kanban = `{ "item": "tarjeta", "grupo": "columna" }`. `null` = la app no tiene ese tipo, y las plantillas que lo necesitan no se ofrecen.
+- **`profiles/web/validation/glosario.mjs`** (nuevo): leer y revisar el glosario, traducir los nombres de la app a tipos (`filaATipos`, `tipoDe`), clases de ítem genéricas más el nombre de la app.
+- `planilla.mjs`, `planilla_plantillas.mjs` v0.3 y `planilla_writer.mjs` v0.4 reciben el glosario. Los pedidos a Qwen se escriben con los nombres de la app, y lo que contesta Qwen con esos nombres se traduce a tipos. `npm run planilla -- <snapshot> --glosario <glosario.json>`.
+- **Regla para que no vuelva el monstruo:** un tipo o una acción nueva entra a las capas 1 y 2 solo si la piden 2 proyectos distintos.
+- **Prueba del diseño (lo mismo que antes, sin modelo):** las 4 matrices de la vara, iguales; elecciones ideales 67/68; la corrida real v0.3.1 55/68. *Tests:* `test_glosario` 15/15 (con un **guardián**: el código del juez, las plantillas y el writer no dicen "tarjeta", "columna" ni "Kanban"), `test_planilla` 25/25, `test_planilla_writer` 49/49.
+- *Falta:* volver a correr Qwen, porque el pedido cambió de palabras. `flows.mjs` (los chequeos de flujo viejos) todavía tiene su lista de clases con "tarjeta".
+
 **2ª corrida con plantillas: 55 de 68 → planilla_plantillas v0.2.1 (17/10, 13:10)**
 - *Evidencia:* Project doc `claude/evidencia_qwen_planilla_searcher_2026-10-17.md`, sección 7. Fixture: `fixtures/real_qwen_c22/planilla_v031.json`.
 - **Tres reglas sin modelo:**

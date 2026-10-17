@@ -43,7 +43,7 @@ const EXPECT = {
 // por requisito (todas sus filas PASS → PASS; R13 sin filas): lo que da run_build --validate con la planilla
 // 17/10: R12 también prueba overflow-y (Miche lo escribió; la 1ª vara lo omitía y Qwen lo encontró) → estado y plantillas, −1
 const BY_REQ = { flow_gemma_sola_rota: [2, 14], flow_gemma_sola_arreglada: [10, 6], flow_pipeline_estado: [4, 12], flow_pipeline_plantillas: [5, 11] };
-const checks = P.filas.map((f) => V.normalizeCheck({ type: "planilla_fila", params: { fila: f, controles: P.controles } }));
+const checks = P.filas.map((f) => V.normalizeCheck({ type: "planilla_fila", params: { fila: f, controles: P.controles, glosario: P.glosario } }));
 const res = {};
 for (const [app, exp] of Object.entries(EXPECT)) {
   const r = await V.runChecks(F(app), checks);
@@ -57,8 +57,8 @@ for (const [app, exp] of Object.entries(EXPECT)) {
 const A = res.flow_gemma_sola_arreglada, R = res.flow_gemma_sola_rota, E = res.flow_pipeline_estado, L = res.flow_pipeline_plantillas;
 t("la rota: el FAIL de crear trae el error de JS con archivo y línea", /error de JS: .*\(script\.js:13\d\)/.test(R["R1.1"].detail), R["R1.1"].detail);
 t("la arreglada no ordena por prioridad, y el detalle dice el orden que vio y el esperado", /orden en "Pendiente": QA Baja · QA Alta Vieja · QA Media · QA Alta Nueva \(se esperaba QA Alta Nueva/.test(A["R16.1"].detail), A["R16.1"].detail);
-t("medidas = el valor CSS del elemento (width: 248px), no lo que ocupa con padding (278) ni un hijo", /width de la columna "Pendiente": 248px ·/.test(A["R10.1"].detail), A["R10.1"].detail);
-t("padding '8px 15px' no es '8px' (Miche pidió 8px)", /padding de el control "➕ Agregar Tarjeta": 8px 15px \(se esperaba 8px\)/.test(A["R11.1"].detail));
+t("medidas = el valor CSS del elemento (width: 248px), no lo que ocupa con padding (278) ni un hijo", /width de columna "Pendiente": 248px ·/.test(A["R10.1"].detail), A["R10.1"].detail);
+t("padding '8px 15px' no es '8px' (Miche pidió 8px)", /padding de control "➕ Agregar Tarjeta": 8px 15px \(se esperaba 8px\)/.test(A["R11.1"].detail));
 t("hover: 🗑️ ✏️ ocultos antes y visibles al pasar el mouse (R17 ya no es un PASS vacío)", /ocultos → aparecen al pasar el mouse/.test(A["R17.1"].detail));
 t("drag & drop de verdad y contadores: Pendiente −1, En Curso +1", /contador de "Pendiente": 1 → 0 · ✓ contador de "En Curso": 0 → 1/.test(A["R15.2"].detail), A["R15.2"].detail);
 t("plantillas no puede crear → usa una tarjeta que ya estaba para mover / borrar (y lo dice)", /no pudo crear "QA Alfa" .*usa la que ya estaba: "Diseñar wireframes iniciales"/.test(L["R6.1"].detail) && L["R6.1"].result === "PASS");

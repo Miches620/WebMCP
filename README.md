@@ -73,16 +73,22 @@ SearXNG es un buscador que corre en tu máquina y junta resultados de varios bus
      docker.io/searxng/searxng:latest
    ```
    La primera vez baja la imagen y crea `E:\Servicios\searxng\config\settings.yml`.
-4. **Editá `settings.yml`** (Bloc de notas o VS Code). Hay que cambiar dos cosas:
-   - En `search:` → `formats:`, agregá `- json`. Sin esto, todo pedido en JSON da *403 Forbidden*:
-     ```yaml
-     search:
-       formats:
-         - html
-         - json
-     ```
-   - En `server:`, poné `limiter: false` (el limitador es para instancias públicas; esta es solo tuya).
-   - Si `secret_key:` todavía dice `"ultrasecretkey"`, cambialo por cualquier texto largo al azar.
+4. **Editá `settings.yml`** (Bloc de notas o VS Code). Empieza con `use_default_settings: true`: SearXNG usa sus valores por defecto y en el archivo va **solo lo que cambiás**. Así tiene que quedar (dejá tu `secret_key` como está):
+   ```yaml
+   use_default_settings: true
+
+   server:
+     secret_key: "<la que generó el contenedor>"
+     image_proxy: true
+     limiter: false        # el limitador es para instancias públicas; esta es solo tuya
+
+   search:                 # esta sección no viene: se agrega entera
+     formats:
+       - html
+       - json              # sin esto, todo pedido en JSON da 403 Forbidden
+   ```
+   - `search:` va pegado al margen; las líneas de adentro, con espacios (YAML no acepta tabulaciones).
+   - Si `secret_key:` dice `"ultrasecretkey"`, cambiala por cualquier texto largo al azar.
 5. **Reiniciá:** `docker restart searxng`.
 6. **Probalo:** abrí `http://localhost:8888` en el navegador (tiene que aparecer el buscador) y después corré, en la carpeta de webmcp:
    ```

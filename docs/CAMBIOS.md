@@ -2,6 +2,22 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**planilla_writer v0.2 y searcher v0.2: arreglos con la 1ª corrida REAL de Miche (17/10, madrugada)**
+- *Evidencia:* Project doc `claude/evidencia_qwen_planilla_searcher_2026-10-17.md`. Las dos corridas quedaron como fixtures: `profiles/web/validation/fixtures/real_qwen_c22/planilla_qwen_c22.json` y `searcher/fixtures/searcher_kanban_2026-10-17.json`.
+- **Planilla de Qwen v0.1: 30 de 68 contra la vara.** Casi todo eran filas sin sentido que el validador dejaba pasar: "QA Pendiente" como columna, `click` dentro de `hago`, `"Botón 'Agregar tarjeta'"`, "cambia: 0".
+  - *v0.2:* chequeos de SENTIDO (`meaningProblems`): los textos "QA" se crean en la fila, los contenedores son los que nombró el usuario, sin comillas, sin claves de más, sin estilos en `campos`.
+  - `normalizeRow` lleva a la forma exacta lo "casi bien" y lo anota.
+  - El pedido v0.2 trae ejemplos de otra app, con `sin_fila`.
+  - Sobre la corrida real: de 18 filas aceptadas, rechaza 15 con su motivo, rescata 2 y la vara sigue pasando entera.
+- **Searcher v0.1: 25 preguntas, todas de 1 fuente,** y "arrastrar" marcado como ya pedido sin que la idea lo dijera.
+  - *v0.2:* agrupar y "ya lo pide" **sin modelo** (mismo verbo y sinónimos del dominio, sin encadenar).
+  - Se aparta lo que está **fuera del stack** (sin servidor: compartir, equipo, integraciones…).
+  - Como mucho 8 preguntas, con la redacción "¿Querés que tu app tenga esto?: …".
+  - El pedido de rasgos excluye beneficios y usos.
+  - Sobre la corrida real: 8 preguntas, y la 1ª es "arrastrar y soltar tareas (2 de 6 fuentes)".
+- *Tests:* `test_planilla_writer` 28/28 y `test_searcher` 22/22, los dos con las corridas reales.
+- *Falta:* volver a correr Qwen con v0.2 y medir contra la vara.
+
 **Searcher v0.1 + Qwen escribe la planilla + comparador contra la vara (16/10 noche)**
 - *Origen:* paso 3 del orden acordado. Searcher e Intent Forge arman la planilla; las filas las propone **Qwen**, no Gemma (decisión de Miche).
 - **`profiles/web/validation/planilla_writer.mjs`** (`npm run planilla <snapshot>`): Qwen escribe la planilla de cada requisito.

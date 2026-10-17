@@ -19,7 +19,7 @@ import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseJsonLoose } from "../../../json_loose.mjs";
 
-export const WRITER_VERSION = "planilla_writer v0.1";
+export const WRITER_VERSION = "planilla_writer v0.2";
 const MAX_ATTEMPTS = 3;
 const LM_URL = process.env.LM_STUDIO_URL || "http://localhost:1234/v1/chat/completions";
 const MODEL = process.env.PLANILLA_MODEL || process.env.REVIEWER_MODEL || "qwen2.5-7b-instruct";
@@ -36,7 +36,7 @@ const isText = (x) => typeof x === "string" && x.trim().length > 0 && x.length <
 const texts = (x) => Array.isArray(x) && x.length > 0 && x.every(isText);
 
 /** Una fila contra el vocabulario. Devuelve { ok, problems[] }. Función pura. */
-export function validateRow(row, nReq = Infinity) {
+export function validateRow(row, nReq = Infinity, ctx = {}) {
   const p = [];
   if (!row || typeof row !== "object" || Array.isArray(row)) return { ok: false, problems: ["la fila no es un objeto"] };
   const extra = Object.keys(row).filter((k) => !["id", "r", "dado", "hago", "veo"].includes(k));
@@ -80,11 +80,107 @@ export function validateRow(row, nReq = Infinity) {
       if (!(okVal(val) || (Array.isArray(val) && val.length && val.every(okVal)) || (val && typeof val === "object" && isText(val.distinto)))) p.push(`veo[${i}].estilo.valor: "#rrggbb", "Npx", una palabra (dashed, scroll…), una lista de esas, o { "distinto": "none" }`);
     }
   });
+  // v0.2 (1ª corrida real de Qwen, 17/10): claves de más adentro de hago / veo / dado, y los textos tienen que tener sentido
+  p.push(...shapeExtras(row), ...(ctx.features ? meaningProblems(row, ctx.features) : []));
   // el QUÉ, no el CÓMO
   const flat = JSON.stringify({ dado: row.dado, hago: row.hago, veo: row.veo });
   const how = flat.match(HOW);
-  if (how) p.push(`nombra cómo está programado ("${how[0].trim()}"): la planilla dice lo que ve una persona, sin clases, ids ni código`);
+  if (how) p.push(`nombra cómo está programado ("${how[0].trim().replace(/^["'(]/, "")}"): la planilla dice lo que ve una persona, sin clases, ids ni código`);
   return { ok: !p.length, problems: p };
+}
+
+// ---------- v0.2: forma exacta y sentido (1ª corrida real de Qwen sobre c22, 17/10: 30/68 contra la vara) ----------
+const VEO_KEYS = { esta: ["esta", "en"], no_esta: ["no_esta", "en"], contiene: ["en_item", "contiene"], orden: ["orden", "en"], contador: ["contador", "cambia", "vale"], control: ["control", "solo_en"], al_pasar: ["al_pasar", "en_item"], estilo: ["estilo"], color_en_item: ["color_en_item", "texto", "familia"] };
+const HAGO_KEYS = { agregar: ["agregar", "campos"], editar: ["editar", "a", "campos"], eliminar: ["eliminar"], mover: ["mover", "a"], recargar: ["recargar"], pasar_mouse: ["pasar_mouse"] };
+const CSS_WORD = /^(padding|margin|border|border-radius|width|height|color|background|background-color|font|font-size|box-shadow|overflow|display)$/i;
+function shapeExtras(row) {
+  const p = [];
+  const k = Object.keys(row.hago || {}).find((x) => HAGO_KEYS[x]);
+  if (k) { const extra = Object.keys(row.hago).filter((x) => !HAGO_KEYS[k].includes(x)); if (extra.length) p.push(`"hago" con ${k} no lleva: ${extra.join(", ")} (UNA acción; lo demás no se ejecuta)`); }
+  (Array.isArray(row.veo) ? row.veo : []).forEach((v, i) => {
+    const t = VEO.find((x) => v && x in v);
+    if (!t) return;
+    const extra = Object.keys(v).filter((x) => !VEO_KEYS[t].includes(x));
+    if (extra.length) p.push(`veo[${i}] (${t}) no lleva: ${extra.join(", ")}${t === "esta" && extra.includes("en_item") ? ` — para "dentro de la tarjeta" usá { "en_item": …, "contiene": [ … ] }` : ""}`);
+    if (t === "contador" && v.cambia === 0) p.push(`veo[${i}]: "cambia": 0 no prueba nada`);
+  });
+  for (const c of [row.hago?.campos, ...(row.dado || []).map((d) => d?.campos)].filter(Boolean)) {
+    const css = Object.keys(c).filter((x) => CSS_WORD.test(x));
+    if (css.length) p.push(`"campos" son los campos del formulario de la app (titulo, descripcion, prioridad…), no estilos: ${css.join(", ")}`);
+    if ("titulo" in c) p.push(`"campos" no lleva "titulo": el título es el texto de "agregar"`);
+  }
+  return p;
+}
+/** Textos que la fila CREA (dado, agregar, editar → a, valores de campos). */
+function createdTexts(row) {
+  const out = new Set();
+  for (const d of row.dado || []) { if (d?.agregar) out.add(d.agregar); Object.values(d?.campos || {}).forEach((x) => out.add(String(x))); }
+  if (row.hago?.agregar) out.add(row.hago.agregar);
+  if (row.hago?.editar && row.hago?.a) out.add(row.hago.a);
+  Object.values(row.hago?.campos || {}).forEach((x) => out.add(String(x)));
+  return out;
+}
+/** Problemas de SENTIDO: textos "QA" que nadie creó, contenedores que el usuario no nombró, textos que no se ven tal cual. */
+export function meaningProblems(row, features) {
+  const p = [];
+  const all = nrm(features.join(" \n "));
+  const said = (x) => all.includes(nrm(x));
+  const made = createdTexts(row);
+  const isQA = (x) => /^qa\b/i.test(String(x).trim());
+  const card = (x, where) => { if (!isText(x)) return; if (!made.has(x)) p.push(`${where}: "${x}" no se creó en esta fila (ponelo en "dado")`); };
+  const box = (x, where) => { if (!isText(x)) return; if (isQA(x)) p.push(`${where}: "${x}" es un contenedor: va con el nombre que escribió el usuario, sin "QA"`); else if (!said(x)) p.push(`${where}: el usuario no nombra ningún contenedor "${x}" (usá los nombres de los requisitos, p. ej. las columnas)`); };
+  const seen = (x, where) => { if (!isText(x)) return; if (/['"“”«»]/.test(x)) p.push(`${where}: "${x}" va sin comillas, tal como se ve en la pantalla`); else if (/^bot[oó]n\b/i.test(x)) p.push(`${where}: "${x}": para un botón usá { "control": ["palabras del botón"] }`); else if (isQA(x)) { if (!made.has(x)) p.push(`${where}: "${x}" no se creó en esta fila`); } else if (!said(x)) p.push(`${where}: "${x}" no lo escribió el usuario (los textos de prueba empiezan con "QA" y se crean en la fila)`); };
+  const h = row.hago || {};
+  for (const k of ["editar", "eliminar", "mover", "pasar_mouse"]) if (h[k]) card(h[k], `hago.${k}`);
+  if (h.mover) box(h.a, "hago.mover → a");
+  (Array.isArray(row.veo) ? row.veo : []).forEach((v, i) => {
+    const w = `veo[${i}]`;
+    if (!v || typeof v !== "object") return;
+    if ("esta" in v) { seen(v.esta, w); if (v.en) box(v.en, `${w}.en`); }
+    if ("no_esta" in v) { seen(v.no_esta, w); if (v.en) box(v.en, `${w}.en`); }
+    if ("contiene" in v) { card(v.en_item, `${w}.en_item`); (v.contiene || []).forEach((x) => seen(x, `${w}.contiene`)); }
+    if ("orden" in v) { (v.orden || []).forEach((x) => card(x, `${w}.orden`)); box(v.en, `${w}.en`); }
+    if ("contador" in v) box(v.contador, `${w}.contador`);
+    if ("control" in v) { (v.control || []).forEach((x) => { if (!said(x)) p.push(`${w}.control: "${x}" no está en lo que escribió el usuario`); }); if (v.solo_en) box(v.solo_en, `${w}.solo_en`); }
+    if ("al_pasar" in v) { card(v.en_item, `${w}.en_item`); (v.al_pasar || []).forEach((x) => seen(x, `${w}.al_pasar`)); }
+    if ("color_en_item" in v) { card(v.color_en_item, `${w}.color_en_item`); }
+    if ("estilo" in v) { const de = v.estilo?.de; if (de?.columna) box(de.columna, `${w}.estilo.de.columna`); if (de?.tarjeta) card(de.tarjeta, `${w}.estilo.de.tarjeta`); if (de?.control) de.control.forEach((x) => { if (!said(x)) p.push(`${w}.estilo.de.control: "${x}" no está en lo que escribió el usuario`); }); }
+  });
+  return p;
+}
+const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
+
+/** Lleva a la forma exacta lo que Qwen escribe "casi bien" (sin modelo). Devuelve { row, cambios[] }. */
+export function normalizeRow(row0) {
+  const row = JSON.parse(JSON.stringify(row0 || {}));
+  const cambios = [];
+  if (!row || typeof row !== "object") return { row, cambios };
+  // dado / hago vacíos → afuera; campos vacíos → afuera
+  if (Array.isArray(row.dado) && !row.dado.length) delete row.dado;
+  if (row.hago && typeof row.hago === "object") { if (row.hago.campos && !Object.keys(row.hago.campos).length) delete row.hago.campos; if (!Object.keys(row.hago).length) delete row.hago; }
+  for (const d of row.dado || []) if (d?.campos && !Object.keys(d.campos).length) delete d.campos;
+  const made = () => [...(row.dado || []).map((d) => d?.agregar).filter(Boolean), row.hago?.agregar].filter(Boolean);
+  const ensureCard = () => { const m = made(); if (m.length) return m[0]; row.dado = [...(row.dado || []), { agregar: "QA Alfa" }]; cambios.push(`agregó "dado": QA Alfa (el estilo es de una tarjeta y no había ninguna)`); return "QA Alfa"; };
+  const PROP_ALIAS = { "border-radius": "border-top-left-radius", "border-style": "border-top-style", overflow: "overflow-y", background: "background-color" };
+  (Array.isArray(row.veo) ? row.veo : []).forEach((v, i) => {
+    if (v && Array.isArray(v.al_pasar) && v.al_pasar.some(Array.isArray)) { v.al_pasar = v.al_pasar.flat(); cambios.push(`veo[${i}].al_pasar: lista aplanada`); }
+    const e = v?.estilo;
+    if (!e) return;
+    if (typeof e.de === "string") {
+      const d = e.de.trim(), dn = nrm(d);
+      let to = null;
+      if (/^(pagina|fondo|body|la pagina)$/.test(dn)) to = "pagina";
+      else if (/^columnas?\s+\S/.test(dn)) to = { columna: d.replace(/^columnas?\s+/i, "") };
+      else if (/^tarjetas?$/.test(dn)) to = { tarjeta: ensureCard() };
+      else if (made().includes(d)) to = { tarjeta: d };
+      else if (/^bot[oó]n\s+\S/.test(dn)) to = { control: d.replace(/^bot[oó]n\s+/i, "").replace(/['"“”]/g, "").split(/\s+/).filter(Boolean) };
+      if (to) { cambios.push(`veo[${i}].estilo.de: "${d}" → ${JSON.stringify(to)}`); e.de = to; }
+    }
+    if (PROP_ALIAS[e.prop]) { cambios.push(`veo[${i}].estilo.prop: ${e.prop} → ${PROP_ALIAS[e.prop]}`); e.prop = PROP_ALIAS[e.prop]; }
+    if (e.prop === "border" && typeof e.valor === "string") { const st = e.valor.match(/\b(dashed|solid|dotted|double|none)\b/); if (st) { cambios.push(`veo[${i}].estilo: border "${e.valor}" → border-top-style ${st[1]}`); e.prop = "border-top-style"; e.valor = st[1]; } }
+    if (e.prop === "box-shadow" && typeof e.valor === "string" && e.valor !== "none") { cambios.push(`veo[${i}].estilo.valor: sombra "${e.valor}" → distinta de none (el usuario pidió sombra, no esa exacta)`); e.valor = { distinto: "none" }; }
+  });
+  return { row, cambios };
 }
 
 // ---------- el pedido ----------
@@ -110,14 +206,21 @@ Una fila: { "r": "Rn", "dado": [ … ]?, "hago": { … }?, "veo": [ … ] }
   { "color_en_item": "QA Alfa", "texto": "alta", "familia": "rojo" | "amarillo" | "verde" }
 
 Reglas:
-1. SOLO lo que dice el requisito. No agregues comportamientos que no están escritos.
-2. Textos de prueba que empiecen con "QA " (QA Alfa, QA Beta…). Nombres de contenedores, botones, valores y colores: tal cual los escribió el usuario.
-3. Nada de cómo está programado: sin clases, ids, nombres de funciones, etiquetas HTML ni selectores. Si el requisito solo dice eso, es "sin_fila".
-4. Si el requisito tiene varias partes (p. ej. tres prioridades, o colores de varias cosas), una fila por parte.
-5. Medidas y colores, como números exactos que dijo el usuario. Si dice "color rojo" sin código, usá color_en_item.
+1. SOLO lo que dice ESE requisito. No agregues comportamientos ni copies lo de otros requisitos.
+2. "QA " es SOLO para lo que la fila crea (en "dado" o en "hago": "QA Alfa", "QA Beta"). Todo texto "QA" que aparece en "veo" tiene que haberse creado en la MISMA fila.
+3. Nombres de columnas/contenedores, palabras de botones, valores y colores: tal cual los escribió el usuario, SIN "QA" y sin comillas.
+4. Nada de cómo está programado: sin clases, ids, nombres de funciones, etiquetas HTML ni selectores. Si el requisito solo dice eso, es "sin_fila".
+5. Si el requisito tiene varias partes (p. ej. tres prioridades, o colores de varias cosas), una fila por parte.
+6. Medidas y colores, como números exactos que dijo el usuario. Si dice "color rojo" sin código, usá color_en_item. Si dice "con sombra" sin valor, { "distinto": "none" }.
+7. "campos" son los campos del formulario de la app (descripcion, prioridad…), nunca estilos. El título es el texto de "agregar".
 
-Ejemplo (otra app: lista de recetas). Requisito R2: "Al borrar una receta, desaparece de la lista y baja el total."
-{ "filas": [ { "r": "R2", "dado": [{ "agregar": "QA Tarta" }], "hago": { "eliminar": "QA Tarta" }, "veo": [{ "no_esta": "QA Tarta" }, { "contador": "Recetas", "cambia": -1 }] } ] }`;
+Ejemplos (otra app: lista de recetas, con una columna "Favoritas").
+R2: "Al borrar una receta, desaparece de la lista y baja el total."
+{ "filas": [ { "r": "R2", "dado": [{ "agregar": "QA Tarta" }], "hago": { "eliminar": "QA Tarta" }, "veo": [{ "no_esta": "QA Tarta" }, { "contador": "Recetas", "cambia": -1 }] } ] }
+R5: "Las recetas tienen fondo #FFF8E7, sombra y miden 300px de ancho."
+{ "filas": [ { "r": "R5", "dado": [{ "agregar": "QA Sopa" }], "veo": [{ "estilo": { "de": { "tarjeta": "QA Sopa" }, "prop": "background-color", "valor": "#FFF8E7" } }, { "estilo": { "de": { "tarjeta": "QA Sopa" }, "prop": "box-shadow", "valor": { "distinto": "none" } } }, { "estilo": { "de": { "tarjeta": "QA Sopa" }, "prop": "width", "valor": "300px" } }] } ] }
+R7: "Cada receta es un div 'card' con un header y un body."
+{ "sin_fila": "dice cómo está armada por dentro; no es algo que una persona haga o vea" }`;
 }
 
 export function userPrompt({ id, text, features, context }) {
@@ -146,10 +249,10 @@ export async function writeRequirement({ id, text, features, context = "", call 
     else if (!Array.isArray(parsed.filas) || !parsed.filas.length) problems.push(`falta "filas" (o "sin_fila" con el motivo)`);
     const good = [], bad = [];
     if (!problems.length) parsed.filas.forEach((f, k) => {
-      const row = { ...f, r: f.r || id };
+      const { row, cambios } = normalizeRow({ ...f, r: f.r || id });
       if (row.r !== id) { bad.push({ fila: f, problems: [`es de ${row.r}, no de ${id}`] }); return; }
-      const v = validateRow(row, n);
-      if (v.ok) good.push({ ...row, id: `${id}.${good.length + 1}` }); else bad.push({ fila: f, problems: v.problems });
+      const v = validateRow(row, n, { features });
+      if (v.ok) good.push({ ...row, id: `${id}.${good.length + 1}`, ...(cambios.length ? { _normalizado: cambios } : {}) }); else bad.push({ fila: f, problems: v.problems });
     });
     calls.push({ attempt: a, raw: res.content, usage: res.usage, finish_reason: res.finish_reason, accepted: good.length, rejected: bad.map((b) => b.problems), problems });
     last = { good, bad, problems };

@@ -2,6 +2,24 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**El ciclo: la app mejora vuelta a vuelta (ciclo v0.1, 18/10; decisiones de Miche)**
+- *Origen:* Project doc `claude/propuesta_ciclo_2026-10-17.md`. `run_build` construye todo de una vez y valida al final, así que los FAIL nunca vuelven al Specialist. Gemma sola hizo un Kanban entero con UN error de una línea (`index.html:30`); con esa línea arreglada pasó de 2 a 10 requisitos. Miche: "webmcp tiene que poder copiar cómo actuarías vos con las limitantes de mis LLMs locales"; no hay proyectos imposibles, solo más vueltas.
+- **`build/run_ciclo.mjs`** (`npm run ciclo -- <app> --planilla <p> --snapshot <s>`):
+  - el juez corre la planilla y se toma el primer requisito que falla;
+  - pedido A: Gemma ve el requisito, qué se prueba, qué falló y el mapa, y dice qué quiere ver;
+  - pedido B: recibe solo ese código, más la función donde saltó el error y quién la llama, y devuelve funciones enteras o archivos chicos;
+  - el juez vuelve a probar ese requisito y todo lo que ya pasaba: si mejora sin romper nada queda (foto `vNNN/`), y si no se vuelve atrás y el próximo intento sabe por qué;
+  - 3 intentos por requisito, después queda pendiente; al final hay una segunda pasada.
+  - Evidence en `ciclo.json`: cada vuelta, y la curva de requisitos cumplidos.
+- **`harness/mapa.mjs`:** el mapa de la app sin modelo (funciones con archivo:línea, quién las llama incluidos los `onclick` del HTML, ids, clases). En la app de Gemma ocupa unos 400 tokens y muestra el bug.
+- **`harness/cambios.mjs`:** aplica `### FUNCION:` y `### ARCHIVO:`. Lo que no compila o vuelve recortado no se aplica.
+- **Decisión de Miche (18/10): Gemma VE qué se va a probar.** `planilla_palabras.mjs` dice cada fila en palabras, sin los textos de prueba. Al correr, `planilla.mjs` (`conAzar`) cambia "QA Alfa" y los demás por otros al azar, así que una app con los textos escritos a mano no pasa. El examen lo sigue escribiendo Qwen.
+- *Tests:* `build/test_ciclo.mjs` 22/22, con un modelo de mentira, el juez de verdad y la app rota de Gemma sola:
+  - vuelta 1: arregla R1 y la curva pasa de 2 a 10 requisitos;
+  - vuelta 2: un arreglo que rompe lo que andaba se vuelve atrás;
+  - vuelta 3: el intento siguiente sabe qué falló.
+- *Falta:* la corrida real con Gemma (`npm run ciclo`). Antes, resolver la velocidad de LM Studio.
+
 **Glosario de la app: el juez ya no sabe de tarjetas ni columnas (17/10, 14:30; diseño de Miche y Claude)**
 - *Origen:* con la hoja de cálculo, Claude propuso sumar plantillas por proyecto. Miche: "¿qué va a pasar cuando tengamos 20 ideas de proyectos distintos? No quiero una plantilla multiuso, quiero algo funcional, escalable y bien diseñado". Ver Project doc `claude/evidencia_qwen_planilla_searcher_2026-10-17.md`, sección 9.
 - **3 capas:**

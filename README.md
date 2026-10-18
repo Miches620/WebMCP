@@ -112,6 +112,7 @@ npm test                                              # todos los tests determin
 npm run searxng                                       # ¿SearXNG está listo?
 npm run searcher "<idea>"                             # Searcher: preguntas con fuentes para Intent Forge
 npm run planilla <snapshot> [--glosario g.json] [--modo libre]   # Qwen arma la planilla (por defecto con plantillas de fila; el glosario dice cómo se llaman las cosas de la app)
+npm run ciclo -- <app> --planilla <p.json> --snapshot <s.json>   # el ciclo: la app mejora vuelta a vuelta hasta cumplir la planilla
 npm run comparar <planilla_vara> <planilla_otra>      # ¿juzgan igual? (sobre las 4 apps reales)
 ```
 

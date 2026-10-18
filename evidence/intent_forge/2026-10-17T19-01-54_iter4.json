@@ -1,0 +1,94 @@
+{
+  "version": "intent_brief v0.9",
+  "iteration": 4,
+  "status": "ASKING",
+  "lines": [
+    {
+      "id": "L1",
+      "field": "libre",
+      "text": "Webapp estilo hoja de cálculo"
+    },
+    {
+      "id": "L2",
+      "field": "libre",
+      "text": "Las celdas aceptan fórmulas (por ejemplo =A1+B1) y se recalculan solas cuando cambia una celda de la que dependen"
+    },
+    {
+      "id": "L3",
+      "field": "libre",
+      "text": "Formatos de celda: número, fecha, moneda y porcentaje"
+    },
+    {
+      "id": "L4",
+      "field": "libre",
+      "text": "Importar y exportar .csv"
+    },
+    {
+      "id": "L5",
+      "field": "libre",
+      "text": "Autoguardado cada 10 minutos"
+    },
+    {
+      "id": "L6",
+      "field": "respuesta",
+      "text": "haciendo click sobre la celda, la misma debe volverse editable",
+      "pregunta": "¿Cómo se ingresan los datos en las celdas?"
+    },
+    {
+      "id": "L7",
+      "field": "respuesta",
+      "text": "No",
+      "pregunta": "¿Existen tipos de celdas que no acepten fórmulas, como texto o monedas?"
+    },
+    {
+      "id": "L8",
+      "field": "respuesta",
+      "text": "Cuando cambio una celda, todas las fórmulas que dependen de ella se actualizan al instante, también las que dependen de esas (si C1 = A1+B1 y D1 = C1*2, al cambiar A1 cambian C1 y D1)",
+      "pregunta": "¿Cómo se recalcularán las celdas cuando se borre o modifique una celda de la que dependen?"
+    },
+    {
+      "id": "L9",
+      "field": "respuesta",
+      "text": "Si borro una celda que usa una fórmula, cuenta como 0",
+      "pregunta": "¿Cómo se recalcularán las celdas cuando se borre o modifique una celda de la que dependen?"
+    },
+    {
+      "id": "L10",
+      "field": "respuesta",
+      "text": "Si una fórmula se refiere a sí misma o forma un círculo (A1 = B1 y B1 = A1), la celda muestra #CICLO",
+      "pregunta": "¿Cómo se recalcularán las celdas cuando se borre o modifique una celda de la que dependen?"
+    },
+    {
+      "id": "L11",
+      "field": "respuesta",
+      "text": "Si la fórmula está mal escrita, muestra #ERROR",
+      "pregunta": "¿Cómo se recalcularán las celdas cuando se borre o modifique una celda de la que dependen?"
+    }
+  ],
+  "attempts": [
+    {
+      "raw": "```json\n{\"faltantes\":[\"qué ocurre al borrar una celda\"],\"pregunta\":\"¿Qué pasa cuando se borra una celda que contiene una fórmula o depende de otras fórmulas?\"}\n```",
+      "kind": "pregunta",
+      "faltantes": [
+        "qué ocurre al borrar una celda"
+      ]
+    }
+  ],
+  "auto_added": [],
+  "refined_prompt": null,
+  "calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks, ni CÓMO se implementa algo (algoritmos, cómo se genera, cómo se calcula): eso lo decide el equipo.\n- No preguntes por detalles chicos que el equipo puede decidir solo (tamaños de botones, márgenes, colores exactos).\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [sin campo] Webapp estilo hoja de cálculo\n- [sin campo] Las celdas aceptan fórmulas (por ejemplo =A1+B1) y se recalculan solas cuando cambia una celda de la que dependen\n- [sin campo] Formatos de celda: número, fecha, moneda y porcentaje\n- [sin campo] Importar y exportar .csv\n- [sin campo] Autoguardado cada 10 minutos\n- [respuesta a \"¿Cómo se ingresan los datos en las celdas?\"] haciendo click sobre la celda, la misma debe volverse editable\n- [respuesta a \"¿Existen tipos de celdas que no acepten fórmulas, como texto o monedas?\"] No\n- [respuesta a \"¿Cómo se recalcularán las celdas cuando se borre o modifique una celda de la que dependen?\"] Cuando cambio una celda, todas las fórmulas que dependen de ella se actualizan al instante, también las que dependen de esas (si C1 = A1+B1 y D1 = C1*2, al cambiar A1 cambian C1 y D1)\n- [respuesta a \"¿Cómo se recalcularán las celdas cuando se borre o modifique una celda de la que dependen?\"] Si borro una celda que usa una fórmula, cuenta como 0\n- [respuesta a \"¿Cómo se recalcularán las celdas cuando se borre o modifique una celda de la que dependen?\"] Si una fórmula se refiere a sí misma o forma un círculo (A1 = B1 y B1 = A1), la celda muestra #CICLO\n- [respuesta a \"¿Cómo se recalcularán las celdas cuando se borre o modifique una celda de la que dependen?\"] Si la fórmula está mal escrita, muestra #ERROR\n\nPREGUNTAS QUE YA HICISTE (3/10, no las repitas):\n- ¿Cómo se ingresan los datos en las celdas?\n- ¿Existen tipos de celdas que no acepten fórmulas, como texto o monedas?\n- ¿Cómo se recalcularán las celdas cuando se borre o modifique una celda de la que dependen?\n\nCOSAS QUE DETECTASTE ANTES Y TODAVÍA NO PREGUNTASTE (si siguen faltando, preguntá por una de estas antes que volver a un tema ya preguntado):\n- qué ocurre al borrar una celda\n- si hay alguna funcionalidad adicional\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"qué ocurre al borrar una celda\"],\"pregunta\":\"¿Qué pasa cuando se borra una celda que contiene una fórmula o depende de otras fórmulas?\"}\n```"
+    }
+  ]
+}

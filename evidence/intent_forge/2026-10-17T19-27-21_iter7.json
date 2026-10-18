@@ -1,0 +1,95 @@
+{
+  "version": "intent_brief v0.9",
+  "iteration": 7,
+  "status": "ASKING",
+  "lines": [
+    {
+      "id": "L1",
+      "field": "libre",
+      "text": "Webapp estilo hoja de cálculo"
+    },
+    {
+      "id": "L2",
+      "field": "libre",
+      "text": "Las celdas aceptan fórmulas (por ejemplo =A1+B1) y se recalculan solas cuando cambia una celda de la que dependen"
+    },
+    {
+      "id": "L3",
+      "field": "libre",
+      "text": "Formatos de celda: número, fecha, moneda y porcentaje"
+    },
+    {
+      "id": "L4",
+      "field": "libre",
+      "text": "Importar y exportar .csv"
+    },
+    {
+      "id": "L5",
+      "field": "libre",
+      "text": "Autoguardado cada 10 minutos"
+    },
+    {
+      "id": "L6",
+      "field": "respuesta",
+      "text": "al hacer click sobre la celda esta se volvera editable",
+      "pregunta": "¿Cómo se ingresan los datos en las celdas?"
+    },
+    {
+      "id": "L7",
+      "field": "respuesta",
+      "text": "No",
+      "pregunta": "¿Hay diferentes tipos de celdas?"
+    },
+    {
+      "id": "L8",
+      "field": "respuesta",
+      "text": "llevando el puntero del mouse sobre la celda",
+      "pregunta": "¿Cómo se selecciona una celda para hacer click?"
+    },
+    {
+      "id": "L9",
+      "field": "respuesta",
+      "text": "buscar valores en vertical (BUSCARV), buscar valores en horizontal (BUSCARH), Sumar si se cumple una condicion (SUMAR.SI)",
+      "pregunta": "¿Hay alguna funcionalidad adicional a los cálculos básicos que se requiera?"
+    },
+    {
+      "id": "L10",
+      "field": "respuesta",
+      "text": "texto, numero, moneda, porcentaje",
+      "pregunta": "¿Cuáles son los diferentes formatos de celda que soportará la aplicación?"
+    },
+    {
+      "id": "L11",
+      "field": "respuesta",
+      "text": "archivo .csv compatible con las planillas de calculos mas utilizadas (Microsoft Excel y Google Sheets)",
+      "pregunta": "¿Cuál es el formato exacto en el que se exportará la hoja de cálculo al hacer el .csv?"
+    }
+  ],
+  "attempts": [
+    {
+      "raw": "```json\n{\"faltantes\":[\"cómo se ingresa texto en las celdas\",\"si hay autocompletado o sugerencias en fórmulas\"],\"pregunta\":\"¿Cómo se ingresa texto en las celdas?\"}\n```",
+      "kind": "pregunta",
+      "faltantes": [
+        "cómo se ingresa texto en las celdas",
+        "si hay autocompletado o sugerencias en fórmulas"
+      ]
+    }
+  ],
+  "auto_added": [],
+  "refined_prompt": null,
+  "calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "Sos el entrevistador de Intent Forge (equipo MicheLab).\n\nLeés lo que el usuario escribió sobre la app que quiere y buscás lo que le FALTA decir para poder construirla.\nCasi ninguna plantilla está completa la primera vez. Revisá, en este orden:\n1. Líneas vagas que no se puedan construir tal cual (\"que sea completa\", \"con estados\").\n2. Nombres o cantidades que faltan (¿qué columnas?, ¿qué categorías?, ¿cuántos niveles?).\n3. Qué datos tiene cada cosa (¿qué campos tiene una tarjeta, un producto, un contacto?).\n4. Cómo se usa una feature pedida (¿cómo se elige una prioridad?, ¿qué pasa al borrar?).\n5. Algo que una app de este tipo suele tener y el usuario no mencionó (buscar, filtrar, ordenar, comentarios).\n\nREGLAS:\n- Nunca preguntes algo que ya está en las líneas ni algo que ya preguntaste.\n- Un TEMA ya preguntado no se vuelve a preguntar, aunque sea con otras palabras (si ya preguntaste por la prioridad, pasá a otro tema).\n- Nunca preguntes algo que contradiga lo que el usuario dijo que NO quiere.\n- No preguntes por tecnología, lenguajes ni frameworks, ni CÓMO se implementa algo (algoritmos, cómo se genera, cómo se calcula): eso lo decide el equipo.\n- No preguntes por detalles chicos que el equipo puede decidir solo (tamaños de botones, márgenes, colores exactos).\n- La pregunta es UNA, corta y cerrada (sí/no, o elegir con ejemplos).\n\nSALIDA: EXCLUSIVAMENTE este JSON:\n```json\n{\"faltantes\":[\"hasta 3 cosas que faltan, de la más importante a la menos\"],\"pregunta\":\"la pregunta sobre la primera\"}\n```\nSi de verdad no falta nada: {\"faltantes\":[],\"pregunta\":null}\n\nEJEMPLO (otro proyecto):\n- [qué tiene que hacer] cargar recetas con ingredientes\n- [cómo se tiene que ver] colores cálidos\n```json\n{\"faltantes\":[\"si las recetas llevan pasos además de ingredientes\",\"si se pueden buscar recetas\",\"si tienen foto\"],\"pregunta\":\"¿Las recetas llevan pasos de preparación además de los ingredientes?\"}\n```"
+        },
+        {
+          "role": "user",
+          "content": "LO QUE ESCRIBIÓ EL USUARIO:\n- [sin campo] Webapp estilo hoja de cálculo\n- [sin campo] Las celdas aceptan fórmulas (por ejemplo =A1+B1) y se recalculan solas cuando cambia una celda de la que dependen\n- [sin campo] Formatos de celda: número, fecha, moneda y porcentaje\n- [sin campo] Importar y exportar .csv\n- [sin campo] Autoguardado cada 10 minutos\n- [respuesta a \"¿Cómo se ingresan los datos en las celdas?\"] al hacer click sobre la celda esta se volvera editable\n- [respuesta a \"¿Hay diferentes tipos de celdas?\"] No\n- [respuesta a \"¿Cómo se selecciona una celda para hacer click?\"] llevando el puntero del mouse sobre la celda\n- [respuesta a \"¿Hay alguna funcionalidad adicional a los cálculos básicos que se requiera?\"] buscar valores en vertical (BUSCARV), buscar valores en horizontal (BUSCARH), Sumar si se cumple una condicion (SUMAR.SI)\n- [respuesta a \"¿Cuáles son los diferentes formatos de celda que soportará la aplicación?\"] texto, numero, moneda, porcentaje\n- [respuesta a \"¿Cuál es el formato exacto en el que se exportará la hoja de cálculo al hacer el .csv?\"] archivo .csv compatible con las planillas de calculos mas utilizadas (Microsoft Excel y Google Sheets)\n\nPREGUNTAS QUE YA HICISTE (6/10, no las repitas):\n- ¿Cómo se ingresan los datos en las celdas?\n- ¿Hay diferentes tipos de celdas?\n- ¿Cómo se selecciona una celda para hacer click?\n- ¿Hay alguna funcionalidad adicional a los cálculos básicos que se requiera?\n- ¿Cuáles son los diferentes formatos de celda que soportará la aplicación?\n- ¿Cuál es el formato exacto en el que se exportará la hoja de cálculo al hacer el .csv?\n\n¿Qué falta? Respondé con el JSON."
+        }
+      ],
+      "content": "```json\n{\"faltantes\":[\"cómo se ingresa texto en las celdas\",\"si hay autocompletado o sugerencias en fórmulas\"],\"pregunta\":\"¿Cómo se ingresa texto en las celdas?\"}\n```"
+    }
+  ]
+}

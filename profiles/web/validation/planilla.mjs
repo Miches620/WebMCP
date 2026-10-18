@@ -301,9 +301,25 @@ async function see(page, v, before, w) {
   return [false, `"veo" desconocido: ${JSON.stringify(v)}`];
 }
 
+// 18/10 (ciclo): con "azar", los textos de prueba ("QA Alfa", "QA detalle uno"…) se cambian por otros al correr. Gemma
+// ve QUÉ se va a probar, pero no con qué textos: una app que tenga "QA Alfa" escrito a mano no pasa.
+const PALABRAS = ["Zorzal", "Tero", "Hornero", "Calandria", "Benteveo", "Chingolo", "Carancho", "Biguá", "Cardenal", "Junco", "Aromo", "Ceibo", "Tala", "Espinillo", "Jacarandá", "Lapacho"];
+export function conAzar(row, seed) {
+  if (!seed) return row;
+  let h = [...String(seed)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+  const map = new Map();
+  const swap = (v) => {
+    if (typeof v !== "string" || !/^QA\b/.test(v)) return v;
+    if (!map.has(v)) { h = (h * 1103515245 + 12345) >>> 0; map.set(v, `QA ${PALABRAS[h % PALABRAS.length]} ${map.size + 1}`); }
+    return map.get(v);
+  };
+  const walk = (x) => (Array.isArray(x) ? x.map(walk) : x && typeof x === "object" ? Object.fromEntries(Object.entries(x).map(([k, v]) => [k, walk(v)])) : swap(x));
+  return walk(row);
+}
+
 /** Corre UNA fila. Devuelve { result, detail, errors? }. */
-export async function runRow({ page, row: row0, controls, glosario, ctx, reload }) {
-  let row = filaATipos(row0, glosario);
+export async function runRow({ page, row: row0, controls, glosario, azar, ctx, reload }) {
+  let row = conAzar(filaATipos(row0, glosario), azar);
   const w = { src: itemClassRe(glosario).source, it: palabra(glosario, "item"), gr: palabra(glosario, "grupo") };
   const ctls = { ...DEFAULT_CONTROLS, ...(controls || {}) };
   await freshStart(page, reload);
@@ -345,9 +361,9 @@ export async function runRow({ page, row: row0, controls, glosario, ctx, reload 
 export const PLANILLA_CHECKS = {
   planilla_fila: {
     describe: "Fila de la PLANILLA de comportamientos: dado (ítems que se crean antes) → hago (una acción) → veo (lo que tiene que pasar). La escribe el refinado, no el traductor.",
-    params: { fila: "object", controles: "object?", glosario: "object?" },
+    params: { fila: "object", controles: "object?", glosario: "object?", azar: "string[]?" },
     run: async ({ page, c, r, ctx, reload }) => {
-      const x = await runRow({ page, row: c.params.fila, controls: c.params.controles, glosario: c.params.glosario, ctx, reload });
+      const x = await runRow({ page, row: c.params.fila, controls: c.params.controles, glosario: c.params.glosario, azar: [].concat(c.params.azar || []).join("") || null, ctx, reload });
       r.result = x.result; r.detail = x.detail; if (x.errors) r.errors = x.errors;
     },
   },

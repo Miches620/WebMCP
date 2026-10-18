@@ -1,0 +1,251 @@
+{
+  "version": "term_coverage v0.1",
+  "review_id": "2026-10-17T23-56-25",
+  "requirements": [
+    {
+      "id": "R1",
+      "text": "Las celdas aceptan fórmulas (por ejemplo =A1+B1) y se recalculan solas cuando cambia una celda de la que dependen, al hacer click sobre la celda esta se vuelve editable"
+    },
+    {
+      "id": "R2",
+      "text": "Importar .csv"
+    },
+    {
+      "id": "R3",
+      "text": "Buscar valores en vertical (BUSCARV), buscar valores en horizontal (BUSCARH)"
+    },
+    {
+      "id": "R4",
+      "text": "Exportar .csv compatible con las planillas de calculos más utilizadas (Microsoft Excel y Google Sheets)"
+    },
+    {
+      "id": "R5",
+      "text": "Ingresar texto en las celdas haciendo click en la celda, se vuelve editable"
+    },
+    {
+      "id": "R6",
+      "text": "Formatos de celda: número, fecha, moneda y porcentaje"
+    },
+    {
+      "id": "R7",
+      "text": "Formatos de celda: texto, número, moneda, porcentaje"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "F1.1",
+      "task": "Establecer la estructura visual base del grid de hoja de cálculo.",
+      "description": "Crear el esqueleto HTML y CSS para simular una cuadrícula (grid) de hoja de cálculo. Esto debe incluir contenedores que representen filas y columnas, asegurando un diseño responsivo básico y la capacidad de posicionar celdas identificables."
+    },
+    {
+      "id": "F1.2",
+      "task": "Inicializar el estado global en memoria para gestionar las celdas y la selección.",
+      "description": "Definir un objeto JavaScript de estado inicial que contenga: 1) Un mapa o estructura de datos para almacenar los valores de las celdas (ej. { 'A1': 'Valor', 'B2': '' }). 2) Una propiedad para rastrear la celda actualmente seleccionada (ej. selectedCell: 'A1')."
+    },
+    {
+      "id": "F1.3",
+      "task": "Implementar la función de renderizado del grid a partir del estado.",
+      "description": "Crear la función JavaScript que recibe el objeto de estado y utiliza Handlebars para dibujar dinámicamente todas las celdas necesarias en el contenedor #app, asegurando que cada celda sea un elemento DOM identificable por su coordenada (A1, B2, etc.)."
+    },
+    {
+      "id": "F1.4",
+      "task": "Implementar la lógica de selección al hacer clic en una celda.",
+      "description": "Crear la función que se dispara cuando el usuario hace clic en cualquier celda del grid. Esta función debe identificar las coordenadas de la celda clickeada, actualizar el estado global (actualizando 'selectedCell') y forzar un re-renderizado visual para aplicar los estilos de selección."
+    },
+    {
+      "id": "F2.1",
+      "task": "Implementar la funcionalidad de edición al hacer clic en una celda seleccionada.",
+      "description": "Modificar el renderizado de la celda para que, cuando esté activa (seleccionada), su contenido se reemplace por un elemento de input editable y reciba foco automáticamente. Esta tarea depende de la lógica de selección ya implementada."
+    },
+    {
+      "id": "F2.2",
+      "task": "Actualizar el estado interno con texto ingresado por el usuario en modo edición.",
+      "description": "Crear una función que capture el valor de un input editable y actualice temporalmente el campo 'valor' de la celda seleccionada en el estado global, sin persistir este cambio hasta que se confirme."
+    },
+    {
+      "id": "F2.3",
+      "task": "Persistir y finalizar la edición de una celda (Guardar).",
+      "description": "Implementar la lógica que se dispara al perder el foco o confirmar la edición, guardando permanentemente el valor actualizado en el estado global y restableciendo la celda a su modo de visualización estática."
+    },
+    {
+      "id": "F2.4",
+      "task": "Añadir el control de selección de formato (Texto/Número) a la interfaz.",
+      "description": "Implementar un selector visible junto al valor de la celda seleccionada o en modo edición, permitiendo al usuario elegir entre 'Texto' y 'Número'."
+    },
+    {
+      "id": "F2.5",
+      "task": "Actualizar el tipo de dato de una celda sin modificar su valor.",
+      "description": "Implementar la función que recibe un nuevo tipo de formato (Texto o Número) y actualiza únicamente el campo 'tipo_dato' en el estado interno de la celda seleccionada, sin afectar su valor."
+    },
+    {
+      "id": "F2.6",
+      "task": "Inicializar el estado global para incluir el tipo de dato por defecto en cada celda.",
+      "description": "Asegurar que la estructura del estado global (el objeto JavaScript) contenga un campo 'tipo_dato' con un valor predeterminado ('Texto') para todas las celdas iniciales."
+    },
+    {
+      "id": "F3.1",
+      "task": "Detectar si el valor ingresado en una celda es una fórmula (comienza con '=') y extraer la cadena de fórmula.",
+      "description": "Modificar la lógica que se ejecuta al finalizar la edición de una celda (después de F2.3). Esta función debe recibir el valor final ingresado, verificar si comienza con '=' y, en caso afirmativo, devolver la cadena de fórmula sin el signo '='."
+    },
+    {
+      "id": "F3.2",
+      "task": "Implementar un parser que convierta una cadena de fórmula en una estructura de referencias y operadores matemáticos.",
+      "description": "Crear una función pura que recibe la cadena de fórmula (ej. 'A1+B1*C2') y devuelve un array estructurado de operaciones, identificando las referencias de celdas (ej. [{ref: 'A1', op: '+'}, {ref: 'B1', op: '*', 'is_final': true}])."
+    },
+    {
+      "id": "F3.3",
+      "task": "Implementar la función de cálculo matemático que evalúa una fórmula parseada usando los valores actuales del estado global.",
+      "description": "Desarrollar el motor de cálculo que recibe la estructura de fórmula (resultado de F3.2) y el objeto de estado actual, realizando las operaciones matemáticas necesarias para devolver el valor calculado final para la celda."
+    },
+    {
+      "id": "F3.4",
+      "task": "Actualizar el estado global para mapear las dependencias de cada celda fórmula.",
+      "description": "Modificar la lógica de persistencia (después de F2.3) para que, si se detecta una fórmula y se parsean sus referencias, el estado global registre explícitamente qué celdas dependen de esta celda actual. Esto construye el grafo de dependencias."
+    },
+    {
+      "id": "F3.5",
+      "task": "Implementar la lógica de propagación de cambios para recalcular automáticamente todas las celdas dependientes.",
+      "description": "Crear una función que se ejecute después de cualquier cambio de valor (ej. F2.3). Esta función debe identificar qué celdas dependen del valor cambiado, recalcularlas usando la lógica de F3.3 y actualizar el estado global recursivamente hasta que no haya más cálculos pendientes."
+    },
+    {
+      "id": "F4.1",
+      "task": "Actualizar el estado global para incluir el tipo de formato (Moneda, Porcentaje, Fecha) en cada celda.",
+      "description": "Modificar la estructura del estado global para que cada celda almacene un campo 'formato' con valores predefinidos como 'Texto', 'Número', 'Moneda', 'Porcentaje' y 'Fecha'. Inicializar estos campos en el estado."
+    },
+    {
+      "id": "F4.2",
+      "task": "Implementar la lógica de validación y conversión de entrada según el formato seleccionado (Moneda, Porcentaje, Fecha).",
+      "description": "Crear una función que reciba un valor de texto ingresado por el usuario y su tipo de formato. Esta función debe convertir la cadena a su representación numérica o fecha correcta (ej. '1,234' con formato Moneda -> 1234)."
+    },
+    {
+      "id": "F4.3",
+      "task": "Actualizar la vista de la celda para mostrar el valor formateado según su tipo (Moneda, Porcentaje, Fecha).",
+      "description": "Modificar el componente de renderizado de la celda para que aplique automáticamente los símbolos y formatos visuales correctos ($, %, dd/mm/yyyy) al mostrar el valor almacenado en el estado."
+    },
+    {
+      "id": "F4.4",
+      "task": "Añadir un control de selección de formato (Moneda, Porcentaje, Fecha) al modo edición de la celda.",
+      "description": "Implementar un selector visible en el panel de edición que permita al usuario cambiar el tipo de formato de la celda seleccionada antes de ingresar o guardar datos."
+    },
+    {
+      "id": "F4.5",
+      "task": "Implementar la lógica para sugerir funciones predefinidas (ej. SUMA, CONTAR) mientras el usuario escribe una fórmula.",
+      "description": "Detectar eventos de escritura en el campo de edición cuando se detecta un inicio de fórmula ('='). La lógica debe filtrar y devolver una lista de funciones disponibles para mostrar como sugerencias al usuario."
+    },
+    {
+      "id": "F4.6",
+      "task": "Actualizar la vista del campo de edición para mostrar las sugerencias de funciones y sintaxis (IntelliSense).",
+      "description": "Modificar el componente de entrada de fórmulas para renderizar un menú desplegable debajo del campo, mostrando las sugerencias de funciones o argumentos disponibles."
+    },
+    {
+      "id": "F4.7",
+      "task": "Implementar la lógica para calcular y actualizar el estado con resultados de funciones complejas como SUMA.CONDICIONAL.",
+      "description": "Crear una nueva función dentro del motor de cálculo que pueda parsear argumentos complejos (rango, criterio) y ejecutar la lógica de suma condicional sobre el estado global."
+    },
+    {
+      "id": "F4.8",
+      "task": "Implementar la lógica para parsear y ejecutar la función BUSCARV (Valor Vertical).",
+      "description": "Crear una nueva función de cálculo que reciba el valor buscado, el rango de búsqueda y el índice de columna. Debe buscar el valor en la primera columna del rango y devolver el valor correspondiente de la columna indicada."
+    },
+    {
+      "id": "F4.9",
+      "task": "Implementar la lógica para parsear y ejecutar la función BUSCARH (Valor Horizontal).",
+      "description": "Crear una nueva función de cálculo que reciba el valor buscado, el rango de búsqueda y el índice de columna. Debe buscar el valor en la primera fila del rango y devolver el valor correspondiente de la columna indicada."
+    },
+    {
+      "id": "F5.1",
+      "task": "Implementar el control de selección de archivo para importar datos CSV.",
+      "description": "Añadir un botón o campo de tipo 'Seleccionar Archivo' en la interfaz que permita al usuario elegir un archivo con extensión .csv. Este control debe estar visible junto a los controles principales de la hoja."
+    },
+    {
+      "id": "F5.2",
+      "task": "Implementar la lógica para leer y parsear el contenido de un archivo CSV.",
+      "description": "Crear una función que tome el objeto File (seleccionado en F5.1), lea su contenido como texto plano, y lo convierta en una estructura de datos interna (array de arrays o array de objetos) lista para ser cargada en el estado global."
+    },
+    {
+      "id": "F5.3",
+      "task": "Actualizar el estado interno con los datos importados del CSV.",
+      "description": "Implementar la función que recibe los datos parseados (resultado de F5.2) y actualiza el estado global de la hoja de cálculo, asegurando que las dimensiones y tipos de celda se mantengan o se inicialicen correctamente con los nuevos valores."
+    },
+    {
+      "id": "F5.4",
+      "task": "Implementar el control para iniciar la exportación de datos CSV.",
+      "description": "Añadir un botón visible en la interfaz que, al ser presionado, dispare el proceso de generación y descarga del estado actual de la hoja de cálculo como archivo .csv."
+    },
+    {
+      "id": "F5.5",
+      "task": "Generar la cadena CSV a partir del estado global.",
+      "description": "Implementar una función que itere sobre el estado global de la hoja y lo convierta en una única cadena de texto con formato CSV (separado por comas o punto y coma, incluyendo manejo de comillas si los datos contienen separadores). Esta función debe incluir las cabeceras."
+    },
+    {
+      "id": "F5.6",
+      "task": "Disparar la descarga del archivo CSV generado.",
+      "description": "Implementar el mecanismo de JavaScript que toma la cadena CSV generada (resultado de F5.5) y fuerza al navegador a descargar un archivo con extensión .csv, simulando una interacción de descarga de archivos."
+    }
+  ],
+  "items": [
+    {
+      "id": "R1",
+      "text": "Las celdas aceptan fórmulas (por ejemplo =A1+B1) y se recalculan solas cuando cambia una celda de la que dependen, al hacer click sobre la celda esta se vuelve editable",
+      "present": 4,
+      "total": 7,
+      "missing": [
+        "aceptan",
+        "ejemplo",
+        "solas"
+      ]
+    },
+    {
+      "id": "R2",
+      "text": "Importar .csv",
+      "present": 1,
+      "total": 1,
+      "missing": []
+    },
+    {
+      "id": "R3",
+      "text": "Buscar valores en vertical (BUSCARV), buscar valores en horizontal (BUSCARH)",
+      "present": 4,
+      "total": 4,
+      "missing": []
+    },
+    {
+      "id": "R4",
+      "text": "Exportar .csv compatible con las planillas de calculos más utilizadas (Microsoft Excel y Google Sheets)",
+      "present": 3,
+      "total": 9,
+      "missing": [
+        "compatible",
+        "planillas",
+        "microsoft",
+        "excel",
+        "google",
+        "sheets"
+      ]
+    },
+    {
+      "id": "R5",
+      "text": "Ingresar texto en las celdas haciendo click en la celda, se vuelve editable",
+      "present": 1,
+      "total": 2,
+      "missing": [
+        "haciendo"
+      ]
+    },
+    {
+      "id": "R6",
+      "text": "Formatos de celda: número, fecha, moneda y porcentaje",
+      "present": 1,
+      "total": 1,
+      "missing": []
+    },
+    {
+      "id": "R7",
+      "text": "Formatos de celda: texto, número, moneda, porcentaje",
+      "present": 6,
+      "total": 6,
+      "missing": []
+    }
+  ],
+  "labels": {}
+}

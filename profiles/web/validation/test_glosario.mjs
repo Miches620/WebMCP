@@ -36,7 +36,7 @@ t("con el glosario de recetas, las plantillas arman filas con tipos", rr.filas.l
 
 // GUARDIÁN: el código del juez y de las plantillas no nombra cosas de ninguna app (solo los comentarios cuentan la historia)
 const code = (f) => readFileSync(new URL(`./${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").split("\n").map((l) => l.replace(/(^|\s)\/\/.*$/, "")).join("\n");
-const leaks = ["glosario.mjs", "planilla.mjs", "planilla_plantillas.mjs", "planilla_writer.mjs"].flatMap((f) => code(f).split("\n").map((l, i) => [f, i + 1, l]).filter(([, , l]) => /tarjeta|columna|kanban/i.test(l)).map(([f, n, l]) => `${f}:${n}: ${l.trim().slice(0, 80)}`));
+const leaks = ["glosario.mjs", "planilla.mjs", "planilla_plantillas.mjs", "planilla_writer.mjs", "planilla_palabras.mjs"].flatMap((f) => code(f).split("\n").map((l, i) => [f, i + 1, l]).filter(([, , l]) => /tarjeta|columna|kanban/i.test(l)).map(([f, n, l]) => `${f}:${n}: ${l.trim().slice(0, 80)}`));
 t("GUARDIÁN: ni el juez, ni las plantillas, ni el writer dicen 'tarjeta', 'columna' o 'Kanban' en el código", !leaks.length, "\n    " + leaks.join("\n    "));
 
 console.log(`\n${ok}/${ok + fail} OK`);

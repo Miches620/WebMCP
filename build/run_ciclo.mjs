@@ -24,10 +24,16 @@ import { chatStream } from "./lm_stream.mjs";
 import { estTokens } from "./tokens.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
 import { leerApp, mapaTexto, codigoDe, funcionEnLinea, llamadas } from "../harness/mapa.mjs";
-import { aplicar } from "../harness/cambios.mjs";
+import { aplicar, findSuelto } from "../harness/cambios.mjs";
 import { describirFila } from "../profiles/web/validation/planilla_palabras.mjs";
 
-export const CICLO_VERSION = "ciclo v0.1";
+export const CICLO_VERSION = "ciclo v0.2";
+// v0.2 (19/10, 1ª corrida real con Gemma: R1 arreglado en la vuelta 2, 2 → 10 requisitos; después se cortó):
+//   - Gemma pidió ver "saveBoard() script.js": el nombre con paréntesis y archivo no se encontraba, y arregló a ciegas;
+//   - la respuesta llegó al tope (3.600 de 3.600: Gemma piensa ~1.700 tokens antes de escribir): ahora el tope es lo que
+//     sobra del contexto (hasta 6.000);
+//   - un "### FUNCION:" con un pedazo de código como nombre cortaba todo el ciclo: ahora es un BLOQUE suelto, y si una
+//     vuelta falla por un error del harness, queda anotada y el ciclo sigue.
 const here = dirname(fileURLToPath(import.meta.url));
 const LM_URL = process.env.LM_STUDIO_URL || "http://127.0.0.1:1234/v1/chat/completions";
 const MODEL = process.env.SPECIALIST_MODEL || "google/gemma-4-e4b";
@@ -57,6 +63,11 @@ Devolvé SOLO los cambios, en este formato (uno o más bloques):
 ### FUNCION: nombreDeLaFuncion
 \`\`\`js
 function nombreDeLaFuncion(...) { ...la función ENTERA, corregida... }
+\`\`\`
+
+### BLOQUE: primera línea del código suelto, tal cual está (p. ej. document.getElementById('x').addEventListener('submit', function (e) {)
+\`\`\`js
+...el bloque ENTERO, corregido...
 \`\`\`
 
 ### ARCHIVO: index.html
@@ -95,11 +106,15 @@ export function armarCodigo(app, ver, errores, presupuesto) {
     if (ll.length) add(`quién llama a ${fn.name}`, ll.map((x) => `${x.file}:${x.line}: ${x.text}`).join("\n"), 0);
   }
   for (const v of ver || []) {
-    const name = String(v).trim().replace(/\(\)$/, "");
+    // "saveBoard() script.js", "script.js:120", "openModal": el primer nombre
+    const name = (String(v).trim().match(/^[\w$./-]+/) || [""])[0];
+    if (!name) continue;
     const f = Object.keys(app).find((k) => k === name || k.endsWith("/" + name));
     if (f) { add(`archivo ${f} (entero)`, app[f], 2); continue; }
-    const fn = codigoDe(app, name);
-    if (fn) add(`función ${fn.name} (${fn.file}:${fn.start}-${fn.end})`, fn.text, 1);
+    const fn = /^[A-Za-z_$][\w$]*$/.test(name) ? codigoDe(app, name) : null; // solo nombres de función (no "document.getElementById")
+    if (fn) { add(`función ${fn.name} (${fn.file}:${fn.start}-${fn.end})`, fn.text, 1); continue; }
+    // código suelto pedido por su primera línea (como lo muestra el mapa)
+    for (const [jf, js] of Object.entries(app)) if (jf.endsWith(".js")) { const x = findSuelto(js, String(v).replace(/^[\w./-]+\.js:\d+\s*/, "")); if (x) { add(`bloque suelto ${jf}:${x.start}-${x.end}`, x.text, 1); break; } }
   }
   piezas.sort((a, b) => a.prioridad - b.prioridad);
   const out = [], fuera = [];
@@ -157,15 +172,16 @@ export async function ciclo(o) {
     const ver = pa.ok && Array.isArray(pa.data?.ver) ? pa.data.ver.slice(0, 4) : [];
     // ---- pedido B: el arreglo, con solo el código necesario ----
     const fijo = `${reqTexto(ctx, target)}\n\n${consigna(ctx, mias)}\n\n${fallas(mias, est)}${previo}\n\nMapa de la app:\n${mapa}\n\nCódigo:\n`;
-    const maxResp = Math.min(4000, Math.floor(contexto * 0.3));
-    const presupuesto = contexto - maxResp - estTokens(SYS_ARREGLO) - estTokens(fijo) - 200;
+    // el código entra dejando lugar para pensar y responder (~4.500); la respuesta usa lo que sobre, hasta 6.000
+    const presupuesto = contexto - 4500 - estTokens(SYS_ARREGLO) - estTokens(fijo) - 200;
     const codigo = armarCodigo(app, ver, lugaresDeError(mias.map((f) => est[f.id]?.detail)), Math.max(500, presupuesto));
     const userB = fijo + (codigo.texto || "(no hay código para mostrar: pedí funciones o archivos que existan)");
+    const maxResp = Math.max(2500, Math.min(6000, contexto - estTokens(SYS_ARREGLO + userB) - 300));
     const b = await call([{ role: "system", content: SYS_ARREGLO }, { role: "user", content: userB }], maxResp, "arreglo");
     Object.assign(vuelta, { ver, codigo: codigo.piezas, codigo_fuera: codigo.fuera, tokens_pedido: { ver: estTokens(SYS_VER + userA), arreglo: estTokens(SYS_ARREGLO + userB) }, ms: { ver: a.ms, arreglo: b.ms }, usage: { ver: a.usage, arreglo: b.usage }, respuesta: b.content });
-    const ap = aplicar(app, b.content);
+    let ap = { app, aplicados: [], problemas: [] }, veredicto;
+    try { ap = aplicar(app, b.content); } catch (e) { ap.problemas = [`error del harness al aplicar: ${e.message}`]; vuelta.error_harness = e.stack?.slice(0, 600); }
     vuelta.aplicados = ap.aplicados; vuelta.problemas = ap.problemas;
-    let veredicto;
     if (!ap.aplicados.length) veredicto = { ok: false, por: `no se pudo aplicar nada: ${ap.problemas.join("; ")}` };
     else {
       const despues = await juez(ap.app, [...mias, ...pasaban], `v${n}b`, join(outDir, "trabajo"));

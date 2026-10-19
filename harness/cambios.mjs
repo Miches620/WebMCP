@@ -8,22 +8,45 @@
 //   ```js
 //   function nombre(...) { ... }
 //   ```
+//   ### BLOQUE: document.getElementById('form').addEventListener('submit', …   (código suelto, fuera de funciones:
+//   ```js                                                                    la primera línea tal cual está)
+//   ...el bloque entero...
+//   ```
 //   ### ARCHIVO: index.html
 //   ```html
 //   ...todo el archivo...
 //   ```
 // Universal: no sabe de ninguna app.
 
-import { findMember, replaceMember, syntaxOf } from "./js_tools.mjs";
+import { findMember, replaceMember, syntaxOf, blockEndLines } from "./js_tools.mjs";
 
-export const CAMBIOS_VERSION = "cambios v0.1";
+export const CAMBIOS_VERSION = "cambios v0.2";
+// v0.2 (19/10, 1ª corrida real): Gemma mandó "### FUNCION: document.getElementById('card-form').addEventListener('submit', …"
+// para cambiar código suelto (fuera de funciones), y el nombre rompía la búsqueda. Ahora un nombre que no es un nombre
+// de función se busca como BLOQUE suelto por su primera línea.
+const isIdent = (x) => /^[A-Za-z_$][\w$]*$/.test(x);
+const norm = (t) => String(t).replace(/\s+/g, "");
+/** Un bloque suelto: la línea del nivel superior que empieza como "primera" (sin espacios), hasta que cierra. */
+export function findSuelto(js, primera) {
+  const lines = String(js || "").split("\n");
+  const want = norm(primera).replace(/[{(,]+$/, "");
+  if (want.length < 8) return null;
+  const i = lines.findIndex((l) => /^\S/.test(l) && norm(l).startsWith(want));
+  if (i < 0) return null;
+  const end = /\{/.test(lines[i]) ? blockEndLines(lines, i) : i;
+  if (end < 0) return null;
+  // incluye el cierre ")" / ");" de la llamada si quedó en la línea siguiente
+  let e = end;
+  if (lines[e + 1] && /^\s*\)?\s*;?\s*$/.test(lines[e + 1]) && lines[e + 1].trim()) e++;
+  return { start: i + 1, end: e + 1, text: lines.slice(i, e + 1).join("\n") };
+}
 
 /** Los bloques de la respuesta: [{ tipo: "funcion" | "archivo", nombre, en?, codigo }]. */
 export function leerBloques(raw) {
   const out = [];
-  const re = /###\s*(FUNCI[OÓ]N|FUNCTION|ARCHIVO|FILE)\s*:\s*([^\s`]+)(?:\s+en\s+([^\s`]+))?[^\n]*\n+```[\w-]*\n([\s\S]*?)```/gi;
+  const re = /###\s*(FUNCI[OÓ]N|FUNCTION|BLOQUE|BLOCK|ARCHIVO|FILE)\s*:\s*(([^\s`]+)(?:\s+en\s+([^\s`]+))?[^\n]*)\n+```[\w-]*\n([\s\S]*?)```/gi;
   let m;
-  while ((m = re.exec(String(raw || "")))) out.push({ tipo: /^arch|^file/i.test(m[1]) ? "archivo" : "funcion", nombre: m[2].replace(/\(\)$/, ""), en: m[3] || null, codigo: m[4] });
+  while ((m = re.exec(String(raw || "")))) out.push({ tipo: /^arch|^file/i.test(m[1]) ? "archivo" : /^bloq/i.test(m[1]) ? "bloque" : "funcion", nombre: m[3].replace(/\(.*$/, "").replace(/\(\)$/, ""), primera: m[2].trim(), en: m[4] || null, codigo: m[5] });
   return out;
 }
 
@@ -42,6 +65,18 @@ export function aplicar(app0, raw) {
       if (b.codigo.trim().length < app[f].trim().length * 0.5) { problemas.push(`${f}: el archivo nuevo tiene menos de la mitad que el actual; si querías cambiar una parte, devolvé el archivo ENTERO`); continue; }
       app[f] = b.codigo;
       aplicados.push(`archivo ${f}`);
+      continue;
+    }
+    // bloque suelto (o una "función" cuyo nombre no es un nombre): se busca por su primera línea
+    if (b.tipo === "bloque" || !isIdent(b.nombre)) {
+      const hit = jsFiles.map((f) => [f, findSuelto(app[f], b.primera)]).find(([, x]) => x);
+      if (!hit) { problemas.push(`no encontré el bloque que empieza con "${b.primera.slice(0, 60)}" (para código suelto, la primera línea tiene que estar tal cual; para una función, ### FUNCION: nombre)`); continue; }
+      const [f, x] = hit, lines = app[f].split("\n");
+      const next = [...lines.slice(0, x.start - 1), b.codigo.replace(/\s+$/, ""), ...lines.slice(x.end)].join("\n");
+      const e = syntaxOf(next);
+      if (e) { problemas.push(`bloque "${b.primera.slice(0, 40)}": no compila (${e})`); continue; }
+      app[f] = next;
+      aplicados.push(`bloque suelto ${f}:${x.start}`);
       continue;
     }
     // función: donde esté; si no existe, se agrega al archivo que dice "en" (o al primer .js)

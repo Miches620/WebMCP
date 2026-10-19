@@ -12,7 +12,9 @@ import { join } from "node:path";
 import { findMember } from "./js_tools.mjs";
 import { estTokens } from "../build/tokens.mjs";
 
-export const MAPA_VERSION = "mapa v0.1";
+export const MAPA_VERSION = "mapa v0.2";
+// v0.2 (19/10, 1ª corrida real): Gemma quiso cambiar código suelto (un addEventListener fuera de funciones) y el mapa no
+// lo mostraba. Ahora se listan con su primera línea, que es como se piden y se cambian (### BLOQUE:).
 const TEXT = /\.(html|js|css)$/i;
 
 /** Los archivos de la app: { nombre: contenido }. */
@@ -27,6 +29,13 @@ export function funcionesDe(js) {
     const m = l.match(/^(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)/) || l.match(/^(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:function\s*)?\(([^)]*)\)/);
     if (m) out.push({ name: m[1], args: m[2].trim(), line: i + 1 });
   });
+  return out;
+}
+
+/** Llamadas sueltas del nivel superior que abren un bloque (addEventListener, DOMContentLoaded…): [{line, text}]. */
+export function sueltosDe(js) {
+  const out = [];
+  String(js).split("\n").forEach((l, i) => { if (/^[A-Za-z_$][\w$.]*(\([^)]*\))?(\.[\w$]+\([^)]*\))*\.?[\w$]*\(.*[{(]\s*$/.test(l.replace(/\r$/, "")) && !/^(function|const|let|var|if|for|while|return|class)\b/.test(l)) out.push({ line: i + 1, text: l.replace(/\r$/, "").trim().slice(0, 120) }); });
   return out;
 }
 
@@ -61,6 +70,10 @@ export function mapaTexto(app) {
     if (!fns.length) continue;
     out.push(`Funciones de ${f} (línea · quién la llama):`);
     for (const fn of fns) { const c = llamadas(app, fn.name); out.push(`- ${fn.name}(${fn.args}) ${f}:${fn.line} · ${c.length ? c.slice(0, 6).map((x) => `${x.file}:${x.line}`).join(", ") + (c.length > 6 ? ` y ${c.length - 6} más` : "") : "NADIE la llama"}`); }
+  }
+  for (const [f, s] of Object.entries(app)) if (f.endsWith(".js")) {
+    const sueltos = sueltosDe(s);
+    if (sueltos.length) { out.push(`Código suelto de ${f} (fuera de funciones; se cambia con ### BLOQUE: y su primera línea):`); for (const x of sueltos) out.push(`- ${f}:${x.line} ${x.text}`); }
   }
   const html = Object.entries(app).filter(([f]) => f.endsWith(".html")).map(([, s]) => s).join("\n");
   const ids = [...new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]))];

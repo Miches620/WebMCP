@@ -2,6 +2,19 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**1ª corrida real del ciclo → ciclo v0.2, cambios v0.2, mapa v0.2 (19/10)**
+- *Evidencia:* `build/runs/2026-10-19T10-38-24_ciclo_flow_gemma_sola_rota/ciclo.json`. Project doc `claude/evidencia_ciclo_2026-10-18.md`, sección "1ª corrida real".
+- **Lo que anduvo:**
+  - Vuelta 1: Gemma devolvió solo un pedazo de `index.html` y no se aplicó, con el motivo.
+  - Vuelta 2: hizo exactamente el arreglo de `index.html:30` y pasó de **2 a 10 requisitos**, igual que el arreglo a mano.
+  - Vuelta 3: su arreglo de prioridades rompía R1, R6 y R15, y el ciclo volvió atrás.
+  - Velocidad: 17–24 tokens/s. Gemma piensa entre 500 y 1.700 tokens antes de cada respuesta.
+- **Lo que se cortó y se arregló:**
+  - Gemma pidió ver "saveBoard() script.js" y no se encontraba, así que arregló a ciegas. Ahora se toma el primer nombre.
+  - La respuesta llegó al tope (3.600 de 3.600). Ahora el tope es lo que sobra del contexto, hasta 6.000.
+  - En la vuelta 4, `### FUNCION: document.getElementById('card-form').addEventListener('submit', …` cortó el ciclo con un error de regex. Ahora el código suelto se cambia como `### BLOQUE:` por su primera línea, el mapa lo lista, y un error del harness queda anotado en la vuelta sin cortar el ciclo.
+- *Tests:* `test_ciclo` 26/26 (con los 4 casos de la corrida real).
+
 **El ciclo: la app mejora vuelta a vuelta (ciclo v0.1, 18/10; decisiones de Miche)**
 - *Origen:* Project doc `claude/propuesta_ciclo_2026-10-17.md`. `run_build` construye todo de una vez y valida al final, así que los FAIL nunca vuelven al Specialist. Gemma sola hizo un Kanban entero con UN error de una línea (`index.html:30`); con esa línea arreglada pasó de 2 a 10 requisitos. Miche: "webmcp tiene que poder copiar cómo actuarías vos con las limitantes de mis LLMs locales"; no hay proyectos imposibles, solo más vueltas.
 - **`build/run_ciclo.mjs`** (`npm run ciclo -- <app> --planilla <p> --snapshot <s>`):

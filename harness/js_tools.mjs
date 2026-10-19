@@ -47,7 +47,7 @@ export function runAcceptance(G, items, step) {
 }
 
 // ---------- reparación por función ----------
-function blockEndLines(lines, from) {
+export function blockEndLines(lines, from) {
   let depth = 0, seen = false, q = null, block = false;
   for (let i = from; i < lines.length; i++) {
     const l = lines[i];

@@ -1,0 +1,197 @@
+{
+  "type": "EVIDENCE",
+  "kind": "ciclo",
+  "version": "ciclo v0.1",
+  "modelo": "google/gemma-4-e4b",
+  "contexto": 12000,
+  "inicio": "2026-10-19T10:38:24.733Z",
+  "vueltas": [
+    {
+      "vuelta": 1,
+      "requisito": "R1",
+      "antes": {
+        "R1.1": "FAIL"
+      },
+      "ver": [
+        "script.js"
+      ],
+      "codigo": [
+        "función openModal (script.js:122-151) — acá saltó el error (línea 133)",
+        "quién llama a openModal",
+        "archivo script.js (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 665,
+        "arreglo": 4487
+      },
+      "ms": {
+        "ver": 39958,
+        "arreglo": 109074
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 731,
+          "completion_tokens": 754,
+          "total_tokens": 1485,
+          "completion_tokens_details": {
+            "reasoning_tokens": 725
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 4221,
+          "completion_tokens": 1875,
+          "total_tokens": 6096,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1742
+          }
+        }
+      },
+      "respuesta": "### ARCHIVO: index.html\n```html\n<!-- ... (líneas 1-29) ... -->\n<div class=\"column\" id=\"pendiente\">\n    <h3 class=\"column-header\">Pendiente <span class=\"card-count\">(0)</span></h3>\n    <div class=\"cards-container\" id=\"cards-contenedor-pendiente\"></div>\n    <button class=\"add-card-btn\" onclick=\"openModal(null, 'pendiente')\">➕ Agregar Tarjeta</button>\n</div>\n\n<!-- ... (líneas 31-89) ... -->\n```",
+      "aplicados": [],
+      "problemas": [
+        "index.html: el archivo nuevo tiene menos de la mitad que el actual; si querías cambiar una parte, devolvé el archivo ENTERO"
+      ],
+      "aceptado": false,
+      "motivo": "no se pudo aplicar nada: index.html: el archivo nuevo tiene menos de la mitad que el actual; si querías cambiar una parte, devolvé el archivo ENTERO"
+    },
+    {
+      "vuelta": 2,
+      "requisito": "R1",
+      "antes": {
+        "R1.1": "FAIL"
+      },
+      "ver": [
+        "script.js",
+        "index.html"
+      ],
+      "codigo": [
+        "función openModal (script.js:122-151) — acá saltó el error (línea 133)",
+        "quién llama a openModal",
+        "archivo script.js (entero)",
+        "archivo index.html (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 720,
+        "arreglo": 5584
+      },
+      "ms": {
+        "ver": 24943,
+        "arreglo": 156021
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 774,
+          "completion_tokens": 562,
+          "total_tokens": 1336,
+          "completion_tokens_details": {
+            "reasoning_tokens": 526
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 5261,
+          "completion_tokens": 2634,
+          "total_tokens": 7895,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1640
+          }
+        }
+      },
+      "respuesta": "### ARCHIVO: index.html\n```html\n<!DOCTYPE html>\r\n<html lang=\"es\">\r\n<head>\r\n    <meta charset=\"UTF-8\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n    <title>Kanban Board - Gestión de Tareas</title>\r\n    <link rel=\"stylesheet\" href=\"styles.css\">\r\n</head>\r\n<body>\r\n\r\n    <header>\r\n        <h1>📋 Kanban Project</h1>\r\n    </header>\r\n\r\n    <!-- Contenedor principal del tablero -->\r\n    <div class=\"kanban-board-container\">\r\n        \r\n        <!-- 1. Columna Pendiente -->\r\n        <div id=\"pendiente\" class=\"column\" data-status=\"Pendiente\">\r\n            <div class=\"column-header\">\r\n                <h2>Pendiente</h2>\r\n                <span class=\"card-count\">(0)</span>\r\n            </div>\r\n            <div class=\"cards-container\" id=\"cards-contenedor-pendiente\" \r\n                 ondragover=\"allowDrop(event)\" ondrop=\"handleDrop(event, 'pendiente')\">\r\n                <!-- Aquí se renderizarán las tarjetas Pendientes -->\r\n            </div>\r\n\r\n            <!-- Botón de agregar tarjeta (solo en la primera columna) -->\r\n            <button class=\"add-card-btn\" onclick=\"openModal(null, 'pendiente')\">➕ Agregar Tarjeta</button>\r\n        </div>\r\n\r\n        <!-- 2. Columna En Curso -->\r\n        <div id=\"encourso\" class=\"column\" data-status=\"En Curso\">\r\n            <div class=\"column-header\">\r\n                <h2>En Curso</h2>\r\n                <span class=\"card-count\">(0)</span>\r\n            </div>\r\n            <div class=\"cards-container\" id=\"cards-contenedor-encourso\" \r\n                 ondragover=\"allowDrop(event)\" ondrop=\"handleDrop(event, 'encourso')\">\r\n                <!-- Aquí se renderizarán las tarjetas En Curso -->\r\n            </div>\r\n        </div>\r\n\r\n        <!-- 3. Columna Completado -->\r\n        <div id=\"completado\" class=\"column\" data-status=\"Completado\">\r\n            <div class=\"column-header\">\r\n                <h2>Completado</h2>\r\n                <span class=\"card-count\">(0)</span>\r\n            </div>\r\n            <div class=\"cards-container\" id=\"cards-contenedor-completado\" \r\n                 ondragover=\"allowDrop(event)\" ondrop=\"handleDrop(event, 'completado')\">\r\n                <!-- Aquí se renderizarán las tarjetas Completadas -->\r\n            </div>\r\n        </div>\r\n\r\n    </div>\r\n\r\n\r\n    <!-- Modal de Creación/Edición de Tarjeta -->\r\n    <div id=\"card-modal\" class=\"modal hidden\" aria-hidden=\"true\">\r\n        <div class=\"modal-content\">\r\n            <span class=\"close-btn\" onclick=\"closeModal()\">&times;</span>\r\n            <h2>Crear Nueva Tarjeta</h2>\r\n            \r\n            <form id=\"card-form\">\r\n                <input type=\"hidden\" id=\"card-id-input\">\r\n                <input type=\"hidden\" id=\"current-status-input\">\r\n\r\n                <div class=\"form-group\">\r\n                    <label for=\"title-input\">Título de la Tarjeta:</label>\r\n                    <input type=\"text\" id=\"title-input\" required>\r\n                </div>\r\n\r\n                <div class=\"form-group\">\r\n                    <label for=\"body-input\">Descripción / Contenido:</label>\r\n                    <textarea id=\"body-input\" rows=\"4\" required></textarea>\r\n                </div>\r\n\r\n                <button type=\"submit\" class=\"btn primary-btn\">Guardar Tarjeta</button>\r\n            </form>\r\n        </div>\r\n    </div>\r\n\r\n\r\n    <script src=\"script.js\"></script>\r\n</body >\n```",
+      "aplicados": [
+        "archivo index.html"
+      ],
+      "problemas": [],
+      "despues": {
+        "R1.1": "PASS"
+      },
+      "aceptado": true,
+      "motivo": "1/1 pruebas de R1 pasan (antes 0), sin romper nada",
+      "foto": "v001"
+    },
+    {
+      "vuelta": 3,
+      "requisito": "R3",
+      "antes": {
+        "R3.1": "FAIL",
+        "R3.2": "FAIL",
+        "R3.3": "FAIL"
+      },
+      "ver": [
+        "index.html",
+        "saveBoard() script.js",
+        "createCardElement(card) script.js"
+      ],
+      "codigo": [
+        "archivo index.html (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 931,
+        "arreglo": 2095
+      },
+      "ms": {
+        "ver": 36770,
+        "arreglo": 148359
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 980,
+          "completion_tokens": 856,
+          "total_tokens": 1836,
+          "completion_tokens_details": {
+            "reasoning_tokens": 804
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 2082,
+          "completion_tokens": 3600,
+          "total_tokens": 5682,
+          "completion_tokens_details": {
+            "reasoning_tokens": 846
+          }
+        }
+      },
+      "respuesta": "### ARCHIVO: index.html\n```html\n<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Kanban Board - Gestión de Tareas</title>\n    <link rel=\"stylesheet\" href=\"styles.css\">\n</head>\n\n<body >\n\n    <header>\n        <h1>📋 Kanban Project</h1>\n    </header>\n\n    <!-- Contenedor principal del tablero -->\n    <div class=\"kanban-board-container\">\n        \n        <!-- 1. Columna Pendiente -->\n        <div id=\"pendiente\" class=\"column\" data-status=\"Pendiente\">\n            <div class=\"column-header\">\n                <h2>Pendiente</h2>\n                <span class=\"card-count\">(0)</span >\n            </div>\n            <div class=\"cards-container\" id=\"cards-contenedor-pendiente\" \n                 ondragover=\"allowDrop(event)\" ondrop=\"handleDrop(event, 'pendiente')\">\n                <!-- Aquí se renderizarán las tarjetas Pendientes -->\n            </div >\n\n            <!-- Botón de agregar tarjeta (solo en la primera columna) -->\n            <button class=\"add-card-btn\" onclick=\"openModal(null, 'pendiente')\">➕ Agregar Tarjeta</button>\n        </div>\n\n        <!-- 2. Columna En Curso -->\n        <div id=\"encourso\" class=\"column\" data-status=\"En Curso\">\n            <div class=\"column-header\">\n                <h2>En Curso</h2>\n                <span class=\"card-count\">(0)</span >\n            </div>\n            <div class=\"cards-container\" id=\"cards-contenedor-encourso\" \n                 ondragover=\"allowDrop(event)\" ondrop=\"handleDrop(event, 'encourso')\">\n                <!-- Aquí se renderizarán las tarjetas En Curso -->\n            </div >\n        </div>\n\n        <!-- 3. Columna Completado -->\n        <div id=\"completado\" class=\"column\" data-status=\"Completado\">\n            <div class=\"column-header\">\n                <h2>Completado</h2>\n                <span class=\"card-count\">(0)</span >\n            </div>\n            <div class=\"cards-container\" id=\"cards-contenedor-completado\" \n                 ondragover=\"allowDrop(event)\" ondrop=\"handleDrop(event, 'completado')\">\n                <!-- Aquí se renderizarán las tarjetas Completadas -->\n            </div >\n        </div>\n\n    </div>\n\n\n    <!-- Modal de Creación/Edición de Tarjeta -->\n    <div id=\"card-modal\" class=\"modal hidden\" aria-hidden=\"true\">\n        <div class=\"modal-content\">\n            <span class=\"close-btn\" onclick=\"closeModal()\">&times;</span>\n            <h2 id=\"modal-title\">Crear Nueva Tarjeta</h2>\n            \n            <form id=\"card-form\">\n                <input type=\"hidden\" id=\"card-id-input\">\n                <input type=\"hidden\" id=\"current-status-input\">\n\n                <div class=\"form-group\">\n                    <label for=\"title-input\">Título de la Tarjeta:</label>\n                    <input type=\"text\" id=\"title-input\" required>\n                </div >\n\n                <div class=\"form-group\">\n                    <label for=\"body-input\">Descripción / Contenido:</label>\n                    <textarea id=\"body-input\" rows=\"4\" required></textarea>\n                </div>\n\n                <div class=\"form-group\">\n                    <label for=\"priority-input\">Prioridad:</label>\n                    <select id=\"priority-input\" required>\n                        <option value=\"\" disabled selected>Seleccione prioridad</option>\n                        <option value=\"baja\">Baja</option>\n                        <option value=\"media\">Media</option>\n                        <option value=\"alta\">Alta</option>\n                    </select>\n                </div>\n\n                <button type=\"submit\" class=\"btn primary-btn\">Guardar Tarjeta</button>\n            </form>\n        </div >\n    </div >\n\n\n    <script src=\"script.js\"></script>\n</body>\n```\n\n### FUNCION: openModal\n```js\nfunction openModal(cardId, currentStatus) {\n    const modal = document.getElementById('card-modal');\n    const form = document.getElementById('card-form');\n    const titleInput = document.getElementById('title-input');\n    const bodyInput = document.getElementById('body-input');\n    const priorityInput = document.getElementById('priority-input');\n    const cardIdInput = document.getElementById('card-id-input');\n    const currentStatusInput = document.getElementById('current-status-input');\n    const modalTitle = document.getElementById('modal-title');\n\n    form.reset();\n    cardIdInput.value = '';\n    currentStatusInput.value = currentStatus;\n\n    if (cardId) {\n        // Editing existing card\n        const card = findCardById(cardId);\n        if (!card) return;\n\n        modalTitle.textContent = 'Editar Tarjeta';\n        titleInput.value = card.title;\n        bodyInput.value = card.body;\n        priorityInput.value = card.priority || ''; // Set existing priority\n        cardIdInput.value = cardId;\n    } else {\n        // Creating new card\n        modalTitle.textContent = 'Crear Nueva Tarjeta';\n        // Default priority to media or leave blank if preferred, but setting it helps testing\n        priorityInput.value = 'media'; \n    }\n\n    modal.classList.remove('hidden');\n    document.body.style.overflow = 'hidden';\n}\n```\n\n### FUNCION: handleCardSubmit\n```js\nfunction handleCardSubmit(event) {\n    event.preventDefault();\n\n    const titleInput = document.getElementById('title-input').value;\n    const bodyInput = document.getElementById('body-input').value;\n    const priorityInput = document.getElementById('priority-input').value; // Get priority value\n    const cardIdInput = document.getElementById('card-id-input').value;\n    const currentStatusInput = document.getElementById('current-status-input').value;\n\n    let cardData = {\n        title: titleInput,\n        body: bodyInput,\n        priority: priorityInput, // Include priority in data\n        status: currentStatusInput\n    };\n\n    if (cardIdInput) {\n        // Editing existing card\n        const cardIndex = findCardIndexById(cardIdInput.value);\n        if (cardIndex !== -1) {\n            let cardToUpdate = boardCards[cardIndex];\n            Object.assign(cardToUpdate, cardData); // Update properties\n            saveBoard();\n            renderAllCards();\n            closeModal();\n            updateAllCounters();\n            return;\n        } else {\n            alert('Error: No se encontró la tarjeta para editar.');\n            return;\n        }\n    } else {\n        // Creating new card\n        const newCard = {\n            id: Date.now().toString(), // Simple unique ID generation\n            title: titleInput,\n            body: bodyInput,\n            priority: priorityInput, // Set priority for new card\n            status: currentStatusInput\n        };\n\n        boardCards.push(newCard);\n        saveBoard();\n        renderAllCards();\n        closeModal();\n        updateAllCounters();\n    }\n}\n```\n\n### FUNCION: createCardElement\n```js\nfunction createCardElement(card) {\n    const cardDiv = document.createElement('div');\n    cardDiv.className = 'card';\n    cardDiv.setAttribute('draggable', true);\n    cardDiv.dataset.id = card.id;\n    cardDiv.innerHTML = `\n        <div class=\"card-content\">\n            <h3>${card.title}</h3>\n            <p>${card.body}</p>\n            <div class=\"card-priority\">Prioridad: <span class=\"priority-badge ${getPriorityClass(card.priority)}\">${card.priority}</span></div>\n        </div>\n        <div class=\"card-actions\">\n            <button class=\"edit-btn action-btn\" onclick=\"openModal('${card.id}', '${card.status}')\">✏️ Editar</button>\n            <button class=\"delete-btn action-btn\" onclick=\"deleteCard('${card.id}', '${card.status}')\">🗑️ Eliminar</button>\n        </div>\n    `;\n    return cardDiv;\n}\n```\n\n### FUNCION: getPriorityClass\n```js\nfunction getPriorityClass(priority) {\n    switch (priority) {\n        case 'alta':\n            return 'high-priority'; // Rojo\n        case 'media':\n            return 'medium-priority'; // Amarillo\n        case 'baja':\n            return 'low-priority'; // Verde\n        default:\n            return '';\n    }\n}\n```\n\n### ARCHIVO: styles.css\n```css\n/* Global Styles */\nbody {\n    font-family: sans-serif;\n    background-color: #f4f7f9;\n    margin: 0;\n    padding: 0;\n}\n\nheader {\n    background-color: #3498db;\n    color: white;\n    padding: 20px;\n    text-align: center;\n    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);\n}\n\n/* Kanban Board Container */\n.kanban-board-container {\n    display: flex;\n    justify-content: space-around;\n    padding: 20px;\n    gap: 20px;\n    overflow-x: auto; /* Allows horizontal scrolling if many columns are added */\n}\n\n/* Column Styling */\n.column {\n    flex: 1;\n    min-width: 300px;\n    background-color: #ebecf0;\n    border-radius: 8px;\n    padding: 15px;\n    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);\n}\n\n/* Column Header */\n.column-header {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    margin-bottom: 15px;\n    padding-bottom: 10px;\n    border-bottom: 2px solid #ccc;\n}\n\n.column-header h2 {\n    margin: 0;\n    color: #333;\n}\n\n/* Card Count */\n.card-count {\n    font-size: 1.2em;\n    font-weight: bold;\n    color: #555;\n}\n\n/* Cards Container (Drop Zone) */\n.cards-container {\n    min-height: 100px; /* Ensures drop zone is visible even when empty */\n    padding: 10px;\n    display: flex;\n    flex-direction: column;\n    gap: 10px;\n}\n\n/* Card Styling */\n.card {\n    background-color: white;\n    border-radius: 6px;\n    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);\n    padding: 15px;\n    cursor: grab;\n    transition: transform 0.2s, box-shadow 0.2s;\n}\n\n.card:hover {\n    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);\n}\n\n/* Dragging State */\n.dragging {\n    opacity: 0.4;\n    transform: scale(0.98);\n    border: 2px dashed #3498db;\n}\n\n/* Card Content and Actions */\n.card-content h3 {\n    margin-top: 0;\n    color: #2c3e50",
+      "aplicados": [
+        "archivo index.html",
+        "función openModal (script.js)",
+        "función nueva handleCardSubmit (script.js)",
+        "función createCardElement (script.js)",
+        "función nueva getPriorityClass (script.js)"
+      ],
+      "problemas": [],
+      "despues": {
+        "R3.1": "FAIL",
+        "R3.2": "FAIL",
+        "R3.3": "FAIL"
+      },
+      "aceptado": false,
+      "motivo": "rompió lo que ya andaba: R1 (Creo una tarjeta con un título cualquiera. → la tarjeta aparece en \"Pendiente\") → agregó \"QA Lapacho 1\" · → ✗ \"QA Lapacho 1\" se ve pero NO en \"Pendiente\" | R6 (Antes: creo una tarjeta. Muevo la tarjeta a \"En Curso\" (arrastrando, o con su control de mover). → la tarjeta aparece en \"En Curso\") → agregó \"QA Lapacho 1\" · arrastró \"QA Lapacho 1\" a \"En Curso\" (no se movió; tampoco hay control de mover) · → ✗ \"QA Lapacho 1\" se ve pero NO en \"En Curso\" | R15 (Antes: creo una tarjeta. Muevo la tarjeta a \"En Curso\" (arrastrando, o con su control de mover). → el contador de \"Pendiente\" baja 1 · el contador de \"En Curso\" sube 1) → agregó \"QA Lapacho 1\" · arrastró \"QA Lapacho 1\" a \"En Curso\" (no se movió; tampoco hay control de mover) · → ✗ contador de \"Pendiente\": 1 → 1 (se esperaba -1) · ✗ contador de \"En Curso\": 0 → 0 (se esperaba +1)"
+    }
+  ],
+  "curva": [
+    {
+      "vuelta": 1,
+      "cumplidos": 2,
+      "de": 16,
+      "filas_pass": 5,
+      "de_filas": 22
+    },
+    {
+      "vuelta": 2,
+      "cumplidos": 2,
+      "de": 16,
+      "filas_pass": 5,
+      "de_filas": 22
+    },
+    {
+      "vuelta": 3,
+      "cumplidos": 10,
+      "de": 16,
+      "filas_pass": 14,
+      "de_filas": 22
+    }
+  ]
+}

@@ -19,7 +19,7 @@ const ROTA = leerApp(join(FIX, "flow_gemma_sola_rota")), ARREGLADA = leerApp(joi
 const P = JSON.parse(readFileSync(join(FIX, "planilla_kanban_c22.json"), "utf8"));
 const FEATS = JSON.parse(readFileSync(join(FIX, "real_kanban_c22/snapshot_min.json"), "utf8")).intentForge.refined_prompt.features;
 
-t("versiones", CICLO_VERSION === "ciclo v0.1" && MAPA_VERSION === "mapa v0.1" && CAMBIOS_VERSION === "cambios v0.1");
+t("versiones", CICLO_VERSION === "ciclo v0.2" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.2");
 
 // ---------- el mapa ----------
 const mapa = mapaTexto(ROTA);
@@ -45,6 +45,16 @@ t("con poco presupuesto entra lo más importante (el error) y lo demás queda af
 const az = conAzar(P.filas.find((f) => f.id === "R5.1"), "v1");
 t("textos al azar: ningún 'QA Alfa' / 'QA Beta' / 'QA detalle' queda igual; lo que no es de prueba no cambia", !/QA Alfa|QA Beta|QA detalle/.test(JSON.stringify(az)) && /"baja"/.test(JSON.stringify(az)) && conAzar(P.filas[0], "v1").veo[0].en === "Pendiente");
 t("Gemma ve QUÉ se prueba, en palabras y sin los textos de prueba", P.filas.every((f) => !/QA /.test(describirFila(f, P.glosario))) && /Creo una tarjeta con un título cualquiera y prioridad "alta"\. → la tarjeta muestra "alta" · la tarjeta se pinta de rojo/.test(describirFila(P.filas.find((f) => f.id === "R3.1"), P.glosario)));
+
+// ---------- v0.2: lo que pasó en la 1ª corrida real con Gemma (19/10) ----------
+const SUB = ARREGLADA["script.js"].split("\n").find((l) => /addEventListener\('submit'/.test(l)).trim();
+t("el mapa muestra el código suelto (fuera de funciones) con su primera línea", new RegExp(`Código suelto de script\\.js[\\s\\S]*script\\.js:\\d+ ${SUB.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`).test(mapaTexto(ARREGLADA)));
+let crash = null, r4;
+try { r4 = aplicar(ARREGLADA, `### FUNCION: ${SUB}\n\`\`\`js\n${SUB}\n  e.preventDefault(); /*nuevo*/\n});\n\`\`\``); } catch (e) { crash = e.message; }
+t("vuelta 4 real: un '### FUNCION:' con un pedazo de código como nombre ya no corta el ciclo: se cambia como bloque suelto", !crash && r4.aplicados[0]?.startsWith("bloque suelto script.js") && /\/\*nuevo\*\//.test(r4.app["script.js"]) && !/handleSubmit|guardarCard/.test(""), crash || JSON.stringify(r4?.problemas));
+t("y si el bloque no existe, se dice cómo pedirlo (no se rompe)", aplicar(ARREGLADA, "### BLOQUE: window.onload = function () {\n```js\nx\n```").problemas.some((x) => /primera línea tiene que estar tal cual/.test(x)));
+const pide = armarCodigo(ARREGLADA, ["saveBoard() script.js", "createCardElement(card) script.js", SUB], [], 6000);
+t("vuelta 3 real: 'saveBoard() script.js' y 'createCardElement(card) script.js' se encuentran (antes no, y Gemma arregló a ciegas); y un bloque suelto por su primera línea", pide.piezas.some((p) => p.startsWith("función saveBoard")) && pide.piezas.some((p) => p.startsWith("función createCardElement")) && pide.piezas.some((p) => p.startsWith("bloque suelto script.js")), JSON.stringify(pide.piezas));
 
 // ---------- el ciclo, con el juez de verdad (Chromium) y un modelo de mentira ----------
 const pedidos = [];

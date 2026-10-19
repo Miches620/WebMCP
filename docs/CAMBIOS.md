@@ -2,6 +2,13 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**3ª corrida real (ciclo v0.3): 16 de 16 (19/10, tarde)**
+- *Evidencia:* `build/runs/2026-10-19T19-23-34_ciclo_flow_gemma_sola_rota/`. Project doc `claude/evidencia_ciclo_2026-10-18.md`, sección "3ª corrida real".
+- **Resultado:** 24 vueltas y 121 minutos de modelo. La curva fue 2 → 10 → 12 → 14 → 15 → **16**.
+- **El campo prioridad salió en una sola vuelta (la 21), gracias al avance parcial:** tocó 5 lugares, y ninguna prueba pasaba entera, pero sumó de 0 a 3 cosas bien. En la vuelta 22 entraron los colores, y R4 y R5 pasaron solos. En la vuelta 24, el orden (R16).
+- **Verificación aparte:** 16/16 con otros textos al azar ("otra-1", "otra-2") y 22/22 con los textos tal cual.
+- *Falta:* que Miche mire la app, el borrador desde cero y la hoja de cálculo.
+
 **2ª corrida real: 2 → 12 de 16 requisitos, sola → ciclo v0.3 (19/10)**
 - *Evidencia:* `build/runs/2026-10-19T11-11-59_ciclo_flow_gemma_sola_rota/`. Project doc `claude/evidencia_ciclo_2026-10-18.md`, sección "2ª corrida real".
 - **Resultado:** 30 vueltas en 151 minutos, de 3 a 7 minutos por vuelta. Quedaron 12 de 16 requisitos. Como referencia: Gemma sola arreglada a mano, 10; plantillas, 5; estado, 4.

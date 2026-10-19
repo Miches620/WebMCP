@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban Board - Gestión de Tareas</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header>
+        <h1>📋 Kanban Project</h1>
+    </header>
+
+    <!-- Contenedor principal del tablero -->
+    <div class="kanban-board-container">
+        
+        <!-- 1. Columna Pendiente -->
+        <div id="pendiente" class="column" data-status="Pendiente">
+            <div class="column-header">
+                <h2>Pendiente</h2>
+                <span class="card-count">(0)</span>
+            </div>
+            <div class="cards-container" id="cards-contenedor-pendiente" 
+                 ondragover="allowDrop(event)" ondrop="handleDrop(event, 'pendiente')">
+                <!-- Aquí se renderizarán las tarjetas Pendientes -->
+            </div>
+
+            <!-- Botón de agregar tarjeta (solo en la primera columna) -->
+            <button class="add-card-btn" onclick="openModal(null, 'pendiente')">➕ Agregar Tarjeta</button>
+        </div>
+
+        <!-- 2. Columna En Curso -->
+        <div id="encourso" class="column" data-status="En Curso">
+            <div class="column-header">
+                <h2>En Curso</h2>
+                <span class="card-count">(0)</span>
+            </div>
+            <div class="cards-container" id="cards-contenedor-encourso" 
+                 ondragover="allowDrop(event)" ondrop="handleDrop(event, 'encourso')">
+                <!-- Aquí se renderizarán las tarjetas En Curso -->
+            </div>
+        </div>
+
+        <!-- 3. Columna Completado -->
+        <div id="completado" class="column" data-status="Completado">
+            <div class="column-header">
+                <h2>Completado</h2>
+                <span class="card-count">(0)</span>
+            </div>
+            <div class="cards-container" id="cards-contenedor-completado" 
+                 ondragover="allowDrop(event)" ondrop="handleDrop(event, 'completado')">
+                <!-- Aquí se renderizarán las tarjetas Completadas -->
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Modal de Creación/Edición de Tarjeta -->
+    <div id="card-modal" class="modal hidden" aria-hidden="true">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2>Crear Nueva Tarjeta</h2>
+            
+            <form id="card-form">
+                <input type="hidden" id="card-id-input">
+                <input type="hidden" id="current-status-input">
+
+                <div class="form-group">
+                    <label for="title-input">Título de la Tarjeta:</label>
+                    <input type="text" id="title-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="body-input">Descripción / Contenido:</label>
+                    <textarea id="body-input" rows="4" required></textarea>
+                </div>
+
+                <button type="submit" class="btn primary-btn">Guardar Tarjeta</button>
+            </form>
+        </div>
+    </div>
+
+
+    <script src="script.js"></script>
+</body>
+</html>

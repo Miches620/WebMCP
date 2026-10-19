@@ -5,7 +5,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
 import { mkdtempSync } from "node:fs";
-import { ciclo, armarCodigo, lugaresDeError, CICLO_VERSION } from "./run_ciclo.mjs";
+import { ciclo, armarCodigo, lugaresDeError, puntaje, CICLO_VERSION } from "./run_ciclo.mjs";
 import { leerApp, mapaTexto, llamadas, funcionEnLinea, MAPA_VERSION } from "../harness/mapa.mjs";
 import { leerBloques, aplicar, CAMBIOS_VERSION } from "../harness/cambios.mjs";
 import { describirFila } from "../profiles/web/validation/planilla_palabras.mjs";
@@ -19,7 +19,7 @@ const ROTA = leerApp(join(FIX, "flow_gemma_sola_rota")), ARREGLADA = leerApp(joi
 const P = JSON.parse(readFileSync(join(FIX, "planilla_kanban_c22.json"), "utf8"));
 const FEATS = JSON.parse(readFileSync(join(FIX, "real_kanban_c22/snapshot_min.json"), "utf8")).intentForge.refined_prompt.features;
 
-t("versiones", CICLO_VERSION === "ciclo v0.2" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.2");
+t("versiones", CICLO_VERSION === "ciclo v0.3" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.2");
 
 // ---------- el mapa ----------
 const mapa = mapaTexto(ROTA);
@@ -80,6 +80,16 @@ t("vuelta 3: el intento siguiente sabe qué falló antes", /El intento anterior 
 t("vuelta 3: sin bloques → no se aplica nada", !v3.aceptado && /no se pudo aplicar/.test(v3.motivo));
 t("la curva: 2 requisitos al empezar → 10 después de la vuelta 1 (lo mismo que la arreglada a mano)", ev.curva.map((c) => c.cumplidos).join() === "2,10,10", ev.curva.map((c) => c.cumplidos).join());
 t("la app final es la de la vuelta 1 (el index.html arreglado), no la que rompía", app["index.html"].trimEnd() === ARREGLADA["index.html"].trimEnd() && readFileSync(join(out, "final", "index.html"), "utf8").trimEnd() === ARREGLADA["index.html"].trimEnd());
+
+// ---------- v0.3: avance parcial y de a un bloque (2ª corrida real, 19/10) ----------
+t("puntaje: PASS vale todo; si no, cuántas cosas se vieron bien", puntaje({ result: "PASS" }) === 1000 && puntaje({ result: "FAIL", detail: "→ ✓ la tarjeta muestra alta · ✗ colores" }) === 1 && puntaje({ result: "FAIL", detail: "no se pudo preparar" }) === 0);
+const malo = "### FUNCION: openModal\n```js\nfunction openModal(cardId, currentStatus) { throw new Error('roto'); }\n```";
+const dos = [{ ver: '{"ver": ["index.html"]}', arreglo: `### ARCHIVO: index.html\n\`\`\`html\n${ARREGLADA["index.html"]}\n\`\`\`\n${malo}` }];
+let k2 = 0;
+const call2 = async (messages, max, tipo) => { k2++; return { content: dos[0][tipo], ms: 1 }; };
+const r2 = await ciclo({ app: ROTA, planilla: P, features: FEATS, outDir: mkdtempSync(join(tmpdir(), "ciclo-")), call: call2, maxVueltas: 1, log: () => {} });
+const w1 = r2.ev.vueltas[0];
+t("2ª corrida, vuelta 2: el index.html bueno venía junto con un openModal roto; juntos no sirven, pero se prueba cada uno solo y queda el bueno", w1.aceptado && /quedó solo: archivo index\.html/.test(w1.motivo) && w1.pruebas.length === 3 && !w1.pruebas[0].ok && r2.app["script.js"] === ROTA["script.js"], JSON.stringify(w1.pruebas) + " " + w1.motivo);
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

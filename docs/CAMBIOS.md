@@ -2,6 +2,20 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**2ª corrida real: 2 → 12 de 16 requisitos, sola → ciclo v0.3 (19/10)**
+- *Evidencia:* `build/runs/2026-10-19T11-11-59_ciclo_flow_gemma_sola_rota/`. Project doc `claude/evidencia_ciclo_2026-10-18.md`, sección "2ª corrida real".
+- **Resultado:** 30 vueltas en 151 minutos, de 3 a 7 minutos por vuelta. Quedaron 12 de 16 requisitos. Como referencia: Gemma sola arreglada a mano, 10; plantillas, 5; estado, 4.
+  - Arregló el botón de crear (R1, que se destrabó desde R6), el padding del botón (R11) y el tamaño de la tarjeta (R12).
+  - Volvió atrás 14 veces por cambios que rompían algo que ya andaba.
+- **Lo que no salió:** R3, R4, R5 y R16 necesitan un campo nuevo, prioridad, en 4 lugares: el formulario, el guardado, la tarjeta y el orden. Hay dos causas:
+  - Un cambio quedaba solo si una prueba entera pasaba, así que el avance por partes no contaba.
+  - Gemma manda 3 o 4 cambios juntos; si uno rompe, se perdían todos. En la vuelta 2 el arreglo bueno de index.html se perdió por venir junto con un openModal roto.
+- **v0.3:**
+  - *avance parcial:* cuenta cada cosa que el juez ve bien (cada ✓), y el cambio queda si suma sin romper nada;
+  - *de a un bloque:* si juntos no sirven, se prueba cada bloque solo, con el juez y sin modelo;
+  - un avance reinicia los intentos del requisito.
+- *Tests:* `test_ciclo` 28/28.
+
 **1ª corrida real del ciclo → ciclo v0.2, cambios v0.2, mapa v0.2 (19/10)**
 - *Evidencia:* `build/runs/2026-10-19T10-38-24_ciclo_flow_gemma_sola_rota/ciclo.json`. Project doc `claude/evidencia_ciclo_2026-10-18.md`, sección "1ª corrida real".
 - **Lo que anduvo:**

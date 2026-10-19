@@ -52,10 +52,15 @@ export function leerBloques(raw) {
 
 /** Aplica los bloques a una copia de la app. Devuelve { app, aplicados[], problemas[] }. Función pura. */
 export function aplicar(app0, raw) {
+  const bloques = leerBloques(raw);
+  if (!bloques.length) return { app: { ...app0 }, aplicados: [], problemas: ["la respuesta no trae ningún bloque ### FUNCION: o ### ARCHIVO:"], bloques };
+  return { ...aplicarBloques(app0, bloques), bloques };
+}
+
+/** Lo mismo, con los bloques ya leídos (el ciclo prueba también cada bloque por separado). */
+export function aplicarBloques(app0, bloques) {
   const app = { ...app0 };
   const aplicados = [], problemas = [];
-  const bloques = leerBloques(raw);
-  if (!bloques.length) return { app, aplicados, problemas: ["la respuesta no trae ningún bloque ### FUNCION: o ### ARCHIVO:"] };
   const jsFiles = Object.keys(app).filter((f) => f.endsWith(".js"));
   for (const b of bloques) {
     if (b.tipo === "archivo") {

@@ -24,10 +24,16 @@ import { chatStream } from "./lm_stream.mjs";
 import { estTokens } from "./tokens.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
 import { leerApp, mapaTexto, codigoDe, funcionEnLinea, llamadas } from "../harness/mapa.mjs";
-import { aplicar, findSuelto } from "../harness/cambios.mjs";
+import { aplicar, aplicarBloques, findSuelto } from "../harness/cambios.mjs";
 import { describirFila } from "../profiles/web/validation/planilla_palabras.mjs";
 
-export const CICLO_VERSION = "ciclo v0.2";
+export const CICLO_VERSION = "ciclo v0.3";
+// v0.3 (19/10, 2ª corrida real: 2 → 12 de 16 requisitos en 30 vueltas, 151 min; quedaron R3, R4, R5 y R16, que
+// necesitan un campo nuevo, prioridad, en el formulario, el guardado, la tarjeta y el orden):
+//   - AVANCE PARCIAL: antes un cambio quedaba solo si una prueba entera pasaba. Agregar un campo en 4 lugares no se
+//     puede de una: ahora cuenta cada cosa que se ve bien (cada ✓ del juez), y queda si suma sin romper nada.
+//   - DE A UN BLOQUE: Gemma suele devolver 3 o 4 cambios juntos; si juntos no sirven, se prueba cada uno solo (sin
+//     modelo, solo el juez). En la vuelta 2 el arreglo bueno de index.html se perdió por venir junto con un openModal roto.
 // v0.2 (19/10, 1ª corrida real con Gemma: R1 arreglado en la vuelta 2, 2 → 10 requisitos; después se cortó):
 //   - Gemma pidió ver "saveBoard() script.js": el nombre con paréntesis y archivo no se encontraba, y arregló a ciegas;
 //   - la respuesta llegó al tope (3.600 de 3.600: Gemma piensa ~1.700 tokens antes de escribir): ahora el tope es lo que
@@ -129,6 +135,12 @@ async function llamarLM(messages, maxTokens) {
   return { content: r.content, usage: r.usage, finish_reason: r.finish_reason, ms: Date.now() - t0 };
 }
 
+/** Cuánto anda una prueba: PASS vale todo; si no, cuántas cosas se vieron bien (✓ en el detalle del juez). */
+export function puntaje(r) {
+  if (!r) return 0;
+  return r.result === "PASS" ? 1000 : (String(r.detail || "").match(/✓/g) || []).length;
+}
+
 // ---------- el ciclo ----------
 /**
  * @param {{ app: object, planilla: object, features: string[], outDir: string, call?: Function, juez?: Function,
@@ -179,21 +191,44 @@ export async function ciclo(o) {
     const maxResp = Math.max(2500, Math.min(6000, contexto - estTokens(SYS_ARREGLO + userB) - 300));
     const b = await call([{ role: "system", content: SYS_ARREGLO }, { role: "user", content: userB }], maxResp, "arreglo");
     Object.assign(vuelta, { ver, codigo: codigo.piezas, codigo_fuera: codigo.fuera, tokens_pedido: { ver: estTokens(SYS_VER + userA), arreglo: estTokens(SYS_ARREGLO + userB) }, ms: { ver: a.ms, arreglo: b.ms }, usage: { ver: a.usage, arreglo: b.usage }, respuesta: b.content });
-    let ap = { app, aplicados: [], problemas: [] }, veredicto;
+    let ap = { app, aplicados: [], problemas: [], bloques: [] }, veredicto;
     try { ap = aplicar(app, b.content); } catch (e) { ap.problemas = [`error del harness al aplicar: ${e.message}`]; vuelta.error_harness = e.stack?.slice(0, 600); }
     vuelta.aplicados = ap.aplicados; vuelta.problemas = ap.problemas;
+    const antesPts = mias.reduce((a, f) => a + puntaje(est[f.id]), 0);
+    const antesOk = mias.filter((f) => est[f.id]?.result === "PASS");
+    // juzga un candidato: ¿rompe algo que andaba? ¿suma puntos en este requisito?
+    const evaluar = async (cand, etiqueta, k) => {
+      const despues = await juez(cand.app, [...mias, ...pasaban], `v${n}${k}`, join(outDir, "trabajo"));
+      const rotas = [...pasaban, ...antesOk].filter((f) => despues[f.id]?.result !== "PASS");
+      const pts = mias.reduce((a, f) => a + puntaje(despues[f.id]), 0);
+      const ok = !rotas.length && pts > antesPts;
+      const por = rotas.length ? `rompió lo que ya andaba: ${rotas.map((f) => `${f.r} (${describirFila(f, planilla.glosario)}) → ${despues[f.id]?.detail}`).join(" | ")}`
+        : pts <= antesPts ? `aplicó ${etiqueta} pero no avanzó: ${mias.filter((f) => despues[f.id]?.result !== "PASS").map((f) => despues[f.id]?.detail).join(" | ")}`
+        : `${mias.filter((f) => despues[f.id]?.result === "PASS").length}/${mias.length} pruebas de ${target} pasan y suma lo que se ve bien (${antesPts} → ${pts}), sin romper nada${etiqueta !== "todo" ? ` (quedó solo: ${etiqueta})` : ""}`;
+      return { ok, por, pts, despues, cand, etiqueta };
+    };
     if (!ap.aplicados.length) veredicto = { ok: false, por: `no se pudo aplicar nada: ${ap.problemas.join("; ")}` };
     else {
-      const despues = await juez(ap.app, [...mias, ...pasaban], `v${n}b`, join(outDir, "trabajo"));
-      const rotas = pasaban.filter((f) => despues[f.id]?.result !== "PASS");
-      const antesOk = mias.filter((f) => est[f.id]?.result === "PASS").length, ahoraOk = mias.filter((f) => despues[f.id]?.result === "PASS").length;
-      vuelta.despues = Object.fromEntries(mias.map((f) => [f.id, despues[f.id]?.result]));
-      if (rotas.length) veredicto = { ok: false, por: `rompió lo que ya andaba: ${rotas.map((f) => `${f.r} (${describirFila(f, planilla.glosario)}) → ${despues[f.id]?.detail}`).join(" | ")}` };
-      else if (ahoraOk <= antesOk) veredicto = { ok: false, por: `aplicó ${ap.aplicados.join(", ")} pero sigue fallando: ${mias.filter((f) => despues[f.id]?.result !== "PASS").map((f) => despues[f.id]?.detail).join(" | ")}` };
-      else veredicto = { ok: true, por: `${ahoraOk}/${mias.length} pruebas de ${target} pasan (antes ${antesOk}), sin romper nada` };
+      let mejor = await evaluar(ap, "todo", "b");
+      vuelta.pruebas = [{ que: "todo", ok: mejor.ok, pts: mejor.pts }];
+      // si juntos no sirven, cada bloque solo (hasta 4): sin modelo, solo el juez
+      if (!mejor.ok && ap.bloques.length > 1) {
+        const primero = mejor;
+        for (const [i, bl] of ap.bloques.slice(0, 4).entries()) {
+          const uno = aplicarBloques(app, [bl]);
+          if (!uno.aplicados.length) continue;
+          const r = await evaluar(uno, uno.aplicados.join(", "), `c${i}`);
+          vuelta.pruebas.push({ que: uno.aplicados.join(", "), ok: r.ok, pts: r.pts });
+          if (r.ok && (!mejor.ok || r.pts > mejor.pts)) mejor = r;
+        }
+        if (!mejor.ok) mejor = primero;
+      }
+      vuelta.despues = Object.fromEntries(mias.map((f) => [f.id, mejor.despues[f.id]?.result]));
+      veredicto = mejor;
+      if (mejor.ok) ap = mejor.cand;
     }
     vuelta.aceptado = veredicto.ok; vuelta.motivo = veredicto.por;
-    if (veredicto.ok) { app = ap.app; version++; vuelta.foto = basename(foto(version)); delete ultimo[target]; }
+    if (veredicto.ok) { app = ap.app; version++; vuelta.foto = basename(foto(version)); delete ultimo[target]; intentos[target] = 0; }
     else { intentos[target] = (intentos[target] || 0) + 1; ultimo[target] = veredicto.por.slice(0, 1200); if (intentos[target] >= maxIntentos) { pendientes.add(target); vuelta.queda_pendiente = true; } }
     log(`[CICLO]   ${target}: ${veredicto.ok ? "✓ quedó" : "✗ no quedó"} · ${veredicto.por.slice(0, 200)}${vuelta.queda_pendiente ? ` → ${target} pendiente` : ""}`);
     ev.vueltas.push(vuelta);

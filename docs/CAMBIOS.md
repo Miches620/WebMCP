@@ -2,6 +2,26 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**La cadena entera por consola: `npm run proyecto` (ciclo v0.4, plantillas v0.4; 19/10, noche; decisión de Miche)**
+- *Origen:* Miche (19/10): con un snapshot hecho a mano el ciclo llegó a 16/16, y lo que falla es lo de antes (Intent Forge). "Ingeniería inversa: si Gemma cumple con un snapshot así, ¿cómo hacemos que webmcp le dé lo que necesita?"
+- **`build/proyecto.mjs`** (`npm run proyecto`):
+  - `nuevo <pedido.txt>`, con Qwen cargado:
+    - el pedido tal cual: cada feature, cada restricción y cada criterio que dice algo nuevo es un requisito (ante la duda, queda);
+    - Qwen propone el glosario y arma la planilla;
+    - `planilla.md` muestra la planilla en palabras para que Miche la apruebe.
+  - `seguir <carpeta>`, con Gemma cargada: vuelta 0 (borrador) si no hay app, y después el ciclo. La app queda en `<carpeta>/app`, y **volver a correrlo retoma el proyecto**.
+  - `juzgar <app> <planilla>`: una app contra una planilla, sin modelo.
+  - `build/pedidos/kanban_project26.txt` tiene el pedido de project26, que da 30 requisitos (17 features, 9 criterios nuevos, 4 restricciones).
+- **Vuelta 0 (ciclo v0.4):** Gemma escribe el borrador en un pedido por archivo, index.html → styles.css → script.js. Los dos últimos se escriben viendo el HTML. Si script.js no compila, se vuelve a pedir con el error.
+- **Juez (Miche vio que la página scrolleaba en vez de la columna):**
+  - el overflow cuenta solo en el elemento mismo, no en un hijo;
+  - observación nueva `desborde`: con 10 ítems, el grupo scrollea y entra en la ventana;
+  - en la vara, R10.2 reemplaza al overflow por CSS, porque lo que importa es el QUÉ y no el CÓMO.
+  - La app del ciclo v0.3 queda en 15/16; con la columna arreglada (fixture `flow_ciclo_v03_scroll`), 16/16.
+- **Restricciones:** `dado` puede mover un ítem, y hay una plantilla nueva, `no_borrar_en` (plantillas v0.4).
+- **Qwen propone el glosario:** `proponerGlosario` en planilla_writer.
+- *Tests:* `test_planilla` 30/30 (6 apps), `test_planilla_writer` 50/50, `test_proyecto` 13/13, `test_ciclo` 28/28.
+
 **3ª corrida real (ciclo v0.3): 16 de 16 (19/10, tarde)**
 - *Evidencia:* `build/runs/2026-10-19T19-23-34_ciclo_flow_gemma_sola_rota/`. Project doc `claude/evidencia_ciclo_2026-10-18.md`, sección "3ª corrida real".
 - **Resultado:** 24 vueltas y 121 minutos de modelo. La curva fue 2 → 10 → 12 → 14 → 15 → **16**.

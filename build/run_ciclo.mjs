@@ -24,10 +24,14 @@ import { chatStream } from "./lm_stream.mjs";
 import { estTokens } from "./tokens.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
 import { leerApp, mapaTexto, codigoDe, funcionEnLinea, llamadas } from "../harness/mapa.mjs";
-import { aplicar, aplicarBloques, findSuelto } from "../harness/cambios.mjs";
+import { aplicar, aplicarBloques, findSuelto, leerBloques as leerBloquesLocal } from "../harness/cambios.mjs";
+import { syntaxOf as syntaxOfLocal } from "../harness/js_tools.mjs";
 import { describirFila } from "../profiles/web/validation/planilla_palabras.mjs";
 
-export const CICLO_VERSION = "ciclo v0.3";
+export const CICLO_VERSION = "ciclo v0.4";
+// v0.4 (19/10, después del 16/16): VUELTA 0, el borrador. Si no hay app de partida, Gemma la escribe desde los pedidos
+// de Miche y la consigna de la planilla (en palabras), UN ARCHIVO POR PEDIDO: index.html → styles.css (viendo el HTML)
+// → script.js (viendo el HTML). Así cada pedido entra holgado en 12k y los tres archivos usan los mismos ids y clases.
 // v0.3 (19/10, 2ª corrida real: 2 → 12 de 16 requisitos en 30 vueltas, 151 min; quedaron R3, R4, R5 y R16, que
 // necesitan un campo nuevo, prioridad, en el formulario, el guardado, la tarjeta y el orden):
 //   - AVANCE PARCIAL: antes un cambio quedaba solo si una prueba entera pasaba. Agregar un campo en 4 lugares no se
@@ -141,6 +145,40 @@ export function puntaje(r) {
   return r.result === "PASS" ? 1000 : (String(r.detail || "").match(/✓/g) || []).length;
 }
 
+// ---------- vuelta 0: el borrador ----------
+const SYS_BORRADOR = (archivo, otros) => `Sos el programador de una app web: HTML + CSS + JavaScript, sin frameworks ni librerías, que se abre con doble clic (sin servidor). La app tiene tres archivos: index.html, styles.css y script.js${otros ? " (index.html ya está escrito: usá exactamente sus ids y clases)" : ""}.
+Ahora escribí SOLO ${archivo}, completo, cumpliendo TODO lo que pide el usuario y lo que se va a probar.
+Respondé con un único bloque:
+
+### ARCHIVO: ${archivo}
+\`\`\`${archivo.split(".").pop() === "js" ? "js" : archivo.split(".").pop()}
+...el archivo entero...
+\`\`\`
+Sin explicaciones.`;
+/** La app desde cero: 3 pedidos, uno por archivo. Devuelve { app, pedidos[] }. */
+export async function borrador({ features, planilla, call = llamarLM, contexto = CONTEXTO, log = () => {} }) {
+  const ctx = { planilla, features };
+  const pedido = `Lo que pide el usuario:\n${features.map((f, i) => `R${i + 1}. ${f}`).join("\n")}\n\n${consigna(ctx, planilla.filas || [])}`;
+  const app = {}, pedidos = [];
+  for (const archivo of ["index.html", "styles.css", "script.js"]) {
+    const sys = SYS_BORRADOR(archivo, archivo !== "index.html");
+    const user = `${pedido}${app["index.html"] ? `\n\nindex.html (ya escrito):\n${app["index.html"]}` : ""}`;
+    let codigo = null, por = "";
+    for (let intento = 1; intento <= 2 && codigo == null; intento++) {
+      const max = Math.max(2500, Math.min(8000, contexto - estTokens(sys + user) - 300));
+      const r = await call([{ role: "system", content: sys }, { role: "user", content: user + (por ? `\n\nEl intento anterior no sirvió: ${por}` : "") }], max, `borrador ${archivo}`);
+      const b = leerBloquesLocal(r.content).find((x) => x.nombre === archivo) || leerBloquesLocal(r.content)[0];
+      pedidos.push({ archivo, intento, ms: r.ms, usage: r.usage, tokens_pedido: estTokens(sys + user), max });
+      if (!b || b.codigo.trim().length < 50) { por = "no vino el archivo en un bloque ### ARCHIVO:"; continue; }
+      if (archivo.endsWith(".js")) { const e = syntaxOfLocal(b.codigo); if (e) { por = `script.js no compila: ${e}`; continue; } }
+      codigo = b.codigo;
+    }
+    app[archivo] = codigo ?? (archivo === "index.html" ? "<!DOCTYPE html><html><head><link rel=\"stylesheet\" href=\"styles.css\"></head><body><script src=\"script.js\"></script></body></html>" : "");
+    log(`[CICLO] borrador: ${archivo} ${codigo != null ? `(${estTokens(codigo)} tokens)` : "NO salió: queda vacío y lo arregla el ciclo"}`);
+  }
+  return { app, pedidos };
+}
+
 // ---------- el ciclo ----------
 /**
  * @param {{ app: object, planilla: object, features: string[], outDir: string, call?: Function, juez?: Function,
@@ -154,11 +192,13 @@ export async function ciclo(o) {
   const filas = planilla.filas || [];
   const reqs = [...new Set(filas.map((f) => f.r))].sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)));
   const filasDe = (r) => filas.filter((f) => f.r === r);
-  let app = { ...o.app };
+  let app = o.app ? { ...o.app } : null;
+  let hechoBorrador = null;
+  if (!app) { log(`[CICLO] vuelta 0: no hay app de partida → Gemma escribe el borrador (index.html, styles.css, script.js)`); hechoBorrador = await borrador({ features, planilla, call, contexto, log }); app = hechoBorrador.app; }
   mkdirSync(outDir, { recursive: true });
   const foto = (n) => { const d = join(outDir, `v${String(n).padStart(3, "0")}`); mkdirSync(d, { recursive: true }); for (const [f, s] of Object.entries(app)) writeFileSync(join(d, f), s); return d; };
   foto(0);
-  const ev = { type: "EVIDENCE", kind: "ciclo", version: CICLO_VERSION, modelo: MODEL, contexto, inicio: new Date().toISOString(), vueltas: [], curva: [] };
+  const ev = { type: "EVIDENCE", kind: "ciclo", version: CICLO_VERSION, modelo: MODEL, contexto, inicio: new Date().toISOString(), ...(hechoBorrador ? { borrador: hechoBorrador.pedidos } : { desde: "una app que ya existía" }), vueltas: [], curva: [] };
   const guardar = () => writeFileSync(join(outDir, "ciclo.json"), JSON.stringify(ev, null, 2));
   const intentos = {}, ultimo = {};
   let pendientes = new Set(), segunda = false, version = 0;
@@ -248,13 +288,13 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
   const args = process.argv.slice(2);
   const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : null; };
   const appDir = args.find((a, i) => !a.startsWith("--") && !(i > 0 && args[i - 1].startsWith("--")));
-  if (!appDir || !flag("--planilla") || !flag("--snapshot")) { console.log("uso: node build/run_ciclo.mjs <carpeta de la app> --planilla <planilla.json> --snapshot <snapshot.json> [--out dir] [--max-vueltas 40]"); process.exit(2); }
+  if ((!appDir && !args.includes("--desde-cero")) || !flag("--planilla") || !flag("--snapshot")) { console.log("uso: node build/run_ciclo.mjs <carpeta de la app> --planilla <planilla.json> --snapshot <snapshot.json> [--out dir] [--max-vueltas 40]"); process.exit(2); }
   const planilla = JSON.parse(readFileSync(flag("--planilla"), "utf8"));
   const snap = JSON.parse(readFileSync(flag("--snapshot"), "utf8"));
   const features = (snap.intentForge?.refined_prompt || snap.refined_prompt || snap).features;
   const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-  const outDir = flag("--out") || join(here, "runs", `${stamp}_ciclo_${basename(resolve(appDir))}`);
-  console.log(`[CICLO] ${CICLO_VERSION} · ${MODEL} · contexto ${CONTEXTO} · app ${resolve(appDir)} · ${planilla.filas.length} pruebas de ${new Set(planilla.filas.map((f) => f.r)).size} requisitos → ${outDir}`);
-  await ciclo({ app: leerApp(appDir), planilla, features, outDir, maxVueltas: Number(flag("--max-vueltas")) || 40, log: console.log });
+  const outDir = flag("--out") || join(here, "runs", `${stamp}_ciclo_${appDir ? basename(resolve(appDir)) : "desde_cero"}`);
+  console.log(`[CICLO] ${CICLO_VERSION} · ${MODEL} · contexto ${CONTEXTO} · app ${appDir ? resolve(appDir) : "desde cero (vuelta 0)"} · ${planilla.filas.length} pruebas de ${new Set(planilla.filas.map((f) => f.r)).size} requisitos → ${outDir}`);
+  await ciclo({ app: appDir ? leerApp(appDir) : null, planilla, features, outDir, maxVueltas: Number(flag("--max-vueltas")) || 40, log: console.log });
   console.log(`→ ${join(outDir, "ciclo.json")} · la app final en ${join(outDir, "final")}`);
 }

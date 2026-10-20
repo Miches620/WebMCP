@@ -19,12 +19,14 @@ export function describirFila(row0, g) {
   const row = filaATipos(row0, g);
   const N = (t) => conNombres(t, g);
   // cómo nombrar cada texto QA creado en la fila: por sus campos ("la de prioridad alta") si hace falta distinguir
-  const dado = row.dado || [];
+  const movs = (row.dado || []).filter((d) => d?.mover);
+  const dado = (row.dado || []).filter((d) => !d?.mover);
   const quien = new Map();
   dado.forEach((d, i) => { const cs = Object.values(d.campos || {}); const rep = dado.filter((x) => JSON.stringify(Object.values(x.campos || {})) === JSON.stringify(cs)).length > 1; quien.set(d.agregar, cs.length ? `la de ${Object.entries(d.campos).map(([k, v]) => `${k} ${v}`).join(" y ")}${rep ? (dado.findIndex((x) => JSON.stringify(Object.values(x.campos || {})) === JSON.stringify(cs)) === i ? " creada primero" : " creada después") : ""}` : N(`{el_item} creado`)); });
   const nombre = (x) => (isQA(x) ? quien.get(x) || N("{el_item}") : q(x));
   const partes = [];
-  if (dado.length) partes.push(N(`Antes: creo ${dado.length === 1 ? "{un_item}" : `${dado.length} {items}`}`) + (dado.length > 1 ? `, en este orden: ${dado.map((d) => (Object.keys(d.campos || {}).length ? Object.entries(d.campos).map(([k, v]) => `${k} ${v}`).join(" y ") : "sin campos")).join(" · ")}` : camposTxt(dado[0].campos)) + ".");
+  if (dado.length) partes.push(N(`Antes: creo ${dado.length === 1 ? "{un_item}" : `${dado.length} {items}`}`) + (dado.length > 1 && dado.some((d) => Object.keys(d.campos || {}).length) ? `, en este orden: ${dado.map((d) => (Object.keys(d.campos || {}).length ? Object.entries(d.campos).map(([k, v]) => `${k} ${v}`).join(" y ") : "sin campos")).join(" · ")}` : camposTxt(dado[0].campos)) + ".");
+  for (const m of movs) partes.push(N(`Antes: muevo {el_item} a ${q(m.a)}.`));
   const h = row.hago || {};
   if (h.agregar) partes.push(N(`Creo {un_item} con un título cualquiera${camposTxt(h.campos).replace(/^ con/, " y")}.`));
   else if (h.editar) partes.push(N(`Edito {el_item}: le cambio el título${h.campos ? ` y le pongo${camposTxt(h.campos).replace(/^ con/, "")}` : ""}.`));
@@ -33,7 +35,7 @@ export function describirFila(row0, g) {
   else if (h.recargar) partes.push("Recargo la página.");
   else if (h.pasar_mouse) partes.push(N("Paso el mouse por encima de {el_item}."));
   const veo = (row.veo || []).map((v) => {
-    if (v.esta) return isQA(v.esta) ? (h.editar && v.esta === h.a ? "el título nuevo aparece" : N(`{el_item} aparece${v.en ? ` en ${q(v.en)}` : ""}`)) : `se ve ${q(v.esta)}${v.en ? ` en ${q(v.en)}` : ""}`;
+    if (v.esta) return isQA(v.esta) ? (h.editar && v.esta === h.a ? "el título nuevo aparece" : h.eliminar && v.esta === h.eliminar ? N(`{el_item} sigue${v.en ? ` en ${q(v.en)}` : ""} (no se borró)`) : N(`{el_item} aparece${v.en ? ` en ${q(v.en)}` : ""}`)) : `se ve ${q(v.esta)}${v.en ? ` en ${q(v.en)}` : ""}`;
     if (v.no_esta) return isQA(v.no_esta) ? (h.editar ? "el título viejo ya no está" : N("{el_item} ya no está")) : `no se ve ${q(v.no_esta)}`;
     if (v.contiene) return N(`{el_item} muestra ${lista(v.contiene)}`);
     if (v.orden) return `en ${q(v.en)} quedan de arriba abajo: ${v.orden.map(nombre).join(" · ")}`;
@@ -46,6 +48,7 @@ export function describirFila(row0, g) {
       const val = e.valor && typeof e.valor === "object" && !Array.isArray(e.valor) ? `distinto de ${e.valor.distinto}` : [].concat(e.valor).join(" o ");
       return `${cosa} tiene ${e.prop}: ${val}`;
     }
+    if (v.desborde) return N(`con ${dado.length || "muchos"} {items} en ${q(v.desborde)}, se desplaza (scroll) adentro de {el_grupo} y la página NO se desplaza`);
     if (v.color_en_item) return N(`{el_item} se pinta de ${v.familia}${v.texto ? ` donde dice ${q(v.texto)}` : ""}`);
     return "?";
   });

@@ -19,7 +19,7 @@ const ROTA = leerApp(join(FIX, "flow_gemma_sola_rota")), ARREGLADA = leerApp(joi
 const P = JSON.parse(readFileSync(join(FIX, "planilla_kanban_c22.json"), "utf8"));
 const FEATS = JSON.parse(readFileSync(join(FIX, "real_kanban_c22/snapshot_min.json"), "utf8")).intentForge.refined_prompt.features;
 
-t("versiones", CICLO_VERSION === "ciclo v0.3" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.2");
+t("versiones", CICLO_VERSION === "ciclo v0.4" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.2");
 
 // ---------- el mapa ----------
 const mapa = mapaTexto(ROTA);
@@ -78,7 +78,7 @@ t("vuelta 1: el arreglo de index.html queda (R1 pasa y no rompe nada)", v1.acept
 t("vuelta 2: el arreglo que saca el botón ROMPE lo que andaba → se vuelve atrás, y se dice qué rompió", v2.requisito === "R3" && !v2.aceptado && /rompió lo que ya andaba/.test(v2.motivo), v2.motivo?.slice(0, 200));
 t("vuelta 3: el intento siguiente sabe qué falló antes", /El intento anterior NO sirvió: rompió/.test(pedidos[4].user));
 t("vuelta 3: sin bloques → no se aplica nada", !v3.aceptado && /no se pudo aplicar/.test(v3.motivo));
-t("la curva: 2 requisitos al empezar → 10 después de la vuelta 1 (lo mismo que la arreglada a mano)", ev.curva.map((c) => c.cumplidos).join() === "2,10,10", ev.curva.map((c) => c.cumplidos).join());
+t("la curva: 1 requisito al empezar → 9 después de la vuelta 1 (lo mismo que la arreglada a mano; 19/10: R10 también pide que scrollee la columna y no la página)", ev.curva.map((c) => c.cumplidos).join() === "1,9,9", ev.curva.map((c) => c.cumplidos).join());
 t("la app final es la de la vuelta 1 (el index.html arreglado), no la que rompía", app["index.html"].trimEnd() === ARREGLADA["index.html"].trimEnd() && readFileSync(join(out, "final", "index.html"), "utf8").trimEnd() === ARREGLADA["index.html"].trimEnd());
 
 // ---------- v0.3: avance parcial y de a un bloque (2ª corrida real, 19/10) ----------

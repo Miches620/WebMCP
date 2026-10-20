@@ -12,7 +12,7 @@ const G = P.glosario; // el glosario del Kanban: { item: "tarjeta", grupo: "colu
 t("versión", WRITER_VERSION === "planilla_writer v0.4");
 // calibración: la planilla hecha a mano (la vara) cumple el validador entera
 const hand = P.filas.map((f) => [f.id, validateRow(f, 17, { glosario: G })]);
-t("las 22 filas de la planilla a mano pasan el validador", hand.every(([, v]) => v.ok), hand.filter(([, v]) => !v.ok).map(([id, v]) => `${id}: ${v.problems.join("; ")}`).join(" | "));
+t("las 23 filas de la planilla a mano pasan el validador", hand.every(([, v]) => v.ok), hand.filter(([, v]) => !v.ok).map(([id, v]) => `${id}: ${v.problems.join("; ")}`).join(" | "));
 
 const bad = (row, re) => { const v = validateRow(row, 17); return !v.ok && v.problems.some((p) => re.test(p)); };
 t("clases / ids / selectores → rechazada (es el CÓMO)", bad({ r: "R1", veo: [{ esta: ".card-title" }] }, /cómo está programado/) && bad({ r: "R1", veo: [{ control: ["#add-btn"] }] }, /cómo está programado/) && bad({ r: "R1", hago: { agregar: "QA" }, veo: [{ esta: "onclick" }] }, /cómo está programado/));
@@ -80,7 +80,7 @@ const caida = await writePlanilla({ features: ["x"], call: async () => { throw n
 t("LM Studio caído → el requisito queda sin fila, con el error (no se inventa)", /fetch failed/.test(caida.sin_fila.R1));
 
 // ---------- v0.3: modo PLANTILLAS (Qwen elige, el harness arma) ----------
-t("plantillas: versión y 13 plantillas", PLANTILLAS_VERSION === "planilla_plantillas v0.3" && Object.keys(PLANTILLAS).length === 13);
+t("plantillas: versión y 14 plantillas (v0.4: no_borrar_en, para restricciones)", PLANTILLAS_VERSION === "planilla_plantillas v0.4" && Object.keys(PLANTILLAS).length === 14);
 const IDEAL = JSON.parse(readFileSync(new URL("./fixtures/real_qwen_c22/elecciones_ideales_c22.json", import.meta.url), "utf8"));
 const built = Object.entries(IDEAL).filter(([r]) => /^R\d+$/.test(r) && IDEAL[r].usa).flatMap(([r, a]) => { const x = rowsFromChoices(a.usa, r, G); return [...x.filas.map((f) => [r, validateRow(normalizeRow(f, G).row, 17, { features: FEATS, glosario: G })]), ...x.problems.map((p) => [r, { ok: false, problems: [p] }])]; });
 t("techo: las elecciones IDEALES para c22 arman 28 filas y TODAS pasan el validador (con los chequeos de sentido)", built.length === 28 && built.every(([, v]) => v.ok), built.filter(([, v]) => !v.ok).map(([r, v]) => `${r}: ${v.problems.join("; ")}`).join(" | "));
@@ -92,7 +92,7 @@ t("estilo: 'con sombra' → distinta de none, crea la tarjeta; botón → sus pa
 const malas = rowsFromChoices([{ plantilla: "volar" }, { plantilla: "mover" }, { plantilla: "estilo", de: "columna", prop: "width", valor: "248px" }], "R6", G).problems;
 t("elecciones mal completadas → afuera, cada una con qué falta", malas.length === 3 && /no existe/.test(malas[0]) && /"a": la columna de destino/.test(malas[1]) && /"nombre": el nombre de la columna/.test(malas[2]), malas.join(" | "));
 const sp = systemPromptPlantillas(G);
-t("pedido de plantillas: lista las 13, ejemplos de otra app (recetas), sin_fila", Object.keys(PLANTILLAS).every((k) => sp.includes(`- ${k}:`)) && /recetas/.test(sp) && /sin_fila/.test(sp) && !/Pendiente|En Curso/.test(sp));
+t("pedido de plantillas: lista las 14, ejemplos de otra app (recetas), sin_fila", Object.keys(PLANTILLAS).every((k) => sp.includes(`- ${k}:`)) && /recetas/.test(sp) && /sin_fila/.test(sp) && !/Pendiente|En Curso/.test(sp));
 const tp = await writeRequirement({ id: "R1", text: feats[0], features: feats, glosario: G, call: replies([
   `{"usa":[{"plantilla":"crear","columna":"Columna Pendiente"},{"plantilla":"volar"}]}`,
   `{"usa":[{"plantilla":"crear","columna":"Pendiente"}]}`,
@@ -124,6 +124,9 @@ const ch10 = P31.filas.filter((f) => f.r === "R10" && f._plantilla === "estilo" 
 t("R10: un color que el requisito no dice (#102C54 era el fondo de R9) → afuera", ch10.length === 3 && relevanceProblems(ch10, FEATS[9]).filter((x) => /no está en este requisito/.test(x)).length === 3);
 t("R2: 'crear' no corresponde aunque el texto diga botón 'Agregar tarjeta' (lo citado es un nombre)", relevanceProblems([{ plantilla: "crear", columna: "Pendiente" }], FEATS[1]).some((x) => /no habla de eso/.test(x)) && !relevanceProblems([{ plantilla: "crear", columna: "Pendiente" }], FEATS[0]).length);
 t("R5: un texto libre que no dijo el usuario ('Nueva descripción') pasa a texto de prueba 'QA …'", camposDe({ "Descripción": "Nueva descripción", Prioridad: "alta" }).campos["Descripción"] === "QA Nueva descripción" && rowsFromChoices([{ plantilla: "editar", campos: { "Descripción": "Nueva descripción", Prioridad: "alta" } }], "R5", G).filas.every((f) => validateRow(normalizeRow(f, G).row, 17, { features: FEATS, glosario: G }).ok));
+
+const nbe = rowsFromChoices([{ plantilla: "no_borrar_en", columna: "Completa" }], "R19", G);
+t("restricción 'no se puede borrar en Completa': crea, mueve a Completa, intenta borrar, sigue ahí; pasa el validador", nbe.filas.length === 1 && nbe.filas[0].dado[1].mover === "QA Alfa" && nbe.filas[0].veo[0].en === "Completa" && validateRow(normalizeRow(nbe.filas[0], G).row, 20, { features: [...FEATS, "x", "Sin eliminar tarjetas en columna 'Completa'"], glosario: G }).ok && !relevanceProblems([{ plantilla: "no_borrar_en", columna: "Completa" }], "Sin crear nuevas columnas, permitir tarjetas vacías, eliminar tarjetas en columna 'Completa'").length, JSON.stringify(nbe) + validateRow(normalizeRow(nbe.filas[0], G).row, 20, { features: [...FEATS, "x", "Sin eliminar tarjetas en columna 'Completa'"], glosario: G }).problems.join());
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

@@ -32,7 +32,7 @@ const MODEL = process.env.PLANILLA_MODEL || process.env.REVIEWER_MODEL || "qwen2
 
 // ---------- el vocabulario (lo mismo que ejecuta planilla.mjs) ----------
 const HAGO = ["agregar", "editar", "eliminar", "mover", "recargar", "pasar_mouse"];
-const VEO = ["esta", "no_esta", "contiene", "orden", "contador", "control", "al_pasar", "estilo", "color_en_item"];
+const VEO = ["esta", "no_esta", "contiene", "orden", "contador", "control", "al_pasar", "estilo", "color_en_item", "desborde"];
 const FAMILIAS = ["rojo", "amarillo", "verde"];
 const PROPS = ["background-color", "color", "width", "height", "padding", "border-top-style", "border-top-left-radius", "box-shadow", "overflow-y", "font-size", "font-weight"];
 // pistas de CÓMO está programado: no van en una planilla (estricto en el QUÉ, flexible en el CÓMO)
@@ -53,7 +53,7 @@ export function validateRow(row0, nReq = Infinity, ctx = {}) {
   // dado: ítems que se crean antes
   if (row.dado != null) {
     if (!Array.isArray(row.dado)) p.push(`"dado" es una lista de { "agregar": "texto" }`);
-    else row.dado.forEach((d, i) => { if (!d || !isText(d.agregar) || Object.keys(d).some((k) => !["agregar", "campos"].includes(k))) p.push(`dado[${i}]: tiene que ser { "agregar": "texto", "campos"?: {…} }`); else if (d.campos && (typeof d.campos !== "object" || !Object.values(d.campos).every(isText))) p.push(`dado[${i}].campos: { "nombre del campo": "valor" }`); });
+    else row.dado.forEach((d, i) => { if (d && isText(d.mover)) { if (!isText(d.a) || Object.keys(d).some((k) => !["mover", "a"].includes(k))) p.push(`dado[${i}]: { "mover": "texto", "a": "${G}" }`); return; } if (!d || !isText(d.agregar) || Object.keys(d).some((k) => !["agregar", "campos"].includes(k))) p.push(`dado[${i}]: tiene que ser { "agregar": "texto", "campos"?: {…} } (o { "mover": "texto", "a": "${G}" })`); else if (d.campos && (typeof d.campos !== "object" || !Object.values(d.campos).every(isText))) p.push(`dado[${i}].campos: { "nombre del campo": "valor" }`); });
   }
   // hago: UNA acción
   if (row.hago != null) {
@@ -77,6 +77,7 @@ export function validateRow(row0, nReq = Infinity, ctx = {}) {
     if (t === "contador" && (!isText(v.contador) || (typeof v.cambia !== "number" && typeof v.vale !== "number"))) p.push(`veo[${i}]: { "contador": "contenedor", "cambia": ±n } o { …, "vale": n }`);
     if (t === "control" && !texts(v.control)) p.push(`veo[${i}]: { "control": ["palabras del botón"], "solo_en"?: "contenedor" }`);
     if (t === "al_pasar" && (!texts(v.al_pasar) || !isText(v.en_item))) p.push(`veo[${i}]: { "al_pasar": ["lo que aparece"], "en_item": "texto de ${I}" }`);
+    if (t === "desborde" && !isText(v.desborde)) p.push(`veo[${i}]: { "desborde": "${G}" } (con muchos ítems creados en "dado")`);
     if (t === "color_en_item" && (!isText(v.color_en_item) || !FAMILIAS.includes(v.familia))) p.push(`veo[${i}]: { "color_en_item": "texto de ${I}", "texto"?: "…", "familia": ${FAMILIAS.join(" | ")} }`);
     if (t === "estilo") {
       const e = v.estilo || {};
@@ -98,7 +99,7 @@ export function validateRow(row0, nReq = Infinity, ctx = {}) {
 }
 
 // ---------- v0.2: forma exacta y sentido (1ª corrida real de Qwen sobre c22, 17/10: 30/68 contra la vara) ----------
-const VEO_KEYS = { esta: ["esta", "en"], no_esta: ["no_esta", "en"], contiene: ["en_item", "contiene"], orden: ["orden", "en"], contador: ["contador", "cambia", "vale"], control: ["control", "solo_en"], al_pasar: ["al_pasar", "en_item"], estilo: ["estilo"], color_en_item: ["color_en_item", "texto", "familia"] };
+const VEO_KEYS = { desborde: ["desborde"], esta: ["esta", "en"], no_esta: ["no_esta", "en"], contiene: ["en_item", "contiene"], orden: ["orden", "en"], contador: ["contador", "cambia", "vale"], control: ["control", "solo_en"], al_pasar: ["al_pasar", "en_item"], estilo: ["estilo"], color_en_item: ["color_en_item", "texto", "familia"] };
 const HAGO_KEYS = { agregar: ["agregar", "campos"], editar: ["editar", "a", "campos"], eliminar: ["eliminar"], mover: ["mover", "a"], recargar: ["recargar"], pasar_mouse: ["pasar_mouse"] };
 const CSS_WORD = /^(padding|margin|border|border-radius|width|height|color|background|background-color|font|font-size|box-shadow|overflow|display)$/i;
 function shapeExtras(row, I) {
@@ -144,6 +145,7 @@ export function meaningProblems(row0, features, g) {
   if (h.agregar && (row.dado || []).some((d) => d?.agregar === h.agregar)) p.push(`"hago.agregar": "${h.agregar}" ya se creó en "dado" (si la acción es crear, no va en dado)`);
   for (const k of ["editar", "eliminar", "mover", "pasar_mouse"]) if (h[k]) card(h[k], `hago.${k}`);
   if (h.mover) box(h.a, "hago.mover → a");
+  (row.dado || []).forEach((d, i) => { if (d?.mover) { card(d.mover, `dado[${i}].mover`); box(d.a, `dado[${i}].a`); } });
   (Array.isArray(row.veo) ? row.veo : []).forEach((v, i) => {
     const w = `veo[${i}]`;
     if (!v || typeof v !== "object") return;
@@ -160,6 +162,7 @@ export function meaningProblems(row0, features, g) {
     if ("control" in v) { (v.control || []).forEach((x) => { if (/['"“”«»]/.test(x)) p.push(`${w}.control: "${x}" va sin comillas: las palabras del botón`); else if (/^bot[oó]n\b/i.test(x)) p.push(`${w}.control: "${x}": solo las palabras del botón, sin "botón"`); else if (!said(x)) p.push(`${w}.control: "${x}" no está en lo que escribió el usuario`); }); if (v.solo_en) box(v.solo_en, `${w}.solo_en`); }
     if ("al_pasar" in v) { card(v.en_item, `${w}.en_item`); (v.al_pasar || []).forEach((x) => seen(x, `${w}.al_pasar`)); }
     if ("color_en_item" in v) { card(v.color_en_item, `${w}.color_en_item`); }
+    if ("desborde" in v) box(v.desborde, `${w}.desborde`);
     if ("estilo" in v) { const de = v.estilo?.de; if (de?.grupo) box(de.grupo, `${w}.estilo.de.${G}`); if (de?.item) card(de.item, `${w}.estilo.de.${palabra(g, "item")}`); if (de?.control) de.control.forEach((x) => { if (!said(x)) p.push(`${w}.estilo.de.control: "${x}" no está en lo que escribió el usuario`); }); }
   });
   return p;
@@ -259,12 +262,29 @@ export function userPrompt({ id, text, features, context }) {
   return `${context ? `Proyecto: ${context}\n\n` : ""}Todos los requisitos (contexto; NO los escribas, solo el pedido):\n${features.map((f, i) => `R${i + 1}. ${f}`).join("\n")}\n\nEscribí la planilla SOLO de ${id}: "${text}"`;
 }
 
-const callLM = async (messages) => {
+export const callLM = async (messages) => {
   const r = await fetch(LM_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model: MODEL, messages, temperature: 0, max_tokens: 1800 }) });
   if (!r.ok) throw new Error(`LM Studio ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const j = await r.json();
   return { content: j.choices?.[0]?.message?.content || "", finish_reason: j.choices?.[0]?.finish_reason, usage: j.usage };
 };
+
+/** 19/10: Qwen propone el GLOSARIO de la app (cómo se llaman lo que el usuario crea y los grupos donde está). Miche lo
+ *  revisa junto con la planilla. Si la respuesta no sirve, queda el genérico (elemento, grupo) y se dice. */
+export async function proponerGlosario({ features, context = "", call = callLM }) {
+  const sys = `Leés los requisitos de una app web y decís cómo se llaman, EN ESA APP, dos cosas:
+- "item": lo que el usuario crea, edita y borra (una palabra en singular, como la usa el usuario: "tarea", "receta", "contacto"…);
+- "grupo": el contenedor con título donde se agrupan esos ítems ("categoría", "lista", "carpeta"…), o null si la app no los agrupa.
+Respondé SOLO JSON: { "item": "…", "grupo": "…" | null }`;
+  const user = `${context ? `Proyecto: ${context}\n\n` : ""}Requisitos:\n${features.map((f, i) => `R${i + 1}. ${f}`).join("\n")}`;
+  try {
+    const r = await call([{ role: "system", content: sys }, { role: "user", content: user }]);
+    const j = parseJsonLoose(r.content || "");
+    const g = j.ok ? { item: j.data?.item ?? null, grupo: j.data?.grupo ?? null } : null;
+    if (g && leerGlosario(g).ok && g.item) return { glosario: { item: String(g.item).toLowerCase(), grupo: g.grupo ? String(g.grupo).toLowerCase() : null }, raw: r.content };
+    return { glosario: null, raw: r.content, problema: "la respuesta no es un glosario válido" };
+  } catch (e) { return { glosario: null, problema: e.message }; }
+}
 
 /** Escribe la planilla de un requisito, con reintentos. call(messages) → {content}: inyectable (tests). */
 export async function writeRequirement({ id, text, features, context = "", call = callLM, modo = "plantillas", glosario = null }) {

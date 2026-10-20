@@ -9,7 +9,8 @@
 //
 // Una respuesta de Qwen:  { "usa": [ { "plantilla": "borrar", "columna": "Pendiente" }, … ] }   o   { "sin_fila": "motivo" }
 
-export const PLANTILLAS_VERSION = "planilla_plantillas v0.3";
+export const PLANTILLAS_VERSION = "planilla_plantillas v0.4";
+// v0.4 (19/10): las RESTRICCIONES de Miche también se prueban ("no se puede borrar en Completa"): no_borrar_en.
 // v0.3 (17/10, diseño de 3 capas con Miche): las plantillas hablan de TIPOS (item, grupo). El pedido a Qwen se escribe con
 // los nombres del glosario de la app ("tarjeta", "columna") y lo que Qwen contesta con esos nombres se traduce a tipos.
 // Una plantilla que necesita un tipo que la app no tiene (glosario: "grupo": null) no se ofrece.
@@ -134,6 +135,13 @@ export const PLANTILLAS = {
     arma: (c) => ({ hago: { agregar: A, campos: { [c.campo]: c.valor } }, veo: [{ en_item: A, contiene: [c.valor] }, { color_en_item: A, texto: c.valor, familia: c.familia }] }),
     necesita: (c) => (!isText(c.campo) || !isText(c.valor) ? `"campo" y "valor"` : !["rojo", "amarillo", "verde"].includes(c.familia) ? `"familia": rojo, amarillo o verde` : null),
   },
+  no_borrar_en: {
+    requiere: ["grupo"],
+    dice: "RESTRICCIÓN: {un_item} que está en cierto {grupo} NO se puede borrar (se intenta y sigue ahí)",
+    casilleros: { grupo: "{el_grupo} donde no se puede borrar" },
+    arma: (c) => ({ dado: [{ agregar: A }, { mover: A, a: c.grupo }], hago: { eliminar: A }, veo: [{ esta: A, en: c.grupo }] }),
+    necesita: (c, g) => (!isText(c.grupo) ? `"${palabra(g, "grupo")}"` : null),
+  },
   orden_por_campo: {
     requiere: ["grupo"],
     dice: "en {un_grupo} los {items} se ordenan por un campo (y, si se pide, a igual valor primero el más reciente)",
@@ -158,7 +166,7 @@ export const PLANTILLAS = {
 // ordenar ni de pasar el mouse. Cada plantilla necesita que el requisito la NOMBRE (palabras en castellano o inglés).
 export const PERTINENCIA = {
   crear: /crea|agreg|añad|anad|nuev|add\b/i, crear_con_campos: /crea|agreg|añad|anad|nuev|campo/i, editar: /edit|modific|cambi/i,
-  borrar: /borr|elimin|quit|delet/i, mover: /mov|arrastr|drag|solt/i, contador_al_crear: /contador|cantidad|counter|cuenta/i,
+  borrar: /borr|elimin|quit|delet/i, no_borrar_en: /(sin|no|prohib|impedir|evitar)\b[^.]*(borr|elimin)/i, mover: /mov|arrastr|drag|solt/i, contador_al_crear: /contador|cantidad|counter|cuenta/i,
   recargar_sigue: /guard|recarg|persist|localstorage|se mantien|no se pierd/i, al_pasar_mouse: /hover|pasar|mouse|encima/i,
   orden_por_campo: /orden|priori|arriba|abajo|primer|recient|descend|ascend/i, color_segun_valor: /color|rojo|verde|amarill|azul/i,
   estilo: /\d+\s*px|#[0-9a-f]{3,6}|padding|border|borde|radius|redond|sombra|shadow|overflow|scroll|width|height|ancho|alto|fondo|color/i,

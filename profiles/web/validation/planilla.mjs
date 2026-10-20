@@ -105,7 +105,10 @@ const STYLES_OF = ([sel, prop, pagina]) => {
   }
   // medidas: el valor CSS calculado (como lo escribe Miche: "width: 248px"), no lo que ocupa con padding y borde;
   // y solo del elemento mismo (no de un hijo que justo mida eso)
-  if (prop === "width" || prop === "height") els = els.slice(0, 1);
+  // 19/10: overflow también solo del elemento mismo. Antes un hijo con overflow:auto lo aprobaba, y en la app del ciclo
+  // (16/16) la columna crecía sin límite y scrolleaba la PÁGINA (Miche lo vio). Lo que Miche quiere de verdad lo prueba
+  // "desborde" (veo): con muchos ítems, scrollea el grupo y no la página.
+  if (prop === "width" || prop === "height" || /^overflow/.test(prop)) els = els.slice(0, 1);
   return els.map((e) => getComputedStyle(e).getPropertyValue(prop));
 };
 /** Colores (fondo, letra, borde) de los elementos de la tarjeta marcada que contienen el texto (o de la tarjeta). */
@@ -292,6 +295,19 @@ async function see(page, v, before, w) {
     const want = typeof e.valor === "object" && !Array.isArray(e.valor) ? `distinto de ${e.valor.distinto}` : [].concat(e.valor).join(" o ");
     return [ok, `${e.prop} de ${label}: ${[...new Set(got)].slice(0, 3).join(" | ") || "—"}${ok ? "" : ` (se esperaba ${want})`}`];
   }
+  if (v.desborde) {
+    // con muchos ítems (los crea "dado"): la página NO se desplaza en vertical y el grupo (o algo adentro) sí
+    if (!(await page.evaluate(COL_NAMED, [v.desborde, w.src, "data-plan-col"]))) return [false, `no hay ${w.gr} "${v.desborde}"`];
+    const d = await page.evaluate(() => {
+      // la página "se desplaza por los ítems" si el grupo no entra en la ventana (hay que bajar la página para verlo entero)
+      const col = document.querySelector("[data-plan-col]");
+      const pagina = col.getBoundingClientRect().bottom + (document.scrollingElement || document.documentElement).scrollTop > innerHeight + 4;
+      const scrollers = [col, ...col.querySelectorAll("*")].filter((e) => /(auto|scroll)/.test(getComputedStyle(e).overflowY) && e.scrollHeight > e.clientHeight + 4);
+      return { pagina, grupo: scrollers.length > 0, alto: Math.round(col.getBoundingClientRect().height), vista: innerHeight };
+    });
+    const ok = !d.pagina && d.grupo;
+    return [ok, `con muchos ítems: ${d.grupo ? `scrollea adentro de ${w.gr} "${v.desborde}"` : `${w.gr} "${v.desborde}" no scrollea (mide ${d.alto}px)`} · ${d.pagina ? `no entra en la ventana: hay que desplazar la PÁGINA para verla (no tendría que)` : "entra en la ventana"}`];
+  }
   if (v.color_en_item) {
     if (!(await page.evaluate(ITEM_OF, [v.color_en_item, w.src]))) return [false, `"${v.color_en_item}" no aparece como ${w.it}`];
     const cs = await page.evaluate(COLORS_IN_ITEM, v.texto || null);
@@ -328,6 +344,13 @@ export async function runRow({ page, row: row0, controls, glosario, azar, ctx, r
   const out = (result, last) => { const errs = errsSince(ctx, e0); return { result, detail: [...steps, last].filter(Boolean).join(" · ") + (errs.length ? ` · error de JS: ${errs[0].slice(0, 160)}` : ""), ...(errs.length ? { errors: errs } : {}) }; };
   const dado = row.dado || [];
   for (const d of dado) {
+    // 19/10: "dado" también puede mover un ítem que ya se creó (para restricciones como "no se borra en Completa")
+    if (d && d.mover) {
+      const m = await act(page, ctls, { mover: d.mover, a: d.a }, ctx, w);
+      if (m?.fail) return out("FAIL", `no se pudo preparar: ${m.fail}`);
+      steps.push(m);
+      continue;
+    }
     const r = await addCard(page, ctls, d, w);
     if (r.ok) { steps.push(r.why); continue; }
     // si crear no anda pero la app YA trae ítems, uno cualquiera (sin campos pedidos) se reemplaza por

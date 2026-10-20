@@ -146,5 +146,10 @@ t("glosario: si Qwen dice 'no hay grupos' pero hay nombres entre comillas, se le
 const g2 = await proponerGlosario({ features: FEATS, call: fakeG(['{"item": "task", "grupo": "board"}', '{"item": "tarjeta", "grupo": "columna"}']) });
 t("glosario: una palabra que no está en los requisitos no vale (se copia tal cual)", g2.glosario?.item === "tarjeta" && /"task" no aparece en los requisitos/.test(pedidosG.at(-1)));
 
+const g3 = await proponerGlosario({ features: FEATS, call: fakeG(['{"item": "tarjeta", "grupo": "pendiente"}', '{"item": "tarjeta", "grupo": "columna"}']) });
+t("glosario (2ª corrida real): 'pendiente' es el NOMBRE de una columna, no la palabra que las engloba → se re-pregunta", g3.glosario?.grupo === "columna" && /es el NOMBRE de uno de esos lugares/.test(pedidosG.at(-1)), JSON.stringify(g3));
+const dup = await writeRequirement({ id: "R1", text: "Se guardan los datos: recargar y que sigan", features: ["Se guardan los datos: recargar y que sigan"], glosario: G, call: async () => ({ content: '{"usa":[{"plantilla":"recargar_sigue"},{"plantilla":"recargar_sigue"},{"plantilla":"recargar_sigue"}]}' }) });
+t("la misma prueba 3 veces (R23 real) queda una sola", dup.filas.length === 1, JSON.stringify(dup.filas.map((f) => f.id)));
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

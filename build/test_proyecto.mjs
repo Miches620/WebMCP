@@ -5,7 +5,8 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { leerPedido, planillaEnPalabras, juzgar, PROYECTO_VERSION } from "./proyecto.mjs";
 import { borrador, ciclo } from "./run_ciclo.mjs";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { leerApp } from "../harness/mapa.mjs";
 
@@ -46,6 +47,15 @@ t("el ciclo sin app de partida arranca por la vuelta 0 (borrador) y lo juzga: co
 // ---------- juzgar: una app contra la vara ----------
 const j1 = await juzgar(join(FIX, "flow_ciclo_v03_final"), VARA), j2 = await juzgar(join(FIX, "flow_ciclo_v03_scroll"), VARA);
 t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee la columna); arreglada, 16/16", j1.cumplidos === 15 && j1.fallan[0].r === "R10" && j2.cumplidos === 16, `${j1.cumplidos} ${j2.cumplidos}`);
+
+// ---------- quitar: Miche saca pruebas que están mal ----------
+const dq = mkdtempSync(join(tmpdir(), "pq-"));
+const reqK = JSON.parse(readFileSync(join(FIX, "real_kanban_c22/snapshot_min.json"), "utf8")).intentForge.refined_prompt.features.map((texto) => ({ texto }));
+writeFileSync(join(dq, "requisitos.json"), JSON.stringify({ requisitos: reqK }));
+writeFileSync(join(dq, "planilla.json"), JSON.stringify(VARA));
+const outQ = execFileSync(process.execPath, [join(here, "proyecto.mjs"), "quitar", dq, "R3.2", "R7.*"], { encoding: "utf8" });
+const pq = JSON.parse(readFileSync(join(dq, "planilla.json"), "utf8")), mdq = readFileSync(join(dq, "planilla.md"), "utf8");
+t("quitar: saca las pruebas que dice Miche (R3.2 y todas las de R7), las guarda aparte y rehace planilla.md con los números", /saqué 2 prueba/.test(outQ) && !pq.filas.some((f) => f.id === "R3.2" || f.r === "R7") && pq.quitadas["R3.2"] && /Miche sacó/.test(pq.sin_fila.R7) && /\*\*R3\.1\*\* · /.test(mdq), outQ);
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

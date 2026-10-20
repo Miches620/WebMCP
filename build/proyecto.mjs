@@ -65,11 +65,11 @@ export async function planillaEnPalabras(p, requisitos) {
   const g = p.glosario || {};
   const out = [`# Planilla: qué se va a probar`, "",
     `**Primero, el glosario** (de esto dependen muchas pruebas): lo que el usuario crea se llama **${g.item || "elemento"}**; ${g.grupo ? `los lugares con nombre donde están se llaman **${g.grupo}**` : `**no hay lugares con nombre donde se agrupen** (sin esto no se prueban mover, contadores ni orden)`}. Si no es así, avisá: se corrige con \`--glosario '{"item":"…","grupo":"…"}'\` y se vuelve a armar.`, "",
-    "Después, leé cada requisito y lo que se va a probar. Si algo está mal o falta, decímelo.", ""];
+    "Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, decí su número (p. ej. R10.3) y se saca con `npm run proyecto -- quitar <carpeta> R10.3`.", ""];
   requisitos.forEach((r, i) => {
     const id = `R${i + 1}`, filas = (p.filas || []).filter((f) => f.r === id);
     out.push(`## ${id}. ${r.texto}`);
-    if (filas.length) filas.forEach((f) => out.push(`- ${describirFila(f, p.glosario)}`));
+    if (filas.length) filas.forEach((f) => out.push(`- **${f.id}** · ${describirFila(f, p.glosario)}`));
     else out.push(`- (sin prueba: ${p.sin_fila?.[id] || "no se pudo armar"})`);
     out.push("");
   });
@@ -125,12 +125,25 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     mkdirSync(appDir, { recursive: true });
     for (const [f, s] of Object.entries(app)) writeFileSync(join(appDir, f), s);
     console.log(`[PROYECTO] la app quedó en ${appDir} (abrí index.html). Volver a correr "seguir" la retoma desde ahí.`);
+  } else if (modo === "quitar" && a1 && a2) {
+    // Miche saca pruebas que están mal (las que dice planilla.md); quedan anotadas en "quitadas", no se pierden
+    const dir = resolve(a1), ids = args.slice(2).filter((x) => !x.startsWith("--"));
+    const req = JSON.parse(readFileSync(join(dir, "requisitos.json"), "utf8"));
+    const p = JSON.parse(readFileSync(join(dir, "planilla.json"), "utf8"));
+    const sale = (f) => ids.some((x) => x === f.id || (x.endsWith(".*") && f.r === x.slice(0, -2)) || x === f.r);
+    const fuera = p.filas.filter(sale);
+    p.quitadas = { ...(p.quitadas || {}), ...Object.fromEntries(fuera.map((f) => [f.id, f])) };
+    p.filas = p.filas.filter((f) => !sale(f));
+    for (const r of new Set(fuera.map((f) => f.r))) if (!p.filas.some((f) => f.r === r)) p.sin_fila = { ...(p.sin_fila || {}), [r]: "Miche sacó sus pruebas (estaban mal)" };
+    writeFileSync(join(dir, "planilla.json"), JSON.stringify(p, null, 2));
+    writeFileSync(join(dir, "planilla.md"), await planillaEnPalabras(p, req.requisitos));
+    console.log(`[PROYECTO] saqué ${fuera.length} prueba(s): ${fuera.map((f) => f.id).join(", ") || "ninguna (¿los números están bien?)"} · quedan ${p.filas.length}. planilla.md actualizado.`);
   } else if (modo === "juzgar" && a1 && a2) {
     const r = await juzgar(resolve(a1), JSON.parse(readFileSync(a2, "utf8")), flag("--azar") || "");
     console.log(`[JUZGAR] ${r.cumplidos}/${r.de} requisitos cumplidos`);
     for (const f of r.fallan) console.log(`  ✗ ${f.r}: ${f.detalle.join(" | ").slice(0, 300)}`);
   } else {
-    console.log("uso:\n  node build/proyecto.mjs nuevo <pedido.txt> [--nombre x]      (Qwen: requisitos tal cual, glosario, planilla y planilla.md)\n  node build/proyecto.mjs seguir <carpeta del proyecto>      (Gemma: borrador si no hay app, y el ciclo; retoma si ya hay)\n  node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json>");
+    console.log("uso:\n  node build/proyecto.mjs quitar <carpeta del proyecto> R10.3 R21.*   (saca pruebas que están mal)\n  node build/proyecto.mjs nuevo <pedido.txt> [--nombre x]      (Qwen: requisitos tal cual, glosario, planilla y planilla.md)\n  node build/proyecto.mjs seguir <carpeta del proyecto>      (Gemma: borrador si no hay app, y el ciclo; retoma si ya hay)\n  node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json>");
     process.exit(2);
   }
 }

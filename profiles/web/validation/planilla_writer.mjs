@@ -288,7 +288,7 @@ Respondé SOLO JSON: { "item": "…", "grupo": "…" | null, "por_que": "el núm
   const messages = [{ role: "system", content: sys }, { role: "user", content: user }];
   const crudos = [];
   try {
-    for (let intento = 1; intento <= 2; intento++) {
+    for (let intento = 1; intento <= 3; intento++) {
       const r = await call(messages);
       crudos.push(r.content);
       const j = parseJsonLoose(r.content || "");
@@ -297,9 +297,11 @@ Respondé SOLO JSON: { "item": "…", "grupo": "…" | null, "por_que": "el núm
       if (!g || !g.item) problemas.push(`falta "item"`);
       else if (!esta(g.item)) problemas.push(`"${g.item}" no aparece en los requisitos: copiá la palabra tal cual`);
       if (g?.grupo && !esta(g.grupo)) problemas.push(`"${g.grupo}" no aparece en los requisitos: copiá la palabra tal cual`);
-      if (g && !g.grupo && citados.length >= 2 && intento === 1) problemas.push(`dijiste que no hay grupos, pero los requisitos nombran entre comillas: ${[...new Set(citados)].slice(0, 6).map((x) => `"${x}"`).join(", ")}. Si los ítems están en esos lugares con nombre, ¿cómo se llaman esos lugares? (si de verdad no hay, repetí null)`);
+      // 2ª corrida (19/10): respondió "pendiente", que es el NOMBRE de uno de los lugares, no la palabra que los engloba
+      if (g?.grupo && citados.some((c) => nrm(c) === nrm(g.grupo))) problemas.push(`"${g.grupo}" es el NOMBRE de uno de esos lugares; el grupo es la palabra que dice QUÉ SON (${[...new Set(citados)].slice(0, 3).map((x) => `"${x}"`).join(", ")} son… ¿qué?)`);
+      if (g && !g.grupo && citados.length >= 2 && intento === 1) problemas.push(`dijiste que no hay grupos, pero los requisitos nombran entre comillas: ${[...new Set(citados)].slice(0, 6).map((x) => `"${x}"`).join(", ")}. Si los ítems están repartidos en esos lugares, el grupo es la palabra que dice QUÉ SON esos lugares (no uno de los nombres). Si de verdad no hay, repetí null`);
       if (!problemas.length && leerGlosario(g).ok) return { glosario: g, raw: crudos };
-      if (intento === 2) return g && g.item && esta(g.item) && leerGlosario(g).ok ? { glosario: g, raw: crudos, aviso: problemas.join("; ") } : { glosario: null, raw: crudos, problema: problemas.join("; ") || "la respuesta no es un glosario válido" };
+      if (intento === 3) return g && g.item && esta(g.item) && leerGlosario(g).ok ? { glosario: g, raw: crudos, aviso: problemas.join("; ") } : { glosario: null, raw: crudos, problema: problemas.join("; ") || "la respuesta no es un glosario válido" };
       messages.push({ role: "assistant", content: r.content }, { role: "user", content: `Revisá: ${problemas.join("; ")}. Respondé de nuevo el JSON.` });
     }
   } catch (e) { return { glosario: null, problema: e.message }; }
@@ -336,6 +338,9 @@ export async function writeRequirement({ id, text, features, context = "", call 
       const { row, cambios } = normalizeRow({ ...f, r: f.r || id }, glosario);
       if (row.r !== id) { bad.push({ fila: f, problems: [`es de ${row.r}, no de ${id}`] }); return; }
       const v = validateRow(row, n, { features, glosario });
+      // 2ª corrida (19/10): la misma prueba repetida 3 veces (R23); una basta
+      const firma = JSON.stringify({ d: row.dado, h: row.hago, v: row.veo });
+      if (v.ok && good.some((g0) => JSON.stringify({ d: g0.dado, h: g0.hago, v: g0.veo }) === firma)) return;
       if (v.ok) good.push({ ...row, id: `${id}.${good.length + 1}`, ...(cambios.length ? { _normalizado: cambios } : {}) }); else bad.push({ fila: f, problems: v.problems });
     });
     calls.push({ attempt: a, raw: res.content, usage: res.usage, finish_reason: res.finish_reason, accepted: good.length, rejected: bad.map((b) => b.problems), problems });

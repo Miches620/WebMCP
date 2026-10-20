@@ -2,6 +2,14 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**2ª planilla de la cadena: el glosario dio "pendiente" (19/10, 23h)**
+- **Qué pasó:** Qwen respondió con el *nombre* de una columna en lugar de la palabra que las engloba. Por eso faltan pruebas en 9 requisitos y aparecen contadores de la columna equivocada (R10, R21, R22).
+- **Arreglos:**
+  - Un nombre citado entre comillas no vale como grupo, y se re-pregunta hasta 2 veces explicando "qué SON 'Pendiente', 'En Curso'…".
+  - Una prueba repetida en el mismo requisito queda una sola vez (R23 la tenía 3 veces).
+  - `planilla.md` ahora numera cada prueba, y `npm run proyecto -- quitar <carpeta> R10.3 R21.*` saca las que Miche marca como mal; quedan guardadas en `quitadas`.
+- *Tests:* `test_planilla_writer` 57/57, `test_proyecto` 14/14.
+
 **1ª planilla de `npm run proyecto` (project26): el glosario la arruinó → plantillas v0.5, glosario re-preguntado (19/10, 22h)**
 - *Evidencia:* `build/proyectos/2026-10-20T01-07-35_kanban/planilla.md`. Project doc `claude/evidencia_ciclo_2026-10-18.md`, sección "1ª planilla".
 - **Causa principal:** Qwen dijo que el Kanban **no tiene grupos**. Sin grupos no se ofrecen mover, contadores, orden, el color de columnas, el desborde ni `no_borrar_en`. Por eso R6, R16 y R22 quedaron sin prueba, y R7, R8 y R10 a medias.

@@ -19,7 +19,7 @@ export const PLANTILLAS_VERSION = "planilla_plantillas v0.5";
 // v0.3 (17/10, diseño de 3 capas con Miche): las plantillas hablan de TIPOS (item, grupo). El pedido a Qwen se escribe con
 // los nombres del glosario de la app ("tarjeta", "columna") y lo que Qwen contesta con esos nombres se traduce a tipos.
 // Una plantilla que necesita un tipo que la app no tiene (glosario: "grupo": null) no se ofrece.
-import { palabra, tiene, tipoDe } from "./glosario.mjs";
+import { palabra, tiene, tipoDe, leerGlosario } from "./glosario.mjs";
 const A = "QA Alfa", B = "QA Beta";
 const isText = (x) => typeof x === "string" && x.trim().length > 0 && x.length <= 120;
 // v0.2 (1ª corrida): Qwen nombra los campos sin valor (["Titulo", "descripción", "prioridad"] o { "Prioridad": "" }).
@@ -204,6 +204,17 @@ export function relevanceProblems(choices, text0) {
   return p;
 }
 
+// glosario v0.2: lo que se crea aparece en "inicio"; una prueba que crea y mira otro grupo prueba algo imposible
+const mismo = (a, b) => String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
+function fueraDelInicio(ch, g) {
+  const ini = leerGlosario(g).glosario.inicio;
+  if (!ini) return null;
+  const donde = { crear: ch.grupo, contador_al_crear: ch.grupo, borrar: ch.grupo, orden_por_campo: ch.grupo, mover: ch.desde }[ch.plantilla];
+  if (donde && !mismo(donde, ini)) return `${palabra(g, "grupo")} "${donde}": lo que se crea aparece en "${ini}" (usá "${ini}")`;
+  if (ch.plantilla === "mover" && mismo(ch.a, ini)) return `"a": "${ini}" es donde ya aparece lo que se crea; elegí otr${/a$/.test(palabra(g, "grupo")) ? "a" : "o"} ${palabra(g, "grupo")}`;
+  return null;
+}
+
 /** Lo que eligió Qwen → filas (sin validar todavía) + problemas por elección. Función pura. */
 export function rowsFromChoices(choices, id, glosario) {
   const filas = [], problems = [];
@@ -212,7 +223,7 @@ export function rowsFromChoices(choices, id, glosario) {
     const ch = eleccionATipos(ch0, glosario);
     const t = ok[ch?.plantilla];
     if (!t) { problems.push(`elección ${i + 1}: la plantilla "${ch?.plantilla}" no existe (usá: ${Object.keys(ok).join(", ")})`); return; }
-    const falta = t.necesita?.(ch, glosario);
+    const falta = t.necesita?.(ch, glosario) || fueraDelInicio(ch, glosario);
     if (falta) { problems.push(`elección ${i + 1} (${ch.plantilla}): falta ${falta}`); return; }
     filas.push({ r: id, ...t.arma(ch), _plantilla: ch.plantilla });
   });

@@ -2,6 +2,21 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Banco de modelos para escribir el examen (la planilla) + glosario v0.2 con "inicio" (20/10)**
+- *Origen:* Miche (19/10): "MicheLab no se ata a ningún LLM". Mismo pedido (los 17 requisitos de c22, con el glosario fijo) para 5 modelos, comparados contra la vara en las 6 apps (102 casilleros). Project doc `claude/evidencia_banco_planilla_2026-10-20.md`.
+
+| Modelo | Coinciden | Más dura (FAIL falso) | Más blanda | No prueba | Velocidad |
+|---|---|---|---|---|---|
+| **Qwen 2.5 7B** | **90 (88%)** | 3 | 3 | 6 | — |
+| Hermes 3 (Llama 3.1 8B) | 77 (75%) | **18** | 7 | 0 | — |
+| Gemma 4 E4B | 73 (72%) | 10 | 1 | 18 | — |
+| DeepSeek R1 distill 8B | 66 (65%) | 9 | 3 | 24 | 39 t/s |
+| Bonsai 27B (1 bit) | 12 (12%) | 0 | 0 | 90 | 7 t/s como máximo |
+
+- Qwen se queda en el lugar. "Más dura" es el error peligroso, porque el ciclo correría detrás de una prueba imposible.
+- **El error que más se repitió:** probar lo recién creado en otro grupo ("creo una tarjeta → sube el contador de En Curso"). Para eso, **glosario v0.2 suma `inicio`**, el grupo donde aparece lo que se crea, y lo decide Miche. Las plantillas que crean usan ese grupo, y las que no lo usan quedan afuera con el motivo.
+- *Tests:* `test_glosario` 16/16.
+
 **2ª planilla de la cadena: el glosario dio "pendiente" (19/10, 23h)**
 - **Qué pasó:** Qwen respondió con el *nombre* de una columna en lugar de la palabra que las engloba. Por eso faltan pruebas en 9 requisitos y aparecen contadores de la columna equivocada (R10, R21, R22).
 - **Arreglos:**

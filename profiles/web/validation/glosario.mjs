@@ -15,7 +15,10 @@
 // se traducen acá. Regla para que no vuelva el monstruo: un tipo o una acción nueva entra a las capas 1 y 2 solo si
 // la piden 2 proyectos distintos (experiencia que se repite → conocimiento).
 
-export const GLOSARIO_VERSION = "glosario v0.1";
+export const GLOSARIO_VERSION = "glosario v0.2";
+// v0.2 (20/10, banco de 5 modelos escribiendo la planilla): el error que más se repitió fue probar "lo nuevo" en el grupo
+// equivocado ("creo una tarjeta → sube el contador de En Curso"). "inicio" dice DÓNDE aparece lo que se crea (lo decide
+// Miche en el glosario); las plantillas que crean usan ese grupo.
 
 /** Los tipos que sabe encontrar el juez (capa 2). control y pagina no necesitan nombre: son iguales en toda app. */
 export const TIPOS = {
@@ -32,11 +35,12 @@ export function leerGlosario(g) {
   const p = [];
   if (g != null && (typeof g !== "object" || Array.isArray(g))) return { ok: false, problems: ["el glosario es un objeto { tipo: nombre }"], glosario: { ...GENERICO } };
   for (const [k, v] of Object.entries(g || {})) {
-    if (!TIPOS[k]) p.push(`"${k}" no es un tipo (tipos: ${Object.keys(TIPOS).join(", ")})`);
+    if (k === "inicio") { if (typeof v !== "string" || !v.trim() || v.length > 40) p.push(`inicio: el nombre del grupo donde aparece lo que se crea (p. ej. el primero)`); continue; }
+    if (!TIPOS[k]) p.push(`"${k}" no es un tipo (tipos: ${Object.keys(TIPOS).join(", ")}, y "inicio")`);
     else if (v !== null && (typeof v !== "string" || !/^[\p{L} ]{2,30}$/u.test(v.trim()))) p.push(`${k}: "${v}" tiene que ser una palabra (el nombre en singular), o null si la app no tiene ese tipo`);
   }
   // null = la app no tiene ese tipo (p. ej. una hoja de cálculo no tiene grupos): las plantillas que lo necesitan no se ofrecen
-  return { ok: !p.length, problems: p, glosario: { ...GENERICO, ...Object.fromEntries(Object.entries(g || {}).filter(([k, v]) => TIPOS[k] && (typeof v === "string" || v === null)).map(([k, v]) => [k, v === null ? null : v.trim().toLowerCase()])) } };
+  return { ok: !p.length, problems: p, glosario: { ...GENERICO, ...Object.fromEntries(Object.entries(g || {}).filter(([k, v]) => TIPOS[k] && (typeof v === "string" || v === null)).map(([k, v]) => [k, v === null ? null : v.trim().toLowerCase()])), ...(typeof g?.inicio === "string" && g.inicio.trim() ? { inicio: g.inicio.trim() } : {}) } };
 }
 
 /** El nombre de un tipo en esta app ("tarjeta"), o en plural ("tarjetas"). */

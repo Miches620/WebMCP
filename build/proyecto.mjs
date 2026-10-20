@@ -64,7 +64,7 @@ export async function planillaEnPalabras(p, requisitos) {
   const { describirFila } = await import("../profiles/web/validation/planilla_palabras.mjs");
   const g = p.glosario || {};
   const out = [`# Planilla: qué se va a probar`, "",
-    `**Primero, el glosario** (de esto dependen muchas pruebas): lo que el usuario crea se llama **${g.item || "elemento"}**; ${g.grupo ? `los lugares con nombre donde están se llaman **${g.grupo}**` : `**no hay lugares con nombre donde se agrupen** (sin esto no se prueban mover, contadores ni orden)`}. Si no es así, avisá: se corrige con \`--glosario '{"item":"…","grupo":"…"}'\` y se vuelve a armar.`, "",
+    `**Primero, el glosario** (de esto dependen muchas pruebas): lo que el usuario crea se llama **${g.item || "elemento"}**; ${g.grupo ? `los lugares con nombre donde están se llaman **${g.grupo}**, y lo que se crea aparece en ${g.inicio ? `**${g.inicio}**` : "**(no se dijo: conviene fijarlo con \"inicio\")**"}` : `**no hay lugares con nombre donde se agrupen** (sin esto no se prueban mover, contadores ni orden)`}. Si no es así, avisá: se corrige con \`--glosario '{"item":"…","grupo":"…","inicio":"…"}'\` y se vuelve a armar.`, "",
     "Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, decí su número (p. ej. R10.3) y se saca con `npm run proyecto -- quitar <carpeta> R10.3`.", ""];
   requisitos.forEach((r, i) => {
     const id = `R${i + 1}`, filas = (p.filas || []).filter((f) => f.r === id);

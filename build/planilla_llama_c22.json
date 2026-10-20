@@ -1,0 +1,745 @@
+{
+  "version": "planilla v0.1",
+  "autor": "planilla_writer v0.4 (hermes-3-llama-3.1-8b, modo plantillas, planilla_plantillas v0.5)",
+  "modo": "plantillas",
+  "glosario": {
+    "item": "tarjeta",
+    "grupo": "columna"
+  },
+  "filas": [
+    {
+      "r": "R1",
+      "hago": {
+        "agregar": "QA Alfa"
+      },
+      "veo": [
+        {
+          "esta": "QA Alfa",
+          "en": "Pendiente"
+        }
+      ],
+      "_plantilla": "crear",
+      "id": "R1.1"
+    },
+    {
+      "r": "R2",
+      "veo": [
+        {
+          "control": [
+            "Agregar",
+            "tarjeta"
+          ],
+          "solo_en": "Pendiente"
+        }
+      ],
+      "_plantilla": "boton_en",
+      "id": "R2.1",
+      "_normalizado": [
+        "veo[0] control: [\"Agregar tarjeta\"] → [\"Agregar\",\"tarjeta\"]"
+      ]
+    },
+    {
+      "r": "R3",
+      "hago": {
+        "agregar": "QA Alfa",
+        "campos": {
+          "descripción": "QA Descripción del ejemplo",
+          "prioridad": "alta"
+        }
+      },
+      "veo": [
+        {
+          "en_item": "QA Alfa",
+          "contiene": [
+            "QA Descripción del ejemplo",
+            "alta"
+          ]
+        }
+      ],
+      "_plantilla": "crear_con_campos",
+      "id": "R3.1"
+    },
+    {
+      "r": "R4",
+      "hago": {
+        "agregar": "QA Alfa",
+        "campos": {
+          "descripción": "QA descripción",
+          "prioridad": "alta"
+        }
+      },
+      "veo": [
+        {
+          "en_item": "QA Alfa",
+          "contiene": [
+            "QA descripción",
+            "alta"
+          ]
+        }
+      ],
+      "_plantilla": "crear_con_campos",
+      "id": "R4.1"
+    },
+    {
+      "r": "R5",
+      "hago": {
+        "agregar": "QA Alfa",
+        "campos": {
+          "descripción": "QA descripción",
+          "prioridad": "alta"
+        }
+      },
+      "veo": [
+        {
+          "en_item": "QA Alfa",
+          "contiene": [
+            "QA descripción",
+            "alta"
+          ]
+        }
+      ],
+      "_plantilla": "crear_con_campos",
+      "id": "R5.1"
+    },
+    {
+      "r": "R5",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "hago": {
+        "editar": "QA Alfa",
+        "a": "QA Beta",
+        "campos": {
+          "descripción": "QA descripción",
+          "prioridad": "alta"
+        }
+      },
+      "veo": [
+        {
+          "esta": "QA Beta"
+        },
+        {
+          "no_esta": "QA Alfa"
+        },
+        {
+          "en_item": "QA Beta",
+          "contiene": [
+            "QA descripción",
+            "alta"
+          ]
+        }
+      ],
+      "_plantilla": "editar",
+      "id": "R5.2"
+    },
+    {
+      "r": "R6",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "hago": {
+        "mover": "QA Alfa",
+        "a": "Pendiente"
+      },
+      "veo": [
+        {
+          "esta": "QA Alfa",
+          "en": "Pendiente"
+        },
+        {
+          "contador": "En Curso",
+          "cambia": -1
+        },
+        {
+          "contador": "Pendiente",
+          "cambia": 1
+        }
+      ],
+      "_plantilla": "mover",
+      "id": "R6.1"
+    },
+    {
+      "r": "R7",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "hago": {
+        "eliminar": "QA Alfa"
+      },
+      "veo": [
+        {
+          "no_esta": "QA Alfa"
+        },
+        {
+          "contador": "Pendiente",
+          "cambia": -1
+        }
+      ],
+      "_plantilla": "borrar",
+      "id": "R7.1"
+    },
+    {
+      "r": "R7",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "hago": {
+        "eliminar": "QA Alfa"
+      },
+      "veo": [
+        {
+          "no_esta": "QA Alfa"
+        },
+        {
+          "contador": "En Curso",
+          "cambia": -1
+        }
+      ],
+      "_plantilla": "borrar",
+      "id": "R7.2"
+    },
+    {
+      "r": "R7",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "hago": {
+        "eliminar": "QA Alfa"
+      },
+      "veo": [
+        {
+          "no_esta": "QA Alfa"
+        },
+        {
+          "contador": "Completa",
+          "cambia": -1
+        }
+      ],
+      "_plantilla": "borrar",
+      "id": "R7.3"
+    },
+    {
+      "r": "R8",
+      "hago": {
+        "agregar": "QA Alfa",
+        "campos": {
+          "descripción": "QA descripción"
+        }
+      },
+      "veo": [
+        {
+          "en_item": "QA Alfa",
+          "contiene": [
+            "QA descripción"
+          ]
+        }
+      ],
+      "_plantilla": "crear_con_campos",
+      "id": "R8.1"
+    },
+    {
+      "r": "R9",
+      "veo": [
+        {
+          "estilo": {
+            "de": "pagina",
+            "prop": "background-color",
+            "valor": "#102C54"
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R9.1",
+      "_normalizado": [
+        "veo[0].estilo.de: \"pagina\" → \"pagina\""
+      ]
+    },
+    {
+      "r": "R9",
+      "veo": [
+        {
+          "estilo": {
+            "de": {
+              "grupo": "Pendiente"
+            },
+            "prop": "background-color",
+            "valor": "#8FB3C7"
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R9.2"
+    },
+    {
+      "r": "R9",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "veo": [
+        {
+          "estilo": {
+            "de": {
+              "item": "QA Alfa"
+            },
+            "prop": "background-color",
+            "valor": "#F2E9D8"
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R9.3"
+    },
+    {
+      "r": "R10",
+      "veo": [
+        {
+          "esta": "Pendiente"
+        },
+        {
+          "esta": "En Curso"
+        },
+        {
+          "esta": "Completa"
+        }
+      ],
+      "_plantilla": "se_ven_textos",
+      "id": "R10.1"
+    },
+    {
+      "r": "R10",
+      "veo": [
+        {
+          "control": [
+            "Agregar",
+            "tarjeta"
+          ],
+          "solo_en": "Pendiente"
+        }
+      ],
+      "_plantilla": "boton_en",
+      "id": "R10.2",
+      "_normalizado": [
+        "veo[0] control: [\"Agregar tarjeta\"] → [\"Agregar\",\"tarjeta\"]"
+      ]
+    },
+    {
+      "r": "R11",
+      "hago": {
+        "agregar": "QA Alfa"
+      },
+      "veo": [
+        {
+          "esta": "QA Alfa",
+          "en": "Pendiente"
+        }
+      ],
+      "_plantilla": "crear",
+      "id": "R11.1"
+    },
+    {
+      "r": "R11",
+      "hago": {
+        "agregar": "QA Alfa",
+        "campos": {
+          "descripción": "QA Descripción de la tarjeta",
+          "prioridad": "alta"
+        }
+      },
+      "veo": [
+        {
+          "en_item": "QA Alfa",
+          "contiene": [
+            "QA Descripción de la tarjeta",
+            "alta"
+          ]
+        }
+      ],
+      "_plantilla": "crear_con_campos",
+      "id": "R11.2"
+    },
+    {
+      "r": "R12",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "hago": {
+        "mover": "QA Alfa",
+        "a": "En Curso"
+      },
+      "veo": [
+        {
+          "esta": "QA Alfa",
+          "en": "En Curso"
+        },
+        {
+          "contador": "Pendiente",
+          "cambia": -1
+        },
+        {
+          "contador": "En Curso",
+          "cambia": 1
+        }
+      ],
+      "_plantilla": "mover",
+      "id": "R12.1"
+    },
+    {
+      "r": "R14",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "hago": {
+        "eliminar": "QA Alfa"
+      },
+      "veo": [
+        {
+          "no_esta": "QA Alfa"
+        },
+        {
+          "contador": "Pendiente",
+          "cambia": -1
+        }
+      ],
+      "_plantilla": "borrar",
+      "id": "R14.1"
+    },
+    {
+      "r": "R15",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "veo": [
+        {
+          "estilo": {
+            "de": {
+              "item": "QA Alfa"
+            },
+            "prop": "box-shadow",
+            "valor": {
+              "distinto": "none"
+            }
+          }
+        }
+      ],
+      "_plantilla": "estilo",
+      "id": "R15.1"
+    },
+    {
+      "r": "R15",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "hago": {
+        "mover": "QA Alfa",
+        "a": "En Curso"
+      },
+      "veo": [
+        {
+          "esta": "QA Alfa",
+          "en": "En Curso"
+        },
+        {
+          "contador": "Pendiente",
+          "cambia": -1
+        },
+        {
+          "contador": "En Curso",
+          "cambia": 1
+        }
+      ],
+      "_plantilla": "mover",
+      "id": "R15.2"
+    },
+    {
+      "r": "R15",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "hago": {
+        "mover": "QA Alfa",
+        "a": "Completa"
+      },
+      "veo": [
+        {
+          "esta": "QA Alfa",
+          "en": "Completa"
+        },
+        {
+          "contador": "Pendiente",
+          "cambia": -1
+        },
+        {
+          "contador": "Completa",
+          "cambia": 1
+        }
+      ],
+      "_plantilla": "mover",
+      "id": "R15.3"
+    },
+    {
+      "r": "R15",
+      "hago": {
+        "agregar": "QA Alfa"
+      },
+      "veo": [
+        {
+          "contador": "Pendiente",
+          "cambia": 1
+        }
+      ],
+      "_plantilla": "contador_al_crear",
+      "id": "R15.4"
+    },
+    {
+      "r": "R15",
+      "hago": {
+        "agregar": "QA Alfa"
+      },
+      "veo": [
+        {
+          "contador": "En Curso",
+          "cambia": 1
+        }
+      ],
+      "_plantilla": "contador_al_crear",
+      "id": "R15.5"
+    },
+    {
+      "r": "R15",
+      "hago": {
+        "agregar": "QA Alfa"
+      },
+      "veo": [
+        {
+          "contador": "Completa",
+          "cambia": 1
+        }
+      ],
+      "_plantilla": "contador_al_crear",
+      "id": "R15.6"
+    },
+    {
+      "r": "R16",
+      "dado": [
+        {
+          "agregar": "QA Alta Vieja",
+          "campos": {
+            "prioridad": "alta"
+          }
+        },
+        {
+          "agregar": "QA Baja",
+          "campos": {
+            "prioridad": "baja"
+          }
+        },
+        {
+          "agregar": "QA Media",
+          "campos": {
+            "prioridad": "media"
+          }
+        },
+        {
+          "agregar": "QA Alta Nueva",
+          "campos": {
+            "prioridad": "alta"
+          }
+        }
+      ],
+      "veo": [
+        {
+          "orden": [
+            "QA Alta Nueva",
+            "QA Alta Vieja",
+            "QA Media",
+            "QA Baja"
+          ],
+          "en": "Pendiente"
+        }
+      ],
+      "_plantilla": "orden_por_campo",
+      "id": "R16.1"
+    },
+    {
+      "r": "R16",
+      "dado": [
+        {
+          "agregar": "QA Alta Vieja",
+          "campos": {
+            "prioridad": "alta"
+          }
+        },
+        {
+          "agregar": "QA Baja",
+          "campos": {
+            "prioridad": "baja"
+          }
+        },
+        {
+          "agregar": "QA Media",
+          "campos": {
+            "prioridad": "media"
+          }
+        },
+        {
+          "agregar": "QA Alta Nueva",
+          "campos": {
+            "prioridad": "alta"
+          }
+        }
+      ],
+      "veo": [
+        {
+          "orden": [
+            "QA Alta Nueva",
+            "QA Alta Vieja",
+            "QA Media",
+            "QA Baja"
+          ],
+          "en": "En Curso"
+        }
+      ],
+      "_plantilla": "orden_por_campo",
+      "id": "R16.2"
+    },
+    {
+      "r": "R16",
+      "dado": [
+        {
+          "agregar": "QA Alta Vieja",
+          "campos": {
+            "prioridad": "alta"
+          }
+        },
+        {
+          "agregar": "QA Baja",
+          "campos": {
+            "prioridad": "baja"
+          }
+        },
+        {
+          "agregar": "QA Media",
+          "campos": {
+            "prioridad": "media"
+          }
+        },
+        {
+          "agregar": "QA Alta Nueva",
+          "campos": {
+            "prioridad": "alta"
+          }
+        }
+      ],
+      "veo": [
+        {
+          "orden": [
+            "QA Alta Nueva",
+            "QA Alta Vieja",
+            "QA Media",
+            "QA Baja"
+          ],
+          "en": "Completa"
+        }
+      ],
+      "_plantilla": "orden_por_campo",
+      "id": "R16.3"
+    },
+    {
+      "r": "R17",
+      "dado": [
+        {
+          "agregar": "QA Alfa"
+        }
+      ],
+      "hago": {
+        "pasar_mouse": "QA Alfa"
+      },
+      "veo": [
+        {
+          "al_pasar": [
+            "Eliminar: 🗑️",
+            "Editar: ✏️"
+          ],
+          "en_item": "QA Alfa"
+        }
+      ],
+      "_plantilla": "al_pasar_mouse",
+      "id": "R17.1"
+    }
+  ],
+  "sin_fila": {
+    "R13": "Qwen no dio filas válidas"
+  },
+  "rechazadas": {
+    "R2": [
+      {
+        "fila": null,
+        "problems": [
+          "elección 1 (crear): el requisito no habla de eso; usá solo plantillas de lo que dice"
+        ]
+      }
+    ],
+    "R3": [
+      {
+        "fila": null,
+        "problems": [
+          "elección 2 (borrar): el requisito no habla de eso; usá solo plantillas de lo que dice"
+        ]
+      }
+    ],
+    "R6": [
+      {
+        "fila": null,
+        "problems": [
+          "elección 2 (al_pasar_mouse): el requisito no habla de eso; usá solo plantillas de lo que dice"
+        ]
+      }
+    ],
+    "R8": [
+      {
+        "fila": null,
+        "problems": [
+          "elección 2 (crear): el requisito no habla de eso; usá solo plantillas de lo que dice"
+        ]
+      }
+    ],
+    "R13": [
+      {
+        "fila": null,
+        "problems": [
+          "elección 1 (se_ven_textos): \"Pendiente\", \"En Curso\", \"Completa\" no está entre comillas en el requisito: solo se prueban textos que el usuario citó (lo demás es una descripción, no un texto de la pantalla)"
+        ]
+      }
+    ],
+    "R14": [
+      {
+        "fila": null,
+        "problems": [
+          "elección 1 (editar): falta un valor nuevo para \"prioridad\" (uno de los que nombra el usuario)"
+        ]
+      }
+    ]
+  }
+}

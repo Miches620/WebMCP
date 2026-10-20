@@ -11,7 +11,7 @@ const K = { item: "tarjeta", grupo: "columna" };
 const REC = { item: "receta", grupo: "categoría" };
 const HOJA = { item: "fila", grupo: null };
 
-t("versión", GLOSARIO_VERSION === "glosario v0.1");
+t("versión", GLOSARIO_VERSION === "glosario v0.2");
 t("un glosario se revisa: tipos que no existen y nombres que no son palabras → problemas", leerGlosario(K).ok && !leerGlosario({ tarjeta: "item" }).ok && !leerGlosario({ item: "<div>" }).ok && leerGlosario(HOJA).ok);
 t("sin glosario → palabras genéricas (elemento, grupo)", palabra(null, "item") === "elemento" && palabra(null, "grupo") === "grupo");
 t("tipoDe: el nombre de la app, su plural y sin tildes", tipoDe(K, "Columnas") === "grupo" && tipoDe(K, "tarjeta") === "item" && tipoDe(REC, "categoria") === "grupo" && tipoDe(K, "receta") === null);
@@ -33,6 +33,11 @@ t("el pedido libre también usa los nombres de la app", /\{ "categoría": "nombr
 t("lo que contesta Qwen con nombres de la app → tipos; los casilleros propios (campo) no se traducen", eleccionATipos({ plantilla: "borrar", "categoría": "Postres" }, REC).grupo === "Postres" && eleccionATipos({ plantilla: "color_segun_valor", campo: "x" }, { item: "campo" }).campo === "x" && eleccionATipos({ plantilla: "estilo", de: "receta" }, REC).de === "item");
 const rr = rowsFromChoices([{ plantilla: "mover", a: "Postres", desde: "Entradas" }, { plantilla: "estilo", de: "receta", prop: "width", valor: "300px" }], "R1", REC);
 t("con el glosario de recetas, las plantillas arman filas con tipos", rr.filas.length === 2 && rr.filas[0].veo[0].en === "Postres" && rr.filas[1].veo[0].estilo.de.item === "QA Alfa" && !rr.problems.length, JSON.stringify(rr));
+
+// v0.2: "inicio" (dónde aparece lo que se crea): el error que más se repitió en el banco de 5 modelos (20/10)
+const KI = { ...K, inicio: "Pendiente" };
+const ri = rowsFromChoices([{ plantilla: "contador_al_crear", columna: "En Curso" }, { plantilla: "contador_al_crear", columna: "Pendiente" }, { plantilla: "mover", a: "Pendiente", desde: "En Curso" }, { plantilla: "orden_por_campo", campo: "prioridad", valores: ["alta", "baja"], columna: "Completa" }], "R8", KI);
+t("inicio: crear y mirar el contador de En Curso, mover A Pendiente u ordenar en Completa (donde no se crea nada) → afuera, diciendo dónde aparece lo nuevo", ri.filas.length === 1 && ri.filas[0].veo[0].contador === "Pendiente" && ri.problems.length === 3 && ri.problems.every((x) => /aparece (en )?"?Pendiente|ya aparece lo que se crea/.test(x)) && leerGlosario(KI).ok && leerGlosario(KI).glosario.inicio === "Pendiente", JSON.stringify(ri.problems));
 
 // GUARDIÁN: el código del juez y de las plantillas no nombra cosas de ninguna app (solo los comentarios cuentan la historia)
 const code = (f) => readFileSync(new URL(`./${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").split("\n").map((l) => l.replace(/(^|\s)\/\/.*$/, "")).join("\n");

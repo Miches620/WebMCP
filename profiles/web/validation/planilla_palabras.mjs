@@ -48,6 +48,7 @@ export function describirFila(row0, g) {
       const val = e.valor && typeof e.valor === "object" && !Array.isArray(e.valor) ? `distinto de ${e.valor.distinto}` : [].concat(e.valor).join(" o ");
       return `${cosa} tiene ${e.prop}: ${val}`;
     }
+    if (v.pregunta) return `al apretar borrar, antes de confirmar, aparece ${q(v.pregunta)}`;
     if (v.desborde) return N(`con ${dado.length || "muchos"} {items} en ${q(v.desborde)}, se desplaza (scroll) adentro de {el_grupo} y la página NO se desplaza`);
     if (v.color_en_item) return N(`{el_item} se pinta de ${v.familia}${v.texto ? ` donde dice ${q(v.texto)}` : ""}`);
     return "?";

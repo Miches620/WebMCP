@@ -424,90 +424,57 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-10-19c'; // 19/10 noche: npm run proyecto (cadena entera por consola)
+  const SEED = '2026-10-19e'; // 19/10 22h: 1ª planilla de la cadena mal por el glosario → arreglado; repetir nuevo
   let state = loadState() || {
  "columns": [
   {
-   "id": "col-1",
-   "name": "📋 Pendiente",
-   "isInbox": true,
-   "isDefault": true,
+   "id": "col-5",
+   "name": "🅿️ Pospuestas",
+   "isInbox": false,
+   "isDefault": false,
    "cards": [
-    {
-     "id": "p34",
-     "title": "1 · Searcher (SearXNG local) + Intent Forge arma la PLANILLA: fichas con fuentes escritas como filas dado / hago / veo; Miche edita y aprueba; se compara contra la planilla a mano del Kanban",
-     "desc": "[19/10 noche] HECHO npm run proyecto: nuevo (pedido tal cual → glosario y planilla de Qwen → planilla.md en palabras para Miche) · seguir (vuelta 0: borrador de Gemma, un archivo por pedido; después el ciclo; volver a correrlo RETOMA) · juzgar. Juez: el overflow solo cuenta en el elemento mismo y hay prueba nueva de desborde (scrollea la columna, no la página; Miche lo vio) → la app del 16/16 queda en 15/16. Restricciones como pruebas (no_borrar_en). SIGUE: 1ª corrida real con project26; después Intent Forge en la pantalla. — [19/10 tarde] ¡16 DE 16! Ciclo v0.3 sobre la app rota de Gemma sola: 24 vueltas, 121 min de modelo. La prioridad (5 lugares) salió en una vuelta gracias al avance parcial; R4 y R5 pasaron solos; R16 el orden. Verificado aparte con otros textos al azar: 16/16. FALTA: que Miche mire la app; borrador desde cero; hoja de cálculo (tipo para celdas + escribir / archivo / tiempo). — [19/10] CICLO REAL: Gemma sola, sin ayuda, de 2 a 12 de 16 requisitos en 30 vueltas (151 min); mejor que todo lo anterior (arreglada a mano 10, plantillas 5, estado 4). Faltan R3/R4/R5/R16: un campo nuevo (prioridad) en 4 lugares. v0.3: avance parcial (cada ✓ suma) y probar cada cambio solo si juntos no sirven. SIGUE: correr v0.3. — [18/10] HECHO EL CICLO v0.1 (npm run ciclo): juez → 1er requisito que falla → Gemma mira el mapa y pide qué ver → arregla funciones o archivos chicos → el juez prueba eso y todo lo que ya andaba (si rompe, vuelve atrás); 3 intentos y pendiente, segunda pasada. Decisión de Miche: Gemma VE qué se prueba (en palabras); el juez usa textos al azar. Test con modelo de mentira sobre la app rota de Gemma sola: 2 → 10 requisitos en 1 vuelta. FALTA: corrida real con Gemma (antes resolver los 4–5 tokens/s). Intent Forge: preguntas y resumen a revisar (no preguntar el CÓMO). — [17/10 15h15] Qwen con glosario (writer v0.4): 61/68, más dura 6 → 0 (las reglas de v0.2.1 funcionaron). Queda que Qwen se queda corto: R5 (forma de los campos), R8 (se olvida el contador), R15 (pierde una parte en el reintento). Patrones genéricos: se arreglan si se repiten en la hoja de cálculo (regla de 2 proyectos). SIGUE: Intent Forge con la hoja de cálculo. — [17/10 14h30] HECHO GLOSARIO (diseño de 3 capas, pedido de Miche: nada de plantillas multiuso). El juez conoce TIPOS (item, grupo, control, pagina); cada proyecto dice cómo se llaman en un glosario (Kanban: tarjeta, columna). Guardián: el código no dice tarjeta/columna/Kanban. Mismo resultado sin modelo: matrices iguales, techo 67/68, v0.3.1 55/68. Regla: un tipo o acción nueva entra solo si la piden 2 proyectos. PROYECTO NUEVO: hoja de cálculo (Searcher: Miche aceptó 1 de 7 preguntas, fórmulas; sumó recálculo, formatos de celda, importar y exportar .csv, autoguardado cada 10 min). PRÓXIMO: volver a correr Qwen con --glosario; tipo para lo nombrado (celda C1, con nombre accesible, opción b) y acciones escribir / elegir archivo / descarga / pasa el tiempo. — [17/10 13h] Plantillas v0.3.1: 55/68 (techo 67). v0.2.1: valores de estilo del requisito, lo citado es un nombre, texto libre con QA. PARAR de ajustar con el Kanban → proyecto NUEVO (idea de Miche). — [17/10 mediodía] Plantillas, 1ª corrida real: 54/68 (libre 32), 16/17 requisitos con filas (techo 67). v0.3.1: pertinencia por requisito, piezas del código, campos sin valor. Searcher v0.3.1: bilingüe → 'mover tarjetas' 3 de 7 fuentes. PRÓXIMO: medir v0.3.1 y probar con un proyecto NUEVO (las reglas se ajustaron con c22). — [17/10 madrugada] HECHO plantillas de fila (planilla_writer v0.3, modo por defecto): 13 plantillas, Qwen elige y completa casilleros; techo medido con elecciones ideales 67/68 contra la vara. Searcher v0.3: Qwen dice el tipo, el harness arma las consultas. MEDIR: npm run planilla + npm run comparar (línea base: libre v0.2.1 = 32/68). — [17/10 2ª corrida] Qwen v0.2: 28/68; sin basura, pero no se corrige (9 req sin fila tras 3 intentos); donde da filas 24/32 = 75%. Qwen encontró un hueco en la vara (R12 overflow) → corregida. v0.2.1: más normalización y validador. Searcher: una fuente por sitio, sin CSS, cita que diga el rasgo, consultas a listas de funcionalidades. DECIDIR: plantillas de fila (Qwen elige plantilla + casilleros). — [17/10 madrugada, 1ª corrida real] Qwen v0.1: 30/68 contra la vara (filas basura que el validador dejaba pasar) → planilla_writer v0.2 con chequeos de sentido (de 18 filas rechaza 15, rescata 2). Searcher v0.1: 25 preguntas de 1 fuente y 'arrastrar' mal marcado como pedido → v0.2 agrupa sin modelo, aparta lo fuera del stack, 8 preguntas (Q1 arrastrar, 2 de 6). FALTA: correr Qwen v0.2 y comparar. — [HECHO 16/10 noche, falta medir con LM Studio] searcher v0.1 (npm run searcher \"idea\": SearXNG + citas verificadas → preguntas cerradas), planilla_writer (npm run planilla: Qwen escribe filas, validador sin modelo, 3 intentos) y compare_planillas (npm run comparar: contra la vara, sobre las 4 apps). Próximo: correr Qwen sobre c22 y comparar; después las preguntas del Searcher en la UI de Intent Forge. — [Decisión Miche 16/10] Las filas las propone QWEN (no Gemma: que no vea su propio examen); Miche edita y aprueba. SearXNG: paso a paso en el README (Docker, 127.0.0.1:8888, formats json, limiter false) y npm run searxng para probarlo. — [#Investigador #IntentForge] Propuesta de Miche (16/10): proyecto → Searcher busca proyectos parecidos → informe → Intent Forge pregunta con ese informe → resto igual. Reglas propuestas por Claude: el informe NO agrega requisitos, solo PREGUNTAS cerradas que Miche confirma (cada línea del refined sigue saliendo de lo que dijo Miche); el informe queda como evidencia (fuentes, fecha); el harness hace las búsquedas y baja las páginas, el modelo solo resume en una ficha de rasgos con su fuente. Specialist/Validation no buscan en el momento: el Investigador arma fichas antes y se miden con/sin (como las Skills). FALTA decidir: con qué buscar (SearXNG local, una API con clave, …).",
-     "priority": "urgente"
-    },
-    {
-     "id": "p55",
-     "title": "2 · Librito libre: Standard web/app/libre (DRAFT) + ciclo de correcciones en contexto nuevo",
-     "desc": "[#Experimento #Standards] Gemma sola hizo el Kanban en 6618 tokens con drag & drop y localStorage andando (crear roto por 1 línea, XSS, sin prioridad). Ya existe build/validate_external.mjs para medirla con la misma Validation. Idea: Gemma escribe la app entera a su manera; el harness valida y le devuelve los FAIL concretos, cada corrección en un contexto NUEVO (solo el archivo a tocar completo + el resto resumido, y cambios por función, para que entre en 12k). Depende de p40 (sin juez de flujo, los FAIL no son ciertos).",
-     "priority": "urgente"
-    },
     {
      "id": "p44",
      "title": "Skill de Frontend: texto del usuario con textContent (al 1er intento)",
-     "desc": "[#Skills #Seguridad] El aviso ya lo corrige en 1 reintento (79 s). Una Skill solo ahorraría ese reintento a cambio de texto en cada pedido de dibujo. Medir con step_bench (con / sin / placebo) cuando haya más proyectos web/app; no es urgente.",
+     "desc": "Fuera del foco hoy (19/10). [#Skills #Seguridad] El aviso ya lo corrige en 1 reintento (79 s). Una Skill solo ahorraría ese reintento a cambio de texto en cada pedido de dibujo. Medir con step_bench (con / sin / placebo) cuando haya más proyectos web/app; no es urgente.",
      "priority": "medio"
     },
     {
      "id": "p36",
      "title": "Puntos 5/6 · Tests antes del código, por tarea (TDD rojo → verde)",
-     "desc": "[#TDD] Depende del punto 9 y de p32 (filtrar ejemplos malos de Gemma sin referencia). Dos capas: aceptación por requisito (Validation) y unitarios por tarea. El test tiene que fallar contra el esqueleto antes del código; los tests los corre el harness (no Gemma) en sesiones limpias, máx. 3 intentos.",
+     "desc": "SUPERADO (19/10): la planilla es la prueba antes del código y el ciclo corrige contra ella. [#TDD] Depende del punto 9 y de p32 (filtrar ejemplos malos de Gemma sin referencia). Dos capas: aceptación por requisito (Validation) y unitarios por tarea. El test tiene que fallar contra el esqueleto antes del código; los tests los corre el harness (no Gemma) en sesiones limpias, máx. 3 intentos.",
      "priority": "urgente"
-    },
-    {
-     "id": "p37",
-     "title": "Punto 10 · Al terminar, el Orchestrator pregunta si cumple",
-     "desc": "[#Orchestrator] Se reabre el chat: si sí, el proyecto termina; si no, nueva ronda de Intent Forge sobre el proyecto en curso. Separar 'no cumple algo pedido' (falla del pipeline, evidencia) de 'quiero algo nuevo' (+ Feature).",
-     "priority": "medio"
     },
     {
      "id": "p39",
      "title": "D3 · Tope = lo que entra: el motor asume 16000 de contexto y Gemma está en 12000",
-     "desc": "[#Infra #D3] El reviewer ya calcula su tope desde el contexto (REVIEWER_CONTEXT). Falta el motor del Specialist: WEBMCP_CONTEXT por defecto 16000 vs 12000 de Gemma en LM Studio. Opciones: default 12000, o leerlo de LM Studio (/api/v0/models). Antes de que un pedido de 7k pida una respuesta que no entra.",
+     "desc": "En parte resuelto (19/10): el ciclo usa 12000; files_engine (run_build) sigue en 16000. [#Infra #D3] El reviewer ya calcula su tope desde el contexto (REVIEWER_CONTEXT). Falta el motor del Specialist: WEBMCP_CONTEXT por defecto 16000 vs 12000 de Gemma en LM Studio. Opciones: default 12000, o leerlo de LM Studio (/api/v0/models). Antes de que un pedido de 7k pida una respuesta que no entra.",
      "priority": "medio"
     },
     {
      "id": "p32",
      "title": "Pruebas primero: un ejemplo malo arruina la compuerta",
-     "desc": "[#TDD] v0.3 adelante: 85% válidos, 85% de ellos correctos. Con todos correctos atrapa ~91% de las rotas; con uno solo mal rechaza todas las buenas (8 de 14 muestras). Falta: (1) filtrar ejemplos mal sin referencia; (2) revisar las 'falsas alarmas' con ejemplos correctos: pueden ser huecos de las pruebas del harness.",
+     "desc": "SUPERADO (19/10): era del Standard con pruebas primero; el ciclo no lo usa. [#TDD] v0.3 adelante: 85% válidos, 85% de ellos correctos. Con todos correctos atrapa ~91% de las rotas; con uno solo mal rechaza todas las buenas (8 de 14 muestras). Falta: (1) filtrar ejemplos mal sin referencia; (2) revisar las 'falsas alarmas' con ejemplos correctos: pueden ser huecos de las pruebas del harness.",
      "priority": "urgente"
     },
     {
      "id": "p30",
      "title": "TechLeader: rol inválido se cambia en silencio",
-     "desc": "[#Contrato] Lo marcó ChatGPT (10/10) y sigue en script.js: si el rol de una fase no es válido, se reemplaza por profile.defaultRole sin avisar. depends_on mal formado sí se rechaza. Elegir una sola regla: rechazar, o reemplazar dejando constancia (evidencia).",
+     "desc": "Fuera del foco (19/10): TechLeader no participa del ciclo. [#Contrato] Lo marcó ChatGPT (10/10) y sigue en script.js: si el rol de una fase no es válido, se reemplaza por profile.defaultRole sin avisar. depends_on mal formado sí se rechaza. Elegir una sola regla: rechazar, o reemplazar dejando constancia (evidencia).",
      "priority": "medio"
     },
     {
      "id": "n6",
      "title": "5 · Transversales: estilo que el Specialist respete",
-     "desc": "[#Transversales] Las restricciones ya llegan al Specialist en app/game (hoy). Falta: el estilo (R8 'Family NES 8 bits') llega como transversal pero Gemma lo ignora en los 6 builds; y en landing las restricciones todavía no llegan. 12/10: en el Kanban R7 (paleta oscura) da SIN_EVIDENCIA en todas las corridas: no hay chequeo de estilo que discrimine.",
+     "desc": "Fuera del foco hoy (19/10). [#Transversales] Las restricciones ya llegan al Specialist en app/game (hoy). Falta: el estilo (R8 'Family NES 8 bits') llega como transversal pero Gemma lo ignora en los 6 builds; y en landing las restricciones todavía no llegan. 12/10: en el Kanban R7 (paleta oscura) da SIN_EVIDENCIA en todas las corridas: no hay chequeo de estilo que discrimine.",
      "priority": "medio"
     },
     {
      "id": "n7",
      "title": "6 · Infra: TechLeader/Atomic por server.mjs + reconectar SQLite",
-     "desc": "[#Infra] TechLeader llama a LM Studio desde el navegador (CORS). /api/projects se perdió; persistProject() no lo llama nadie. Requisito para 'Proyectos'.",
+     "desc": "Fuera del foco (19/10): TechLeader/Atomic no participan del ciclo. [#Infra] TechLeader llama a LM Studio desde el navegador (CORS). /api/projects se perdió; persistProject() no lo llama nadie. Requisito para 'Proyectos'.",
      "priority": "bajo"
-    }
-   ]
-  },
-  {
-   "id": "col-2",
-   "name": "⚙️ En Progreso",
-   "isInbox": false,
-   "isDefault": true,
-   "cards": []
-  },
-  {
-   "id": "col-5",
-   "name": "🅿️ Estacionado (no es el foco hoy, o superado)",
-   "isInbox": false,
-   "isDefault": false,
-   "cards": [
+    },
     {
      "id": "p51",
      "title": "Primera comparación: el mismo snapshot con web/app/estado y web/app/plantillas",
@@ -557,12 +524,6 @@
      "priority": "bajo"
     },
     {
-     "id": "n8",
-     "title": "FUTURO · Botón Proyectos (Continuar / + Feature)",
-     "desc": "[#Futuro] Solo con el Specialist pulido. Lista de proyectos con estado; 'Continuar' si quedó a mitad, '+ Feature' si está terminado.",
-     "priority": "bajo"
-    },
-    {
      "id": "n9",
      "title": "FUTURO · Estado del proyecto desde datos",
      "desc": "[#Futuro] Features actuales = las que tienen PASS en Validation. Lo arma el código, no un LLM.",
@@ -577,11 +538,117 @@
    ]
   },
   {
-   "id": "col-4",
-   "name": "✅ Hecho 05–16/10",
-   "isInbox": false,
-   "isDefault": false,
+   "id": "col-1",
+   "name": "📋 Pendientes",
+   "isInbox": true,
+   "isDefault": true,
    "cards": [
+    {
+     "id": "n84",
+     "title": "Intent Forge en la pantalla: hacer SOLO lo de la cadena",
+     "desc": "Decisión de Miche (17-19/10, ingeniería inversa): tus líneas tal cual (sin reescribir ni clasificar), la planilla en palabras para aprobar (reemplaza al \"Así entendí\" confuso), y preguntas SOLO cuando a una prueba le falta un dato (nunca el CÓMO). Lo mismo que npm run proyecto nuevo, pero en la UI. Esperar el resultado de la 1ª corrida real.",
+     "priority": "urgente"
+    },
+    {
+     "id": "n8",
+     "title": "Retomar proyectos desde la pantalla (botón Proyectos: Continuar / + Feature)",
+     "desc": "19/10: la parte de atrás ya existe: npm run proyecto -- seguir <proyecto> retoma desde su app (el ciclo arranca de la app que hay). Falta: que el proyecto guarde app + pedidos + planilla y se elija desde la UI; \"+ Feature\" = filas nuevas en la planilla y seguir. — [#Futuro] Solo con el Specialist pulido. Lista de proyectos con estado; 'Continuar' si quedó a mitad, '+ Feature' si está terminado.",
+     "priority": "medio"
+    },
+    {
+     "id": "n85",
+     "title": "Hoja de cálculo: 2º proyecto para la cadena",
+     "desc": "Requisitos de Miche (17/10): fórmulas con recálculo en cadena, formatos de celda, importar y exportar .csv, autoguardado cada 10 min, BUSCARV/BUSCARH/SUMAR.SI, sugerencias de fórmulas. Falta en el juez: un tipo para lo que se nombra y no se crea (celda C1, con nombre accesible — opción b) y las acciones escribir en / elegir archivo / descarga / pasa el tiempo. Regla: entran a las capas genéricas si las pide un 2º proyecto.",
+     "priority": "medio"
+    },
+    {
+     "id": "n86",
+     "title": "Ciclo: no perder vueltas cuando un error traba a varios requisitos",
+     "desc": "3ª corrida: las vueltas 1–12 se perdieron (R1 a R5 trabados por el mismo error de index.html, que se arregló recién en R6). Idea: si varios requisitos fallan con el mismo error de JS, atacar ese error primero.",
+     "priority": "medio"
+    },
+    {
+     "id": "n87",
+     "title": "Restricción \"sin tarjetas vacías\": el juez no sabe crear sin título",
+     "desc": "Es una de las 4 restricciones de project26. Hace falta que \"agregar\" pueda dejar el título vacío y \"veo\" que no aparezca nada.",
+     "priority": "bajo"
+    },
+    {
+     "id": "n88",
+     "title": "Searcher conectado a la cadena (preguntas sí/no)",
+     "desc": "17/10: con la hoja de cálculo Miche aceptó 1 de 7 preguntas; con apps muy conocidas trae lo que tienen los productos comerciales. Medir con el 2º proyecto antes de invertir más.",
+     "priority": "bajo"
+    },
+    {
+     "id": "p37",
+     "title": "Punto 10 · Al terminar, el Orchestrator pregunta si cumple",
+     "desc": "[#Orchestrator] Se reabre el chat: si sí, el proyecto termina; si no, nueva ronda de Intent Forge sobre el proyecto en curso. Separar 'no cumple algo pedido' (falla del pipeline, evidencia) de 'quiero algo nuevo' (+ Feature).",
+     "priority": "medio"
+    }
+   ]
+  },
+  {
+   "id": "col-2",
+   "name": "⚙️ En Progreso",
+   "isInbox": false,
+   "isDefault": true,
+   "cards": [
+    {
+     "id": "w89",
+     "title": "AHORA · 1ª corrida real de npm run proyecto con project26 (desde cero)",
+     "desc": "[19/10 22h] 1ª planilla de Qwen NO sirvió: el glosario dijo que no hay columnas (sin mover/contadores/orden) y la restricción de Completa salió al revés. Arreglado (glosario verificado y re-preguntado, --glosario, restricciones, textos citados, confirmar_al_borrar). Repetir \"nuevo\". — Miche (19/10 noche): nuevo con Qwen (30 requisitos: 17 features, 9 criterios nuevos, 4 restricciones) → Miche lee planilla.md → seguir con Gemma (borrador + ciclo) → juzgar contra la vara a mano. Se mide: cuánto de la planilla aprueba Miche, requisitos cumplidos (su planilla y la vara), vueltas y minutos.",
+     "priority": "urgente"
+    }
+   ]
+  },
+  {
+   "id": "col-3",
+   "name": "✅ Completadas",
+   "isInbox": false,
+   "isDefault": true,
+   "cards": [
+    {
+     "id": "h90",
+     "title": "19/10 noche · npm run proyecto: la cadena entera por consola (pedido tal cual → planilla de Qwen en palabras → borrador de Gemma → ciclo → retomar)",
+     "desc": "Vuelta 0: un archivo por pedido (index.html → styles.css → script.js viendo el HTML). Juez: overflow solo del elemento + prueba \"desborde\" (scrollea la columna, no la página; lo vio Miche) → la app del 16/16 queda en 15/16. Restricciones como pruebas (no_borrar_en). 39 archivos de test, 0 fallas.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h91",
+     "title": "19/10 · Ciclo v0.2 → v0.3: de 2 a 12 y después ¡16 de 16! sobre la app rota de Gemma sola",
+     "desc": "v0.2: código suelto como BLOQUE, nombres con paréntesis, tope de respuesta, errores del harness sin cortar. 2ª corrida: 12/16 en 30 vueltas. v0.3: avance parcial (cada ✓ suma) + cada cambio por separado si juntos no sirven. 3ª corrida: 16/16 en 24 vueltas (121 min); verificado con otros textos al azar.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h92",
+     "title": "18/10 · El ciclo v0.1: mapa de la app, arreglo por función, juez con textos al azar, Gemma ve qué se prueba",
+     "desc": "Decisión de Miche: Gemma ve la consigna del examen (en palabras), no las pruebas exactas. Test con modelo de mentira: 2 → 10 en 1 vuelta, vuelve atrás si rompe.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h93",
+     "title": "17/10 · Glosario de 3 capas (el juez no sabe de tarjetas ni columnas) + Qwen con glosario 61/68",
+     "desc": "Pedido de Miche: nada de plantillas multiuso. Tipos item/grupo/control/pagina; cada proyecto trae su glosario; test guardián.",
+     "priority": "bajo"
+    },
+    {
+     "id": "h94",
+     "title": "17/10 · Plantillas de fila: la planilla de Qwen pasa de 32 a 55/68 contra la vara",
+     "desc": "Qwen elige plantillas y completa casilleros; el harness arma la fila.",
+     "priority": "bajo"
+    },
+    {
+     "id": "p34",
+     "title": "17–19/10 · Searcher + planilla de Qwen + glosario + EL CICLO + npm run proyecto (historial de la tarjeta \"1 · Searcher + Intent Forge arma la planilla\")",
+     "desc": "HECHO (lo que se pudo de esta tarjeta). Lo que queda pasó a tarjetas nuevas: Intent Forge en la pantalla, Searcher conectado. — [19/10 noche] HECHO npm run proyecto: nuevo (pedido tal cual → glosario y planilla de Qwen → planilla.md en palabras para Miche) · seguir (vuelta 0: borrador de Gemma, un archivo por pedido; después el ciclo; volver a correrlo RETOMA) · juzgar. Juez: el overflow solo cuenta en el elemento mismo y hay prueba nueva de desborde (scrollea la columna, no la página; Miche lo vio) → la app del 16/16 queda en 15/16. Restricciones como pruebas (no_borrar_en). SIGUE: 1ª corrida real con project26; después Intent Forge en la pantalla. — [19/10 tarde] ¡16 DE 16! Ciclo v0.3 sobre la app rota de Gemma sola: 24 vueltas, 121 min de modelo. La prioridad (5 lugares) salió en una vuelta gracias al avance parcial; R4 y R5 pasaron solos; R16 el orden. Verificado aparte con otros textos al azar: 16/16. FALTA: que Miche mire la app; borrador desde cero; hoja de cálculo (tipo para celdas + escribir / archivo / tiempo). — [19/10] CICLO REAL: Gemma sola, sin ayuda, de 2 a 12 de 16 requisitos en 30 vueltas (151 min); mejor que todo lo anterior (arreglada a mano 10, plantillas 5, estado 4). Faltan R3/R4/R5/R16: un campo nuevo (prioridad) en 4 lugares. v0.3: avance parcial (cada ✓ suma) y probar cada cambio solo si juntos no sirven. SIGUE: correr v0.3. — [18/10] HECHO EL CICLO v0.1 (npm run ciclo): juez → 1er requisito que falla → Gemma mira el mapa y pide qué ver → arregla funciones o archivos chicos → el juez prueba eso y todo lo que ya andaba (si rompe, vuelve atrás); 3 intentos y pendiente, segunda pasada. Decisión de Miche: Gemma VE qué se prueba (en palabras); el juez usa textos al azar. Test con modelo de mentira sobre la app rota de Gemma sola: 2 → 10 requisitos en 1 vuelta. FALTA: corrida real con Gemma (antes resolver los 4–5 tokens/s). Intent Forge: preguntas y resumen a revisar (no preguntar el CÓMO). — [17/10 15h15] Qwen con glosario (writer v0.4): 61/68, más dura 6 → 0 (las reglas de v0.2.1 funcionaron). Queda que Qwen se queda corto: R5 (forma de los campos), R8 (se olvida el contador), R15 (pierde una parte en el reintento). Patrones genéricos: se arreglan si se repiten en la hoja de cálculo (regla de 2 proyectos). SIGUE: Intent Forge con la hoja de cálculo. — [17/10 14h30] HECHO GLOSARIO (diseño de 3 capas, pedido de Miche: nada de plantillas multiuso). El juez conoce TIPOS (item, grupo, control, pagina); cada proyecto dice cómo se llaman en un glosario (Kanban: tarjeta, columna). Guardián: el código no dice tarjeta/columna/Kanban. Mismo resultado sin modelo: matrices iguales, techo 67/68, v0.3.1 55/68. Regla: un tipo o acción nueva entra solo si la piden 2 proyectos. PROYECTO NUEVO: hoja de cálculo (Searcher: Miche aceptó 1 de 7 preguntas, fórmulas; sumó recálculo, formatos de celda, importar y exportar .csv, autoguardado cada 10 min). PRÓXIMO: volver a correr Qwen con --glosario; tipo para lo nombrado (celda C1, con nombre accesible, opción b) y acciones escribir / elegir archivo / descarga / pasa el tiempo. — [17/10 13h] Plantillas v0.3.1: 55/68 (techo 67). v0.2.1: valores de estilo del requisito, lo citado es un nombre, texto libre con QA. PARAR de ajustar con el Kanban → proyecto NUEVO (idea de Miche). — [17/10 mediodía] Plantillas, 1ª corrida real: 54/68 (libre 32), 16/17 requisitos con filas (techo 67). v0.3.1: pertinencia por requisito, piezas del código, campos sin valor. Searcher v0.3.1: bilingüe → 'mover tarjetas' 3 de 7 fuentes. PRÓXIMO: medir v0.3.1 y probar con un proyecto NUEVO (las reglas se ajustaron con c22). — [17/10 madrugada] HECHO plantillas de fila (planilla_writer v0.3, modo por defecto): 13 plantillas, Qwen elige y completa casilleros; techo medido con elecciones ideales 67/68 contra la vara. Searcher v0.3: Qwen dice el tipo, el harness arma las consultas. MEDIR: npm run planilla + npm run comparar (línea base: libre v0.2.1 = 32/68). — [17/10 2ª corrida] Qwen v0.2: 28/68; sin basura, pero no se corrige (9 req sin fila tras 3 intentos); donde da filas 24/32 = 75%. Qwen encontró un hueco en la vara (R12 overflow) → corregida. v0.2.1: más normalización y validador. Searcher: una fuente por sitio, sin CSS, cita que diga el rasgo, consultas a listas de funcionalidades. DECIDIR: plantillas de fila (Qwen elige plantilla + casilleros). — [17/10 madrugada, 1ª corrida real] Qwen v0.1: 30/68 contra la vara (filas basura que el validador dejaba pasar) → planilla_writer v0.2 con chequeos de sentido (de 18 filas rechaza 15, rescata 2). Searcher v0.1: 25 preguntas de 1 fuente y 'arrastrar' mal marcado como pedido → v0.2 agrupa sin modelo, aparta lo fuera del stack, 8 preguntas (Q1 arrastrar, 2 de 6). FALTA: correr Qwen v0.2 y comparar. — [HECHO 16/10 noche, falta medir con LM Studio] searcher v0.1 (npm run searcher \"idea\": SearXNG + citas verificadas → preguntas cerradas), planilla_writer (npm run planilla: Qwen escribe filas, validador sin modelo, 3 intentos) y compare_planillas (npm run comparar: contra la vara, sobre las 4 apps). Próximo: correr Qwen sobre c22 y comparar; después las preguntas del Searcher en la UI de Intent Forge. — [Decisión Miche 16/10] Las filas las propone QWEN (no Gemma: que no vea su propio examen); Miche edita y aprueba. SearXNG: paso a paso en el README (Docker, 127.0.0.1:8888, formats json, limiter false) y npm run searxng para probarlo. — [#Investigador #IntentForge] Propuesta de Miche (16/10): proyecto → Searcher busca proyectos parecidos → informe → Intent Forge pregunta con ese informe → resto igual. Reglas propuestas por Claude: el informe NO agrega requisitos, solo PREGUNTAS cerradas que Miche confirma (cada línea del refined sigue saliendo de lo que dijo Miche); el informe queda como evidencia (fuentes, fecha); el harness hace las búsquedas y baja las páginas, el modelo solo resume en una ficha de rasgos con su fuente. Specialist/Validation no buscan en el momento: el Investigador arma fichas antes y se miden con/sin (como las Skills). FALTA decidir: con qué buscar (SearXNG local, una API con clave, …).",
+     "priority": "urgente"
+    },
+    {
+     "id": "p55",
+     "title": "19/10 · Librito libre = EL CICLO: Gemma corrige con el error a la vista, en contexto nuevo, vuelta a vuelta (16/16)",
+     "desc": "HECHO como build/run_ciclo.mjs (no como un Standard): mapa de la app, arreglo por función, vuelve atrás si rompe, avance parcial. — [#Experimento #Standards] Gemma sola hizo el Kanban en 6618 tokens con drag & drop y localStorage andando (crear roto por 1 línea, XSS, sin prioridad). Ya existe build/validate_external.mjs para medirla con la misma Validation. Idea: Gemma escribe la app entera a su manera; el harness valida y le devuelve los FAIL concretos, cada corrección en un contexto NUEVO (solo el archivo a tocar completo + el resto resumido, y cambios por función, para que entre en 12k). Depende de p40 (sin juez de flujo, los FAIL no son ciertos).",
+     "priority": "urgente"
+    },
     {
      "id": "h65",
      "title": "16/10 noche · Planilla de comportamientos v0.1 (formato + la del Kanban a mano + Validation la ejecuta)",
@@ -959,15 +1026,7 @@
      "title": "05/10 · Refactor de profiles (otra sesión)",
      "desc": "[#Infra] Core vs tipo de proyecto: profiles/web, web/landing, web/app. Sin cambio de conducta verificado byte a byte.",
      "priority": "bajo"
-    }
-   ]
-  },
-  {
-   "id": "col-3",
-   "name": "✅ Completado antes",
-   "isInbox": false,
-   "isDefault": true,
-   "cards": [
+    },
     {
      "id": "p11",
      "title": "03–04/10 · Intent Forge v0.3–v0.8",
@@ -990,7 +1049,7 @@
   }
  ],
  "customColumnsCount": 1,
- "cardCounter": 83
+ "cardCounter": 94
 };
   
   let editingColumnId = null;

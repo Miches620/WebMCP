@@ -1,0 +1,1139 @@
+{
+  "type": "EVIDENCE",
+  "kind": "planilla_writer",
+  "version": "planilla_writer v0.4",
+  "ms": 187431,
+  "glosario": {
+    "glosario": {
+      "item": "tarjeta",
+      "grupo": null
+    },
+    "raw": "```json\n{ \"item\": \"tarjeta\", \"grupo\": null }\n```"
+  },
+  "calls": {
+    "R1": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"crear\", \"campos\": { \"Titulo\": \"Tarea pendiente\", \"Descripción\": \"Detalles de la tarea\", \"Prioridad\": \"alta\" } } ] }\n```",
+        "usage": {
+          "prompt_tokens": 1841,
+          "completion_tokens": 54,
+          "total_tokens": 1895,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R2": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"boton_en\",\n      \"palabras\": [\"Agregar\", \"tarjeta\"]\n    },\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"Pendiente\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1861,
+          "completion_tokens": 66,
+          "total_tokens": 1927,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 2,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R3": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"crear_con_campos\",\n      \"campos\": {\n        \"prioridad\": \"alta\"\n      }\n    },\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": {\n        \"prioridad\": \"media\"\n      }\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1883,
+          "completion_tokens": 73,
+          "total_tokens": 1956,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [
+          [
+            "elección 2 (editar): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"crear_con_campos\",\n      \"campos\": {\n        \"prioridad\": \"alta\"\n      }\n    },\n    {\n      \"plantilla\": \"color_segun_valor\",\n      \"campo\": \"prioridad\",\n      \"valor\": \"alta\",\n      \"familia\": \"rojo\"\n    },\n    {\n      \"plantilla\": \"color_segun_valor\",\n      \"campo\": \"prioridad\",\n      \"valor\": \"media\",\n      \"familia\": \"amarillo\"\n    },\n    {\n      \"plantilla\": \"color_segun_valor\",\n      \"campo\": \"prioridad\",\n      \"valor\": \"baja\",\n      \"familia\": \"verde\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2013,
+          "completion_tokens": 166,
+          "total_tokens": 2179,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 4,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R4": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"crear_con_campos\",\n      \"campos\": {\n        \"Titulo\": \"Crear nueva tarea\",\n        \"Descripción\": \"Escribe aquí la descripción de tu tarea\",\n        \"Prioridad\": \"alta\"\n      }\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1862,
+          "completion_tokens": 70,
+          "total_tokens": 1932,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R5": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": { \"Titulo\": \"nuevo título\", \"Descripción\": \"nueva descripción\", \"Prioridad\": \"media\" }\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1867,
+          "completion_tokens": 58,
+          "total_tokens": 1925,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R6": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"crear\",\n      \"campos\": {}\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"tarjeta\",\n      \"prop\": \"width\",\n      \"valor\": \"223px\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"tarjeta\",\n      \"prop\": \"height\",\n      \"valor\": \"250px\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"drag-handle\",\n      \"prop\": \"width\",\n      \"valor\": \"24px\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"drag-handle\",\n      \"prop\": \"class\",\n      \"valor\": \"'drag-handle' draggable='true'\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1904,
+          "completion_tokens": 185,
+          "total_tokens": 2089,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (crear): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 2 (estilo): el valor \"223px\" no está en este requisito; usá solo los valores que dice"
+          ],
+          [
+            "elección 3 (estilo): el valor \"250px\" no está en este requisito; usá solo los valores que dice"
+          ],
+          [
+            "elección 1 (estilo): falta \"de\": pagina, grupo, tarjeta o boton"
+          ],
+          [
+            "elección 2 (estilo): falta \"de\": pagina, grupo, tarjeta o boton"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"drag_drop\",\n      \"de\": \"tarjeta\",\n      \"prop\": \"width\",\n      \"valor\": \"223px\"\n    },\n    {\n      \"plantilla\": \"drag_drop\",\n      \"de\": \"tarjeta\",\n      \"prop\": \"height\",\n      \"valor\": \"250px\"\n    },\n    {\n      \"plantilla\": \"drag_drop\",\n      \"de\": \"drag-handle\",\n      \"prop\": \"width\",\n      \"valor\": \"24px\"\n    },\n    {\n      \"plantilla\": \"drag_drop\",\n      \"de\": \"drag-handle\",\n      \"prop\": \"class\",\n      \"valor\": \"'drag-handle' draggable='true'\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2254,
+          "completion_tokens": 167,
+          "total_tokens": 2421,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1: la plantilla \"drag_drop\" no existe (usá: crear, crear_con_campos, editar, borrar, recargar_sigue, se_ven_textos, boton_en, al_pasar_mouse, estilo, color_segun_valor)"
+          ],
+          [
+            "elección 2: la plantilla \"drag_drop\" no existe (usá: crear, crear_con_campos, editar, borrar, recargar_sigue, se_ven_textos, boton_en, al_pasar_mouse, estilo, color_segun_valor)"
+          ],
+          [
+            "elección 3: la plantilla \"drag_drop\" no existe (usá: crear, crear_con_campos, editar, borrar, recargar_sigue, se_ven_textos, boton_en, al_pasar_mouse, estilo, color_segun_valor)"
+          ],
+          [
+            "elección 4: la plantilla \"drag_drop\" no existe (usá: crear, crear_con_campos, editar, borrar, recargar_sigue, se_ven_textos, boton_en, al_pasar_mouse, estilo, color_segun_valor)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"crear_con_campos\",\n      \"campos\": {\n        \"Titulo\": \"\",\n        \"Descripción\": \"\",\n        \"Prioridad\": \"\"\n      }\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"tarjeta\",\n      \"prop\": \"width\",\n      \"valor\": \"223px\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"tarjeta\",\n      \"prop\": \"height\",\n      \"valor\": \"250px\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"drag-handle\",\n      \"prop\": \"width\",\n      \"valor\": \"24px\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"drag-handle\",\n      \"prop\": \"class\",\n      \"valor\": \"'drag-handle' draggable='true'\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2679,
+          "completion_tokens": 207,
+          "total_tokens": 2886,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (crear_con_campos): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 2 (estilo): el valor \"223px\" no está en este requisito; usá solo los valores que dice"
+          ],
+          [
+            "elección 3 (estilo): el valor \"250px\" no está en este requisito; usá solo los valores que dice"
+          ],
+          [
+            "elección 1 (estilo): falta \"de\": pagina, grupo, tarjeta o boton"
+          ],
+          [
+            "elección 2 (estilo): falta \"de\": pagina, grupo, tarjeta o boton"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R7": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"borrar\",\n      \"campos\": {}\n    },\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"Esta seguro de borrar la tarjeta?\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1906,
+          "completion_tokens": 65,
+          "total_tokens": 1971,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 2,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R8": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"Pendiente\", \"En Curso\", \"Completa\"]\n    },\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"contador de tarjetas dentro de la columna\"]\n    },\n    {\n      \"plantilla\": \"boton_en\",\n      \"palabras\": [\"Agregar tarjeta\"],\n      \"solo_si\": \"columna es 'Pendiente'\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1895,
+          "completion_tokens": 119,
+          "total_tokens": 2014,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 3,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R9": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"estilo\", \"de\": \"pagina\", \"prop\": \"background-color\", \"valor\": \"#102C54\" }, { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"background-color\", \"valor\": \"#F2E9D8\" }, { \"plantilla\": \"estilo\", \"de\": \"div\", \"nombre\": \"columna\", \"prop\": \"background-color\", \"valor\": \"#8FB3C7\" } ] }\n```",
+        "usage": {
+          "prompt_tokens": 1869,
+          "completion_tokens": 121,
+          "total_tokens": 1990,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 2,
+        "rejected": [
+          [
+            "elección 3 (estilo): falta \"de\": pagina, grupo, tarjeta o boton"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"estilo\", \"de\": \"pagina\", \"prop\": \"background-color\", \"valor\": \"#102C54\" }, { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"background-color\", \"valor\": \"#F2E9D8\" }, { \"plantilla\": \"estilo\", \"de\": \"div\", \"nombre\": \"columna\", \"prop\": \"background-color\", \"valor\": \"#8FB3C7\" } ] }\n```",
+        "usage": {
+          "prompt_tokens": 2042,
+          "completion_tokens": 121,
+          "total_tokens": 2163,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 2,
+        "rejected": [
+          [
+            "elección 3 (estilo): falta \"de\": pagina, grupo, tarjeta o boton"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"estilo\", \"de\": \"pagina\", \"prop\": \"background-color\", \"valor\": \"#102C54\" }, { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"background-color\", \"valor\": \"#F2E9D8\" }, { \"plantilla\": \"estilo\", \"de\": \"columna\", \"prop\": \"background-color\", \"valor\": \"#8FB3C7\" } ] }\n```",
+        "usage": {
+          "prompt_tokens": 2215,
+          "completion_tokens": 115,
+          "total_tokens": 2330,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 2,
+        "rejected": [
+          [
+            "elección 3 (estilo): falta \"de\": pagina, grupo, tarjeta o boton"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R10": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"columna\",\n      \"prop\": \"overflow-y\",\n      \"valor\": \"scroll\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"columna\",\n      \"prop\": \"width\",\n      \"valor\": \"248px\"\n    },\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\n        \"Pendiente\",\n        \"En Curso\",\n        \"Completa\"\n      ]\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"header\",\n      \"prop\": \"background-color\",\n      \"valor\": \"#8FB3C7\"\n    },\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\n        \"title ('Pendiente', 'En Curso', o 'Completa')\"\n      ]\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"counter\",\n      \"prop\": \"background-color\",\n      \"valor\": \"#8FB3C7\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1877,
+          "completion_tokens": 247,
+          "total_tokens": 2124,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [
+          [
+            "elección 4 (estilo): el valor \"#8FB3C7\" no está en este requisito; usá solo los valores que dice"
+          ],
+          [
+            "elección 6 (estilo): el valor \"#8FB3C7\" no está en este requisito; usá solo los valores que dice"
+          ],
+          [
+            "elección 1 (estilo): falta \"de\": pagina, grupo, tarjeta o boton"
+          ],
+          [
+            "elección 2 (estilo): falta \"de\": pagina, grupo, tarjeta o boton"
+          ],
+          [
+            "veo[0]: \"title ('Pendiente', 'En Curso', o 'Completa')\" va sin comillas, tal como se ve en la pantalla"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"columna\",\n      \"prop\": \"overflow-y\",\n      \"valor\": \"scroll\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"columna\",\n      \"prop\": \"width\",\n      \"valor\": \"248px\"\n    },\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\n        \"Pendiente\",\n        \"En Curso\",\n        \"Completa\"\n      ]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2306,
+          "completion_tokens": 128,
+          "total_tokens": 2434,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [
+          [
+            "elección 1 (estilo): falta \"de\": pagina, grupo, tarjeta o boton"
+          ],
+          [
+            "elección 2 (estilo): falta \"de\": pagina, grupo, tarjeta o boton"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"columna\",\n      \"prop\": \"overflow-y\",\n      \"valor\": \"scroll\"\n    },\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"columna\",\n      \"prop\": \"width\",\n      \"valor\": \"248px\"\n    },\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\n        \"Pendiente\",\n        \"En Curso\",\n        \"Completa\"\n      ]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2509,
+          "completion_tokens": 128,
+          "total_tokens": 2637,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [
+          [
+            "elección 1 (estilo): falta \"de\": pagina, grupo, tarjeta o boton"
+          ],
+          [
+            "elección 2 (estilo): falta \"de\": pagina, grupo, tarjeta o boton"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R11": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"estilo\", \"de\": \"boton\", \"nombre\": \"Agregar tarjeta\", \"prop\": \"padding\", \"valor\": \"8px\" }, { \"plantilla\": \"estilo\", \"de\": \"boton\", \"nombre\": \"Agregar tarjeta\", \"prop\": \"border-top-style\", \"valor\": \"dashed\" }, { \"plantilla\": \"estilo\", \"de\": \"boton\", \"nombre\": \"Agregar tarjeta\", \"prop\": \"border-radius\", \"valor\": \"8px\" }, { \"plantilla\": \"boton_en\", \"palabras\": [\"Agregar\", \"tarjeta\"] }, { \"plantilla\": \"al_pasar_mouse\", \"textos\": [\"modal de creación de tarjetas\"] } ] }\n```",
+        "usage": {
+          "prompt_tokens": 1874,
+          "completion_tokens": 177,
+          "total_tokens": 2051,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 4,
+        "rejected": [
+          [
+            "elección 5 (al_pasar_mouse): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"estilo\", \"de\": \"boton\", \"nombre\": \"Agregar tarjeta\", \"prop\": \"padding\", \"valor\": \"8px\" }, { \"plantilla\": \"estilo\", \"de\": \"boton\", \"nombre\": \"Agregar tarjeta\", \"prop\": \"border-top-style\", \"valor\": \"dashed\" }, { \"plantilla\": \"estilo\", \"de\": \"boton\", \"nombre\": \"Agregar tarjeta\", \"prop\": \"border-radius\", \"valor\": \"8px\" } ] }\n```",
+        "usage": {
+          "prompt_tokens": 2112,
+          "completion_tokens": 129,
+          "total_tokens": 2241,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 3,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R12": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"overflow-y\", \"valor\": \"scroll\" }, { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"height\", \"valor\": \"250px\" }, { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"width\", \"valor\": \"223px\" } ] }\n```",
+        "usage": {
+          "prompt_tokens": 1880,
+          "completion_tokens": 106,
+          "total_tokens": 1986,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 3,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R13": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"estilo\", \"de\": \"div top\", \"nombre\": \"top\", \"prop\": \"padding\", \"valor\": \"8px\" }, { \"plantilla\": \"estilo\", \"de\": \"div top\", \"nombre\": \"top\", \"prop\": \"border\", \"valor\": \"1px dashed\" }, { \"plantilla\": \"estilo\", \"de\": \"div top\", \"nombre\": \"top\", \"prop\": \"border-radius\", \"valor\": \"8px\" } ] }\n```",
+        "usage": {
+          "prompt_tokens": 1846,
+          "completion_tokens": 122,
+          "total_tokens": 1968,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (estilo): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 2 (estilo): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 3 (estilo): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 1 (estilo): el valor \"8px\" no está en este requisito; usá solo los valores que dice"
+          ],
+          [
+            "elección 3 (estilo): el valor \"8px\" no está en este requisito; usá solo los valores que dice"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"se_ven_textos\", \"textos\": [\"title\", \"actions\"] }, { \"plantilla\": \"al_pasar_mouse\", \"textos\": [\"🗑️\", \"✏️\"] } ] }\n```",
+        "usage": {
+          "prompt_tokens": 2143,
+          "completion_tokens": 60,
+          "total_tokens": 2203,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 2 (al_pasar_mouse): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "veo[0]: \"title\" es el nombre de un campo o de una pieza del código, no un texto que se vea en la pantalla",
+            "veo[1]: \"actions\" es el nombre de un campo o de una pieza del código, no un texto que se vea en la pantalla"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"se_ven_textos\", \"textos\": [\"title\"] }, { \"plantilla\": \"se_ven_textos\", \"textos\": [\"actions\"] } ] }\n```",
+        "usage": {
+          "prompt_tokens": 2344,
+          "completion_tokens": 52,
+          "total_tokens": 2396,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "veo[0]: \"title\" es el nombre de un campo o de una pieza del código, no un texto que se vea en la pantalla"
+          ],
+          [
+            "veo[0]: \"actions\" es el nombre de un campo o de una pieza del código, no un texto que se vea en la pantalla"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R14": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"al_pasar_mouse\", \"textos\": [\"🗑️\", \"✏️\"] } ] }\n```",
+        "usage": {
+          "prompt_tokens": 1853,
+          "completion_tokens": 37,
+          "total_tokens": 1890,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R15": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"tarjeta\",\n      \"prop\": \"box-shadow\",\n      \"valor\": \"con sombra\"\n    },\n    {\n      \"plantilla\": \"al_pasar_mouse\",\n      \"textos\": [\"⠿\"]\n    },\n    {\n      \"plantilla\": \"recargar_sigue\",\n      \"campos\": {\n        \"contador_Pendiente\": -1\n      }\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1864,
+          "completion_tokens": 109,
+          "total_tokens": 1973,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [
+          [
+            "elección 2 (al_pasar_mouse): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 3 (recargar_sigue): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"tarjeta\",\n      \"prop\": \"box-shadow\",\n      \"valor\": \"con sombra\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2064,
+          "completion_tokens": 52,
+          "total_tokens": 2116,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R16": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"z-index\", \"valor\": \"con sombra\" }, { \"plantilla\": \"color_segun_valor\", \"campo\": \"prioridad\", \"valor\": \"alta\", \"familia\": \"rojo\" }, { \"plantilla\": \"color_segun_valor\", \"campo\": \"prioridad\", \"valor\": \"media\", \"familia\": \"amarillo\" }, { \"plantilla\": \"color_segun_valor\", \"campo\": \"prioridad\", \"valor\": \"baja\", \"familia\": \"verde\" } ] }\n```",
+        "usage": {
+          "prompt_tokens": 1903,
+          "completion_tokens": 147,
+          "total_tokens": 2050,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (estilo): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 2 (color_segun_valor): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 3 (color_segun_valor): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 4 (color_segun_valor): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"z-index\", \"valor\": \"con sombra\" } ] }\n```\n\nEl requisito especifica el orden en que se deben mostrar las tarjetas según su prioridad, pero no menciona nada sobre estilos específicos como z-index o colores. Por lo tanto, la única plantilla que puede aplicarse es `estilo` con `z-index`.",
+        "usage": {
+          "prompt_tokens": 2199,
+          "completion_tokens": 105,
+          "total_tokens": 2304,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (estilo): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"crear_con_campos\", \"campos\": { \"prioridad\": \"alta\" } }, { \"plantilla\": \"crear_con_campos\", \"campos\": { \"prioridad\": \"media\" } }, { \"plantilla\": \"crear_con_campos\", \"campos\": { \"prioridad\": \"baja\" } } ] }\n```\n\nEste JSON no es exactamente lo que se pide, ya que el requisito R16 no especifica la creación de tarjetas con campos. En su lugar, se debe enfocarse en cómo las tarjetas se ordenan según su prioridad.\n\nDado que el requisito R16 describe el comportamiento de ordenación de tarjetas según su prioridad, la plantilla adecuada sería:\n\n```json\n{ \"usa\": [ { \"plantilla\": \"al_pasar_mouse\", \"textos\": [\"⠿\"] }, { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"z-index\", \"valor\": \"con sombra\" } ] }\n```\n\nSin embargo, para enfocarnos solo en el ordenamiento según la prioridad:\n\n```json\n{ \"usa\": [ { \"plantilla\": \"al_pasar_mouse\", \"textos\": [\"⠿\"] }, { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"z-index\", \"valor\": \"con sombra\" } ] }\n```\n\nEste JSON no cumple con el requisito, ya que no especifica la lógica de ordenación. En su lugar, se debe enfocarse en cómo las tarjetas se ordenan según su prioridad.\n\nDado que el requisito R16 describe el comportamiento de ordenación de tarjetas según su prioridad, la plantilla adecuada sería:\n\n```json\n{ \"usa\": [ { \"plantilla\": \"al_pasar_mouse\", \"textos\": [\"⠿\"] } ] }\n```\n\nPero para enfocarnos en el ordenamiento según la prioridad:\n\n```json\n{ \"usa\": [ { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"z-index\", \"valor\": \"con sombra\" }, { \"plantilla\": \"se_ven_textos\", \"textos\": [\"Pendiente\", \"En Curso\", \"Completa\"] } ] }\n```\n\nEste JSON no es exacto, ya que el requisito R16 no especifica la creación de tarjetas con campos. En su lugar, se debe enfocarse en cómo las tarjetas se ordenan según su prioridad.\n\nDado que el requisito R16 describe el comportamiento de ordenación de tarjetas según su prioridad, la plantilla adecuada sería:\n\n```json\n{ \"usa\": [ { \"plantilla\": \"al_pasar_mouse\", \"textos\": [\"⠿\"] } ] }\n```\n\nPero para enfocarnos en el ordenamiento según la prioridad:\n\n```json\n{ \"usa\": [ { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"z-index\", \"valor\": \"con sombra\" } ] }\n```\n\nEste JSON no es exacto, ya que el requisito R16 no especifica la creación de tarjetas con campos. En su lugar, se debe enfocarse en cómo las tarjetas se ordenan según su prioridad.\n\nDado que el requisito R16 describe el comportamiento de ordenación de tarjetas según su prioridad, la plantilla adecuada sería:\n\n```json\n{ \"usa\": [ { \"plantilla\": \"al_pasar_mouse\", \"textos\": [\"⠿\"] } ] }\n```\n\nPero para enfocarnos en el ordenamiento según la prioridad:\n\n```json\n{ \"usa\": [ { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"z-index\", \"valor\": \"con sombra\" } ] }\n```\n\nEste JSON no es exacto, ya que el requisito R16 no especifica la creación de tarjetas con campos. En su lugar, se debe enfocarse en cómo las tarjetas se ordenan según su prioridad.\n\nDado que el requisito R16 describe el comportamiento de ordenación de tarjetas según su prioridad, la plantilla adecuada sería:\n\n```json\n{ \"usa\": [ { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"z-index\", \"valor\": \"con sombra\" } ] }\n```\n\nEste JSON cumple con el requisito R16 al describir cómo las tarjetas se ordenan según su prioridad.",
+        "usage": {
+          "prompt_tokens": 2363,
+          "completion_tokens": 1027,
+          "total_tokens": 3390,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (crear_con_campos): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 2 (crear_con_campos): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 3 (crear_con_campos): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R17": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"al_pasar_mouse\",\n      \"textos\": [\"🗑️\", \"✏️\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1872,
+          "completion_tokens": 43,
+          "total_tokens": 1915,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R18": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"crear\", …casilleros } ] }\n```\n\nPara completar la plantilla:\n\n```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"crear\",\n      \"campos\": {\n        \"Titulo\": \"Crear tarea\",\n        \"Descripción\": \"Esta es una descripción de prueba.\",\n        \"Prioridad\": \"alta\"\n      }\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1844,
+          "completion_tokens": 96,
+          "total_tokens": 1940,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [],
+        "problems": [
+          "la respuesta no es JSON"
+        ]
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"crear\",\n      \"campos\": {\n        \"Titulo\": \"Crear tarea\",\n        \"Descripción\": \"Esta es una descripción de prueba.\",\n        \"Prioridad\": \"alta\"\n      }\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1978,
+          "completion_tokens": 64,
+          "total_tokens": 2042,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R19": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"se_ven_textos\", \"textos\": [\"Titulo\", \"descripción\", \"prioridad\"] } ] }\n```",
+        "usage": {
+          "prompt_tokens": 1848,
+          "completion_tokens": 41,
+          "total_tokens": 1889,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "veo[0]: \"Titulo\" es el nombre de un campo o de una pieza del código, no un texto que se vea en la pantalla"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"se_ven_textos\", \"textos\": [\"Titulo\", \"descripción\", \"prioridad\"] } ] }\n```\n\nEl requisito \"Se pueden leer las tarjetas (verlas)\" se traduce en que los campos del título, descripción y prioridad de cada tarjeta deben ser visibles en la pantalla. Por lo tanto, utilizamos la plantilla `se_ven_textos` con los textos correspondientes a estos campos.",
+        "usage": {
+          "prompt_tokens": 1960,
+          "completion_tokens": 110,
+          "total_tokens": 2070,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "veo[0]: \"Titulo\" es el nombre de un campo o de una pieza del código, no un texto que se vea en la pantalla"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"se_ven_textos\", \"textos\": [\"Titulo de la tarjeta\", \"Descripción\", \"Prioridad\"] } ] }\n```\n\nEsta versión utiliza `se_ven_textos` con textos que se verían en la pantalla, como \"Titulo de la tarjeta\", \"Descripción\" y \"Prioridad\".",
+        "usage": {
+          "prompt_tokens": 2141,
+          "completion_tokens": 83,
+          "total_tokens": 2224,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "veo[0]: \"Titulo de la tarjeta\" no lo escribió el usuario (los textos de prueba empiezan con \"QA\" y se crean en la fila)"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R20": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": { \"titulo\": \"Nuevo título\", \"descripcion\": \"Nueva descripción\", \"prioridad\": \"media\" }\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1847,
+          "completion_tokens": 56,
+          "total_tokens": 1903,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R21": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"borrar\",\n      \"campos\": {}\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1845,
+          "completion_tokens": 33,
+          "total_tokens": 1878,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R22": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"crear\", \"de\": \"tarjeta\" }, { \"plantilla\": \"recargar_sigue\", \"campos\": {} }, { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"width\", \"valor\": \"223px\" }, { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"height\", \"valor\": \"250px\" }, { \"plantilla\": \"al_pasar_mouse\", \"textos\": [\"⠿\"] }, { \"plantilla\": \"drag&drop\", \"origen\": \"Pendiente\", \"destino\": [\"En Curso\", \"Completa\"] } ] }\n```",
+        "usage": {
+          "prompt_tokens": 1867,
+          "completion_tokens": 161,
+          "total_tokens": 2028,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (crear): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 2 (recargar_sigue): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 3 (estilo): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 4 (estilo): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 5 (al_pasar_mouse): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 3 (estilo): el valor \"223px\" no está en este requisito; usá solo los valores que dice"
+          ],
+          [
+            "elección 4 (estilo): el valor \"250px\" no está en este requisito; usá solo los valores que dice"
+          ],
+          [
+            "elección 1: la plantilla \"drag&drop\" no existe (usá: crear, crear_con_campos, editar, borrar, recargar_sigue, se_ven_textos, boton_en, al_pasar_mouse, estilo, color_segun_valor)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"drag&drop\", \"origen\": \"Pendiente\", \"destino\": [\"En Curso\", \"Completa\"] } ] }\n```",
+        "usage": {
+          "prompt_tokens": 2324,
+          "completion_tokens": 44,
+          "total_tokens": 2368,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1: la plantilla \"drag&drop\" no existe (usá: crear, crear_con_campos, editar, borrar, recargar_sigue, se_ven_textos, boton_en, al_pasar_mouse, estilo, color_segun_valor)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"crear\", \"de\": \"tarjeta\" }, { \"plantilla\": \"editar\", \"campos\": {} }, { \"plantilla\": \"borrar\", \"campos\": {} }, { \"plantilla\": \"recargar_sigue\", \"campos\": {} } ] }\n```",
+        "usage": {
+          "prompt_tokens": 2457,
+          "completion_tokens": 74,
+          "total_tokens": 2531,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (crear): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 2 (editar): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 3 (borrar): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 4 (recargar_sigue): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R23": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"recargar_sigue\", \"campos\": {} } ] }\n```\n\nExplicación:\n- Requisito R23 menciona que se pueden arrastrar y mover las tarjetas entre columnas. Esto implica que la información de las tarjetas debe persistir, lo cual se logra guardando los datos en `localStorage`. La plantilla `recargar_sigue` verifica si el contenido sigue presente después de recargar la página, lo que es un indicador de que los datos están siendo guardados y recuperados correctamente.",
+        "usage": {
+          "prompt_tokens": 1846,
+          "completion_tokens": 128,
+          "total_tokens": 1974,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R24": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"estilo\", \"de\": \"pagina\", \"prop\": \"background-color\", \"valor\": \"#102C54\" }, { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"background-color\", \"valor\": \"#F2E9D8\" }, { \"plantilla\": \"estilo\", \"de\": \"columna\", \"prop\": \"background-color\", \"valor\": \"#8FB3C7\" } ] }\n```",
+        "usage": {
+          "prompt_tokens": 1857,
+          "completion_tokens": 115,
+          "total_tokens": 1972,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (estilo): el valor \"#102C54\" no está en este requisito; usá solo los valores que dice"
+          ],
+          [
+            "elección 2 (estilo): el valor \"#F2E9D8\" no está en este requisito; usá solo los valores que dice"
+          ],
+          [
+            "elección 3 (estilo): el valor \"#8FB3C7\" no está en este requisito; usá solo los valores que dice"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"estilo\", \"de\": \"pagina\", \"prop\": \"background-color\", \"valor\": \"#102C54\" }, { \"plantilla\": \"estilo\", \"de\": \"tarjeta\", \"prop\": \"background-color\", \"valor\": \"#F2E9D8\" }, { \"plantilla\": \"estilo\", \"de\": \"columna\", \"prop\": \"background-color\", \"valor\": \"#8FB3C7\" } ] }\n```",
+        "usage": {
+          "prompt_tokens": 2104,
+          "completion_tokens": 115,
+          "total_tokens": 2219,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (estilo): el valor \"#102C54\" no está en este requisito; usá solo los valores que dice"
+          ],
+          [
+            "elección 2 (estilo): el valor \"#F2E9D8\" no está en este requisito; usá solo los valores que dice"
+          ],
+          [
+            "elección 3 (estilo): el valor \"#8FB3C7\" no está en este requisito; usá solo los valores que dice"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{ \"sin_fila\": \"El requisito no especifica colores para el fondo, columnas y tarjetas.\" }\n```",
+        "usage": {
+          "prompt_tokens": 2351,
+          "completion_tokens": 32,
+          "total_tokens": 2383,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "sin_fila": "El requisito no especifica colores para el fondo, columnas y tarjetas."
+      }
+    ],
+    "R25": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"boton_en\",\n      \"palabras\": [\"Agregar\", \"tarjeta\"]\n    },\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"Crear nuevas tarjetas\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 1855,
+          "completion_tokens": 68,
+          "total_tokens": 1923,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 2,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R26": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"al_pasar_mouse\", \"textos\": [\"Esta seguro de borrar la tarjeta?\" ] } ] }\n```",
+        "usage": {
+          "prompt_tokens": 1851,
+          "completion_tokens": 39,
+          "total_tokens": 1890,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (al_pasar_mouse): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"boton_en\", \"palabras\": [\"Esta seguro de borrar la tarjeta?\" ] } ] }\n```",
+        "usage": {
+          "prompt_tokens": 1951,
+          "completion_tokens": 38,
+          "total_tokens": 1989,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R27": [
+      {
+        "attempt": 1,
+        "raw": "{ \"sin_fila\": \"dice cómo está programada por dentro\" }",
+        "usage": {
+          "prompt_tokens": 1846,
+          "completion_tokens": 17,
+          "total_tokens": 1863,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "sin_fila": "dice cómo está programada por dentro"
+      }
+    ],
+    "R28": [
+      {
+        "attempt": 1,
+        "raw": "{ \"usa\": [ { \"plantilla\": \"sin_fila\", \"motivo_corto\": \"Sin crear nuevas columnas, permitir tarjetas vacías, eliminar tarjetas en columna 'Completa'\" } ] }",
+        "usage": {
+          "prompt_tokens": 1865,
+          "completion_tokens": 51,
+          "total_tokens": 1916,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1: la plantilla \"sin_fila\" no existe (usá: crear, crear_con_campos, editar, borrar, recargar_sigue, se_ven_textos, boton_en, al_pasar_mouse, estilo, color_segun_valor)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "{ \"usa\": [ { \"plantilla\": \"borrar\", \"campos\": {} }, { \"plantilla\": \"se_ven_textos\", \"textos\": [ \"Completa\" ] } ] }",
+        "usage": {
+          "prompt_tokens": 2005,
+          "completion_tokens": 46,
+          "total_tokens": 2051,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 2,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R29": [
+      {
+        "attempt": 1,
+        "raw": "{ \"sin_fila\": \"No se implementa búsqueda de tarjetas por título o contenido\" }",
+        "usage": {
+          "prompt_tokens": 1852,
+          "completion_tokens": 23,
+          "total_tokens": 1875,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "sin_fila": "No se implementa búsqueda de tarjetas por título o contenido"
+      }
+    ],
+    "R30": [
+      {
+        "attempt": 1,
+        "raw": "{ \"sin_fila\": \"No se puede comprobar esta restricción usando la app, ya que no hay funcionalidad para agregar subtarjetas o tareas.\" }",
+        "usage": {
+          "prompt_tokens": 1856,
+          "completion_tokens": 40,
+          "total_tokens": 1896,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "sin_fila": "No se puede comprobar esta restricción usando la app, ya que no hay funcionalidad para agregar subtarjetas o tareas."
+      }
+    ]
+  }
+}

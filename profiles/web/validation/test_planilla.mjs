@@ -73,5 +73,11 @@ t("estado: las tarjetas no tienen control de borrar (dicho); su CSS cumple alto 
 
 t("desborde: en la app del ciclo la columna crece (3000px) y hay que desplazar la página; con alto máximo, scrollea la columna", /no scrollea \(mide \d{4}px\) · no entra en la ventana/.test(res.flow_ciclo_v03_final["R10.2"].detail) && /scrollea adentro de columna "Pendiente" · entra en la ventana/.test(res.flow_ciclo_v03_scroll["R10.2"].detail), res.flow_ciclo_v03_final["R10.2"].detail.slice(-160));
 
+// 19/10: "pregunta" (la confirmación al borrar, antes de confirmar): la arreglada pregunta con un aviso del navegador
+const preg = [{ id: "X1", r: "R7", dado: [{ agregar: "QA Alfa" }], hago: { eliminar: "QA Alfa" }, veo: [{ pregunta: "estás seguro de que deseas eliminar esta tarjeta" }, { no_esta: "QA Alfa" }] },
+  { id: "X2", r: "R7", dado: [{ agregar: "QA Alfa" }], hago: { eliminar: "QA Alfa" }, veo: [{ pregunta: "Esta seguro de borrar la tarjeta?" }] }];
+const rp = await V.runChecks(F("flow_gemma_sola_arreglada"), preg.map((f) => V.normalizeCheck({ type: "planilla_fila", params: { fila: f, controles: P.controles, glosario: P.glosario } })));
+t("pregunta: lo que dice el aviso del navegador al borrar cuenta (sin tildes ni signos); un texto que no dice, no", rp[0].result === "PASS" && rp[1].result === "FAIL" && /no aparece "Esta seguro de borrar la tarjeta\?" \(el navegador preguntó: "¿Estás seguro/.test(rp[1].detail), rp.map((x) => x.detail).join(" | "));
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

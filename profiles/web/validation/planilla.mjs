@@ -179,8 +179,12 @@ async function act(page, ctls, h, ctx, w) {
     if (!x.ctl) return { fail: x.why };
     // la confirmación tiene que ser un botón que APARECE después del clic (antes agarraba el "Borrar" de otra tarjeta)
     await page.evaluate(() => document.querySelectorAll("button, [role=button]").forEach((b) => { if (b.getClientRects().length) b.setAttribute("data-plan-pre", "1"); else b.removeAttribute("data-plan-pre"); }));
+    const d0 = ctx.dialogs.length;
     await x.ctl.loc.click({ timeout: 2000 }).catch(() => {});
     await settle(page);
+    // 19/10: lo que se ve justo después del clic, ANTES de confirmar (la pregunta de un modal o del navegador): "pregunta"
+    ctx.trasClic = `${await page.evaluate(() => document.body.innerText).catch(() => "")}\n${ctx.dialogs.slice(d0).join("\n")}`;
+    ctx.dialogoClic = ctx.dialogs[d0] || null;
     const gone = !(await page.evaluate(SEEN, [h.eliminar, null])).seen;
     const yes = gone ? null : await page.evaluate((src) => {
       const re = new RegExp(src, "i");
@@ -295,6 +299,13 @@ async function see(page, v, before, w) {
     const want = typeof e.valor === "object" && !Array.isArray(e.valor) ? `distinto de ${e.valor.distinto}` : [].concat(e.valor).join(" o ");
     return [ok, `${e.prop} de ${label}: ${[...new Set(got)].slice(0, 3).join(" | ") || "—"}${ok ? "" : ` (se esperaba ${want})`}`];
   }
+  if (v.pregunta) {
+    // al borrar, antes de confirmar, aparece la pregunta (en la página o en un aviso del navegador)
+    const n = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+    if (w.ctx.trasClic == null) return [false, `no se llegó a apretar borrar, así que no hay pregunta para ver`];
+    const ok = n(w.ctx.trasClic).includes(n(v.pregunta));
+    return [ok, ok ? `al apretar borrar pregunta "${v.pregunta}"` : `al apretar borrar no aparece "${v.pregunta}"${w.ctx.dialogoClic ? ` (el navegador preguntó: "${w.ctx.dialogoClic.slice(0, 80)}")` : ""}`];
+  }
   if (v.desborde) {
     // con muchos ítems (los crea "dado"): la página NO se desplaza en vertical y el grupo (o algo adentro) sí
     if (!(await page.evaluate(COL_NAMED, [v.desborde, w.src, "data-plan-col"]))) return [false, `no hay ${w.gr} "${v.desborde}"`];
@@ -336,7 +347,8 @@ export function conAzar(row, seed) {
 /** Corre UNA fila. Devuelve { result, detail, errors? }. */
 export async function runRow({ page, row: row0, controls, glosario, azar, ctx, reload }) {
   let row = conAzar(filaATipos(row0, glosario), azar);
-  const w = { src: itemClassRe(glosario).source, it: palabra(glosario, "item"), gr: palabra(glosario, "grupo") };
+  const w = { src: itemClassRe(glosario).source, it: palabra(glosario, "item"), gr: palabra(glosario, "grupo"), ctx };
+  ctx.trasClic = null;
   const ctls = { ...DEFAULT_CONTROLS, ...(controls || {}) };
   await freshStart(page, reload);
   const e0 = ctx.pageErrors.length;

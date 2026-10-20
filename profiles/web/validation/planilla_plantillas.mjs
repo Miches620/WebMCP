@@ -9,7 +9,12 @@
 //
 // Una respuesta de Qwen:  { "usa": [ { "plantilla": "borrar", "columna": "Pendiente" }, … ] }   o   { "sin_fila": "motivo" }
 
-export const PLANTILLAS_VERSION = "planilla_plantillas v0.4";
+export const PLANTILLAS_VERSION = "planilla_plantillas v0.5";
+// v0.5 (19/10, 1ª corrida de npm run proyecto con project26): (a) una RESTRICCIÓN no se prueba con una plantilla que
+// HACE lo prohibido (R28: "Sin … eliminar tarjetas en Completa" salió como "borro y desaparece", lo contrario);
+// (b) "se ven estos textos" solo con textos que el usuario puso ENTRE COMILLAS en ese requisito (salían "contador de
+// tarjetas dentro de la columna" o "Crear nuevas tarjetas", que son descripciones, no textos de la pantalla);
+// (c) confirmar_al_borrar: la pregunta que aparece al borrar, antes de confirmar (R7 y R26 salían como texto fijo).
 // v0.4 (19/10): las RESTRICCIONES de Miche también se prueban ("no se puede borrar en Completa"): no_borrar_en.
 // v0.3 (17/10, diseño de 3 capas con Miche): las plantillas hablan de TIPOS (item, grupo). El pedido a Qwen se escribe con
 // los nombres del glosario de la app ("tarjeta", "columna") y lo que Qwen contesta con esos nombres se traduce a tipos.
@@ -135,6 +140,12 @@ export const PLANTILLAS = {
     arma: (c) => ({ hago: { agregar: A, campos: { [c.campo]: c.valor } }, veo: [{ en_item: A, contiene: [c.valor] }, { color_en_item: A, texto: c.valor, familia: c.familia }] }),
     necesita: (c) => (!isText(c.campo) || !isText(c.valor) ? `"campo" y "valor"` : !["rojo", "amarillo", "verde"].includes(c.familia) ? `"familia": rojo, amarillo o verde` : null),
   },
+  confirmar_al_borrar: {
+    dice: "al borrar {un_item} aparece una pregunta de confirmación con cierto texto (antes de confirmar)",
+    casilleros: { texto: "el texto de la pregunta, tal cual lo escribió el usuario" },
+    arma: (c) => ({ dado: [{ agregar: A }], hago: { eliminar: A }, veo: [{ pregunta: String(c.texto).trim() }, { no_esta: A }] }),
+    necesita: (c) => (!isText(c.texto) ? `"texto": la pregunta, tal cual` : null),
+  },
   no_borrar_en: {
     requiere: ["grupo"],
     dice: "RESTRICCIÓN: {un_item} que está en cierto {grupo} NO se puede borrar (se intenta y sigue ahí)",
@@ -166,7 +177,7 @@ export const PLANTILLAS = {
 // ordenar ni de pasar el mouse. Cada plantilla necesita que el requisito la NOMBRE (palabras en castellano o inglés).
 export const PERTINENCIA = {
   crear: /crea|agreg|añad|anad|nuev|add\b/i, crear_con_campos: /crea|agreg|añad|anad|nuev|campo/i, editar: /edit|modific|cambi/i,
-  borrar: /borr|elimin|quit|delet/i, no_borrar_en: /(sin|no|prohib|impedir|evitar)\b[^.]*(borr|elimin)/i, mover: /mov|arrastr|drag|solt/i, contador_al_crear: /contador|cantidad|counter|cuenta/i,
+  borrar: /borr|elimin|quit|delet/i, confirmar_al_borrar: /confirm|seguro|pregunt|consult/i, no_borrar_en: /(sin|no|prohib|impedir|evitar)\b[^.]*(borr|elimin)/i, mover: /mov|arrastr|drag|solt/i, contador_al_crear: /contador|cantidad|counter|cuenta/i,
   recargar_sigue: /guard|recarg|persist|localstorage|se mantien|no se pierd/i, al_pasar_mouse: /hover|pasar|mouse|encima/i,
   orden_por_campo: /orden|priori|arriba|abajo|primer|recient|descend|ascend/i, color_segun_valor: /color|rojo|verde|amarill|azul/i,
   estilo: /\d+\s*px|#[0-9a-f]{3,6}|padding|border|borde|radius|redond|sombra|shadow|overflow|scroll|width|height|ancho|alto|fondo|color/i,
@@ -182,6 +193,13 @@ export function relevanceProblems(choices, text0) {
   (Array.isArray(choices) ? choices : []).forEach((ch, i) => { const re = PERTINENCIA[ch?.plantilla]; if (re && !re.test(String(text))) p.push(`elección ${i + 1} (${ch.plantilla}): el requisito no habla de eso; usá solo plantillas de lo que dice`); });
   // un valor exacto de estilo (#rrggbb, Npx) tiene que estar escrito en ESTE requisito (2ª corrida: R10 copió el #102C54 de R9)
   (Array.isArray(choices) ? choices : []).forEach((ch, i) => { if (ch?.plantilla === "estilo" && typeof ch.valor === "string" && /^#[0-9a-f]{3,6}$|^\d+(\.\d+)?px$/i.test(ch.valor.trim()) && !said.includes(ch.valor.trim().toLowerCase())) p.push(`elección ${i + 1} (estilo): el valor "${ch.valor}" no está en este requisito; usá solo los valores que dice`); });
+  // v0.5: una restricción ("Restricción: …", "Sin …", "No …") no se prueba HACIENDO lo prohibido
+  const RESTR = /^\s*(restricci[oó]n\s*:\s*)?(sin|no|nunca|prohib)/i;
+  const POSITIVAS = new Set(["crear", "crear_con_campos", "editar", "borrar", "mover"]);
+  if (RESTR.test(String(text0).replace(/^\s*restricci[oó]n\s*:\s*/i, "")) || /^\s*restricci[oó]n\s*:/i.test(String(text0))) (Array.isArray(choices) ? choices : []).forEach((ch, i) => { if (POSITIVAS.has(ch?.plantilla)) p.push(`elección ${i + 1} (${ch.plantilla}): es una RESTRICCIÓN (algo que NO tiene que pasar); no se prueba haciéndolo. Usá una plantilla que pruebe que no se puede (p. ej. no_borrar_en) o "sin_fila"`); });
+  // v0.5: "se ven estos textos" solo con lo que el usuario puso entre comillas en este requisito
+  const citados = [...String(text0).matchAll(/(['"“‘«])(.+?)(['"”’»])/g)].map((m) => m[2].trim().toLowerCase());
+  (Array.isArray(choices) ? choices : []).forEach((ch, i) => { if (ch?.plantilla === "se_ven_textos") { const fuera = list(ch.textos).filter((x) => !citados.some((c) => c === x.toLowerCase() || c.includes(x.toLowerCase()))); if (fuera.length) p.push(`elección ${i + 1} (se_ven_textos): ${fuera.map((x) => `"${x}"`).join(", ")} no está entre comillas en el requisito: solo se prueban textos que el usuario citó (lo demás es una descripción, no un texto de la pantalla)`); } });
   if (STYLE_WORDS.test(String(text0)) && !used.has("estilo")) p.push(`AVISO: el requisito nombra estilos medibles (${String(text).match(STYLE_WORDS)[0]}…): agregá una elección "estilo" por cada uno`);
   return p;
 }

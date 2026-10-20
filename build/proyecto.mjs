@@ -62,7 +62,10 @@ export function leerPedido(texto0) {
 // ---------- la planilla en palabras, para Miche ----------
 export async function planillaEnPalabras(p, requisitos) {
   const { describirFila } = await import("../profiles/web/validation/planilla_palabras.mjs");
-  const out = [`# Planilla: qué se va a probar`, "", `Glosario: ${p.glosario ? Object.entries(p.glosario).map(([t, w]) => `${t} = ${w ?? "(no tiene)"}`).join(", ") : "genérico"}`, "", "Leé cada requisito y lo que se va a probar. Si algo está mal o falta, decímelo (o corregí planilla.json).", ""];
+  const g = p.glosario || {};
+  const out = [`# Planilla: qué se va a probar`, "",
+    `**Primero, el glosario** (de esto dependen muchas pruebas): lo que el usuario crea se llama **${g.item || "elemento"}**; ${g.grupo ? `los lugares con nombre donde están se llaman **${g.grupo}**` : `**no hay lugares con nombre donde se agrupen** (sin esto no se prueban mover, contadores ni orden)`}. Si no es así, avisá: se corrige con \`--glosario '{"item":"…","grupo":"…"}'\` y se vuelve a armar.`, "",
+    "Después, leé cada requisito y lo que se va a probar. Si algo está mal o falta, decímelo.", ""];
   requisitos.forEach((r, i) => {
     const id = `R${i + 1}`, filas = (p.filas || []).filter((f) => f.r === id);
     out.push(`## ${id}. ${r.texto}`);
@@ -97,8 +100,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     writeFileSync(join(dir, "pedido.txt"), readFileSync(a1, "utf8"));
     writeFileSync(join(dir, "requisitos.json"), JSON.stringify({ version: PROYECTO_VERSION, titulo: ped.titulo, requisitos: ped.requisitos, criterios_que_repiten_una_feature: ped.repetidos, intentForge: { refined_prompt: { project_name: ped.titulo, features } } }, null, 2));
     console.log(`[PROYECTO] ${ped.titulo}: ${features.length} requisitos (${ped.requisitos.filter((r) => r.de === "feature").length} features, ${ped.requisitos.filter((r) => r.de === "criterio").length} criterios nuevos, ${ped.requisitos.filter((r) => r.de === "restriccion").length} restricciones; ${ped.repetidos.length} criterios repetían una feature) → ${dir}`);
-    const g = await proponerGlosario({ features, context: ped.titulo });
-    console.log(`[PROYECTO] glosario (Qwen): ${g.glosario ? JSON.stringify(g.glosario) : `no salió (${g.problema}); queda el genérico`}`);
+    // --glosario '{"item":"tarjeta","grupo":"columna"}' (o un archivo .json): lo decide Miche y Qwen no lo propone
+    const gArg = flag("--glosario");
+    const g = gArg ? { glosario: JSON.parse(existsSync(gArg) ? readFileSync(gArg, "utf8") : gArg), de: "Miche" } : await proponerGlosario({ features, context: ped.titulo });
+    console.log(`[PROYECTO] glosario (${g.de || "Qwen"}): ${g.glosario ? JSON.stringify(g.glosario) : `no salió (${g.problema}); queda el genérico`}${g.aviso ? ` · ojo: ${g.aviso}` : ""}`);
     const t0 = Date.now();
     const p = await writePlanilla({ features, context: ped.titulo, glosario: g.glosario, onProgress: (id, r) => console.log(`[PLANILLA] ${id}: ${r.sin_fila ? `sin fila (${r.sin_fila})` : `${r.filas.length} fila(s)`}${r.rejected.length ? ` · ${r.rejected.length} rechazada(s)` : ""}`) });
     const { calls, ...planilla } = p;

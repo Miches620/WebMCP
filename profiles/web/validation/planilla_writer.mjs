@@ -32,7 +32,7 @@ const MODEL = process.env.PLANILLA_MODEL || process.env.REVIEWER_MODEL || "qwen2
 
 // ---------- el vocabulario (lo mismo que ejecuta planilla.mjs) ----------
 const HAGO = ["agregar", "editar", "eliminar", "mover", "recargar", "pasar_mouse"];
-const VEO = ["esta", "no_esta", "contiene", "orden", "contador", "control", "al_pasar", "estilo", "color_en_item", "desborde"];
+const VEO = ["esta", "no_esta", "contiene", "orden", "contador", "control", "al_pasar", "estilo", "color_en_item", "desborde", "pregunta"];
 const FAMILIAS = ["rojo", "amarillo", "verde"];
 const PROPS = ["background-color", "color", "width", "height", "padding", "border-top-style", "border-top-left-radius", "box-shadow", "overflow-y", "font-size", "font-weight"];
 // pistas de CÓMO está programado: no van en una planilla (estricto en el QUÉ, flexible en el CÓMO)
@@ -77,6 +77,7 @@ export function validateRow(row0, nReq = Infinity, ctx = {}) {
     if (t === "contador" && (!isText(v.contador) || (typeof v.cambia !== "number" && typeof v.vale !== "number"))) p.push(`veo[${i}]: { "contador": "contenedor", "cambia": ±n } o { …, "vale": n }`);
     if (t === "control" && !texts(v.control)) p.push(`veo[${i}]: { "control": ["palabras del botón"], "solo_en"?: "contenedor" }`);
     if (t === "al_pasar" && (!texts(v.al_pasar) || !isText(v.en_item))) p.push(`veo[${i}]: { "al_pasar": ["lo que aparece"], "en_item": "texto de ${I}" }`);
+    if (t === "pregunta" && (!isText(v.pregunta) || !row.hago?.eliminar)) p.push(`veo[${i}]: { "pregunta": "texto" } va con "hago": { "eliminar": … } (lo que pregunta al borrar, antes de confirmar)`);
     if (t === "desborde" && !isText(v.desborde)) p.push(`veo[${i}]: { "desborde": "${G}" } (con muchos ítems creados en "dado")`);
     if (t === "color_en_item" && (!isText(v.color_en_item) || !FAMILIAS.includes(v.familia))) p.push(`veo[${i}]: { "color_en_item": "texto de ${I}", "texto"?: "…", "familia": ${FAMILIAS.join(" | ")} }`);
     if (t === "estilo") {
@@ -99,7 +100,7 @@ export function validateRow(row0, nReq = Infinity, ctx = {}) {
 }
 
 // ---------- v0.2: forma exacta y sentido (1ª corrida real de Qwen sobre c22, 17/10: 30/68 contra la vara) ----------
-const VEO_KEYS = { desborde: ["desborde"], esta: ["esta", "en"], no_esta: ["no_esta", "en"], contiene: ["en_item", "contiene"], orden: ["orden", "en"], contador: ["contador", "cambia", "vale"], control: ["control", "solo_en"], al_pasar: ["al_pasar", "en_item"], estilo: ["estilo"], color_en_item: ["color_en_item", "texto", "familia"] };
+const VEO_KEYS = { pregunta: ["pregunta"], desborde: ["desborde"], esta: ["esta", "en"], no_esta: ["no_esta", "en"], contiene: ["en_item", "contiene"], orden: ["orden", "en"], contador: ["contador", "cambia", "vale"], control: ["control", "solo_en"], al_pasar: ["al_pasar", "en_item"], estilo: ["estilo"], color_en_item: ["color_en_item", "texto", "familia"] };
 const HAGO_KEYS = { agregar: ["agregar", "campos"], editar: ["editar", "a", "campos"], eliminar: ["eliminar"], mover: ["mover", "a"], recargar: ["recargar"], pasar_mouse: ["pasar_mouse"] };
 const CSS_WORD = /^(padding|margin|border|border-radius|width|height|color|background|background-color|font|font-size|box-shadow|overflow|display)$/i;
 function shapeExtras(row, I) {
@@ -163,6 +164,7 @@ export function meaningProblems(row0, features, g) {
     if ("al_pasar" in v) { card(v.en_item, `${w}.en_item`); (v.al_pasar || []).forEach((x) => seen(x, `${w}.al_pasar`)); }
     if ("color_en_item" in v) { card(v.color_en_item, `${w}.color_en_item`); }
     if ("desborde" in v) box(v.desborde, `${w}.desborde`);
+    if ("pregunta" in v && isText(v.pregunta) && !said(v.pregunta)) p.push(`${w}.pregunta: "${v.pregunta}" no lo escribió el usuario`);
     if ("estilo" in v) { const de = v.estilo?.de; if (de?.grupo) box(de.grupo, `${w}.estilo.de.${G}`); if (de?.item) card(de.item, `${w}.estilo.de.${palabra(g, "item")}`); if (de?.control) de.control.forEach((x) => { if (!said(x)) p.push(`${w}.estilo.de.control: "${x}" no está en lo que escribió el usuario`); }); }
   });
   return p;
@@ -272,17 +274,34 @@ export const callLM = async (messages) => {
 /** 19/10: Qwen propone el GLOSARIO de la app (cómo se llaman lo que el usuario crea y los grupos donde está). Miche lo
  *  revisa junto con la planilla. Si la respuesta no sirve, queda el genérico (elemento, grupo) y se dice. */
 export async function proponerGlosario({ features, context = "", call = callLM }) {
+  // v0.2 (19/10, 1ª corrida con project26): Qwen dijo que el Kanban NO tiene grupos, y sin grupos se quedaron sin
+  // pruebas mover, contadores, orden y la restricción de Completa. Ahora: las palabras se copian de los requisitos (el
+  // harness lo verifica) y un "no tiene grupos" se vuelve a preguntar una vez, señalando los nombres entre comillas.
   const sys = `Leés los requisitos de una app web y decís cómo se llaman, EN ESA APP, dos cosas:
-- "item": lo que el usuario crea, edita y borra (una palabra en singular, como la usa el usuario: "tarea", "receta", "contacto"…);
-- "grupo": el contenedor con título donde se agrupan esos ítems ("categoría", "lista", "carpeta"…), o null si la app no los agrupa.
-Respondé SOLO JSON: { "item": "…", "grupo": "…" | null }`;
+- "item": lo que el usuario crea, edita y borra. Copiá la palabra tal cual aparece en los requisitos, en singular.
+- "grupo": el lugar con nombre propio donde están esos ítems (los requisitos suelen nombrar cada uno entre comillas, y a veces se pasan ítems de uno a otro). Copiá la palabra tal cual aparece, en singular. null SOLO si los ítems no están repartidos en lugares con nombre.
+Respondé SOLO JSON: { "item": "…", "grupo": "…" | null, "por_que": "el número de requisito donde lo dice" }`;
   const user = `${context ? `Proyecto: ${context}\n\n` : ""}Requisitos:\n${features.map((f, i) => `R${i + 1}. ${f}`).join("\n")}`;
+  const todo = nrm(features.join(" \n "));
+  const esta = (w) => { const x = nrm(w); return !!x && (todo.includes(x) || todo.includes(x.replace(/s$/, ""))); };
+  const citados = [...features.join(" ").matchAll(/['"“‘«]([^'"”’»]{2,30})['"”’»]/g)].map((m) => m[1]);
+  const messages = [{ role: "system", content: sys }, { role: "user", content: user }];
+  const crudos = [];
   try {
-    const r = await call([{ role: "system", content: sys }, { role: "user", content: user }]);
-    const j = parseJsonLoose(r.content || "");
-    const g = j.ok ? { item: j.data?.item ?? null, grupo: j.data?.grupo ?? null } : null;
-    if (g && leerGlosario(g).ok && g.item) return { glosario: { item: String(g.item).toLowerCase(), grupo: g.grupo ? String(g.grupo).toLowerCase() : null }, raw: r.content };
-    return { glosario: null, raw: r.content, problema: "la respuesta no es un glosario válido" };
+    for (let intento = 1; intento <= 2; intento++) {
+      const r = await call(messages);
+      crudos.push(r.content);
+      const j = parseJsonLoose(r.content || "");
+      const g = j.ok ? { item: j.data?.item ? String(j.data.item).toLowerCase().trim() : null, grupo: j.data?.grupo ? String(j.data.grupo).toLowerCase().trim() : null } : null;
+      const problemas = [];
+      if (!g || !g.item) problemas.push(`falta "item"`);
+      else if (!esta(g.item)) problemas.push(`"${g.item}" no aparece en los requisitos: copiá la palabra tal cual`);
+      if (g?.grupo && !esta(g.grupo)) problemas.push(`"${g.grupo}" no aparece en los requisitos: copiá la palabra tal cual`);
+      if (g && !g.grupo && citados.length >= 2 && intento === 1) problemas.push(`dijiste que no hay grupos, pero los requisitos nombran entre comillas: ${[...new Set(citados)].slice(0, 6).map((x) => `"${x}"`).join(", ")}. Si los ítems están en esos lugares con nombre, ¿cómo se llaman esos lugares? (si de verdad no hay, repetí null)`);
+      if (!problemas.length && leerGlosario(g).ok) return { glosario: g, raw: crudos };
+      if (intento === 2) return g && g.item && esta(g.item) && leerGlosario(g).ok ? { glosario: g, raw: crudos, aviso: problemas.join("; ") } : { glosario: null, raw: crudos, problema: problemas.join("; ") || "la respuesta no es un glosario válido" };
+      messages.push({ role: "assistant", content: r.content }, { role: "user", content: `Revisá: ${problemas.join("; ")}. Respondé de nuevo el JSON.` });
+    }
   } catch (e) { return { glosario: null, problema: e.message }; }
 }
 

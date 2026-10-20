@@ -2,6 +2,19 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**1ª planilla de `npm run proyecto` (project26): el glosario la arruinó → plantillas v0.5, glosario re-preguntado (19/10, 22h)**
+- *Evidencia:* `build/proyectos/2026-10-20T01-07-35_kanban/planilla.md`. Project doc `claude/evidencia_ciclo_2026-10-18.md`, sección "1ª planilla".
+- **Causa principal:** Qwen dijo que el Kanban **no tiene grupos**. Sin grupos no se ofrecen mover, contadores, orden, el color de columnas, el desborde ni `no_borrar_en`. Por eso R6, R16 y R22 quedaron sin prueba, y R7, R8 y R10 a medias.
+- **Peligroso:**
+  - R28 ("Sin … eliminar tarjetas en Completa") salió como "borro la tarjeta y desaparece", o sea lo **contrario** de la restricción;
+  - R8 y R25 probaban como "texto en pantalla" descripciones como "contador de tarjetas dentro de la columna";
+  - R7 y R26 probaban la pregunta de confirmación como un texto fijo.
+- **Arreglos:**
+  - *glosario:* las palabras se copian de los requisitos (el harness lo verifica), un "no hay grupos" se re-pregunta señalando los nombres entre comillas, y Miche lo puede fijar con `--glosario`. Además, `planilla.md` lo muestra primero, explicado.
+  - *plantillas v0.5:* una restricción no se prueba haciendo lo prohibido; "se ven estos textos" solo con lo que el usuario puso entre comillas; plantilla nueva `confirmar_al_borrar`.
+  - *juez:* observación nueva `pregunta`, lo que aparece al apretar borrar antes de confirmar, también si es un aviso del navegador.
+- *Tests:* `test_planilla_writer` 55/55, `test_planilla` 31/31.
+
 **La cadena entera por consola: `npm run proyecto` (ciclo v0.4, plantillas v0.4; 19/10, noche; decisión de Miche)**
 - *Origen:* Miche (19/10): con un snapshot hecho a mano el ciclo llegó a 16/16, y lo que falla es lo de antes (Intent Forge). "Ingeniería inversa: si Gemma cumple con un snapshot así, ¿cómo hacemos que webmcp le dé lo que necesita?"
 - **`build/proyecto.mjs`** (`npm run proyecto`):

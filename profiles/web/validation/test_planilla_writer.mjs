@@ -1,7 +1,7 @@
 // test_planilla_writer.mjs — el validador de filas y el ciclo de reintentos de Qwen, sin modelo.
 //   node profiles/web/validation/test_planilla_writer.mjs
 import { readFileSync } from "node:fs";
-import { validateRow, normalizeRow, writeRequirement, writePlanilla, systemPrompt, userPrompt, WRITER_VERSION } from "./planilla_writer.mjs";
+import { validateRow, normalizeRow, writeRequirement, writePlanilla, systemPrompt, userPrompt, proponerGlosario, WRITER_VERSION } from "./planilla_writer.mjs";
 import { rowsFromChoices, relevanceProblems, camposDe, systemPromptPlantillas, PLANTILLAS, PLANTILLAS_VERSION } from "./planilla_plantillas.mjs";
 
 let ok = 0, fail = 0;
@@ -80,7 +80,7 @@ const caida = await writePlanilla({ features: ["x"], call: async () => { throw n
 t("LM Studio caído → el requisito queda sin fila, con el error (no se inventa)", /fetch failed/.test(caida.sin_fila.R1));
 
 // ---------- v0.3: modo PLANTILLAS (Qwen elige, el harness arma) ----------
-t("plantillas: versión y 14 plantillas (v0.4: no_borrar_en, para restricciones)", PLANTILLAS_VERSION === "planilla_plantillas v0.4" && Object.keys(PLANTILLAS).length === 14);
+t("plantillas: versión y 15 plantillas (v0.4: no_borrar_en; v0.5: confirmar_al_borrar)", PLANTILLAS_VERSION === "planilla_plantillas v0.5" && Object.keys(PLANTILLAS).length === 15);
 const IDEAL = JSON.parse(readFileSync(new URL("./fixtures/real_qwen_c22/elecciones_ideales_c22.json", import.meta.url), "utf8"));
 const built = Object.entries(IDEAL).filter(([r]) => /^R\d+$/.test(r) && IDEAL[r].usa).flatMap(([r, a]) => { const x = rowsFromChoices(a.usa, r, G); return [...x.filas.map((f) => [r, validateRow(normalizeRow(f, G).row, 17, { features: FEATS, glosario: G })]), ...x.problems.map((p) => [r, { ok: false, problems: [p] }])]; });
 t("techo: las elecciones IDEALES para c22 arman 28 filas y TODAS pasan el validador (con los chequeos de sentido)", built.length === 28 && built.every(([, v]) => v.ok), built.filter(([, v]) => !v.ok).map(([r, v]) => `${r}: ${v.problems.join("; ")}`).join(" | "));
@@ -92,7 +92,7 @@ t("estilo: 'con sombra' → distinta de none, crea la tarjeta; botón → sus pa
 const malas = rowsFromChoices([{ plantilla: "volar" }, { plantilla: "mover" }, { plantilla: "estilo", de: "columna", prop: "width", valor: "248px" }], "R6", G).problems;
 t("elecciones mal completadas → afuera, cada una con qué falta", malas.length === 3 && /no existe/.test(malas[0]) && /"a": la columna de destino/.test(malas[1]) && /"nombre": el nombre de la columna/.test(malas[2]), malas.join(" | "));
 const sp = systemPromptPlantillas(G);
-t("pedido de plantillas: lista las 14, ejemplos de otra app (recetas), sin_fila", Object.keys(PLANTILLAS).every((k) => sp.includes(`- ${k}:`)) && /recetas/.test(sp) && /sin_fila/.test(sp) && !/Pendiente|En Curso/.test(sp));
+t("pedido de plantillas: lista las 15, ejemplos de otra app (recetas), sin_fila", Object.keys(PLANTILLAS).every((k) => sp.includes(`- ${k}:`)) && /recetas/.test(sp) && /sin_fila/.test(sp) && !/Pendiente|En Curso/.test(sp));
 const tp = await writeRequirement({ id: "R1", text: feats[0], features: feats, glosario: G, call: replies([
   `{"usa":[{"plantilla":"crear","columna":"Columna Pendiente"},{"plantilla":"volar"}]}`,
   `{"usa":[{"plantilla":"crear","columna":"Pendiente"}]}`,
@@ -127,6 +127,24 @@ t("R5: un texto libre que no dijo el usuario ('Nueva descripción') pasa a texto
 
 const nbe = rowsFromChoices([{ plantilla: "no_borrar_en", columna: "Completa" }], "R19", G);
 t("restricción 'no se puede borrar en Completa': crea, mueve a Completa, intenta borrar, sigue ahí; pasa el validador", nbe.filas.length === 1 && nbe.filas[0].dado[1].mover === "QA Alfa" && nbe.filas[0].veo[0].en === "Completa" && validateRow(normalizeRow(nbe.filas[0], G).row, 20, { features: [...FEATS, "x", "Sin eliminar tarjetas en columna 'Completa'"], glosario: G }).ok && !relevanceProblems([{ plantilla: "no_borrar_en", columna: "Completa" }], "Sin crear nuevas columnas, permitir tarjetas vacías, eliminar tarjetas en columna 'Completa'").length, JSON.stringify(nbe) + validateRow(normalizeRow(nbe.filas[0], G).row, 20, { features: [...FEATS, "x", "Sin eliminar tarjetas en columna 'Completa'"], glosario: G }).problems.join());
+
+// ---------- v0.5: la 1ª corrida de npm run proyecto con project26 (19/10) ----------
+const R28 = "Restricción: Sin crear nuevas columnas, permitir tarjetas vacías, eliminar tarjetas en columna 'Completa'";
+t("R28 real: una restricción no se prueba HACIENDO lo prohibido (salió 'borro y desaparece', lo contrario)", relevanceProblems([{ plantilla: "borrar" }], R28).some((x) => /RESTRICCIÓN/.test(x)) && !relevanceProblems([{ plantilla: "no_borrar_en", columna: "Completa" }], R28).some((x) => /RESTRICCIÓN/.test(x)));
+const R8 = "Campos que tendrá cada columna: title ('Pendiente', 'En Curso', 'Completa'), y counter (contador de tarjetas dentro de la columna)";
+const rel8 = relevanceProblems([{ plantilla: "se_ven_textos", textos: ["contador de tarjetas dentro de la columna", "Pendiente"] }], R8).join();
+t("R8 real: 'se ven' solo con textos entre comillas ('contador de tarjetas dentro de la columna' es una descripción; 'Pendiente' sí)", /contador de tarjetas dentro de la columna" no está entre comillas/.test(rel8) && !/"Pendiente" no está/.test(rel8), rel8);
+const R7 = "Comportamiento al borrar una tarjeta: Eliminar(🗑️) abre un modal para consultarle al usuario 'Esta seguro de borrar la tarjeta?' y si el usuario confirma, la tarjeta sera eliminada";
+const cb = rowsFromChoices([{ plantilla: "confirmar_al_borrar", texto: "Esta seguro de borrar la tarjeta?" }], "R7", G);
+t("R7 real: la pregunta de confirmación se prueba al borrar (antes de confirmar), no como texto fijo en la pantalla", !relevanceProblems([{ plantilla: "confirmar_al_borrar", texto: "x" }], R7).length && cb.filas[0].hago.eliminar === "QA Alfa" && cb.filas[0].veo[0].pregunta === "Esta seguro de borrar la tarjeta?" && validateRow(normalizeRow(cb.filas[0], G).row, 17, { features: [...FEATS.slice(0, 6), R7], glosario: G }).ok, validateRow(normalizeRow(cb.filas[0], G).row, 17, { features: [...FEATS.slice(0, 6), R7], glosario: G }).problems.join());
+
+// el glosario: la 1ª corrida real dijo que el Kanban no tiene grupos
+const pedidosG = [];
+const fakeG = (resps) => { let i = 0; return async (m) => { pedidosG.push(m.at(-1).content); return { content: resps[Math.min(i++, resps.length - 1)] }; }; };
+const g1 = await proponerGlosario({ features: FEATS, call: fakeG(['{"item": "tarjeta", "grupo": null}', '{"item": "tarjeta", "grupo": "columna"}']) });
+t("glosario: si Qwen dice 'no hay grupos' pero hay nombres entre comillas, se le vuelve a preguntar señalándolos; la 2ª dice columna", g1.glosario?.grupo === "columna" && /nombran entre comillas: .*"Pendiente"/.test(pedidosG[1]), JSON.stringify(g1) + pedidosG[1]?.slice(0, 200));
+const g2 = await proponerGlosario({ features: FEATS, call: fakeG(['{"item": "task", "grupo": "board"}', '{"item": "tarjeta", "grupo": "columna"}']) });
+t("glosario: una palabra que no está en los requisitos no vale (se copia tal cual)", g2.glosario?.item === "tarjeta" && /"task" no aparece en los requisitos/.test(pedidosG.at(-1)));
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

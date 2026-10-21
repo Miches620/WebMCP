@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { leerPedido, planillaEnPalabras, juzgar, PROYECTO_VERSION } from "./proyecto.mjs";
+import { leerPedido, planillaEnPalabras, juzgar, nombresParecidos, unificar, PROYECTO_VERSION } from "./proyecto.mjs";
 import { borrador, ciclo } from "./run_ciclo.mjs";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -47,6 +47,16 @@ t("el ciclo sin app de partida arranca por la vuelta 0 (borrador) y lo juzga: co
 // ---------- juzgar: una app contra la vara ----------
 const j1 = await juzgar(join(FIX, "flow_ciclo_v03_final"), VARA), j2 = await juzgar(join(FIX, "flow_ciclo_v03_scroll"), VARA);
 t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee la columna); arreglada, 16/16", j1.cumplidos === 15 && j1.fallan[0].r === "R10" && j2.cumplidos === 16, `${j1.cumplidos} ${j2.cumplidos}`);
+
+// ---------- dos nombres para lo mismo (20/10: "Completa" ×4 y "Completado" ×1 en project26) ----------
+{
+  const P26 = readFileSync(join(here, "pedidos", "kanban_project26.txt"), "utf8");
+  const c26 = nombresParecidos(P26);
+  t("nombres: el pedido real de project26 tiene 'Completa' y 'Completado' → usa 'Completa' (la que más aparece); nada más", c26.length === 1 && c26[0].usa === "Completa" && c26[0].en_vez_de === "Completado", JSON.stringify(c26));
+  t("nombres: se cambia la palabra entera ('Completamente' no se toca) y se ve arriba de planilla.md", unificar("columnas: Pendiente, Completado. Completamente", c26) === "columnas: Pendiente, Completa. Completamente" && /usé \*\*"Completa"\*\*/.test(await planillaEnPalabras(VARA, [], c26)));
+  t("nombres: plurales, nombres distintos y nombres sin comillas no se tocan", nombresParecidos("Columnas 'Pendiente', 'Pendientes'. 'Prioridad' y Prioridades. 'En Curso', 'Completa'. Comprar y Compartir.").length === 0 && nombresParecidos("columnas Completa y Completado").length === 0);
+  t("nombres: con tilde y sin tilde es el mismo nombre", nombresParecidos("'Descripción' ... Descripcion ... 'Descripción'")[0]?.usa === "Descripción");
+}
 
 // ---------- quitar: Miche saca pruebas que están mal ----------
 const dq = mkdtempSync(join(tmpdir(), "pq-"));

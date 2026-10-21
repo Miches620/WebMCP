@@ -59,12 +59,48 @@ export function leerPedido(texto0) {
   return { titulo, requisitos, repetidos };
 }
 
+// ---------- dos nombres para lo mismo ----------
+// 20/10: el pedido de project26 dice "Completa" 4 veces y "Completado" 1 vez para la misma columna. Una persona se
+// equivoca tecleando; el sistema no puede fallar por eso. Se usa el que más aparece (empate: el que está entre comillas)
+// y se avisa en la consola y arriba de planilla.md, ANTES de construir. pedido.txt queda tal cual.
+const sinTilde = (w) => w.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+const prefijo = (a, b) => { let i = 0; while (i < a.length && i < b.length && a[i] === b[i]) i++; return i; };
+const esPlural = (a, b) => b === a + "s" || b === a + "es" || a === b + "s" || a === b + "es";
+/** Texto del pedido → [{ usa, en_vez_de, veces: {usa, en_vez_de} }]. Solo nombres que el usuario citó entre comillas al menos una vez. Función pura. */
+export function nombresParecidos(texto) {
+  const t = String(texto);
+  const citados = new Set();
+  for (const m of t.matchAll(/['"‘’“”]([^'"‘’“”\n]{2,60})['"‘’“”]/g)) for (const w of m[1].match(/\p{Lu}\p{L}{4,}/gu) || []) citados.add(w);
+  const veces = new Map();
+  for (const w of t.match(/\p{Lu}\p{L}{4,}/gu) || []) veces.set(w, (veces.get(w) || 0) + 1);
+  const out = [], visto = new Set();
+  for (const q of citados) for (const w of veces.keys()) {
+    if (w === q) continue;
+    const A = sinTilde(q), B = sinTilde(w);
+    if (esPlural(A, B)) continue;
+    const cp = prefijo(A, B);
+    if (!(A === B || (cp >= 5 && cp >= 0.7 * Math.min(A.length, B.length)))) continue;
+    const par = [q, w].sort().join("|"); if (visto.has(par)) continue; visto.add(par);
+    const vq = veces.get(q) || 0, vw = veces.get(w) || 0;
+    const [usa, otro] = vw > vq ? [w, q] : [q, w];
+    out.push({ usa, en_vez_de: otro, veces: { usa: veces.get(usa) || 0, en_vez_de: veces.get(otro) || 0 } });
+  }
+  return out;
+}
+/** Cambia en un texto cada nombre que sobra por el que se usa (palabra entera). */
+export function unificar(texto, correcciones) {
+  let s = String(texto);
+  for (const c of correcciones) s = s.replace(new RegExp(`(?<!\\p{L})${c.en_vez_de}(?!\\p{L})`, "gu"), c.usa);
+  return s;
+}
+
 // ---------- la planilla en palabras, para Miche ----------
-export async function planillaEnPalabras(p, requisitos) {
+export async function planillaEnPalabras(p, requisitos, correcciones = []) {
   const { describirFila } = await import("../profiles/web/validation/planilla_palabras.mjs");
   const g = p.glosario || {};
   const out = [`# Planilla: qué se va a probar`, "",
     `**Primero, el glosario** (de esto dependen muchas pruebas): lo que el usuario crea se llama **${g.item || "elemento"}**; ${g.grupo ? `los lugares con nombre donde están se llaman **${g.grupo}**, y lo que se crea aparece en ${g.inicio ? `**${g.inicio}**` : "**(no se dijo: conviene fijarlo con \"inicio\")**"}` : `**no hay lugares con nombre donde se agrupen** (sin esto no se prueban mover, contadores ni orden)`}. Si no es así, avisá: se corrige con \`--glosario '{"item":"…","grupo":"…","inicio":"…"}'\` y se vuelve a armar.`, "",
+    ...(correcciones.length ? [`**Corregí ${correcciones.length === 1 ? "un nombre" : "unos nombres"}** (pusiste dos nombres para lo mismo): ${correcciones.map((c) => `usé **"${c.usa}"** (aparece ${c.veces.usa} ${c.veces.usa === 1 ? "vez" : "veces"}) en vez de "${c.en_vez_de}" (${c.veces.en_vez_de})`).join("; ")}. Si era al revés, o eran cosas distintas, avisá y se corrige el pedido.`, ""] : []),
     "Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, decí su número (p. ej. R10.3) y se saca con `npm run proyecto -- quitar <carpeta> R10.3`.", ""];
   requisitos.forEach((r, i) => {
     const id = `R${i + 1}`, filas = (p.filas || []).filter((f) => f.r === id);
@@ -93,12 +129,15 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
   if (modo === "nuevo" && a1) {
     const { writePlanilla, proponerGlosario, WRITER_VERSION } = await import("../profiles/web/validation/planilla_writer.mjs");
     const ped = leerPedido(readFileSync(a1, "utf8"));
+    const correcciones = nombresParecidos(readFileSync(a1, "utf8"));
+    for (const r of ped.requisitos) { const u = unificar(r.texto, correcciones); if (u !== r.texto) { r.texto_original = r.texto; r.texto = u; } }
+    for (const c of correcciones) console.log(`[PROYECTO] ojo: pusiste "${c.usa}" (${c.veces.usa}) y "${c.en_vez_de}" (${c.veces.en_vez_de}) para lo mismo → uso "${c.usa}". Si era al revés, corregí el pedido.`);
     const slug = (flag("--nombre") || ped.titulo || "proyecto").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "_").slice(0, 30);
     const dir = join(here, "proyectos", `${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}_${slug}`);
     mkdirSync(dir, { recursive: true });
     const features = ped.requisitos.map((r) => r.texto);
     writeFileSync(join(dir, "pedido.txt"), readFileSync(a1, "utf8"));
-    writeFileSync(join(dir, "requisitos.json"), JSON.stringify({ version: PROYECTO_VERSION, titulo: ped.titulo, requisitos: ped.requisitos, criterios_que_repiten_una_feature: ped.repetidos, intentForge: { refined_prompt: { project_name: ped.titulo, features } } }, null, 2));
+    writeFileSync(join(dir, "requisitos.json"), JSON.stringify({ version: PROYECTO_VERSION, titulo: ped.titulo, requisitos: ped.requisitos, correcciones, criterios_que_repiten_una_feature: ped.repetidos, intentForge: { refined_prompt: { project_name: ped.titulo, features } } }, null, 2));
     console.log(`[PROYECTO] ${ped.titulo}: ${features.length} requisitos (${ped.requisitos.filter((r) => r.de === "feature").length} features, ${ped.requisitos.filter((r) => r.de === "criterio").length} criterios nuevos, ${ped.requisitos.filter((r) => r.de === "restriccion").length} restricciones; ${ped.repetidos.length} criterios repetían una feature) → ${dir}`);
     // --glosario '{"item":"tarjeta","grupo":"columna"}' (o un archivo .json): lo decide Miche y Qwen no lo propone
     const gArg = flag("--glosario");
@@ -109,7 +148,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const { calls, ...planilla } = p;
     writeFileSync(join(dir, "planilla.json"), JSON.stringify(planilla, null, 2));
     writeFileSync(join(dir, "planilla_evidencia.json"), JSON.stringify({ type: "EVIDENCE", kind: "planilla_writer", version: WRITER_VERSION, ms: Date.now() - t0, glosario: g, calls }, null, 2));
-    writeFileSync(join(dir, "planilla.md"), await planillaEnPalabras(planilla, ped.requisitos));
+    writeFileSync(join(dir, "planilla.md"), await planillaEnPalabras(planilla, ped.requisitos, correcciones));
     console.log(`\n[PROYECTO] listo. Leé ${join(dir, "planilla.md")} (qué se va a probar, en palabras).\nCuando esté bien, cargá Gemma en LM Studio y corré:\n  npm run proyecto -- seguir "${dir}"`);
   } else if (modo === "seguir" && a1) {
     const { ciclo } = await import("./run_ciclo.mjs");
@@ -136,7 +175,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     p.filas = p.filas.filter((f) => !sale(f));
     for (const r of new Set(fuera.map((f) => f.r))) if (!p.filas.some((f) => f.r === r)) p.sin_fila = { ...(p.sin_fila || {}), [r]: "Miche sacó sus pruebas (estaban mal)" };
     writeFileSync(join(dir, "planilla.json"), JSON.stringify(p, null, 2));
-    writeFileSync(join(dir, "planilla.md"), await planillaEnPalabras(p, req.requisitos));
+    writeFileSync(join(dir, "planilla.md"), await planillaEnPalabras(p, req.requisitos, req.correcciones || []));
     console.log(`[PROYECTO] saqué ${fuera.length} prueba(s): ${fuera.map((f) => f.id).join(", ") || "ninguna (¿los números están bien?)"} · quedan ${p.filas.length}. planilla.md actualizado.`);
   } else if (modo === "juzgar" && a1 && a2) {
     const r = await juzgar(resolve(a1), JSON.parse(readFileSync(a2, "utf8")), flag("--azar") || "");

@@ -134,7 +134,15 @@ export const PLANTILLAS = {
   estilo: {
     dice: "una cosa tiene un estilo medible: color de fondo, color, ancho, alto, padding, borde, redondeo, sombra, scroll",
     casilleros: { de: '"pagina" | [["{grupo}" | ]]"{item}" | "boton"', nombre: "[[si es {grupo}: su nombre; ]]si es botón: sus palabras", prop: "background-color | color | width | height | padding | border-top-style | border-top-left-radius | box-shadow | overflow-y", valor: '"#rrggbb", "Npx", una palabra (dashed, scroll), o "con sombra"' },
-    arma: (c) => {
+    arma: (c, g) => {
+      // 20/10: "columnas con overflow:scroll" quiere decir que la columna scrollea. Mirar solo el estilo dejaba pasar la app
+      // del 19/10 (la columna crecía y scrolleaba la página; lo vio Miche). Con "inicio" se prueba lo que pasa: 10 ítems
+      // (llevados a esa columna si no es donde aparecen) → scrollea adentro y entra en la ventana.
+      const ini = g ? leerGlosario(g).glosario.inicio : null;
+      if (c.de === "grupo" && c.prop === "overflow-y" && /scroll|auto/i.test(String(c.valor)) && ini && isText(c.nombre)) {
+        const n = String(c.nombre).trim(), llenos = Array.from({ length: 10 }, (_, i) => `QA Lleno ${i + 1}`);
+        return { dado: [...llenos.map((x) => ({ agregar: x })), ...(mismo(n, ini) ? [] : llenos.map((x) => ({ mover: x, a: n })))], veo: [{ desborde: n }] };
+      }
       const de = c.de === "pagina" ? "pagina" : c.de === "grupo" ? { grupo: c.nombre } : c.de === "boton" ? { control: list(c.nombre).flatMap((x) => x.split(/\s+/)) } : { item: A };
       const valor = /sombra/i.test(String(c.valor)) ? { distinto: "none" } : c.prop === "overflow-y" && /scroll/i.test(String(c.valor)) ? ["scroll", "auto"] : c.valor;
       return { ...(c.de === "item" ? { dado: [{ agregar: A }] } : {}), veo: [{ estilo: { de, prop: c.prop, valor } }] };
@@ -232,7 +240,7 @@ export function rowsFromChoices(choices, id, glosario) {
     if (!t) { problems.push(`elección ${i + 1}: la plantilla "${ch?.plantilla}" no existe (usá: ${Object.keys(ok).join(", ")})`); return; }
     const falta = t.necesita?.(ch, glosario) || fueraDelInicio(ch, glosario);
     if (falta) { problems.push(`elección ${i + 1} (${ch.plantilla}): falta ${falta}`); return; }
-    filas.push({ r: id, ...t.arma(ch), _plantilla: ch.plantilla });
+    filas.push({ r: id, ...t.arma(ch, glosario), _plantilla: ch.plantilla });
   });
   return { filas, problems };
 }

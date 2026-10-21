@@ -2,6 +2,11 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**2ª planilla de project26: el scroll de las columnas se prueba scrolleando (20/10, 23h)**
+- *Origen:* 2ª corrida de `nuevo` (con la corrección Completa←Completado y editar): 24 de 30 requisitos con prueba, R5/R20 ya tienen la suya y R15 queda solo con la sombra. Pero R10.1–R10.3 ("columnas con overflow:scroll") miraban solo el estilo `overflow-y`, y eso deja pasar la app del 19/10: tiene el estilo, pero la columna crece y scrollea la página (lo que vio Miche).
+- *Qué se hizo:* `planilla_plantillas.mjs`, plantilla `estilo`: overflow-y scroll/auto de un grupo, con `inicio` en el glosario → 10 ítems (si el grupo no es el de inicio, se llevan con `mover`) y `veo: desborde` (scrollea adentro y entra en la ventana). Sin `inicio` queda como antes. `arma` recibe el glosario.
+- *Cómo se probó:* `test_planilla_writer` 60/60 (+1: forma de las filas); `test_proyecto` 19/19 (+1: con las 3 filas, la app del 19/10 da 0/1 y la arreglada 1/1 en Pendiente, En Curso y Completa).
+
 **Dos nombres para lo mismo: el sistema elige uno y avisa antes de construir (20/10, 21h30)**
 - *Origen:* Miche, sobre "Completa"/"Completado": "Soy humano, me puedo equivocar tecleando… Lo que no acepto es que el sistema falle porque no sepa qué hacer ante una situación así de común." Eligió "Completa".
 - *Qué se hizo:* `build/proyecto.mjs`: `nombresParecidos(texto)` busca nombres que el usuario citó entre comillas y otra palabra con mayúscula casi igual (mismo comienzo, o igual sin tildes; los plurales no cuentan). Usa el que más aparece; si empatan, el que está entre comillas. `unificar` lo cambia (palabra entera) en los requisitos que ven Qwen y Gemma; queda `texto_original` y `correcciones` en requisitos.json, y `pedido.txt` no se toca. Se avisa en la consola y arriba de planilla.md, antes de construir.

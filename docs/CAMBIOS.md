@@ -5,6 +5,7 @@
 **2ª planilla de project26: el scroll de las columnas se prueba scrolleando (20/10, 23h)**
 - *Origen:* 2ª corrida de `nuevo` (con la corrección Completa←Completado y editar): 24 de 30 requisitos con prueba, R5/R20 ya tienen la suya y R15 queda solo con la sombra. Pero R10.1–R10.3 ("columnas con overflow:scroll") miraban solo el estilo `overflow-y`, y eso deja pasar la app del 19/10: tiene el estilo, pero la columna crece y scrollea la página (lo que vio Miche).
 - *Qué se hizo:* `planilla_plantillas.mjs`, plantilla `estilo`: overflow-y scroll/auto de un grupo, con `inicio` en el glosario → 10 ítems (si el grupo no es el de inicio, se llevan con `mover`) y `veo: desborde` (scrollea adentro y entra en la ventana). Sin `inicio` queda como antes. `arma` recibe el glosario.
+- *Después (Miche, 23h54: "es medio confuso de leer"):* `planilla_palabras.mjs` junta las movidas iguales en una frase ("muevo esas 10 tarjetas a 'En Curso', de a una") en vez de 10 renglones. Lo usan planilla.md y el examen en palabras que ve Gemma. `test_proyecto` 20/20.
 - *Cómo se probó:* `test_planilla_writer` 60/60 (+1: forma de las filas); `test_proyecto` 19/19 (+1: con las 3 filas, la app del 19/10 da 0/1 y la arreglada 1/1 en Pendiente, En Curso y Completa).
 
 **Dos nombres para lo mismo: el sistema elige uno y avisa antes de construir (20/10, 21h30)**

@@ -26,7 +26,8 @@ export function describirFila(row0, g) {
   const nombre = (x) => (isQA(x) ? quien.get(x) || N("{el_item}") : q(x));
   const partes = [];
   if (dado.length) partes.push(N(`Antes: creo ${dado.length === 1 ? "{un_item}" : `${dado.length} {items}`}`) + (dado.length > 1 && dado.some((d) => Object.keys(d.campos || {}).length) ? `, en este orden: ${dado.map((d) => (Object.keys(d.campos || {}).length ? Object.entries(d.campos).map(([k, v]) => `${k} ${v}`).join(" y ") : "sin campos")).join(" · ")}` : camposTxt(dado[0].campos)) + ".");
-  for (const m of movs) partes.push(N(`Antes: muevo {el_item} a ${q(m.a)}.`));
+  // 20/10: 10 movidas iguales se leían como 10 renglones "muevo la tarjeta a…" (Miche: "es medio confuso de leer")
+  for (const [a, k] of movs.reduce((m, x) => m.set(x.a, (m.get(x.a) || 0) + 1), new Map())) partes.push(k === 1 ? N(`Antes: muevo {el_item} a ${q(a)}.`) : N(`Antes: muevo ${k === dado.length ? `${N("{el_item}").startsWith("la ") ? "esas" : "esos"} ${k}` : k} {items} a ${q(a)}, de a ${N("{el_item}").startsWith("la ") ? "una" : "uno"}.`));
   const h = row.hago || {};
   if (h.agregar) partes.push(N(`Creo {un_item} con un título cualquiera${camposTxt(h.campos).replace(/^ con/, " y")}.`));
   else if (h.editar) partes.push(N(`Edito {el_item}: le cambio el título${h.campos ? ` y le pongo${camposTxt(h.campos).replace(/^ con/, "")}` : ""}.`));

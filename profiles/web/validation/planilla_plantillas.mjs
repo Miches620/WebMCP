@@ -36,6 +36,13 @@ export function camposDe(raw) {
   }
   return { campos: out, faltan };
 }
+// 20/10: Qwen manda los nombres en "campos" (lista) y los valores aparte ("valor_nuevo": {"prioridad": "alta"}); se juntan
+const VALORES_APARTE = ["valor_nuevo", "valores_nuevos", "valor", "valores", "nuevos"];
+export function juntaCampos(c) {
+  const base = Array.isArray(c?.campos) ? Object.fromEntries(c.campos.map((k) => [String(k), ""])) : c?.campos && typeof c.campos === "object" ? { ...c.campos } : {};
+  for (const k of VALORES_APARTE) { const v = c?.[k]; if (v && typeof v === "object" && !Array.isArray(v)) for (const [n, x] of Object.entries(v)) { const m = Object.keys(base).find((b) => b.trim().toLowerCase() === n.trim().toLowerCase()) || n; base[m] = x; } }
+  return base;
+}
 const list = (x) => (Array.isArray(x) ? x : isText(x) ? [x] : []).map(String).map((s) => s.trim()).filter(Boolean);
 // artículos: "la columna" / "el grupo". Sin saber el género, se deduce de la última letra (alcanza para el pedido).
 const fem = (w) => /a$|ion$|ión$|dad$/i.test(w);
@@ -73,14 +80,14 @@ export const PLANTILLAS = {
   crear_con_campos: {
     dice: "al crear se cargan campos y {el_item} los muestra",
     casilleros: { campos: '{ "nombre del campo": "valor de ejemplo" } (descripcion, prioridad…; el título no)' },
-    arma: (c) => { const { campos } = camposDe(c.campos); return { hago: { agregar: A, campos }, veo: [{ en_item: A, contiene: Object.values(campos) }] }; },
-    necesita: (c) => { const { campos, faltan } = camposDe(c.campos); return faltan.length ? `un valor de ejemplo para ${faltan.map((k) => `"${k}"`).join(", ")} (uno de los que nombra el usuario)` : !Object.keys(campos).length ? `"campos" con al menos un campo (que no sea el título) y su valor` : null; },
+    arma: (c) => { const { campos } = camposDe(juntaCampos(c)); return { hago: { agregar: A, campos }, veo: [{ en_item: A, contiene: Object.values(campos) }] }; },
+    necesita: (c) => { const { campos, faltan } = camposDe(juntaCampos(c)); return faltan.length ? `un valor de ejemplo para ${faltan.map((k) => `"${k}"`).join(", ")} (uno de los que nombra el usuario)` : !Object.keys(campos).length ? `"campos" con al menos un campo (que no sea el título) y su valor` : null; },
   },
   editar: {
     dice: "se puede editar {un_item} (el texto nuevo queda y el viejo no)",
     casilleros: { campos: "opcional: campos que se cambian al editar, con el valor nuevo" },
-    arma: (c) => { const { campos } = camposDe(c.campos); const has = Object.keys(campos).length > 0; return { dado: [{ agregar: A }], hago: { editar: A, a: B, ...(has ? { campos } : {}) }, veo: [{ esta: B }, { no_esta: A }, ...(has ? [{ en_item: B, contiene: Object.values(campos) }] : [])] }; },
-    necesita: (c) => { const { faltan } = camposDe(c.campos); return faltan.length ? `un valor nuevo para ${faltan.map((k) => `"${k}"`).join(", ")} (uno de los que nombra el usuario)` : null; },
+    arma: (c) => { const { campos } = camposDe(juntaCampos(c)); const has = Object.keys(campos).length > 0; return { dado: [{ agregar: A }], hago: { editar: A, a: B, ...(has ? { campos } : {}) }, veo: [{ esta: B }, { no_esta: A }, ...(has ? [{ en_item: B, contiene: Object.values(campos) }] : [])] }; },
+    necesita: (c) => { const { faltan } = camposDe(juntaCampos(c)); return faltan.length ? `un valor nuevo para ${faltan.map((k) => `"${k}"`).join(", ")} (uno de los que nombra el usuario)` : null; },
   },
   borrar: {
     dice: "se puede borrar {un_item} (desaparece; si hay contador, baja)",

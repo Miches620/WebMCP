@@ -2,6 +2,11 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**1ª planilla de project26 con el glosario completo: editar se juntaba mal (20/10, 21h)**
+- *Origen:* `build/proyectos/2026-10-20T23-53-19_kanban` (Qwen, `--glosario` con inicio "Pendiente"). 21 de 30 requisitos con prueba. Problemas que vimos: (1) R5 y R20 (editar) sin prueba: Qwen mandó `"campos": ["Titulo","descripción","prioridad"]` y el valor aparte en `"valor_nuevo": {"prioridad":"alta"}`, y se rechazó 3 veces porque no se juntaban; (2) R15.2–R15.4 prueban el scroll de las columnas, que no es lo que pide R15 → Miche las saca con `quitar`; (3) el pedido nombra la 3ª columna "Completa" (R8, R10, R28) y "Completado" (R22), así que siempre falla una de las dos → lo decide Miche y se corrige el pedido.
+- *Qué se hizo:* `planilla_plantillas.mjs`: `juntaCampos` junta los nombres de `campos` con los valores que vienen aparte (`valor_nuevo`, `valores`…) en `crear_con_campos` y `editar`. Si falta el valor de un campo que no es texto libre, se sigue rechazando.
+- *Cómo se probó:* `test_planilla_writer` 59/59 (+2: la respuesta real de R5 ahora da una fila válida; sin valor para prioridad se sigue rechazando).
+
 **Banco de modelos para escribir el examen (la planilla) + glosario v0.2 con "inicio" (20/10)**
 - *Origen:* Miche (19/10): "MicheLab no se ata a ningún LLM". Mismo pedido (los 17 requisitos de c22, con el glosario fijo) para 5 modelos, comparados contra la vara en las 6 apps (102 casilleros). Project doc `claude/evidencia_banco_planilla_2026-10-20.md`.
 

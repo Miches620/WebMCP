@@ -147,7 +147,7 @@ export function puntaje(r) {
 
 // ---------- vuelta 0: el borrador ----------
 const SYS_BORRADOR = (archivo, otros) => `Sos el programador de una app web: HTML + CSS + JavaScript, sin frameworks ni librerías, que se abre con doble clic (sin servidor). La app tiene tres archivos: index.html, styles.css y script.js${otros ? " (index.html ya está escrito: usá exactamente sus ids y clases)" : ""}.
-Ahora escribí SOLO ${archivo}, completo, cumpliendo TODO lo que pide el usuario y lo que se va a probar.
+Ahora escribí SOLO ${archivo}, completo, cumpliendo TODO lo que pide el usuario y lo que se va a probar.${archivo === "index.html" ? '\nindex.html lleva solo la estructura: enlazá styles.css (<link rel="stylesheet" href="styles.css">) y script.js (<script src="script.js"></script> al final del body), sin <style> ni <script> adentro.' : ""}
 Respondé con un único bloque:
 
 ### ARCHIVO: ${archivo}
@@ -155,12 +155,46 @@ Respondé con un único bloque:
 ...el archivo entero...
 \`\`\`
 Sin explicaciones.`;
+// ---------- un solo archivo → tres ----------
+// 21/10 (project26): el borrador de index.html trajo TODO adentro (<style> y <script>) y no enlazaba styles.css ni
+// script.js. Gemma escribió esos dos aparte (script.js se cortó y quedó vacío), el ciclo le mostraba el script.js vacío
+// (index.html no entraba en el pedido) y en 40 vueltas cada arreglo iba a un archivo que la app no carga: 13/23 → 13/23.
+// Ahora lo que está adentro de index.html se pasa a su archivo y se enlaza, sin modelo. Lo que la app ya hacía no cambia.
+/** app → { app, cambios[] }. Función pura. */
+export function separarArchivos(app0) {
+  const app = { ...app0 }, cambios = [];
+  let html = String(app["index.html"] || "");
+  if (!html) return { app, cambios };
+  const enlaza = (f) => new RegExp(`(href|src)\\s*=\\s*["']\\.?/?${f.replace(".", "\\.")}["']`, "i").test(html);
+  const styles = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)];
+  const css = styles.map((m) => m[1].trim()).filter(Boolean).join("\n\n");
+  const scripts = [...html.matchAll(/<script\b(?![^>]*\bsrc\s*=)[^>]*>([\s\S]*?)<\/script>/gi)].filter((m) => !/type\s*=\s*["'](?!text\/javascript|module)[^"']+["']/i.test(m[0]));
+  const js = scripts.map((m) => m[1].trim()).filter(Boolean).join("\n\n");
+  if (css) {
+    for (const m of styles) html = html.replace(m[0], "");
+    if (enlaza("styles.css")) { app["styles.css"] = `${String(app["styles.css"] || "").trimEnd()}\n\n/* (estaba adentro de index.html) */\n${css}\n`; cambios.push("el <style> de index.html pasó al final de styles.css"); }
+    else { if (String(app["styles.css"] || "").trim()) cambios.push("styles.css no estaba enlazado (no se usaba): lo reemplaza el <style> de index.html"); app["styles.css"] = `${css}\n`; cambios.push("el <style> de index.html pasó a styles.css"); }
+  }
+  if (!enlaza("styles.css") && String(app["styles.css"] || "").trim()) { html = /<\/head>/i.test(html) ? html.replace(/<\/head>/i, `    <link rel="stylesheet" href="styles.css">\n</head>`) : `<link rel="stylesheet" href="styles.css">\n${html}`; cambios.push("index.html ahora enlaza styles.css"); }
+  if (js) {
+    if (syntaxOfLocal(js)) return { app: app0, cambios: [] }; // si no compila suelto, mejor no tocar nada
+    for (const m of scripts) html = html.replace(m[0], "");
+    if (enlaza("script.js")) { app["script.js"] = `${String(app["script.js"] || "").trimEnd()}\n\n// (estaba adentro de index.html)\n${js}\n`; cambios.push("el <script> de index.html pasó al final de script.js"); }
+    else { if (String(app["script.js"] || "").trim()) cambios.push("script.js no estaba enlazado (no se usaba): lo reemplaza el <script> de index.html"); app["script.js"] = `${js}\n`; cambios.push("el <script> de index.html pasó a script.js"); }
+  }
+  if (!enlaza("script.js") && String(app["script.js"] || "").trim()) { html = /<\/body>/i.test(html) ? html.replace(/<\/body>/i, `    <script src="script.js"></script>\n</body>`) : `${html}\n<script src="script.js"></script>\n`; cambios.push("index.html ahora carga script.js"); }
+  app["index.html"] = html.replace(/\n\s*\n\s*\n+/g, "\n\n");
+  return { app, cambios };
+}
+
 /** La app desde cero: 3 pedidos, uno por archivo. Devuelve { app, pedidos[] }. */
 export async function borrador({ features, planilla, call = llamarLM, contexto = CONTEXTO, log = () => {} }) {
   const ctx = { planilla, features };
   const pedido = `Lo que pide el usuario:\n${features.map((f, i) => `R${i + 1}. ${f}`).join("\n")}\n\n${consigna(ctx, planilla.filas || [])}`;
   const app = {}, pedidos = [];
   for (const archivo of ["index.html", "styles.css", "script.js"]) {
+    if (archivo !== "index.html") { const sep = separarArchivos(app); if (sep.cambios.length) { Object.assign(app, sep.app); sep.cambios.forEach((c) => log(`[CICLO] borrador: ${c}`)); } }
+    if (archivo !== "index.html" && String(app[archivo] || "").trim().length >= 50) { log(`[CICLO] borrador: ${archivo} ya salió de index.html (no se le pide a Gemma)`); continue; }
     const sys = SYS_BORRADOR(archivo, archivo !== "index.html");
     const user = `${pedido}${app["index.html"] ? `\n\nindex.html (ya escrito):\n${app["index.html"]}` : ""}`;
     let codigo = null, por = "";
@@ -195,6 +229,7 @@ export async function ciclo(o) {
   let app = o.app ? { ...o.app } : null;
   let hechoBorrador = null;
   if (!app) { log(`[CICLO] vuelta 0: no hay app de partida → Gemma escribe el borrador (index.html, styles.css, script.js)`); hechoBorrador = await borrador({ features, planilla, call, contexto, log }); app = hechoBorrador.app; }
+  { const sep = separarArchivos(app); if (sep.cambios.length) { app = sep.app; sep.cambios.forEach((c) => log(`[CICLO] ${c}`)); } }
   mkdirSync(outDir, { recursive: true });
   const foto = (n) => { const d = join(outDir, `v${String(n).padStart(3, "0")}`); mkdirSync(d, { recursive: true }); for (const [f, s] of Object.entries(app)) writeFileSync(join(d, f), s); return d; };
   foto(0);

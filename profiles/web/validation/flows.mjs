@@ -86,10 +86,14 @@ export const SEEN = ([token, donde]) => {
   for (let n = walker.nextNode(); n; n = walker.nextNode()) if (n.nodeValue.includes(token) && n.parentElement && vis(n.parentElement) && !n.parentElement.closest("input, textarea, select, script, style")) hits.push(n.parentElement);
   if (!hits.length) return { seen: false };
   if (!donde) return { seen: true };
-  const heading = (a) => [...a.querySelectorAll("h1, h2, h3, h4, h5, h6, [class*=title], [class*=titulo], [class*=header]")].slice(0, 3).map((h) => nrm(h.textContent)).join(" | ");
+  // 21/10: los títulos de las tarjetas no cuentan como título de la columna. Antes se miraban los 3 primeros títulos y,
+  // si alguno era el de la tarjeta, se descartaba el contenedor entero: con un <div class="column-header"> + <h2> el 3º
+  // era el de la tarjeta y "Pendiente" nunca se encontraba (project26: R1 y R18 en FAIL con la tarjeta en Pendiente).
+  const tok = nrm(token);
+  const heading = (a) => [...a.querySelectorAll("h1, h2, h3, h4, h5, h6, [class*=title], [class*=titulo], [class*=header]")].map((h) => nrm(h.textContent)).filter((t) => !t.includes(tok)).slice(0, 3).join(" | ");
   for (const h of hits) for (let a = h.parentElement; a && a !== document.body; a = a.parentElement) {
     const t = heading(a);
-    if (t && t.includes(nrm(donde)) && !t.includes(token.toLowerCase())) return { seen: true, donde: true };
+    if (t && t.includes(nrm(donde))) return { seen: true, donde: true };
   }
   return { seen: true, donde: false };
 };

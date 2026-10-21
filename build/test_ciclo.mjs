@@ -91,5 +91,18 @@ const r2 = await ciclo({ app: ROTA, planilla: P, features: FEATS, outDir: mkdtem
 const w1 = r2.ev.vueltas[0];
 t("2ª corrida, vuelta 2: el index.html bueno venía junto con un openModal roto; juntos no sirven, pero se prueba cada uno solo y queda el bueno", w1.aceptado && /quedó solo: archivo index\.html/.test(w1.motivo) && w1.pruebas.length === 3 && !w1.pruebas[0].ok && r2.app["script.js"] === ROTA["script.js"], JSON.stringify(w1.pruebas) + " " + w1.motivo);
 
+// ---------- 21/10: el borrador vino en un solo archivo (project26) ----------
+{
+  const { separarArchivos } = await import("./run_ciclo.mjs");
+  const { syntaxOf } = await import("../harness/js_tools.mjs");
+  const { readFileSync: rf } = await import("node:fs");
+  const D = new URL("../profiles/web/validation/fixtures/flow_p26_borrador/", import.meta.url);
+  const app = { "index.html": rf(new URL("index.html", D), "utf8"), "styles.css": rf(new URL("styles.css", D), "utf8"), "script.js": rf(new URL("script.js", D), "utf8") };
+  const r = separarArchivos(app);
+  t("separar: el <style> y el <script> de index.html pasan a sus archivos y se enlazan (project26: index.html no cargaba ninguno)", !/<style/i.test(r.app["index.html"]) && !/<script>(?!<)/i.test(r.app["index.html"].replace(/<script src="script.js"><\/script>/, "")) && /href="styles.css"/.test(r.app["index.html"]) && /src="script.js"/.test(r.app["index.html"]) && /function saveCard/.test(r.app["script.js"]) && !syntaxOf(r.app["script.js"]) && /#102C54/.test(r.app["styles.css"]) && r.cambios.length === 5, r.cambios.join(" | "));
+  const ya = separarArchivos(r.app);
+  t("separar: una app ya separada no se toca", ya.cambios.length === 0 && ya.app["index.html"] === r.app["index.html"]);
+}
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

@@ -199,9 +199,15 @@ async function act(page, ctls, h, ctx, w) {
   if (h.mover) {
     if (!(await page.evaluate(ITEM_OF, [h.mover, w.src]))) return { fail: `"${h.mover}" no aparece como ${w.it}` };
     if (!(await page.evaluate(COL_NAMED, [h.a, w.src, "data-plan-dest"]))) return { fail: `no hay un contenedor que se llame "${h.a}"` };
+    const llego = () => page.evaluate(([t]) => { const c = document.querySelector("[data-plan-dest]"); return !!c && (c.innerText || "").includes(t); }, [h.mover]);
     await page.locator("[data-plan-item]").first().dragTo(page.locator("[data-plan-dest]").first(), { timeout: 3000 }).catch(() => {});
     await settle(page);
-    const ok = await page.evaluate(([t, src]) => { const c = document.querySelector("[data-plan-dest]"); return !!c && (c.innerText || "").includes(t); }, [h.mover, w.src]);
+    // 21/10: como una persona, si la tarjeta no se arrastra entera, se agarra de su manija (algo draggable adentro, p. ej. ⠿)
+    if (!(await llego())) {
+      const manija = page.locator("[data-plan-item] [draggable=true]").first();
+      if (await manija.count()) { await manija.dragTo(page.locator("[data-plan-dest]").first(), { timeout: 3000 }).catch(() => {}); await settle(page); }
+    }
+    const ok = await llego();
     if (ok) return `arrastró "${h.mover}" a "${h.a}"`;
     // si no, su control de mover (eligiendo el destino en un select al lado, si hay)
     const x = await itemControl(page, ctls, "mover", h.mover, w);

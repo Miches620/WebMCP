@@ -70,6 +70,17 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   t("overflow de columnas (Qwen, project26): la app del 19/10 (scrollea la página) falla; la arreglada pasa en las 3 columnas", m.cumplidos === 0 && b.cumplidos === 1 && !b.fallan.length, `${m.cumplidos} ${b.cumplidos}`);
 }
 
+// ---------- 21/10: el borrador de project26 contra su planilla ----------
+{
+  const P26 = JSON.parse(readFileSync(join(FIX, "planilla_kanban_p26.json"), "utf8"));
+  const { separarArchivos } = await import("./run_ciclo.mjs");
+  const { mkdtempSync: mk } = await import("node:fs");
+  const d = mk(join(tmpdir(), "p26-")), app = leerApp(join(FIX, "flow_p26_borrador"));
+  for (const [f, s] of Object.entries(separarArchivos(app).app)) writeFileSync(join(d, f), s);
+  const j = await juzgar(d, P26), fallan = j.fallan.map((f) => f.r).join(",");
+  t("p26: la tarjeta en Pendiente se encuentra aunque la columna tenga header + h2 (R1, R18) y se arrastra de la manija (R22); quedan los 7 errores de verdad", j.cumplidos === 16 && fallan === "R2,R8,R10,R11,R12,R25,R28", `${j.cumplidos} ${fallan}`);
+}
+
 // ---------- quitar: Miche saca pruebas que están mal ----------
 const dq = mkdtempSync(join(tmpdir(), "pq-"));
 const reqK = JSON.parse(readFileSync(join(FIX, "real_kanban_c22/snapshot_min.json"), "utf8")).intentForge.refined_prompt.features.map((texto) => ({ texto }));

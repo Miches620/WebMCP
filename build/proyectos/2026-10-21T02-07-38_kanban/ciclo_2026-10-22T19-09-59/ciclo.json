@@ -1,0 +1,93 @@
+{
+  "type": "EVIDENCE",
+  "kind": "ciclo",
+  "version": "ciclo v0.4",
+  "modelo": "google/gemma-4-e4b",
+  "contexto": 12000,
+  "inicio": "2026-10-22T19:10:00.002Z",
+  "desde": "una app que ya existía",
+  "vueltas": [
+    {
+      "vuelta": 1,
+      "requisito": "R28",
+      "antes": {
+        "R28.1": "FAIL"
+      },
+      "ver": [
+        "deleteCard(cardId)",
+        "confirmDelete(cardId)",
+        "index.html",
+        "script.js:276"
+      ],
+      "codigo": [
+        "función deleteCard (script.js:276-293)",
+        "función confirmDelete (script.js:264-270)",
+        "archivo index.html (entero)",
+        "archivo script.js (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 896,
+        "arreglo": 6341
+      },
+      "ms": {
+        "ver": 46007,
+        "arreglo": 100937
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 972,
+          "completion_tokens": 1150,
+          "total_tokens": 2122,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1092
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 5601,
+          "completion_tokens": 1152,
+          "total_tokens": 6753,
+          "completion_tokens_details": {
+            "reasoning_tokens": 935
+          }
+        }
+      },
+      "respuesta": "### FUNCION: deleteCard\n```js\nfunction deleteCard(cardId) {\n    if (!cardsData[cardId]) return;\n\n    const card = cardsData[cardId];\n    const colId = card.column;\n\n    // Restricción R28: No permitir la eliminación de tarjetas en la columna 'Completa'\n    if (colId === 'completa') {\n        console.warn(\"No se puede eliminar esta tarjeta ya que está en la columna Completa.\");\n        return; \n    }\n\n    // 1. Eliminar del estado global\n    delete cardsData[cardId];\n\n    // 2. Re-renderizar la columna afectada (y todas)\n    const containerEl = document.getElementById(`cards-${colId}`);\n    if (containerEl) {\n        renderCardsToContainer(colId, containerEl);\n    }\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n```",
+      "aplicados": [
+        "función deleteCard (script.js)"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": true,
+          "pts": 1000
+        }
+      ],
+      "despues": {
+        "R28.1": "PASS"
+      },
+      "aceptado": true,
+      "motivo": "1/1 pruebas de R28 pasan y suma lo que se ve bien (0 → 1000), sin romper nada",
+      "foto": "v001"
+    }
+  ],
+  "curva": [
+    {
+      "vuelta": 1,
+      "cumplidos": 22,
+      "de": 23,
+      "filas_pass": 36,
+      "de_filas": 37
+    },
+    {
+      "vuelta": 2,
+      "cumplidos": 23,
+      "de": 23,
+      "filas_pass": 37,
+      "de_filas": 37
+    }
+  ],
+  "fin": "todo cumplido",
+  "final": "final/"
+}

@@ -279,6 +279,12 @@ function deleteCard(cardId) {
     const card = cardsData[cardId];
     const colId = card.column;
 
+    // Restricción R28: No permitir la eliminación de tarjetas en la columna 'Completa'
+    if (colId === 'completa') {
+        console.warn("No se puede eliminar esta tarjeta ya que está en la columna Completa.");
+        return; 
+    }
+
     // 1. Eliminar del estado global
     delete cardsData[cardId];
 

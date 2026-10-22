@@ -2,6 +2,12 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**project26: 23/23 — la primera app armada de punta a punta por la cadena (22/10, 16h)**
+- *Origen:* `ciclo_2026-10-22T19-09-59`: R28 quedó en la 1ª vuelta, con el aviso "OJO: esta prueba aprieta borrar a propósito…". Gemma agregó en `deleteCard` "si está en 'completa', no borrar".
+- *Curva total (misma app, retomando):* 13 → 16 (arreglos nuestros, sin modelo) → 20 → 21 → 22 → **23/23**. En cada meseta la traba fue un error nuestro (aplicar, juzgar o explicar), no un límite de Gemma.
+- *Verificado aparte:* juzgada de nuevo con otros textos al azar: 23/23. Fixture `flow_p26_final` + test en `test_proyecto`.
+- *Lo que el examen NO mira (para la próxima planilla):* en "Completa" la app pregunta "¿Está seguro?" y después no borra sin avisar nada (solo `console.warn`); la manija ⠿ de R6 no se ve; se puede arrastrar desde toda la tarjeta, pero solo funciona desde la manija.
+
 **4ª corrida de project26: 21 → 22/23 (R10 ✓ en la 1ª vuelta). R28: Gemma entendía la prueba al revés (22/10)**
 - *Origen:* `ciclo_2026-10-22T03-42-42`, 8 vueltas. Con la sangría sacada y los bloques de CSS, R10 quedó enseguida (`.board { max-height: calc(100vh - 180px) }`). Esta vez el sistema aplicó bien los 6 intentos de R28, pero los 6 fueron versiones de `deleteCard` que borran "mejor".
 - *Por qué:* la prueba borra a propósito en "Completa" y espera que la tarjeta siga. El FAIL decía `✗ "QA Alfa" NO se ve`, y el requisito dice "Restricción: Sin crear nuevas columnas, permitir tarjetas vacías, eliminar tarjetas en columna 'Completa'". Gemma leyó "no se ve" como "se borró pero no se refresca".

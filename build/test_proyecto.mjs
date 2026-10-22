@@ -79,6 +79,8 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   for (const [f, s] of Object.entries(separarArchivos(app).app)) writeFileSync(join(d, f), s);
   const j = await juzgar(d, P26), fallan = j.fallan.map((f) => f.r).join(",");
   t("p26: la tarjeta en Pendiente se encuentra aunque la columna tenga header + h2 (R1, R18) y se arrastra de la manija (R22); quedan los 7 errores de verdad", j.cumplidos === 16 && fallan === "R2,R8,R10,R11,R12,R25,R28", `${j.cumplidos} ${fallan}`);
+  const fin = await juzgar(join(FIX, "flow_p26_final"), P26);
+  t("p26: la app final de Gemma (22/10, 4 corridas retomando) da 23/23 con otros textos al azar", fin.cumplidos === 23 && !fin.fallan.length, `${fin.cumplidos} ${fin.fallan.map((f) => f.r).join(",")}`);
 }
 
 // ---------- quitar: Miche saca pruebas que están mal ----------

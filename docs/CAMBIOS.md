@@ -2,6 +2,12 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**Reglas visuales medibles (visual v0.1) + `seguir --visual` (22/10, 18h)**
+- *Origen:* Miche: "una skill para que mejore la parte visual… sumámosla al último run". Evidencia propia (10/10): una Skill sin medida no se distingue de un placebo. Por eso solo reglas que el juez puede MEDIR, y lo pedido por el usuario manda.
+- *Qué se hizo:* `profiles/web/validation/visual.mjs` (nuevo, genérico, sin nada de Kanban): 6 reglas medidas en la página: `contraste` (WCAG 4.5:1 / 3:1 para letra grande; fondo apilando ancestros), `no_se_corta` (un contenedor con scroll hacia el costado porque algo no entra), `letra_minima` (12px), `tocables` (24×24px), `parejo` (≤4 redondeos, ≤6 tamaños de letra), `sin_corrimiento` (página sin scroll horizontal a 1280px). Cada regla trae `dice` (lo que se mide) y `como` (la parte Skill: cómo se arregla, en una línea). `planilla.mjs`: `veo: { visual: regla }`. `planilla_palabras`: la describe. `run_ciclo`: los V van después de los R, y el pedido de un V dice "NO la pidió el usuario… lo que pidió el usuario manda" más el cómo. `proyecto.mjs`: `seguir … --visual` y `juzgar … --visual`.
+- *Cómo se probó:* la app 23/23 de project26 da 27/29: falla `contraste` (blanco sobre amarillo, 1.95:1; contador 3.02:1) y `no_se_corta` (tarjeta de 253px, 223 + padding, en un contenedor de 248). Arreglada a mano con 5 líneas de CSS da 29/29 sin romper ninguna de las 23 pruebas de Miche (fixture `flow_p26_visual_mano`). `test_proyecto` +2.
+- *Ojo (n=1):* esto mide si la regla se cumple, no si la Skill ayuda más que cualquier texto. Para Knowledge hace falta repetir con placebo (como el 10/10).
+
 **project26: 23/23 — la primera app armada de punta a punta por la cadena (22/10, 16h)**
 - *Origen:* `ciclo_2026-10-22T19-09-59`: R28 quedó en la 1ª vuelta, con el aviso "OJO: esta prueba aprieta borrar a propósito…". Gemma agregó en `deleteCard` "si está en 'completa', no borrar".
 - *Curva total (misma app, retomando):* 13 → 16 (arreglos nuestros, sin modelo) → 20 → 21 → 22 → **23/23**. En cada meseta la traba fue un error nuestro (aplicar, juzgar o explicar), no un límite de Gemma.

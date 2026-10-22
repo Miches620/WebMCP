@@ -12,7 +12,7 @@
 //   3. JUZGAR: una app contra una planilla (p. ej. la vara a mano), sin modelo.
 //
 //   node build/proyecto.mjs nuevo <pedido.txt> [--nombre kanban]
-//   node build/proyecto.mjs seguir <carpeta del proyecto> [--max-vueltas 40]
+//   node build/proyecto.mjs seguir <carpeta del proyecto> [--max-vueltas 40] [--visual]
 //   node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json>
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from "node:fs";
@@ -156,6 +156,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const dir = resolve(a1);
     const req = JSON.parse(readFileSync(join(dir, "requisitos.json"), "utf8"));
     const planilla = JSON.parse(readFileSync(join(dir, "planilla.json"), "utf8"));
+    // --visual (22/10): suma las reglas visuales medibles (visual.mjs) como V1, V2…; van después de lo pedido y no lo pisan
+    if (args.includes("--visual")) { const { filasVisuales, VISUAL_VERSION } = await import("../profiles/web/validation/visual.mjs"); planilla.filas = [...(planilla.filas || []), ...filasVisuales()]; console.log(`[PROYECTO] + reglas visuales (${VISUAL_VERSION}): ${filasVisuales().map((f) => f.r).join(", ")}`); }
     const appDir = join(dir, "app");
     const hay = existsSync(appDir) && readdirSync(appDir).some((f) => f.endsWith(".html"));
     const outDir = join(dir, `ciclo_${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}`);
@@ -178,11 +180,13 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     writeFileSync(join(dir, "planilla.md"), await planillaEnPalabras(p, req.requisitos, req.correcciones || []));
     console.log(`[PROYECTO] saqué ${fuera.length} prueba(s): ${fuera.map((f) => f.id).join(", ") || "ninguna (¿los números están bien?)"} · quedan ${p.filas.length}. planilla.md actualizado.`);
   } else if (modo === "juzgar" && a1 && a2) {
-    const r = await juzgar(resolve(a1), JSON.parse(readFileSync(a2, "utf8")), flag("--azar") || "");
+    const pj = JSON.parse(readFileSync(a2, "utf8"));
+    if (args.includes("--visual")) { const { filasVisuales } = await import("../profiles/web/validation/visual.mjs"); pj.filas = [...(pj.filas || []), ...filasVisuales()]; }
+    const r = await juzgar(resolve(a1), pj, flag("--azar") || "");
     console.log(`[JUZGAR] ${r.cumplidos}/${r.de} requisitos cumplidos`);
     for (const f of r.fallan) console.log(`  ✗ ${f.r}: ${f.detalle.join(" | ").slice(0, 300)}`);
   } else {
-    console.log("uso:\n  node build/proyecto.mjs quitar <carpeta del proyecto> R10.3 R21.*   (saca pruebas que están mal)\n  node build/proyecto.mjs nuevo <pedido.txt> [--nombre x]      (Qwen: requisitos tal cual, glosario, planilla y planilla.md)\n  node build/proyecto.mjs seguir <carpeta del proyecto>      (Gemma: borrador si no hay app, y el ciclo; retoma si ya hay)\n  node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json>");
+    console.log("uso:\n  node build/proyecto.mjs quitar <carpeta del proyecto> R10.3 R21.*   (saca pruebas que están mal)\n  node build/proyecto.mjs nuevo <pedido.txt> [--nombre x]      (Qwen: requisitos tal cual, glosario, planilla y planilla.md)\n  node build/proyecto.mjs seguir <carpeta del proyecto> [--visual]  (Gemma: borrador si no hay app, y el ciclo; retoma si ya hay; --visual suma las reglas visuales)\n  node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json> [--visual]");
     process.exit(2);
   }
 }

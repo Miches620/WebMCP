@@ -23,6 +23,7 @@
 import { SEEN, settle, errsSince, freshStart, verbControl, bestControlIn, useControl } from "./flows.mjs";
 // 17/10 (diseño de 3 capas): el juez conoce TIPOS (item, grupo, control, pagina); los nombres de la app vienen del glosario
 import { itemClassRe, palabra, filaATipos } from "./glosario.mjs";
+import { MEDIR_VISUAL, REGLAS_VISUALES } from "./visual.mjs";
 
 export const PLANILLA_VERSION = "planilla v0.1";
 const DEFAULT_CONTROLS = { agregar: ["agregar", "añadir", "nueva", "nuevo", "crear"], editar: ["editar", "modificar"], eliminar: ["eliminar", "borrar"], mover: ["mover"] };
@@ -315,6 +316,12 @@ async function see(page, v, before, w) {
     if (w.ctx.trasClic == null) return [false, `no se llegó a apretar borrar, así que no hay pregunta para ver`];
     const ok = n(w.ctx.trasClic).includes(n(v.pregunta));
     return [ok, ok ? `al apretar borrar pregunta "${v.pregunta}"` : `al apretar borrar no aparece "${v.pregunta}"${w.ctx.dialogoClic ? ` (el navegador preguntó: "${w.ctx.dialogoClic.slice(0, 80)}")` : ""}`];
+  }
+  if (v.visual) {
+    // 22/10: reglas visuales medibles (visual.mjs) — se miden con la ventana de la prueba (1280px de ancho)
+    if (!REGLAS_VISUALES[v.visual]) return [false, `regla visual desconocida: ${v.visual}`];
+    const m = (await page.evaluate(MEDIR_VISUAL))[v.visual];
+    return [!!m?.ok, `${v.visual}: ${m?.detalle || "no se pudo medir"}`];
   }
   if (v.desborde) {
     // con muchos ítems (los crea "dado"): la página NO se desplaza en vertical y el grupo (o algo adentro) sí

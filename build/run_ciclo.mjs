@@ -27,6 +27,7 @@ import { leerApp, mapaTexto, codigoDe, funcionEnLinea, llamadas } from "../harne
 import { aplicar, aplicarBloques, findSuelto, leerBloques as leerBloquesLocal } from "../harness/cambios.mjs";
 import { syntaxOf as syntaxOfLocal } from "../harness/js_tools.mjs";
 import { describirFila } from "../profiles/web/validation/planilla_palabras.mjs";
+import { REGLAS_VISUALES } from "../profiles/web/validation/visual.mjs";
 
 export const CICLO_VERSION = "ciclo v0.4";
 // v0.4 (19/10, después del 16/16): VUELTA 0, el borrador. Si no hay app de partida, Gemma la escribe desde los pedidos
@@ -93,7 +94,10 @@ Reglas:
 5. Los textos de prueba cambian en cada prueba: no escribas textos fijos para que pase.
 6. Sin explicaciones: solo los bloques.`;
 
-const reqTexto = (ctx, r) => `Requisito ${r} (lo pidió el usuario): "${ctx.features[Number(r.slice(1)) - 1] || "?"}"`;
+// 22/10: V1, V2… son reglas visuales (visual.mjs), no pedidos del usuario: van después de los R y lo pedido manda
+const reglaVisual = (ctx, r) => { const k = (ctx.planilla.filas || []).find((f) => f.r === r)?.veo?.find((v) => v.visual)?.visual; return k ? { k, ...REGLAS_VISUALES[k] } : null; };
+const reqTexto = (ctx, r) => { const v = r.startsWith("V") && reglaVisual(ctx, r); return v ? `Regla visual ${r} (NO la pidió el usuario: es para que la app se lea y se use bien; lo que pidió el usuario —colores, medidas, textos— manda y no se cambia): "${v.dice}". Cómo: ${v.como}.` : `Requisito ${r} (lo pidió el usuario): "${ctx.features[Number(r.slice(1)) - 1] || "?"}"`; };
+export const ordenReq = (r) => (r.startsWith("V") ? 10000 : 0) + Number(r.slice(1));
 const consigna = (ctx, filas) => `Qué se prueba (cada línea es una prueba que tiene que pasar):\n${filas.map((f) => `- ${describirFila(f, ctx.planilla.glosario)}`).join("\n")}`;
 // 22/10 (project26, R28 ×6): "borro en Completa → ✗ NO se ve" Gemma lo leía como "no se borra bien" y arreglaba
 // deleteCard para que borre MEJOR. Cuando la prueba borra y espera que siga, se dice con todas las letras.
@@ -236,7 +240,7 @@ export async function ciclo(o) {
   const maxIntentos = o.maxIntentos ?? 3, maxVueltas = o.maxVueltas ?? 40, contexto = o.contexto ?? CONTEXTO;
   const ctx = { planilla, features };
   const filas = planilla.filas || [];
-  const reqs = [...new Set(filas.map((f) => f.r))].sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)));
+  const reqs = [...new Set(filas.map((f) => f.r))].sort((a, b) => ordenReq(a) - ordenReq(b));
   const filasDe = (r) => filas.filter((f) => f.r === r);
   let app = o.app ? { ...o.app } : null;
   let hechoBorrador = null;

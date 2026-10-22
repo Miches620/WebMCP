@@ -8,6 +8,7 @@
 
 import { filaATipos } from "./glosario.mjs";
 import { conNombres } from "./planilla_plantillas.mjs";
+import { REGLAS_VISUALES } from "./visual.mjs";
 
 const isQA = (x) => /^QA\b/.test(String(x || ""));
 const q = (x) => `"${x}"`;
@@ -50,6 +51,7 @@ export function describirFila(row0, g) {
       return `${cosa} tiene ${e.prop}: ${val}`;
     }
     if (v.pregunta) return `al apretar borrar, antes de confirmar, aparece ${q(v.pregunta)}`;
+    if (v.visual) return REGLAS_VISUALES[v.visual]?.dice || `regla visual ${v.visual}`;
     if (v.desborde) return N(`con ${dado.length || "muchos"} {items} en ${q(v.desborde)}, se desplaza (scroll) adentro de {el_grupo} y la página NO se desplaza`);
     if (v.color_en_item) return N(`{el_item} se pinta de ${v.familia}${v.texto ? ` donde dice ${q(v.texto)}` : ""}`);
     return "?";

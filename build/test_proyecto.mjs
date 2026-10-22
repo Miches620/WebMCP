@@ -83,6 +83,18 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   t("p26: la app final de Gemma (22/10, 4 corridas retomando) da 23/23 con otros textos al azar", fin.cumplidos === 23 && !fin.fallan.length, `${fin.cumplidos} ${fin.fallan.map((f) => f.r).join(",")}`);
 }
 
+// ---------- 22/10: reglas visuales medibles (visual.mjs) ----------
+{
+  const { filasVisuales } = await import("../profiles/web/validation/visual.mjs");
+  const { describirFila } = await import("../profiles/web/validation/planilla_palabras.mjs");
+  const { ordenReq } = await import("./run_ciclo.mjs");
+  const P26 = JSON.parse(readFileSync(join(FIX, "planilla_kanban_p26.json"), "utf8"));
+  const PV = { ...P26, filas: [...P26.filas, ...filasVisuales()] };
+  const a = await juzgar(join(FIX, "flow_p26_final"), PV), b = await juzgar(join(FIX, "flow_p26_visual_mano"), PV);
+  t("visual: la app 23/23 falla contraste (blanco sobre amarillo, 1.95 a 1) y se corta (tarjeta de 253px en 248px); arreglada a mano pasa todo SIN romper las 23 pruebas de Miche", a.cumplidos === 27 && a.fallan.map((f) => f.r).join(",") === "V1,V2" && /1\.95 a 1|3\.02 a 1/.test(a.fallan[0].detalle.join(" ")) && b.cumplidos === 29, `${a.cumplidos} ${a.fallan.map((f) => f.r)} · ${b.cumplidos} ${b.fallan.map((f) => f.r)}`);
+  t("visual: en palabras dice la regla; los V van después de todos los R", /contraste de al menos 4\.5/.test(describirFila(filasVisuales()[0], P26.glosario)) && ["V1", "R28", "R2", "V2"].sort((x, y) => ordenReq(x) - ordenReq(y)).join(",") === "R2,R28,V1,V2");
+}
+
 // ---------- quitar: Miche saca pruebas que están mal ----------
 const dq = mkdtempSync(join(tmpdir(), "pq-"));
 const reqK = JSON.parse(readFileSync(join(FIX, "real_kanban_c22/snapshot_min.json"), "utf8")).intentForge.refined_prompt.features.map((texto) => ({ texto }));

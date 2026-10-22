@@ -160,16 +160,25 @@ Sin explicaciones.`;
 // script.js. Gemma escribió esos dos aparte (script.js se cortó y quedó vacío), el ciclo le mostraba el script.js vacío
 // (index.html no entraba en el pedido) y en 40 vueltas cada arreglo iba a un archivo que la app no carga: 13/23 → 13/23.
 // Ahora lo que está adentro de index.html se pasa a su archivo y se enlaza, sin modelo. Lo que la app ya hacía no cambia.
+/** Saca la sangría que quedó de cuando el código estaba adentro de index.html (la 1ª línea sin sangría y el resto con 8
+ * espacios). Con sangría, ningún "### BLOQUE:" de Gemma se encontraba (22/10, R10: ".card-container {" no estaba "tal cual"). */
+export function desindentar(t) {
+  const lines = String(t).split("\n");
+  const ind = lines.slice(1).filter((l) => l.trim()).map((l) => l.match(/^[ \t]*/)[0].length);
+  const k = ind.length ? Math.min(...ind) : 0;
+  return k > 0 ? [lines[0], ...lines.slice(1).map((l) => l.slice(Math.min(k, l.match(/^[ \t]*/)[0].length)))].join("\n") : String(t);
+}
 /** app → { app, cambios[] }. Función pura. */
 export function separarArchivos(app0) {
   const app = { ...app0 }, cambios = [];
+  for (const f of ["styles.css", "script.js"]) if (app[f] && desindentar(app[f]) !== app[f]) { app[f] = desindentar(app[f]); cambios.push(`${f}: saqué la sangría que le quedó de index.html`); }
   let html = String(app["index.html"] || "");
   if (!html) return { app, cambios };
   const enlaza = (f) => new RegExp(`(href|src)\\s*=\\s*["']\\.?/?${f.replace(".", "\\.")}["']`, "i").test(html);
   const styles = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)];
-  const css = styles.map((m) => m[1].trim()).filter(Boolean).join("\n\n");
+  const css = styles.map((m) => desindentar(m[1].trim())).filter(Boolean).join("\n\n");
   const scripts = [...html.matchAll(/<script\b(?![^>]*\bsrc\s*=)[^>]*>([\s\S]*?)<\/script>/gi)].filter((m) => !/type\s*=\s*["'](?!text\/javascript|module)[^"']+["']/i.test(m[0]));
-  const js = scripts.map((m) => m[1].trim()).filter(Boolean).join("\n\n");
+  const js = scripts.map((m) => desindentar(m[1].trim())).filter(Boolean).join("\n\n");
   if (css) {
     for (const m of styles) html = html.replace(m[0], "");
     if (enlaza("styles.css")) { app["styles.css"] = `${String(app["styles.css"] || "").trimEnd()}\n\n/* (estaba adentro de index.html) */\n${css}\n`; cambios.push("el <style> de index.html pasó al final de styles.css"); }

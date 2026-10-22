@@ -71,7 +71,7 @@ t("borrar UNA tarjeta: el contador baja 1 (antes el juez apretaba el 'Borrar' de
 t("con campos pedidos (prioridad) no se reemplaza: R16 de plantillas falla por no poder crear", /no se pudo preparar/.test(L["R16.1"].detail));
 t("estado: las tarjetas no tienen control de borrar (dicho); su CSS cumple alto y ancho pero no el scroll (R12)", /no tiene un control que diga "eliminar"/.test(E["R7.1"].detail) && E["R12.1"].result === "FAIL" && /overflow-y .*visible \(se esperaba scroll o auto\)/.test(E["R12.1"].detail) && /height .*250px/.test(E["R12.1"].detail), E["R12.1"].detail);
 
-t("desborde: en la app del ciclo la columna crece (3000px) y hay que desplazar la página; con alto máximo, scrollea la columna", /no scrollea \(mide \d{4}px y la ventana \d+px\) · no entra en la ventana/.test(res.flow_ciclo_v03_final["R10.2"].detail) && /scrollea adentro de columna "Pendiente" · entra en la ventana/.test(res.flow_ciclo_v03_scroll["R10.2"].detail), res.flow_ciclo_v03_final["R10.2"].detail.slice(-160));
+t("desborde: en la app del ciclo la columna crece (3000px) y hay que desplazar la página; con alto máximo, scrollea la columna", /no scrollea \(mide \d{4}px y la ventana \d+px[^)]*\) · no entra en la ventana/.test(res.flow_ciclo_v03_final["R10.2"].detail) && /scrollea adentro de columna "Pendiente" · entra en la ventana/.test(res.flow_ciclo_v03_scroll["R10.2"].detail), res.flow_ciclo_v03_final["R10.2"].detail.slice(-160));
 
 // 19/10: "pregunta" (la confirmación al borrar, antes de confirmar): la arreglada pregunta con un aviso del navegador
 const preg = [{ id: "X1", r: "R7", dado: [{ agregar: "QA Alfa" }], hago: { eliminar: "QA Alfa" }, veo: [{ pregunta: "estás seguro de que deseas eliminar esta tarjeta" }, { no_esta: "QA Alfa" }] },

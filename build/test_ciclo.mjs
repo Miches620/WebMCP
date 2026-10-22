@@ -112,5 +112,28 @@ t("2ª corrida, vuelta 2: el index.html bueno venía junto con un openModal roto
   t("cambios: una función que viene con su comentario arriba se aplica (antes: 'no devolvió deleteCard') y no duplica el comentario", r.aplicados.length === 1 && /return 0/.test(r.app["script.js"]) && (r.app["script.js"].match(/\/\*\*/g) || []).length === 1, JSON.stringify(r.problemas));
 }
 
+// ---------- 22/10: una LLAMADA no es la función (project26, R28: confirmDelete perdía su "deleteCard(cardId);") ----------
+{
+  const { aplicar } = await import("../harness/cambios.mjs");
+  const { findMember } = await import("../harness/js_tools.mjs");
+  const js = "function confirmDelete(id) {\n  if (!confirm('¿Seguro?')) return;\n  deleteCard(id);\n}\n\n/** borra */\nfunction deleteCard(id) {\n  delete data[id];\n}\n";
+  t("findMember: 'deleteCard(id);' adentro de otra función no es la declaración", findMember(js, "deleteCard").start === 7);
+  const r = aplicar({ "index.html": "<script src=\"script.js\"></script>", "script.js": js }, "### FUNCION: deleteCard\n```js\nfunction deleteCard(id) {\n  if (!data[id]) return;\n  delete data[id];\n}\n```");
+  t("aplicar: al reemplazar deleteCard, confirmDelete sigue llamándola", /confirm\('¿Seguro\?'\)\) return;\n  deleteCard\(id\);\n\}/.test(r.app["script.js"]) && /if \(!data\[id\]\) return;/.test(r.app["script.js"]), r.app["script.js"]);
+}
+// ---------- 22/10: la sangría que quedó de index.html (project26, R10: ningún BLOQUE se encontraba) ----------
+{
+  const { separarArchivos, desindentar } = await import("./run_ciclo.mjs");
+  const { aplicar } = await import("../harness/cambios.mjs");
+  const css = "/* R9 */\n        body {\n            margin: 0;\n        }\n\n        .card-container {\n            overflow-y: auto;\n        }\n";
+  const sep = separarArchivos({ "index.html": "<link rel=\"stylesheet\" href=\"styles.css\">", "styles.css": css });
+  t("desindentar: el CSS que salió de index.html queda sin la sangría de 8 espacios (y se avisa)", sep.app["styles.css"].includes("\n.card-container {\n    overflow-y: auto;") && sep.cambios.length === 1 && desindentar("a {\n  b\n}") === "a {\n  b\n}");
+  const r = aplicar(sep.app, "### BLOQUE: .card-container {\n```css\n.card-container {\n    overflow-y: auto;\n    min-height: 0;\n}\n```");
+  const css2 = "/* Contenido principal de la tarjeta (el body) */\n.card-body {\n    padding-left: 24px;\n}\n\n.otra { color: red; }\n";
+  const r2 = aplicar({ "styles.css": css2 }, "### BLOQUE: /* Contenido principal de la tarjeta (el body) */\n```css\n/* Contenido principal de la tarjeta (el body) */\n.card-body {\n    padding-left: 24px;\n    overflow-y: auto;\n}\n```");
+  t("bloque CSS que empieza con un comentario: se reemplaza el comentario Y su regla (no queda duplicada); una llave de más no entra", r2.aplicados.length === 1 && (r2.app["styles.css"].match(/\.card-body/g) || []).length === 1 && /overflow-y: auto/.test(r2.app["styles.css"]) && /\.otra/.test(r2.app["styles.css"]) && aplicar({ "styles.css": css2 }, "### BLOQUE: .otra { color: red; }\n```css\n.otra { color: blue; }}\n```").aplicados.length === 0, r2.app["styles.css"]);
+  t("bloque suelto: '.card-container {' se encuentra y se reemplaza", r.aplicados.length === 1 && /min-height: 0/.test(r.app["styles.css"]), JSON.stringify(r.problemas));
+}
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

@@ -31,7 +31,9 @@ export function findSuelto(js, primera) {
   const lines = String(js || "").split("\n");
   const want = norm(primera).replace(/[{(,]+$/, "");
   if (want.length < 8) return null;
-  const i = lines.findIndex((l) => /^\S/.test(l) && norm(l).startsWith(want));
+  // el nivel de arriba del archivo es la sangría más chica (no siempre la columna 0: un archivo que salió de index.html)
+  const base = Math.min(...lines.filter((l) => l.trim()).map((l) => l.match(/^[ \t]*/)[0].length), 99);
+  const i = lines.findIndex((l) => l.trim() && l.match(/^[ \t]*/)[0].length === base && norm(l).startsWith(want));
   if (i < 0) return null;
   const end = /\{/.test(lines[i]) ? blockEndLines(lines, i) : i;
   if (end < 0) return null;
@@ -40,6 +42,18 @@ export function findSuelto(js, primera) {
   if (lines[e + 1] && /^\s*\)?\s*;?\s*$/.test(lines[e + 1]) && lines[e + 1].trim()) e++;
   return { start: i + 1, end: e + 1, text: lines.slice(i, e + 1).join("\n") };
 }
+
+/** En CSS: la regla que empieza con esa línea; si la línea es un comentario, el comentario y la regla que sigue. */
+export function findSueltoCss(css, primera) {
+  const x = findSuelto(css, primera);
+  if (!x || x.end > x.start || !/^\s*\/\*.*\*\/\s*$/.test(x.text)) return x;
+  const lines = String(css).split("\n");
+  let j = x.start; while (j < lines.length && !lines[j].trim()) j++;
+  if (j >= lines.length || !/\{/.test(lines[j])) return x;
+  const end = blockEndLines(lines, j);
+  return end < 0 ? x : { start: x.start, end: end + 1, text: lines.slice(x.start - 1, end + 1).join("\n") };
+}
+const cssRoto = (css) => { const t = String(css).replace(/\/\*[\s\S]*?\*\//g, ""); let d = 0; for (const ch of t) { if (ch === "{") d++; else if (ch === "}" && --d < 0) return "una llave } de más"; } return d ? "falta cerrar una llave }" : null; };
 
 /** Los bloques de la respuesta: [{ tipo: "funcion" | "archivo", nombre, en?, codigo }]. */
 export function leerBloques(raw) {
@@ -74,11 +88,14 @@ export function aplicarBloques(app0, bloques) {
     }
     // bloque suelto (o una "función" cuyo nombre no es un nombre): se busca por su primera línea
     if (b.tipo === "bloque" || !isIdent(b.nombre)) {
-      const hit = jsFiles.map((f) => [f, findSuelto(app[f], b.primera)]).find(([, x]) => x);
+      // 22/10: también en los .css (antes solo .js: un "### BLOQUE:" de CSS nunca se encontraba)
+      const cssFiles = Object.keys(app).filter((f) => f.endsWith(".css"));
+      const esCss = /^\s*(\/\*|[.#@:a-z*\[][^({;]*\{)/i.test(b.codigo) && !/\b(function|const|let|var|=>)\b/.test(b.codigo);
+      const hit = (esCss ? [...cssFiles, ...jsFiles] : [...jsFiles, ...cssFiles]).map((f) => [f, f.endsWith(".css") ? findSueltoCss(app[f], b.primera) : findSuelto(app[f], b.primera)]).find(([, x]) => x);
       if (!hit) { problemas.push(`no encontré el bloque que empieza con "${b.primera.slice(0, 60)}" (para código suelto, la primera línea tiene que estar tal cual; para una función, ### FUNCION: nombre)`); continue; }
       const [f, x] = hit, lines = app[f].split("\n");
       const next = [...lines.slice(0, x.start - 1), b.codigo.replace(/\s+$/, ""), ...lines.slice(x.end)].join("\n");
-      const e = syntaxOf(next);
+      const e = f.endsWith(".css") ? cssRoto(next) : syntaxOf(next);
       if (e) { problemas.push(`bloque "${b.primera.slice(0, 40)}": no compila (${e})`); continue; }
       app[f] = next;
       aplicados.push(`bloque suelto ${f}:${x.start}`);

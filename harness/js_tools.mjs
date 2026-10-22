@@ -67,8 +67,17 @@ export function blockEndLines(lines, from) {
 /** Dónde está un método o función `name` (líneas 1-based): `name(…) {`, `name: function (…) {`, `function name(…) {`, `const name = …`. */
 export function findMember(js, name) {
   const lines = String(js || "").split("\n");
-  const re = new RegExp(`^\\s*(?:async\\s+)?(?:function\\s+${name}\\s*\\(|${name}\\s*\\(|${name}\\s*:\\s*(?:async\\s*)?(?:function\\b|\\()|(?:const|let|var)\\s+${name}\\s*=)`);
-  const i = lines.findIndex((l) => re.test(l));
+  // 22/10 (project26, R28): "name(" a secas también agarraba una LLAMADA suelta ("deleteCard(cardId);" adentro de
+  // confirmDelete): se reemplazaba desde ahí y confirmDelete perdía la llamada → borrar dejó de andar. Ahora se busca
+  // primero la declaración, y el método abreviado tiene que abrir su cuerpo: "name(…) {".
+  const res = [
+    `^\\s*(?:export\\s+)?(?:async\\s+)?function\\s*\\*?\\s*${name}\\s*\\(`,
+    `^\\s*(?:export\\s+)?(?:const|let|var)\\s+${name}\\s*=`,
+    `^\\s*${name}\\s*:\\s*(?:async\\s*)?(?:function\\b|\\()`,
+    `^\\s*(?:async\\s+)?${name}\\s*\\([^)]*\\)\\s*\\{`,
+  ].map((x) => new RegExp(x));
+  let i = -1;
+  for (const re of res) { i = lines.findIndex((l) => re.test(l)); if (i >= 0) break; }
   if (i < 0) return null;
   const end = blockEndLines(lines, i);
   return end < 0 ? null : { name, start: i + 1, end: end + 1, text: lines.slice(i, end + 1).join("\n") };

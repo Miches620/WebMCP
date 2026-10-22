@@ -328,7 +328,7 @@ async function see(page, v, before, w) {
     });
     const ok = !d.pagina && d.grupo;
     const es = ok ? "" : await cual("[data-plan-col]");
-    return [ok, `con muchos ítems: ${d.grupo ? `scrollea adentro de ${w.gr} "${v.desborde}"` : `${w.gr} "${v.desborde}"${es ? ` (es ${es})` : ""} no scrollea (mide ${d.alto}px y la ventana ${d.vista}px)`} · ${d.pagina ? `no entra en la ventana: hay que desplazar la PÁGINA para verla (no tendría que)` : "entra en la ventana"}`];
+    return [ok, `con muchos ítems: ${d.grupo ? `scrollea adentro de ${w.gr} "${v.desborde}"` : `${w.gr} "${v.desborde}"${es ? ` (es ${es})` : ""} no scrollea (mide ${d.alto}px y la ventana ${d.vista}px: crece con lo que tiene adentro, nada le pone un alto máximo)`} · ${d.pagina ? `no entra en la ventana: hay que desplazar la PÁGINA para verla (no tendría que)` : "entra en la ventana"}`];
   }
   if (v.color_en_item) {
     if (!(await page.evaluate(ITEM_OF, [v.color_en_item, w.src]))) return [false, `"${v.color_en_item}" no aparece como ${w.it}`];

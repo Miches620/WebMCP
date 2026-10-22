@@ -289,6 +289,9 @@ async function see(page, v, before, w) {
     const bad = v.al_pasar.filter((t, i) => !after[i] || b[i]);
     return [!bad.length, bad.length ? v.al_pasar.map((t, i) => `${t}: ${b[i] ? "ya se veía antes" : "oculto antes"} → ${after[i] ? "se ve" : "NO se ve"}`).join(" · ") : `${v.al_pasar.join(" ")}: ocultos → aparecen al pasar el mouse`];
   }
+  // 21/10 (project26, R11 ×6): "padding de control 'Agregar tarjeta': 8px 15px" no decía CUÁL elemento; Gemma arreglaba
+  // #addCardBtn (una regla de un botón que ya no existía) y el medido era #addCardBtnBottom. Ahora el FAIL dice cuál es.
+  const cual = (s0) => page.evaluate((q) => { const el = document.querySelector(q); if (!el) return ""; const c = [...el.classList].filter((k) => !k.startsWith("data-")).slice(0, 2); return `<${el.tagName.toLowerCase()}${el.id ? ` id="${el.id}"` : ""}${c.length ? ` class="${c.join(" ")}"` : ""}>`; }, s0).catch(() => "");
   if (v.estilo) {
     const e = v.estilo;
     let sel = null, label = "la página";
@@ -303,7 +306,8 @@ async function see(page, v, before, w) {
     const got = await page.evaluate(STYLES_OF, [sel, e.prop, e.de === "pagina"]);
     const ok = got.some((g) => styleMatches(g, e.valor));
     const want = typeof e.valor === "object" && !Array.isArray(e.valor) ? `distinto de ${e.valor.distinto}` : [].concat(e.valor).join(" o ");
-    return [ok, `${e.prop} de ${label}: ${[...new Set(got)].slice(0, 3).join(" | ") || "—"}${ok ? "" : ` (se esperaba ${want})`}`];
+    const es = !ok && sel ? await cual(sel) : "";
+    return [ok, `${e.prop} de ${label}${es ? ` (es ${es})` : ""}: ${[...new Set(got)].slice(0, 3).join(" | ") || "—"}${ok ? "" : ` (se esperaba ${want})`}`];
   }
   if (v.pregunta) {
     // al borrar, antes de confirmar, aparece la pregunta (en la página o en un aviso del navegador)
@@ -323,7 +327,8 @@ async function see(page, v, before, w) {
       return { pagina, grupo: scrollers.length > 0, alto: Math.round(col.getBoundingClientRect().height), vista: innerHeight };
     });
     const ok = !d.pagina && d.grupo;
-    return [ok, `con muchos ítems: ${d.grupo ? `scrollea adentro de ${w.gr} "${v.desborde}"` : `${w.gr} "${v.desborde}" no scrollea (mide ${d.alto}px)`} · ${d.pagina ? `no entra en la ventana: hay que desplazar la PÁGINA para verla (no tendría que)` : "entra en la ventana"}`];
+    const es = ok ? "" : await cual("[data-plan-col]");
+    return [ok, `con muchos ítems: ${d.grupo ? `scrollea adentro de ${w.gr} "${v.desborde}"` : `${w.gr} "${v.desborde}"${es ? ` (es ${es})` : ""} no scrollea (mide ${d.alto}px y la ventana ${d.vista}px)`} · ${d.pagina ? `no entra en la ventana: hay que desplazar la PÁGINA para verla (no tendría que)` : "entra en la ventana"}`];
   }
   if (v.color_en_item) {
     if (!(await page.evaluate(ITEM_OF, [v.color_en_item, w.src]))) return [false, `"${v.color_en_item}" no aparece como ${w.it}`];

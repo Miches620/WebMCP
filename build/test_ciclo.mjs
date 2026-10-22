@@ -104,5 +104,13 @@ t("2ª corrida, vuelta 2: el index.html bueno venía junto con un openModal roto
   t("separar: una app ya separada no se toca", ya.cambios.length === 0 && ya.app["index.html"] === r.app["index.html"]);
 }
 
+// ---------- 21/10: la función vuelve con su comentario /** … */ arriba (project26, R28 ×5) ----------
+{
+  const { aplicar } = await import("../harness/cambios.mjs");
+  const app = { "index.html": "<script src=\"script.js\"></script>", "script.js": "/** borra */\nfunction deleteCard(id) {\n  return 1;\n}\nfunction otra() { return 2; }\n" };
+  const r = aplicar(app, "### FUNCION: deleteCard\n```js\n        /**\n         * Elimina una tarjeta.\n         */\n        function deleteCard(id) {\n  if (id === 'x') return 0;\n  return 1;\n}\n```");
+  t("cambios: una función que viene con su comentario arriba se aplica (antes: 'no devolvió deleteCard') y no duplica el comentario", r.aplicados.length === 1 && /return 0/.test(r.app["script.js"]) && (r.app["script.js"].match(/\/\*\*/g) || []).length === 1, JSON.stringify(r.problemas));
+}
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

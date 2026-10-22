@@ -75,7 +75,9 @@ export function findMember(js, name) {
 }
 /** Reemplaza el método por la versión corregida; respeta la coma final de un literal de objeto. */
 export function replaceMember(js, m, code) {
-  let body = String(code || "").replace(/\s+$/, "");
+  // 21/10 (project26, R28 ×5): Gemma devuelve la función con su comentario /** … */ arriba; el comentario ya está en el
+  // archivo (findMember empieza en la línea de la función), así que se saca y se mira la primera línea de código.
+  let body = String(code || "").replace(/\s+$/, "").replace(/^(?:\s*(?:\/\*[\s\S]*?\*\/|\/\/[^\n]*)[ \t]*\n)*\s*\n?/, (x) => x.replace(/[^\n]*/g, "").replace(/\n/g, "")).replace(/^\n+/, "");
   if (!new RegExp(`\\b${m.name}\\b`).test(body.split("\n")[0] || "")) return { ok: false, why: `no devolvió ${m.name}` };
   const lines = String(js).split("\n");
   const hadComma = /}\s*,\s*$/.test(lines[m.end - 1]);

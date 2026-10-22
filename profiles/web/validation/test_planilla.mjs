@@ -63,7 +63,7 @@ const A = res.flow_gemma_sola_arreglada, R = res.flow_gemma_sola_rota, E = res.f
 t("la rota: el FAIL de crear trae el error de JS con archivo y línea", /error de JS: .*\(script\.js:13\d\)/.test(R["R1.1"].detail), R["R1.1"].detail);
 t("la arreglada no ordena por prioridad, y el detalle dice el orden que vio y el esperado", /orden en "Pendiente": QA Baja · QA Alta Vieja · QA Media · QA Alta Nueva \(se esperaba QA Alta Nueva/.test(A["R16.1"].detail), A["R16.1"].detail);
 t("medidas = el valor CSS del elemento (width: 248px), no lo que ocupa con padding (278) ni un hijo", /width de columna "Pendiente": 248px/.test(A["R10.1"].detail), A["R10.1"].detail);
-t("padding '8px 15px' no es '8px' (Miche pidió 8px)", /padding de control "➕ Agregar Tarjeta": 8px 15px \(se esperaba 8px\)/.test(A["R11.1"].detail));
+t("padding '8px 15px' no es '8px' (Miche pidió 8px)", /padding de control "➕ Agregar Tarjeta"( \(es <button[^)]*>\))?: 8px 15px \(se esperaba 8px\)/.test(A["R11.1"].detail));
 t("hover: 🗑️ ✏️ ocultos antes y visibles al pasar el mouse (R17 ya no es un PASS vacío)", /ocultos → aparecen al pasar el mouse/.test(A["R17.1"].detail));
 t("drag & drop de verdad y contadores: Pendiente −1, En Curso +1", /contador de "Pendiente": 1 → 0 · ✓ contador de "En Curso": 0 → 1/.test(A["R15.2"].detail), A["R15.2"].detail);
 t("plantillas no puede crear → usa una tarjeta que ya estaba para mover / borrar (y lo dice)", /no pudo crear "QA Alfa" .*usa la que ya estaba: "Diseñar wireframes iniciales"/.test(L["R6.1"].detail) && L["R6.1"].result === "PASS");
@@ -71,7 +71,7 @@ t("borrar UNA tarjeta: el contador baja 1 (antes el juez apretaba el 'Borrar' de
 t("con campos pedidos (prioridad) no se reemplaza: R16 de plantillas falla por no poder crear", /no se pudo preparar/.test(L["R16.1"].detail));
 t("estado: las tarjetas no tienen control de borrar (dicho); su CSS cumple alto y ancho pero no el scroll (R12)", /no tiene un control que diga "eliminar"/.test(E["R7.1"].detail) && E["R12.1"].result === "FAIL" && /overflow-y .*visible \(se esperaba scroll o auto\)/.test(E["R12.1"].detail) && /height .*250px/.test(E["R12.1"].detail), E["R12.1"].detail);
 
-t("desborde: en la app del ciclo la columna crece (3000px) y hay que desplazar la página; con alto máximo, scrollea la columna", /no scrollea \(mide \d{4}px\) · no entra en la ventana/.test(res.flow_ciclo_v03_final["R10.2"].detail) && /scrollea adentro de columna "Pendiente" · entra en la ventana/.test(res.flow_ciclo_v03_scroll["R10.2"].detail), res.flow_ciclo_v03_final["R10.2"].detail.slice(-160));
+t("desborde: en la app del ciclo la columna crece (3000px) y hay que desplazar la página; con alto máximo, scrollea la columna", /no scrollea \(mide \d{4}px y la ventana \d+px\) · no entra en la ventana/.test(res.flow_ciclo_v03_final["R10.2"].detail) && /scrollea adentro de columna "Pendiente" · entra en la ventana/.test(res.flow_ciclo_v03_scroll["R10.2"].detail), res.flow_ciclo_v03_final["R10.2"].detail.slice(-160));
 
 // 19/10: "pregunta" (la confirmación al borrar, antes de confirmar): la arreglada pregunta con un aviso del navegador
 const preg = [{ id: "X1", r: "R7", dado: [{ agregar: "QA Alfa" }], hago: { eliminar: "QA Alfa" }, veo: [{ pregunta: "estás seguro de que deseas eliminar esta tarjeta" }, { no_esta: "QA Alfa" }] },

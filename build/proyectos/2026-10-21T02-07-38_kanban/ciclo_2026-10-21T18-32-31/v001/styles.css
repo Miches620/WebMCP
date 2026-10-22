@@ -1,0 +1,269 @@
+/* R9: Fondo */
+        body {
+            font-family: sans-serif;
+            background-color: #102C54; /* Fondo principal */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* R13: Div 'top' con title y actions */
+        .top {
+            width: 95%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+
+        .top h1 {
+            color: white;
+            font-size: 2em;
+        }
+
+        /* R11: Botón 'Agregar tarjeta' */
+        #addCardBtn {
+            padding: 8px 15px; /* padding: 8px */
+            border: 1px dashed #ccc; /* border: 1px dashed */
+            border-radius: 8px; /* border radius: 8px */
+            cursor: pointer;
+            background-color: white;
+            transition: background-color 0.2s;
+        }
+
+        #addCardBtn:hover {
+            background-color: #e0e0e0;
+        }
+
+        /* Contenedor principal de columnas */
+        .board {
+            display: flex;
+            gap: 20px;
+            width: 95%;
+            max-width: 1400px;
+        }
+
+        /* R8, R10: Estilo de Columna */
+        .column {
+            background-color: #8FB3C7; /* Color columna */
+            width: 248px; /* width: 248px */
+            flex-shrink: 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header de la columna */
+        .column-header {
+            padding: 15px;
+            border-bottom: 1px solid #ccc;
+            background-color: #7a98b0;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .column-header h2 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+
+        /* Área de tarjetas (Scrollable) */
+        .card-container {
+            flex-grow: 1;
+            overflow-y: auto; /* R10: overflow: scroll */
+            padding: 15px;
+            background-color: #f4f4f4;
+            /* Asegura que el contenedor no se desborde horizontalmente */
+        }
+
+        /* Estilo del botón 'Agregar tarjeta' debajo de la columna Pendiente */
+        #addCardBtnBottom {
+            padding: 8px 15px;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 15px 20px 15px; /* Espaciado */
+            background-color: white;
+        }
+
+        /* R2, R11: Botón 'Agregar tarjeta' en Pendiente */
+        #addCardBtnBottom.hidden {
+            display: none;
+        }
+
+
+        /* Estilo de la Tarjeta (R12) */
+        .card {
+            background-color: #F2E9D8; /* Color tarjeta */
+            width: 223px; /* width: 223px */
+            height: 250px; /* height: 250px */
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* R15: Sombra */
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden; /* Para contener el drag handle y los botones */
+        }
+
+        /* Efecto de movimiento durante drag&drop (R15) */
+        .card.dragging {
+            opacity: 0.4;
+            transform: scale(0.98);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* R6: Drag Handle */
+        .drag-handle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 24px; /* width: 24px */
+            height: 100%;
+            cursor: grab;
+            background: none;
+            border: none;
+            z-index: 10;
+        }
+
+        /* Contenido principal de la tarjeta (el body) */
+        .card-body {
+            padding-left: 24px; /* Espacio para el drag handle */
+            overflow-y: auto; /* R12: overflow-y: scroll/auto */
+            height: calc(100% - 15px); /* Ajuste de altura si hay padding en card */
+        }
+
+        /* Contenido del texto */
+        .card-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .card-description {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        /* R3, R24: Etiquetas de prioridad */
+        .priority-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: bold;
+            color: white;
+            margin-top: 10px;
+        }
+
+        /* Colores de prioridad */
+        .priority-alta { background-color: #d9534f; } /* Rojo */
+        .priority-media { background-color: #f0ad4e; } /* Amarillo/Naranja */
+        .priority-baja { background-color: #5cb85c; } /* Verde */
+
+        /* R14, R17: Botones de acción (Hover) */
+        .card-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: flex;
+            gap: 5px;
+        }
+
+        /* Mostrar acciones al pasar el mouse */
+        .card:hover .card-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            padding: 5px 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        /* Modal Styling */
+        .modal {
+            display: none; /* Por defecto oculto */
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4); /* Overlay */
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto; /* Centrado vertical y horizontal */
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            color: #102C54;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        /* Botones del modal */
+        .modal-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #ccc;
+            color: #333;
+        }

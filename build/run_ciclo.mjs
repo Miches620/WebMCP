@@ -95,7 +95,10 @@ Reglas:
 
 const reqTexto = (ctx, r) => `Requisito ${r} (lo pidió el usuario): "${ctx.features[Number(r.slice(1)) - 1] || "?"}"`;
 const consigna = (ctx, filas) => `Qué se prueba (cada línea es una prueba que tiene que pasar):\n${filas.map((f) => `- ${describirFila(f, ctx.planilla.glosario)}`).join("\n")}`;
-const fallas = (filas, est) => `Lo que falló en la última prueba:\n${filas.filter((f) => est[f.id]?.result !== "PASS").map((f) => `- ${est[f.id]?.detail || "sin detalle"}`).join("\n")}`;
+// 22/10 (project26, R28 ×6): "borro en Completa → ✗ NO se ve" Gemma lo leía como "no se borra bien" y arreglaba
+// deleteCard para que borre MEJOR. Cuando la prueba borra y espera que siga, se dice con todas las letras.
+const aviso = (f) => { const h = f.hago || {}, v = (f.veo || []).find((x) => x.esta && x.esta === h.eliminar); return v ? `\n  (OJO: esta prueba aprieta borrar a propósito y espera que NO se borre${v.en ? `: en "${v.en}" borrar no tiene que funcionar` : ""}. Que se borre es el error.)` : ""; };
+export const fallas = (filas, est) => `Lo que falló en la última prueba:\n${filas.filter((f) => est[f.id]?.result !== "PASS").map((f) => `- ${est[f.id]?.detail || "sin detalle"}${aviso(f)}`).join("\n")}`;
 
 /** Dónde saltó un error de JS: [{file, line}] sacado de los detalles ("… (script.js:133)"). */
 export function lugaresDeError(textos) {

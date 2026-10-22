@@ -135,5 +135,14 @@ t("2ª corrida, vuelta 2: el index.html bueno venía junto con un openModal roto
   t("bloque suelto: '.card-container {' se encuentra y se reemplaza", r.aplicados.length === 1 && /min-height: 0/.test(r.app["styles.css"]), JSON.stringify(r.problemas));
 }
 
+// ---------- 22/10: la prueba borra a propósito y espera que siga (project26, R28 ×6) ----------
+{
+  const { fallas } = await import("./run_ciclo.mjs");
+  const f = { id: "R28.1", r: "R28", dado: [{ agregar: "QA Alfa" }, { mover: "QA Alfa", a: "Completa" }], hago: { eliminar: "QA Alfa" }, veo: [{ esta: "QA Alfa", en: "Completa" }] };
+  const g = { id: "R7.1", r: "R7", dado: [{ agregar: "QA Alfa" }], hago: { eliminar: "QA Alfa" }, veo: [{ no_esta: "QA Alfa" }] };
+  const txt = fallas([f, g], { "R28.1": { result: "FAIL", detail: "→ ✗ \"QA Alfa\" NO se ve (y tenía que verse en \"Completa\")" }, "R7.1": { result: "FAIL", detail: "x" } });
+  t("fallas: si la prueba borra y espera que siga, se avisa que borrarse ES el error (y solo en esa)", /espera que NO se borre: en "Completa" borrar no tiene que funcionar/.test(txt) && (txt.match(/OJO/g) || []).length === 1, txt);
+}
+
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

@@ -1,0 +1,529 @@
+{
+  "type": "EVIDENCE",
+  "kind": "ciclo",
+  "version": "ciclo v0.4",
+  "modelo": "google/gemma-4-e4b",
+  "contexto": 12000,
+  "inicio": "2026-10-22T03:42:42.688Z",
+  "desde": "una app que ya existía",
+  "vueltas": [
+    {
+      "vuelta": 1,
+      "requisito": "R10",
+      "antes": {
+        "R10.1": "FAIL",
+        "R10.2": "FAIL",
+        "R10.3": "FAIL",
+        "R10.4": "PASS",
+        "R10.5": "PASS",
+        "R10.6": "PASS"
+      },
+      "ver": [
+        "styles.css"
+      ],
+      "codigo": [
+        "archivo styles.css (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 1662,
+        "arreglo": 3584
+      },
+      "ms": {
+        "ver": 29539,
+        "arreglo": 253358
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 1897,
+          "completion_tokens": 503,
+          "total_tokens": 2400,
+          "completion_tokens_details": {
+            "reasoning_tokens": 474
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 4268,
+          "completion_tokens": 3917,
+          "total_tokens": 8185,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1648
+          }
+        }
+      },
+      "respuesta": "### ARCHIVO: styles.css\n```css\n/* R9: Fondo */\nbody {\n    font-family: sans-serif;\n    background-color: #102C54; /* Fondo principal */\n    margin: 0;\n    padding: 20px;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n}\n\n/* R13: Div 'top' con title y actions */\n.top {\n    width: 95%;\n    max-width: 1200px;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 10px 0;\n    margin-bottom: 20px;\n}\n\n.top h1 {\n    color: white;\n    font-size: 2em;\n}\n\n/* R11: Botón 'Agregar tarjeta' */\n#addCardBtn {\n    padding: 8px 15px; /* padding: 8px */\n    border: 1px dashed #ccc; /* border: 1px dashed */\n    border-radius: 8px; /* border radius: 8px */\n    cursor: pointer;\n    background-color: white;\n    transition: background-color 0.2s;\n}\n\n#addCardBtn:hover {\n    background-color: #e0e0e0;\n}\n\n/* Contenedor principal de columnas */\n.board {\n    display: flex;\n    gap: 20px;\n    width: 95%;\n    max-width: 1400px;\n    /* FIX: Limitar la altura del board para que el scroll ocurra dentro de las columnas */\n    max-height: calc(100vh - 180px); /* Ajuste aproximado basado en padding y top bar */\n}\n\n/* R8, R10: Estilo de Columna */\n.column {\n    background-color: #8FB3C7; /* Color columna */\n    width: 248px; /* width: 248px */\n    flex-shrink: 0;\n    border-radius: 10px;\n    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);\n    display: flex;\n    flex-direction: column;\n}\n\n/* Header de la columna */\n.column-header {\n    padding: 15px;\n    border-bottom: 1px solid #ccc;\n    background-color: #7a98b0;\n    color: white;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n}\n\n.column-header h2 {\n    margin: 0;\n    font-size: 1.2em;\n}\n\n/* Área de tarjetas (Scrollable) */\n.card-container {\n    flex-grow: 1;\n    overflow-y: auto; /* R10: overflow: scroll */\n    padding: 15px;\n    background-color: #f4f4f4;\n    /* Asegura que el contenedor no se desborde horizontalmente */\n}\n\n/* Estilo de la Tarjeta (R12) */\n.card {\n    background-color: #F2E9D8; /* Color tarjeta */\n    width: 223px; /* width: 223px */\n    height: 250px; /* height: 250px */\n    margin-bottom: 15px;\n    padding: 15px;\n    border-radius: 8px;\n    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* R15: Sombra */\n    transition: transform 0.2s, box-shadow 0.2s;\n    position: relative;\n    overflow-y: auto; /* Corregido para permitir scroll en la tarjeta */\n}\n\n/* Efecto de movimiento durante drag&drop (R15) */\n.card.dragging {\n    opacity: 0.4;\n    transform: scale(0.98);\n    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);\n}\n\n/* R6: Drag Handle */\n.drag-handle {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 24px; /* width: 24px */\n    height: 100%;\n    cursor: grab;\n    background: none;\n    border: none;\n    z-index: 10;\n}\n\n/* Contenido principal de la tarjeta (el body) */\n.card-body {\n    padding-left: 24px; /* Espacio para el drag handle */\n    overflow-y: auto; /* R12: overflow-y: scroll/auto */\n    height: calc(100% - 15px); /* Ajuste de altura si hay padding en card */\n}\n\n/* Contenido del texto */\n.card-title {\n    font-weight: bold;\n    margin-bottom: 8px;\n    color: #333;\n}\n\n.card-description {\n    font-size: 0.9em;\n    color: #555;\n    margin-bottom: 10px;\n}\n\n/* R3, R24: Etiquetas de prioridad */\n.priority-tag {\n    display: inline-block;\n    padding: 4px 8px;\n    border-radius: 4px;\n    font-size: 0.75em;\n    font-weight: bold;\n    color: white;\n    margin-top: 10px;\n}\n\n/* Colores de prioridad */\n.priority-alta { background-color: #d9534f; } /* Rojo */\n.priority-media { background-color: #f0ad4e; } /* Amarillo/Naranja */\n.priority-baja { background-color: #5cb85c; } /* Verde */\n\n/* R14, R17: Botones de acción (Hover) */\n.card-actions {\n    position: absolute;\n    top: 10px;\n    right: 10px;\n    opacity: 0;\n    transition: opacity 0.2s;\n    display: flex;\n    gap: 5px;\n}\n\n/* Mostrar acciones al pasar el mouse */\n.card:hover .card-actions {\n    opacity: 1;\n}\n\n.action-btn {\n    background: rgba(0, 0, 0, 0.6);\n    color: white;\n    border: none;\n    padding: 5px 8px;\n    cursor: pointer;\n    border-radius: 4px;\n    font-size: 1em;\n}\n\n/* Modal Styling */\n.modal {\n    display: none; /* Por defecto oculto */\n    position: fixed;\n    z-index: 100;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    overflow: auto;\n    background-color: rgba(0, 0, 0, 0.4); /* Overlay */\n}\n\n.modal-content {\n    background-color: #fefefe;\n    margin: 5% auto; /* Centrado vertical y horizontal */\n    padding: 20px;\n    border-radius: 10px;\n    width: 80%;\n    max-width: 500px;\n    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);\n}\n\n.modal-content h2 {\n    margin-top: 0;\n    color: #102C54;\n}\n\n.form-group {\n    margin-bottom: 15px;\n}\n\n.form-group label {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: bold;\n}\n\n.form-group input[type=\"text\"],\n.form-group textarea,\n.form-group select {\n    width: 100%;\n    padding: 10px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    box-sizing: border-box;\n}\n\n/* Botones del modal */\n.modal-actions {\n    display: flex;\n    justify-content: space-between;\n    margin-top: 20px;\n}\n\n.btn-primary, .btn-secondary {\n    padding: 10px 20px;\n    border: none;\n    cursor: pointer;\n    border-radius: 5px;\n    transition: background-color 0.2s;\n}\n\n.btn-primary {\n    background-color: #3498db;\n    color: white;\n}\n\n.btn-secondary {\n    background-color: #ccc;\n    color: #333;\n}\n\n/* Estilo de la columna Pendiente */\n#addCardBtnBottom {\n    padding: 8px;\n    border: 1px dashed #ccc;\n    border-radius: 8px;\n    cursor: pointer;\n    margin: 10px 15px 20px 15px; /* Espaciado */\n    background-color: white;\n}\n\n/* R2, R11: Botón 'Agregar tarjeta' en Pendiente */\n#addCardBtnBottom.hidden {\n    display: none;\n}\n```",
+      "aplicados": [
+        "archivo styles.css"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": true,
+          "pts": 6000
+        }
+      ],
+      "despues": {
+        "R10.1": "PASS",
+        "R10.2": "PASS",
+        "R10.3": "PASS",
+        "R10.4": "PASS",
+        "R10.5": "PASS",
+        "R10.6": "PASS"
+      },
+      "aceptado": true,
+      "motivo": "6/6 pruebas de R10 pasan y suma lo que se ve bien (3000 → 6000), sin romper nada",
+      "foto": "v001"
+    },
+    {
+      "vuelta": 2,
+      "requisito": "R28",
+      "antes": {
+        "R28.1": "FAIL"
+      },
+      "ver": [
+        "deleteCard(cardId)",
+        "script.js",
+        "index.html"
+      ],
+      "codigo": [
+        "función deleteCard (script.js:276-293)",
+        "archivo script.js (entero)",
+        "archivo index.html (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 836,
+        "arreglo": 6209
+      },
+      "ms": {
+        "ver": 25587,
+        "arreglo": 127055
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 921,
+          "completion_tokens": 598,
+          "total_tokens": 1519,
+          "completion_tokens_details": {
+            "reasoning_tokens": 553
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 5479,
+          "completion_tokens": 1638,
+          "total_tokens": 7117,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1485
+          }
+        }
+      },
+      "respuesta": "### FUNCION: deleteCard\n```js\nfunction deleteCard(cardId) {\n    if (!cardsData[cardId]) return;\n\n    // 1. Eliminar del estado global\n    delete cardsData[cardId];\n\n    // 2. Re-renderizar TODAS las columnas para asegurar que el DOM esté limpio y sincronizado\n    COLUMNS.forEach(colId => {\n        const containerEl = document.getElementById(`cards-${colId}`);\n        if (containerEl) {\n            renderCardsToContainer(colId, containerEl);\n        }\n    });\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n```",
+      "aplicados": [
+        "función deleteCard (script.js)"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": false,
+          "pts": 0
+        }
+      ],
+      "despues": {
+        "R28.1": "FAIL"
+      },
+      "aceptado": false,
+      "motivo": "aplicó todo pero no avanzó: agregó \"QA Tala 1\" · arrastró \"QA Tala 1\" a \"Completa\" · eliminó \"QA Tala 1\" (aceptó el aviso) · → ✗ \"QA Tala 1\" NO se ve"
+    },
+    {
+      "vuelta": 3,
+      "requisito": "R28",
+      "antes": {
+        "R28.1": "FAIL"
+      },
+      "ver": [
+        "deleteCard(cardId)",
+        "renderCardsToContainer(colId, containerEl)",
+        "updateCounters()"
+      ],
+      "codigo": [
+        "función deleteCard (script.js:276-293)",
+        "función renderCardsToContainer (script.js:111-136)",
+        "función updateCounters (script.js:141-149)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 897,
+        "arreglo": 1712
+      },
+      "ms": {
+        "ver": 41184,
+        "arreglo": 75957
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 991,
+          "completion_tokens": 986,
+          "total_tokens": 1977,
+          "completion_tokens_details": {
+            "reasoning_tokens": 935
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 1727,
+          "completion_tokens": 1608,
+          "total_tokens": 3335,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1443
+          }
+        }
+      },
+      "respuesta": "### FUNCION: deleteCard\n```js\nfunction deleteCard(cardId) {\n    if (!cardsData[cardId]) return;\n\n    const card = cardsData[cardId];\n\n    // 1. Eliminar del estado global\n    delete cardsData[cardId];\n\n    // 2. Re-renderizar TODAS las columnas para asegurar la consistencia visual después de eliminar una tarjeta\n    COLUMNS.forEach(colId => {\n        const containerEl = document.getElementById(`cards-${colId}`);\n        if (containerEl) {\n            renderCardsToContainer(colId, containerEl);\n        }\n    });\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n```",
+      "aplicados": [
+        "función deleteCard (script.js)"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": false,
+          "pts": 0
+        }
+      ],
+      "despues": {
+        "R28.1": "FAIL"
+      },
+      "aceptado": false,
+      "motivo": "aplicó todo pero no avanzó: agregó \"QA Lapacho 1\" · arrastró \"QA Lapacho 1\" a \"Completa\" · eliminó \"QA Lapacho 1\" (aceptó el aviso) · → ✗ \"QA Lapacho 1\" NO se ve"
+    },
+    {
+      "vuelta": 4,
+      "requisito": "R28",
+      "antes": {
+        "R28.1": "FAIL"
+      },
+      "ver": [
+        "deleteCard(cardId)",
+        "renderCardsToContainer(colId, containerEl)"
+      ],
+      "codigo": [
+        "función deleteCard (script.js:276-293)",
+        "función renderCardsToContainer (script.js:111-136)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 895,
+        "arreglo": 1580
+      },
+      "ms": {
+        "ver": 32649,
+        "arreglo": 76981
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 991,
+          "completion_tokens": 769,
+          "total_tokens": 1760,
+          "completion_tokens_details": {
+            "reasoning_tokens": 724
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 1609,
+          "completion_tokens": 1661,
+          "total_tokens": 3270,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1489
+          }
+        }
+      },
+      "respuesta": "### FUNCION: deleteCard\n```js\nfunction deleteCard(cardId) {\n    if (!cardsData[cardId]) return;\n\n    // 1. Eliminar del estado global\n    delete cardsData[cardId];\n\n    // 2. Re-renderizar TODAS las columnas para asegurar que la eliminación se refleje en todas partes\n    const columnIds = ['pendiente', 'en-curso', 'completa'];\n    columnIds.forEach(colId => {\n        const containerEl = document.getElementById(`cards-${colId}`);\n        if (containerEl) {\n            renderCardsToContainer(colId, containerEl);\n        }\n    });\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n```",
+      "aplicados": [
+        "función deleteCard (script.js)"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": false,
+          "pts": 0
+        }
+      ],
+      "despues": {
+        "R28.1": "FAIL"
+      },
+      "aceptado": false,
+      "motivo": "aplicó todo pero no avanzó: agregó \"QA Hornero 1\" · arrastró \"QA Hornero 1\" a \"Completa\" · eliminó \"QA Hornero 1\" (aceptó el aviso) · → ✗ \"QA Hornero 1\" NO se ve",
+      "queda_pendiente": true
+    },
+    {
+      "vuelta": 5,
+      "requisito": "R28",
+      "antes": {
+        "R28.1": "FAIL"
+      },
+      "ver": [
+        "script.js",
+        "deleteCard(cardId)",
+        "renderCardsToContainer(colId, containerEl)"
+      ],
+      "codigo": [
+        "función deleteCard (script.js:276-293)",
+        "función renderCardsToContainer (script.js:111-136)",
+        "archivo script.js (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 895,
+        "arreglo": 5387
+      },
+      "ms": {
+        "ver": 40303,
+        "arreglo": 343900
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 995,
+          "completion_tokens": 964,
+          "total_tokens": 1959,
+          "completion_tokens_details": {
+            "reasoning_tokens": 912
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 4788,
+          "completion_tokens": 4990,
+          "total_tokens": 9778,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1655
+          }
+        }
+      },
+      "respuesta": "### FUNCION: deleteCard\n```js\nfunction deleteCard(cardId) {\n    if (!cardsData[cardId]) return;\n\n    // 1. Eliminar del estado global\n    delete cardsData[cardId];\n\n    // 2. Re-renderizar TODAS las columnas para asegurar que el elemento eliminado no persista en el DOM\n    COLUMNS.forEach(colId => {\n        const containerEl = document.getElementById(`cards-${colId}`);\n        if (containerEl) {\n            renderCardsToContainer(colId, containerEl);\n        }\n    });\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n```\n\n### ARCHIVO: script.js\n```javascript\n// ==================================================\n// VARIABLES GLOBALES Y CONSTANTES\n// ==================================================\nconst COLUMNS = ['pendiente', 'en-curso', 'completa'];\nlet cardsData = {}; // { id: { title, description, priority, column, timestamp } }\n\n// R16: Definición de orden y colores de prioridad\nconst PRIORITY_ORDER = {\n    'alta': 3,\n    'media': 2,\n    'baja': 1\n};\n\n/**\n * Inicializa el estado del tablero cargando datos o inicializando la estructura.\n */\nfunction initializeBoard() {\n    const storedData = localStorage.getItem('kanbanCards');\n    if (storedData) {\n        cardsData = JSON.parse(storedData);\n    } else {\n        // Inicializar con un estado vacío si no hay datos guardados\n        cardsData = {};\n    }\n\n    COLUMNS.forEach(colId => {\n        const container = document.getElementById(`cards-${colId}`);\n        if (container) {\n            renderCardsToContainer(colId, container);\n        }\n    });\n\n    updateCounters();\n}\n\n// ==================================================\n// RENDERIZADO Y MANIPULACIÓN DE CARDS\n// ==================================================\n\n/**\n * Crea el HTML de una tarjeta a partir de un objeto de datos.\n * @param {Object} card - Objeto con los datos de la tarjeta.\n * @returns {HTMLElement} El elemento div completo de la tarjeta.\n */\nfunction createCardElement(card) {\n    const cardEl = document.createElement('div');\n    cardEl.className = 'card';\n    cardEl.setAttribute('data-id', card.id);\n    cardEl.setAttribute('draggable', 'true'); // R6: draggable='true'\n\n    // R6: Drag Handle\n    const dragHandle = document.createElement('div');\n    dragHandle.className = 'drag-handle';\n    dragHandle.setAttribute('draggable', 'true');\n    dragHandle.ondragstart = (e) => handleDragStart(e, card.id);\n\n    // Contenedor de contenido para manejar el padding del drag handle\n    const bodyEl = document.createElement('div');\n    bodyEl.className = 'card-body';\n\n    // R14: Actions container\n    const actionsContainer = document.createElement('div');\n    actionsContainer.className = 'card-actions';\n\n    // Botón Eliminar (R7, R17)\n    const deleteBtn = document.createElement('button');\n    deleteBtn.innerHTML = '🗑️';\n    deleteBtn.className = 'action-btn';\n    deleteBtn.onclick = () => confirmDelete(card.id);\n\n    // Botón Editar (R5, R17)\n    const editBtn = document.createElement('button');\n    editBtn.innerHTML = '✏️';\n    editBtn.className = 'action-btn';\n    editBtn.onclick = () => openModal('edit', card.id);\n\n    actionsContainer.appendChild(deleteBtn);\n    actionsContainer.appendChild(editBtn);\n\n    // Contenido de la tarjeta\n    const titleEl = document.createElement('div');\n    titleEl.className = 'card-title';\n    titleEl.textContent = card.title;\n\n    const descriptionEl = document.createElement('div');\n    descriptionEl.className = 'card-description';\n    descriptionEl.textContent = card.description || 'Sin descripción.';\n\n    // R3: Etiqueta de prioridad\n    const priorityTag = document.createElement('span');\n    priorityTag.className = `priority-tag priority-${card.priority}`;\n    priorityTag.textContent = card.priority.toUpperCase();\n\n    bodyEl.appendChild(titleEl);\n    bodyEl.appendChild(descriptionEl);\n    bodyEl.appendChild(priorityTag);\n\n    // Ensamblar la tarjeta\n    cardEl.appendChild(dragHandle); // Debe ir primero para el layout\n    cardEl.appendChild(actionsContainer);\n    cardEl.appendChild(bodyEl);\n\n    return cardEl;\n}\n\n/**\n * Renderiza todas las tarjetas de una columna específica, aplicando la lógica de ordenamiento.\n * @param {string} colId - ID de la columna ('pendiente', 'en-curso', etc.).\n * @param {HTMLElement} containerEl - El contenedor DOM donde se insertarán las tarjetas.\n */\nfunction renderCardsToContainer(colId, containerEl) {\n    // 1. Filtrar y obtener los datos de las tarjetas para esta columna\n    let cards = Object.values(cardsData).filter(card => card.column === colId);\n\n    // 2. R16: Ordenamiento (Prioridad descendente -> Tiempo ascendente)\n    cards.sort((a, b) => {\n        const priorityA = PRIORITY_ORDER[a.priority] || 0;\n        const priorityB = PRIORITY_ORDER[b.priority] || 0;\n\n        // Comparar por prioridad (descendente: alta > media > baja)\n        if (priorityA !== priorityB) {\n            return priorityB - priorityA; // Si B tiene mayor valor, va primero\n        }\n        // Si la prioridad es igual, ordenar por tiempo (más reciente arriba = descendente de timestamp)\n        return b.timestamp - a.timestamp;\n    });\n\n    // 3. Limpiar el contenedor antes de renderizar\n    containerEl.innerHTML = '';\n\n    // 4. Renderizar los elementos DOM\n    cards.forEach(card => {\n        const cardElement = createCardElement(card);\n        containerEl.appendChild(cardElement);\n    });\n}\n\n/**\n * Actualiza el contador de tarjetas en cada columna y guarda la estructura.\n */\nfunction updateCounters() {\n    COLUMNS.forEach(colId => {\n        const count = Object.values(cardsData).filter(card => card.column === colId).length;\n        document.querySelector(`.card-counter[data-column=\"${colId}\"]`).textContent = count;\n    });\n\n    // R23: Guardar el estado en LocalStorage\n    localStorage.setItem('kanbanCards', JSON.stringify(cardsData));\n}\n\n\n// ==================================================\n// MODAL Y CRUD OPERATIONS (Creación/Edición)\n// ==================================================\n\n/**\n * Abre o prepara el modal para crear o editar una tarjeta.\n * @param {string} mode - 'create' o 'edit'.\n * @param {string|null} cardId - ID de la tarjeta si estamos editando.\n */\nfunction openModal(mode, cardId = null) {\n    const modal = document.getElementById('cardModal');\n    const form = document.getElementById('cardForm');\n    document.getElementById('modalTitle').textContent = mode === 'create' ? 'Crear Nueva Tarjeta' : 'Editar Tarjeta';\n\n    // Limpiar formulario y estado\n    form.reset();\n    document.getElementById('cardId').value = '';\n    document.getElementById('currentColumn').value = '';\n\n    if (mode === 'edit' && cardId) {\n        const card = cardsData[cardId];\n        if (!card) return;\n\n        // R5: Llenar campos de edición\n        document.getElementById('cardId').value = card.id;\n        document.getElementById('currentColumn').value = card.column;\n        document.getElementById('title').value = card.title;\n        document.getElementById('description').value = card.description;\n        document.getElementById('priority').value = card.priority;\n\n        // Mostrar el modal\n        modal.style.display = 'block';\n    } else if (mode === 'create') {\n        // Si es creación, se asume que la columna actual es Pendiente por defecto\n        document.getElementById('currentColumn').value = 'pendiente'; \n        modal.style.display = 'block';\n    }\n}\n\n/**\n * Cierra el modal de edición/creación.\n */\nfunction closeModal() {\n    document.getElementById('cardModal').style.display = 'none';\n}\n\n// Event Listener para el formulario (Crear o Editar)\ndocument.getElementById('cardForm').addEventListener('submit', function(e) {\n    e.preventDefault();\n    const mode = document.getElementById('cardId').value ? 'edit' : 'create';\n    saveCard(mode);\n});\n\n/**\n * Guarda los datos de la tarjeta en el estado global y actualiza la UI.\n * @param {string} mode - 'create' o 'edit'.\n */\nfunction saveCard(mode) {\n    const id = document.getElementById('cardId').value || Date.now().toString();\n    const title = document.getElementById('title').value;\n    const description = document.getElementById('description').value;\n    const priority = document.getElementById('priority').value;\n    const column = document.getElementById('currentColumn').value;\n\n    if (mode === 'create') {\n        // Crear nueva tarjeta\n        cardsData[id] = {\n            id: id,\n            title: title,\n            description: description,\n            priority: priority,\n            column: column,\n            timestamp: Date.now() // R16: Timestamp para ordenamiento\n        };\n    } else if (mode === 'edit') {\n        // Editar tarjeta existente\n        const oldCard = cardsData[id];\n        if (!oldCard) return;\n\n        cardsData[id] = {\n            ...oldCard, // Mantener el ID y la columna original\n            title: title,\n            description: description,\n            priority: priority,\n            timestamp: Date.now() // Actualizar timestamp al editar\n        };\n    }\n\n    // 1. Cerrar modal\n    closeModal();\n\n    // 2. Re-renderizar la columna afectada (y todas para asegurar el orden)\n    COLUMNS.forEach(colId => {\n        const container = document.getElementById(`cards-${colId}`);\n        if (container) {\n            renderCardsToContainer(colId, container);\n        }\n    });\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n\n\n// ==================================================\n// ELIMINACIÓN Y DRAG & DROP\n// ==================================================\n\n/**\n * Muestra el modal de confirmación antes de eliminar una tarjeta (R7, R26).\n * @param {string} cardId - ID de la tarjeta a borrar.\n */\nfunction confirmDelete(cardId) {\n    if (!confirm(\"¿Está seguro de borrar la tarjeta?\")) {\n        return; // Cancelar si el usuario presiona 'Cancelar'\n    }\n\n    deleteCard(cardId);\n}\n\n/**\n * Elimina una tarjeta del estado y de la UI.\n * @param {string} cardId - ID de la tarjeta a borrar.\n */\nfunction deleteCard(cardId) {\n    if (!cardsData[cardId]) return;\n\n    // 1. Eliminar del estado global\n    delete cardsData[cardId];\n\n    // 2. Re-renderizar TODAS las columnas para asegurar que el elemento eliminado no persista en el DOM\n    COLUMNS.forEach(colId => {\n        const containerEl = document.getElementById(`cards-${colId}`);\n        if (containerEl) {\n            renderCardsToContainer(colId, containerEl);\n        }\n    });\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n\n\n// --- Drag & Drop Handlers ---\n\nlet draggedCardId = null; // Almacena el ID de la tarjeta que se arrastra\n\n/**\n * Maneja el inicio del arrastre (R6).\n */\nfunction handleDragStart(e, cardId) {\n    draggedCardId = cardId;\n    // Establecer datos para el evento de drop\n    e.dataTransfer.setData('text/plain', cardId); \n\n    // Añadir clase visual al elemento arrastrado (el contenedor .card)\n    const draggedElement = document.querySelector(`.card[data-id=\"${cardId}\"]`);\n    if (draggedElement) {\n        setTimeout(() => {\n            draggedElement.classList.add('dragging');\n        }, 0);\n    }\n}\n\n/**\n * Maneja el evento dragover en los contenedores de columna.\n */\nfunction handleDragOver(e) {\n    e.preventDefault(); // Necesario para permitir el drop\n    // Aquí se podría añadir un feedback visual al contenedor destino si fuera necesario\n}\n\n/**\n * Maneja el evento de soltado (drop).\n * @param {Event} e - Evento de drop.\n * @param {string} targetColId - ID de la columna destino.\n */\nfunction handleDrop(e, targetColId) {\n    e.preventDefault();\n\n    // 1. Limpiar clase visual del elemento arrastrado\n    const draggedElement = document.querySelector(`.card[data-id=\"${draggedCardId}\"]`);\n    if (draggedElement) {\n        draggedElement.classList.remove('dragging');\n    }\n\n    const sourceCardId = e.dataTransfer.getData('text/plain');\n    if (!sourceCardId) return;\n\n    // 2. Actualizar el estado de la tarjeta en cardsData\n    const cardToMove = cardsData[sourceCardId];\n    if (cardToMove && cardToMove.column !== targetColId) {\n        // Solo actualizamos si realmente cambia de columna\n        cardToMove.column = targetColId;\n        cardToMove.timestamp = Date.now(); // Actualizar timestamp al mover\n\n        // 3. Re-renderizar la UI para reflejar el cambio y mantener el orden (R15)\n        COLUMNS.forEach(colId => {\n            const container = document.getElementById(`cards-${colId}`);\n            if (container) {\n                renderCardsToContainer(colId, container);\n            }\n        });\n\n        // 4. Actualizar contadores y guardar\n        updateCounters();\n    }\n}\n\n\n// ==================================================\n// INICIALIZACIÓN\n// ==================================================\ndocument.addEventListener('DOMContentLoaded', initializeBoard);\n```",
+      "aplicados": [
+        "función deleteCard (script.js)",
+        "archivo script.js"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": false,
+          "pts": 0
+        },
+        {
+          "que": "función deleteCard (script.js)",
+          "ok": false,
+          "pts": 0
+        },
+        {
+          "que": "archivo script.js",
+          "ok": false,
+          "pts": 0
+        }
+      ],
+      "despues": {
+        "R28.1": "FAIL"
+      },
+      "aceptado": false,
+      "motivo": "aplicó todo pero no avanzó: agregó \"QA Chingolo 1\" · arrastró \"QA Chingolo 1\" a \"Completa\" · eliminó \"QA Chingolo 1\" (aceptó el aviso) · → ✗ \"QA Chingolo 1\" NO se ve"
+    },
+    {
+      "vuelta": 6,
+      "requisito": "R28",
+      "antes": {
+        "R28.1": "FAIL"
+      },
+      "ver": [
+        "script.js",
+        "deleteCard(cardId)",
+        "renderCardsToContainer(colId, containerEl)"
+      ],
+      "codigo": [
+        "función deleteCard (script.js:276-293)",
+        "función renderCardsToContainer (script.js:111-136)",
+        "archivo script.js (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 900,
+        "arreglo": 5392
+      },
+      "ms": {
+        "ver": 30868,
+        "arreglo": 110408
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 999,
+          "completion_tokens": 721,
+          "total_tokens": 1720,
+          "completion_tokens_details": {
+            "reasoning_tokens": 669
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 4792,
+          "completion_tokens": 1519,
+          "total_tokens": 6311,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1364
+          }
+        }
+      },
+      "respuesta": "### FUNCION: deleteCard\n```js\nfunction deleteCard(cardId) {\n    if (!cardsData[cardId]) return;\n\n    // 1. Eliminar del estado global\n    delete cardsData[cardId];\n\n    // 2. Re-renderizar TODAS las columnas para asegurar que el elemento eliminado no persista en la UI\n    COLUMNS.forEach(colId => {\n        const containerEl = document.getElementById(`cards-${colId}`);\n        if (containerEl) {\n            renderCardsToContainer(colId, containerEl);\n        }\n    });\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n```",
+      "aplicados": [
+        "función deleteCard (script.js)"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": false,
+          "pts": 0
+        }
+      ],
+      "despues": {
+        "R28.1": "FAIL"
+      },
+      "aceptado": false,
+      "motivo": "aplicó todo pero no avanzó: agregó \"QA Cardenal 1\" · arrastró \"QA Cardenal 1\" a \"Completa\" · eliminó \"QA Cardenal 1\" (aceptó el aviso) · → ✗ \"QA Cardenal 1\" NO se ve"
+    },
+    {
+      "vuelta": 7,
+      "requisito": "R28",
+      "antes": {
+        "R28.1": "FAIL"
+      },
+      "ver": [
+        "deleteCard(cardId)",
+        "confirmDelete(cardId)",
+        "renderCardsToContainer(colId, containerEl)",
+        "script.js"
+      ],
+      "codigo": [
+        "función deleteCard (script.js:276-293)",
+        "función confirmDelete (script.js:264-270)",
+        "función renderCardsToContainer (script.js:111-136)",
+        "archivo script.js (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 895,
+        "arreglo": 5460
+      },
+      "ms": {
+        "ver": 25024,
+        "arreglo": 318599
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 995,
+          "completion_tokens": 570,
+          "total_tokens": 1565,
+          "completion_tokens_details": {
+            "reasoning_tokens": 509
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 4859,
+          "completion_tokens": 4638,
+          "total_tokens": 9497,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1245
+          }
+        }
+      },
+      "respuesta": "### FUNCION: deleteCard\n```js\nfunction deleteCard(cardId) {\n    if (!cardsData[cardId]) return;\n\n    const card = cardsData[cardId];\n    // const colId = card.column; // No es necesario saber la columna para refrescar todo\n\n    // 1. Eliminar del estado global\n    delete cardsData[cardId];\n\n    // 2. Re-renderizar TODAS las columnas para asegurar que el elemento eliminado no persista\n    COLUMNS.forEach(colId => {\n        const containerEl = document.getElementById(`cards-${colId}`);\n        if (containerEl) {\n            renderCardsToContainer(colId, containerEl);\n        }\n    });\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n```\n\n### ARCHIVO: script.js\n```javascript\n// ==================================================\n// VARIABLES GLOBALES Y CONSTANTES\n// ==================================================\nconst COLUMNS = ['pendiente', 'en-curso', 'completa'];\nlet cardsData = {}; // { id: { title, description, priority, column, timestamp } }\n\n// R16: Definición de orden y colores de prioridad\nconst PRIORITY_ORDER = {\n    'alta': 3,\n    'media': 2,\n    'baja': 1\n};\n\n/**\n * Inicializa el estado del tablero cargando datos o inicializando la estructura.\n */\nfunction initializeBoard() {\n    const storedData = localStorage.getItem('kanbanCards');\n    if (storedData) {\n        cardsData = JSON.parse(storedData);\n    } else {\n        // Inicializar con un estado vacío si no hay datos guardados\n        cardsData = {};\n    }\n\n    COLUMNS.forEach(colId => {\n        const container = document.getElementById(`cards-${colId}`);\n        if (container) {\n            renderCardsToContainer(colId, container);\n        }\n    });\n\n    updateCounters();\n}\n\n// ==================================================\n// RENDERIZADO Y MANIPULACIÓN DE CARDS\n// ==================================================\n\n/**\n * Crea el HTML de una tarjeta a partir de un objeto de datos.\n * @param {Object} card - Objeto con los datos de la tarjeta.\n * @returns {HTMLElement} El elemento div completo de la tarjeta.\n */\nfunction createCardElement(card) {\n    const cardEl = document.createElement('div');\n    cardEl.className = 'card';\n    cardEl.setAttribute('data-id', card.id);\n    cardEl.setAttribute('draggable', 'true'); // R6: draggable='true'\n\n    // R6: Drag Handle\n    const dragHandle = document.createElement('div');\n    dragHandle.className = 'drag-handle';\n    dragHandle.setAttribute('draggable', 'true');\n    dragHandle.ondragstart = (e) => handleDragStart(e, card.id);\n\n    // Contenedor de contenido para manejar el padding del drag handle\n    const bodyEl = document.createElement('div');\n    bodyEl.className = 'card-body';\n\n    // R14: Actions container\n    const actionsContainer = document.createElement('div');\n    actionsContainer.className = 'card-actions';\n\n    // Botón Eliminar (R7, R17)\n    const deleteBtn = document.createElement('button');\n    deleteBtn.innerHTML = '🗑️';\n    deleteBtn.className = 'action-btn';\n    deleteBtn.onclick = () => confirmDelete(card.id);\n\n    // Botón Editar (R5, R17)\n    const editBtn = document.createElement('button');\n    editBtn.innerHTML = '✏️';\n    editBtn.className = 'action-btn';\n    editBtn.onclick = () => openModal('edit', card.id);\n\n    actionsContainer.appendChild(deleteBtn);\n    actionsContainer.appendChild(editBtn);\n\n    // Contenido de la tarjeta\n    const titleEl = document.createElement('div');\n    titleEl.className = 'card-title';\n    titleEl.textContent = card.title;\n\n    const descriptionEl = document.createElement('div');\n    descriptionEl.className = 'card-description';\n    descriptionEl.textContent = card.description || 'Sin descripción.';\n\n    // R3: Etiqueta de prioridad\n    const priorityTag = document.createElement('span');\n    priorityTag.className = `priority-tag priority-${card.priority}`;\n    priorityTag.textContent = card.priority.toUpperCase();\n\n    bodyEl.appendChild(titleEl);\n    bodyEl.appendChild(descriptionEl);\n    bodyEl.appendChild(priorityTag);\n\n    // Ensamblar la tarjeta\n    cardEl.appendChild(dragHandle); // Debe ir primero para el layout\n    cardEl.appendChild(actionsContainer);\n    cardEl.appendChild(bodyEl);\n\n    return cardEl;\n}\n\n/**\n * Renderiza todas las tarjetas de una columna específica, aplicando la lógica de ordenamiento.\n * @param {string} colId - ID de la columna ('pendiente', 'en-curso', etc.).\n * @param {HTMLElement} containerEl - El contenedor DOM donde se insertarán las tarjetas.\n */\nfunction renderCardsToContainer(colId, containerEl) {\n    // 1. Filtrar y obtener los datos de las tarjetas para esta columna\n    let cards = Object.values(cardsData).filter(card => card.column === colId);\n\n    // 2. R16: Ordenamiento (Prioridad descendente -> Tiempo ascendente)\n    cards.sort((a, b) => {\n        const priorityA = PRIORITY_ORDER[a.priority] || 0;\n        const priorityB = PRIORITY_ORDER[b.priority] || 0;\n\n        // Comparar por prioridad (descendente: alta > media > baja)\n        if (priorityA !== priorityB) {\n            return priorityB - priorityA; // Si B tiene mayor valor, va primero\n        }\n        // Si la prioridad es igual, ordenar por tiempo (más reciente arriba = descendente de timestamp)\n        return b.timestamp - a.timestamp;\n    });\n\n    // 3. Limpiar el contenedor antes de renderizar\n    containerEl.innerHTML = '';\n\n    // 4. Renderizar los elementos DOM\n    cards.forEach(card => {\n        const cardElement = createCardElement(card);\n        containerEl.appendChild(cardElement);\n    });\n}\n\n/**\n * Actualiza el contador de tarjetas en cada columna y guarda la estructura.\n */\nfunction updateCounters() {\n    COLUMNS.forEach(colId => {\n        const count = Object.values(cardsData).filter(card => card.column === colId).length;\n        document.querySelector(`.card-counter[data-column=\"${colId}\"]`).textContent = count;\n    });\n\n    // R23: Guardar el estado en LocalStorage\n    localStorage.setItem('kanbanCards', JSON.stringify(cardsData));\n}\n\n\n// ==================================================\n// MODAL Y CRUD OPERATIONS (Creación/Edición)\n// ==================================================\n\n/**\n * Abre o prepara el modal para crear o editar una tarjeta.\n * @param {string} mode - 'create' o 'edit'.\n * @param {string|null} cardId - ID de la tarjeta si estamos editando.\n */\nfunction openModal(mode, cardId = null) {\n    const modal = document.getElementById('cardModal');\n    const form = document.getElementById('cardForm');\n    document.getElementById('modalTitle').textContent = mode === 'create' ? 'Crear Nueva Tarjeta' : 'Editar Tarjeta';\n\n    // Limpiar formulario y estado\n    form.reset();\n    document.getElementById('cardId').value = '';\n    document.getElementById('currentColumn').value = '';\n\n    if (mode === 'edit' && cardId) {\n        const card = cardsData[cardId];\n        if (!card) return;\n\n        // R5: Llenar campos de edición\n        document.getElementById('cardId').value = card.id;\n        document.getElementById('currentColumn').value = card.column;\n        document.getElementById('title').value = card.title;\n        document.getElementById('description').value = card.description;\n        document.getElementById('priority').value = card.priority;\n\n        // Mostrar el modal\n        modal.style.display = 'block';\n    } else if (mode === 'create') {\n        // Si es creación, se asume que la columna actual es Pendiente por defecto\n        document.getElementById('currentColumn').value = 'pendiente'; \n        modal.style.display = 'block';\n    }\n}\n\n/**\n * Cierra el modal de edición/creación.\n */\nfunction closeModal() {\n    document.getElementById('cardModal').style.display = 'none';\n}\n\n// Event Listener para el formulario (Crear o Editar)\ndocument.getElementById('cardForm').addEventListener('submit', function(e) {\n    e.preventDefault();\n    const mode = document.getElementById('cardId').value ? 'edit' : 'create';\n    saveCard(mode);\n});\n\n/**\n * Guarda los datos de la tarjeta en el estado global y actualiza la UI.\n * @param {string} mode - 'create' o 'edit'.\n */\nfunction saveCard(mode) {\n    const id = document.getElementById('cardId').value || Date.now().toString();\n    const title = document.getElementById('title').value;\n    const description = document.getElementById('description').value;\n    const priority = document.getElementById('priority').value;\n    const column = document.getElementById('currentColumn').value;\n\n    if (mode === 'create') {\n        // Crear nueva tarjeta\n        cardsData[id] = {\n            id: id,\n            title: title,\n            description: description,\n            priority: priority,\n            column: column,\n            timestamp: Date.now() // R16: Timestamp para ordenamiento\n        };\n    } else if (mode === 'edit') {\n        // Editar tarjeta existente\n        const oldCard = cardsData[id];\n        if (!oldCard) return;\n\n        cardsData[id] = {\n            ...oldCard, // Mantener el ID y la columna original\n            title: title,\n            description: description,\n            priority: priority,\n            timestamp: Date.now() // Actualizar timestamp al editar\n        };\n    }\n\n    // 1. Cerrar modal\n    closeModal();\n\n    // 2. Re-renderizar la columna afectada (y todas para asegurar el orden)\n    COLUMNS.forEach(colId => {\n        const container = document.getElementById(`cards-${colId}`);\n        if (container) {\n            renderCardsToContainer(colId, container);\n        }\n    });\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n\n\n// ==================================================\n// ELIMINACIÓN Y DRAG & DROP\n// ==================================================\n\n/**\n * Muestra el modal de confirmación antes de eliminar una tarjeta (R7, R26).\n * @param {string} cardId - ID de la tarjeta a borrar.\n */\nfunction confirmDelete(cardId) {\n    if (!confirm(\"¿Está seguro de borrar la tarjeta?\")) {\n        return; // Cancelar si el usuario presiona 'Cancelar'\n    }\n\n    deleteCard(cardId);\n}\n\n/**\n * Elimina una tarjeta del estado y de la UI.\n * @param {string} cardId - ID de la tarjeta a borrar.\n */\nfunction deleteCard(cardId) {\n    if (!cardsData[cardId]) return;\n\n    const card = cardsData[cardId];\n    // const colId = card.column; // Ya no es necesario usar solo esta columna\n\n    // 1. Eliminar del estado global\n    delete cardsData[cardId];\n\n    // 2. Re-renderizar TODAS las columnas para asegurar que el elemento eliminado no persista\n    COLUMNS.forEach(colId => {\n        const containerEl = document.getElementById(`cards-${colId}`);\n        if (containerEl) {\n            renderCardsToContainer(colId, containerEl);\n        }\n    });\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n\n\n// --- Drag & Drop Handlers ---\n\nlet draggedCardId = null; // Almacena el ID de la tarjeta que se arrastra\n\n/**\n * Maneja el inicio del arrastre (R6).\n */\nfunction handleDragStart(e, cardId) {\n    draggedCardId = cardId;\n    // Establecer datos para el evento de drop\n    e.dataTransfer.setData('text/plain', cardId); \n\n    // Añadir clase visual al elemento arrastrado (el contenedor .card)\n    const draggedElement = document.querySelector(`.card[data-id=\"${cardId}\"]`);\n    if (draggedElement) {\n        setTimeout(() => {\n            draggedElement.classList.add('dragging');\n        }, 0);\n    }\n}\n\n/**\n * Maneja el evento dragover en los contenedores de columna.\n */\nfunction handleDragOver(e) {\n    e.preventDefault(); // Necesario para permitir el drop\n    // Aquí se podría añadir un feedback visual al contenedor destino si fuera necesario\n}\n\n/**\n * Maneja el evento de soltado (drop).\n * @param {Event} e - Evento de drop.\n * @param {string} targetColId - ID de la columna destino.\n */\nfunction handleDrop(e, targetColId) {\n    e.preventDefault();\n\n    // 1. Limpiar clase visual del elemento arrastrado\n    const draggedElement = document.querySelector(`.card[data-id=\"${draggedCardId}\"]`);\n    if (draggedElement) {\n        draggedElement.classList.remove('dragging');\n    }\n\n    const sourceCardId = e.dataTransfer.getData('text/plain');\n    if (!sourceCardId) return;\n\n    // 2. Actualizar el estado de la tarjeta en cardsData\n    const cardToMove = cardsData[sourceCardId];\n    if (cardToMove && cardToMove.column !== targetColId) {\n        // Solo actualizamos si realmente cambia de columna\n        cardToMove.column = targetColId;\n        cardToMove.timestamp = Date.now(); // Actualizar timestamp al mover\n\n        // 3. Re-renderizar la UI para reflejar el cambio y mantener el orden (R15)\n        COLUMNS.forEach(colId => {\n            const container = document.getElementById(`cards-${colId}`);\n            if (container) {\n                renderCardsToContainer(colId, container);\n            }\n        });\n\n        // 4. Actualizar contadores y guardar\n        updateCounters();\n    }\n}\n\n\n// ==================================================\n// INICIALIZACIÓN\n// ==================================================\ndocument.addEventListener('DOMContentLoaded', initializeBoard);\n```",
+      "aplicados": [
+        "función deleteCard (script.js)",
+        "archivo script.js"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": false,
+          "pts": 0
+        },
+        {
+          "que": "función deleteCard (script.js)",
+          "ok": false,
+          "pts": 0
+        },
+        {
+          "que": "archivo script.js",
+          "ok": false,
+          "pts": 0
+        }
+      ],
+      "despues": {
+        "R28.1": "FAIL"
+      },
+      "aceptado": false,
+      "motivo": "aplicó todo pero no avanzó: agregó \"QA Ceibo 1\" · arrastró \"QA Ceibo 1\" a \"Completa\" · eliminó \"QA Ceibo 1\" (aceptó el aviso) · → ✗ \"QA Ceibo 1\" NO se ve",
+      "queda_pendiente": true
+    }
+  ],
+  "curva": [
+    {
+      "vuelta": 1,
+      "cumplidos": 21,
+      "de": 23,
+      "filas_pass": 33,
+      "de_filas": 37
+    },
+    {
+      "vuelta": 2,
+      "cumplidos": 22,
+      "de": 23,
+      "filas_pass": 36,
+      "de_filas": 37
+    },
+    {
+      "vuelta": 3,
+      "cumplidos": 22,
+      "de": 23,
+      "filas_pass": 36,
+      "de_filas": 37
+    },
+    {
+      "vuelta": 4,
+      "cumplidos": 22,
+      "de": 23,
+      "filas_pass": 36,
+      "de_filas": 37
+    },
+    {
+      "vuelta": 5,
+      "cumplidos": 22,
+      "de": 23,
+      "filas_pass": 36,
+      "de_filas": 37
+    },
+    {
+      "vuelta": 6,
+      "cumplidos": 22,
+      "de": 23,
+      "filas_pass": 36,
+      "de_filas": 37
+    },
+    {
+      "vuelta": 7,
+      "cumplidos": 22,
+      "de": 23,
+      "filas_pass": 36,
+      "de_filas": 37
+    },
+    {
+      "vuelta": 8,
+      "cumplidos": 22,
+      "de": 23,
+      "filas_pass": 36,
+      "de_filas": 37
+    }
+  ],
+  "fin": "quedan pendientes: R28",
+  "final": "final/"
+}

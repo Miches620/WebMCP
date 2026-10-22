@@ -2,6 +2,12 @@
 
 > Cada cambio con su evidencia de origen, qué se hizo y cómo se probó. Más nuevo primero (aprox.). Antes era la sección "Cambios desde el último commit". Movido desde el README el 06/10/2026, sin cambios de contenido. Volver al [README](../README.md).
 
+**4ª corrida de project26: 21 → 22/23 (R10 ✓ en la 1ª vuelta). R28: Gemma entendía la prueba al revés (22/10)**
+- *Origen:* `ciclo_2026-10-22T03-42-42`, 8 vueltas. Con la sangría sacada y los bloques de CSS, R10 quedó enseguida (`.board { max-height: calc(100vh - 180px) }`). Esta vez el sistema aplicó bien los 6 intentos de R28, pero los 6 fueron versiones de `deleteCard` que borran "mejor".
+- *Por qué:* la prueba borra a propósito en "Completa" y espera que la tarjeta siga. El FAIL decía `✗ "QA Alfa" NO se ve`, y el requisito dice "Restricción: Sin crear nuevas columnas, permitir tarjetas vacías, eliminar tarjetas en columna 'Completa'". Gemma leyó "no se ve" como "se borró pero no se refresca".
+- *Qué se hizo:* `run_ciclo.fallas`: si la prueba aprieta borrar y espera que el mismo ítem siga, se agrega "OJO: esta prueba aprieta borrar a propósito y espera que NO se borre: en 'Completa' borrar no tiene que funcionar. Que se borre es el error." `planilla.mjs`: un `esta` que falla dice "NO se ve (y tenía que verse en …)".
+- *Cómo se probó:* `test_ciclo` 37/37 (+1: el aviso sale solo en esa prueba).
+
 **3ª corrida de project26: 20 → 21/23 (R11 ✓). R28 y R10 trabados por TRES errores nuestros (22/10)**
 - *Origen:* `ciclo_2026-10-22T00-58-29`, 14 vueltas. R11 quedó en la 4ª vuelta, ahora que el FAIL dice qué botón se midió.
 - *Qué pasó:* **R28** ×6, "rompió R7: la tarjeta SIGUE". La `deleteCard` de Gemma estaba bien, pero `findMember` tomaba como la función la LLAMADA `deleteCard(cardId);` de adentro de `confirmDelete` (el patrón `nombre(` servía para métodos abreviados y también agarraba llamadas). Se reemplazaba desde ahí y `confirmDelete` perdía la llamada, así que borrar dejó de andar. Esto también afectaba lo que se le MOSTRABA a Gemma como "la función deleteCard". **R10**: (a) los `### BLOQUE:` solo se buscaban en los .js, así que un bloque de CSS nunca se encontraba; (b) el CSS que salió de index.html quedó con 8 espacios de sangría y `findSuelto` pedía la columna 0.

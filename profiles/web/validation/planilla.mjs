@@ -243,7 +243,7 @@ async function pre(page, veo, w) {
 async function see(page, v, before, w) {
   if (v.esta) {
     const s = await page.evaluate(SEEN, [v.esta, v.en || null]);
-    return [s.seen && s.donde !== false, s.seen ? (s.donde === false ? `"${v.esta}" se ve pero NO en "${v.en}"` : `"${v.esta}" se ve${v.en ? ` en "${v.en}"` : ""}`) : `"${v.esta}" NO se ve`];
+    return [s.seen && s.donde !== false, s.seen ? (s.donde === false ? `"${v.esta}" se ve pero NO en "${v.en}"` : `"${v.esta}" se ve${v.en ? ` en "${v.en}"` : ""}`) : `"${v.esta}" NO se ve (y tenía que verse${v.en ? ` en "${v.en}"` : ""})`];
   }
   if (v.no_esta) { const s = await page.evaluate(SEEN, [v.no_esta, null]); return [!s.seen, s.seen ? `"${v.no_esta}" SIGUE` : `"${v.no_esta}" ya no está`]; }
   if (v.contiene) {

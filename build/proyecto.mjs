@@ -122,6 +122,35 @@ export async function juzgar(appDir, planilla, azar = "") {
   return { cumplidos: ok.length, de: reqs.length, fallan: reqs.filter((q) => !ok.includes(q)).map((q) => ({ r: q, detalle: planilla.filas.filter((f) => f.r === q && r[f.id]?.result !== "PASS").map((f) => r[f.id]?.detail) })) };
 }
 
+// ---------- agregar: pedidos nuevos a un proyecto que ya existe (22/10) ----------
+// En la UI será "agregar feature". Qwen escribe SOLO las pruebas de lo nuevo (lo anterior queda de contexto y los números
+// siguen: R31, R32…); se suman a planilla.json y requisitos.json, y se rehace planilla.md. Después "seguir" retoma la app.
+export async function agregar(dir, textos, { call, log = () => {} } = {}) {
+  const { writePlanilla } = await import("../profiles/web/validation/planilla_writer.mjs");
+  const req = JSON.parse(readFileSync(join(dir, "requisitos.json"), "utf8"));
+  const p = JSON.parse(readFileSync(join(dir, "planilla.json"), "utf8"));
+  const nuevos = textos.map((t) => String(t).trim()).filter(Boolean);
+  if (!nuevos.length) throw new Error("no hay nada para agregar");
+  // los mismos nombres que el resto del pedido (Completa, no Completado)
+  const correcciones = nombresParecidos([readFileSync(join(dir, "pedido.txt"), "utf8"), ...nuevos].join("\n"));
+  const antes = req.requisitos.length;
+  for (const t of nuevos) { const u = unificar(t, correcciones); req.requisitos.push({ texto: u, de: "agregado", agregado: new Date().toISOString(), ...(u !== t ? { texto_original: t } : {}) }); }
+  const features = req.requisitos.map((r) => r.texto);
+  const q = await writePlanilla({ features, context: req.titulo, glosario: p.glosario, desde: antes, ...(call ? { call } : {}), onProgress: (id, r) => log(`[PLANILLA] ${id}: ${r.sin_fila ? `sin fila (${r.sin_fila})` : `${r.filas.length} fila(s)`}${r.rejected.length ? ` · ${r.rejected.length} rechazada(s)` : ""}`) });
+  p.filas = [...p.filas, ...q.filas];
+  p.sin_fila = { ...(p.sin_fila || {}), ...q.sin_fila };
+  p.rechazadas = { ...(p.rechazadas || {}), ...q.rechazadas };
+  req.intentForge = { ...(req.intentForge || {}), refined_prompt: { ...(req.intentForge?.refined_prompt || {}), project_name: req.titulo, features } };
+  req.correcciones = [...new Map([...(req.correcciones || []), ...correcciones].map((c) => [c.en_vez_de, c])).values()];
+  writeFileSync(join(dir, "requisitos.json"), JSON.stringify(req, null, 2));
+  writeFileSync(join(dir, "planilla.json"), JSON.stringify(p, null, 2));
+  const ev = join(dir, "planilla_evidencia.json");
+  if (existsSync(ev)) { const e = JSON.parse(readFileSync(ev, "utf8")); e.calls = { ...(e.calls || {}), ...q.calls }; e.agregados = [...(e.agregados || []), { cuando: new Date().toISOString(), textos: nuevos }]; writeFileSync(ev, JSON.stringify(e, null, 2)); }
+  writeFileSync(join(dir, "planilla.md"), await planillaEnPalabras(p, req.requisitos, req.correcciones));
+  const ids = nuevos.map((_, i) => `R${antes + i + 1}`);
+  return { ids, filas: q.filas.length, sin_fila: Object.keys(q.sin_fila) };
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   const [modo, a1, a2] = process.argv.slice(2);
   const args = process.argv.slice(2);
@@ -166,6 +195,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     mkdirSync(appDir, { recursive: true });
     for (const [f, s] of Object.entries(app)) writeFileSync(join(appDir, f), s);
     console.log(`[PROYECTO] la app quedó en ${appDir} (abrí index.html). Volver a correr "seguir" la retoma desde ahí.`);
+  } else if (modo === "agregar" && a1 && a2) {
+    const dir = resolve(a1), textos = args.slice(2).filter((x) => !x.startsWith("--"));
+    const r = await agregar(dir, textos, { log: console.log });
+    console.log(`\n[PROYECTO] agregué ${r.ids.join(", ")} (${r.filas} prueba(s)${r.sin_fila.length ? `; sin prueba: ${r.sin_fila.join(", ")}` : ""}). Mirá planilla.md y, si está bien, con Gemma:\n  npm run proyecto -- seguir "${dir}"`);
   } else if (modo === "quitar" && a1 && a2) {
     // Miche saca pruebas que están mal (las que dice planilla.md); quedan anotadas en "quitadas", no se pierden
     const dir = resolve(a1), ids = args.slice(2).filter((x) => !x.startsWith("--"));
@@ -186,7 +219,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     console.log(`[JUZGAR] ${r.cumplidos}/${r.de} requisitos cumplidos`);
     for (const f of r.fallan) console.log(`  ✗ ${f.r}: ${f.detalle.join(" | ").slice(0, 300)}`);
   } else {
-    console.log("uso:\n  node build/proyecto.mjs quitar <carpeta del proyecto> R10.3 R21.*   (saca pruebas que están mal)\n  node build/proyecto.mjs nuevo <pedido.txt> [--nombre x]      (Qwen: requisitos tal cual, glosario, planilla y planilla.md)\n  node build/proyecto.mjs seguir <carpeta del proyecto> [--visual]  (Gemma: borrador si no hay app, y el ciclo; retoma si ya hay; --visual suma las reglas visuales)\n  node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json> [--visual]");
+    console.log("uso:\n  node build/proyecto.mjs quitar <carpeta del proyecto> R10.3 R21.*   (saca pruebas que están mal)\n  node build/proyecto.mjs agregar <carpeta del proyecto> \"pedido nuevo\" [\"otro\"…]   (Qwen: pruebas solo de lo nuevo)\n  node build/proyecto.mjs nuevo <pedido.txt> [--nombre x]      (Qwen: requisitos tal cual, glosario, planilla y planilla.md)\n  node build/proyecto.mjs seguir <carpeta del proyecto> [--visual]  (Gemma: borrador si no hay app, y el ciclo; retoma si ya hay; --visual suma las reglas visuales)\n  node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json> [--visual]");
     process.exit(2);
   }
 }

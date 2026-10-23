@@ -32,7 +32,7 @@ const MODEL = process.env.PLANILLA_MODEL || process.env.REVIEWER_MODEL || "qwen2
 
 // ---------- el vocabulario (lo mismo que ejecuta planilla.mjs) ----------
 const HAGO = ["agregar", "editar", "eliminar", "mover", "recargar", "pasar_mouse"];
-const VEO = ["esta", "no_esta", "contiene", "orden", "contador", "control", "al_pasar", "estilo", "color_en_item", "desborde", "pregunta"];
+const VEO = ["esta", "no_esta", "contiene", "orden", "contador", "control", "al_pasar", "estilo", "color_en_item", "desborde", "pregunta", "centrado"];
 const FAMILIAS = ["rojo", "amarillo", "verde"];
 const PROPS = ["background-color", "color", "width", "height", "padding", "border-top-style", "border-top-left-radius", "box-shadow", "overflow-y", "font-size", "font-weight"];
 // pistas de CÓMO está programado: no van en una planilla (estricto en el QUÉ, flexible en el CÓMO)
@@ -78,6 +78,7 @@ export function validateRow(row0, nReq = Infinity, ctx = {}) {
     if (t === "control" && !texts(v.control)) p.push(`veo[${i}]: { "control": ["palabras del botón"], "solo_en"?: "contenedor" }`);
     if (t === "al_pasar" && (!texts(v.al_pasar) || !isText(v.en_item))) p.push(`veo[${i}]: { "al_pasar": ["lo que aparece"], "en_item": "texto de ${I}" }`);
     if (t === "pregunta" && (!isText(v.pregunta) || !row.hago?.eliminar)) p.push(`veo[${i}]: { "pregunta": "texto" } va con "hago": { "eliminar": … } (lo que pregunta al borrar, antes de confirmar)`);
+    if (t === "centrado" && v.centrado !== "grupos" && !(v.centrado && texts(v.centrado.control))) p.push(`veo[${i}]: { "centrado": "grupos" } o { "centrado": { "control": ["palabras", "del", "botón"] } }`);
     if (t === "desborde" && !isText(v.desborde)) p.push(`veo[${i}]: { "desborde": "${G}" } (con muchos ítems creados en "dado")`);
     if (t === "color_en_item" && (!isText(v.color_en_item) || !FAMILIAS.includes(v.familia))) p.push(`veo[${i}]: { "color_en_item": "texto de ${I}", "texto"?: "…", "familia": ${FAMILIAS.join(" | ")} }`);
     if (t === "estilo") {
@@ -100,8 +101,8 @@ export function validateRow(row0, nReq = Infinity, ctx = {}) {
 }
 
 // ---------- v0.2: forma exacta y sentido (1ª corrida real de Qwen sobre c22, 17/10: 30/68 contra la vara) ----------
-const VEO_KEYS = { pregunta: ["pregunta"], desborde: ["desborde"], esta: ["esta", "en"], no_esta: ["no_esta", "en"], contiene: ["en_item", "contiene"], orden: ["orden", "en"], contador: ["contador", "cambia", "vale"], control: ["control", "solo_en"], al_pasar: ["al_pasar", "en_item"], estilo: ["estilo"], color_en_item: ["color_en_item", "texto", "familia"] };
-const HAGO_KEYS = { agregar: ["agregar", "campos"], editar: ["editar", "a", "campos"], eliminar: ["eliminar"], mover: ["mover", "a"], recargar: ["recargar"], pasar_mouse: ["pasar_mouse"] };
+const VEO_KEYS = { centrado: ["centrado"], pregunta: ["pregunta"], desborde: ["desborde"], esta: ["esta", "en"], no_esta: ["no_esta", "en"], contiene: ["en_item", "contiene"], orden: ["orden", "en"], contador: ["contador", "cambia", "vale"], control: ["control", "solo_en"], al_pasar: ["al_pasar", "en_item"], estilo: ["estilo"], color_en_item: ["color_en_item", "texto", "familia"] };
+const HAGO_KEYS = { agregar: ["agregar", "campos"], editar: ["editar", "a", "campos"], eliminar: ["eliminar"], mover: ["mover", "a", "manija"], recargar: ["recargar"], pasar_mouse: ["pasar_mouse"] };
 const CSS_WORD = /^(padding|margin|border|border-radius|width|height|color|background|background-color|font|font-size|box-shadow|overflow|display)$/i;
 function shapeExtras(row, I) {
   const p = [];
@@ -354,9 +355,11 @@ export async function writeRequirement({ id, text, features, context = "", call 
 }
 
 /** La planilla entera. features = refined_prompt.features. */
-export async function writePlanilla({ features, context = "", call = callLM, onProgress = null, modo = "plantillas", glosario = null }) {
+export async function writePlanilla({ features, context = "", call = callLM, onProgress = null, modo = "plantillas", glosario = null, desde = 0 }) {
   const out = { version: "planilla v0.1", autor: `${WRITER_VERSION} (${MODEL}, modo ${modo}${modo === "plantillas" ? `, ${PLANTILLAS_VERSION}` : ""})`, modo, ...(glosario ? { glosario } : {}), filas: [], sin_fila: {}, rechazadas: {}, calls: {} };
+  // desde (22/10, "agregar"): solo los requisitos nuevos; los anteriores quedan de contexto y los números siguen
   for (const [i, text] of features.entries()) {
+    if (i < desde) continue;
     const id = `R${i + 1}`;
     const r = await writeRequirement({ id, text, features, context, call, modo, glosario });
     out.filas.push(...r.filas);

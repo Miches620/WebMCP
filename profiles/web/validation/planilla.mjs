@@ -201,6 +201,20 @@ async function act(page, ctls, h, ctx, w) {
     if (!(await page.evaluate(ITEM_OF, [h.mover, w.src]))) return { fail: `"${h.mover}" no aparece como ${w.it}` };
     if (!(await page.evaluate(COL_NAMED, [h.a, w.src, "data-plan-dest"]))) return { fail: `no hay un contenedor que se llame "${h.a}"` };
     const llego = () => page.evaluate(([t]) => { const c = document.querySelector("[data-plan-dest]"); return !!c && (c.innerText || "").includes(t); }, [h.mover]);
+    // 22/10: si el usuario nombró la manija (⠿), se arrastra DESDE la manija, que tiene que verse
+    if (h.manija) {
+      const hay = await page.evaluate((m) => {
+        document.querySelectorAll("[data-plan-manija]").forEach((e) => e.removeAttribute("data-plan-manija"));
+        const it = document.querySelector("[data-plan-item]"); if (!it) return false;
+        const vis = (e) => { const r = e.getBoundingClientRect(), st = getComputedStyle(e); return r.width > 0 && r.height > 0 && st.visibility !== "hidden" && Number(st.opacity) > 0.05; };
+        const c = [...it.querySelectorAll("*")].filter((e) => vis(e) && (e.textContent || "").includes(m)).sort((x, y) => x.textContent.length - y.textContent.length)[0];
+        if (!c) return false; c.setAttribute("data-plan-manija", "1"); return true;
+      }, h.manija);
+      if (!hay) return { fail: `no se ve la manija "${h.manija}" en "${h.mover}"` };
+      await page.locator("[data-plan-manija]").first().dragTo(page.locator("[data-plan-dest]").first(), { timeout: 3000 }).catch(() => {});
+      await settle(page);
+      return (await llego()) ? `arrastró "${h.mover}" desde su manija "${h.manija}" a "${h.a}"` : `arrastró "${h.mover}" desde su manija "${h.manija}" a "${h.a}" (no se movió)`;
+    }
     await page.locator("[data-plan-item]").first().dragTo(page.locator("[data-plan-dest]").first(), { timeout: 3000 }).catch(() => {});
     await settle(page);
     // 21/10: como una persona, si la tarjeta no se arrastra entera, se agarra de su manija (algo draggable adentro, p. ej. ⠿)
@@ -316,6 +330,33 @@ async function see(page, v, before, w) {
     if (w.ctx.trasClic == null) return [false, `no se llegó a apretar borrar, así que no hay pregunta para ver`];
     const ok = n(w.ctx.trasClic).includes(n(v.pregunta));
     return [ok, ok ? `al apretar borrar pregunta "${v.pregunta}"` : `al apretar borrar no aparece "${v.pregunta}"${w.ctx.dialogoClic ? ` (el navegador preguntó: "${w.ctx.dialogoClic.slice(0, 80)}")` : ""}`];
+  }
+  if (v.centrado) {
+    // 22/10: mismo espacio libre a la izquierda y a la derecha (tolerancia: 16px o el 2% del ancho)
+    let caja = null, que = "";
+    if (v.centrado === "grupos") {
+      caja = await page.evaluate((src) => {
+        const re = new RegExp(src, "i");
+        const inItem = (h) => { for (let x = h; x && x !== document.body; x = x.parentElement) if (x.tagName === "LI" || [...x.classList].some((k) => re.test(k))) return true; return false; };
+        const HS = "h1, h2, h3, h4, h5, h6, [class*=title], [class*=titulo], [class*=header]";
+        const titled = (a) => [...a.querySelectorAll(HS)].some((h) => !inItem(h) && (h.textContent || "").trim() && h.getClientRects().length);
+        // el padre con más hijos con título (del mismo tipo): esos hijos son los grupos
+        let mejor = null;
+        for (const p of document.querySelectorAll("body *")) { const hs = [...p.children].filter((c) => titled(c) && c.getClientRects().length); if (hs.length >= 2 && (!mejor || hs.length > mejor.length)) mejor = hs; }
+        if (!mejor) return null;
+        const rs = mejor.map((e) => e.getBoundingClientRect());
+        return { left: Math.min(...rs.map((r) => r.left)), right: Math.max(...rs.map((r) => r.right)), n: mejor.length };
+      }, w.src);
+      const fem = /a$/.test(w.gr);
+      que = caja ? `${fem ? "las" : "los"} ${caja.n} ${w.gr}s ${fem ? "juntas" : "juntos"}` : "";
+    } else if (v.centrado?.control) {
+      const ctl = await verbControl(page, v.centrado.control);
+      if (ctl) { const r = await ctl.loc.boundingBox(); caja = r && { left: r.x, right: r.x + r.width }; que = `el botón "${ctl.text.slice(0, 25)}"`; }
+    }
+    if (!caja) return [false, v.centrado === "grupos" ? `no encontré ${w.gr}s para medir` : `ningún control dice "${[].concat(v.centrado?.control || []).join(" ")}"`];
+    const ancho = await page.evaluate(() => document.documentElement.clientWidth);
+    const izq = Math.round(caja.left), der = Math.round(ancho - caja.right), tol = Math.max(16, Math.round(ancho * 0.02));
+    return [Math.abs(izq - der) <= tol, `${que}: ${izq}px libres a la izquierda y ${der}px a la derecha${Math.abs(izq - der) <= tol ? " (centrado)" : ` (no está centrado; tolerancia ${tol}px)`}`];
   }
   if (v.visual) {
     // 22/10: reglas visuales medibles (visual.mjs) — se miden con la ventana de la prueba (1280px de ancho)

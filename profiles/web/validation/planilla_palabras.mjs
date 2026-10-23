@@ -33,7 +33,7 @@ export function describirFila(row0, g) {
   if (h.agregar) partes.push(N(`Creo {un_item} con un título cualquiera${camposTxt(h.campos).replace(/^ con/, " y")}.`));
   else if (h.editar) partes.push(N(`Edito {el_item}: le cambio el título${h.campos ? ` y le pongo${camposTxt(h.campos).replace(/^ con/, "")}` : ""}.`));
   else if (h.eliminar) partes.push(N("Borro {el_item} (con su control de borrar; si pide confirmar, confirmo)."));
-  else if (h.mover) partes.push(N(`Muevo {el_item} a ${q(h.a)} (arrastrando, o con su control de mover).`));
+  else if (h.mover) partes.push(h.manija ? N(`Muevo {el_item} a ${q(h.a)} arrastrándol${N("{el_item}").startsWith("la ") ? "a" : "o"} desde su manija ${q(h.manija)}.`) : N(`Muevo {el_item} a ${q(h.a)} (arrastrando, o con su control de mover).`));
   else if (h.recargar) partes.push("Recargo la página.");
   else if (h.pasar_mouse) partes.push(N("Paso el mouse por encima de {el_item}."));
   const veo = (row.veo || []).map((v) => {
@@ -51,6 +51,7 @@ export function describirFila(row0, g) {
       return `${cosa} tiene ${e.prop}: ${val}`;
     }
     if (v.pregunta) return `al apretar borrar, antes de confirmar, aparece ${q(v.pregunta)}`;
+    if (v.centrado) return v.centrado === "grupos" ? N(`${/a$/.test(N("{grupo}")) ? "las" : "los"} {grupos} quedan centrad${/a$/.test(N("{grupo}")) ? "as" : "os"} en la página (mismo espacio libre a la izquierda y a la derecha)`) : `el botón ${q([].concat(v.centrado.control).join(" "))} queda centrado en la página`;
     if (v.visual) return REGLAS_VISUALES[v.visual]?.dice || `regla visual ${v.visual}`;
     if (v.desborde) return N(`con ${dado.length || "muchos"} {items} en ${q(v.desborde)}, se desplaza (scroll) adentro de {el_grupo} y la página NO se desplaza`);
     if (v.color_en_item) return N(`{el_item} se pinta de ${v.familia}${v.texto ? ` donde dice ${q(v.texto)}` : ""}`);

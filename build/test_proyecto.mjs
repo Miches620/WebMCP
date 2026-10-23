@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { leerPedido, planillaEnPalabras, juzgar, nombresParecidos, unificar, PROYECTO_VERSION } from "./proyecto.mjs";
+import { leerPedido, planillaEnPalabras, juzgar, nombresParecidos, unificar, agregar, PROYECTO_VERSION } from "./proyecto.mjs";
 import { borrador, ciclo } from "./run_ciclo.mjs";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -93,6 +93,27 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   const a = await juzgar(join(FIX, "flow_p26_final"), PV), b = await juzgar(join(FIX, "flow_p26_visual_mano"), PV);
   t("visual: la app 23/23 falla contraste (blanco sobre amarillo, 1.95 a 1) y se corta (tarjeta de 253px en 248px); arreglada a mano pasa todo SIN romper las 23 pruebas de Miche", a.cumplidos === 27 && a.fallan.map((f) => f.r).join(",") === "V1,V2" && /1\.95 a 1|3\.02 a 1/.test(a.fallan[0].detalle.join(" ")) && b.cumplidos === 29, `${a.cumplidos} ${a.fallan.map((f) => f.r)} · ${b.cumplidos} ${b.fallan.map((f) => f.r)}`);
   t("visual: en palabras dice la regla; los V van después de todos los R", /contraste de al menos 4\.5/.test(describirFila(filasVisuales()[0], P26.glosario)) && ["V1", "R28", "R2", "V2"].sort((x, y) => ordenReq(x) - ordenReq(y)).join(",") === "R2,R28,V1,V2");
+}
+
+// ---------- 22/10: agregar pedidos a un proyecto que ya existe + centrado + manija ----------
+{
+  const d = mkdtempSync(join(tmpdir(), "pag-"));
+  const P26 = JSON.parse(readFileSync(join(FIX, "planilla_kanban_p26.json"), "utf8"));
+  const reqs = JSON.parse(readFileSync(join(FIX, "planilla_kanban_p26.json"), "utf8")).filas.length ? Array.from({ length: 30 }, (_, i) => ({ texto: i === 7 ? "Campos de cada columna: title ('Pendiente', 'En Curso', 'Completa')" : `requisito ${i + 1}`, de: "feature" })) : [];
+  writeFileSync(join(d, "pedido.txt"), "columnas: Pendiente, En Curso, Completa\n");
+  writeFileSync(join(d, "requisitos.json"), JSON.stringify({ titulo: "Kanban", requisitos: reqs, intentForge: { refined_prompt: { features: reqs.map((r) => r.texto) } } }));
+  writeFileSync(join(d, "planilla.json"), JSON.stringify(P26));
+  const vistos = [];
+  const call = async (m) => { vistos.push(m[1].content); return { content: JSON.stringify({ usa: [{ plantilla: "centrado", de: "columnas" }] }) }; };
+  const r = await agregar(d, ["Las columnas centradas horizontalmente en la página"], { call });
+  const p2 = JSON.parse(readFileSync(join(d, "planilla.json"), "utf8")), q2 = JSON.parse(readFileSync(join(d, "requisitos.json"), "utf8")), md = readFileSync(join(d, "planilla.md"), "utf8");
+  t("agregar: Qwen escribe SOLO lo nuevo (1 pedido, no 31), queda como R31 y se suma a planilla.json, requisitos.json y planilla.md", vistos.length === 1 && r.ids[0] === "R31" && p2.filas.length === P26.filas.length + 1 && p2.filas.at(-1).r === "R31" && q2.requisitos.length === 31 && q2.intentForge.refined_prompt.features.length === 31 && /R31\.1\*\* · → las columnas quedan centradas/.test(md), JSON.stringify(r));
+  const PN = { ...P26, filas: [
+    { id: "R6.1", r: "R6", dado: [{ agregar: "QA Alfa" }], veo: [{ en_item: "QA Alfa", contiene: ["⠿"] }] },
+    { id: "R6.2", r: "R6", dado: [{ agregar: "QA Alfa" }], hago: { mover: "QA Alfa", a: "En Curso", manija: "⠿" }, veo: [{ esta: "QA Alfa", en: "En Curso" }] },
+    { id: "R31.1", r: "R31", veo: [{ centrado: "grupos" }] }] };
+  const a = await juzgar(join(FIX, "flow_p26_final"), PN), b = await juzgar(join(FIX, "flow_p26_centrado_mano"), PN);
+  t("centrado y manija: la app 23/23 no muestra ⠿ (no se puede arrastrar desde ahí) y está corrida (51px a la izq., 445 a la der.); arreglada a mano pasa las dos", a.cumplidos === 0 && /445px a la derecha/.test(a.fallan.find((f) => f.r === "R31").detalle.join(" ")) && b.cumplidos === 2, `${a.cumplidos} · ${b.cumplidos} ${JSON.stringify(b.fallan)}`);
 }
 
 // ---------- quitar: Miche saca pruebas que están mal ----------

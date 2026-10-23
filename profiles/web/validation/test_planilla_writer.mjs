@@ -80,7 +80,7 @@ const caida = await writePlanilla({ features: ["x"], call: async () => { throw n
 t("LM Studio caído → el requisito queda sin fila, con el error (no se inventa)", /fetch failed/.test(caida.sin_fila.R1));
 
 // ---------- v0.3: modo PLANTILLAS (Qwen elige, el harness arma) ----------
-t("plantillas: versión y 15 plantillas (v0.4: no_borrar_en; v0.5: confirmar_al_borrar)", PLANTILLAS_VERSION === "planilla_plantillas v0.5" && Object.keys(PLANTILLAS).length === 15);
+t("plantillas: versión y 17 plantillas (v0.4: no_borrar_en; v0.5: confirmar_al_borrar; v0.6: se_ve_en_item, centrado)", PLANTILLAS_VERSION === "planilla_plantillas v0.6" && Object.keys(PLANTILLAS).length === 17);
 const IDEAL = JSON.parse(readFileSync(new URL("./fixtures/real_qwen_c22/elecciones_ideales_c22.json", import.meta.url), "utf8"));
 const built = Object.entries(IDEAL).filter(([r]) => /^R\d+$/.test(r) && IDEAL[r].usa).flatMap(([r, a]) => { const x = rowsFromChoices(a.usa, r, G); return [...x.filas.map((f) => [r, validateRow(normalizeRow(f, G).row, 17, { features: FEATS, glosario: G })]), ...x.problems.map((p) => [r, { ok: false, problems: [p] }])]; });
 t("techo: las elecciones IDEALES para c22 arman 28 filas y TODAS pasan el validador (con los chequeos de sentido)", built.length === 28 && built.every(([, v]) => v.ok), built.filter(([, v]) => !v.ok).map(([r, v]) => `${r}: ${v.problems.join("; ")}`).join(" | "));

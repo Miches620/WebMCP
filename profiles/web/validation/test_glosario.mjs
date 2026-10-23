@@ -25,7 +25,7 @@ t("los ítems se reconocen por clases genéricas (card, item…) más el nombre 
 
 // plantillas: solo las que tienen sentido, con los nombres de la app
 const sinGrupo = Object.keys(plantillasPara(HOJA));
-t("una app sin grupos no recibe mover, contador ni orden", !["mover", "contador_al_crear", "orden_por_campo"].some((k) => sinGrupo.includes(k)) && sinGrupo.includes("crear") && sinGrupo.length === 11);
+t("una app sin grupos no recibe mover, contador ni orden", !["mover", "contador_al_crear", "orden_por_campo"].some((k) => sinGrupo.includes(k)) && sinGrupo.includes("crear") && sinGrupo.length === 13);
 const spR = systemPromptPlantillas(REC), spH = systemPromptPlantillas(HOJA);
 t("el pedido de recetas habla de recetas y categorías, nunca de tarjetas ni columnas", /crear una receta \(y aparece en una categoría\)/.test(spR) && /"categoría" \(opcional/.test(spR) && !/tarjeta|columna/i.test(spR));
 t("el pedido de una app sin grupos no menciona grupos", !/grupo|categor|columna/i.test(spH.split("Reglas")[0]), spH.split("Reglas")[0].match(/.{30}(grupo|columna).{30}/i)?.[0]);

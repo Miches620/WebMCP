@@ -9,7 +9,7 @@
 //
 // Una respuesta de Qwen:  { "usa": [ { "plantilla": "borrar", "columna": "Pendiente" }, … ] }   o   { "sin_fila": "motivo" }
 
-export const PLANTILLAS_VERSION = "planilla_plantillas v0.5";
+export const PLANTILLAS_VERSION = "planilla_plantillas v0.6"; // v0.6 (22/10): se_ve_en_item, centrado, mover con manija
 // v0.5 (19/10, 1ª corrida de npm run proyecto con project26): (a) una RESTRICCIÓN no se prueba con una plantilla que
 // HACE lo prohibido (R28: "Sin … eliminar tarjetas en Completa" salió como "borro y desaparece", lo contrario);
 // (b) "se ven estos textos" solo con textos que el usuario puso ENTRE COMILLAS en ese requisito (salían "contador de
@@ -97,8 +97,8 @@ export const PLANTILLAS = {
   mover: {
     requiere: ["grupo"],
     dice: "{un_item} se mueve (arrastrando o con un control) a {otro_grupo}",
-    casilleros: { a: "{el_grupo} de destino", desde: "opcional: {el_grupo} de origen (para los contadores)" },
-    arma: (c) => ({ dado: [{ agregar: A }], hago: { mover: A, a: c.a }, veo: [{ esta: A, en: c.a }, ...(c.desde ? [{ contador: c.desde, cambia: -1 }, { contador: c.a, cambia: 1 }] : [])] }),
+    casilleros: { a: "{el_grupo} de destino", desde: "opcional: {el_grupo} de origen (para los contadores)", manija: "opcional: SOLO si el usuario escribe el símbolo o texto de donde se agarra para arrastrar (p. ej. ⠿), tal cual" },
+    arma: (c) => ({ dado: [{ agregar: A }], hago: { mover: A, a: c.a, ...(isText(c.manija) ? { manija: c.manija.trim() } : {}) }, veo: [{ esta: A, en: c.a }, ...(c.desde ? [{ contador: c.desde, cambia: -1 }, { contador: c.a, cambia: 1 }] : [])] }),
     necesita: (c, g) => (!isText(c.a) ? `"a": ${art(g, "grupo")} de destino` : null),
   },
   contador_al_crear: {
@@ -168,6 +168,20 @@ export const PLANTILLAS = {
     arma: (c) => ({ dado: [{ agregar: A }, { mover: A, a: c.grupo }], hago: { eliminar: A }, veo: [{ esta: A, en: c.grupo }] }),
     necesita: (c, g) => (!isText(c.grupo) ? `"${palabra(g, "grupo")}"` : null),
   },
+  // 22/10: un símbolo o texto que se ve SIEMPRE dentro de cada ítem (la manija ⠿ de project26: R6 quedaba sin prueba)
+  se_ve_en_item: {
+    dice: "dentro de {un_item} se ve siempre (sin pasar el mouse) un símbolo o texto que el usuario escribió",
+    casilleros: { textos: '["⠿", …] (tal cual los escribió el usuario)' },
+    arma: (c) => ({ dado: [{ agregar: A }], veo: [{ en_item: A, contiene: list(c.textos) }] }),
+    necesita: (c) => (!list(c.textos).length ? `"textos": lo que se ve adentro` : null),
+  },
+  // 22/10 (Miche: "no se ven centradas las columnas"): mismo espacio libre a la izquierda y a la derecha
+  centrado: {
+    dice: "algo queda centrado en la página, de izquierda a derecha (mismo espacio libre a cada lado)",
+    casilleros: { de: '[["{grupo}s" (todos juntos) | ]]"boton"', nombre: "si es botón: sus palabras" },
+    arma: (c) => ({ veo: [{ centrado: c.de === "boton" ? { control: list(c.nombre).flatMap((x) => x.split(/\s+/)) } : "grupos" }] }),
+    necesita: (c, g) => (c.de === "boton" ? (!list(c.nombre).length ? `"nombre": las palabras del botón` : null) : !["grupos", "grupo"].includes(c.de) ? `"de": "${palabra(g, "grupo", true)}" (todos juntos) o "boton"` : !tiene(g, "grupo") ? "esta app no tiene grupos" : null),
+  },
   orden_por_campo: {
     requiere: ["grupo"],
     dice: "en {un_grupo} los {items} se ordenan por un campo (y, si se pide, a igual valor primero el más reciente)",
@@ -195,6 +209,7 @@ export const PERTINENCIA = {
   borrar: /borr|elimin|quit|delet/i, confirmar_al_borrar: /confirm|seguro|pregunt|consult/i, no_borrar_en: /(sin|no|prohib|impedir|evitar)\b[^.]*(borr|elimin)/i, mover: /mov|arrastr|drag|solt/i, contador_al_crear: /contador|cantidad|counter|cuenta/i,
   recargar_sigue: /guard|recarg|persist|localstorage|se mantien|no se pierd/i, al_pasar_mouse: /hover|pasar|mouse|encima/i,
   orden_por_campo: /orden|priori|arriba|abajo|primer|recient|descend|ascend/i, color_segun_valor: /color|rojo|verde|amarill|azul/i,
+  centrado: /centr|al medio|alinead/i, se_ve_en_item: /muestr|se ve|[ií]cono|s[ií]mbolo|manija|[^\p{L}\p{N}\s.,;:()'"¿?¡!\-–\/&#%+=*<>]/u,
   estilo: /\d+\s*px|#[0-9a-f]{3,6}|padding|border|borde|radius|redond|sombra|shadow|overflow|scroll|width|height|ancho|alto|fondo|color/i,
 };
 const STYLE_WORDS = /\d+\s*px|#[0-9a-f]{6}|padding|border|radius|overflow|width|height|sombra/i;
@@ -215,6 +230,11 @@ export function relevanceProblems(choices, text0) {
   // v0.5: "se ven estos textos" solo con lo que el usuario puso entre comillas en este requisito
   const citados = [...String(text0).matchAll(/(['"“‘«])(.+?)(['"”’»])/g)].map((m) => m[2].trim().toLowerCase());
   (Array.isArray(choices) ? choices : []).forEach((ch, i) => { if (ch?.plantilla === "se_ven_textos") { const fuera = list(ch.textos).filter((x) => !citados.some((c) => c === x.toLowerCase() || c.includes(x.toLowerCase()))); if (fuera.length) p.push(`elección ${i + 1} (se_ven_textos): ${fuera.map((x) => `"${x}"`).join(", ")} no está entre comillas en el requisito: solo se prueban textos que el usuario citó (lo demás es una descripción, no un texto de la pantalla)`); } });
+  (Array.isArray(choices) ? choices : []).forEach((ch, i) => {
+    const escritos = ch?.plantilla === "se_ve_en_item" ? list(ch.textos) : ch?.plantilla === "mover" && isText(ch.manija) ? [ch.manija.trim()] : [];
+    const fuera = escritos.filter((x) => !said.includes(x.toLowerCase()));
+    if (fuera.length) p.push(`elección ${i + 1} (${ch.plantilla}): ${fuera.map((x) => `"${x}"`).join(", ")} no está escrito en el requisito: solo lo que escribió el usuario, tal cual`);
+  });
   if (STYLE_WORDS.test(String(text0)) && !used.has("estilo")) p.push(`AVISO: el requisito nombra estilos medibles (${String(text).match(STYLE_WORDS)[0]}…): agregá una elección "estilo" por cada uno`);
   return p;
 }

@@ -96,6 +96,9 @@ export const PLANTILLAS = {
   },
   mover: {
     requiere: ["grupo"],
+    // 23/10 (R32 ×3): Qwen mandaba "a": "Pendiente, En Curso, Completa" cuando el pedido no nombra un destino; se toma
+    // el primero que no es donde aparece lo nuevo, y "desde" con lista se descarta
+    ajusta: (c, g) => { const ini = leerGlosario(g).glosario.inicio, sep = (x) => String(x).split(/\s*(?:,|\by\b|\/)\s*/).map((t) => t.trim()).filter(Boolean); const out = { ...c }; if (isText(c.a) && sep(c.a).length > 1) out.a = sep(c.a).find((x) => !mismo(x, ini)) || sep(c.a)[0]; if (isText(c.desde) && sep(c.desde).length > 1) delete out.desde; return out; },
     dice: "{un_item} se mueve (arrastrando o con un control) a {otro_grupo}",
     casilleros: { a: "{el_grupo} de destino", desde: "opcional: {el_grupo} de origen (para los contadores)", manija: "opcional: SOLO si el usuario escribe el símbolo o texto de donde se agarra para arrastrar (p. ej. ⠿), tal cual" },
     arma: (c) => ({ dado: [{ agregar: A }], hago: { mover: A, a: c.a, ...(isText(c.manija) ? { manija: c.manija.trim() } : {}) }, veo: [{ esta: A, en: c.a }, ...(c.desde ? [{ contador: c.desde, cambia: -1 }, { contador: c.a, cambia: 1 }] : [])] }),
@@ -164,8 +167,9 @@ export const PLANTILLAS = {
   no_borrar_en: {
     requiere: ["grupo"],
     dice: "RESTRICCIÓN: {un_item} que está en cierto {grupo} NO se puede borrar (se intenta y sigue ahí)",
-    casilleros: { grupo: "{el_grupo} donde no se puede borrar" },
-    arma: (c) => ({ dado: [{ agregar: A }, { mover: A, a: c.grupo }], hago: { eliminar: A }, veo: [{ esta: A, en: c.grupo }] }),
+    casilleros: { grupo: "{el_grupo} donde no se puede borrar", mensaje: "opcional: SOLO si el usuario escribe entre comillas el mensaje que se muestra al intentarlo, tal cual" },
+    // 23/10 (R33): "al intentar eliminar en 'Completa', mostrar el mensaje '…'" → además del "sigue ahí", el mensaje aparece al apretar borrar
+    arma: (c) => ({ dado: [{ agregar: A }, { mover: A, a: c.grupo }], hago: { eliminar: A }, veo: [...(isText(c.mensaje) ? [{ pregunta: String(c.mensaje).trim() }] : []), { esta: A, en: c.grupo }] }),
     necesita: (c, g) => (!isText(c.grupo) ? `"${palabra(g, "grupo")}"` : null),
   },
   // 22/10: un símbolo o texto que se ve SIEMPRE dentro de cada ítem (la manija ⠿ de project26: R6 quedaba sin prueba)
@@ -206,7 +210,7 @@ export const PLANTILLAS = {
 // ordenar ni de pasar el mouse. Cada plantilla necesita que el requisito la NOMBRE (palabras en castellano o inglés).
 export const PERTINENCIA = {
   crear: /crea|agreg|añad|anad|nuev|add\b/i, crear_con_campos: /crea|agreg|añad|anad|nuev|campo/i, editar: /edit|modific|cambi/i,
-  borrar: /borr|elimin|quit|delet/i, confirmar_al_borrar: /confirm|seguro|pregunt|consult/i, no_borrar_en: /(sin|no|prohib|impedir|evitar)\b[^.]*(borr|elimin)/i, mover: /mov|arrastr|drag|solt/i, contador_al_crear: /contador|cantidad|counter|cuenta/i,
+  borrar: /borr|elimin|quit|delet/i, confirmar_al_borrar: /confirm|seguro|pregunt|consult/i, no_borrar_en: /(sin|no|prohib|impedir|evitar|intent)\w*\b[^.]*(borr|elimin)/i, mover: /mov|arrastr|drag|solt/i, contador_al_crear: /contador|cantidad|counter|cuenta/i,
   recargar_sigue: /guard|recarg|persist|localstorage|se mantien|no se pierd/i, al_pasar_mouse: /hover|pasar|mouse|encima/i,
   orden_por_campo: /orden|priori|arriba|abajo|primer|recient|descend|ascend/i, color_segun_valor: /color|rojo|verde|amarill|azul/i,
   centrado: /centr|al medio|alinead/i, se_ve_en_item: /muestr|se ve|[ií]cono|s[ií]mbolo|manija|[^\p{L}\p{N}\s.,;:()'"¿?¡!\-–\/&#%+=*<>]/u,
@@ -231,7 +235,7 @@ export function relevanceProblems(choices, text0) {
   const citados = [...String(text0).matchAll(/(['"“‘«])(.+?)(['"”’»])/g)].map((m) => m[2].trim().toLowerCase());
   (Array.isArray(choices) ? choices : []).forEach((ch, i) => { if (ch?.plantilla === "se_ven_textos") { const fuera = list(ch.textos).filter((x) => !citados.some((c) => c === x.toLowerCase() || c.includes(x.toLowerCase()))); if (fuera.length) p.push(`elección ${i + 1} (se_ven_textos): ${fuera.map((x) => `"${x}"`).join(", ")} no está entre comillas en el requisito: solo se prueban textos que el usuario citó (lo demás es una descripción, no un texto de la pantalla)`); } });
   (Array.isArray(choices) ? choices : []).forEach((ch, i) => {
-    const escritos = ch?.plantilla === "se_ve_en_item" ? list(ch.textos) : ch?.plantilla === "mover" && isText(ch.manija) ? [ch.manija.trim()] : [];
+    const escritos = ch?.plantilla === "se_ve_en_item" ? list(ch.textos) : ch?.plantilla === "mover" && isText(ch.manija) ? [ch.manija.trim()] : ch?.plantilla === "no_borrar_en" && isText(ch.mensaje) ? [ch.mensaje.trim()] : [];
     const fuera = escritos.filter((x) => !said.includes(x.toLowerCase()));
     if (fuera.length) p.push(`elección ${i + 1} (${ch.plantilla}): ${fuera.map((x) => `"${x}"`).join(", ")} no está escrito en el requisito: solo lo que escribió el usuario, tal cual`);
   });
@@ -255,8 +259,9 @@ export function rowsFromChoices(choices, id, glosario) {
   const filas = [], problems = [];
   const ok = plantillasPara(glosario);
   (Array.isArray(choices) ? choices : []).forEach((ch0, i) => {
-    const ch = eleccionATipos(ch0, glosario);
+    let ch = eleccionATipos(ch0, glosario);
     const t = ok[ch?.plantilla];
+    if (t?.ajusta) ch = t.ajusta(ch, glosario);
     if (!t) { problems.push(`elección ${i + 1}: la plantilla "${ch?.plantilla}" no existe (usá: ${Object.keys(ok).join(", ")})`); return; }
     const falta = t.necesita?.(ch, glosario) || fueraDelInicio(ch, glosario);
     if (falta) { problems.push(`elección ${i + 1} (${ch.plantilla}): falta ${falta}`); return; }

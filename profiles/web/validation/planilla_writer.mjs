@@ -355,11 +355,11 @@ export async function writeRequirement({ id, text, features, context = "", call 
 }
 
 /** La planilla entera. features = refined_prompt.features. */
-export async function writePlanilla({ features, context = "", call = callLM, onProgress = null, modo = "plantillas", glosario = null, desde = 0 }) {
+export async function writePlanilla({ features, context = "", call = callLM, onProgress = null, modo = "plantillas", glosario = null, desde = 0, solo = null }) {
   const out = { version: "planilla v0.1", autor: `${WRITER_VERSION} (${MODEL}, modo ${modo}${modo === "plantillas" ? `, ${PLANTILLAS_VERSION}` : ""})`, modo, ...(glosario ? { glosario } : {}), filas: [], sin_fila: {}, rechazadas: {}, calls: {} };
   // desde (22/10, "agregar"): solo los requisitos nuevos; los anteriores quedan de contexto y los números siguen
   for (const [i, text] of features.entries()) {
-    if (i < desde) continue;
+    if (i < desde || (solo && !solo.includes(i + 1))) continue; // solo: números de requisito a rehacer (1 = R1)
     const id = `R${i + 1}`;
     const r = await writeRequirement({ id, text, features, context, call, modo, glosario });
     out.filas.push(...r.filas);

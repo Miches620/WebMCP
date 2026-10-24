@@ -345,7 +345,10 @@ async function see(page, v, before, w) {
         for (const p of document.querySelectorAll("body *")) { const hs = [...p.children].filter((c) => titled(c) && c.getClientRects().length); if (hs.length >= 2 && (!mejor || hs.length > mejor.length)) mejor = hs; }
         if (!mejor) return null;
         const rs = mejor.map((e) => e.getBoundingClientRect());
-        return { left: Math.min(...rs.map((r) => r.left)), right: Math.max(...rs.map((r) => r.right)), n: mejor.length };
+        // 23/10 (R31 ×6: Gemma centraba el contenedor, que YA estaba centrado, y no lo de adentro): se dice quién contiene
+        const pad = mejor[0].parentElement, pr = pad.getBoundingClientRect();
+        const quien = `<${pad.tagName.toLowerCase()}${pad.id ? ` id="${pad.id}"` : ""}${pad.classList.length ? ` class="${[...pad.classList].slice(0, 2).join(" ")}"` : ""}>`;
+        return { left: Math.min(...rs.map((r) => r.left)), right: Math.max(...rs.map((r) => r.right)), n: mejor.length, cont: { quien, left: pr.left, right: pr.right } };
       }, w.src);
       const fem = /a$/.test(w.gr);
       que = caja ? `${fem ? "las" : "los"} ${caja.n} ${w.gr}s ${fem ? "juntas" : "juntos"}` : "";
@@ -356,7 +359,15 @@ async function see(page, v, before, w) {
     if (!caja) return [false, v.centrado === "grupos" ? `no encontré ${w.gr}s para medir` : `ningún control dice "${[].concat(v.centrado?.control || []).join(" ")}"`];
     const ancho = await page.evaluate(() => document.documentElement.clientWidth);
     const izq = Math.round(caja.left), der = Math.round(ancho - caja.right), tol = Math.max(16, Math.round(ancho * 0.02));
-    return [Math.abs(izq - der) <= tol, `${que}: ${izq}px libres a la izquierda y ${der}px a la derecha${Math.abs(izq - der) <= tol ? " (centrado)" : ` (no está centrado; tolerancia ${tol}px)`}`];
+    const ok = Math.abs(izq - der) <= tol;
+    let extra = "";
+    if (!ok && caja.cont) {
+      const ci = Math.round(caja.cont.left), cd = Math.round(ancho - caja.cont.right);
+      extra = Math.abs(ci - cd) <= tol
+        ? ` · el que las contiene, ${caja.cont.quien}, YA está centrado (va de ${ci}px a ${Math.round(caja.cont.right)}px), pero adentro de él ${que} ocupan solo de ${izq}px a ${Math.round(caja.right)}px: lo que está corrido es lo de ADENTRO de ${caja.cont.quien}`
+        : ` · el que las contiene es ${caja.cont.quien} (va de ${ci}px a ${Math.round(caja.cont.right)}px)`;
+    }
+    return [ok, `${que}: ${izq}px libres a la izquierda y ${der}px a la derecha${ok ? " (centrado)" : ` (no está centrado; tolerancia ${tol}px)${extra}`}`];
   }
   if (v.visual) {
     // 22/10: reglas visuales medibles (visual.mjs) — se miden con la ventana de la prueba (1280px de ancho)

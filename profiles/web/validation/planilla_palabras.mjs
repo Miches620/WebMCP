@@ -16,7 +16,9 @@ const lista = (xs) => xs.map((x) => (isQA(x) ? "el texto que se cargó" : q(x)))
 const camposTxt = (c) => { const e = Object.entries(c || {}); return e.length ? ` con ${e.map(([k, v]) => `${k} ${isQA(v) ? "(un texto cualquiera)" : q(v)}`).join(" y ")}` : ""; };
 
 /** Una fila → una frase: "Creo una tarjeta con prioridad "alta" → la tarjeta muestra "alta" · se pinta de rojo". */
-export function describirFila(row0, g) {
+export function describirFila(row00, g) {
+  // los campos "__…" (p. ej. __variante) son del juez, no de la persona
+  const row0 = { ...row00, ...(row00?.dado ? { dado: row00.dado.map((d) => (d?.campos ? { ...d, campos: Object.fromEntries(Object.entries(d.campos).filter(([k]) => !k.startsWith("__"))) } : d)).map((d) => (d?.campos && !Object.keys(d.campos).length ? (({ campos, ...r }) => r)(d) : d)) } : {}) };
   const row = filaATipos(row0, g);
   const N = (t) => conNombres(t, g);
   // cómo nombrar cada texto QA creado en la fila: por sus campos ("la de prioridad alta") si hace falta distinguir

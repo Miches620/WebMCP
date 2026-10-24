@@ -151,6 +151,29 @@ export async function agregar(dir, textos, { call, log = () => {} } = {}) {
   return { ids, filas: q.filas.length, sin_fila: Object.keys(q.sin_fila) };
 }
 
+// ---------- rehacer: Qwen vuelve a escribir las pruebas de requisitos que ya existen (23/10) ----------
+// Para cuando el examen mejora (plantillas nuevas) o un requisito quedó sin prueba. Reemplaza SOLO las filas de esos R.
+export async function rehacer(dir, ids, { call, log = () => {} } = {}) {
+  const { writePlanilla } = await import("../profiles/web/validation/planilla_writer.mjs");
+  const req = JSON.parse(readFileSync(join(dir, "requisitos.json"), "utf8"));
+  const p = JSON.parse(readFileSync(join(dir, "planilla.json"), "utf8"));
+  const nums = [...new Set(ids.map((x) => Number(String(x).replace(/^R/i, "").replace(/\..*$/, ""))).filter((n) => n >= 1 && n <= req.requisitos.length))].sort((a, b) => a - b);
+  if (!nums.length) throw new Error(`no hay requisitos con esos números (R1…R${req.requisitos.length})`);
+  const q = await writePlanilla({ features: req.requisitos.map((r) => r.texto), context: req.titulo, glosario: p.glosario, solo: nums, ...(call ? { call } : {}), onProgress: (id, r) => log(`[PLANILLA] ${id}: ${r.sin_fila ? `sin fila (${r.sin_fila})` : `${r.filas.length} fila(s)`}${r.rejected.length ? ` · ${r.rejected.length} rechazada(s)` : ""}`) });
+  const rs = new Set(nums.map((n) => `R${n}`));
+  const viejas = p.filas.filter((f) => rs.has(f.r));
+  p.filas = [...p.filas.filter((f) => !rs.has(f.r)), ...q.filas].sort((a, b) => Number(a.r.slice(1)) - Number(b.r.slice(1)));
+  for (const r of rs) { delete p.sin_fila?.[r]; delete p.rechazadas?.[r]; }
+  p.sin_fila = { ...(p.sin_fila || {}), ...q.sin_fila };
+  p.rechazadas = { ...(p.rechazadas || {}), ...q.rechazadas };
+  if (viejas.length) p.reemplazadas = { ...(p.reemplazadas || {}), ...Object.fromEntries(viejas.map((f) => [`${f.id}@${new Date().toISOString().slice(0, 10)}`, f])) };
+  writeFileSync(join(dir, "planilla.json"), JSON.stringify(p, null, 2));
+  const ev = join(dir, "planilla_evidencia.json");
+  if (existsSync(ev)) { const e = JSON.parse(readFileSync(ev, "utf8")); e.calls = { ...(e.calls || {}), ...q.calls }; e.rehechos = [...(e.rehechos || []), { cuando: new Date().toISOString(), ids: [...rs] }]; writeFileSync(ev, JSON.stringify(e, null, 2)); }
+  writeFileSync(join(dir, "planilla.md"), await planillaEnPalabras(p, req.requisitos, req.correcciones || []));
+  return { ids: [...rs], filas: q.filas.length, sin_fila: Object.keys(q.sin_fila) };
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   const [modo, a1, a2] = process.argv.slice(2);
   const args = process.argv.slice(2);
@@ -195,6 +218,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     mkdirSync(appDir, { recursive: true });
     for (const [f, s] of Object.entries(app)) writeFileSync(join(appDir, f), s);
     console.log(`[PROYECTO] la app quedó en ${appDir} (abrí index.html). Volver a correr "seguir" la retoma desde ahí.`);
+  } else if (modo === "rehacer" && a1 && a2) {
+    const dir = resolve(a1);
+    const r = await rehacer(dir, args.slice(2).filter((x) => !x.startsWith("--")), { log: console.log });
+    console.log(`\n[PROYECTO] rehice ${r.ids.join(", ")} (${r.filas} prueba(s)${r.sin_fila.length ? `; sin prueba: ${r.sin_fila.join(", ")}` : ""}). Mirá planilla.md.`);
   } else if (modo === "agregar" && a1 && a2) {
     const dir = resolve(a1), textos = args.slice(2).filter((x) => !x.startsWith("--"));
     const r = await agregar(dir, textos, { log: console.log });
@@ -219,7 +246,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     console.log(`[JUZGAR] ${r.cumplidos}/${r.de} requisitos cumplidos`);
     for (const f of r.fallan) console.log(`  ✗ ${f.r}: ${f.detalle.join(" | ").slice(0, 300)}`);
   } else {
-    console.log("uso:\n  node build/proyecto.mjs quitar <carpeta del proyecto> R10.3 R21.*   (saca pruebas que están mal)\n  node build/proyecto.mjs agregar <carpeta del proyecto> \"pedido nuevo\" [\"otro\"…]   (Qwen: pruebas solo de lo nuevo)\n  node build/proyecto.mjs nuevo <pedido.txt> [--nombre x]      (Qwen: requisitos tal cual, glosario, planilla y planilla.md)\n  node build/proyecto.mjs seguir <carpeta del proyecto> [--visual]  (Gemma: borrador si no hay app, y el ciclo; retoma si ya hay; --visual suma las reglas visuales)\n  node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json> [--visual]");
+    console.log("uso:\n  node build/proyecto.mjs quitar <carpeta del proyecto> R10.3 R21.*   (saca pruebas que están mal)\n  node build/proyecto.mjs agregar <carpeta del proyecto> \"pedido nuevo\" [\"otro\"…]   (Qwen: pruebas solo de lo nuevo)\n  node build/proyecto.mjs rehacer <carpeta del proyecto> R6 R32   (Qwen: vuelve a escribir las pruebas de esos requisitos)\n  node build/proyecto.mjs nuevo <pedido.txt> [--nombre x]      (Qwen: requisitos tal cual, glosario, planilla y planilla.md)\n  node build/proyecto.mjs seguir <carpeta del proyecto> [--visual]  (Gemma: borrador si no hay app, y el ciclo; retoma si ya hay; --visual suma las reglas visuales)\n  node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json> [--visual]");
     process.exit(2);
   }
 }

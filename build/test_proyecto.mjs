@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { leerPedido, planillaEnPalabras, juzgar, nombresParecidos, unificar, agregar, PROYECTO_VERSION } from "./proyecto.mjs";
+import { leerPedido, planillaEnPalabras, juzgar, nombresParecidos, unificar, agregar, rehacer, PROYECTO_VERSION } from "./proyecto.mjs";
 import { borrador, ciclo } from "./run_ciclo.mjs";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -108,6 +108,10 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   const r = await agregar(d, ["Las columnas centradas horizontalmente en la página"], { call });
   const p2 = JSON.parse(readFileSync(join(d, "planilla.json"), "utf8")), q2 = JSON.parse(readFileSync(join(d, "requisitos.json"), "utf8")), md = readFileSync(join(d, "planilla.md"), "utf8");
   t("agregar: Qwen escribe SOLO lo nuevo (1 pedido, no 31), queda como R31 y se suma a planilla.json, requisitos.json y planilla.md", vistos.length === 1 && r.ids[0] === "R31" && p2.filas.length === P26.filas.length + 1 && p2.filas.at(-1).r === "R31" && q2.requisitos.length === 31 && q2.intentForge.refined_prompt.features.length === 31 && /R31\.1\*\* · → las columnas quedan centradas/.test(md), JSON.stringify(r));
+  const vistos2 = [];
+  const r2 = await rehacer(d, ["R31", "R8"], { call: async (m) => { vistos2.push(m[1].content); return { content: JSON.stringify({ usa: [{ plantilla: "centrado", de: "columnas" }] }) }; } });
+  const p3 = JSON.parse(readFileSync(join(d, "planilla.json"), "utf8"));
+  t("rehacer: solo R8 y R31 (Qwen solo ve esos dos), sus filas viejas se guardan aparte y el resto queda igual", vistos2.length >= 2 && vistos2.some((x) => /centradas/.test(x)) && vistos2.some((x) => /Campos de cada columna/.test(x)) && r2.ids.join() === "R8,R31" && p3.filas.some((f) => f.r === "R31") && p3.filas.filter((f) => !["R8", "R31"].includes(f.r)).length === P26.filas.filter((f) => f.r !== "R8").length && Object.keys(p3.reemplazadas || {}).some((k) => k.startsWith("R8.")), JSON.stringify(r2));
   const PN = { ...P26, filas: [
     { id: "R6.1", r: "R6", dado: [{ agregar: "QA Alfa" }], veo: [{ en_item: "QA Alfa", contiene: ["⠿"] }] },
     { id: "R6.2", r: "R6", dado: [{ agregar: "QA Alfa" }], hago: { mover: "QA Alfa", a: "En Curso", manija: "⠿" }, veo: [{ esta: "QA Alfa", en: "En Curso" }] },

@@ -51,6 +51,7 @@ const FILL = ([ids, token, replace, campos, keep]) => {
     const fs = ids.map((id) => document.querySelector(`[data-flow-f="${id}"]`)).filter(Boolean);
     const keyOf = (f) => nrm([f.name, f.id, f.placeholder, f.getAttribute("aria-label"), f.labels && [...f.labels].map((l) => l.textContent).join(" "), f.closest("label")?.textContent].filter(Boolean).join(" "));
     for (const [k, v] of Object.entries(campos)) {
+      if (k.startsWith("__")) continue; // __variante: no es un campo (ver abajo)
       const syn = SYN[nrm(k)] || [nrm(k)];
       let f = fs.find((x) => !done.has(x) && syn.some((w) => keyOf(x).includes(w)));
       if (!f && nrm(k) === "titulo") f = fs.find((x) => !done.has(x) && x.tagName === "INPUT");
@@ -67,7 +68,8 @@ const FILL = ([ids, token, replace, campos, keep]) => {
     if (!f || done.has(f)) continue;
     if (keep) continue;
     const t = (f.getAttribute("type") || "text").toLowerCase();
-    if (f.tagName === "SELECT") { if (f.options.length > 1) f.selectedIndex = Math.min(1, f.options.length - 1); }
+    // 23/10: "__variante" n elige otra opción en cada ítem (las reglas visuales miden todas las variantes, no solo la 1ª)
+    if (f.tagName === "SELECT") { const ok = [...f.options].map((o, i) => (o.disabled || o.value === "" ? -1 : i)).filter((i) => i >= 0); const v = Number(campos?.__variante) || 0; if (ok.length) f.selectedIndex = ok[v % ok.length]; else if (f.options.length > 1) f.selectedIndex = 1; }
     else if (t === "number") f.value = String((Number(f.value) || 0) + 7);
     else if (t === "date") f.value = "2026-01-01";
     else if (t === "email") f.value = "qa@ejemplo.com";

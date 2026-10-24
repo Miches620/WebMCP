@@ -1129,6 +1129,160 @@
         },
         "sin_fila": "dice cómo está programada por dentro"
       }
+    ],
+    "R31": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"centrado\",\n      \"de\": \"columnas\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2590,
+          "completion_tokens": 35,
+          "total_tokens": 2625,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R32": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"mover\",\n      \"manija\": \"⠿\",\n      \"desde\": \"Pendiente, En Curso, Completa\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2598,
+          "completion_tokens": 52,
+          "total_tokens": 2650,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (mover): falta \"a\": la columna de destino"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"mover\",\n      \"manija\": \"⠿\",\n      \"desde\": \"Pendiente, En Curso, Completa\",\n      \"a\": \"Pendiente, En Curso, Completa\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2699,
+          "completion_tokens": 67,
+          "total_tokens": 2766,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (mover): falta columna \"Pendiente, En Curso, Completa\": lo que se crea aparece en \"Pendiente\" (usá \"Pendiente\")"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"mover\",\n      \"manija\": \"⠿\",\n      \"desde\": \"Pendiente\",\n      \"a\": \"Pendiente, En Curso, Completa\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2839,
+          "completion_tokens": 61,
+          "total_tokens": 2900,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "hago.mover → a: \"Pendiente, En Curso, Completa\" es una lista: va UN contenedor",
+            "veo[0].en: \"Pendiente, En Curso, Completa\" es una lista: va UN contenedor",
+            "veo[2].contador: \"Pendiente, En Curso, Completa\" es una lista: va UN contenedor"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R33": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"confirmar_al_borrar\", \"texto\": \"No se puede eliminar una tarjeta completada\" } ] }\n```",
+        "usage": {
+          "prompt_tokens": 2605,
+          "completion_tokens": 39,
+          "total_tokens": 2644,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (confirmar_al_borrar): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"no_borrar_en\", \"columna\": \"Completa\" } ] }\n```",
+        "usage": {
+          "prompt_tokens": 2706,
+          "completion_tokens": 32,
+          "total_tokens": 2738,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (no_borrar_en): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{ \"usa\": [ { \"plantilla\": \"confirmar_al_borrar\", \"texto\": \"No se puede eliminar una tarjeta completada\" } ] }\n```",
+        "usage": {
+          "prompt_tokens": 2799,
+          "completion_tokens": 39,
+          "total_tokens": 2838,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (confirmar_al_borrar): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ]
+        ],
+        "problems": []
+      }
     ]
-  }
+  },
+  "agregados": [
+    {
+      "cuando": "2026-10-23T11:48:27.055Z",
+      "textos": [
+        "Las columnas centradas horizontalmente en la página",
+        "Cada tarjeta muestra su manija ⠿ y se arrastra desde ella",
+        "Al intentar eliminar una tarjeta en 'Completa', mostrar el mensaje 'No se puede eliminar una tarjeta completada'"
+      ]
+    }
+  ]
 }

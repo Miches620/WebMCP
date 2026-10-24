@@ -940,6 +940,16 @@
       ],
       "_plantilla": "no_borrar_en",
       "id": "R28.1"
+    },
+    {
+      "r": "R31",
+      "veo": [
+        {
+          "centrado": "grupos"
+        }
+      ],
+      "_plantilla": "centrado",
+      "id": "R31.1"
     }
   ],
   "sin_fila": {
@@ -949,7 +959,9 @@
     "R24": "Qwen no dio filas válidas",
     "R27": "dice cómo está programada por dentro",
     "R29": "dice cómo está programada por dentro",
-    "R30": "dice cómo está programada por dentro"
+    "R30": "dice cómo está programada por dentro",
+    "R32": "Qwen no dio filas válidas",
+    "R33": "Qwen no dio filas válidas"
   },
   "rechazadas": {
     "R6": [
@@ -1085,6 +1097,51 @@
         "fila": null,
         "problems": [
           "elección 2 (se_ven_textos): \"\"Titulo\"\", \"\"descripción\"\", \"\"prioridad\"\" no está entre comillas en el requisito: solo se prueban textos que el usuario citó (lo demás es una descripción, no un texto de la pantalla)"
+        ]
+      }
+    ],
+    "R32": [
+      {
+        "fila": {
+          "r": "R32",
+          "dado": [
+            {
+              "agregar": "QA Alfa"
+            }
+          ],
+          "hago": {
+            "mover": "QA Alfa",
+            "a": "Pendiente, En Curso, Completa",
+            "manija": "⠿"
+          },
+          "veo": [
+            {
+              "esta": "QA Alfa",
+              "en": "Pendiente, En Curso, Completa"
+            },
+            {
+              "contador": "Pendiente",
+              "cambia": -1
+            },
+            {
+              "contador": "Pendiente, En Curso, Completa",
+              "cambia": 1
+            }
+          ],
+          "_plantilla": "mover"
+        },
+        "problems": [
+          "hago.mover → a: \"Pendiente, En Curso, Completa\" es una lista: va UN contenedor",
+          "veo[0].en: \"Pendiente, En Curso, Completa\" es una lista: va UN contenedor",
+          "veo[2].contador: \"Pendiente, En Curso, Completa\" es una lista: va UN contenedor"
+        ]
+      }
+    ],
+    "R33": [
+      {
+        "fila": null,
+        "problems": [
+          "elección 1 (confirmar_al_borrar): el requisito no habla de eso; usá solo plantillas de lo que dice"
         ]
       }
     ]

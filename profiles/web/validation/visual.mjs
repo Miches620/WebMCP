@@ -16,7 +16,7 @@ export const REGLAS_VISUALES = {
 };
 /** Filas de planilla para las reglas visuales: con 3 ítems creados, se mide cada regla. ids V1… */
 export function filasVisuales(reglas = Object.keys(REGLAS_VISUALES)) {
-  return reglas.map((k, i) => ({ id: `V${i + 1}.1`, r: `V${i + 1}`, dado: [{ agregar: "QA Vis 1" }, { agregar: "QA Vis 2" }, { agregar: "QA Vis 3" }], veo: [{ visual: k }], _plantilla: "visual" }));
+  return reglas.map((k, i) => ({ id: `V${i + 1}.1`, r: `V${i + 1}`, dado: [0, 1, 2, 3].map((n) => ({ agregar: `QA Vis ${n + 1}`, campos: { __variante: n } })), veo: [{ visual: k }], _plantilla: "visual" }));
 }
 
 /** Corre adentro de la página: devuelve { regla: { ok, detalle } }. Se pasa como función a page.evaluate. */
@@ -65,7 +65,10 @@ export const MEDIR_VISUAL = () => {
   out.parejo = { ok: okP, detalle: `${radios.size} redondeos (${[...radios].join(", ") || "—"}; máximo 4) · ${letras.size} tamaños de letra (${[...letras].join(", ")}; máximo 6)` };
   // no se corta: un contenedor (no la página) con scroll hacia el costado porque algo no entra
   const cortes = todos.filter((el) => { const s = getComputedStyle(el); return s.overflowX !== "visible" && el.scrollWidth > el.clientWidth + 1 && el.clientWidth > 0; });
-  out.no_se_corta = { ok: !cortes.length, detalle: cortes.length ? cortes.slice(0, 3).map((el) => { const hijo = [...el.querySelectorAll("*")].filter(visto).find((c) => c.getBoundingClientRect().right > el.getBoundingClientRect().right + 1); return `${quien(el)} tiene ${el.scrollWidth}px de contenido en ${el.clientWidth}px${hijo ? ` (no entra ${quien(hijo)}, de ${Math.round(hijo.getBoundingClientRect().width)}px)` : ""}`; }).join(" · ") : "nada se sale de su caja" };
+  // 23/10 (V2 ×5: Gemma achicaba el ancho que pidió el usuario y rompía R12): se dan las cuentas, ancho + relleno + borde
+  const px = (x) => Math.round(parseFloat(x) || 0);
+  const cuentas = (el) => { const s = getComputedStyle(el); const w = px(s.width), p = px(s.paddingLeft) + px(s.paddingRight), b = px(s.borderLeftWidth) + px(s.borderRightWidth); return s.boxSizing === "border-box" ? `ancho ${w}px (box-sizing: border-box: ya incluye relleno y borde)` : `ancho ${w}px + relleno ${p}px + borde ${b}px = ${w + p + b}px`; };
+  out.no_se_corta = { ok: !cortes.length, detalle: cortes.length ? cortes.slice(0, 3).map((el) => { const hijo = [...el.querySelectorAll("*")].filter(visto).find((c) => c.getBoundingClientRect().right > el.getBoundingClientRect().right + 1); const s = getComputedStyle(el), lugar = el.clientWidth - px(s.paddingLeft) - px(s.paddingRight); return `${quien(el)} tiene ${el.scrollWidth}px de contenido en ${el.clientWidth}px${hijo ? `: no entra ${quien(hijo)} (${cuentas(hijo)}) en el lugar de adentro de ${quien(el)} (${el.clientWidth}px − relleno ${px(s.paddingLeft) + px(s.paddingRight)}px = ${lugar}px). Si el usuario pidió ese ancho, respetalo y achicá los rellenos` : ""}`; }).join(" · ") : "nada se sale de su caja" };
   // sin corrimiento horizontal
   const ancho = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
   out.sin_corrimiento = { ok: ancho <= innerWidth + 1, detalle: ancho <= innerWidth + 1 ? `entra en ${innerWidth}px` : `la página mide ${ancho}px de ancho y la ventana ${innerWidth}px` };

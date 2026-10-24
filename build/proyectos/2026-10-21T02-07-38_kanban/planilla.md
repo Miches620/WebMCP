@@ -2,7 +2,7 @@
 
 **Primero, el glosario** (de esto dependen muchas pruebas): lo que el usuario crea se llama **tarjeta**; los lugares con nombre donde están se llaman **columna**, y lo que se crea aparece en **Pendiente**. Si no es así, avisá: se corrige con `--glosario '{"item":"…","grupo":"…","inicio":"…"}'` y se vuelve a armar.
 
-**Corregí un nombre** (pusiste dos nombres para lo mismo): usé **"Completa"** (aparece 5 veces) en vez de "Completado" (1). Si era al revés, o eran cosas distintas, avisá y se corrige el pedido.
+**Corregí un nombre** (pusiste dos nombres para lo mismo): usé **"Completa"** (aparece 6 veces) en vez de "Completado" (1). Si era al revés, o eran cosas distintas, avisá y se corrige el pedido.
 
 Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, decí su número (p. ej. R10.3) y se saca con `npm run proyecto -- quitar <carpeta> R10.3`.
 
@@ -39,8 +39,8 @@ Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, 
 
 ## R10. Columnas con overflow:scroll, width:248px, header con title ('Pendiente', 'En Curso', o 'Completa') y contador de tarjetas en columna
 - **R10.1** · Antes: creo 10 tarjetas. → con 10 tarjetas en "Pendiente", se desplaza (scroll) adentro de la columna y la página NO se desplaza
-- **R10.2** · Antes: creo 10 tarjetas. Antes: muevo la tarjeta a "En Curso". Antes: muevo la tarjeta a "En Curso". Antes: muevo la tarjeta a "En Curso". Antes: muevo la tarjeta a "En Curso". Antes: muevo la tarjeta a "En Curso". Antes: muevo la tarjeta a "En Curso". Antes: muevo la tarjeta a "En Curso". Antes: muevo la tarjeta a "En Curso". Antes: muevo la tarjeta a "En Curso". Antes: muevo la tarjeta a "En Curso". → con 10 tarjetas en "En Curso", se desplaza (scroll) adentro de la columna y la página NO se desplaza
-- **R10.3** · Antes: creo 10 tarjetas. Antes: muevo la tarjeta a "Completa". Antes: muevo la tarjeta a "Completa". Antes: muevo la tarjeta a "Completa". Antes: muevo la tarjeta a "Completa". Antes: muevo la tarjeta a "Completa". Antes: muevo la tarjeta a "Completa". Antes: muevo la tarjeta a "Completa". Antes: muevo la tarjeta a "Completa". Antes: muevo la tarjeta a "Completa". Antes: muevo la tarjeta a "Completa". → con 10 tarjetas en "Completa", se desplaza (scroll) adentro de la columna y la página NO se desplaza
+- **R10.2** · Antes: creo 10 tarjetas. Antes: muevo esas 10 tarjetas a "En Curso", de a una. → con 10 tarjetas en "En Curso", se desplaza (scroll) adentro de la columna y la página NO se desplaza
+- **R10.3** · Antes: creo 10 tarjetas. Antes: muevo esas 10 tarjetas a "Completa", de a una. → con 10 tarjetas en "Completa", se desplaza (scroll) adentro de la columna y la página NO se desplaza
 - **R10.4** · → la columna "Pendiente" tiene width: 248px
 - **R10.5** · → la columna "En Curso" tiene width: 248px
 - **R10.6** · → la columna "Completa" tiene width: 248px
@@ -109,3 +109,12 @@ Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, 
 
 ## R30. Restricción: Sin agregar subtarjetas o tareas dentro de una tarjeta
 - (sin prueba: dice cómo está programada por dentro)
+
+## R31. Las columnas centradas horizontalmente en la página
+- **R31.1** · → las columnas quedan centradas en la página (mismo espacio libre a la izquierda y a la derecha)
+
+## R32. Cada tarjeta muestra su manija ⠿ y se arrastra desde ella
+- (sin prueba: Qwen no dio filas válidas)
+
+## R33. Al intentar eliminar una tarjeta en 'Completa', mostrar el mensaje 'No se puede eliminar una tarjeta completada'
+- (sin prueba: Qwen no dio filas válidas)

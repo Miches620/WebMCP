@@ -23,7 +23,7 @@
 import { SEEN, settle, errsSince, freshStart, verbControl, bestControlIn, useControl } from "./flows.mjs";
 // 17/10 (diseño de 3 capas): el juez conoce TIPOS (item, grupo, control, pagina); los nombres de la app vienen del glosario
 import { itemClassRe, palabra, filaATipos } from "./glosario.mjs";
-import { MEDIR_VISUAL, REGLAS_VISUALES } from "./visual.mjs";
+import { MEDIR_VISUAL, REGLAS_VISUALES, MEDIR_MODERNO, REGLAS_MODERNAS } from "./visual.mjs";
 
 export const PLANILLA_VERSION = "planilla v0.1";
 const DEFAULT_CONTROLS = { agregar: ["agregar", "añadir", "nueva", "nuevo", "crear"], editar: ["editar", "modificar"], eliminar: ["eliminar", "borrar"], mover: ["mover"] };
@@ -368,6 +368,21 @@ async function see(page, v, before, w) {
         : ` · el que las contiene es ${caja.cont.quien} (va de ${ci}px a ${Math.round(caja.cont.right)}px)`;
     }
     return [ok, `${que}: ${izq}px libres a la izquierda y ${der}px a la derecha${ok ? " (centrado)" : ` (no está centrado; tolerancia ${tol}px)${extra}`}`];
+  }
+  if (v.moderno) {
+    // 25/10: reglas de diseño moderno (visual.mjs, REGLAS_MODERNAS)
+    if (!REGLAS_MODERNAS[v.moderno]) return [false, `regla moderna desconocida: ${v.moderno}`];
+    if (v.moderno === "hover_vivo") {
+      const estado = () => page.evaluate((src) => { const re = new RegExp(src, "i"); const it = [...document.querySelectorAll("body *")].find((x) => [...x.classList].some((k) => re.test(k)) && x.getBoundingClientRect().height > 0); if (!it) return null; it.setAttribute("data-plan-hv", "1"); const s = getComputedStyle(it); return { t: s.transform, sh: s.boxShadow, q: `<${it.tagName.toLowerCase()} class="${[...it.classList].slice(0, 2).join(" ")}">` }; }, w.src);
+      await page.mouse.move(1, 1); await page.waitForTimeout(300);
+      const a = await estado(); if (!a) return [false, `hover_vivo: no encontré ${w.it}s`];
+      await page.locator("[data-plan-hv]").first().hover({ timeout: 1000 }).catch(() => {}); await page.waitForTimeout(450);
+      const b = await estado();
+      const ok = !!b && (a.t !== b.t || a.sh !== b.sh);
+      return [ok, `hover_vivo: ${a.q} ${ok ? "reacciona al pasar el mouse" : "no cambia al pasar el mouse (ni sombra ni posición)"}`];
+    }
+    const m = (await page.evaluate(MEDIR_MODERNO, w.src))[v.moderno];
+    return [!!m?.ok, `${v.moderno}: ${m?.detalle || "no se pudo medir"}`];
   }
   if (v.visual) {
     // 22/10: reglas visuales medibles (visual.mjs) — se miden con la ventana de la prueba (1280px de ancho)

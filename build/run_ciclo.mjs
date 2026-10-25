@@ -27,7 +27,7 @@ import { leerApp, mapaTexto, codigoDe, funcionEnLinea, llamadas } from "../harne
 import { aplicar, aplicarBloques, findSuelto, leerBloques as leerBloquesLocal } from "../harness/cambios.mjs";
 import { syntaxOf as syntaxOfLocal } from "../harness/js_tools.mjs";
 import { describirFila } from "../profiles/web/validation/planilla_palabras.mjs";
-import { REGLAS_VISUALES } from "../profiles/web/validation/visual.mjs";
+import { REGLAS_VISUALES, REGLAS_MODERNAS } from "../profiles/web/validation/visual.mjs";
 
 export const CICLO_VERSION = "ciclo v0.4";
 // v0.4 (19/10, después del 16/16): VUELTA 0, el borrador. Si no hay app de partida, Gemma la escribe desde los pedidos
@@ -95,9 +95,9 @@ Reglas:
 6. Sin explicaciones: solo los bloques.`;
 
 // 22/10: V1, V2… son reglas visuales (visual.mjs), no pedidos del usuario: van después de los R y lo pedido manda
-const reglaVisual = (ctx, r) => { const k = (ctx.planilla.filas || []).find((f) => f.r === r)?.veo?.find((v) => v.visual)?.visual; return k ? { k, ...REGLAS_VISUALES[k] } : null; };
-const reqTexto = (ctx, r) => { const v = r.startsWith("V") && reglaVisual(ctx, r); return v ? `Regla visual ${r} (NO la pidió el usuario: es para que la app se lea y se use bien; lo que pidió el usuario —colores, medidas, textos— manda y no se cambia): "${v.dice}". Cómo: ${v.como}.` : `Requisito ${r} (lo pidió el usuario): "${ctx.features[Number(r.slice(1)) - 1] || "?"}"`; };
-export const ordenReq = (r) => (r.startsWith("V") ? 10000 : 0) + Number(r.slice(1));
+const reglaVisual = (ctx, r) => { const v = (ctx.planilla.filas || []).find((f) => f.r === r)?.veo?.find((x) => x.visual || x.moderno); return v ? (v.visual ? { k: v.visual, ...REGLAS_VISUALES[v.visual] } : { k: v.moderno, ...REGLAS_MODERNAS[v.moderno], moderno: true }) : null; };
+const reqTexto = (ctx, r) => { const v = /^[VM]/.test(r) && reglaVisual(ctx, r); return v ? `${v.moderno ? `Regla de diseño moderno ${r} (la pidió el usuario: "llevarlo a un diseño moderno, respetando mi paleta y mis elecciones")` : `Regla visual ${r} (NO la pidió el usuario: es para que la app se lea y se use bien`}; lo que pidió el usuario —colores, medidas, textos— manda y no se cambia${v.moderno ? "" : ")"}: "${v.dice}". Cómo: ${v.como}.` : `Requisito ${r} (lo pidió el usuario): "${ctx.features[Number(r.slice(1)) - 1] || "?"}"`; };
+export const ordenReq = (r) => (r.startsWith("V") ? 10000 : r.startsWith("M") ? 20000 : 0) + Number(r.slice(1));
 const consigna = (ctx, filas) => `Qué se prueba (cada línea es una prueba que tiene que pasar):\n${filas.map((f) => `- ${describirFila(f, ctx.planilla.glosario)}`).join("\n")}`;
 // 22/10 (project26, R28 ×6): "borro en Completa → ✗ NO se ve" Gemma lo leía como "no se borra bien" y arreglaba
 // deleteCard para que borre MEJOR. Cuando la prueba borra y espera que siga, se dice con todas las letras.

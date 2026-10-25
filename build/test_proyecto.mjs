@@ -91,7 +91,7 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   const P26 = JSON.parse(readFileSync(join(FIX, "planilla_kanban_p26.json"), "utf8"));
   const PV = { ...P26, filas: [...P26.filas, ...filasVisuales()] };
   const a = await juzgar(join(FIX, "flow_p26_final"), PV), b = await juzgar(join(FIX, "flow_p26_visual_mano"), PV);
-  t("visual: la app 23/23 falla contraste (blanco sobre amarillo, 1.95 a 1) y se corta (tarjeta de 253px en 248px); arreglada a mano pasa todo SIN romper las 23 pruebas de Miche", a.cumplidos === 27 && a.fallan.map((f) => f.r).join(",") === "V1,V2" && /1\.95 a 1|3\.02 a 1/.test(a.fallan[0].detalle.join(" ")) && b.cumplidos === 29, `${a.cumplidos} ${a.fallan.map((f) => f.r)} · ${b.cumplidos} ${b.fallan.map((f) => f.r)}`);
+  t("visual: la app 23/23 falla contraste (blanco sobre amarillo, 1.95 a 1) y se corta (tarjeta de 253px en 248px); arreglada a mano pasa contraste y cortes SIN romper las 23 pruebas de Miche (V6, botones encima del título al pasar el mouse, sigue en las dos)", a.cumplidos === 27 && a.fallan.map((f) => f.r).join(",") === "V1,V2,V6" && /1\.95 a 1|3\.02 a 1/.test(a.fallan[0].detalle.join(" ")) && b.cumplidos === 29 && b.fallan.map((f) => f.r).join(",") === "V6", `${a.cumplidos} ${a.fallan.map((f) => f.r)} · ${b.cumplidos} ${b.fallan.map((f) => f.r)}`);
   t("visual: en palabras dice la regla; los V van después de todos los R", /contraste de al menos 4\.5/.test(describirFila(filasVisuales()[0], P26.glosario)) && ["V1", "R28", "R2", "V2"].sort((x, y) => ordenReq(x) - ordenReq(y)).join(",") === "R2,R28,V1,V2");
 }
 
@@ -118,6 +118,23 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
     { id: "R31.1", r: "R31", veo: [{ centrado: "grupos" }] }] };
   const a = await juzgar(join(FIX, "flow_p26_final"), PN), b = await juzgar(join(FIX, "flow_p26_centrado_mano"), PN);
   t("centrado y manija: la app 23/23 no muestra ⠿ (no se puede arrastrar desde ahí) y está corrida (51px a la izq., 445 a la der.); arreglada a mano pasa las dos", a.cumplidos === 0 && /445px a la derecha/.test(a.fallan.find((f) => f.r === "R31").detalle.join(" ")) && b.cumplidos === 2, `${a.cumplidos} · ${b.cumplidos} ${JSON.stringify(b.fallan)}`);
+}
+
+// ---------- 25/10: el MVP congelado (33/33 + 6 reglas visuales de v0.1) y la superposición al pasar el mouse ----------
+{
+  const P26 = JSON.parse(readFileSync(join(FIX, "planilla_kanban_p26.json"), "utf8"));
+  const { filasVisuales } = await import("../profiles/web/validation/visual.mjs");
+  const m = await juzgar(join(FIX, "flow_p26_mvp"), { ...P26, filas: [...P26.filas, ...filasVisuales()] });
+  t("MVP: la app congelada pasa las 23 de c22 y todas las reglas visuales menos no_se_superpone (🗑️ y ✏️ encima del título, lo que vio Miche)", m.cumplidos === m.de - 1 && m.fallan.length === 1 && /no_se_superpone: .*action-btn.*card-title/.test(m.fallan[0].detalle.join(" ")), `${m.cumplidos}/${m.de} ${JSON.stringify(m.fallan).slice(0, 300)}`);
+}
+
+// ---------- 25/10: diseño moderno medible (REGLAS_MODERNAS) ----------
+{
+  const P26 = JSON.parse(readFileSync(join(FIX, "planilla_kanban_p26.json"), "utf8"));
+  const { filasModernas } = await import("../profiles/web/validation/visual.mjs");
+  const PM = { ...P26, filas: filasModernas() };
+  const a = await juzgar(join(FIX, "flow_p26_mvp"), PM), b = await juzgar(join(FIX, "flow_p26_moderno_mano"), PM);
+  t("moderno: el MVP pasa sombra, jerarquía y aire, y falla redondeo, letra, alto fijo, hover, barra, contador y acento; la versión hecha a mano (paleta de Miche) pasa las 10", a.fallan.map((f) => f.r).join(",") === "M1,M3,M6,M7,M8,M9,M10" && b.cumplidos === 10, `${a.fallan.map((f) => f.r)} · ${b.cumplidos} ${JSON.stringify(b.fallan).slice(0, 300)}`);
 }
 
 // ---------- quitar: Miche saca pruebas que están mal ----------

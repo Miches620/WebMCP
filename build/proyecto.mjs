@@ -151,6 +151,20 @@ export async function agregar(dir, textos, { call, log = () => {} } = {}) {
   return { ids, filas: q.filas.length, sin_fila: Object.keys(q.sin_fila) };
 }
 
+// ---------- cambiar: el usuario cambia lo que pidió en un requisito (25/10) ----------
+// En la UI: "editar feature". Cambia el texto (queda el anterior en texto_original), y Qwen rehace SOLO sus pruebas.
+export async function cambiar(dir, id, texto, opts = {}) {
+  const req = JSON.parse(readFileSync(join(dir, "requisitos.json"), "utf8"));
+  const n = Number(String(id).replace(/^R/i, ""));
+  if (!(n >= 1 && n <= req.requisitos.length) || !String(texto || "").trim()) throw new Error(`uso: cambiar <carpeta> R12 "texto nuevo" (R1…R${req.requisitos.length})`);
+  const r = req.requisitos[n - 1];
+  r.historial = [...(r.historial || []), { texto: r.texto, hasta: new Date().toISOString() }];
+  r.texto = String(texto).trim();
+  req.intentForge = { ...(req.intentForge || {}), refined_prompt: { ...(req.intentForge?.refined_prompt || {}), features: req.requisitos.map((x) => x.texto) } };
+  writeFileSync(join(dir, "requisitos.json"), JSON.stringify(req, null, 2));
+  return rehacer(dir, [`R${n}`], opts);
+}
+
 // ---------- rehacer: Qwen vuelve a escribir las pruebas de requisitos que ya existen (23/10) ----------
 // Para cuando el examen mejora (plantillas nuevas) o un requisito quedó sin prueba. Reemplaza SOLO las filas de esos R.
 export async function rehacer(dir, ids, { call, log = () => {} } = {}) {
@@ -210,6 +224,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const planilla = JSON.parse(readFileSync(join(dir, "planilla.json"), "utf8"));
     // --visual (22/10): suma las reglas visuales medibles (visual.mjs) como V1, V2…; van después de lo pedido y no lo pisan
     if (args.includes("--visual")) { const { filasVisuales, VISUAL_VERSION } = await import("../profiles/web/validation/visual.mjs"); planilla.filas = [...(planilla.filas || []), ...filasVisuales()]; console.log(`[PROYECTO] + reglas visuales (${VISUAL_VERSION}): ${filasVisuales().map((f) => f.r).join(", ")}`); }
+    // --moderno (25/10): reglas de diseño moderno medibles (visual.mjs, REGLAS_MODERNAS), como M1, M2…; van después de R y V
+    if (args.includes("--moderno")) { const { filasModernas, MODERNO_VERSION } = await import("../profiles/web/validation/visual.mjs"); planilla.filas = [...(planilla.filas || []), ...filasModernas()]; console.log(`[PROYECTO] + diseño moderno (${MODERNO_VERSION}): ${filasModernas().map((f) => f.r).join(", ")}`); }
     const appDir = join(dir, "app");
     const hay = existsSync(appDir) && readdirSync(appDir).some((f) => f.endsWith(".html"));
     const outDir = join(dir, `ciclo_${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}`);
@@ -218,6 +234,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     mkdirSync(appDir, { recursive: true });
     for (const [f, s] of Object.entries(app)) writeFileSync(join(appDir, f), s);
     console.log(`[PROYECTO] la app quedó en ${appDir} (abrí index.html). Volver a correr "seguir" la retoma desde ahí.`);
+  } else if (modo === "cambiar" && a1 && a2) {
+    const dir = resolve(a1);
+    const r = await cambiar(dir, a2, args.slice(3).filter((x) => !x.startsWith("--")).join(" "), { log: console.log });
+    console.log(`\n[PROYECTO] cambié ${r.ids.join(", ")} y rehice sus pruebas (${r.filas}${r.sin_fila.length ? `; sin prueba: ${r.sin_fila.join(", ")}` : ""}). Mirá planilla.md.`);
   } else if (modo === "rehacer" && a1 && a2) {
     const dir = resolve(a1);
     const r = await rehacer(dir, args.slice(2).filter((x) => !x.startsWith("--")), { log: console.log });
@@ -242,11 +262,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
   } else if (modo === "juzgar" && a1 && a2) {
     const pj = JSON.parse(readFileSync(a2, "utf8"));
     if (args.includes("--visual")) { const { filasVisuales } = await import("../profiles/web/validation/visual.mjs"); pj.filas = [...(pj.filas || []), ...filasVisuales()]; }
+    if (args.includes("--moderno")) { const { filasModernas } = await import("../profiles/web/validation/visual.mjs"); pj.filas = [...(pj.filas || []), ...filasModernas()]; }
     const r = await juzgar(resolve(a1), pj, flag("--azar") || "");
     console.log(`[JUZGAR] ${r.cumplidos}/${r.de} requisitos cumplidos`);
     for (const f of r.fallan) console.log(`  ✗ ${f.r}: ${f.detalle.join(" | ").slice(0, 300)}`);
   } else {
-    console.log("uso:\n  node build/proyecto.mjs quitar <carpeta del proyecto> R10.3 R21.*   (saca pruebas que están mal)\n  node build/proyecto.mjs agregar <carpeta del proyecto> \"pedido nuevo\" [\"otro\"…]   (Qwen: pruebas solo de lo nuevo)\n  node build/proyecto.mjs rehacer <carpeta del proyecto> R6 R32   (Qwen: vuelve a escribir las pruebas de esos requisitos)\n  node build/proyecto.mjs nuevo <pedido.txt> [--nombre x]      (Qwen: requisitos tal cual, glosario, planilla y planilla.md)\n  node build/proyecto.mjs seguir <carpeta del proyecto> [--visual]  (Gemma: borrador si no hay app, y el ciclo; retoma si ya hay; --visual suma las reglas visuales)\n  node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json> [--visual]");
+    console.log("uso:\n  node build/proyecto.mjs quitar <carpeta del proyecto> R10.3 R21.*   (saca pruebas que están mal)\n  node build/proyecto.mjs agregar <carpeta del proyecto> \"pedido nuevo\" [\"otro\"…]   (Qwen: pruebas solo de lo nuevo)\n  node build/proyecto.mjs rehacer <carpeta del proyecto> R6 R32   (Qwen: vuelve a escribir las pruebas de esos requisitos)\n  node build/proyecto.mjs cambiar <carpeta del proyecto> R12 \"texto nuevo\"   (cambia lo pedido y rehace sus pruebas)\n  node build/proyecto.mjs nuevo <pedido.txt> [--nombre x]      (Qwen: requisitos tal cual, glosario, planilla y planilla.md)\n  node build/proyecto.mjs seguir <carpeta del proyecto> [--visual] [--moderno]  (Gemma: borrador si no hay app, y el ciclo; retoma si ya hay; --visual suma las reglas visuales)\n  node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json> [--visual] [--moderno]");
     process.exit(2);
   }
 }

@@ -1,0 +1,898 @@
+{
+  "type": "EVIDENCE",
+  "kind": "ciclo",
+  "version": "ciclo v0.4",
+  "modelo": "google/gemma-4-e4b",
+  "contexto": 12000,
+  "inicio": "2026-10-24T20:20:17.948Z",
+  "desde": "una app que ya existía",
+  "vueltas": [
+    {
+      "vuelta": 1,
+      "requisito": "R6",
+      "antes": {
+        "R6.1": "FAIL"
+      },
+      "ver": [
+        "createCardElement(card)",
+        "renderCardsToContainer(colId, containerEl)",
+        "script.js"
+      ],
+      "codigo": [
+        "función createCardElement (script.js:45-104)",
+        "función renderCardsToContainer (script.js:111-136)",
+        "archivo script.js (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 857,
+        "arreglo": 6090
+      },
+      "ms": {
+        "ver": 32324,
+        "arreglo": 436010
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 939,
+          "completion_tokens": 463,
+          "total_tokens": 1402,
+          "completion_tokens_details": {
+            "reasoning_tokens": 411
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 5772,
+          "completion_tokens": 5610,
+          "total_tokens": 11382,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1927
+          }
+        }
+      },
+      "respuesta": "### FUNCION: createCardElement\n```js\nfunction createCardElement(card) {\n    const cardEl = document.createElement('div');\n    cardEl.className = 'card';\n    cardEl.setAttribute('data-id', card.id);\n    cardEl.setAttribute('draggable', 'true'); // R6: draggable='true'\n\n    // R6: Drag Handle\n    const dragHandle = document.createElement('div');\n    dragHandle.className = 'drag-handle';\n    dragHandle.setAttribute('draggable', 'true');\n    // Usar addEventListener para asegurar la correcta captura del evento en el renderizado\n    dragHandle.addEventListener('dragstart', (e) => handleDragStart(e, card.id));\n\n    // Contenedor de contenido para manejar el padding del drag handle\n    const bodyEl = document.createElement('div');\n    bodyEl.className = 'card-body';\n\n    // R14: Actions container\n    const actionsContainer = document.createElement('div');\n    actionsContainer.className = 'card-actions';\n\n    // Botón Eliminar (R7, R17)\n    const deleteBtn = document.createElement('button');\n    deleteBtn.innerHTML = '🗑️';\n    deleteBtn.className = 'action-btn';\n    deleteBtn.onclick = () => confirmDelete(card.id);\n\n    // Botón Editar (R5, R17)\n    const editBtn = document.createElement('button');\n    editBtn.innerHTML = '✏️';\n    editBtn.className = 'action-btn';\n    editBtn.onclick = () => openModal('edit', card.id);\n\n    actionsContainer.appendChild(deleteBtn);\n    actionsContainer.appendChild(editBtn);\n\n    // Contenido de la tarjeta\n    const titleEl = document.createElement('div');\n    titleEl.className = 'card-title';\n    titleEl.textContent = card.title;\n\n    const descriptionEl = document.createElement('div');\n    descriptionEl.className = 'card-description';\n    descriptionEl.textContent = card.description || 'Sin descripción.';\n\n    // R3: Etiqueta de prioridad\n    const priorityTag = document.createElement('span');\n    priorityTag.className = `priority-tag priority-${card.priority}`;\n    priorityTag.textContent = card.priority.toUpperCase();\n\n    bodyEl.appendChild(titleEl);\n    bodyEl.appendChild(descriptionEl);\n    bodyEl.appendChild(priorityTag);\n\n    // Ensamblar la tarjeta\n    cardEl.appendChild(dragHandle); // Debe ir primero para el layout\n    cardEl.appendChild(actionsContainer);\n    cardEl.appendChild(bodyEl);\n\n    return cardEl;\n}\n```\n\n### ARCHIVO: script.js\n```javascript\n// ==================================================\n// VARIABLES GLOBALES Y CONSTANTES\n// ==================================================\nconst COLUMNS = ['pendiente', 'en-curso', 'completa'];\nlet cardsData = {}; // { id: { title, description, priority, column, timestamp } }\n\n// R16: Definición de orden y colores de prioridad\nconst PRIORITY_ORDER = {\n    'alta': 3,\n    'media': 2,\n    'baja': 1\n};\n\n/**\n * Inicializa el estado del tablero cargando datos o inicializando la estructura.\n */\nfunction initializeBoard() {\n    const storedData = localStorage.getItem('kanbanCards');\n    if (storedData) {\n        cardsData = JSON.parse(storedData);\n    } else {\n        // Inicializar con un estado vacío si no hay datos guardados\n        cardsData = {};\n    }\n\n    COLUMNS.forEach(colId => {\n        const container = document.getElementById(`cards-${colId}`);\n        if (container) {\n            renderCardsToContainer(colId, container);\n        }\n    });\n\n    updateCounters();\n}\n\n// ==================================================\n// RENDERIZADO Y MANIPULACIÓN DE CARDS\n// ==================================================\n\n\n/**\n * Crea el HTML de una tarjeta a partir de un objeto de datos.\n * @param {Object} card - Objeto con los datos de la tarjeta.\n * @returns {HTMLElement} El elemento div completo de la tarjeta.\n */\nfunction createCardElement(card) {\n    const cardEl = document.createElement('div');\n    cardEl.className = 'card';\n    cardEl.setAttribute('data-id', card.id);\n    cardEl.setAttribute('draggable', 'true'); // R6: draggable='true'\n\n    // R6: Drag Handle\n    const dragHandle = document.createElement('div');\n    dragHandle.className = 'drag-handle';\n    dragHandle.setAttribute('draggable', 'true');\n    // Usar addEventListener para asegurar la correcta captura del evento en el renderizado\n    dragHandle.addEventListener('dragstart', (e) => handleDragStart(e, card.id));\n\n    // Contenedor de contenido para manejar el padding del drag handle\n    const bodyEl = document.createElement('div');\n    bodyEl.className = 'card-body';\n\n    // R14: Actions container\n    const actionsContainer = document.createElement('div');\n    actionsContainer.className = 'card-actions';\n\n    // Botón Eliminar (R7, R17)\n    const deleteBtn = document.createElement('button');\n    deleteBtn.innerHTML = '🗑️';\n    deleteBtn.className = 'action-btn';\n    deleteBtn.onclick = () => confirmDelete(card.id);\n\n    // Botón Editar (R5, R17)\n    const editBtn = document.createElement('button');\n    editBtn.innerHTML = '✏️';\n    editBtn.className = 'action-btn';\n    editBtn.onclick = () => openModal('edit', card.id);\n\n    actionsContainer.appendChild(deleteBtn);\n    actionsContainer.appendChild(editBtn);\n\n    // Contenido de la tarjeta\n    const titleEl = document.createElement('div');\n    titleEl.className = 'card-title';\n    titleEl.textContent = card.title;\n\n    const descriptionEl = document.createElement('div');\n    descriptionEl.className = 'card-description';\n    descriptionEl.textContent = card.description || 'Sin descripción.';\n\n    // R3: Etiqueta de prioridad\n    const priorityTag = document.createElement('span');\n    priorityTag.className = `priority-tag priority-${card.priority}`;\n    priorityTag.textContent = card.priority.toUpperCase();\n\n    bodyEl.appendChild(titleEl);\n    bodyEl.appendChild(descriptionEl);\n    bodyEl.appendChild(priorityTag);\n\n    // Ensamblar la tarjeta\n    cardEl.appendChild(dragHandle); // Debe ir primero para el layout\n    cardEl.appendChild(actionsContainer);\n    cardEl.appendChild(bodyEl);\n\n    return cardEl;\n}\n\n/**\n * Renderiza todas las tarjetas de una columna específica, aplicando la lógica de ordenamiento.\n * @param {string} colId - ID de la columna ('pendiente', 'en-curso', etc.).\n * @param {HTMLElement} containerEl - El contenedor DOM donde se insertarán las tarjetas.\n */\nfunction renderCardsToContainer(colId, containerEl) {\n    // 1. Filtrar y obtener los datos de las tarjetas para esta columna\n    let cards = Object.values(cardsData).filter(card => card.column === colId);\n\n    // 2. R16: Ordenamiento (Prioridad descendente -> Tiempo ascendente)\n    cards.sort((a, b) => {\n        const priorityA = PRIORITY_ORDER[a.priority] || 0;\n        const priorityB = PRIORITY_ORDER[b.priority] || 0;\n\n        // Comparar por prioridad (descendente: alta > media > baja)\n        if (priorityA !== priorityB) {\n            return priorityB - priorityA; // Si B tiene mayor valor, va primero\n        }\n        // Si la prioridad es igual, ordenar por tiempo (más reciente arriba = descendente de timestamp)\n        return b.timestamp - a.timestamp;\n    });\n\n    // 3. Limpiar el contenedor antes de renderizar\n    containerEl.innerHTML = '';\n\n    // 4. Renderizar los elementos DOM\n    cards.forEach(card => {\n        const cardElement = createCardElement(card);\n        containerEl.appendChild(cardElement);\n    });\n}\n\n/**\n * Actualiza el contador de tarjetas en cada columna y guarda la estructura.\n */\nfunction updateCounters() {\n    COLUMNS.forEach(colId => {\n        const count = Object.values(cardsData).filter(card => card.column === colId).length;\n        document.querySelector(`.card-counter[data-column=\"${colId}\"]`).textContent = count;\n    });\n\n    // R23: Guardar el estado en LocalStorage\n    localStorage.setItem('kanbanCards', JSON.stringify(cardsData));\n}\n\n\n// ==================================================\n// MODAL Y CRUD OPERATIONS (Creación/Edición)\n// ==================================================\n\n/**\n * Abre o prepara el modal para crear o editar una tarjeta.\n * @param {string} mode - 'create' o 'edit'.\n * @param {string|null} cardId - ID de la tarjeta si estamos editando.\n */\nfunction openModal(mode, cardId = null) {\n    const modal = document.getElementById('cardModal');\n    const form = document.getElementById('cardForm');\n    document.getElementById('modalTitle').textContent = mode === 'create' ? 'Crear Nueva Tarjeta' : 'Editar Tarjeta';\n\n    // Limpiar formulario y estado\n    form.reset();\n    document.getElementById('cardId').value = '';\n    document.getElementById('currentColumn').value = '';\n\n    if (mode === 'edit' && cardId) {\n        const card = cardsData[cardId];\n        if (!card) return;\n\n        // R5: Llenar campos de edición\n        document.getElementById('cardId').value = card.id;\n        document.getElementById('currentColumn').value = card.column;\n        document.getElementById('title').value = card.title;\n        document.getElementById('description').value = card.description;\n        document.getElementById('priority').value = card.priority;\n\n        // Mostrar el modal\n        modal.style.display = 'block';\n    } else if (mode === 'create') {\n        // Si es creación, se asume que la columna actual es Pendiente por defecto\n        document.getElementById('currentColumn').value = 'pendiente'; \n        modal.style.display = 'block';\n    }\n}\n\n/**\n * Cierra el modal de edición/creación.\n */\nfunction closeModal() {\n    document.getElementById('cardModal').style.display = 'none';\n}\n\n// Event Listener para el formulario (Crear o Editar)\ndocument.getElementById('cardForm').addEventListener('submit', function(e) {\n    e.preventDefault();\n    const mode = document.getElementById('cardId').value ? 'edit' : 'create';\n    saveCard(mode);\n});\n\n/**\n * Guarda los datos de la tarjeta en el estado global y actualiza la UI.\n * @param {string} mode - 'create' o 'edit'.\n */\nfunction saveCard(mode) {\n    const id = document.getElementById('cardId').value || Date.now().toString();\n    const title = document.getElementById('title').value;\n    const description = document.getElementById('description').value;\n    const priority = document.getElementById('priority').value;\n    const column = document.getElementById('currentColumn').value;\n\n    if (mode === 'create') {\n        // Crear nueva tarjeta\n        cardsData[id] = {\n            id: id,\n            title: title,\n            description: description,\n            priority: priority,\n            column: column,\n            timestamp: Date.now() // R16: Timestamp para ordenamiento\n        };\n    } else if (mode === 'edit') {\n        // Editar tarjeta existente\n        const oldCard = cardsData[id];\n        if (!oldCard) return;\n\n        cardsData[id] = {\n            ...oldCard, // Mantener el ID y la columna original\n            title: title,\n            description: description,\n            priority: priority,\n            timestamp: Date.now() // Actualizar timestamp al editar\n        };\n    }\n\n    // 1. Cerrar modal\n    closeModal();\n\n    // 2. Re-renderizar la columna afectada (y todas para asegurar el orden)\n    COLUMNS.forEach(colId => {\n        const container = document.getElementById(`cards-${colId}`);\n        if (container) {\n            renderCardsToContainer(colId, container);\n        }\n    });\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n\n\n// ==================================================\n// ELIMINACIÓN Y DRAG & DROP\n// ==================================================\n\n/**\n * Muestra el modal de confirmación antes de eliminar una tarjeta (R7, R26).\n * @param {string} cardId - ID de la tarjeta a borrar.\n */\nfunction confirmDelete(cardId) {\n    if (!confirm(\"¿Está seguro de borrar la tarjeta?\")) {\n        return; // Cancelar si el usuario presiona 'Cancelar'\n    }\n\n    deleteCard(cardId);\n}\n\n/**\n * Elimina una tarjeta del estado y de la UI.\n * @param {string} cardId - ID de la tarjeta a borrar.\n */\nfunction deleteCard(cardId) {\n    if (!cardsData[cardId]) return;\n\n    const card = cardsData[cardId];\n    const colId = card.column;\n\n    // Restricción R28: No permitir la eliminación de tarjetas en la columna 'Completa'\n    if (colId === 'completa') {\n        console.warn(\"No se puede eliminar esta tarjeta ya que está en la columna Completa.\");\n        return; \n    }\n\n    // 1. Eliminar del estado global\n    delete cardsData[cardId];\n\n    // 2. Re-renderizar la columna afectada (y todas)\n    const containerEl = document.getElementById(`cards-${colId}`);\n    if (containerEl) {\n        renderCardsToContainer(colId, containerEl);\n    }\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n\n\n// --- Drag & Drop Handlers ---\n\nlet draggedCardId = null; // Almacena el ID de la tarjeta que se arrastra\n\n/**\n * Maneja el inicio del arrastre (R6).\n */\nfunction handleDragStart(e, cardId) {\n    draggedCardId = cardId;\n    // Establecer datos para el evento de drop\n    e.dataTransfer.setData('text/plain', cardId); \n\n    // Añadir clase visual al elemento arrastrado (el contenedor .card)\n    const draggedElement = document.querySelector(`.card[data-id=\"${cardId}\"]`);\n    if (draggedElement) {\n        setTimeout(() => {\n            draggedElement.classList.add('dragging');\n        }, 0);\n    }\n}\n\n/**\n * Maneja el evento dragover en los contenedores de columna.\n */\nfunction handleDragOver(e) {\n    e.preventDefault(); // Necesario para permitir el drop\n    // Aquí se podría añadir un feedback visual al contenedor destino si fuera necesario\n}\n\n/**\n * Maneja el evento de soltado (drop).\n * @param {Event} e - Evento de drop.\n * @param {string} targetColId - ID de la columna destino.\n */\nfunction handleDrop(e, targetColId) {\n    e.preventDefault();\n\n    // 1. Limpiar clase visual del elemento arrastrado\n    const draggedElement = document.querySelector(`.card[data-id=\"${draggedCardId}\"]`);\n    if (draggedElement) {\n        draggedElement.classList.remove('dragging');\n    }\n\n    const sourceCardId = e.dataTransfer.getData('text/plain');\n    if (!sourceCardId) return;\n\n    // 2. Actualizar el estado de la tarjeta en cardsData\n    const cardToMove = cardsData[sourceCardId];",
+      "aplicados": [
+        "función createCardElement (script.js)"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": false,
+          "pts": 0
+        }
+      ],
+      "despues": {
+        "R6.1": "FAIL"
+      },
+      "aceptado": false,
+      "motivo": "aplicó todo pero no avanzó: agregó \"QA Junco 1\" · no se ve la manija \"⠿\" en \"QA Junco 1\""
+    },
+    {
+      "vuelta": 2,
+      "requisito": "R6",
+      "antes": {
+        "R6.1": "FAIL"
+      },
+      "ver": [
+        "createCardElement",
+        "script.js",
+        "styles.css"
+      ],
+      "codigo": [
+        "función createCardElement (script.js:45-104)",
+        "archivo script.js (entero)"
+      ],
+      "codigo_fuera": [
+        "archivo styles.css (entero)"
+      ],
+      "tokens_pedido": {
+        "ver": 893,
+        "arreglo": 5775
+      },
+      "ms": {
+        "ver": 23330,
+        "arreglo": 386055
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 981,
+          "completion_tokens": 503,
+          "total_tokens": 1484,
+          "completion_tokens_details": {
+            "reasoning_tokens": 460
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 5483,
+          "completion_tokens": 5134,
+          "total_tokens": 10617,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1297
+          }
+        }
+      },
+      "respuesta": "### FUNCION: createCardElement\n```javascript\nfunction createCardElement(card) {\n    const cardEl = document.createElement('div');\n    cardEl.className = 'card';\n    cardEl.setAttribute('data-id', card.id);\n    cardEl.setAttribute('draggable', 'true'); // R6: draggable='true'\n\n    // R6: Drag Handle\n    const dragHandle = document.createElement('div');\n    dragHandle.className = 'drag-handle';\n    dragHandle.setAttribute('draggable', 'true');\n    dragHandle.addEventListener('dragstart', (e) => handleDragStart(e, card.id));\n\n    // Contenedor de contenido para manejar el padding del drag handle\n    const bodyEl = document.createElement('div');\n    bodyEl.className = 'card-body';\n\n    // R14: Actions container\n    const actionsContainer = document.createElement('div');\n    actionsContainer.className = 'card-actions';\n\n    // Botón Eliminar (R7, R17)\n    const deleteBtn = document.createElement('button');\n    deleteBtn.innerHTML = '🗑️';\n    deleteBtn.className = 'action-btn';\n    deleteBtn.onclick = () => confirmDelete(card.id);\n\n    // Botón Editar (R5, R17)\n    const editBtn = document.createElement('button');\n    editBtn.innerHTML = '✏️';\n    editBtn.className = 'action-btn';\n    editBtn.onclick = () => openModal('edit', card.id);\n\n    actionsContainer.appendChild(deleteBtn);\n    actionsContainer.appendChild(editBtn);\n\n    // Contenido de la tarjeta\n    const titleEl = document.createElement('div');\n    titleEl.className = 'card-title';\n    titleEl.textContent = card.title;\n\n    const descriptionEl = document.createElement('div');\n    descriptionEl.className = 'card-description';\n    descriptionEl.textContent = card.description || 'Sin descripción.';\n\n    // R3: Etiqueta de prioridad\n    const priorityTag = document.createElement('span');\n    priorityTag.className = `priority-tag priority-${card.priority}`;\n    priorityTag.textContent = card.priority.toUpperCase();\n\n    bodyEl.appendChild(titleEl);\n    bodyEl.appendChild(descriptionEl);\n    bodyEl.appendChild(priorityTag);\n\n    // Ensamblar la tarjeta\n    cardEl.appendChild(dragHandle); // Debe ir primero para el layout\n    cardEl.appendChild(actionsContainer);\n    cardEl.appendChild(bodyEl);\n\n    return cardEl;\n}\n```\n\n### ARCHIVO: script.js\n```javascript\n// ==================================================\n// VARIABLES GLOBALES Y CONSTANTES\n// ==================================================\nconst COLUMNS = ['pendiente', 'en-curso', 'completa'];\nlet cardsData = {}; // { id: { title, description, priority, column, timestamp } }\n\n// R16: Definición de orden y colores de prioridad\nconst PRIORITY_ORDER = {\n    'alta': 3,\n    'media': 2,\n    'baja': 1\n};\n\n/**\n * Inicializa el estado del tablero cargando datos o inicializando la estructura.\n */\nfunction initializeBoard() {\n    const storedData = localStorage.getItem('kanbanCards');\n    if (storedData) {\n        cardsData = JSON.parse(storedData);\n    } else {\n        // Inicializar con un estado vacío si no hay datos guardados\n        cardsData = {};\n    }\n\n    COLUMNS.forEach(colId => {\n        const container = document.getElementById(`cards-${colId}`);\n        if (container) {\n            renderCardsToContainer(colId, container);\n        }\n    });\n\n    updateCounters();\n}\n\n// ==================================================\n// RENDERIZADO Y MANIPULACIÓN DE CARDS\n// ==================================================\n\n/**\n * Crea el HTML de una tarjeta a partir de un objeto de datos.\n * @param {Object} card - Objeto con los datos de la tarjeta.\n * @returns {HTMLElement} El elemento div completo de la tarjeta.\n */\nfunction createCardElement(card) {\n    const cardEl = document.createElement('div');\n    cardEl.className = 'card';\n    cardEl.setAttribute('data-id', card.id);\n    cardEl.setAttribute('draggable', 'true'); // R6: draggable='true'\n\n    // R6: Drag Handle\n    const dragHandle = document.createElement('div');\n    dragHandle.className = 'drag-handle';\n    dragHandle.setAttribute('draggable', 'true');\n    dragHandle.addEventListener('dragstart', (e) => handleDragStart(e, card.id));\n\n    // Contenedor de contenido para manejar el padding del drag handle\n    const bodyEl = document.createElement('div');\n    bodyEl.className = 'card-body';\n\n    // R14: Actions container\n    const actionsContainer = document.createElement('div');\n    actionsContainer.className = 'card-actions';\n\n    // Botón Eliminar (R7, R17)\n    const deleteBtn = document.createElement('button');\n    deleteBtn.innerHTML = '🗑️';\n    deleteBtn.className = 'action-btn';\n    deleteBtn.onclick = () => confirmDelete(card.id);\n\n    // Botón Editar (R5, R17)\n    const editBtn = document.createElement('button');\n    editBtn.innerHTML = '✏️';\n    editBtn.className = 'action-btn';\n    editBtn.onclick = () => openModal('edit', card.id);\n\n    actionsContainer.appendChild(deleteBtn);\n    actionsContainer.appendChild(editBtn);\n\n    // Contenido de la tarjeta\n    const titleEl = document.createElement('div');\n    titleEl.className = 'card-title';\n    titleEl.textContent = card.title;\n\n    const descriptionEl = document.createElement('div');\n    descriptionEl.className = 'card-description';\n    descriptionEl.textContent = card.description || 'Sin descripción.';\n\n    // R3: Etiqueta de prioridad\n    const priorityTag = document.createElement('span');\n    priorityTag.className = `priority-tag priority-${card.priority}`;\n    priorityTag.textContent = card.priority.toUpperCase();\n\n    bodyEl.appendChild(titleEl);\n    bodyEl.appendChild(descriptionEl);\n    bodyEl.appendChild(priorityTag);\n\n    // Ensamblar la tarjeta\n    cardEl.appendChild(dragHandle); // Debe ir primero para el layout\n    cardEl.appendChild(actionsContainer);\n    cardEl.appendChild(bodyEl);\n\n    return cardEl;\n}\n\n/**\n * Renderiza todas las tarjetas de una columna específica, aplicando la lógica de ordenamiento.\n * @param {string} colId - ID de la columna ('pendiente', 'en-curso', etc.).\n * @param {HTMLElement} containerEl - El contenedor DOM donde se insertarán las tarjetas.\n */\nfunction renderCardsToContainer(colId, containerEl) {\n    // 1. Filtrar y obtener los datos de las tarjetas para esta columna\n    let cards = Object.values(cardsData).filter(card => card.column === colId);\n\n    // 2. R16: Ordenamiento (Prioridad descendente -> Tiempo ascendente)\n    cards.sort((a, b) => {\n        const priorityA = PRIORITY_ORDER[a.priority] || 0;\n        const priorityB = PRIORITY_ORDER[b.priority] || 0;\n\n        // Comparar por prioridad (descendente: alta > media > baja)\n        if (priorityA !== priorityB) {\n            return priorityB - priorityA; // Si B tiene mayor valor, va primero\n        }\n        // Si la prioridad es igual, ordenar por tiempo (más reciente arriba = descendente de timestamp)\n        return b.timestamp - a.timestamp;\n    });\n\n    // 3. Limpiar el contenedor antes de renderizar\n    containerEl.innerHTML = '';\n\n    // 4. Renderizar los elementos DOM\n    cards.forEach(card => {\n        const cardElement = createCardElement(card);\n        containerEl.appendChild(cardElement);\n    });\n}\n\n/**\n * Actualiza el contador de tarjetas en cada columna y guarda la estructura.\n */\nfunction updateCounters() {\n    COLUMNS.forEach(colId => {\n        const count = Object.values(cardsData).filter(card => card.column === colId).length;\n        document.querySelector(`.card-counter[data-column=\"${colId}\"]`).textContent = count;\n    });\n\n    // R23: Guardar el estado en LocalStorage\n    localStorage.setItem('kanbanCards', JSON.stringify(cardsData));\n}\n\n\n// ==================================================\n// MODAL Y CRUD OPERATIONS (Creación/Edición)\n// ==================================================\n\n/**\n * Abre o prepara el modal para crear o editar una tarjeta.\n * @param {string} mode - 'create' o 'edit'.\n * @param {string|null} cardId - ID de la tarjeta si estamos editando.\n */\nfunction openModal(mode, cardId = null) {\n    const modal = document.getElementById('cardModal');\n    const form = document.getElementById('cardForm');\n    document.getElementById('modalTitle').textContent = mode === 'create' ? 'Crear Nueva Tarjeta' : 'Editar Tarjeta';\n\n    // Limpiar formulario y estado\n    form.reset();\n    document.getElementById('cardId').value = '';\n    document.getElementById('currentColumn').value = '';\n\n    if (mode === 'edit' && cardId) {\n        const card = cardsData[cardId];\n        if (!card) return;\n\n        // R5: Llenar campos de edición\n        document.getElementById('cardId').value = card.id;\n        document.getElementById('currentColumn').value = card.column;\n        document.getElementById('title').value = card.title;\n        document.getElementById('description').value = card.description;\n        document.getElementById('priority').value = card.priority;\n\n        // Mostrar el modal\n        modal.style.display = 'block';\n    } else if (mode === 'create') {\n        // Si es creación, se asume que la columna actual es Pendiente por defecto\n        document.getElementById('currentColumn').value = 'pendiente'; \n        modal.style.display = 'block';\n    }\n}\n\n/**\n * Cierra el modal de edición/creación.\n */\nfunction closeModal() {\n    document.getElementById('cardModal').style.display = 'none';\n}\n\n// Event Listener para el formulario (Crear o Editar)\ndocument.getElementById('cardForm').addEventListener('submit', function(e) {\n    e.preventDefault();\n    const mode = document.getElementById('cardId').value ? 'edit' : 'create';\n    saveCard(mode);\n});\n\n/**\n * Guarda los datos de la tarjeta en el estado global y actualiza la UI.\n * @param {string} mode - 'create' o 'edit'.\n */\nfunction saveCard(mode) {\n    const id = document.getElementById('cardId').value || Date.now().toString();\n    const title = document.getElementById('title').value;\n    const description = document.getElementById('description').value;\n    const priority = document.getElementById('priority').value;\n    const column = document.getElementById('currentColumn').value;\n\n    if (mode === 'create') {\n        // Crear nueva tarjeta\n        cardsData[id] = {\n            id: id,\n            title: title,\n            description: description,\n            priority: priority,\n            column: column,\n            timestamp: Date.now() // R16: Timestamp para ordenamiento\n        };\n    } else if (mode === 'edit') {\n        // Editar tarjeta existente\n        const oldCard = cardsData[id];\n        if (!oldCard) return;\n\n        cardsData[id] = {\n            ...oldCard, // Mantener el ID y la columna original\n            title: title,\n            description: description,\n            priority: priority,\n            timestamp: Date.now() // Actualizar timestamp al editar\n        };\n    }\n\n    // 1. Cerrar modal\n    closeModal();\n\n    // 2. Re-renderizar la columna afectada (y todas para asegurar el orden)\n    COLUMNS.forEach(colId => {\n        const container = document.getElementById(`cards-${colId}`);\n        if (container) {\n            renderCardsToContainer(colId, container);\n        }\n    });\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n\n\n// ==================================================\n// ELIMINACIÓN Y DRAG & DROP\n// ==================================================\n\n/**\n * Muestra el modal de confirmación antes de eliminar una tarjeta (R7, R26).\n * @param {string} cardId - ID de la tarjeta a borrar.\n */\nfunction confirmDelete(cardId) {\n    if (!confirm(\"¿Está seguro de borrar la tarjeta?\")) {\n        return; // Cancelar si el usuario presiona 'Cancelar'\n    }\n\n    deleteCard(cardId);\n}\n\n/**\n * Elimina una tarjeta del estado y de la UI.\n * @param {string} cardId - ID de la tarjeta a borrar.\n */\nfunction deleteCard(cardId) {\n    if (!cardsData[cardId]) return;\n\n    const card = cardsData[cardId];\n    const colId = card.column;\n\n    // Restricción R28: No permitir la eliminación de tarjetas en la columna 'Completa'\n    if (colId === 'completa') {\n        console.warn(\"No se puede eliminar esta tarjeta ya que está en la columna Completa.\");\n        return; \n    }\n\n    // 1. Eliminar del estado global\n    delete cardsData[cardId];\n\n    // 2. Re-renderizar la columna afectada (y todas)\n    const containerEl = document.getElementById(`cards-${colId}`);\n    if (containerEl) {\n        renderCardsToContainer(colId, containerEl);\n    }\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n\n\n// --- Drag & Drop Handlers ---\n\nlet draggedCardId = null; // Almacena el ID de la tarjeta que se arrastra\n\n/**\n * Maneja el inicio del arrastre (R6).\n */\nfunction handleDragStart(e, cardId) {\n    draggedCardId = cardId;\n    // Establecer datos para el evento de drop\n    e.dataTransfer.setData('text/plain', cardId); \n\n    // Añadir clase visual al elemento arrastrado (el contenedor .card)\n    const draggedElement = document.querySelector(`.card[data-id=\"${cardId}\"]`);\n    if (draggedElement) {\n        setTimeout(() => {\n            draggedElement.classList.add('dragging');\n        }, 0);\n    }\n}\n\n/**\n * Maneja el evento dragover en los contenedores de columna.\n */\nfunction handleDragOver(e) {\n    e.preventDefault(); // Necesario para permitir el drop\n    // Aquí se podría añadir un feedback visual al contenedor destino si fuera necesario\n}\n\n/**\n * Maneja el evento de soltado (drop).\n * @param {Event} e - Evento de drop.\n * @param {string} targetColId - ID de la columna destino.\n */\nfunction handleDrop(e, targetColId) {\n    e.preventDefault();\n\n    // 1. Limpiar clase visual del elemento arrastrado\n    const draggedElement = document.querySelector(`.card[data-id=\"${draggedCardId}\"]`);\n    if (draggedElement) {\n        draggedElement.classList.remove('dragging');\n    }\n\n    const sourceCardId = e.dataTransfer.getData('text/plain');\n    if (!sourceCardId) return;\n\n    // 2. Actualizar el estado de la tarjeta en cardsData\n    const cardToMove = cardsData[sourceCardId];\n    if (cardToMove && cardToMove.column !== targetColId) {\n        // Solo actualizamos si realmente cambia de columna\n        cardToMove.column = targetColId;\n        cardToMove.timestamp = Date.now(); // Actualizar timestamp al mover\n\n        // 3. Re-renderizar la UI para reflejar el cambio y mantener el orden (R15)\n        COLUMNS.forEach(colId => {\n            const container = document.getElementById(`cards-${colId}`);\n            if (container) {\n                renderCardsToContainer(colId, container);\n            }\n        });\n\n        // 4. Actualizar contadores y guardar\n        updateCounters();\n    }\n}\n\n\n// ==================================================\n// INICIALIZACIÓN\n// ==================================================\ndocument.addEventListener('DOMContentLoaded', initializeBoard);\n```",
+      "aplicados": [
+        "función createCardElement (script.js)",
+        "archivo script.js"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": false,
+          "pts": 0
+        },
+        {
+          "que": "función createCardElement (script.js)",
+          "ok": false,
+          "pts": 0
+        },
+        {
+          "que": "archivo script.js",
+          "ok": false,
+          "pts": 0
+        }
+      ],
+      "despues": {
+        "R6.1": "FAIL"
+      },
+      "aceptado": false,
+      "motivo": "aplicó todo pero no avanzó: agregó \"QA Tala 1\" · no se ve la manija \"⠿\" en \"QA Tala 1\""
+    },
+    {
+      "vuelta": 3,
+      "requisito": "R6",
+      "antes": {
+        "R6.1": "FAIL"
+      },
+      "ver": [
+        "createCardElement(card)",
+        "styles.css",
+        "script.js"
+      ],
+      "codigo": [
+        "función createCardElement (script.js:45-104)",
+        "archivo styles.css (entero)"
+      ],
+      "codigo_fuera": [
+        "archivo script.js (entero)"
+      ],
+      "tokens_pedido": {
+        "ver": 894,
+        "arreglo": 3602
+      },
+      "ms": {
+        "ver": 18779,
+        "arreglo": 164702
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 981,
+          "completion_tokens": 386,
+          "total_tokens": 1367,
+          "completion_tokens_details": {
+            "reasoning_tokens": 341
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 4085,
+          "completion_tokens": 2454,
+          "total_tokens": 6539,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1841
+          }
+        }
+      },
+      "respuesta": "### FUNCION: createCardElement\n```js\nfunction createCardElement(card) {\n    const cardEl = document.createElement('div');\n    cardEl.className = 'card';\n    cardEl.setAttribute('data-id', card.id);\n    cardEl.setAttribute('draggable', 'true'); // R6: draggable='true'\n\n    // R6: Drag Handle\n    const dragHandle = document.createElement('div');\n    dragHandle.className = 'drag-handle';\n    dragHandle.setAttribute('draggable', 'true');\n    // Añadir el indicador visual ⠿\n    dragHandle.innerHTML = '⠿';\n    dragHandle.ondragstart = (e) => handleDragStart(e, card.id);\n\n    // Contenedor de contenido para manejar el padding del drag handle\n    const bodyEl = document.createElement('div');\n    bodyEl.className = 'card-body';\n\n    // R14: Actions container\n    const actionsContainer = document.createElement('div');\n    actionsContainer.className = 'card-actions';\n\n    // Botón Eliminar (R7, R17)\n    const deleteBtn = document.createElement('button');\n    deleteBtn.innerHTML = '🗑️';\n    deleteBtn.className = 'action-btn';\n    deleteBtn.onclick = () => confirmDelete(card.id);\n\n    // Botón Editar (R5, R17)\n    const editBtn = document.createElement('button');\n    editBtn.innerHTML = '✏️';\n    editBtn.className = 'action-btn';\n    editBtn.onclick = () => openModal('edit', card.id);\n\n    actionsContainer.appendChild(deleteBtn);\n    actionsContainer.appendChild(editBtn);\n\n    // Contenido de la tarjeta\n    const titleEl = document.createElement('div');\n    titleEl.className = 'card-title';\n    titleEl.textContent = card.title;\n\n    const descriptionEl = document.createElement('div');\n    descriptionEl.className = 'card-description';\n    descriptionEl.textContent = card.description || 'Sin descripción.';\n\n    // R3: Etiqueta de prioridad\n    const priorityTag = document.createElement('span');\n    priorityTag.className = `priority-tag priority-${card.priority}`;\n    priorityTag.textContent = card.priority.toUpperCase();\n\n    bodyEl.appendChild(titleEl);\n    bodyEl.appendChild(descriptionEl);\n    bodyEl.appendChild(priorityTag);\n\n    // Ensamblar la tarjeta\n    cardEl.appendChild(dragHandle); // Debe ir primero para el layout\n    cardEl.appendChild(actionsContainer);\n    cardEl.appendChild(bodyEl);\n\n    return cardEl;\n}\n```",
+      "aplicados": [
+        "función createCardElement (script.js)"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": true,
+          "pts": 1000
+        }
+      ],
+      "despues": {
+        "R6.1": "PASS"
+      },
+      "aceptado": true,
+      "motivo": "1/1 pruebas de R6 pasan y suma lo que se ve bien (0 → 1000), sin romper nada",
+      "foto": "v001"
+    },
+    {
+      "vuelta": 4,
+      "requisito": "R31",
+      "antes": {
+        "R31.1": "FAIL"
+      },
+      "ver": [
+        "styles.css"
+      ],
+      "codigo": [
+        "archivo styles.css (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 853,
+        "arreglo": 2857
+      },
+      "ms": {
+        "ver": 21177,
+        "arreglo": 194216
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 939,
+          "completion_tokens": 457,
+          "total_tokens": 1396,
+          "completion_tokens_details": {
+            "reasoning_tokens": 427
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 3377,
+          "completion_tokens": 3237,
+          "total_tokens": 6614,
+          "completion_tokens_details": {
+            "reasoning_tokens": 935
+          }
+        }
+      },
+      "respuesta": "### ARCHIVO: styles.css\n```css\n/* R9: Fondo */\nbody {\n    font-family: sans-serif;\n    background-color: #102C54; /* Fondo principal */\n    margin: 0;\n    padding: 20px;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n}\n\n/* R13: Div 'top' con title y actions */\n.top {\n    width: 95%;\n    max-width: 1200px;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 10px 0;\n    margin-bottom: 20px;\n}\n\n.top h1 {\n    color: white;\n    font-size: 2em;\n}\n\n/* R11: Botón 'Agregar tarjeta' */\n#addCardBtn {\n    padding: 8px 15px; /* padding: 8px */\n    border: 1px dashed #ccc; /* border: 1px dashed */\n    border-radius: 8px; /* border radius: 8px */\n    cursor: pointer;\n    background-color: white;\n    transition: background-color 0.2s;\n}\n\n#addCardBtn:hover {\n    background-color: #e0e0e0;\n}\n\n/* Contenedor principal de columnas */\n.board {\n    display: flex;\n    gap: 20px;\n    width: 95%;\n    max-width: 1400px;\n    justify-content: center; /* Centra el grupo de columnas dentro del board */\n    /* FIX: Limitar la altura del board para que el scroll ocurra dentro de las columnas */\n    max-height: calc(100vh - 180px); /* Ajuste aproximado basado en padding y top bar */\n}\n\n/* R8, R10: Estilo de Columna */\n.column {\n    background-color: #8FB3C7; /* Color columna */\n    width: 248px; /* width: 248px */\n    flex-shrink: 0;\n    border-radius: 10px;\n    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);\n    display: flex;\n    flex-direction: column;\n}\n\n/* Header de la columna */\n.column-header {\n    padding: 15px;\n    border-bottom: 1px solid #ccc;\n    background-color: #4c6a83; /* Cambiado para mejorar contraste con texto blanco */\n    color: white;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n}\n\n.column-header h2 {\n    margin: 0;\n    font-size: 1.2em;\n}\n\n/* Área de tarjetas (Scrollable) */\n.card-container {\n    flex-grow: 1;\n    overflow-y: auto; /* R10: overflow: scroll */\n    padding: 15px;\n    background-color: #f4f4f4;\n    /* Asegura que el contenedor no se desborde horizontalmente */\n}\n\n/* Estilo de la Tarjeta (R12) */\n.card {\n    background-color: #F2E9D8; /* Color tarjeta */\n    width: 223px; /* width: 223px */\n    height: 250px; /* height: 250px */\n    margin-bottom: 15px;\n    padding: 15px;\n    border-radius: 8px;\n    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* R15: Sombra */\n    transition: transform 0.2s, box-shadow 0.2s;\n    position: relative;\n    overflow-y: auto; /* Corregido para permitir scroll en la tarjeta */\n}\n\n/* Efecto de movimiento durante drag&drop (R15) */\n.card.dragging {\n    opacity: 0.4;\n    transform: scale(0.98);\n    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);\n}\n\n/* R6: Drag Handle */\n.drag-handle {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 24px; /* width: 24px */\n    height: 100%;\n    cursor: grab;\n    background: none;\n    border: none;\n    z-index: 10;\n}\n\n/* Contenido principal de la tarjeta (el body) */\n.card-body {\n    padding-left: 24px; /* Espacio para el drag handle */\n    overflow-y: auto; /* R12: overflow-y: scroll/auto */\n    height: calc(100% - 15px); /* Ajuste de altura si hay padding en card */\n}\n\n/* Contenido del texto */\n.card-title {\n    font-weight: bold;\n    margin-bottom: 8px;\n    color: #333;\n}\n\n.card-description {\n    font-size: 0.9em;\n    color: #555;\n    margin-bottom: 10px;\n}\n\n/* R3, R24: Etiquetas de prioridad */\n.priority-tag {\n    display: inline-block;\n    padding: 4px 8px;\n    border-radius: 4px;\n    font-size: 0.75em;\n    font-weight: bold;\n    color: white;\n    margin-top: 10px;\n}\n\n/* Colores de prioridad */\n.priority-alta { background-color: #c94b3e; } /* Cambiado para mejorar contraste */\n.priority-media { background-color: #f0ad4e; } /* Amarillo/Naranja */\n.priority-baja { background-color: #5cb85c; } /* Verde */\n\n/* R14, R17: Botones de acción (Hover) */\n.card-actions {\n    position: absolute;\n    top: 10px;\n    right: 10px;\n    opacity: 0;\n    transition: opacity 0.2s;\n    display: flex;\n    gap: 5px;\n}\n\n/* Mostrar acciones al pasar el mouse */\n.card:hover .card-actions {\n    opacity: 1;\n}\n\n.action-btn {\n    background: rgba(0, 0, 0, 0.6);\n    color: white;\n    border: none;\n    padding: 5px 8px;\n    cursor: pointer;\n    border-radius: 4px;\n    font-size: 1em;\n}\n\n/* Modal Styling */\n.modal {\n    display: none; /* Por defecto oculto */\n    position: fixed;\n    z-index: 100;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    overflow: auto;\n    background-color: rgba(0, 0, 0, 0.4); /* Overlay */\n}\n\n.modal-content {\n    background-color: #fefefe;\n    margin: 5% auto; /* Centrado vertical y horizontal */\n    padding: 20px;\n    border-radius: 10px;\n    width: 80%;\n    max-width: 500px;\n    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);\n}\n\n.modal-content h2 {\n    margin-top: 0;\n    color: #102C54;\n}\n\n.form-group {\n    margin-bottom: 15px;\n}\n\n.form-group label {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: bold;\n}\n\n.form-group input[type=\"text\"],\n.form-group textarea,\n.form-group select {\n    width: 100%;\n    padding: 10px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    box-sizing: border-box;\n}\n\n/* Botones del modal */\n.modal-actions {\n    display: flex;\n    justify-content: space-between;\n    margin-top: 20px;\n}\n\n.btn-primary, .btn-secondary {\n    padding: 10px 20px;\n    border: none;\n    cursor: pointer;\n    border-radius: 5px;\n    transition: background-color 0.2s;\n}\n\n.btn-primary {\n    background-color: #3498db;\n    color: white;\n}\n\n.btn-secondary {\n    background-color: #ccc;\n    color: #333;\n}\n\n/* Estilo de la columna Pendiente */\n#addCardBtnBottom {\n    padding: 8px;\n    border: 1px dashed #ccc;\n    border-radius: 8px;\n    cursor: pointer;\n    margin: 10px 15px 20px 15px; /* Espaciado */\n    background-color: white;\n}\n\n/* R2, R11: Botón 'Agregar tarjeta' en Pendiente */\n#addCardBtnBottom.hidden {\n    display: none;\n}\n```",
+      "aplicados": [
+        "archivo styles.css"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": true,
+          "pts": 1000
+        }
+      ],
+      "despues": {
+        "R31.1": "PASS"
+      },
+      "aceptado": true,
+      "motivo": "1/1 pruebas de R31 pasan y suma lo que se ve bien (0 → 1000), sin romper nada",
+      "foto": "v002"
+    },
+    {
+      "vuelta": 5,
+      "requisito": "R33",
+      "antes": {
+        "R33.1": "FAIL"
+      },
+      "ver": [
+        "confirmDelete(cardId)",
+        "deleteCard(cardId)",
+        "script.js"
+      ],
+      "codigo": [
+        "función confirmDelete (script.js:266-272)",
+        "función deleteCard (script.js:278-301)",
+        "archivo script.js (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 961,
+        "arreglo": 5460
+      },
+      "ms": {
+        "ver": 25855,
+        "arreglo": 122286
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 1023,
+          "completion_tokens": 584,
+          "total_tokens": 1607,
+          "completion_tokens_details": {
+            "reasoning_tokens": 537
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 5134,
+          "completion_tokens": 1625,
+          "total_tokens": 6759,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1414
+          }
+        }
+      },
+      "respuesta": "### FUNCION: deleteCard\n```js\nfunction deleteCard(cardId) {\n    if (!cardsData[cardId]) return;\n\n    const card = cardsData[cardId];\n    const colId = card.column;\n\n    // Restricción R28: No permitir la eliminación de tarjetas en la columna 'Completa'\n    if (colId === 'completa') {\n        console.warn(\"No se puede eliminar una tarjeta completada\");\n        return; \n    }\n\n    // 1. Eliminar del estado global\n    delete cardsData[cardId];\n\n    // 2. Re-renderizar la columna afectada (y todas)\n    const containerEl = document.getElementById(`cards-${colId}`);\n    if (containerEl) {\n        renderCardsToContainer(colId, containerEl);\n    }\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n```",
+      "aplicados": [
+        "función deleteCard (script.js)"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": false,
+          "pts": 1
+        }
+      ],
+      "despues": {
+        "R33.1": "FAIL"
+      },
+      "aceptado": false,
+      "motivo": "aplicó todo pero no avanzó: agregó \"QA Chingolo 1\" · arrastró \"QA Chingolo 1\" a \"Completa\" · eliminó \"QA Chingolo 1\" (aceptó el aviso) · → ✗ al apretar borrar no aparece \"'No se puede eliminar una tarjeta completada'\" (el navegador preguntó: \"¿Está seguro de borrar la tarjeta?\") · ✓ \"QA Chingolo 1\" se ve en \"Completa\""
+    },
+    {
+      "vuelta": 6,
+      "requisito": "R33",
+      "antes": {
+        "R33.1": "FAIL"
+      },
+      "ver": [
+        "confirmDelete(cardId)",
+        "script.js"
+      ],
+      "codigo": [
+        "función confirmDelete (script.js:266-272)",
+        "archivo script.js (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 1075,
+        "arreglo": 5331
+      },
+      "ms": {
+        "ver": 40235,
+        "arreglo": 287040
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 1132,
+          "completion_tokens": 928,
+          "total_tokens": 2060,
+          "completion_tokens_details": {
+            "reasoning_tokens": 890
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 4995,
+          "completion_tokens": 4147,
+          "total_tokens": 9142,
+          "completion_tokens_details": {
+            "reasoning_tokens": 676
+          }
+        }
+      },
+      "respuesta": "### FUNCION: deleteCard\n```javascript\nfunction deleteCard(cardId) {\n    if (!cardsData[cardId]) return;\n\n    const card = cardsData[cardId];\n    const colId = card.column;\n\n    // Restricción R33/R28: No permitir la eliminación de tarjetas en la columna 'Completa'\n    if (colId === 'completa') {\n        alert(\"No se puede eliminar una tarjeta completada\");\n        return; \n    }\n\n    // 1. Eliminar del estado global\n    delete cardsData[cardId];\n\n    // 2. Re-renderizar la columna afectada (y todas)\n    const containerEl = document.getElementById(`cards-${colId}`);\n    if (containerEl) {\n        renderCardsToContainer(colId, containerEl);\n    }\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n```\n\n### ARCHIVO: script.js\n```javascript\n// ==================================================\n// VARIABLES GLOBALES Y CONSTANTES\n// ==================================================\nconst COLUMNS = ['pendiente', 'en-curso', 'completa'];\nlet cardsData = {}; // { id: { title, description, priority, column, timestamp } }\n\n// R16: Definición de orden y colores de prioridad\nconst PRIORITY_ORDER = {\n    'alta': 3,\n    'media': 2,\n    'baja': 1\n};\n\n/**\n * Inicializa el estado del tablero cargando datos o inicializando la estructura.\n */\nfunction initializeBoard() {\n    const storedData = localStorage.getItem('kanbanCards');\n    if (storedData) {\n        cardsData = JSON.parse(storedData);\n    } else {\n        // Inicializar con un estado vacío si no hay datos guardados\n        cardsData = {};\n    }\n\n    COLUMNS.forEach(colId => {\n        const container = document.getElementById(`cards-${colId}`);\n        if (container) {\n            renderCardsToContainer(colId, container);\n        }\n    });\n\n    updateCounters();\n}\n\n// ==================================================\n// RENDERIZADO Y MANIPULACIÓN DE CARDS\n// ==================================================\n\n/**\n * Crea el HTML de una tarjeta a partir de un objeto de datos.\n * @param {Object} card - Objeto con los datos de la tarjeta.\n * @returns {HTMLElement} El elemento div completo de la tarjeta.\n */\nfunction createCardElement(card) {\n    const cardEl = document.createElement('div');\n    cardEl.className = 'card';\n    cardEl.setAttribute('data-id', card.id);\n    cardEl.setAttribute('draggable', 'true'); // R6: draggable='true'\n\n    // R6: Drag Handle\n    const dragHandle = document.createElement('div');\n    dragHandle.className = 'drag-handle';\n    dragHandle.setAttribute('draggable', 'true');\n    // Añadir el indicador visual ⠿\n    dragHandle.innerHTML = '⠿';\n    dragHandle.ondragstart = (e) => handleDragStart(e, card.id);\n\n    // Contenedor de contenido para manejar el padding del drag handle\n    const bodyEl = document.createElement('div');\n    bodyEl.className = 'card-body';\n\n    // R14: Actions container\n    const actionsContainer = document.createElement('div');\n    actionsContainer.className = 'card-actions';\n\n    // Botón Eliminar (R7, R17)\n    const deleteBtn = document.createElement('button');\n    deleteBtn.innerHTML = '🗑️';\n    deleteBtn.className = 'action-btn';\n    deleteBtn.onclick = () => confirmDelete(card.id);\n\n    // Botón Editar (R5, R17)\n    const editBtn = document.createElement('button');\n    editBtn.innerHTML = '✏️';\n    editBtn.className = 'action-btn';\n    editBtn.onclick = () => openModal('edit', card.id);\n\n    actionsContainer.appendChild(deleteBtn);\n    actionsContainer.appendChild(editBtn);\n\n    // Contenido de la tarjeta\n    const titleEl = document.createElement('div');\n    titleEl.className = 'card-title';\n    titleEl.textContent = card.title;\n\n    const descriptionEl = document.createElement('div');\n    descriptionEl.className = 'card-description';\n    descriptionEl.textContent = card.description || 'Sin descripción.';\n\n    // R3: Etiqueta de prioridad\n    const priorityTag = document.createElement('span');\n    priorityTag.className = `priority-tag priority-${card.priority}`;\n    priorityTag.textContent = card.priority.toUpperCase();\n\n    bodyEl.appendChild(titleEl);\n    bodyEl.appendChild(descriptionEl);\n    bodyEl.appendChild(priorityTag);\n\n    // Ensamblar la tarjeta\n    cardEl.appendChild(dragHandle); // Debe ir primero para el layout\n    cardEl.appendChild(actionsContainer);\n    cardEl.appendChild(bodyEl);\n\n    return cardEl;\n}\n\n/**\n * Renderiza todas las tarjetas de una columna específica, aplicando la lógica de ordenamiento.\n * @param {string} colId - ID de la columna ('pendiente', 'en-curso', etc.).\n * @param {HTMLElement} containerEl - El contenedor DOM donde se insertarán las tarjetas.\n */\nfunction renderCardsToContainer(colId, containerEl) {\n    // 1. Filtrar y obtener los datos de las tarjetas para esta columna\n    let cards = Object.values(cardsData).filter(card => card.column === colId);\n\n    // 2. R16: Ordenamiento (Prioridad descendente -> Tiempo ascendente)\n    cards.sort((a, b) => {\n        const priorityA = PRIORITY_ORDER[a.priority] || 0;\n        const priorityB = PRIORITY_ORDER[b.priority] || 0;\n\n        // Comparar por prioridad (descendente: alta > media > baja)\n        if (priorityA !== priorityB) {\n            return priorityB - priorityA; // Si B tiene mayor valor, va primero\n        }\n        // Si la prioridad es igual, ordenar por tiempo (más reciente arriba = descendente de timestamp)\n        return b.timestamp - a.timestamp;\n    });\n\n    // 3. Limpiar el contenedor antes de renderizar\n    containerEl.innerHTML = '';\n\n    // 4. Renderizar los elementos DOM\n    cards.forEach(card => {\n        const cardElement = createCardElement(card);\n        containerEl.appendChild(cardElement);\n    });\n}\n\n/**\n * Actualiza el contador de tarjetas en cada columna y guarda la estructura.\n */\nfunction updateCounters() {\n    COLUMNS.forEach(colId => {\n        const count = Object.values(cardsData).filter(card => card.column === colId).length;\n        document.querySelector(`.card-counter[data-column=\"${colId}\"]`).textContent = count;\n    });\n\n    // R23: Guardar el estado en LocalStorage\n    localStorage.setItem('kanbanCards', JSON.stringify(cardsData));\n}\n\n\n// ==================================================\n// MODAL Y CRUD OPERATIONS (Creación/Edición)\n// ==================================================\n\n/**\n * Abre o prepara el modal para crear o editar una tarjeta.\n * @param {string} mode - 'create' o 'edit'.\n * @param {string|null} cardId - ID de la tarjeta si estamos editando.\n */\nfunction openModal(mode, cardId = null) {\n    const modal = document.getElementById('cardModal');\n    const form = document.getElementById('cardForm');\n    document.getElementById('modalTitle').textContent = mode === 'create' ? 'Crear Nueva Tarjeta' : 'Editar Tarjeta';\n\n    // Limpiar formulario y estado\n    form.reset();\n    document.getElementById('cardId').value = '';\n    document.getElementById('currentColumn').value = '';\n\n    if (mode === 'edit' && cardId) {\n        const card = cardsData[cardId];\n        if (!card) return;\n\n        // R5: Llenar campos de edición\n        document.getElementById('cardId').value = card.id;\n        document.getElementById('currentColumn').value = card.column;\n        document.getElementById('title').value = card.title;\n        document.getElementById('description').value = card.description;\n        document.getElementById('priority').value = card.priority;\n\n        // Mostrar el modal\n        modal.style.display = 'block';\n    } else if (mode === 'create') {\n        // Si es creación, se asume que la columna actual es Pendiente por defecto\n        document.getElementById('currentColumn').value = 'pendiente'; \n        modal.style.display = 'block';\n    }\n}\n\n/**\n * Cierra el modal de edición/creación.\n */\nfunction closeModal() {\n    document.getElementById('cardModal').style.display = 'none';\n}\n\n// Event Listener para el formulario (Crear o Editar)\ndocument.getElementById('cardForm').addEventListener('submit', function(e) {\n    e.preventDefault();\n    const mode = document.getElementById('cardId').value ? 'edit' : 'create';\n    saveCard(mode);\n});\n\n/**\n * Guarda los datos de la tarjeta en el estado global y actualiza la UI.\n * @param {string} mode - 'create' o 'edit'.\n */\nfunction saveCard(mode) {\n    const id = document.getElementById('cardId').value || Date.now().toString();\n    const title = document.getElementById('title').value;\n    const description = document.getElementById('description').value;\n    const priority = document.getElementById('priority').value;\n    const column = document.getElementById('currentColumn').value;\n\n    if (mode === 'create') {\n        // Crear nueva tarjeta\n        cardsData[id] = {\n            id: id,\n            title: title,\n            description: description,\n            priority: priority,\n            column: column,\n            timestamp: Date.now() // R16: Timestamp para ordenamiento\n        };\n    } else if (mode === 'edit') {\n        // Editar tarjeta existente\n        const oldCard = cardsData[id];\n        if (!oldCard) return;\n\n        cardsData[id] = {\n            ...oldCard, // Mantener el ID y la columna original\n            title: title,\n            description: description,\n            priority: priority,\n            timestamp: Date.now() // Actualizar timestamp al editar\n        };\n    }\n\n    // 1. Cerrar modal\n    closeModal();\n\n    // 2. Re-renderizar la columna afectada (y todas para asegurar el orden)\n    COLUMNS.forEach(colId => {\n        const container = document.getElementById(`cards-${colId}`);\n        if (container) {\n            renderCardsToContainer(colId, container);\n        }\n    });\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n\n\n// ==================================================\n// ELIMINACIÓN Y DRAG & DROP\n// ==================================================\n\n/**\n * Muestra el modal de confirmación antes de eliminar una tarjeta (R7, R26).\n * @param {string} cardId - ID de la tarjeta a borrar.\n */\nfunction confirmDelete(cardId) {\n    if (!confirm(\"¿Está seguro de borrar la tarjeta?\")) {\n        return; // Cancelar si el usuario presiona 'Cancelar'\n    }\n\n    deleteCard(cardId);\n}\n\n/**\n * Elimina una tarjeta del estado y de la UI.\n * @param {string} cardId - ID de la tarjeta a borrar.\n */\nfunction deleteCard(cardId) {\n    if (!cardsData[cardId]) return;\n\n    const card = cardsData[cardId];\n    const colId = card.column;\n\n    // Restricción R33/R28: No permitir la eliminación de tarjetas en la columna 'Completa'\n    if (colId === 'completa') {\n        alert(\"No se puede eliminar una tarjeta completada\");\n        return; \n    }\n\n    // 1. Eliminar del estado global\n    delete cardsData[cardId];\n\n    // 2. Re-renderizar la columna afectada (y todas)\n    const containerEl = document.getElementById(`cards-${colId}`);\n    if (containerEl) {\n        renderCardsToContainer(colId, containerEl);\n    }\n\n    // 3. Actualizar contadores y guardar\n    updateCounters();\n}\n\n\n// --- Drag & Drop Handlers ---\n\nlet draggedCardId = null; // Almacena el ID de la tarjeta que se arrastra\n\n/**\n * Maneja el inicio del arrastre (R6).\n */\nfunction handleDragStart(e, cardId) {\n    draggedCardId = cardId;\n    // Establecer datos para el evento de drop\n    e.dataTransfer.setData('text/plain', cardId); \n\n    // Añadir clase visual al elemento arrastrado (el contenedor .card)\n    const draggedElement = document.querySelector(`.card[data-id=\"${cardId}\"]`);\n    if (draggedElement) {\n        setTimeout(() => {\n            draggedElement.classList.add('dragging');\n        }, 0);\n    }\n}\n\n/**\n * Maneja el evento dragover en los contenedores de columna.\n */\nfunction handleDragOver(e) {\n    e.preventDefault(); // Necesario para permitir el drop\n    // Aquí se podría añadir un feedback visual al contenedor destino si fuera necesario\n}\n\n/**\n * Maneja el evento de soltado (drop).\n * @param {Event} e - Evento de drop.\n * @param {string} targetColId - ID de la columna destino.\n */\nfunction handleDrop(e, targetColId) {\n    e.preventDefault();\n\n    // 1. Limpiar clase visual del elemento arrastrado\n    const draggedElement = document.querySelector(`.card[data-id=\"${draggedCardId}\"]`);\n    if (draggedElement) {\n        draggedElement.classList.remove('dragging');\n    }\n\n    const sourceCardId = e.dataTransfer.getData('text/plain');\n    if (!sourceCardId) return;\n\n    // 2. Actualizar el estado de la tarjeta en cardsData\n    const cardToMove = cardsData[sourceCardId];\n    if (cardToMove && cardToMove.column !== targetColId) {\n        // Solo actualizamos si realmente cambia de columna\n        cardToMove.column = targetColId;\n        cardToMove.timestamp = Date.now(); // Actualizar timestamp al mover\n\n        // 3. Re-renderizar la UI para reflejar el cambio y mantener el orden (R15)\n        COLUMNS.forEach(colId => {\n            const container = document.getElementById(`cards-${colId}`);\n            if (container) {\n                renderCardsToContainer(colId, container);\n            }\n        });\n\n        // 4. Actualizar contadores y guardar\n        updateCounters();\n    }\n}\n\n\n// ==================================================\n// INICIALIZACIÓN\n// ==================================================\ndocument.addEventListener('DOMContentLoaded', initializeBoard);\n```",
+      "aplicados": [
+        "función deleteCard (script.js)",
+        "archivo script.js"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": true,
+          "pts": 1000
+        }
+      ],
+      "despues": {
+        "R33.1": "PASS"
+      },
+      "aceptado": true,
+      "motivo": "1/1 pruebas de R33 pasan y suma lo que se ve bien (1 → 1000), sin romper nada",
+      "foto": "v003"
+    },
+    {
+      "vuelta": 7,
+      "requisito": "V1",
+      "antes": {
+        "V1.1": "FAIL"
+      },
+      "ver": [
+        "styles.css"
+      ],
+      "codigo": [
+        "archivo styles.css (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 994,
+        "arreglo": 3024
+      },
+      "ms": {
+        "ver": 27804,
+        "arreglo": 220540
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 1144,
+          "completion_tokens": 595,
+          "total_tokens": 1739,
+          "completion_tokens_details": {
+            "reasoning_tokens": 566
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 3601,
+          "completion_tokens": 3644,
+          "total_tokens": 7245,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1325
+          }
+        }
+      },
+      "respuesta": "### ARCHIVO: styles.css\n```css\n/* R9: Fondo */\nbody {\n    font-family: sans-serif;\n    background-color: #102C54; /* Fondo principal */\n    margin: 0;\n    padding: 20px;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n}\n\n/* R13: Div 'top' con title y actions */\n.top {\n    width: 95%;\n    max-width: 1200px;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 10px 0;\n    margin-bottom: 20px;\n}\n\n.top h1 {\n    color: white;\n    font-size: 2em;\n}\n\n/* R11: Botón 'Agregar tarjeta' */\n#addCardBtn {\n    padding: 8px 15px; /* padding: 8px */\n    border: 1px dashed #ccc; /* border: 1px dashed */\n    border-radius: 8px; /* border radius: 8px */\n    cursor: pointer;\n    background-color: white;\n    transition: background-color 0.2s;\n}\n\n#addCardBtn:hover {\n    background-color: #e0e0e0;\n}\n\n/* Contenedor principal de columnas */\n.board {\n    display: flex;\n    gap: 20px;\n    width: 95%;\n    max-width: 1400px;\n    justify-content: center; /* Centra el grupo de columnas dentro del board */\n    /* FIX: Limitar la altura del board para que el scroll ocurra dentro de las columnas */\n    max-height: calc(100vh - 180px); /* Ajuste aproximado basado en padding y top bar */\n}\n\n/* R8, R10: Estilo de Columna */\n.column {\n    background-color: #8FB3C7; /* Color columna */\n    width: 248px; /* width: 248px */\n    flex-shrink: 0;\n    border-radius: 10px;\n    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);\n    display: flex;\n    flex-direction: column;\n}\n\n/* Header de la columna */\n.column-header {\n    padding: 15px;\n    border-bottom: 1px solid #ccc;\n    background-color: #4c6a83; /* Cambiado para mejorar contraste con texto blanco */\n    color: white;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n}\n\n.column-header h2 {\n    margin: 0;\n    font-size: 1.2em;\n}\n\n/* Área de tarjetas (Scrollable) */\n.card-container {\n    flex-grow: 1;\n    overflow-y: auto; /* R10: overflow: scroll */\n    padding: 15px;\n    background-color: #f4f4f4;\n    /* Asegura que el contenedor no se desborde horizontalmente */\n}\n\n/* Estilo de la Tarjeta (R12) */\n.card {\n    background-color: #F2E9D8; /* Color tarjeta */\n    width: 223px; /* width: 223px */\n    height: 250px; /* height: 250px */\n    margin-bottom: 15px;\n    padding: 15px;\n    border-radius: 8px;\n    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* R15: Sombra */\n    transition: transform 0.2s, box-shadow 0.2s;\n    position: relative;\n    overflow-y: auto; /* Corregido para permitir scroll en la tarjeta */\n}\n\n/* Efecto de movimiento durante drag&drop (R15) */\n.card.dragging {\n    opacity: 0.4;\n    transform: scale(0.98);\n    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);\n}\n\n/* R6: Drag Handle */\n.drag-handle {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 24px; /* width: 24px */\n    height: 100%;\n    cursor: grab;\n    background: none;\n    border: none;\n    z-index: 10;\n}\n\n/* Contenido principal de la tarjeta (el body) */\n.card-body {\n    padding-left: 24px; /* Espacio para el drag handle */\n    overflow-y: auto; /* R12: overflow-y: scroll/auto */\n    height: calc(100% - 15px); /* Ajuste de altura si hay padding en card */\n}\n\n/* Contenido del texto */\n.card-title {\n    font-weight: bold;\n    margin-bottom: 8px;\n    color: #333;\n}\n\n.card-description {\n    font-size: 0.9em;\n    color: #555;\n    margin-bottom: 10px;\n}\n\n/* R3, R24: Etiquetas de prioridad */\n.priority-tag {\n    display: inline-block;\n    padding: 4px 8px;\n    border-radius: 4px;\n    font-size: 0.75em;\n    font-weight: bold;\n    color: #333; /* Cambiado de white a un color oscuro para mejorar el contraste */\n    margin-top: 10px;\n}\n\n/* Colores de prioridad */\n.priority-alta { background-color: #c94b3e; } /* Cambiado para mejorar contraste */\n.priority-media { background-color: #f0ad4e; } /* Amarillo/Naranja */\n.priority-baja { background-color: #5cb85c; } /* Verde */\n\n/* R14, R17: Botones de acción (Hover) */\n.card-actions {\n    position: absolute;\n    top: 10px;\n    right: 10px;\n    opacity: 0;\n    transition: opacity 0.2s;\n    display: flex;\n    gap: 5px;\n}\n\n/* Mostrar acciones al pasar el mouse */\n.card:hover .card-actions {\n    opacity: 1;\n}\n\n.action-btn {\n    background: rgba(0, 0, 0, 0.6);\n    color: white;\n    border: none;\n    padding: 5px 8px;\n    cursor: pointer;\n    border-radius: 4px;\n    font-size: 1em;\n}\n\n/* Modal Styling */\n.modal {\n    display: none; /* Por defecto oculto */\n    position: fixed;\n    z-index: 100;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    overflow: auto;\n    background-color: rgba(0, 0, 0, 0.4); /* Overlay */\n}\n\n.modal-content {\n    background-color: #fefefe;\n    margin: 5% auto; /* Centrado vertical y horizontal */\n    padding: 20px;\n    border-radius: 10px;\n    width: 80%;\n    max-width: 500px;\n    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);\n}\n\n.modal-content h2 {\n    margin-top: 0;\n    color: #102C54;\n}\n\n.form-group {\n    margin-bottom: 15px;\n}\n\n.form-group label {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: bold;\n}\n\n.form-group input[type=\"text\"],\n.form-group textarea,\n.form-group select {\n    width: 100%;\n    padding: 10px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    box-sizing: border-box;\n}\n\n/* Botones del modal */\n.modal-actions {\n    display: flex;\n    justify-content: space-between;\n    margin-top: 20px;\n}\n\n.btn-primary, .btn-secondary {\n    padding: 10px 20px;\n    border: none;\n    cursor: pointer;\n    border-radius: 5px;\n    transition: background-color 0.2s;\n}\n\n.btn-primary {\n    background-color: #3498db;\n    color: white;\n}\n\n.btn-secondary {\n    background-color: #ccc;\n    color: #333;\n}\n\n/* Estilo de la columna Pendiente */\n#addCardBtnBottom {\n    padding: 8px;\n    border: 1px dashed #ccc;\n    border-radius: 8px;\n    cursor: pointer;\n    margin: 10px 15px 20px 15px; /* Espaciado */\n    background-color: white;\n}\n\n/* R2, R11: Botón 'Agregar tarjeta' en Pendiente */\n#addCardBtnBottom.hidden {\n    display: none;\n}\n```",
+      "aplicados": [
+        "archivo styles.css"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": false,
+          "pts": 0
+        }
+      ],
+      "despues": {
+        "V1.1": "FAIL"
+      },
+      "aceptado": false,
+      "motivo": "aplicó todo pero no avanzó: agregó \"QA Ceibo 1\" · agregó \"QA Zorzal 2\" · agregó \"QA Zorzal 3\" · agregó \"QA Zorzal 4\" · → ✗ contraste: <span class=\"priority-tag priority-alta\"> \"ALTA\": 2.74 a 1 (mínimo 4.5; letra rgb(51, 51, 51) sobre rgb(201, 75, 62))"
+    },
+    {
+      "vuelta": 8,
+      "requisito": "V1",
+      "antes": {
+        "V1.1": "FAIL"
+      },
+      "ver": [
+        "styles.css"
+      ],
+      "codigo": [
+        "archivo styles.css (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 1085,
+        "arreglo": 3114
+      },
+      "ms": {
+        "ver": 31831,
+        "arreglo": 195136
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 1264,
+          "completion_tokens": 685,
+          "total_tokens": 1949,
+          "completion_tokens_details": {
+            "reasoning_tokens": 656
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 3721,
+          "completion_tokens": 3211,
+          "total_tokens": 6932,
+          "completion_tokens_details": {
+            "reasoning_tokens": 897
+          }
+        }
+      },
+      "respuesta": "### ARCHIVO: styles.css\n```css\n/* R9: Fondo */\nbody {\n    font-family: sans-serif;\n    background-color: #102C54; /* Fondo principal */\n    margin: 0;\n    padding: 20px;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n}\n\n/* R13: Div 'top' con title y actions */\n.top {\n    width: 95%;\n    max-width: 1200px;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 10px 0;\n    margin-bottom: 20px;\n}\n\n.top h1 {\n    color: white;\n    font-size: 2em;\n}\n\n/* R11: Botón 'Agregar tarjeta' */\n#addCardBtn {\n    padding: 8px 15px; /* padding: 8px */\n    border: 1px dashed #ccc; /* border: 1px dashed */\n    border-radius: 8px; /* border radius: 8px */\n    cursor: pointer;\n    background-color: white;\n    transition: background-color 0.2s;\n}\n\n#addCardBtn:hover {\n    background-color: #e0e0e0;\n}\n\n/* Contenedor principal de columnas */\n.board {\n    display: flex;\n    gap: 20px;\n    width: 95%;\n    max-width: 1400px;\n    justify-content: center; /* Centra el grupo de columnas dentro del board */\n    /* FIX: Limitar la altura del board para que el scroll ocurra dentro de las columnas */\n    max-height: calc(100vh - 180px); /* Ajuste aproximado basado en padding y top bar */\n}\n\n/* R8, R10: Estilo de Columna */\n.column {\n    background-color: #8FB3C7; /* Color columna */\n    width: 248px; /* width: 248px */\n    flex-shrink: 0;\n    border-radius: 10px;\n    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);\n    display: flex;\n    flex-direction: column;\n}\n\n/* Header de la columna */\n.column-header {\n    padding: 15px;\n    border-bottom: 1px solid #ccc;\n    background-color: #4c6a83; /* Cambiado para mejorar contraste con texto blanco */\n    color: white;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n}\n\n.column-header h2 {\n    margin: 0;\n    font-size: 1.2em;\n}\n\n/* Área de tarjetas (Scrollable) */\n.card-container {\n    flex-grow: 1;\n    overflow-y: auto; /* R10: overflow: scroll */\n    padding: 15px;\n    background-color: #f4f4f4;\n    /* Asegura que el contenedor no se desborde horizontalmente */\n}\n\n/* Estilo de la Tarjeta (R12) */\n.card {\n    background-color: #F2E9D8; /* Color tarjeta */\n    width: 223px; /* width: 223px */\n    height: 250px; /* height: 250px */\n    margin-bottom: 15px;\n    padding: 15px;\n    border-radius: 8px;\n    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* R15: Sombra */\n    transition: transform 0.2s, box-shadow 0.2s;\n    position: relative;\n    overflow-y: auto; /* Corregido para permitir scroll en la tarjeta */\n}\n\n/* Efecto de movimiento durante drag&drop (R15) */\n.card.dragging {\n    opacity: 0.4;\n    transform: scale(0.98);\n    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);\n}\n\n/* R6: Drag Handle */\n.drag-handle {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 24px; /* width: 24px */\n    height: 100%;\n    cursor: grab;\n    background: none;\n    border: none;\n    z-index: 10;\n}\n\n/* Contenido principal de la tarjeta (el body) */\n.card-body {\n    padding-left: 24px; /* Espacio para el drag handle */\n    overflow-y: auto; /* R12: overflow-y: scroll/auto */\n    height: calc(100% - 15px); /* Ajuste de altura si hay padding en card */\n}\n\n/* Contenido del texto */\n.card-title {\n    font-weight: bold;\n    margin-bottom: 8px;\n    color: #333;\n}\n\n.card-description {\n    font-size: 0.9em;\n    color: #555;\n    margin-bottom: 10px;\n}\n\n/* R3, R24: Etiquetas de prioridad */\n.priority-tag {\n    display: inline-block;\n    padding: 4px 8px;\n    border-radius: 4px;\n    font-size: 0.75em;\n    font-weight: bold;\n    color: #333; /* CORRECCIÓN DE CONTRASTE */\n    margin-top: 10px;\n}\n\n/* Colores de prioridad */\n.priority-alta { background-color: #c94b3e; } /* Cambiado para mejorar contraste */\n.priority-media { background-color: #f0ad4e; } /* Amarillo/Naranja */\n.priority-baja { background-color: #5cb85c; } /* Verde */\n\n/* R14, R17: Botones de acción (Hover) */\n.card-actions {\n    position: absolute;\n    top: 10px;\n    right: 10px;\n    opacity: 0;\n    transition: opacity 0.2s;\n    display: flex;\n    gap: 5px;\n}\n\n/* Mostrar acciones al pasar el mouse */\n.card:hover .card-actions {\n    opacity: 1;\n}\n\n.action-btn {\n    background: rgba(0, 0, 0, 0.6);\n    color: white;\n    border: none;\n    padding: 5px 8px;\n    cursor: pointer;\n    border-radius: 4px;\n    font-size: 1em;\n}\n\n/* Modal Styling */\n.modal {\n    display: none; /* Por defecto oculto */\n    position: fixed;\n    z-index: 100;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    overflow: auto;\n    background-color: rgba(0, 0, 0, 0.4); /* Overlay */\n}\n\n.modal-content {\n    background-color: #fefefe;\n    margin: 5% auto; /* Centrado vertical y horizontal */\n    padding: 20px;\n    border-radius: 10px;\n    width: 80%;\n    max-width: 500px;\n    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);\n}\n\n.modal-content h2 {\n    margin-top: 0;\n    color: #102C54;\n}\n\n.form-group {\n    margin-bottom: 15px;\n}\n\n.form-group label {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: bold;\n}\n\n.form-group input[type=\"text\"],\n.form-group textarea,\n.form-group select {\n    width: 100%;\n    padding: 10px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    box-sizing: border-box;\n}\n\n/* Botones del modal */\n.modal-actions {\n    display: flex;\n    justify-content: space-between;\n    margin-top: 20px;\n}\n\n.btn-primary, .btn-secondary {\n    padding: 10px 20px;\n    border: none;\n    cursor: pointer;\n    border-radius: 5px;\n    transition: background-color 0.2s;\n}\n\n.btn-primary {\n    background-color: #3498db;\n    color: white;\n}\n\n.btn-secondary {\n    background-color: #ccc;\n    color: #333;\n}\n\n/* Estilo de la columna Pendiente */\n#addCardBtnBottom {\n    padding: 8px;\n    border: 1px dashed #ccc;\n    border-radius: 8px;\n    cursor: pointer;\n    margin: 10px 15px 20px 15px; /* Espaciado */\n    background-color: white;\n}\n\n/* R2, R11: Botón 'Agregar tarjeta' en Pendiente */\n#addCardBtnBottom.hidden {\n    display: none;\n}\n```",
+      "aplicados": [
+        "archivo styles.css"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": false,
+          "pts": 0
+        }
+      ],
+      "despues": {
+        "V1.1": "FAIL"
+      },
+      "aceptado": false,
+      "motivo": "aplicó todo pero no avanzó: agregó \"QA Jacarandá 1\" · agregó \"QA Zorzal 2\" · agregó \"QA Zorzal 3\" · agregó \"QA Zorzal 4\" · → ✗ contraste: <span class=\"priority-tag priority-alta\"> \"ALTA\": 2.74 a 1 (mínimo 4.5; letra rgb(51, 51, 51) sobre rgb(201, 75, 62))"
+    },
+    {
+      "vuelta": 9,
+      "requisito": "V1",
+      "antes": {
+        "V1.1": "FAIL"
+      },
+      "ver": [
+        "styles.css"
+      ],
+      "codigo": [
+        "archivo styles.css (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 1085,
+        "arreglo": 3114
+      },
+      "ms": {
+        "ver": 32849,
+        "arreglo": 227239
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 1264,
+          "completion_tokens": 713,
+          "total_tokens": 1977,
+          "completion_tokens_details": {
+            "reasoning_tokens": 684
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 3721,
+          "completion_tokens": 3719,
+          "total_tokens": 7440,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1397
+          }
+        }
+      },
+      "respuesta": "### ARCHIVO: styles.css\n```css\n/* R9: Fondo */\nbody {\n    font-family: sans-serif;\n    background-color: #102C54; /* Fondo principal */\n    margin: 0;\n    padding: 20px;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n}\n\n/* R13: Div 'top' con title y actions */\n.top {\n    width: 95%;\n    max-width: 1200px;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 10px 0;\n    margin-bottom: 20px;\n}\n\n.top h1 {\n    color: white;\n    font-size: 2em;\n}\n\n/* R11: Botón 'Agregar tarjeta' */\n#addCardBtn {\n    padding: 8px 15px; /* padding: 8px */\n    border: 1px dashed #ccc; /* border: 1px dashed */\n    border-radius: 8px; /* border radius: 8px */\n    cursor: pointer;\n    background-color: white;\n    transition: background-color 0.2s;\n}\n\n#addCardBtn:hover {\n    background-color: #e0e0e0;\n}\n\n/* Contenedor principal de columnas */\n.board {\n    display: flex;\n    gap: 20px;\n    width: 95%;\n    max-width: 1400px;\n    justify-content: center; /* Centra el grupo de columnas dentro del board */\n    /* FIX: Limitar la altura del board para que el scroll ocurra dentro de las columnas */\n    max-height: calc(100vh - 180px); /* Ajuste aproximado basado en padding y top bar */\n}\n\n/* R8, R10: Estilo de Columna */\n.column {\n    background-color: #8FB3C7; /* Color columna */\n    width: 248px; /* width: 248px */\n    flex-shrink: 0;\n    border-radius: 10px;\n    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);\n    display: flex;\n    flex-direction: column;\n}\n\n/* Header de la columna */\n.column-header {\n    padding: 15px;\n    border-bottom: 1px solid #ccc;\n    background-color: #4c6a83; /* Cambiado para mejorar contraste con texto blanco */\n    color: white;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n}\n\n.column-header h2 {\n    margin: 0;\n    font-size: 1.2em;\n}\n\n/* Área de tarjetas (Scrollable) */\n.card-container {\n    flex-grow: 1;\n    overflow-y: auto; /* R10: overflow: scroll */\n    padding: 15px;\n    background-color: #f4f4f4;\n    /* Asegura que el contenedor no se desborde horizontalmente */\n}\n\n/* Estilo de la Tarjeta (R12) */\n.card {\n    background-color: #F2E9D8; /* Color tarjeta */\n    width: 223px; /* width: 223px */\n    height: 250px; /* height: 250px */\n    margin-bottom: 15px;\n    padding: 15px;\n    border-radius: 8px;\n    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* R15: Sombra */\n    transition: transform 0.2s, box-shadow 0.2s;\n    position: relative;\n    overflow-y: auto; /* Corregido para permitir scroll en la tarjeta */\n}\n\n/* Efecto de movimiento durante drag&drop (R15) */\n.card.dragging {\n    opacity: 0.4;\n    transform: scale(0.98);\n    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);\n}\n\n/* R6: Drag Handle */\n.drag-handle {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 24px; /* width: 24px */\n    height: 100%;\n    cursor: grab;\n    background: none;\n    border: none;\n    z-index: 10;\n}\n\n/* Contenido principal de la tarjeta (el body) */\n.card-body {\n    padding-left: 24px; /* Espacio para el drag handle */\n    overflow-y: auto; /* R12: overflow-y: scroll/auto */\n    height: calc(100% - 15px); /* Ajuste de altura si hay padding en card */\n}\n\n/* Contenido del texto */\n.card-title {\n    font-weight: bold;\n    margin-bottom: 8px;\n    color: #333;\n}\n\n.card-description {\n    font-size: 0.9em;\n    color: #555;\n    margin-bottom: 10px;\n}\n\n/* R3, R24: Etiquetas de prioridad */\n.priority-tag {\n    display: inline-block;\n    padding: 4px 8px;\n    border-radius: 4px;\n    font-size: 0.75em;\n    font-weight: bold;\n    color: white;\n    margin-top: 10px;\n}\n\n/* Colores de prioridad */\n.priority-alta { background-color: #c94b3e; } /* Cambiado para mejorar contraste */\n.priority-media { background-color: #f0ad4e; color: #333; } /* Amarillo/Naranja - Texto oscuro */\n.priority-baja { background-color: #5cb85c; color: #333; } /* Verde - Texto oscuro */\n\n/* R14, R17: Botones de acción (Hover) */\n.card-actions {\n    position: absolute;\n    top: 10px;\n    right: 10px;\n    opacity: 0;\n    transition: opacity 0.2s;\n    display: flex;\n    gap: 5px;\n}\n\n/* Mostrar acciones al pasar el mouse */\n.card:hover .card-actions {\n    opacity: 1;\n}\n\n.action-btn {\n    background: rgba(0, 0, 0, 0.6);\n    color: white;\n    border: none;\n    padding: 5px 8px;\n    cursor: pointer;\n    border-radius: 4px;\n    font-size: 1em;\n}\n\n/* Modal Styling */\n.modal {\n    display: none; /* Por defecto oculto */\n    position: fixed;\n    z-index: 100;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    overflow: auto;\n    background-color: rgba(0, 0, 0, 0.4); /* Overlay */\n}\n\n.modal-content {\n    background-color: #fefefe;\n    margin: 5% auto; /* Centrado vertical y horizontal */\n    padding: 20px;\n    border-radius: 10px;\n    width: 80%;\n    max-width: 500px;\n    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);\n}\n\n.modal-content h2 {\n    margin-top: 0;\n    color: #102C54;\n}\n\n.form-group {\n    margin-bottom: 15px;\n}\n\n.form-group label {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: bold;\n}\n\n.form-group input[type=\"text\"],\n.form-group textarea,\n.form-group select {\n    width: 100%;\n    padding: 10px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    box-sizing: border-box;\n}\n\n/* Botones del modal */\n.modal-actions {\n    display: flex;\n    justify-content: space-between;\n    margin-top: 20px;\n}\n\n.btn-primary, .btn-secondary {\n    padding: 10px 20px;\n    border: none;\n    cursor: pointer;\n    border-radius: 5px;\n    transition: background-color 0.2s;\n}\n\n.btn-primary {\n    background-color: #3498db;\n    color: white;\n}\n\n.btn-secondary {\n    background-color: #ccc;\n    color: #333;\n}\n\n/* Estilo de la columna Pendiente */\n#addCardBtnBottom {\n    padding: 8px;\n    border: 1px dashed #ccc;\n    border-radius: 8px;\n    cursor: pointer;\n    margin: 10px 15px 20px 15px; /* Espaciado */\n    background-color: white;\n}\n\n/* R2, R11: Botón 'Agregar tarjeta' en Pendiente */\n#addCardBtnBottom.hidden {\n    display: none;\n}\n```",
+      "aplicados": [
+        "archivo styles.css"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": true,
+          "pts": 1000
+        }
+      ],
+      "despues": {
+        "V1.1": "PASS"
+      },
+      "aceptado": true,
+      "motivo": "1/1 pruebas de V1 pasan y suma lo que se ve bien (0 → 1000), sin romper nada",
+      "foto": "v004"
+    },
+    {
+      "vuelta": 10,
+      "requisito": "V2",
+      "antes": {
+        "V2.1": "FAIL"
+      },
+      "ver": [
+        "styles.css"
+      ],
+      "codigo": [
+        "archivo styles.css (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 1020,
+        "arreglo": 3066
+      },
+      "ms": {
+        "ver": 24799,
+        "arreglo": 262606
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 1094,
+          "completion_tokens": 544,
+          "total_tokens": 1638,
+          "completion_tokens_details": {
+            "reasoning_tokens": 515
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 3571,
+          "completion_tokens": 4304,
+          "total_tokens": 7875,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1952
+          }
+        }
+      },
+      "respuesta": "### ARCHIVO: styles.css\n```css\n/* Global box model fix */\n*, *::before, *::after {\n    box-sizing: border-box;\n}\n\n/* R9: Fondo */\nbody {\n    font-family: sans-serif;\n    background-color: #102C54; /* Fondo principal */\n    margin: 0;\n    padding: 20px;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n}\n\n/* R13: Div 'top' con title y actions */\n.top {\n    width: 95%;\n    max-width: 1200px;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 10px 0;\n    margin-bottom: 20px;\n}\n\n.top h1 {\n    color: white;\n    font-size: 2em;\n}\n\n/* R11: Botón 'Agregar tarjeta' */\n#addCardBtn {\n    padding: 8px 15px; /* padding: 8px */\n    border: 1px dashed #ccc; /* border: 1px dashed */\n    border-radius: 8px; /* border radius: 8px */\n    cursor: pointer;\n    background-color: white;\n    transition: background-color 0.2s;\n}\n\n#addCardBtn:hover {\n    background-color: #e0e0e0;\n}\n\n/* Contenedor principal de columnas */\n.board {\n    display: flex;\n    gap: 20px;\n    width: 95%;\n    max-width: 1400px;\n    justify-content: center; /* Centra el grupo de columnas dentro del board */\n    /* FIX: Limitar la altura del board para que el scroll ocurra dentro de las columnas */\n    max-height: calc(100vh - 180px); /* Ajuste aproximado basado en padding y top bar */\n}\n\n/* R8, R10: Estilo de Columna */\n.column {\n    background-color: #8FB3C7; /* Color columna */\n    width: 248px; /* width: 248px */\n    flex-shrink: 0;\n    border-radius: 10px;\n    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);\n    display: flex;\n    flex-direction: column;\n}\n\n/* Header de la columna */\n.column-header {\n    padding: 15px;\n    border-bottom: 1px solid #ccc;\n    background-color: #4c6a83; /* Cambiado para mejorar contraste con texto blanco */\n    color: white;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n}\n\n.column-header h2 {\n    margin: 0;\n    font-size: 1.2em;\n}\n\n/* Área de tarjetas (Scrollable) */\n.card-container {\n    flex-grow: 1;\n    overflow-y: auto; /* R10: overflow: scroll */\n    padding: 15px;\n    background-color: #f4f4f4;\n    /* Asegura que el contenedor no se desborde horizontalmente */\n}\n\n/* Estilo de la Tarjeta (R12) */\n.card {\n    background-color: #F2E9D8; /* Color tarjeta */\n    width: 223px; /* width: 223px */\n    height: 250px; /* height: 250px */\n    margin-bottom: 15px;\n    padding: 15px;\n    border-radius: 8px;\n    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* R15: Sombra */\n    transition: transform 0.2s, box-shadow 0.2s;\n    position: relative;\n    overflow-y: auto; /* Corregido para permitir scroll en la tarjeta */\n}\n\n/* Efecto de movimiento durante drag&drop (R15) */\n.card.dragging {\n    opacity: 0.4;\n    transform: scale(0.98);\n    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);\n}\n\n/* R6: Drag Handle */\n.drag-handle {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 24px; /* width: 24px */\n    height: 100%;\n    cursor: grab;\n    background: none;\n    border: none;\n    z-index: 10;\n}\n\n/* Contenido principal de la tarjeta (el body) */\n.card-body {\n    padding-left: 24px; /* Espacio para el drag handle */\n    overflow-y: auto; /* R12: overflow-y: scroll/auto */\n    height: calc(100% - 15px); /* Ajuste de altura si hay padding en card */\n}\n\n/* Contenido del texto */\n.card-title {\n    font-weight: bold;\n    margin-bottom: 8px;\n    color: #333;\n}\n\n.card-description {\n    font-size: 0.9em;\n    color: #555;\n    margin-bottom: 10px;\n}\n\n/* R3, R24: Etiquetas de prioridad */\n.priority-tag {\n    display: inline-block;\n    padding: 4px 8px;\n    border-radius: 4px;\n    font-size: 0.75em;\n    font-weight: bold;\n    color: white;\n    margin-top: 10px;\n}\n\n/* Colores de prioridad */\n.priority-alta { background-color: #c94b3e; } /* Cambiado para mejorar contraste */\n.priority-media { background-color: #f0ad4e; color: #333; } /* Amarillo/Naranja - Texto oscuro */\n.priority-baja { background-color: #5cb85c; color: #333; } /* Verde - Texto oscuro */\n\n/* R14, R17: Botones de acción (Hover) */\n.card-actions {\n    position: absolute;\n    top: 10px;\n    right: 10px;\n    opacity: 0;\n    transition: opacity 0.2s;\n    display: flex;\n    gap: 5px;\n}\n\n/* Mostrar acciones al pasar el mouse */\n.card:hover .card-actions {\n    opacity: 1;\n}\n\n.action-btn {\n    background: rgba(0, 0, 0, 0.6);\n    color: white;\n    border: none;\n    padding: 5px 8px;\n    cursor: pointer;\n    border-radius: 4px;\n    font-size: 1em;\n}\n\n/* Modal Styling */\n.modal {\n    display: none; /* Por defecto oculto */\n    position: fixed;\n    z-index: 100;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    overflow: auto;\n    background-color: rgba(0, 0, 0, 0.4); /* Overlay */\n}\n\n.modal-content {\n    background-color: #fefefe;\n    margin: 5% auto; /* Centrado vertical y horizontal */\n    padding: 20px;\n    border-radius: 10px;\n    width: 80%;\n    max-width: 500px;\n    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);\n}\n\n.modal-content h2 {\n    margin-top: 0;\n    color: #102C54;\n}\n\n.form-group {\n    margin-bottom: 15px;\n}\n\n.form-group label {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: bold;\n}\n\n.form-group input[type=\"text\"],\n.form-group textarea,\n.form-group select {\n    width: 100%;\n    padding: 10px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    box-sizing: border-box;\n}\n\n/* Botones del modal */\n.modal-actions {\n    display: flex;\n    justify-content: space-between;\n    margin-top: 20px;\n}\n\n.btn-primary, .btn-secondary {\n    padding: 10px 20px;\n    border: none;\n    cursor: pointer;\n    border-radius: 5px;\n    transition: background-color 0.2s;\n}\n\n.btn-primary {\n    background-color: #3498db;\n    color: white;\n}\n\n.btn-secondary {\n    background-color: #ccc;\n    color: #333;\n}\n\n/* Estilo de la columna Pendiente */\n#addCardBtnBottom {\n    padding: 8px;\n    border: 1px dashed #ccc;\n    border-radius: 8px;\n    cursor: pointer;\n    margin: 10px 15px 20px 15px; /* Espaciado */\n    background-color: white;\n}\n\n/* R2, R11: Botón 'Agregar tarjeta' en Pendiente */\n#addCardBtnBottom.hidden {\n    display: none;\n}\n```",
+      "aplicados": [
+        "archivo styles.css"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": false,
+          "pts": 0
+        }
+      ],
+      "despues": {
+        "V2.1": "FAIL"
+      },
+      "aceptado": false,
+      "motivo": "aplicó todo pero no avanzó: agregó \"QA Tala 1\" · agregó \"QA Zorzal 2\" · agregó \"QA Zorzal 3\" · agregó \"QA Zorzal 4\" · → ✗ no_se_corta: <div id=\"cards-pendiente\" class=\"card-container\"> tiene 253px de contenido en 248px"
+    },
+    {
+      "vuelta": 11,
+      "requisito": "V2",
+      "antes": {
+        "V2.1": "FAIL"
+      },
+      "ver": [
+        "styles.css",
+        "script.js"
+      ],
+      "codigo": [
+        "archivo styles.css (entero)",
+        "archivo script.js (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 1097,
+        "arreglo": 7038
+      },
+      "ms": {
+        "ver": 26434,
+        "arreglo": 299810
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 1182,
+          "completion_tokens": 570,
+          "total_tokens": 1752,
+          "completion_tokens_details": {
+            "reasoning_tokens": 534
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 6914,
+          "completion_tokens": 3699,
+          "total_tokens": 10613,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1367
+          }
+        }
+      },
+      "respuesta": "### ARCHIVO: styles.css\n```css\n/* R9: Fondo */\nbody {\n    font-family: sans-serif;\n    background-color: #102C54; /* Fondo principal */\n    margin: 0;\n    padding: 20px;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n}\n\n/* R13: Div 'top' con title y actions */\n.top {\n    width: 95%;\n    max-width: 1200px;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 10px 0;\n    margin-bottom: 20px;\n}\n\n.top h1 {\n    color: white;\n    font-size: 2em;\n}\n\n/* R11: Botón 'Agregar tarjeta' */\n#addCardBtn {\n    padding: 8px 15px; /* padding: 8px */\n    border: 1px dashed #ccc; /* border: 1px dashed */\n    border-radius: 8px; /* border radius: 8px */\n    cursor: pointer;\n    background-color: white;\n    transition: background-color 0.2s;\n}\n\n#addCardBtn:hover {\n    background-color: #e0e0e0;\n}\n\n/* Contenedor principal de columnas */\n.board {\n    display: flex;\n    gap: 20px;\n    width: 95%;\n    max-width: 1400px;\n    justify-content: center; /* Centra el grupo de columnas dentro del board */\n    /* FIX: Limitar la altura del board para que el scroll ocurra dentro de las columnas */\n    max-height: calc(100vh - 180px); /* Ajuste aproximado basado en padding y top bar */\n}\n\n/* R8, R10: Estilo de Columna */\n.column {\n    background-color: #8FB3C7; /* Color columna */\n    width: 248px; /* width: 248px */\n    flex-shrink: 0;\n    border-radius: 10px;\n    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);\n    display: flex;\n    flex-direction: column;\n}\n\n/* Header de la columna */\n.column-header {\n    padding: 15px;\n    border-bottom: 1px solid #ccc;\n    background-color: #4c6a83; /* Cambiado para mejorar contraste con texto blanco */\n    color: white;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n}\n\n.column-header h2 {\n    margin: 0;\n    font-size: 1.2em;\n}\n\n/* Área de tarjetas (Scrollable) */\n.card-container {\n    flex-grow: 1;\n    overflow-y: auto; /* R10: overflow: scroll */\n    padding: 15px;\n    background-color: #f4f4f4;\n    /* Asegura que el contenedor no se desborde horizontalmente */\n}\n\n/* Estilo de la Tarjeta (R12) */\n.card {\n    background-color: #F2E9D8; /* Color tarjeta */\n    width: 223px; /* width: 223px */\n    height: 250px; /* height: 250px */\n    margin-bottom: 15px;\n    padding: 15px;\n    border-radius: 8px;\n    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* R15: Sombra */\n    transition: transform 0.2s, box-shadow 0.2s;\n    position: relative;\n    overflow-y: auto; /* Corregido para permitir scroll en la tarjeta */\n    box-sizing: border-box;\n}\n\n/* Efecto de movimiento durante drag&drop (R15) */\n.card.dragging {\n    opacity: 0.4;\n    transform: scale(0.98);\n    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);\n}\n\n/* R6: Drag Handle */\n.drag-handle {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 24px; /* width: 24px */\n    height: 100%;\n    cursor: grab;\n    background: none;\n    border: none;\n    z-index: 10;\n}\n\n/* Contenido principal de la tarjeta (el body) */\n.card-body {\n    padding-left: 24px; /* Espacio para el drag handle */\n    overflow-y: auto; /* R12: overflow-y: scroll/auto */\n    height: calc(100% - 15px); /* Ajuste de altura si hay padding en card */\n}\n\n/* Contenido del texto */\n.card-title {\n    font-weight: bold;\n    margin-bottom: 8px;\n    color: #333;\n}\n\n.card-description {\n    font-size: 0.9em;\n    color: #555;\n    margin-bottom: 10px;\n}\n\n/* R3, R24: Etiquetas de prioridad */\n.priority-tag {\n    display: inline-block;\n    padding: 4px 8px;\n    border-radius: 4px;\n    font-size: 0.75em;\n    font-weight: bold;\n    color: white;\n    margin-top: 10px;\n}\n\n/* Colores de prioridad */\n.priority-alta { background-color: #c94b3e; } /* Cambiado para mejorar contraste */\n.priority-media { background-color: #f0ad4e; color: #333; } /* Amarillo/Naranja - Texto oscuro */\n.priority-baja { background-color: #5cb85c; color: #333; } /* Verde - Texto oscuro */\n\n/* R14, R17: Botones de acción (Hover) */\n.card-actions {\n    position: absolute;\n    top: 10px;\n    right: 10px;\n    opacity: 0;\n    transition: opacity 0.2s;\n    display: flex;\n    gap: 5px;\n}\n\n/* Mostrar acciones al pasar el mouse */\n.card:hover .card-actions {\n    opacity: 1;\n}\n\n.action-btn {\n    background: rgba(0, 0, 0, 0.6);\n    color: white;\n    border: none;\n    padding: 5px 8px;\n    cursor: pointer;\n    border-radius: 4px;\n    font-size: 1em;\n}\n\n/* Modal Styling */\n.modal {\n    display: none; /* Por defecto oculto */\n    position: fixed;\n    z-index: 100;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    overflow: auto;\n    background-color: rgba(0, 0, 0, 0.4); /* Overlay */\n}\n\n.modal-content {\n    background-color: #fefefe;\n    margin: 5% auto; /* Centrado vertical y horizontal */\n    padding: 20px;\n    border-radius: 10px;\n    width: 80%;\n    max-width: 500px;\n    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);\n}\n\n.modal-content h2 {\n    margin-top: 0;\n    color: #102C54;\n}\n\n.form-group {\n    margin-bottom: 15px;\n}\n\n.form-group label {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: bold;\n}\n\n.form-group input[type=\"text\"],\n.form-group textarea,\n.form-group select {\n    width: 100%;\n    padding: 10px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    box-sizing: border-box;\n}\n\n/* Botones del modal */\n.modal-actions {\n    display: flex;\n    justify-content: space-between;\n    margin-top: 20px;\n}\n\n.btn-primary, .btn-secondary {\n    padding: 10px 20px;\n    border: none;\n    cursor: pointer;\n    border-radius: 5px;\n    transition: background-color 0.2s;\n}\n\n.btn-primary {\n    background-color: #3498db;\n    color: white;\n}\n\n.btn-secondary {\n    background-color: #ccc;\n    color: #333;\n}\n\n/* Estilo de la columna Pendiente */\n#addCardBtnBottom {\n    padding: 8px;\n    border: 1px dashed #ccc;\n    border-radius: 8px;\n    cursor: pointer;\n    margin: 10px 15px 20px 15px; /* Espaciado */\n    background-color: white;\n}\n\n/* R2, R11: Botón 'Agregar tarjeta' en Pendiente */\n#addCardBtnBottom.hidden {\n    display: none;\n}\n```",
+      "aplicados": [
+        "archivo styles.css"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": false,
+          "pts": 0
+        }
+      ],
+      "despues": {
+        "V2.1": "FAIL"
+      },
+      "aceptado": false,
+      "motivo": "aplicó todo pero no avanzó: agregó \"QA Zorzal 1\" · agregó \"QA Zorzal 2\" · agregó \"QA Zorzal 3\" · agregó \"QA Zorzal 4\" · → ✗ no_se_corta: <div id=\"cards-pendiente\" class=\"card-container\"> tiene 253px de contenido en 248px"
+    },
+    {
+      "vuelta": 12,
+      "requisito": "V2",
+      "antes": {
+        "V2.1": "FAIL"
+      },
+      "ver": [
+        "styles.css",
+        "script.js"
+      ],
+      "codigo": [
+        "archivo styles.css (entero)",
+        "archivo script.js (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 1098,
+        "arreglo": 7039
+      },
+      "ms": {
+        "ver": 33662,
+        "arreglo": 310358
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 1184,
+          "completion_tokens": 743,
+          "total_tokens": 1927,
+          "completion_tokens_details": {
+            "reasoning_tokens": 706
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 6916,
+          "completion_tokens": 3809,
+          "total_tokens": 10725,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1488
+          }
+        }
+      },
+      "respuesta": "### ARCHIVO: styles.css\n```css\n/* R9: Fondo */\nbody {\n    font-family: sans-serif;\n    background-color: #102C54; /* Fondo principal */\n    margin: 0;\n    padding: 20px;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n}\n\n/* R13: Div 'top' con title y actions */\n.top {\n    width: 95%;\n    max-width: 1200px;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 10px 0;\n    margin-bottom: 20px;\n}\n\n.top h1 {\n    color: white;\n    font-size: 2em;\n}\n\n/* R11: Botón 'Agregar tarjeta' */\n#addCardBtn {\n    padding: 8px 15px; /* padding: 8px */\n    border: 1px dashed #ccc; /* border: 1px dashed */\n    border-radius: 8px; /* border radius: 8px */\n    cursor: pointer;\n    background-color: white;\n    transition: background-color 0.2s;\n}\n\n#addCardBtn:hover {\n    background-color: #e0e0e0;\n}\n\n/* Contenedor principal de columnas */\n.board {\n    display: flex;\n    gap: 20px;\n    width: 95%;\n    max-width: 1400px;\n    justify-content: center; /* Centra el grupo de columnas dentro del board */\n    /* FIX: Limitar la altura del board para que el scroll ocurra dentro de las columnas */\n    max-height: calc(100vh - 180px); /* Ajuste aproximado basado en padding y top bar */\n}\n\n/* R8, R10: Estilo de Columna */\n.column {\n    background-color: #8FB3C7; /* Color columna */\n    width: 248px; /* width: 248px */\n    flex-shrink: 0;\n    border-radius: 10px;\n    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);\n    display: flex;\n    flex-direction: column;\n}\n\n/* Header de la columna */\n.column-header {\n    padding: 15px;\n    border-bottom: 1px solid #ccc;\n    background-color: #4c6a83; /* Cambiado para mejorar contraste con texto blanco */\n    color: white;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n}\n\n.column-header h2 {\n    margin: 0;\n    font-size: 1.2em;\n}\n\n/* Área de tarjetas (Scrollable) */\n.card-container {\n    flex-grow: 1;\n    overflow-y: auto; /* R10: overflow: scroll */\n    padding: 8px;\n    background-color: #f4f4f4;\n    /* Asegura que el contenedor no se desborde horizontalmente */\n}\n\n/* Estilo de la Tarjeta (R12) */\n.card {\n    background-color: #F2E9D8; /* Color tarjeta */\n    width: 223px; /* width: 223px */\n    height: 250px; /* height: 250px */\n    margin-bottom: 15px;\n    padding: 15px;\n    border-radius: 8px;\n    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* R15: Sombra */\n    transition: transform 0.2s, box-shadow 0.2s;\n    position: relative;\n    overflow-y: auto; /* Corregido para permitir scroll en la tarjeta */\n}\n\n/* Efecto de movimiento durante drag&drop (R15) */\n.card.dragging {\n    opacity: 0.4;\n    transform: scale(0.98);\n    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);\n}\n\n/* R6: Drag Handle */\n.drag-handle {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 24px; /* width: 24px */\n    height: 100%;\n    cursor: grab;\n    background: none;\n    border: none;\n    z-index: 10;\n}\n\n/* Contenido principal de la tarjeta (el body) */\n.card-body {\n    padding-left: 24px; /* Espacio para el drag handle */\n    overflow-y: auto; /* R12: overflow-y: scroll/auto */\n    height: calc(100% - 15px); /* Ajuste de altura si hay padding en card */\n}\n\n/* Contenido del texto */\n.card-title {\n    font-weight: bold;\n    margin-bottom: 8px;\n    color: #333;\n}\n\n.card-description {\n    font-size: 0.9em;\n    color: #555;\n    margin-bottom: 10px;\n}\n\n/* R3, R24: Etiquetas de prioridad */\n.priority-tag {\n    display: inline-block;\n    padding: 4px 8px;\n    border-radius: 4px;\n    font-size: 0.75em;\n    font-weight: bold;\n    color: white;\n    margin-top: 10px;\n}\n\n/* Colores de prioridad */\n.priority-alta { background-color: #c94b3e; } /* Cambiado para mejorar contraste */\n.priority-media { background-color: #f0ad4e; color: #333; } /* Amarillo/Naranja - Texto oscuro */\n.priority-baja { background-color: #5cb85c; color: #333; } /* Verde - Texto oscuro */\n\n/* R14, R17: Botones de acción (Hover) */\n.card-actions {\n    position: absolute;\n    top: 10px;\n    right: 10px;\n    opacity: 0;\n    transition: opacity 0.2s;\n    display: flex;\n    gap: 5px;\n}\n\n/* Mostrar acciones al pasar el mouse */\n.card:hover .card-actions {\n    opacity: 1;\n}\n\n.action-btn {\n    background: rgba(0, 0, 0, 0.6);\n    color: white;\n    border: none;\n    padding: 5px 8px;\n    cursor: pointer;\n    border-radius: 4px;\n    font-size: 1em;\n}\n\n/* Modal Styling */\n.modal {\n    display: none; /* Por defecto oculto */\n    position: fixed;\n    z-index: 100;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    overflow: auto;\n    background-color: rgba(0, 0, 0, 0.4); /* Overlay */\n}\n\n.modal-content {\n    background-color: #fefefe;\n    margin: 5% auto; /* Centrado vertical y horizontal */\n    padding: 20px;\n    border-radius: 10px;\n    width: 80%;\n    max-width: 500px;\n    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);\n}\n\n.modal-content h2 {\n    margin-top: 0;\n    color: #102C54;\n}\n\n.form-group {\n    margin-bottom: 15px;\n}\n\n.form-group label {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: bold;\n}\n\n.form-group input[type=\"text\"],\n.form-group textarea,\n.form-group select {\n    width: 100%;\n    padding: 10px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    box-sizing: border-box;\n}\n\n/* Botones del modal */\n.modal-actions {\n    display: flex;\n    justify-content: space-between;\n    margin-top: 20px;\n}\n\n.btn-primary, .btn-secondary {\n    padding: 10px 20px;\n    border: none;\n    cursor: pointer;\n    border-radius: 5px;\n    transition: background-color 0.2s;\n}\n\n.btn-primary {\n    background-color: #3498db;\n    color: white;\n}\n\n.btn-secondary {\n    background-color: #ccc;\n    color: #333;\n}\n\n/* Estilo de la columna Pendiente */\n#addCardBtnBottom {\n    padding: 8px;\n    border: 1px dashed #ccc;\n    border-radius: 8px;\n    cursor: pointer;\n    margin: 10px 15px 20px 15px; /* Espaciado */\n    background-color: white;\n}\n\n/* R2, R11: Botón 'Agregar tarjeta' en Pendiente */\n#addCardBtnBottom.hidden {\n    display: none;\n}\n```",
+      "aplicados": [
+        "archivo styles.css"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": false,
+          "pts": 0
+        }
+      ],
+      "despues": {
+        "V2.1": "FAIL"
+      },
+      "aceptado": false,
+      "motivo": "aplicó todo pero no avanzó: agregó \"QA Benteveo 1\" · agregó \"QA Zorzal 2\" · agregó \"QA Zorzal 3\" · agregó \"QA Zorzal 4\" · → ✗ no_se_corta: <div id=\"cards-pendiente\" class=\"card-container\"> tiene 269px de contenido en 248px: no entra <div class=\"card\"> (ancho 223px + relleno 30px + borde 0px = 253px) en el lugar de adentro de <div id=\"cards-pendiente\" class=\"card-container\"> (248px − relleno 16px = 232px). Si el usuario pidió ese ancho, respetalo y achicá los rellenos",
+      "queda_pendiente": true
+    },
+    {
+      "vuelta": 13,
+      "requisito": "V2",
+      "antes": {
+        "V2.1": "FAIL"
+      },
+      "ver": [
+        "styles.css",
+        "index.html"
+      ],
+      "codigo": [
+        "archivo styles.css (entero)",
+        "archivo index.html (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 1177,
+        "arreglo": 4480
+      },
+      "ms": {
+        "ver": 33553,
+        "arreglo": 374109
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 1276,
+          "completion_tokens": 723,
+          "total_tokens": 1999,
+          "completion_tokens_details": {
+            "reasoning_tokens": 687
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 4938,
+          "completion_tokens": 5332,
+          "total_tokens": 10270,
+          "completion_tokens_details": {
+            "reasoning_tokens": 3000
+          }
+        }
+      },
+      "respuesta": "### ARCHIVO: styles.css\n```css\n/* R9: Fondo */\nbody {\n    font-family: sans-serif;\n    background-color: #102C54; /* Fondo principal */\n    margin: 0;\n    padding: 20px;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n}\n\n/* R13: Div 'top' con title y actions */\n.top {\n    width: 95%;\n    max-width: 1200px;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 10px 0;\n    margin-bottom: 20px;\n}\n\n.top h1 {\n    color: white;\n    font-size: 2em;\n}\n\n/* R11: Botón 'Agregar tarjeta' */\n#addCardBtn {\n    padding: 8px 15px; /* padding: 8px */\n    border: 1px dashed #ccc; /* border: 1px dashed */\n    border-radius: 8px; /* border radius: 8px */\n    cursor: pointer;\n    background-color: white;\n    transition: background-color 0.2s;\n}\n\n#addCardBtn:hover {\n    background-color: #e0e0e0;\n}\n\n/* Contenedor principal de columnas */\n.board {\n    display: flex;\n    gap: 20px;\n    width: 95%;\n    max-width: 1400px;\n    justify-content: center; /* Centra el grupo de columnas dentro del board */\n    /* FIX: Limitar la altura del board para que el scroll ocurra dentro de las columnas */\n    max-height: calc(100vh - 180px); /* Ajuste aproximado basado en padding y top bar */\n}\n\n/* R8, R10: Estilo de Columna */\n.column {\n    background-color: #8FB3C7; /* Color columna */\n    width: 248px; /* width: 248px */\n    flex-shrink: 0;\n    border-radius: 10px;\n    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);\n    display: flex;\n    flex-direction: column;\n}\n\n/* Header de la columna */\n.column-header {\n    padding: 15px;\n    border-bottom: 1px solid #ccc;\n    background-color: #4c6a83; /* Cambiado para mejorar contraste con texto blanco */\n    color: white;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n}\n\n.column-header h2 {\n    margin: 0;\n    font-size: 1.2em;\n}\n\n/* Área de tarjetas (Scrollable) */\n.card-container {\n    flex-grow: 1;\n    overflow-y: auto; /* R10: overflow: scroll */\n    padding: 10px;\n    background-color: #f4f4f4;\n    /* Asegura que el contenedor no se desborde horizontalmente */\n}\n\n/* Estilo de la Tarjeta (R12) */\n.card {\n    background-color: #F2E9D8; /* Color tarjeta */\n    width: 223px; /* width: 223px */\n    height: 250px; /* height: 250px */\n    margin-bottom: 15px;\n    padding: 15px;\n    border-radius: 8px;\n    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* R15: Sombra */\n    transition: transform 0.2s, box-shadow 0.2s;\n    position: relative;\n    overflow-y: auto; /* Corregido para permitir scroll en la tarjeta */\n    box-sizing: border-box;\n}\n\n/* Efecto de movimiento durante drag&drop (R15) */\n.card.dragging {\n    opacity: 0.4;\n    transform: scale(0.98);\n    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);\n}\n\n/* R6: Drag Handle */\n.drag-handle {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 24px; /* width: 24px */\n    height: 100%;\n    cursor: grab;\n    background: none;\n    border: none;\n    z-index: 10;\n}\n\n/* Contenido principal de la tarjeta (el body) */\n.card-body {\n    padding-left: 24px; /* Espacio para el drag handle */\n    overflow-y: auto; /* R12: overflow-y: scroll/auto */\n    height: calc(100% - 15px); /* Ajuste de altura si hay padding en card */\n}\n\n/* Contenido del texto */\n.card-title {\n    font-weight: bold;\n    margin-bottom: 8px;\n    color: #333;\n}\n\n.card-description {\n    font-size: 0.9em;\n    color: #555;\n    margin-bottom: 10px;\n}\n\n/* R3, R24: Etiquetas de prioridad */\n.priority-tag {\n    display: inline-block;\n    padding: 4px 8px;\n    border-radius: 4px;\n    font-size: 0.75em;\n    font-weight: bold;\n    color: white;\n    margin-top: 10px;\n}\n\n/* Colores de prioridad */\n.priority-alta { background-color: #c94b3e; } /* Cambiado para mejorar contraste */\n.priority-media { background-color: #f0ad4e; color: #333; } /* Amarillo/Naranja - Texto oscuro */\n.priority-baja { background-color: #5cb85c; color: #333; } /* Verde - Texto oscuro */\n\n/* R14, R17: Botones de acción (Hover) */\n.card-actions {\n    position: absolute;\n    top: 10px;\n    right: 10px;\n    opacity: 0;\n    transition: opacity 0.2s;\n    display: flex;\n    gap: 5px;\n}\n\n/* Mostrar acciones al pasar el mouse */\n.card:hover .card-actions {\n    opacity: 1;\n}\n\n.action-btn {\n    background: rgba(0, 0, 0, 0.6);\n    color: white;\n    border: none;\n    padding: 5px 8px;\n    cursor: pointer;\n    border-radius: 4px;\n    font-size: 1em;\n}\n\n/* Modal Styling */\n.modal {\n    display: none; /* Por defecto oculto */\n    position: fixed;\n    z-index: 100;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    overflow: auto;\n    background-color: rgba(0, 0, 0, 0.4); /* Overlay */\n}\n\n.modal-content {\n    background-color: #fefefe;\n    margin: 5% auto; /* Centrado vertical y horizontal */\n    padding: 20px;\n    border-radius: 10px;\n    width: 80%;\n    max-width: 500px;\n    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);\n}\n\n.modal-content h2 {\n    margin-top: 0;\n    color: #102C54;\n}\n\n.form-group {\n    margin-bottom: 15px;\n}\n\n.form-group label {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: bold;\n}\n\n.form-group input[type=\"text\"],\n.form-group textarea,\n.form-group select {\n    width: 100%;\n    padding: 10px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    box-sizing: border-box;\n}\n\n/* Botones del modal */\n.modal-actions {\n    display: flex;\n    justify-content: space-between;\n    margin-top: 20px;\n}\n\n.btn-primary, .btn-secondary {\n    padding: 10px 20px;\n    border: none;\n    cursor: pointer;\n    border-radius: 5px;\n    transition: background-color 0.2s;\n}\n\n.btn-primary {\n    background-color: #3498db;\n    color: white;\n}\n\n.btn-secondary {\n    background-color: #ccc;\n    color: #333;\n}\n\n/* Estilo de la columna Pendiente */\n#addCardBtnBottom {\n    padding: 8px;\n    border: 1px dashed #ccc;\n    border-radius: 8px;\n    cursor: pointer;\n    margin: 10px 15px 20px 15px; /* Espaciado */\n    background-color: white;\n}\n\n/* R2, R11: Botón 'Agregar tarjeta' en Pendiente */\n#addCardBtnBottom.hidden {\n    display: none;\n}\n```",
+      "aplicados": [
+        "archivo styles.css"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": true,
+          "pts": 1000
+        }
+      ],
+      "despues": {
+        "V2.1": "PASS"
+      },
+      "aceptado": true,
+      "motivo": "1/1 pruebas de V2 pasan y suma lo que se ve bien (0 → 1000), sin romper nada",
+      "foto": "v005"
+    }
+  ],
+  "curva": [
+    {
+      "vuelta": 1,
+      "cumplidos": 27,
+      "de": 33,
+      "filas_pass": 41,
+      "de_filas": 47
+    },
+    {
+      "vuelta": 2,
+      "cumplidos": 27,
+      "de": 33,
+      "filas_pass": 41,
+      "de_filas": 47
+    },
+    {
+      "vuelta": 3,
+      "cumplidos": 27,
+      "de": 33,
+      "filas_pass": 41,
+      "de_filas": 47
+    },
+    {
+      "vuelta": 4,
+      "cumplidos": 29,
+      "de": 33,
+      "filas_pass": 43,
+      "de_filas": 47
+    },
+    {
+      "vuelta": 5,
+      "cumplidos": 30,
+      "de": 33,
+      "filas_pass": 44,
+      "de_filas": 47
+    },
+    {
+      "vuelta": 6,
+      "cumplidos": 30,
+      "de": 33,
+      "filas_pass": 44,
+      "de_filas": 47
+    },
+    {
+      "vuelta": 7,
+      "cumplidos": 31,
+      "de": 33,
+      "filas_pass": 45,
+      "de_filas": 47
+    },
+    {
+      "vuelta": 8,
+      "cumplidos": 31,
+      "de": 33,
+      "filas_pass": 45,
+      "de_filas": 47
+    },
+    {
+      "vuelta": 9,
+      "cumplidos": 31,
+      "de": 33,
+      "filas_pass": 45,
+      "de_filas": 47
+    },
+    {
+      "vuelta": 10,
+      "cumplidos": 32,
+      "de": 33,
+      "filas_pass": 46,
+      "de_filas": 47
+    },
+    {
+      "vuelta": 11,
+      "cumplidos": 32,
+      "de": 33,
+      "filas_pass": 46,
+      "de_filas": 47
+    },
+    {
+      "vuelta": 12,
+      "cumplidos": 32,
+      "de": 33,
+      "filas_pass": 46,
+      "de_filas": 47
+    },
+    {
+      "vuelta": 13,
+      "cumplidos": 32,
+      "de": 33,
+      "filas_pass": 46,
+      "de_filas": 47
+    },
+    {
+      "vuelta": 14,
+      "cumplidos": 33,
+      "de": 33,
+      "filas_pass": 47,
+      "de_filas": 47
+    }
+  ],
+  "fin": "todo cumplido",
+  "final": "final/"
+}

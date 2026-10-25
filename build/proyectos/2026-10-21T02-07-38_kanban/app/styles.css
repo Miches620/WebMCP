@@ -45,6 +45,7 @@ body {
     gap: 20px;
     width: 95%;
     max-width: 1400px;
+    justify-content: center; /* Centra el grupo de columnas dentro del board */
     /* FIX: Limitar la altura del board para que el scroll ocurra dentro de las columnas */
     max-height: calc(100vh - 180px); /* Ajuste aproximado basado en padding y top bar */
 }
@@ -80,7 +81,7 @@ body {
 .card-container {
     flex-grow: 1;
     overflow-y: auto; /* R10: overflow: scroll */
-    padding: 15px;
+    padding: 10px;
     background-color: #f4f4f4;
     /* Asegura que el contenedor no se desborde horizontalmente */
 }
@@ -97,6 +98,7 @@ body {
     transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
     overflow-y: auto; /* Corregido para permitir scroll en la tarjeta */
+    box-sizing: border-box;
 }
 
 /* Efecto de movimiento durante drag&drop (R15) */
@@ -152,8 +154,8 @@ body {
 
 /* Colores de prioridad */
 .priority-alta { background-color: #c94b3e; } /* Cambiado para mejorar contraste */
-.priority-media { background-color: #f0ad4e; } /* Amarillo/Naranja */
-.priority-baja { background-color: #5cb85c; } /* Verde */
+.priority-media { background-color: #f0ad4e; color: #333; } /* Amarillo/Naranja - Texto oscuro */
+.priority-baja { background-color: #5cb85c; color: #333; } /* Verde - Texto oscuro */
 
 /* R14, R17: Botones de acción (Hover) */
 .card-actions {

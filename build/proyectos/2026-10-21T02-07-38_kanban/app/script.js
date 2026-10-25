@@ -52,6 +52,8 @@ function createCardElement(card) {
     const dragHandle = document.createElement('div');
     dragHandle.className = 'drag-handle';
     dragHandle.setAttribute('draggable', 'true');
+    // Añadir el indicador visual ⠿
+    dragHandle.innerHTML = '⠿';
     dragHandle.ondragstart = (e) => handleDragStart(e, card.id);
 
     // Contenedor de contenido para manejar el padding del drag handle
@@ -279,9 +281,9 @@ function deleteCard(cardId) {
     const card = cardsData[cardId];
     const colId = card.column;
 
-    // Restricción R28: No permitir la eliminación de tarjetas en la columna 'Completa'
+    // Restricción R33/R28: No permitir la eliminación de tarjetas en la columna 'Completa'
     if (colId === 'completa') {
-        console.warn("No se puede eliminar esta tarjeta ya que está en la columna Completa.");
+        alert("No se puede eliminar una tarjeta completada");
         return; 
     }
 

@@ -22,7 +22,7 @@ Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, 
 - **R5.1** · Antes: creo una tarjeta. Edito la tarjeta: le cambio el título y le pongo descripción (un texto cualquiera) y prioridad "alta". → el título nuevo aparece · el título viejo ya no está · la tarjeta muestra el texto que se cargó, "alta"
 
 ## R6. Usar funcionalidad de drag&drop: la tarjeta estara compuesta por un contenedor con 2 divs dentro; Un div de 24px (⠿) sera el encargado de la funcion drag&drop (class='drag-handle' draggable='true' ondragstart / ondragend)
-- (sin prueba: Qwen no dio filas válidas)
+- **R6.1** · Antes: creo una tarjeta. Muevo la tarjeta a "En Curso" arrastrándola desde su manija "⠿". → la tarjeta aparece en "En Curso" · el contador de "Pendiente" baja 1 · el contador de "En Curso" sube 1
 
 ## R7. Comportamiento al borrar una tarjeta: Eliminar(🗑️) abre un modal para consultarle al usuario 'Esta seguro de borrar la tarjeta?' y si el usuario confirma, la tarjeta sera eliminada de la columna donde se encontrara, reduciendo el contador de tarjetas de dicha columna
 - **R7.1** · Antes: creo una tarjeta. Borro la tarjeta (con su control de borrar; si pide confirmar, confirmo). → al apretar borrar, antes de confirmar, aparece "Esta seguro de borrar la tarjeta?" · la tarjeta ya no está
@@ -114,7 +114,7 @@ Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, 
 - **R31.1** · → las columnas quedan centradas en la página (mismo espacio libre a la izquierda y a la derecha)
 
 ## R32. Cada tarjeta muestra su manija ⠿ y se arrastra desde ella
-- (sin prueba: Qwen no dio filas válidas)
+- **R32.1** · Antes: creo una tarjeta. Muevo la tarjeta a "En Curso" arrastrándola desde su manija "⠿". → la tarjeta aparece en "En Curso"
 
 ## R33. Al intentar eliminar una tarjeta en 'Completa', mostrar el mensaje 'No se puede eliminar una tarjeta completada'
-- (sin prueba: Qwen no dio filas válidas)
+- **R33.1** · Antes: creo una tarjeta. Antes: muevo la tarjeta a "Completa". Borro la tarjeta (con su control de borrar; si pide confirmar, confirmo). → al apretar borrar, antes de confirmar, aparece "'No se puede eliminar una tarjeta completada'" · la tarjeta sigue en "Completa" (no se borró)

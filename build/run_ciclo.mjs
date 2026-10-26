@@ -268,7 +268,10 @@ export async function ciclo(o) {
     const vuelta = { vuelta: n, requisito: target, antes: Object.fromEntries(mias.map((f) => [f.id, est[f.id]?.result])) };
     // ---- pedido A: qué quiere ver ----
     const mapa = mapaTexto(app);
-    const previo = ultimo[target] ? `\n\nEl intento anterior NO sirvió: ${ultimo[target]}` : "";
+    // 26/10 (M8/M9 ×12: Gemma sacaba la barra del encabezado y dejaba la letra blanca sobre fondo claro, 12 veces igual):
+    // si el intento anterior arreglaba esto pero rompía otra cosa, se le pide el mismo cambio MÁS lo que lo deja andando
+    const rompio = /^rompió lo que ya andaba/.test(ultimo[target] || "");
+    const previo = ultimo[target] ? `\n\nEl intento anterior NO sirvió: ${ultimo[target]}${rompio ? "\nOJO: tu cambio iba bien para esta regla, pero rompió lo de arriba. Mandá el MISMO cambio y, en el mismo bloque, lo que hace falta para que lo otro siga andando (p. ej. si sacaste un fondo, cambiá también el color de la letra que estaba encima)." : ""}` : "";
     const userA = `${reqTexto(ctx, target)}\n\n${consigna(ctx, mias)}\n\n${fallas(mias, est)}${previo}\n\nMapa de la app:\n${mapa}`;
     const a = await call([{ role: "system", content: SYS_VER }, { role: "user", content: userA }], 1500, "ver"); // 1500: Gemma 4 puede pensar antes de responder, y eso cuenta
     const pa = parseJsonLoose(a.content || "");

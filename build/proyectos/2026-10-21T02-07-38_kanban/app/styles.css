@@ -1,6 +1,6 @@
 /* R9: Fondo */
 body {
-    font-family: sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
     background-color: #102C54; /* Fondo principal */
     margin: 0;
     padding: 20px;
@@ -55,7 +55,7 @@ body {
     background-color: #8FB3C7; /* Color columna */
     width: 248px; /* width: 248px */
     flex-shrink: 0;
-    border-radius: 10px;
+    border-radius: 14px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
@@ -70,6 +70,19 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+/* M10: Acento por grupo de columna */
+#col-pendiente .column-header {
+    border-top: 3px solid #ffc75f; /* Soft yellow/orange accent for Pendiente */
+}
+
+#col-en-curso .column-header {
+    border-top: 3px solid #a8d2e6; /* Soft blue accent for En Curso */
+}
+
+#col-completa .column-header {
+    border-top: 3px solid #b5e4c7; /* Soft green accent for Completa */
 }
 
 .column-header h2 {
@@ -90,12 +103,11 @@ body {
 .card {
     background-color: #F2E9D8; /* Color tarjeta */
     width: 223px; /* width: 223px */
-    height: 250px; /* height: 250px */
     margin-bottom: 15px;
     padding: 15px;
-    border-radius: 8px;
+    border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* R15: Sombra */
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.15s ease, box-shadow 0.15s ease; /* Corregido el tiempo de transición y propiedades */
     position: relative;
     overflow-y: auto; /* Corregido para permitir scroll en la tarjeta */
     box-sizing: border-box;
@@ -106,6 +118,12 @@ body {
     opacity: 0.4;
     transform: scale(0.98);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Hover effect (Reacción al pasar el mouse) */
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16,44,84,.18);
 }
 
 /* R6: Drag Handle */
@@ -124,8 +142,9 @@ body {
 /* Contenido principal de la tarjeta (el body) */
 .card-body {
     padding-left: 24px; /* Espacio para el drag handle */
+    padding-top: 30px; /* Ajuste para evitar superposición con botones de acción en hover */
     overflow-y: auto; /* R12: overflow-y: scroll/auto */
-    height: calc(100% - 15px); /* Ajuste de altura si hay padding en card */
+    height: auto; /* Ajuste de altura para que siga al contenido */
 }
 
 /* Contenido del texto */

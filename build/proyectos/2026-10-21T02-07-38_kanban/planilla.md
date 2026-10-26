@@ -50,10 +50,8 @@ Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, 
 - **R11.2** · → el botón "Agregar tarjeta" tiene border-top-style: dashed
 - **R11.3** · → el botón "Agregar tarjeta" tiene border-top-left-radius: 8px
 
-## R12. Tarjetas con overflow-y:scroll, height:250px, width: 223px (24px para drag&drop y 199px restantes para el body)
-- **R12.1** · Antes: creo una tarjeta. → la tarjeta tiene overflow-y: scroll o auto
-- **R12.2** · Antes: creo una tarjeta. → la tarjeta tiene height: 250px
-- **R12.3** · Antes: creo una tarjeta. → la tarjeta tiene width: 223px
+## R12. Tarjetas con overflow-y:scroll, width: 223px (24px para drag&drop y 199px restantes para el body), y alto según su contenido
+- (sin prueba: Qwen no dio filas válidas)
 
 ## R13. Div 'top' con title y actions
 - (sin prueba: Qwen no dio filas válidas)

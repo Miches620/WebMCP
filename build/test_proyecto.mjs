@@ -78,9 +78,9 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   const d = mk(join(tmpdir(), "p26-")), app = leerApp(join(FIX, "flow_p26_borrador"));
   for (const [f, s] of Object.entries(separarArchivos(app).app)) writeFileSync(join(d, f), s);
   const j = await juzgar(d, P26), fallan = j.fallan.map((f) => f.r).join(",");
-  t("p26: la tarjeta en Pendiente se encuentra aunque la columna tenga header + h2 (R1, R18) y se arrastra de la manija (R22); quedan los 7 errores de verdad", j.cumplidos === 16 && fallan === "R2,R8,R10,R11,R12,R25,R28", `${j.cumplidos} ${fallan}`);
+  t("p26: la tarjeta en Pendiente se encuentra aunque la columna tenga header + h2 (R1, R18) y se arrastra de la manija (R22); quedan los errores de verdad (desde el 26/10 también R9: el gris de adentro tapa el color pedido para la columna)", j.cumplidos === 15 && fallan === "R2,R8,R9,R10,R11,R12,R25,R28", `${j.cumplidos} ${fallan}`);
   const fin = await juzgar(join(FIX, "flow_p26_final"), P26);
-  t("p26: la app final de Gemma (22/10, 4 corridas retomando) da 23/23 con otros textos al azar", fin.cumplidos === 23 && !fin.fallan.length, `${fin.cumplidos} ${fin.fallan.map((f) => f.r).join(",")}`);
+  t("p26: la app final de Gemma (22/10, 4 corridas retomando) da 23/23 con otros textos al azar (con el juez del 26/10, 22: R9, el color de la columna casi no se ve)", fin.cumplidos === 22 && fin.fallan.map((f) => f.r).join() === "R9", `${fin.cumplidos} ${fin.fallan.map((f) => f.r).join(",")}`);
 }
 
 // ---------- 22/10: reglas visuales medibles (visual.mjs) ----------
@@ -91,7 +91,7 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   const P26 = JSON.parse(readFileSync(join(FIX, "planilla_kanban_p26.json"), "utf8"));
   const PV = { ...P26, filas: [...P26.filas, ...filasVisuales()] };
   const a = await juzgar(join(FIX, "flow_p26_final"), PV), b = await juzgar(join(FIX, "flow_p26_visual_mano"), PV);
-  t("visual: la app 23/23 falla contraste (blanco sobre amarillo, 1.95 a 1) y se corta (tarjeta de 253px en 248px); arreglada a mano pasa contraste y cortes SIN romper las 23 pruebas de Miche (V6, botones encima del título al pasar el mouse, sigue en las dos)", a.cumplidos === 27 && a.fallan.map((f) => f.r).join(",") === "V1,V2,V6" && /1\.95 a 1|3\.02 a 1/.test(a.fallan[0].detalle.join(" ")) && b.cumplidos === 29 && b.fallan.map((f) => f.r).join(",") === "V6", `${a.cumplidos} ${a.fallan.map((f) => f.r)} · ${b.cumplidos} ${b.fallan.map((f) => f.r)}`);
+  t("visual: la app 23/23 falla contraste (blanco sobre amarillo, 1.95 a 1) y se corta (tarjeta de 253px en 248px); arreglada a mano pasa contraste y cortes SIN romper las 23 pruebas de Miche (V6, botones encima del título al pasar el mouse, sigue en las dos)", a.cumplidos === 26 && a.fallan.map((f) => f.r).join(",") === "R9,V1,V2,V6" && /1\.95 a 1|3\.02 a 1/.test(a.fallan.find((f) => f.r === "V1").detalle.join(" ")) && b.cumplidos === 28 && b.fallan.map((f) => f.r).join(",") === "R9,V6", `${a.cumplidos} ${a.fallan.map((f) => f.r)} · ${b.cumplidos} ${b.fallan.map((f) => f.r)}`);
   t("visual: en palabras dice la regla; los V van después de todos los R", /contraste de al menos 4\.5/.test(describirFila(filasVisuales()[0], P26.glosario)) && ["V1", "R28", "R2", "V2"].sort((x, y) => ordenReq(x) - ordenReq(y)).join(",") === "R2,R28,V1,V2");
 }
 
@@ -125,7 +125,7 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   const P26 = JSON.parse(readFileSync(join(FIX, "planilla_kanban_p26.json"), "utf8"));
   const { filasVisuales } = await import("../profiles/web/validation/visual.mjs");
   const m = await juzgar(join(FIX, "flow_p26_mvp"), { ...P26, filas: [...P26.filas, ...filasVisuales()] });
-  t("MVP: la app congelada pasa las 23 de c22 y todas las reglas visuales menos no_se_superpone (🗑️ y ✏️ encima del título, lo que vio Miche)", m.cumplidos === m.de - 1 && m.fallan.length === 1 && /no_se_superpone: .*action-btn.*card-title/.test(m.fallan[0].detalle.join(" ")), `${m.cumplidos}/${m.de} ${JSON.stringify(m.fallan).slice(0, 300)}`);
+  t("MVP: la app congelada pasa las 23 de c22 y todas las reglas visuales menos no_se_superpone (🗑️ y ✏️ encima del título, lo que vio Miche); con el juez del 26/10 tampoco R9 (el #8FB3C7 pedido casi no se ve)", m.cumplidos === m.de - 2 && m.fallan.map((f) => f.r).join() === "R9,V6" && /casi no se ve/.test(m.fallan[0].detalle.join(" ")) && /no_se_superpone: .*action-btn.*card-title/.test(m.fallan[1].detalle.join(" ")), `${m.cumplidos}/${m.de} ${JSON.stringify(m.fallan).slice(0, 300)}`);
 }
 
 // ---------- 25/10: diseño moderno medible (REGLAS_MODERNAS) ----------

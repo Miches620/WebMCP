@@ -322,6 +322,27 @@ async function see(page, v, before, w) {
     const ok = got.some((g) => styleMatches(g, e.valor));
     const want = typeof e.valor === "object" && !Array.isArray(e.valor) ? `distinto de ${e.valor.distinto}` : [].concat(e.valor).join(" o ");
     const es = !ok && sel ? await cual(sel) : "";
+    // 26/10: un fondo pedido tiene que VERSE. La columna tenía #8FB3C7 pero un contenedor gris de adentro la tapaba casi
+    // entera, y la prueba pasaba. Se mira en una grilla de puntos qué fondo se ve (los ítems no cuentan: son contenido).
+    if (ok && sel && /^background(-color)?$/.test(e.prop) && e.de !== "pagina") {
+      const vis = await page.evaluate(([q, src]) => {
+        const el = document.querySelector(q); if (!el) return null;
+        const re = new RegExp(src, "i"), esItem = (x) => [...x.classList].some((k) => re.test(k));
+        const r = el.getBoundingClientRect(); let suyo = 0, total = 0; const tapa = new Map();
+        for (let i = 1; i < 12; i++) for (let j = 1; j < 12; j++) {
+          const x = r.left + (r.width * i) / 12, y = r.top + (r.height * j) / 12;
+          if (x < 0 || y < 0 || x > innerWidth || y > innerHeight) continue;
+          let t = document.elementFromPoint(x, y); if (!t || !el.contains(t)) continue;
+          let item = false; for (let z = t; z && z !== el; z = z.parentElement) if (esItem(z)) item = true;
+          if (item || t.closest("button, input, select, textarea, a[href]")) continue; // ítems y controles son contenido
+          total++;
+          for (let z = t; z; z = z.parentElement) { const c = getComputedStyle(z).backgroundColor, a = (c.match(/rgba?\(([^)]+)\)/) || [])[1]?.split(/[ ,/]+/).filter(Boolean).map(Number); if (z === el) { suyo++; break; } if (a && (a.length < 4 || a[3] > 0.6)) { const k = `<${z.tagName.toLowerCase()}${z.className ? ` class="${String(z.className).split(" ").slice(0, 2).join(" ")}"` : ""}> (${c})`; tapa.set(k, (tapa.get(k) || 0) + 1); break; } }
+        }
+        const peores = [...tapa.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([quien, n]) => `${quien} en el ${Math.round((100 * n) / total)}%`);
+        return { pct: total ? Math.round((100 * suyo) / total) : 100, peores };
+      }, [sel, w.src]);
+      if (vis && vis.pct < 40) return [false, `${e.prop} de ${label}: ${[...new Set(got)][0]}, pero casi no se ve: solo en el ${vis.pct}% de ${label} (sin contar ${w.it}s ni botones)${vis.peores.length ? `; lo tapa ${vis.peores.join(" y ")}` : ""}. El color pedido tiene que verse: sacale el fondo a lo que lo tapa (o hacelo transparente)`];
+    }
     return [ok, `${e.prop} de ${label}${es ? ` (es ${es})` : ""}: ${[...new Set(got)].slice(0, 3).join(" | ") || "—"}${ok ? "" : ` (se esperaba ${want})`}`];
   }
   if (v.pregunta) {

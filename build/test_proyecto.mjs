@@ -137,6 +137,15 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   t("moderno: el MVP pasa sombra, jerarquía y aire, y falla redondeo, letra, alto fijo, hover, barra, contador y acento; la versión hecha a mano (paleta de Miche) pasa las 10", a.fallan.map((f) => f.r).join(",") === "M1,M3,M6,M7,M8,M9,M10" && b.cumplidos === 10, `${a.fallan.map((f) => f.r)} · ${b.cumplidos} ${JSON.stringify(b.fallan).slice(0, 300)}`);
 }
 
+// ---------- 27/10: M9 (contador en pastilla) contra V5 (parejo): la pastilla no cuenta como un redondeo más ----------
+{
+  const P26 = JSON.parse(readFileSync(join(FIX, "planilla_kanban_p26.json"), "utf8"));
+  const { filasVisuales, filasModernas } = await import("../profiles/web/validation/visual.mjs");
+  const PVM = { ...P26, filas: [...filasVisuales(), ...filasModernas()] };
+  const a = await juzgar(join(FIX, "flow_p26_m9"), PVM), b = await juzgar(join(FIX, "flow_p26_m9_pastilla"), PVM);
+  t("M9 vs V5: la app de Miche del 27/10 falla solo M9; con el contador en pastilla (999px) pasa todo, V5 incluida (la pastilla no suma al máximo de 4 redondeos)", a.fallan.map((f) => f.r).join() === "M9" && b.fallan.length === 0, `${JSON.stringify(a.fallan).slice(0, 200)} · ${JSON.stringify(b.fallan).slice(0, 300)}`);
+}
+
 // ---------- quitar: Miche saca pruebas que están mal ----------
 const dq = mkdtempSync(join(tmpdir(), "pq-"));
 const reqK = JSON.parse(readFileSync(join(FIX, "real_kanban_c22/snapshot_min.json"), "utf8")).intentForge.refined_prompt.features.map((texto) => ({ texto }));

@@ -1272,3 +1272,9 @@
 
 **Limpieza**
 - Reviewers anteriores (`completeness_reviewer.mjs`, `2`, `4`, `v2_qwen`), sus tests (`test_completeness_artificial*.mjs`), la copia de respaldo `porlasdudas/` y `michelab_council.html` pasan a `_archivo/` (fuera de git). Siguen disponibles en el historial.
+
+## 27/10 — M9 contra V5: dos reglas nuestras se peleaban
+- 3 corridas de `seguir --visual --moderno` quedaron en 42/43: Gemma ponía el contador en pastilla (M9) y eso agregaba un 5º redondeo (999px), así que V5 `parejo` (máximo 4) lo rechazaba. El techo era nuestro.
+- V5: un redondeo de al menos la mitad del alto del elemento es una forma de pastilla; se informa aparte y no suma al máximo.
+- M9 `como`: usar un tamaño de letra que ya exista en la página.
+- Prueba: la app de Miche del 27/10 falla solo M9; la misma con la pastilla a mano pasa todas las V y M.

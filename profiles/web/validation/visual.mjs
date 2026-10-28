@@ -63,10 +63,14 @@ export const MEDIR_VISUAL = () => {
   out.tocables = { ok: !chicos.length, detalle: chicos.length ? chicos.slice(0, 4).map((el) => { const r = el.getBoundingClientRect(); return `${quien(el)}${el.textContent.trim() ? ` "${el.textContent.trim().slice(0, 15)}"` : ""}: ${Math.round(r.width)}×${Math.round(r.height)}px`; }).join(" · ") : `${toc.length} controles de 24×24px o más` };
   // parejo
   const todos = [...document.querySelectorAll("body *")].filter(visto);
-  const radios = new Set(todos.map((el) => getComputedStyle(el).borderTopLeftRadius).filter((x) => x && x !== "0px"));
+  // 27/10 (M9 ×3 corridas: la pastilla del contador sumaba un 5º redondeo y V5 la rechazaba): una forma de pastilla
+  // (redondeo ≥ la mitad del alto) no es "otro redondeo más", es una forma aparte; se cuenta sola y no suma al máximo
+  const pastilla = (el) => { const r = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0; return r > 0 && r >= el.getBoundingClientRect().height / 2 - 0.5; };
+  const radios = new Set(todos.filter((el) => !pastilla(el)).map((el) => getComputedStyle(el).borderTopLeftRadius).filter((x) => x && x !== "0px"));
+  const nPast = todos.filter(pastilla).length;
   const letras = new Set([...textos].map((el) => getComputedStyle(el).fontSize));
   const okP = radios.size <= 4 && letras.size <= 6;
-  out.parejo = { ok: okP, detalle: `${radios.size} redondeos (${[...radios].join(", ") || "—"}; máximo 4) · ${letras.size} tamaños de letra (${[...letras].join(", ")}; máximo 6)` };
+  out.parejo = { ok: okP, detalle: `${radios.size} redondeos (${[...radios].join(", ") || "—"}; máximo 4${nPast ? `; más ${nPast} en forma de pastilla, que no cuentan` : ""}) · ${letras.size} tamaños de letra (${[...letras].join(", ")}; máximo 6)` };
   // no se corta: un contenedor (no la página) con scroll hacia el costado porque algo no entra
   const cortes = todos.filter((el) => { const s = getComputedStyle(el); return s.overflowX !== "visible" && el.scrollWidth > el.clientWidth + 1 && el.clientWidth > 0; });
   // 23/10 (V2 ×5: Gemma achicaba el ancho que pidió el usuario y rompía R12): se dan las cuentas, ancho + relleno + borde
@@ -108,7 +112,7 @@ export const REGLAS_MODERNAS = {
   alto_contenido: { dice: "cada ítem mide lo que ocupa su contenido: sin alto fijo que deje más de 40px vacíos abajo", como: "sacá height fijo de los ítems (podés dejar un min-height chico); que el contenido marque el alto" },
   hover_vivo: { dice: "al pasar el mouse por un ítem, el ítem reacciona (se eleva: cambia la sombra o se mueve un poco)", como: ".item:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(16,44,84,.18) } con transition de .15s", hover: true },
   encabezado_limpio: { dice: "el título de cada grupo va limpio, sin una barra pintada de lado a lado que lo envuelva", como: "sacá el fondo de la barra del encabezado (que se vea el fondo del grupo) y separá con espacio, no con una franja de color. OJO: el título y el contador quedan sobre el fondo del grupo: si es claro, poneles letra oscura (p. ej. el color oscuro de la paleta) para que se sigan leyendo" },
-  contador_pastilla: { dice: "el contador de cada grupo va en una pastilla: fondo propio distinto del que lo rodea y bien redondeada (8px o más)", como: "padding: 2px 10px; border-radius: 999px; background: un tono más oscuro o más claro del grupo (p. ej. rgba del color oscuro de la paleta al 15%); letra oscura si la pastilla es clara, para que se lea" },
+  contador_pastilla: { dice: "el contador de cada grupo va en una pastilla: fondo propio distinto del que lo rodea y bien redondeada (8px o más)", como: "padding: 2px 10px; border-radius: 999px; background: un tono más oscuro o más claro del grupo (p. ej. rgba del color oscuro de la paleta al 15%); letra oscura si la pastilla es clara, para que se lea; usá un tamaño de letra que ya exista en la página (no inventes uno nuevo)" },
   acento_por_grupo: { dice: "cada grupo tiene un color de acento suave propio, distinto del de los otros (p. ej. una línea arriba de 3px o un detalle en el encabezado)", como: "border-top: 3px solid <un color suave distinto por grupo>, en tonos que combinen con la paleta del usuario; no cambies los colores que pidió" },
 };
 /** Filas para las reglas modernas (ids M1…): 4 ítems creados (una variante cada uno). */

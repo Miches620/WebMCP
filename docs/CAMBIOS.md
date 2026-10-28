@@ -1278,3 +1278,4 @@
 - V5: un redondeo de al menos la mitad del alto del elemento es una forma de pastilla; se informa aparte y no suma al máximo.
 - M9 `como`: usar un tamaño de letra que ya exista en la página.
 - Prueba: la app de Miche del 27/10 falla solo M9; la misma con la pastilla a mano pasa todas las V y M.
+- Corrida de Miche (27/10 noche) después del arreglo: 42 → 42 → 42 → **43/43** (55/55 pruebas). En la 3ª vuelta Gemma usó un tamaño de letra que ya existía (0.9em), como pide ahora M9.

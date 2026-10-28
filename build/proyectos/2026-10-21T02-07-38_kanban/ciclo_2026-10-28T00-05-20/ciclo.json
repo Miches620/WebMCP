@@ -1,0 +1,218 @@
+{
+  "type": "EVIDENCE",
+  "kind": "ciclo",
+  "version": "ciclo v0.4",
+  "modelo": "google/gemma-4-e4b",
+  "contexto": 12000,
+  "inicio": "2026-10-28T00:05:20.959Z",
+  "desde": "una app que ya existía",
+  "vueltas": [
+    {
+      "vuelta": 1,
+      "requisito": "M9",
+      "antes": {
+        "M9.1": "FAIL"
+      },
+      "ver": [
+        "styles.css"
+      ],
+      "codigo": [
+        "archivo styles.css (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 1026,
+        "arreglo": 3290
+      },
+      "ms": {
+        "ver": 24498,
+        "arreglo": 231698
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 1119,
+          "completion_tokens": 517,
+          "total_tokens": 1636,
+          "completion_tokens_details": {
+            "reasoning_tokens": 488
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 3821,
+          "completion_tokens": 3692,
+          "total_tokens": 7513,
+          "completion_tokens_details": {
+            "reasoning_tokens": 926
+          }
+        }
+      },
+      "respuesta": "### ARCHIVO: styles.css\n```css\n/* R9: Fondo */\nbody {\n    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;\n    background-color: #102C54; /* Fondo principal */\n    margin: 0;\n    padding: 20px;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n}\n\n/* R13: Div 'top' con title y actions */\n.top {\n    width: 95%;\n    max-width: 1200px;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 10px 0;\n    margin-bottom: 20px;\n}\n\n.top h1 {\n    color: white;\n    font-size: 2em;\n}\n\n/* R11: Botón 'Agregar tarjeta' */\n#addCardBtn {\n    padding: 8px 15px; /* padding: 8px */\n    border: 1px dashed #ccc; /* border: 1px dashed */\n    border-radius: 8px; /* border radius: 8px */\n    cursor: pointer;\n    background-color: white;\n    transition: background-color 0.2s;\n}\n\n#addCardBtn:hover {\n    background-color: #e0e0e0;\n}\n\n/* Contenedor principal de columnas */\n.board {\n    display: flex;\n    gap: 20px;\n    width: 95%;\n    max-width: 1400px;\n    justify-content: center; /* Centra el grupo de columnas dentro del board */\n    /* FIX: Limitar la altura del board para que el scroll ocurra dentro de las columnas */\n    max-height: calc(100vh - 180px); /* Ajuste aproximado basado en padding y top bar */\n}\n\n/* R8, R10: Estilo de Columna */\n.column {\n    background-color: #8FB3C7; /* Color columna */\n    width: 248px; /* width: 248px */\n    flex-shrink: 0;\n    border-radius: 14px;\n    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);\n    display: flex;\n    flex-direction: column;\n}\n\n/* Header de la columna */\n.column-header {\n    padding: 15px;\n    border-bottom: 1px solid #ccc;\n    color: #333; /* Cambiado a color oscuro para contraste con el fondo del grupo */\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n}\n\n/* M10: Acento por grupo de columna */\n#col-pendiente .column-header {\n    border-top: 3px solid #ffc75f; /* Soft yellow/orange accent for Pendiente */\n}\n\n#col-en-curso .column-header {\n    border-top: 3px solid #a8d2e6; /* Soft blue accent for En Curso */\n}\n\n#col-completa .column-header {\n    border-top: 3px solid #b5e4c7; /* Soft green accent for Completa */\n}\n\n.column-header h2 {\n    margin: 0;\n    font-size: 1.2em;\n}\n\n/* R9: Contador de grupo (Pastilla) */\n.card-counter {\n    display: inline-block;\n    padding: 2px 10px; /* padding: 2px 10px */\n    border-radius: 999px; /* bien redondeada */\n    font-size: 0.8em; /* Usar un tamaño de letra existente, ej. el de .card-description o similar */\n    font-weight: bold;\n}\n\n/* Área de tarjetas (Scrollable) */\n.card-container {\n    flex-grow: 1;\n    overflow-y: auto; /* R10: overflow: scroll */\n    padding: 10px;\n    background-color: #f4f4f4;\n    /* Asegura que el contenedor no se desborde horizontalmente */\n}\n\n/* Estilo de la Tarjeta (R12) */\n.card {\n    background-color: #F2E9D8; /* Color tarjeta */\n    width: 223px; /* width: 223px */\n    margin-bottom: 15px;\n    padding: 15px;\n    border-radius: 10px;\n    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* R15: Sombra */\n    transition: transform 0.15s ease, box-shadow 0.15s ease; /* Corregido el tiempo de transición y propiedades */\n    position: relative;\n    overflow-y: auto; /* Corregido para permitir scroll en la tarjeta */\n    box-sizing: border-box;\n}\n\n/* Efecto de movimiento durante drag&drop (R15) */\n.card.dragging {\n    opacity: 0.4;\n    transform: scale(0.98);\n    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);\n}\n\n/* Hover effect (Reacción al pasar el mouse) */\n.card:hover {\n    transform: translateY(-2px);\n    box-shadow: 0 6px 16px rgba(16,44,84,.18);\n}\n\n/* R6: Drag Handle */\n.drag-handle {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 24px; /* width: 24px */\n    height: 100%;\n    cursor: grab;\n    background: none;\n    border: none;\n    z-index: 10;\n}\n\n/* Contenido principal de la tarjeta (el body) */\n.card-body {\n    padding-left: 24px; /* Espacio para el drag handle */\n    padding-top: 30px; /* Ajuste para evitar superposición con botones de acción en hover */\n    overflow-y: auto; /* R12: overflow-y: scroll/auto */\n    height: auto; /* Ajuste de altura para que siga al contenido */\n}\n\n/* Contenido del texto */\n.card-title {\n    font-weight: bold;\n    margin-bottom: 8px;\n    color: #333;\n}\n\n.card-description {\n    font-size: 0.9em;\n    color: #555;\n    margin-bottom: 10px;\n}\n\n/* R3, R24: Etiquetas de prioridad */\n.priority-tag {\n    display: inline-block;\n    padding: 4px 8px;\n    border-radius: 4px;\n    font-size: 0.75em;\n    font-weight: bold;\n    color: white;\n    margin-top: 10px;\n}\n\n/* Colores de prioridad */\n.priority-alta { background-color: #c94b3e; } /* Cambiado para mejorar contraste */\n.priority-media { background-color: #f0ad4e; color: #333; } /* Amarillo/Naranja - Texto oscuro */\n.priority-baja { background-color: #5cb85c; color: #333; } /* Verde - Texto oscuro */\n\n/* R9: Contador de grupo (Pastilla) */\n.card-counter {\n    display: inline-block;\n    padding: 2px 10px; /* padding: 2px 10px */\n    border-radius: 999px; /* bien redondeada */\n    font-size: 0.8em; /* Usar un tamaño de letra existente, ej. el de .card-description o similar */\n    font-weight: bold;\n}\n\n/* R14, R17: Botones de acción (Hover) */\n.card-actions {\n    position: absolute;\n    top: 10px;\n    right: 10px;\n    opacity: 0;\n    transition: opacity 0.2s;\n    display: flex;\n    gap: 5px;\n}\n\n/* Mostrar acciones al pasar el mouse */\n.card:hover .card-actions {\n    opacity: 1;\n}\n\n.action-btn {\n    background: rgba(0, 0, 0, 0.6);\n    color: white;\n    border: none;\n    padding: 5px 8px;\n    cursor: pointer;\n    border-radius: 4px;\n    font-size: 1em;\n}\n\n/* Modal Styling */\n.modal {\n    display: none; /* Por defecto oculto */\n    position: fixed;\n    z-index: 100;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    overflow: auto;\n    background-color: rgba(0, 0, 0, 0.4); /* Overlay */\n}\n\n.modal-content {\n    background-color: #fefefe;\n    margin: 5% auto; /* Centrado vertical y horizontal */\n    padding: 20px;\n    border-radius: 10px;\n    width: 80%;\n    max-width: 500px;\n    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);\n}\n\n.modal-content h2 {\n    margin-top: 0;\n    color: #102C54;\n}\n\n.form-group {\n    margin-bottom: 15px;\n}\n\n.form-group label {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: bold;\n}\n\n.form-group input[type=\"text\"],\n.form-group textarea,\n.form-group select {\n    width: 100%;\n    padding: 10px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    box-sizing: border-box;\n}\n\n/* Botones del modal */\n.modal-actions {\n    display: flex;\n    justify-content: space-between;\n    margin-top: 20px;\n}\n\n.btn-primary, .btn-secondary {\n    padding: 10px 20px;\n    border: none;\n    cursor: pointer;\n    border-radius: 5px;\n    transition: background-color 0.2s;\n}\n\n.btn-primary {\n    background-color: #3498db;\n    color: white;\n}\n\n.btn-secondary {\n    background-color: #ccc;\n    color: #333;\n}\n\n/* Estilo de la columna Pendiente */\n#addCardBtnBottom {\n    padding: 8px;\n    border: 1px dashed #ccc;\n    border-radius: 8px;\n    cursor: pointer;\n    margin: 10px 15px 20px 15px; /* Espaciado */\n    background-color: white;\n}\n\n/* R2, R11: Botón 'Agregar tarjeta' en Pendiente */\n#addCardBtnBottom.hidden {\n    display: none;\n}\n```",
+      "aplicados": [
+        "archivo styles.css"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": false,
+          "pts": 0
+        }
+      ],
+      "despues": {
+        "M9.1": "FAIL"
+      },
+      "aceptado": false,
+      "motivo": "rompió lo que ya andaba: V5 (Antes: creo 4 tarjetas. → la app usa pocos valores distintos: como mucho 4 redondeos de borde y 6 tamaños de letra) → agregó \"Revisar el pedido del cliente y preparar la entrega final\" · agregó \"QA Junco 1\" · agregó \"QA Zorzal 2\" · agregó \"QA Zorzal 3\" · → ✗ parejo: 4 redondeos (14px, 10px, 4px, 8px; máximo 4; más 3 en forma de pastilla, que no cuentan) · 7 tamaños de letra (32px, 19.2px, 12.8px, 16px, 14.4px, 12px, 13.3333px; máximo 6)"
+    },
+    {
+      "vuelta": 2,
+      "requisito": "M9",
+      "antes": {
+        "M9.1": "FAIL"
+      },
+      "ver": [
+        "styles.css",
+        "script.js"
+      ],
+      "codigo": [
+        "archivo styles.css (entero)"
+      ],
+      "codigo_fuera": [
+        "archivo script.js (entero)"
+      ],
+      "tokens_pedido": {
+        "ver": 1259,
+        "arreglo": 3522
+      },
+      "ms": {
+        "ver": 40334,
+        "arreglo": 220806
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 1380,
+          "completion_tokens": 874,
+          "total_tokens": 2254,
+          "completion_tokens_details": {
+            "reasoning_tokens": 838
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 4082,
+          "completion_tokens": 3498,
+          "total_tokens": 7580,
+          "completion_tokens_details": {
+            "reasoning_tokens": 816
+          }
+        }
+      },
+      "respuesta": "### ARCHIVO: styles.css\n```css\n/* R9: Fondo */\nbody {\n    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;\n    background-color: #102C54; /* Fondo principal */\n    margin: 0;\n    padding: 20px;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n}\n\n/* R13: Div 'top' con title y actions */\n.top {\n    width: 95%;\n    max-width: 1200px;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 10px 0;\n    margin-bottom: 20px;\n}\n\n.top h1 {\n    color: white;\n    font-size: 2em;\n}\n\n/* R11: Botón 'Agregar tarjeta' */\n#addCardBtn {\n    padding: 8px 15px; /* padding: 8px */\n    border: 1px dashed #ccc; /* border: 1px dashed */\n    border-radius: 8px; /* border radius: 8px */\n    cursor: pointer;\n    background-color: white;\n    transition: background-color 0.2s;\n}\n\n#addCardBtn:hover {\n    background-color: #e0e0e0;\n}\n\n/* Contenedor principal de columnas */\n.board {\n    display: flex;\n    gap: 20px;\n    width: 95%;\n    max-width: 1400px;\n    justify-content: center; /* Centra el grupo de columnas dentro del board */\n    /* FIX: Limitar la altura del board para que el scroll ocurra dentro de las columnas */\n    max-height: calc(100vh - 180px); /* Ajuste aproximado basado en padding y top bar */\n}\n\n/* R8, R10: Estilo de Columna */\n.column {\n    background-color: #8FB3C7; /* Color columna */\n    width: 248px; /* width: 248px */\n    flex-shrink: 0;\n    border-radius: 14px;\n    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);\n    display: flex;\n    flex-direction: column;\n}\n\n/* Header de la columna */\n.column-header {\n    padding: 15px;\n    border-bottom: 1px solid #ccc;\n    color: #333; /* Cambiado a color oscuro para contraste con el fondo del grupo */\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n}\n\n/* M10: Acento por grupo de columna */\n#col-pendiente .column-header {\n    border-top: 3px solid #ffc75f; /* Soft yellow/orange accent for Pendiente */\n}\n\n#col-en-curso .column-header {\n    border-top: 3px solid #a8d2e6; /* Soft blue accent for En Curso */\n}\n\n#col-completa .column-header {\n    border-top: 3px solid #b5e4c7; /* Soft green accent for Completa */\n}\n\n.column-header h2 {\n    margin: 0;\n    font-size: 1.2em;\n}\n\n/* Contador de tarjetas en la columna (Pastilla) */\n.card-counter {\n    padding: 2px 10px; /* Padding horizontal y vertical */\n    border-radius: 999px; /* Muy redondeado, pastilla */\n    background-color: rgba(0, 0, 0, 0.1); /* Fondo sutilmente diferente al columna */\n    font-size: 0.85em; /* Usando un tamaño de letra existente o similar */\n    color: #333; /* Color oscuro para asegurar lectura sobre fondos claros/medios */\n}\n\n/* Área de tarjetas (Scrollable) */\n.card-container {\n    flex-grow: 1;\n    overflow-y: auto; /* R10: overflow: scroll */\n    padding: 10px;\n    background-color: #f4f4f4;\n    /* Asegura que el contenedor no se desborde horizontalmente */\n}\n\n/* Estilo de la Tarjeta (R12) */\n.card {\n    background-color: #F2E9D8; /* Color tarjeta */\n    width: 223px; /* width: 223px */\n    margin-bottom: 15px;\n    padding: 15px;\n    border-radius: 10px;\n    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* R15: Sombra */\n    transition: transform 0.15s ease, box-shadow 0.15s ease; /* Corregido el tiempo de transición y propiedades */\n    position: relative;\n    overflow-y: auto; /* Corregido para permitir scroll en la tarjeta */\n    box-sizing: border-box;\n}\n\n/* Efecto de movimiento durante drag&drop (R15) */\n.card.dragging {\n    opacity: 0.4;\n    transform: scale(0.98);\n    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);\n}\n\n/* Hover effect (Reacción al pasar el mouse) */\n.card:hover {\n    transform: translateY(-2px);\n    box-shadow: 0 6px 16px rgba(16,44,84,.18);\n}\n\n/* R6: Drag Handle */\n.drag-handle {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 24px; /* width: 24px */\n    height: 100%;\n    cursor: grab;\n    background: none;\n    border: none;\n    z-index: 10;\n}\n\n/* Contenido principal de la tarjeta (el body) */\n.card-body {\n    padding-left: 24px; /* Espacio para el drag handle */\n    padding-top: 30px; /* Ajuste para evitar superposición con botones de acción en hover */\n    overflow-y: auto; /* R12: overflow-y: scroll/auto */\n    height: auto; /* Ajuste de altura para que siga al contenido */\n}\n\n/* Contenido del texto */\n.card-title {\n    font-weight: bold;\n    margin-bottom: 8px;\n    color: #333;\n}\n\n.card-description {\n    font-size: 0.9em;\n    color: #555;\n    margin-bottom: 10px;\n}\n\n/* R3, R24: Etiquetas de prioridad */\n.priority-tag {\n    display: inline-block;\n    padding: 4px 8px;\n    border-radius: 4px;\n    font-size: 0.75em;\n    font-weight: bold;\n    color: white;\n    margin-top: 10px;\n}\n\n/* Colores de prioridad */\n.priority-alta { background-color: #c94b3e; } /* Cambiado para mejorar contraste */\n.priority-media { background-color: #f0ad4e; color: #333; } /* Amarillo/Naranja - Texto oscuro */\n.priority-baja { background-color: #5cb85c; color: #333; } /* Verde - Texto oscuro */\n\n/* R14, R17: Botones de acción (Hover) */\n.card-actions {\n    position: absolute;\n    top: 10px;\n    right: 10px;\n    opacity: 0;\n    transition: opacity 0.2s;\n    display: flex;\n    gap: 5px;\n}\n\n/* Mostrar acciones al pasar el mouse */\n.card:hover .card-actions {\n    opacity: 1;\n}\n\n.action-btn {\n    background: rgba(0, 0, 0, 0.6);\n    color: white;\n    border: none;\n    padding: 5px 8px;\n    cursor: pointer;\n    border-radius: 4px;\n    font-size: 1em;\n}\n\n/* Modal Styling */\n.modal {\n    display: none; /* Por defecto oculto */\n    position: fixed;\n    z-index: 100;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    overflow: auto;\n    background-color: rgba(0, 0, 0, 0.4); /* Overlay */\n}\n\n.modal-content {\n    background-color: #fefefe;\n    margin: 5% auto; /* Centrado vertical y horizontal */\n    padding: 20px;\n    border-radius: 10px;\n    width: 80%;\n    max-width: 500px;\n    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);\n}\n\n.modal-content h2 {\n    margin-top: 0;\n    color: #102C54;\n}\n\n.form-group {\n    margin-bottom: 15px;\n}\n\n.form-group label {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: bold;\n}\n\n.form-group input[type=\"text\"],\n.form-group textarea,\n.form-group select {\n    width: 100%;\n    padding: 10px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    box-sizing: border-box;\n}\n\n/* Botones del modal */\n.modal-actions {\n    display: flex;\n    justify-content: space-between;\n    margin-top: 20px;\n}\n\n.btn-primary, .btn-secondary {\n    padding: 10px 20px;\n    border: none;\n    cursor: pointer;\n    border-radius: 5px;\n    transition: background-color 0.2s;\n}\n\n.btn-primary {\n    background-color: #3498db;\n    color: white;\n}\n\n.btn-secondary {\n    background-color: #ccc;\n    color: #333;\n}\n\n/* Estilo de la columna Pendiente */\n#addCardBtnBottom {\n    padding: 8px;\n    border: 1px dashed #ccc;\n    border-radius: 8px;\n    cursor: pointer;\n    margin: 10px 15px 20px 15px; /* Espaciado */\n    background-color: white;\n}\n\n/* R2, R11: Botón 'Agregar tarjeta' en Pendiente */\n#addCardBtnBottom.hidden {\n    display: none;\n}\n```",
+      "aplicados": [
+        "archivo styles.css"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": false,
+          "pts": 1000
+        }
+      ],
+      "despues": {
+        "M9.1": "PASS"
+      },
+      "aceptado": false,
+      "motivo": "rompió lo que ya andaba: V5 (Antes: creo 4 tarjetas. → la app usa pocos valores distintos: como mucho 4 redondeos de borde y 6 tamaños de letra) → agregó \"Revisar el pedido del cliente y preparar la entrega final\" · agregó \"QA Tala 1\" · agregó \"QA Zorzal 2\" · agregó \"QA Zorzal 3\" · → ✗ parejo: 4 redondeos (14px, 10px, 4px, 8px; máximo 4; más 3 en forma de pastilla, que no cuentan) · 7 tamaños de letra (32px, 19.2px, 13.6px, 16px, 14.4px, 12px, 13.3333px; máximo 6)"
+    },
+    {
+      "vuelta": 3,
+      "requisito": "M9",
+      "antes": {
+        "M9.1": "FAIL"
+      },
+      "ver": [
+        "styles.css"
+      ],
+      "codigo": [
+        "archivo styles.css (entero)"
+      ],
+      "codigo_fuera": [],
+      "tokens_pedido": {
+        "ver": 1259,
+        "arreglo": 3523
+      },
+      "ms": {
+        "ver": 30768,
+        "arreglo": 230310
+      },
+      "usage": {
+        "ver": {
+          "prompt_tokens": 1380,
+          "completion_tokens": 634,
+          "total_tokens": 2014,
+          "completion_tokens_details": {
+            "reasoning_tokens": 604
+          }
+        },
+        "arreglo": {
+          "prompt_tokens": 4082,
+          "completion_tokens": 3635,
+          "total_tokens": 7717,
+          "completion_tokens_details": {
+            "reasoning_tokens": 937
+          }
+        }
+      },
+      "respuesta": "### ARCHIVO: styles.css\n```css\n/* R9: Fondo */\nbody {\n    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;\n    background-color: #102C54; /* Fondo principal */\n    margin: 0;\n    padding: 20px;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n}\n\n/* R13: Div 'top' con title y actions */\n.top {\n    width: 95%;\n    max-width: 1200px;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 10px 0;\n    margin-bottom: 20px;\n}\n\n.top h1 {\n    color: white;\n    font-size: 2em;\n}\n\n/* R11: Botón 'Agregar tarjeta' */\n#addCardBtn {\n    padding: 8px 15px; /* padding: 8px */\n    border: 1px dashed #ccc; /* border: 1px dashed */\n    border-radius: 8px; /* border radius: 8px */\n    cursor: pointer;\n    background-color: white;\n    transition: background-color 0.2s;\n}\n\n#addCardBtn:hover {\n    background-color: #e0e0e0;\n}\n\n/* Contenedor principal de columnas */\n.board {\n    display: flex;\n    gap: 20px;\n    width: 95%;\n    max-width: 1400px;\n    justify-content: center; /* Centra el grupo de columnas dentro del board */\n    /* FIX: Limitar la altura del board para que el scroll ocurra dentro de las columnas */\n    max-height: calc(100vh - 180px); /* Ajuste aproximado basado en padding y top bar */\n}\n\n/* R8, R10: Estilo de Columna */\n.column {\n    background-color: #8FB3C7; /* Color columna */\n    width: 248px; /* width: 248px */\n    flex-shrink: 0;\n    border-radius: 14px;\n    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);\n    display: flex;\n    flex-direction: column;\n}\n\n/* Header de la columna */\n.column-header {\n    padding: 15px;\n    border-bottom: 1px solid #ccc;\n    color: #333; /* Cambiado a color oscuro para contraste con el fondo del grupo */\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n}\n\n/* M9: Contador de tarjetas en Pastilla (FIX) */\n.card-counter {\n    padding: 2px 10px;\n    border-radius: 999px; /* Asegura el redondeo total */\n    font-size: 0.9em; /* Usando un tamaño existente */\n    font-weight: bold;\n    display: inline-block;\n    /* Estilo base para asegurar contraste y fondo propio */\n    background-color: rgba(16, 44, 135, 0.1); \n    color: #102C54; /* Texto oscuro sobre el fondo claro del grupo */\n}\n\n/* M10: Acento por grupo de columna */\n#col-pendiente .column-header {\n    border-top: 3px solid #ffc75f; /* Soft yellow/orange accent for Pendiente */\n}\n\n#col-en-curso .column-header {\n    border-top: 3px solid #a8d2e6; /* Soft blue accent for En Curso */\n}\n\n#col-completa .column-header {\n    border-top: 3px solid #b5e4c7; /* Soft green accent for Completa */\n}\n\n.column-header h2 {\n    margin: 0;\n    font-size: 1.2em;\n}\n\n/* Área de tarjetas (Scrollable) */\n.card-container {\n    flex-grow: 1;\n    overflow-y: auto; /* R10: overflow: scroll */\n    padding: 10px;\n    background-color: #f4f4f4;\n    /* Asegura que el contenedor no se desborde horizontalmente */\n}\n\n/* Estilo de la Tarjeta (R12) */\n.card {\n    background-color: #F2E9D8; /* Color tarjeta */\n    width: 223px; /* width: 223px */\n    margin-bottom: 15px;\n    padding: 15px;\n    border-radius: 10px;\n    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* R15: Sombra */\n    transition: transform 0.15s ease, box-shadow 0.15s ease; /* Corregido el tiempo de transición y propiedades */\n    position: relative;\n    overflow-y: auto; /* Corregido para permitir scroll en la tarjeta */\n    box-sizing: border-box;\n}\n\n/* Efecto de movimiento durante drag&drop (R15) */\n.card.dragging {\n    opacity: 0.4;\n    transform: scale(0.98);\n    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);\n}\n\n/* Hover effect (Reacción al pasar el mouse) */\n.card:hover {\n    transform: translateY(-2px);\n    box-shadow: 0 6px 16px rgba(16,44,84,.18);\n}\n\n/* R6: Drag Handle */\n.drag-handle {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 24px; /* width: 24px */\n    height: 100%;\n    cursor: grab;\n    background: none;\n    border: none;\n    z-index: 10;\n}\n\n/* Contenido principal de la tarjeta (el body) */\n.card-body {\n    padding-left: 24px; /* Espacio para el drag handle */\n    padding-top: 30px; /* Ajuste para evitar superposición con botones de acción en hover */\n    overflow-y: auto; /* R12: overflow-y: scroll/auto */\n    height: auto; /* Ajuste de altura para que siga al contenido */\n}\n\n/* Contenido del texto */\n.card-title {\n    font-weight: bold;\n    margin-bottom: 8px;\n    color: #333;\n}\n\n.card-description {\n    font-size: 0.9em;\n    color: #555;\n    margin-bottom: 10px;\n}\n\n/* R3, R24: Etiquetas de prioridad */\n.priority-tag {\n    display: inline-block;\n    padding: 4px 8px;\n    border-radius: 4px;\n    font-size: 0.75em;\n    font-weight: bold;\n    color: white;\n    margin-top: 10px;\n}\n\n/* Colores de prioridad */\n.priority-alta { background-color: #c94b3e; } /* Cambiado para mejorar contraste */\n.priority-media { background-color: #f0ad4e; color: #333; } /* Amarillo/Naranja - Texto oscuro */\n.priority-baja { background-color: #5cb85c; color: #333; } /* Verde - Texto oscuro */\n\n/* R14, R17: Botones de acción (Hover) */\n.card-actions {\n    position: absolute;\n    top: 10px;\n    right: 10px;\n    opacity: 0;\n    transition: opacity 0.2s;\n    display: flex;\n    gap: 5px;\n}\n\n/* Mostrar acciones al pasar el mouse */\n.card:hover .card-actions {\n    opacity: 1;\n}\n\n.action-btn {\n    background: rgba(0, 0, 0, 0.6);\n    color: white;\n    border: none;\n    padding: 5px 8px;\n    cursor: pointer;\n    border-radius: 4px;\n    font-size: 1em;\n}\n\n/* Modal Styling */\n.modal {\n    display: none; /* Por defecto oculto */\n    position: fixed;\n    z-index: 100;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    overflow: auto;\n    background-color: rgba(0, 0, 0, 0.4); /* Overlay */\n}\n\n.modal-content {\n    background-color: #fefefe;\n    margin: 5% auto; /* Centrado vertical y horizontal */\n    padding: 20px;\n    border-radius: 10px;\n    width: 80%;\n    max-width: 500px;\n    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);\n}\n\n.modal-content h2 {\n    margin-top: 0;\n    color: #102C54;\n}\n\n.form-group {\n    margin-bottom: 15px;\n}\n\n.form-group label {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: bold;\n}\n\n.form-group input[type=\"text\"],\n.form-group textarea,\n.form-group select {\n    width: 100%;\n    padding: 10px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    box-sizing: border-box;\n}\n\n/* Botones del modal */\n.modal-actions {\n    display: flex;\n    justify-content: space-between;\n    margin-top: 20px;\n}\n\n.btn-primary, .btn-secondary {\n    padding: 10px 20px;\n    border: none;\n    cursor: pointer;\n    border-radius: 5px;\n    transition: background-color 0.2s;\n}\n\n.btn-primary {\n    background-color: #3498db;\n    color: white;\n}\n\n.btn-secondary {\n    background-color: #ccc;\n    color: #333;\n}\n\n/* Estilo de la columna Pendiente */\n#addCardBtnBottom {\n    padding: 8px;\n    border: 1px dashed #ccc;\n    border-radius: 8px;\n    cursor: pointer;\n    margin: 10px 15px 20px 15px; /* Espaciado */\n    background-color: white;\n}\n\n/* R2, R11: Botón 'Agregar tarjeta' en Pendiente */\n#addCardBtnBottom.hidden {\n    display: none;\n}\n```",
+      "aplicados": [
+        "archivo styles.css"
+      ],
+      "problemas": [],
+      "pruebas": [
+        {
+          "que": "todo",
+          "ok": true,
+          "pts": 1000
+        }
+      ],
+      "despues": {
+        "M9.1": "PASS"
+      },
+      "aceptado": true,
+      "motivo": "1/1 pruebas de M9 pasan y suma lo que se ve bien (0 → 1000), sin romper nada",
+      "foto": "v001"
+    }
+  ],
+  "curva": [
+    {
+      "vuelta": 1,
+      "cumplidos": 42,
+      "de": 43,
+      "filas_pass": 54,
+      "de_filas": 55
+    },
+    {
+      "vuelta": 2,
+      "cumplidos": 42,
+      "de": 43,
+      "filas_pass": 54,
+      "de_filas": 55
+    },
+    {
+      "vuelta": 3,
+      "cumplidos": 42,
+      "de": 43,
+      "filas_pass": 54,
+      "de_filas": 55
+    },
+    {
+      "vuelta": 4,
+      "cumplidos": 43,
+      "de": 43,
+      "filas_pass": 55,
+      "de_filas": 55
+    }
+  ],
+  "fin": "todo cumplido",
+  "final": "final/"
+}

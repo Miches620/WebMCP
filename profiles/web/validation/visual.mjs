@@ -102,7 +102,7 @@ export const MEDIR_VISUAL = () => {
 // Miche: "llevarlo a un diseño moderno, respetando mi paleta y mis elecciones" + 3 referencias (Jira, Hussle, Eniun).
 // Lo que tienen en común las referencias, dicho de forma que el juez lo pueda MEDIR, para cualquier app con ítems agrupados.
 // "como" es la parte Skill. Elecciones de Miche (25/10): acento suave por grupo, alto según contenido, título limpio + contador en pastilla.
-export const MODERNO_VERSION = "moderno v0.1";
+export const MODERNO_VERSION = "moderno v0.2";
 export const REGLAS_MODERNAS = {
   redondeado: { dice: "superficies redondeadas: cada grupo con redondeo de 12px o más y cada ítem de 8px o más", como: "border-radius: 14px en los grupos y 10px en los ítems (no cambies los redondeos que pidió el usuario en otros elementos)" },
   sombra_suave: { dice: "los ítems tienen una sombra suave (difusa: 6px o más; transparente: opacidad 0.3 o menos), sin bordes gruesos", como: "box-shadow: 0 2px 8px rgba(16, 44, 84, 0.12); borde de 1px o ninguno" },
@@ -114,6 +114,10 @@ export const REGLAS_MODERNAS = {
   encabezado_limpio: { dice: "el título de cada grupo va limpio, sin una barra pintada de lado a lado que lo envuelva", como: "sacá el fondo de la barra del encabezado (que se vea el fondo del grupo) y separá con espacio, no con una franja de color. OJO: el título y el contador quedan sobre el fondo del grupo: si es claro, poneles letra oscura (p. ej. el color oscuro de la paleta) para que se sigan leyendo" },
   contador_pastilla: { dice: "el contador de cada grupo va en una pastilla: fondo propio distinto del que lo rodea y bien redondeada (8px o más)", como: "padding: 2px 10px; border-radius: 999px; background: un tono más oscuro o más claro del grupo (p. ej. rgba del color oscuro de la paleta al 15%); letra oscura si la pastilla es clara, para que se lea; usá un tamaño de letra que ya exista en la página (no inventes uno nuevo)" },
   acento_por_grupo: { dice: "cada grupo tiene un color de acento suave propio, distinto del de los otros (p. ej. una línea arriba de 3px o un detalle en el encabezado)", como: "border-top: 3px solid <un color suave distinto por grupo>, en tonos que combinen con la paleta del usuario; no cambies los colores que pidió" },
+  // 27/10 (moderno v0.2): lo que Miche y Claude vieron a ojo en la app 43/43 y ninguna regla medía
+  fondo_a_la_vista: { dice: "el fondo de cada grupo se ve: ningún contenedor de otro color tapa más de la mitad del grupo", como: "dejá sin fondo (background: transparent) el contenedor que va adentro del grupo, para que se vea el color del grupo; los ítems sí tienen su propio color" },
+  texto_cerca_del_borde: { dice: "en cada ítem el texto arranca cerca del borde: a 28px o menos del borde de arriba y del de la izquierda (sin franjas vacías reservadas)", como: "relleno del ítem de 12 a 16px y nada más; la manija entra en ese relleno de la izquierda; si los botones que aparecen al pasar el mouse tapan el título, movelos abajo a la derecha (bottom: 10px; right: 10px) en vez de dejar una franja vacía arriba" },
+  esquinas: { dice: "lo de adentro respeta las esquinas redondeadas: ningún fondo ni borde se sale de la curva de su contenedor", como: "overflow: hidden en el contenedor redondeado (así recorta lo de adentro a su curva), o el mismo border-radius en la esquina del elemento de adentro" },
 };
 /** Filas para las reglas modernas (ids M1…): 4 ítems creados (una variante cada uno). */
 export function filasModernas(reglas = Object.keys(REGLAS_MODERNAS)) {
@@ -195,6 +199,49 @@ export const MEDIR_MODERNO = (src) => {
     out.contador_pastilla = { ok: !pastillas.length, detalle: pastillas.length ? pastillas.slice(0, 3).join(" · ") : "contadores en pastilla" };
     const distintas = new Set(firmas).size === firmas.length && firmas.every(Boolean);
     out.acento_por_grupo = { ok: distintas, detalle: distintas ? `${grupos.length} grupos con acento propio` : `los grupos no tienen un acento distinto cada uno (${firmas.map((f, i) => `${quien(grupos[i])}: ${f || "ninguno"}`).join(" · ").slice(0, 300)})` };
+  }
+  // fondo a la vista: un contenedor (no ítem) de otro color que tapa más de la mitad de un grupo con fondo propio
+  if (!grupos.length) out.fondo_a_la_vista = { ok: false, detalle: "no encontré grupos con título" }; else {
+    const tapas = [];
+    for (const g of grupos) {
+      const gc = rgba(getComputedStyle(g).backgroundColor); if (!gc || gc.a <= 0.05) continue;
+      const gr = g.getBoundingClientRect(), area = gr.width * gr.height;
+      for (const e of g.querySelectorAll("*")) { if (!vis(e) || inItem(e)) continue; const c = rgba(getComputedStyle(e).backgroundColor); if (!c || c.a <= 0.5 || igual(c, gc)) continue; const r = e.getBoundingClientRect(); if (r.width * r.height >= area * 0.5) { tapas.push(`${quien(e)} (fondo ${getComputedStyle(e).backgroundColor}) tapa el ${Math.round((100 * r.width * r.height) / area)}% de ${quien(g)} (fondo ${getComputedStyle(g).backgroundColor})`); break; } }
+    }
+    out.fondo_a_la_vista = { ok: !tapas.length, detalle: tapas.length ? tapas.slice(0, 3).join(" · ") : "el fondo de los grupos se ve" };
+  }
+  // texto cerca del borde: dónde arranca la letra (un Range) respecto del borde del ítem
+  if (!items.length) out.texto_cerca_del_borde = sinItems("texto_cerca_del_borde"); else {
+    const lejos = [];
+    for (const it of items) {
+      const ir = it.getBoundingClientRect(); let L = Infinity, T = Infinity;
+      const w = document.createTreeWalker(it, NodeFilter.SHOW_TEXT);
+      for (let n = w.nextNode(); n; n = w.nextNode()) { if (!/[\p{L}\d]/u.test(n.nodeValue) || !n.parentElement || n.parentElement.closest("button") || !vis(n.parentElement)) continue; const rg = document.createRange(); rg.selectNodeContents(n); for (const q of rg.getClientRects()) if (q.width > 0) { L = Math.min(L, q.left); T = Math.min(T, q.top); } }
+      if (L === Infinity) continue;
+      const iz = Math.round(L - ir.left), ar = Math.round(T - ir.top);
+      if (iz > 28 || ar > 28) lejos.push({ it, iz, ar });
+    }
+    const p0 = lejos[0];
+    out.texto_cerca_del_borde = { ok: !lejos.length, detalle: p0 ? `${quien(p0.it)}: el texto arranca a ${p0.ar}px del borde de arriba y a ${p0.iz}px del de la izquierda (máximo 28 cada uno); relleno del ítem ${getComputedStyle(p0.it).padding}${[...p0.it.querySelectorAll("*")].filter((e) => px(getComputedStyle(e).paddingTop) + px(getComputedStyle(e).paddingLeft) >= 16 && !e.closest("button")).slice(0, 2).map((e) => `; ${quien(e)} suma relleno ${getComputedStyle(e).padding}`).join("")}` : `${items.length} ítems con el texto cerca del borde` };
+  }
+  // esquinas: algo que pinta (fondo o borde) en la esquina de un contenedor redondeado que no recorta (overflow visible)
+  {
+    const ESQ = [["TopLeft", "top", "left"], ["TopRight", "top", "right"], ["BottomLeft", "bottom", "left"], ["BottomRight", "bottom", "right"]];
+    const malas = [];
+    for (const p of document.querySelectorAll("body *")) {
+      if (malas.length >= 3) break; if (!vis(p)) continue; const ps = getComputedStyle(p); if (ps.overflowX !== "visible" || ps.overflowY !== "visible") continue;
+      const pr = p.getBoundingClientRect();
+      for (const [k, v, h] of ESQ) {
+        const rad = px(ps[`border${k}Radius`]); if (rad < 6 || malas.length >= 3) continue;
+        for (const d of p.querySelectorAll("*")) {
+          if (!vis(d)) continue; const dr = d.getBoundingClientRect(); if (Math.abs(dr[v] - pr[v]) > 1 || Math.abs(dr[h] - pr[h]) > 1) continue;
+          const ds = getComputedStyle(d), bg = rgba(ds.backgroundColor), V = v[0].toUpperCase() + v.slice(1), H = h[0].toUpperCase() + h.slice(1);
+          const pinta = (bg && bg.a > 0.05) || px(ds[`border${V}Width`]) >= 1 || px(ds[`border${H}Width`]) >= 1;
+          if (pinta && px(ds[`border${k}Radius`]) < rad - 2) { malas.push(`${quien(d)} se sale de la esquina ${v === "top" ? "de arriba" : "de abajo"} a la ${h === "left" ? "izquierda" : "derecha"} de ${quien(p)} (redondeo ${rad}px; ${quien(d)} tiene ${ds[`border${k}Radius`]}${bg && bg.a > 0.05 ? `, fondo ${ds.backgroundColor}` : ", borde"})`); break; }
+        }
+      }
+    }
+    out.esquinas = { ok: !malas.length, detalle: malas.length ? malas.join(" · ") : "nada se sale de las esquinas redondeadas" };
   }
   return out;
 };

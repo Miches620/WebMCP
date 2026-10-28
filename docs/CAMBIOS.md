@@ -1279,3 +1279,8 @@
 - M9 `como`: usar un tamaño de letra que ya exista en la página.
 - Prueba: la app de Miche del 27/10 falla solo M9; la misma con la pastilla a mano pasa todas las V y M.
 - Corrida de Miche (27/10 noche) después del arreglo: 42 → 42 → 42 → **43/43** (55/55 pruebas). En la 3ª vuelta Gemma usó un tamaño de letra que ya existía (0.9em), como pide ahora M9.
+
+## 27/10 noche — moderno v0.2: lo que se veía a ojo y nadie medía (pedido de Miche)
+- La app 43/43 pasaba el examen pero a ojo: un gris tapaba el color de columna, mucho espacio vacío arriba del título, esquinas de abajo cuadradas.
+- 3 reglas nuevas, genéricas: M11 `fondo_a_la_vista` (ningún contenedor de otro color tapa más de la mitad de un grupo), M12 `texto_cerca_del_borde` (el texto del ítem arranca a ≤ 28px de arriba y de la izquierda), M13 `esquinas` (nada pinta afuera de la curva de un contenedor redondeado que no recorta).
+- Antes de sumarlas, la prueba de hoy: la app 43/43 falla solo M11–M13 y la misma arreglada a mano (6 líneas de CSS) pasa todas las V y M. No hay choque con las reglas que ya estaban.

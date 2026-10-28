@@ -1284,3 +1284,8 @@
 - La app 43/43 pasaba el examen pero a ojo: un gris tapaba el color de columna, mucho espacio vacío arriba del título, esquinas de abajo cuadradas.
 - 3 reglas nuevas, genéricas: M11 `fondo_a_la_vista` (ningún contenedor de otro color tapa más de la mitad de un grupo), M12 `texto_cerca_del_borde` (el texto del ítem arranca a ≤ 28px de arriba y de la izquierda), M13 `esquinas` (nada pinta afuera de la curva de un contenedor redondeado que no recorta).
 - Antes de sumarlas, la prueba de hoy: la app 43/43 falla solo M11–M13 y la misma arreglada a mano (6 líneas de CSS) pasa todas las V y M. No hay choque con las reglas que ya estaban.
+
+## 28/10 — M12: 3 corridas trabadas en 45/46 porque Gemma no hacía la suma
+- Gemma bajaba el relleno de adentro (card-body) de 30 a 15 y el texto quedaba a 30px: 15 del ítem + 15 de adentro. El aviso nombraba los dos rellenos pero no sumaba; igual que V2 el 23/10.
+- M12 ahora da las cuentas ("arriba 30px = relleno de card-body 15px + relleno de card 15px") y dice que cuenta la SUMA; el `como` aclara que los rellenos de adentro se suman al del ítem.
+- El ir y venir con V6 (botones arriba tapan el título largo) ya lo resuelve el `como` (botones abajo a la derecha); Gemma lo hizo en 4 de 6 vueltas.

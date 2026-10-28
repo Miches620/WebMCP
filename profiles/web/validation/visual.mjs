@@ -116,7 +116,7 @@ export const REGLAS_MODERNAS = {
   acento_por_grupo: { dice: "cada grupo tiene un color de acento suave propio, distinto del de los otros (p. ej. una línea arriba de 3px o un detalle en el encabezado)", como: "border-top: 3px solid <un color suave distinto por grupo>, en tonos que combinen con la paleta del usuario; no cambies los colores que pidió" },
   // 27/10 (moderno v0.2): lo que Miche y Claude vieron a ojo en la app 43/43 y ninguna regla medía
   fondo_a_la_vista: { dice: "el fondo de cada grupo se ve: ningún contenedor de otro color tapa más de la mitad del grupo", como: "dejá sin fondo (background: transparent) el contenedor que va adentro del grupo, para que se vea el color del grupo; los ítems sí tienen su propio color" },
-  texto_cerca_del_borde: { dice: "en cada ítem el texto arranca cerca del borde: a 28px o menos del borde de arriba y del de la izquierda (sin franjas vacías reservadas)", como: "relleno del ítem de 12 a 16px y nada más; la manija entra en ese relleno de la izquierda; si los botones que aparecen al pasar el mouse tapan el título, movelos abajo a la derecha (bottom: 10px; right: 10px) en vez de dejar una franja vacía arriba" },
+  texto_cerca_del_borde: { dice: "en cada ítem el texto arranca cerca del borde: a 28px o menos del borde de arriba y del de la izquierda (sin franjas vacías reservadas)", como: "relleno del ítem de 12 a 16px y nada más: los rellenos de lo que va adentro del ítem SE SUMAN a ese (relleno del ítem + relleno de adentro ≤ 28px), así que lo de adentro casi no lleva relleno; la manija entra en ese relleno de la izquierda; si los botones que aparecen al pasar el mouse tapan el título, movelos abajo a la derecha (bottom: 10px; right: 10px) en vez de dejar una franja vacía arriba" },
   esquinas: { dice: "lo de adentro respeta las esquinas redondeadas: ningún fondo ni borde se sale de la curva de su contenedor", como: "overflow: hidden en el contenedor redondeado (así recorta lo de adentro a su curva), o el mismo border-radius en la esquina del elemento de adentro" },
 };
 /** Filas para las reglas modernas (ids M1…): 4 ítems creados (una variante cada uno). */
@@ -214,15 +214,18 @@ export const MEDIR_MODERNO = (src) => {
   if (!items.length) out.texto_cerca_del_borde = sinItems("texto_cerca_del_borde"); else {
     const lejos = [];
     for (const it of items) {
-      const ir = it.getBoundingClientRect(); let L = Infinity, T = Infinity;
+      const ir = it.getBoundingClientRect(); let L = Infinity, T = Infinity, eL = null, eT = null;
       const w = document.createTreeWalker(it, NodeFilter.SHOW_TEXT);
-      for (let n = w.nextNode(); n; n = w.nextNode()) { if (!/[\p{L}\d]/u.test(n.nodeValue) || !n.parentElement || n.parentElement.closest("button") || !vis(n.parentElement)) continue; const rg = document.createRange(); rg.selectNodeContents(n); for (const q of rg.getClientRects()) if (q.width > 0) { L = Math.min(L, q.left); T = Math.min(T, q.top); } }
+      for (let n = w.nextNode(); n; n = w.nextNode()) { if (!/[\p{L}\d]/u.test(n.nodeValue) || !n.parentElement || n.parentElement.closest("button") || !vis(n.parentElement)) continue; const rg = document.createRange(); rg.selectNodeContents(n); for (const q of rg.getClientRects()) if (q.width > 0) { if (q.left < L) { L = q.left; eL = n.parentElement; } if (q.top < T) { T = q.top; eT = n.parentElement; } } }
       if (L === Infinity) continue;
       const iz = Math.round(L - ir.left), ar = Math.round(T - ir.top);
-      if (iz > 28 || ar > 28) lejos.push({ it, iz, ar });
+      if (iz > 28 || ar > 28) lejos.push({ it, iz, ar, eL, eT });
     }
+    // 28/10 (M12 ×3 corridas: Gemma bajaba el relleno de adentro a 15 y quedaba en 30 = 15 del ítem + 15): se dan las cuentas, como en no_se_corta
+    const cuenta = (it, el, lado, total) => { const K = lado === "top" ? "Top" : "Left", partes = []; let suma = 0; for (let x = el; x; x = x.parentElement) { const st = getComputedStyle(x), pad = px(st[`padding${K}`]) + px(st[`border${K}Width`]), mar = x === it ? 0 : px(st[`margin${K}`]); if (pad) { partes.push(`relleno de ${quien(x)} ${pad}px`); suma += pad; } if (mar) { partes.push(`margen de ${quien(x)} ${mar}px`); suma += mar; } if (x === it) break; } const resto = Math.round(total - suma); return `${total}px = ${partes.join(" + ") || "0"}${resto ? ` + ${resto}px de la línea de texto` : ""}`; };
     const p0 = lejos[0];
-    out.texto_cerca_del_borde = { ok: !lejos.length, detalle: p0 ? `${quien(p0.it)}: el texto arranca a ${p0.ar}px del borde de arriba y a ${p0.iz}px del de la izquierda (máximo 28 cada uno); relleno del ítem ${getComputedStyle(p0.it).padding}${[...p0.it.querySelectorAll("*")].filter((e) => px(getComputedStyle(e).paddingTop) + px(getComputedStyle(e).paddingLeft) >= 16 && !e.closest("button")).slice(0, 2).map((e) => `; ${quien(e)} suma relleno ${getComputedStyle(e).padding}`).join("")}` : `${items.length} ítems con el texto cerca del borde` };
+    const txt0 = p0 ? [p0.ar > 28 ? `arriba ${cuenta(p0.it, p0.eT, "top", p0.ar)}` : "", p0.iz > 28 ? `a la izquierda ${cuenta(p0.it, p0.eL, "left", p0.iz)}` : ""].filter(Boolean).join(" · ") : "";
+    out.texto_cerca_del_borde = { ok: !lejos.length, detalle: p0 ? `${quien(p0.it)}: el texto arranca a ${p0.ar}px del borde de arriba y a ${p0.iz}px del de la izquierda (máximo 28 cada uno). Las cuentas: ${txt0}. Lo que cuenta es la SUMA: bajá los rellenos hasta que dé 28 o menos` : `${items.length} ítems con el texto cerca del borde` };
   }
   // esquinas: algo que pinta (fondo o borde) en la esquina de un contenedor redondeado que no recorta (overflow visible)
   {

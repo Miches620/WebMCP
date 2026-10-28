@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban Board</title>
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- R13: Div 'top' con title y actions -->
+    <div class="top">
+        <h1>Kanban Board</h1>
+        <div></div>
+    </div>
+
+    <!-- Contenedor principal del tablero -->
+    <div class="board">
+
+        <!-- Columna Pendiente (R2, R8) -->
+        <div class="column" id="col-pendiente">
+            <div class="column-header">
+                <h2>Pendiente</h2>
+                <span class="card-counter" data-column="pendiente">0</span>
+            </div>
+
+            <!-- Área de tarjetas (R12, R10) -->
+            <div class="card-container" id="cards-pendiente" ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'pendiente')">
+                <!-- Las tarjetas se insertarán aquí por JS -->
+            </div>
+
+            <!-- Botón Agregar tarjeta (Solo en Pendiente) -->
+            <button id="addCardBtnBottom" onclick="openModal('create')">Agregar tarjeta</button>
+        </div>
+
+        <!-- Columna En Curso (R8, R10) -->
+        <div class="column" id="col-en-curso">
+            <div class="column-header">
+                <h2>En Curso</h2>
+                <span class="card-counter" data-column="en-curso">0</span>
+            </div>
+
+            <!-- Área de tarjetas (R12, R10) -->
+            <div class="card-container" id="cards-en-curso" ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'en-curso')">
+                <!-- Las tarjetas se insertarán aquí por JS -->
+            </div>
+        </div>
+
+        <!-- Columna Completa (R8, R10) -->
+        <div class="column" id="col-completa">
+            <div class="column-header">
+                <h2>Completa</h2>
+                <span class="card-counter" data-column="completa">0</span>
+            </div>
+
+            <!-- Área de tarjetas (R12, R10) -->
+            <div class="card-container" id="cards-completa" ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'completa')">
+                <!-- Las tarjetas se insertarán aquí por JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal de Creación/Edición (R25) -->
+    <div id="cardModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Crear Nueva Tarjeta</h2>
+            <form id="cardForm">
+                <input type="hidden" id="cardId">
+                <input type="hidden" id="currentColumn">
+
+                <div class="form-group">
+                    <label for="title">Título:</label>
+                    <input type="text" id="title" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Descripción:</label>
+                    <textarea id="description" rows="4"></textarea>
+                </div>
+
+                <!-- R3: Selector de prioridad -->
+                <div class="form-group">
+                    <label for="priority">Prioridad:</label>
+                    <select id="priority" required>
+                        <option value="" disabled selected>Seleccione una prioridad</option>
+                        <option value="alta">Alta (Rojo)</option>
+                        <option value="media">Media (Amarillo)</option>
+                        <option value="baja">Baja (Verde)</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="saveCardBtn">Guardar Tarjeta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

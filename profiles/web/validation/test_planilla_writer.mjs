@@ -184,6 +184,14 @@ t("la misma prueba 3 veces (R23 real) queda una sola", dup.filas.length === 1, J
   t("las 9 filas de lugares pasan el validador", r.filas.every((f) => validateRow(normalizeRow(f, GH).row, 20, { glosario: GH }).ok) && !r.problems.length, JSON.stringify(r.problems) + JSON.stringify(r.filas.map((f) => validateRow(normalizeRow(f, GH).row, 20, { glosario: GH }).problems)));
   const malas = rowsFromChoices([{ plantilla: "escribir_y_ver", en: "arriba", escribo: "x", muestra: "x" }, { plantilla: "seleccionar_y_usar", seleccion: "C", accion: "pintar" }, { plantilla: "grilla", columnas: "muchas", filas: "1-5" }], "R1", GH).problems;
   t("lugares mal completados → afuera con qué falta (por columna y fila; borrar, vaciar, ocultar o color; de cuál a cuál)", malas.length === 3 && /columna y su fila/.test(malas[0]) && /borrar, vaciar, ocultar o color/.test(malas[1]) && /A-J/.test(malas[2]), malas.join(" | "));
+  // 3ª corrida de la hoja (29/10): fórmulas sin decir qué tienen las celdas que usan
+  const sinAntes = rowsFromChoices([
+    { plantilla: "escribir_y_ver", en: "B2", escribo: "=SUMA(A1:A3)", muestra: "6" },
+    { plantilla: "escribir_y_ver", antes: { A1: "=SUMA(A2:A3)" }, en: "A1", escribo: "=SUMA(A2:A4)", muestra: "9" },
+    { plantilla: "escribir_y_ver", antes: { A1: "4", B1: "2" }, en: "C1", escribo: "=A1-B1", muestra: "2" },
+    { plantilla: "escribir_y_ver", antes: { A1: "5", B1: "3", C1: "" }, en: "C1", escribo: "=SUMA(A1;B1)", muestra: "8" },
+  ], "R3", GH);
+  t("escribir_y_ver: una fórmula que usa celdas que no están en 'antes' se rechaza y se dice cuáles (3ª corrida: =SUMA(A1:A3) → 6 con A1..A3 vacías)", sinAntes.filas.length === 2 && /usa A1, A2, A3 y no dijiste qué tiene cada una/.test(sinAntes.problems[0]) && /usa A2, A3, A4/.test(sinAntes.problems[1]), sinAntes.problems.join(" | "));
   // 1ª corrida de la hoja (29/10): "hay un botón que dice 'Ocultar Columna'" sin que el usuario lo escribiera
   const bt = relevanceProblems([{ plantilla: "boton_en", palabras: ["Ocultar", "Columna"] }], "Ocultar una columna y ocultar una fila");
   const bk = relevanceProblems([{ plantilla: "boton_en", palabras: ["Agregar", "tarjeta"] }], "Botón 'Agregar tarjeta': padding: 8px");

@@ -1303,3 +1303,9 @@
 - El buscador leyó 6 páginas (Microsoft, un artículo de Excel en castellano, Smartsheet, Zapier, un repo de GitHub) y dejó 10 rasgos con cita: "las filas están numeradas y las columnas se identifican con letras", "SUMA, PROMEDIO o BUSCARV", etc.
 - Pero la planilla salió PEOR (2 de 20 con prueba, y mal): Qwen respondió `"lugar": "A1"` (el nombre de una celda, no la palabra "celda"). El glosario no lo aceptaba, y el reintento decía "Revisá: ." VACÍO: Qwen repitió lo mismo 3 veces, quedó el glosario genérico ("elemento", sin lugar) y nunca se le ofrecieron las plantillas de lugares. planilla.md no avisaba nada.
 - Arreglo: el reintento dice qué está mal ("A1 es el NOMBRE de uno; lugar es la palabra que dice QUÉ ES cada uno"), y cualquier otro problema del glosario también se escribe; el pedido aclara "no el nombre de uno: no A1". Si igual no sale, planilla.md lo dice ARRIBA DE TODO y sugiere fijarlo a mano. Prueba con la respuesta real.
+
+## 29/10 tarde — 3ª nuevo de la hoja: 17/20 con prueba (antes 2/20)
+- Glosario bien a la 1ª (lugar = celda). Buscador: 6 páginas, 15 rasgos con cita; la ficha trae ruido (exportar a PDF, navegación multipágina) pero es contexto, no requisito.
+- 17 requisitos con prueba, en palabras de persona; R18–R20 (sin base de datos, sin hojas, sin login) bien sin prueba.
+- Mal: R3.1–R3.4 y R4.1 escriben fórmulas que usan celdas vacías ("=SUMA(A1:A3) en B2 → 6" sin decir qué tienen A1…A3): una app correcta muestra 0 y la prueba la reprueba. R4.1 además no prueba "se actualiza" (reescribe la misma celda).
+- Arreglo: `escribir_y_ver` rechaza una fórmula que usa lugares que no están en "antes" y dice cuáles; el reintento le llega a Qwen. Se rehacen R3 y R4 con `rehacer`.

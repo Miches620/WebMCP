@@ -225,7 +225,9 @@ export const PLANTILLAS = {
       if (!esc.trim().startsWith("=") && mu === esc && !/^-?[\d.,]+$/.test(esc.trim())) { esc = A; mu = A; }
       return { ...(antes.length ? { dado: antes } : {}), hago: { escribir: esc, en: String(c.en).trim().toUpperCase() }, veo: [{ muestra: mu, en: String(c.muestra_en || c.en).trim().toUpperCase() }] };
     },
-    necesita: (c, g) => (!CELDA.test(String(c.en || "").trim()) ? `"en": ${art(g, "lugar")} donde se escribe, por su columna y su fila (p. ej. A3)` : !isText(String(c.escribo ?? "")) ? `"escribo": lo que se escribe` : c.muestra == null || typeof c.muestra === "object" ? `"muestra": lo que tiene que mostrar` : c.muestra_en && !CELDA.test(String(c.muestra_en).trim()) ? `"muestra_en": por su columna y su fila (p. ej. B1)` : c.antes && (typeof c.antes !== "object" || Array.isArray(c.antes) || !Object.keys(c.antes).every((k) => CELDA.test(k.trim()))) ? `"antes": { "A1": "valor", … } (por columna y fila)` : null),
+    // 29/10 (3ª corrida de la hoja): "escribo =SUMA(A1:A3) en B2 → muestra 6" sin decir qué tienen A1, A2 y A3 (están
+    // vacías: una app correcta muestra 0 y la prueba la reprueba). Lo que la fórmula usa tiene que estar en "antes".
+    necesita: (c, g) => (!CELDA.test(String(c.en || "").trim()) ? `"en": ${art(g, "lugar")} donde se escribe, por su columna y su fila (p. ej. A3)` : !isText(String(c.escribo ?? "")) ? `"escribo": lo que se escribe` : faltanAntes(c).length ? `"antes": "escribo" usa ${faltanAntes(c).join(", ")} y no dijiste qué tiene${faltanAntes(c).length > 1 ? " cada una" : ""}; ponelo en "antes" (si no, están vacías y el resultado no es ${JSON.stringify(String(c.muestra ?? ""))})` : c.muestra == null || typeof c.muestra === "object" ? `"muestra": lo que tiene que mostrar` : c.muestra_en && !CELDA.test(String(c.muestra_en).trim()) ? `"muestra_en": por su columna y su fila (p. ej. B1)` : c.antes && (typeof c.antes !== "object" || Array.isArray(c.antes) || !Object.keys(c.antes).every((k) => CELDA.test(k.trim()))) ? `"antes": { "A1": "valor", … } (por columna y fila)` : null),
   },
   seleccionar_y_usar: {
     requiere: ["lugar"],
@@ -253,6 +255,22 @@ export const PLANTILLAS = {
   },
 };
 const CELDA = /^[A-Za-z]{1,3}\d{1,4}$/;
+/** Los lugares que usa lo que se escribe ("=SUMA(A1:A3)" → A1, A2, A3) y que no están en "antes" (ni son donde se escribe). */
+function faltanAntes(c) {
+  const t = String(c.escribo ?? "").trim().toUpperCase();
+  if (!t.startsWith("=")) return [];
+  const usa = new Set();
+  const col = (l) => [...l].reduce((n, x) => n * 26 + x.charCodeAt(0) - 64, 0), letra = (n) => { let s = ""; for (; n > 0; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + ((n - 1) % 26)) + s; return s; };
+  const sinRangos = t.replace(/([A-Z]{1,3})(\d{1,4}):([A-Z]{1,3})(\d{1,4})/g, (_, c1, f1, c2, f2) => {
+    const [a, b] = [col(c1), col(c2)].sort((x, y) => x - y), [m, n] = [Number(f1), Number(f2)].sort((x, y) => x - y);
+    if ((b - a + 1) * (n - m + 1) <= 50) for (let i = a; i <= b; i++) for (let j = m; j <= n; j++) usa.add(`${letra(i)}${j}`);
+    return " ";
+  });
+  for (const m of sinRangos.matchAll(/\b([A-Z]{1,3}\d{1,4})\b/g)) usa.add(m[1]);
+  const hay = new Set(Object.keys(c.antes && typeof c.antes === "object" && !Array.isArray(c.antes) ? c.antes : {}).map((k) => k.trim().toUpperCase()));
+  const en = String(c.en || "").trim().toUpperCase();
+  return [...usa].filter((x) => !hay.has(x) && x !== en);
+}
 const COLOR_PRUEBA = "#ffcc00";
 function rangoLetras(x) {
   const m = /^\s*([A-Za-z])\s*(?:-|a|…|\.\.)\s*([A-Za-z])\s*$/.exec(String(x || ""));

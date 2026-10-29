@@ -11,13 +11,11 @@ Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, 
 - **R2.1** · → se ven los encabezados de columna A a J y de fila 1 a 20
 
 ## R3. Fórmulas estilo Excel en castellano, empezando con '=': suma con =SUMA(A1:A3) (un rango) o =SUMA(A1;B2;C3) (celdas sueltas); resta, multiplicación y división con signos: =A1-B1, =A1*B1, =A1/B1. La celda muestra el resultado
-- **R3.1** · Escribo "=SUMA(A1:A3)" en B2. → B2 muestra "6"
-- **R3.2** · Escribo "=A1-B1" en C4. → C4 muestra "-2"
-- **R3.3** · Escribo "=A1*B1" en D6. → D6 muestra "4"
-- **R3.4** · Escribo "=A1/B1" en E8. → E8 muestra "2"
+- **R3.1** · Antes: escribo "2" en A1, "3" en A2, "4" en A3. Escribo "=SUMA(A1:A3)" en B4. → B4 muestra "9"
+- **R3.2** · Antes: escribo "2" en A1, "5" en B2, "3" en C3. Escribo "=A1-B2*C3" en D6. → D6 muestra "-7"
 
 ## R4. Cada celda puede tener su propia fórmula; si cambia una celda que la fórmula usa, el resultado se actualiza
-- **R4.1** · Antes: escribo "=SUMA(A2:A3)" en A1. Escribo "=SUMA(A2:A4)" en A1. → A1 muestra "9"
+- **R4.1** · Antes: escribo "=B1+C1" en A1, "2" en B1, "3" en C1. Escribo "5" en A1. → A1 muestra "8"
 
 ## R5. Cambiar el color de fondo de una celda
 - **R5.1** · Antes: hago clic en A1. Elijo el color de fondo #FF0000. → A1 tiene fondo #FF0000
@@ -73,29 +71,3 @@ Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, 
 
 ## R20. Restricción: Sin login
 - (sin prueba: dice cómo está programada por dentro)
-
-## Lo que encontró el buscador
-
-Leyó 6 página(s) (https://apps.apple.com/ca/app/the-spreadsheet-app-sheets/id1671610440, https://github.com/storytold/gridcraft, https://ilabora.com/blog/que-es-microsoft-excel-y-para-que-sirve/, https://airrange.io/features/excel-app-examples, https://www.microsoft.com/es-ar/microsoft-365/excel/spreadsheets, https://en.wikipedia.org/wiki/Spreadsheet). Lo que entendió de este tipo de app (lo usó Qwen para el glosario y el examen, con su cita):
-
-- usar fórmulas (S3: "En esas celdas se pueden introducir textos, cifras, fechas y fórmulas.")
-- seleccionar una columna haciendo clic en su letra (S2: "Selecting a chart outlines its source data.")
-- usar letras para columnas (A a J) (S3: "Las filas están numeradas y las columnas se identifican con letras.")
-- usar números para filas (1 a 20) (S3: "Las filas están numeradas y las columnas se identifican con letras.")
-- usar drag and drop para cálculos y gráficos (S1: "Easy drag and drop features for calculations and charts")
-- crear funciones personalizadas (S1: "Create Your Own Spreadsheet Functions")
-- exportar a PDF (S1: "Exports to PDF")
-- navegación inteligente en aplicaciones multi-página (S4: "Multi-Page Apps with Intelligent Navigation")
-- introducir texto, números, fechas o fórmulas (S5: "Solo tienes que seleccionar una celda y escribir la información que quieras, como texto, números, fechas o fórmulas.")
-- seleccionar una celda haciendo clic en ella (S5: "Haz clic en una celda para seleccionarla. Haz clic y arrastra para seleccionar varias celdas.")
-
-Cosas que tienen apps parecidas y vos **no** pediste. No entran solas: si querés alguna, se suma con `npm run proyecto -- agregar <carpeta> "…"`.
-
-- usar drag and drop para cálculos y gráficos (lo tienen 1 de 6 fuentes (S1))
-- crear funciones personalizadas (lo tienen 1 de 6 fuentes (S1))
-- exportar a PDF (lo tienen 1 de 6 fuentes (S1))
-- navegación inteligente en aplicaciones multi-página (lo tienen 1 de 6 fuentes (S4))
-- introducir texto, números, fechas o fórmulas (lo tienen 1 de 6 fuentes (S5))
-- seleccionar una celda haciendo clic en ella (lo tienen 1 de 6 fuentes (S5))
-- usar fórmulas predefinidas como SUMA, PROMEDIO o BUSCARV (lo tienen 1 de 6 fuentes (S5))
-- aplicar formato condicional a las celdas (lo tienen 1 de 6 fuentes (S5))

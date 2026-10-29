@@ -192,6 +192,8 @@ t("la misma prueba 3 veces (R23 real) queda una sola", dup.filas.length === 1, J
     { plantilla: "escribir_y_ver", antes: { A1: "5", B1: "3", C1: "" }, en: "C1", escribo: "=SUMA(A1;B1)", muestra: "8" },
   ], "R3", GH);
   t("escribir_y_ver: una fórmula que usa celdas que no están en 'antes' se rechaza y se dice cuáles (3ª corrida: =SUMA(A1:A3) → 6 con A1..A3 vacías)", sinAntes.filas.length === 2 && /usa A1, A2, A3 y no dijiste qué tiene cada una/.test(sinAntes.problems[0]) && /usa A2, A3, A4/.test(sinAntes.problems[1]), sinAntes.problems.join(" | "));
+  const pisa = rowsFromChoices([{ plantilla: "escribir_y_ver", antes: { A1: "=B1+C1", B1: "2", C1: "3" }, en: "A1", escribo: "5", muestra: "8" }, { plantilla: "escribir_y_ver", antes: { A1: "=B1+C1", B1: "2", C1: "3" }, en: "B1", escribo: "5", muestra: "8", muestra_en: "A1" }], "R4", GH);
+  t("escribir_y_ver: escribir 5 en A1 y esperar que A1 muestre 8 es imposible (se pisa la fórmula): se rechaza y se explica muestra_en", pisa.filas.length === 1 && pisa.filas[0].hago.en === "B1" && /lo que tenía antes se pisa/.test(pisa.problems[0] || ""), pisa.problems.join(" | "));
   // 1ª corrida de la hoja (29/10): "hay un botón que dice 'Ocultar Columna'" sin que el usuario lo escribiera
   const bt = relevanceProblems([{ plantilla: "boton_en", palabras: ["Ocultar", "Columna"] }], "Ocultar una columna y ocultar una fila");
   const bk = relevanceProblems([{ plantilla: "boton_en", palabras: ["Agregar", "tarjeta"] }], "Botón 'Agregar tarjeta': padding: 8px");

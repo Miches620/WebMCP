@@ -1309,3 +1309,4 @@
 - 17 requisitos con prueba, en palabras de persona; R18–R20 (sin base de datos, sin hojas, sin login) bien sin prueba.
 - Mal: R3.1–R3.4 y R4.1 escriben fórmulas que usan celdas vacías ("=SUMA(A1:A3) en B2 → 6" sin decir qué tienen A1…A3): una app correcta muestra 0 y la prueba la reprueba. R4.1 además no prueba "se actualiza" (reescribe la misma celda).
 - Arreglo: `escribir_y_ver` rechaza una fórmula que usa lugares que no están en "antes" y dice cuáles; el reintento le llega a Qwen. Se rehacen R3 y R4 con `rehacer`.
+- `rehacer R3 R4`: R3.1 quedó bien (2, 3, 4 → =SUMA → 9). R3.2 inventó "=A1-B2*C3" (no lo pidió el usuario, y el resultado esperado está mal): se saca con `quitar`. R4.1 escribió 5 en A1 —que tenía la fórmula— y esperaba 8 en A1: imposible (lo escrito pisa la fórmula). Ahora `escribir_y_ver` rechaza esperar en el mismo lugar algo distinto de lo que se escribió, y explica cómo probar que OTRO lugar se actualiza (`muestra_en`).

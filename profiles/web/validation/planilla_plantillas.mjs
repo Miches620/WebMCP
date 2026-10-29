@@ -227,7 +227,7 @@ export const PLANTILLAS = {
     },
     // 29/10 (3ª corrida de la hoja): "escribo =SUMA(A1:A3) en B2 → muestra 6" sin decir qué tienen A1, A2 y A3 (están
     // vacías: una app correcta muestra 0 y la prueba la reprueba). Lo que la fórmula usa tiene que estar en "antes".
-    necesita: (c, g) => (!CELDA.test(String(c.en || "").trim()) ? `"en": ${art(g, "lugar")} donde se escribe, por su columna y su fila (p. ej. A3)` : !isText(String(c.escribo ?? "")) ? `"escribo": lo que se escribe` : faltanAntes(c).length ? `"antes": "escribo" usa ${faltanAntes(c).join(", ")} y no dijiste qué tiene${faltanAntes(c).length > 1 ? " cada una" : ""}; ponelo en "antes" (si no, están vacías y el resultado no es ${JSON.stringify(String(c.muestra ?? ""))})` : c.muestra == null || typeof c.muestra === "object" ? `"muestra": lo que tiene que mostrar` : c.muestra_en && !CELDA.test(String(c.muestra_en).trim()) ? `"muestra_en": por su columna y su fila (p. ej. B1)` : c.antes && (typeof c.antes !== "object" || Array.isArray(c.antes) || !Object.keys(c.antes).every((k) => CELDA.test(k.trim()))) ? `"antes": { "A1": "valor", … } (por columna y fila)` : null),
+    necesita: (c, g) => (!CELDA.test(String(c.en || "").trim()) ? `"en": ${art(g, "lugar")} donde se escribe, por su columna y su fila (p. ej. A3)` : !isText(String(c.escribo ?? "")) ? `"escribo": lo que se escribe` : pisaLoQueMira(c) ? `"muestra_en": si escribís ${JSON.stringify(String(c.escribo))} en ${String(c.en).trim().toUpperCase()}, ${String(c.en).trim().toUpperCase()} muestra eso (lo que tenía antes se pisa); para ver si OTRO lugar se actualiza, escribí en un lugar que la fórmula usa y poné ese otro en "muestra_en"` : faltanAntes(c).length ? `"antes": "escribo" usa ${faltanAntes(c).join(", ")} y no dijiste qué tiene${faltanAntes(c).length > 1 ? " cada una" : ""}; ponelo en "antes" (si no, están vacías y el resultado no es ${JSON.stringify(String(c.muestra ?? ""))})` : c.muestra == null || typeof c.muestra === "object" ? `"muestra": lo que tiene que mostrar` : c.muestra_en && !CELDA.test(String(c.muestra_en).trim()) ? `"muestra_en": por su columna y su fila (p. ej. B1)` : c.antes && (typeof c.antes !== "object" || Array.isArray(c.antes) || !Object.keys(c.antes).every((k) => CELDA.test(k.trim()))) ? `"antes": { "A1": "valor", … } (por columna y fila)` : null),
   },
   seleccionar_y_usar: {
     requiere: ["lugar"],
@@ -255,6 +255,14 @@ export const PLANTILLAS = {
   },
 };
 const CELDA = /^[A-Za-z]{1,3}\d{1,4}$/;
+/** 29/10 (rehacer R4 de la hoja): "antes A1 = B1+C1; escribo 5 en A1 → A1 muestra 8". Lo que se escribe (no una
+ *  fórmula) en un lugar es lo que ese lugar muestra: esperar otra cosa ahí mismo es una prueba imposible. */
+function pisaLoQueMira(c) {
+  const esc = String(c.escribo ?? "").trim(), en = String(c.en || "").trim().toUpperCase(), mira = String(c.muestra_en || c.en || "").trim().toUpperCase();
+  if (esc.startsWith("=") || mira !== en) return false;
+  const n = (x) => (/^-?[\d.,]+$/.test(String(x).trim()) ? Number(String(x).trim().replace(",", ".")) : String(x).trim().toLowerCase());
+  return n(esc) !== n(c.muestra ?? "");
+}
 /** Los lugares que usa lo que se escribe ("=SUMA(A1:A3)" → A1, A2, A3) y que no están en "antes" (ni son donde se escribe). */
 function faltanAntes(c) {
   const t = String(c.escribo ?? "").trim().toUpperCase();

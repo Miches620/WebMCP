@@ -53,17 +53,40 @@
     "R3": [
       {
         "attempt": 1,
-        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"escribir_y_ver\",\n      \"antes\": {},\n      \"en\": \"B2\",\n      \"escribo\": \"=SUMA(A1:A3)\",\n      \"muestra\": \"6\"\n    },\n    {\n      \"plantilla\": \"escribir_y_ver\",\n      \"antes\": {},\n      \"en\": \"C4\",\n      \"escribo\": \"=A1-B1\",\n      \"muestra\": \"-2\"\n    },\n    {\n      \"plantilla\": \"escribir_y_ver\",\n      \"antes\": {},\n      \"en\": \"D6\",\n      \"escribo\": \"=A1*B1\",\n      \"muestra\": \"4\"\n    },\n    {\n      \"plantilla\": \"escribir_y_ver\",\n      \"antes\": {},\n      \"en\": \"E8\",\n      \"escribo\": \"=A1/B1\",\n      \"muestra\": \"2\"\n    }\n  ]\n}\n```",
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"escribir_y_ver\",\n      \"antes\": {},\n      \"en\": \"B4\",\n      \"escribo\": \"=SUMA(A1:A3)\",\n      \"muestra\": \"15\"\n    },\n    {\n      \"plantilla\": \"escribir_y_ver\",\n      \"antes\": {},\n      \"en\": \"C6\",\n      \"escribo\": \"=A1-B2*C3\",\n      \"muestra\": \"-5\"\n    }\n  ]\n}\n```",
         "usage": {
-          "prompt_tokens": 2245,
-          "completion_tokens": 212,
-          "total_tokens": 2457,
+          "prompt_tokens": 1920,
+          "completion_tokens": 117,
+          "total_tokens": 2037,
           "completion_tokens_details": {
             "reasoning_tokens": 0
           }
         },
         "finish_reason": "stop",
-        "accepted": 4,
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (escribir_y_ver): falta \"antes\": \"escribo\" usa A1, A2, A3 y no dijiste qué tiene cada una; ponelo en \"antes\" (si no, están vacías y el resultado no es \"15\")"
+          ],
+          [
+            "elección 2 (escribir_y_ver): falta \"antes\": \"escribo\" usa A1, B2, C3 y no dijiste qué tiene cada una; ponelo en \"antes\" (si no, están vacías y el resultado no es \"-5\")"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"escribir_y_ver\",\n      \"antes\": { \"A1\": \"2\", \"A2\": \"3\", \"A3\": \"4\" },\n      \"en\": \"B4\",\n      \"escribo\": \"=SUMA(A1:A3)\",\n      \"muestra\": \"9\"\n    },\n    {\n      \"plantilla\": \"escribir_y_ver\",\n      \"antes\": { \"A1\": \"2\", \"B2\": \"5\", \"C3\": \"3\" },\n      \"en\": \"D6\",\n      \"escribo\": \"=A1-B2*C3\",\n      \"muestra\": \"-7\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2190,
+          "completion_tokens": 160,
+          "total_tokens": 2350,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 2,
         "rejected": [],
         "problems": []
       }
@@ -71,11 +94,11 @@
     "R4": [
       {
         "attempt": 1,
-        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"escribir_y_ver\",\n      \"antes\": { \"A1\": \"=SUMA(A2:A3)\" },\n      \"en\": \"A1\",\n      \"escribo\": \"=SUMA(A2:A4)\",\n      \"muestra\": \"9\",\n      \"muestra_en\": \"A1\"\n    }\n  ]\n}\n```",
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"escribir_y_ver\",\n      \"antes\": { \"A1\": \"=B1+C1\", \"B1\": \"2\", \"C1\": \"3\" },\n      \"en\": \"A1\",\n      \"escribo\": \"5\",\n      \"muestra\": \"8\",\n      \"muestra_en\": \"A1\"\n    }\n  ]\n}\n```",
         "usage": {
-          "prompt_tokens": 2191,
-          "completion_tokens": 88,
-          "total_tokens": 2279,
+          "prompt_tokens": 1866,
+          "completion_tokens": 95,
+          "total_tokens": 1961,
           "completion_tokens_details": {
             "reasoning_tokens": 0
           }
@@ -485,5 +508,14 @@
         "sin_fila": "dice cómo está programada por dentro"
       }
     ]
-  }
+  },
+  "rehechos": [
+    {
+      "cuando": "2026-10-29T21:34:17.469Z",
+      "ids": [
+        "R3",
+        "R4"
+      ]
+    }
+  ]
 }

@@ -23,7 +23,11 @@ export function describirFila(row00, g) {
   const N = (t) => conNombres(t, g);
   // cómo nombrar cada texto QA creado en la fila: por sus campos ("la de prioridad alta") si hace falta distinguir
   const movs = (row.dado || []).filter((d) => d?.mover);
-  const dado = (row.dado || []).filter((d) => !d?.mover);
+  // 29/10: lugares (escribir en A1, clic en la columna C)
+  const txt = (x) => (isQA(x) ? "un texto cualquiera" : q(x));
+  const lugarTxt = (x) => { const t = String(x).trim().toUpperCase(); return /^[A-Z]{1,3}$/.test(t) ? `la columna ${t} (en su letra)` : /^\d+$/.test(t) ? `la fila ${t} (en su número)` : t; };
+  const escritos = (row.dado || []).filter((d) => d?.escribir != null), clics = (row.dado || []).filter((d) => d?.clic != null);
+  const dado = (row.dado || []).filter((d) => !d?.mover && d?.escribir == null && d?.clic == null);
   const quien = new Map();
   dado.forEach((d, i) => { const cs = Object.values(d.campos || {}); const rep = dado.filter((x) => JSON.stringify(Object.values(x.campos || {})) === JSON.stringify(cs)).length > 1; quien.set(d.agregar, cs.length ? `la de ${Object.entries(d.campos).map(([k, v]) => `${k} ${v}`).join(" y ")}${rep ? (dado.findIndex((x) => JSON.stringify(Object.values(x.campos || {})) === JSON.stringify(cs)) === i ? " creada primero" : " creada después") : ""}` : N(`{el_item} creado`)); });
   const nombre = (x) => (isQA(x) ? quien.get(x) || N("{el_item}") : q(x));
@@ -31,6 +35,8 @@ export function describirFila(row00, g) {
   if (dado.length) partes.push(N(`Antes: creo ${dado.length === 1 ? "{un_item}" : `${dado.length} {items}`}`) + (dado.length > 1 && dado.some((d) => Object.keys(d.campos || {}).length) ? `, en este orden: ${dado.map((d) => (Object.keys(d.campos || {}).length ? Object.entries(d.campos).map(([k, v]) => `${k} ${v}`).join(" y ") : "sin campos")).join(" · ")}` : camposTxt(dado[0].campos)) + ".");
   // 20/10: 10 movidas iguales se leían como 10 renglones "muevo la tarjeta a…" (Miche: "es medio confuso de leer")
   for (const [a, k] of movs.reduce((m, x) => m.set(x.a, (m.get(x.a) || 0) + 1), new Map())) partes.push(k === 1 ? N(`Antes: muevo {el_item} a ${q(a)}.`) : N(`Antes: muevo ${k === dado.length ? `${N("{el_item}").startsWith("la ") ? "esas" : "esos"} ${k}` : k} {items} a ${q(a)}, de a ${N("{el_item}").startsWith("la ") ? "una" : "uno"}.`));
+  if (escritos.length) partes.push(`Antes: escribo ${escritos.map((d) => `${txt(d.escribir)} en ${String(d.en).toUpperCase()}`).join(", ")}.`);
+  if (clics.length) partes.push(`Antes: hago clic en ${clics.map((d) => lugarTxt(d.clic)).join(" y ")}.`);
   const h = row.hago || {};
   if (h.agregar) partes.push(N(`Creo {un_item} con un título cualquiera${camposTxt(h.campos).replace(/^ con/, " y")}.`));
   else if (h.editar) partes.push(N(`Edito {el_item}: le cambio el título${h.campos ? ` y le pongo${camposTxt(h.campos).replace(/^ con/, "")}` : ""}.`));
@@ -38,9 +44,12 @@ export function describirFila(row00, g) {
   else if (h.mover) partes.push(h.manija ? N(`Muevo {el_item} a ${q(h.a)} arrastrándol${N("{el_item}").startsWith("la ") ? "a" : "o"} desde su manija ${q(h.manija)}.`) : N(`Muevo {el_item} a ${q(h.a)} (arrastrando, o con su control de mover).`));
   else if (h.recargar) partes.push("Recargo la página.");
   else if (h.pasar_mouse) partes.push(N("Paso el mouse por encima de {el_item}."));
+  else if (h.escribir != null) partes.push(`Escribo ${txt(h.escribir)} en ${String(h.en).toUpperCase()}.`);
+  else if (h.clic != null) partes.push(`Hago clic en ${lugarTxt(h.clic)}.`);
+  else if (h.usar) partes.push({ borrar: "Uso el control de borrar.", vaciar: "Uso el control de vaciar (borrar el contenido).", ocultar: "Uso el control de ocultar.", color: `Elijo el color de fondo ${h.valor || "(uno cualquiera)"}.` }[h.usar] || `Uso "${h.usar}".`);
   const veo = (row.veo || []).map((v) => {
     if (v.esta) return isQA(v.esta) ? (h.editar && v.esta === h.a ? "el título nuevo aparece" : h.eliminar && v.esta === h.eliminar ? N(`{el_item} sigue${v.en ? ` en ${q(v.en)}` : ""} (no se borró)`) : N(`{el_item} aparece${v.en ? ` en ${q(v.en)}` : ""}`)) : `se ve ${q(v.esta)}${v.en ? ` en ${q(v.en)}` : ""}`;
-    if (v.no_esta) return isQA(v.no_esta) ? (h.editar ? "el título viejo ya no está" : N("{el_item} ya no está")) : `no se ve ${q(v.no_esta)}`;
+    if (v.no_esta) return isQA(v.no_esta) ? (h.editar ? "el título viejo ya no está" : escritos.length ? "lo que se escribió ya no se ve" : N("{el_item} ya no está")) : `no se ve ${q(v.no_esta)}`;
     if (v.contiene) return N(`{el_item} muestra ${lista(v.contiene)}`);
     if (v.orden) return `en ${q(v.en)} quedan de arriba abajo: ${v.orden.map(nombre).join(" · ")}`;
     if (v.contador != null) return v.vale != null ? `el contador de ${q(v.contador)} vale ${v.vale}` : `el contador de ${q(v.contador)} ${v.cambia > 0 ? "sube" : "baja"} ${Math.abs(v.cambia)}`;
@@ -57,8 +66,12 @@ export function describirFila(row00, g) {
     if (v.moderno) return REGLAS_MODERNAS[v.moderno]?.dice || `regla de diseño ${v.moderno}`;
     if (v.visual) return REGLAS_VISUALES[v.visual]?.dice || `regla visual ${v.visual}`;
     if (v.desborde) return N(`con ${dado.length || "muchos"} {items} en ${q(v.desborde)}, se desplaza (scroll) adentro de {el_grupo} y la página NO se desplaza`);
+    if (v.muestra != null) return v.muestra === "" ? `${String(v.en).toUpperCase()} queda vacía` : `${String(v.en).toUpperCase()} muestra ${isQA(v.muestra) ? "el texto que se escribió" : q(v.muestra)}`;
+    if (v.fondo != null) return `${String(v.en).toUpperCase()} tiene fondo ${v.fondo}`;
+    if (v.oculta != null) return `${lugarTxt(v.oculta).replace(/ \(en su (letra|número)\)/, "")} ya no se ve`;
+    if (v.encabezados) { const c = v.encabezados.columnas || [], f = v.encabezados.filas || []; return `se ven los encabezados ${c.length ? `de columna ${c[0]} a ${c[c.length - 1]}` : ""}${c.length && f.length ? " y " : ""}${f.length ? `de fila ${f[0]} a ${f[f.length - 1]}` : ""}`; }
     if (v.color_en_item) return N(`{el_item} se pinta de ${v.familia}${v.texto ? ` donde dice ${q(v.texto)}` : ""}`);
     return "?";
   });
-  return `${partes.join(" ")} → ${veo.join(" · ")}`.trim();
+  return `${partes.join(" ")} → ${[...new Set(veo)].join(" · ")}`.trim();
 }

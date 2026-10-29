@@ -25,14 +25,18 @@ import { rowsFromChoices, relevanceProblems, systemPromptPlantillas, PLANTILLAS_
 // (--glosario o el campo "glosario" del snapshot) y las filas salen con tipos (item, grupo).
 import { leerGlosario, palabra, prefijoDe, tipoDe, filaATipos } from "./glosario.mjs";
 
-export const WRITER_VERSION = "planilla_writer v0.4";
+export const WRITER_VERSION = "planilla_writer v0.5"; // v0.5 (29/10): acciones de persona en lugares (escribir, clic, usar; muestra, fondo, oculta, encabezados)
 const MAX_ATTEMPTS = 3;
 const LM_URL = process.env.LM_STUDIO_URL || "http://localhost:1234/v1/chat/completions";
 const MODEL = process.env.PLANILLA_MODEL || process.env.REVIEWER_MODEL || "qwen2.5-7b-instruct";
 
 // ---------- el vocabulario (lo mismo que ejecuta planilla.mjs) ----------
-const HAGO = ["agregar", "editar", "eliminar", "mover", "recargar", "pasar_mouse"];
-const VEO = ["esta", "no_esta", "contiene", "orden", "contador", "control", "al_pasar", "estilo", "color_en_item", "desborde", "pregunta", "centrado"];
+const HAGO = ["agregar", "editar", "eliminar", "mover", "recargar", "pasar_mouse", "escribir", "clic", "usar"];
+// 29/10 (2º proyecto, hoja de cálculo): acciones de persona en un LUGAR que ya existe ("A1", la columna "C", la fila "3")
+const LUGAR_RE = /^([A-Za-z]{1,3}\d{1,4}|[A-Za-z]{1,3}|\d{1,4})$/;
+const CELDA_RE = /^[A-Za-z]{1,3}\d{1,4}$/;
+const VERBOS_USAR = ["borrar", "vaciar", "ocultar", "color"];
+const VEO = ["esta", "no_esta", "contiene", "orden", "contador", "control", "al_pasar", "estilo", "color_en_item", "desborde", "pregunta", "centrado", "muestra", "fondo", "oculta", "encabezados"];
 const FAMILIAS = ["rojo", "amarillo", "verde"];
 const PROPS = ["background-color", "color", "width", "height", "padding", "border-top-style", "border-top-left-radius", "box-shadow", "overflow-y", "font-size", "font-weight"];
 // pistas de CÓMO está programado: no van en una planilla (estricto en el QUÉ, flexible en el CÓMO)
@@ -53,7 +57,7 @@ export function validateRow(row0, nReq = Infinity, ctx = {}) {
   // dado: ítems que se crean antes
   if (row.dado != null) {
     if (!Array.isArray(row.dado)) p.push(`"dado" es una lista de { "agregar": "texto" }`);
-    else row.dado.forEach((d, i) => { if (d && isText(d.mover)) { if (!isText(d.a) || Object.keys(d).some((k) => !["mover", "a"].includes(k))) p.push(`dado[${i}]: { "mover": "texto", "a": "${G}" }`); return; } if (!d || !isText(d.agregar) || Object.keys(d).some((k) => !["agregar", "campos"].includes(k))) p.push(`dado[${i}]: tiene que ser { "agregar": "texto", "campos"?: {…} } (o { "mover": "texto", "a": "${G}" })`); else if (d.campos && (typeof d.campos !== "object" || !Object.values(d.campos).every(isText))) p.push(`dado[${i}].campos: { "nombre del campo": "valor" }`); });
+    else row.dado.forEach((d, i) => { if (d && d.escribir != null) { if (typeof d.escribir !== "string" || !CELDA_RE.test(String(d.en || "")) || Object.keys(d).some((k) => !["escribir", "en"].includes(k))) p.push(`dado[${i}]: { "escribir": "texto", "en": "A1" }`); return; } if (d && d.clic != null) { if (!isText(d.clic) || Object.keys(d).length !== 1) p.push(`dado[${i}]: { "clic": "C" | "3" | "A1" | "texto que se ve" }`); return; } if (d && isText(d.mover)) { if (!isText(d.a) || Object.keys(d).some((k) => !["mover", "a"].includes(k))) p.push(`dado[${i}]: { "mover": "texto", "a": "${G}" }`); return; } if (!d || !isText(d.agregar) || Object.keys(d).some((k) => !["agregar", "campos"].includes(k))) p.push(`dado[${i}]: tiene que ser { "agregar": "texto", "campos"?: {…} } (o { "mover": "texto", "a": "${G}" })`); else if (d.campos && (typeof d.campos !== "object" || !Object.values(d.campos).every(isText))) p.push(`dado[${i}].campos: { "nombre del campo": "valor" }`); });
   }
   // hago: UNA acción
   if (row.hago != null) {
@@ -62,7 +66,9 @@ export function validateRow(row0, nReq = Infinity, ctx = {}) {
     const k = ks[0];
     if (k === "mover" && !isText(row.hago.a)) p.push(`"mover" necesita "a": el nombre del contenedor de destino`);
     if (k === "recargar" && row.hago.recargar !== true) p.push(`"recargar" va como "recargar": true`);
-    if (k && k !== "recargar" && !isText(row.hago[k])) p.push(`"${k}" necesita el texto de ${I}`);
+    if (k === "escribir") { if (typeof row.hago.escribir !== "string" || !row.hago.escribir.length) p.push(`"escribir" necesita el texto que se escribe`); if (!CELDA_RE.test(String(row.hago.en || ""))) p.push(`"escribir" necesita "en": el lugar (columna y fila, p. ej. A1)`); }
+    else if (k === "usar") { if (!VERBOS_USAR.includes(row.hago.usar)) p.push(`"usar" es una de: ${VERBOS_USAR.join(", ")}`); if (row.hago.valor != null && !/^#[0-9a-f]{6}$/i.test(String(row.hago.valor))) p.push(`"usar": "color" lleva "valor": "#rrggbb"`); }
+    else if (k && k !== "recargar" && !isText(row.hago[k])) p.push(`"${k}" necesita el texto de ${I}`);
     if (row.hago.campos && (typeof row.hago.campos !== "object" || !Object.values(row.hago.campos).every(isText))) p.push(`"hago.campos": { "nombre del campo": "valor" }`);
   }
   // veo: lista, cada uno de un tipo
@@ -81,6 +87,10 @@ export function validateRow(row0, nReq = Infinity, ctx = {}) {
     if (t === "centrado" && v.centrado !== "grupos" && !(v.centrado && texts(v.centrado.control))) p.push(`veo[${i}]: { "centrado": "grupos" } o { "centrado": { "control": ["palabras", "del", "botón"] } }`);
     if (t === "desborde" && !isText(v.desborde)) p.push(`veo[${i}]: { "desborde": "${G}" } (con muchos ítems creados en "dado")`);
     if (t === "color_en_item" && (!isText(v.color_en_item) || !FAMILIAS.includes(v.familia))) p.push(`veo[${i}]: { "color_en_item": "texto de ${I}", "texto"?: "…", "familia": ${FAMILIAS.join(" | ")} }`);
+    if (t === "muestra" && (typeof v.muestra !== "string" || !CELDA_RE.test(String(v.en || "")))) p.push(`veo[${i}]: { "muestra": "lo que se ve (o \"\" si vacío)", "en": "A1" }`);
+    if (t === "fondo" && (!/^#[0-9a-f]{6}$/i.test(String(v.fondo)) || !CELDA_RE.test(String(v.en || "")))) p.push(`veo[${i}]: { "fondo": "#rrggbb", "en": "A1" }`);
+    if (t === "oculta" && !LUGAR_RE.test(String(v.oculta || ""))) p.push(`veo[${i}]: { "oculta": "C" } (una columna) o { "oculta": "3" } (una fila)`);
+    if (t === "encabezados" && !(v.encabezados && (texts(v.encabezados.columnas) || texts(v.encabezados.filas)))) p.push(`veo[${i}]: { "encabezados": { "columnas": ["A", …], "filas": ["1", …] } }`);
     if (t === "estilo") {
       const e = v.estilo || {};
       const deOk = e.de === "pagina" || (e.de && typeof e.de === "object" && Object.keys(e.de).length === 1 && (isText(e.de.grupo) || isText(e.de.item) || texts(e.de.control)));
@@ -101,8 +111,8 @@ export function validateRow(row0, nReq = Infinity, ctx = {}) {
 }
 
 // ---------- v0.2: forma exacta y sentido (1ª corrida real de Qwen sobre c22, 17/10: 30/68 contra la vara) ----------
-const VEO_KEYS = { centrado: ["centrado"], pregunta: ["pregunta"], desborde: ["desborde"], esta: ["esta", "en"], no_esta: ["no_esta", "en"], contiene: ["en_item", "contiene"], orden: ["orden", "en"], contador: ["contador", "cambia", "vale"], control: ["control", "solo_en"], al_pasar: ["al_pasar", "en_item"], estilo: ["estilo"], color_en_item: ["color_en_item", "texto", "familia"] };
-const HAGO_KEYS = { agregar: ["agregar", "campos"], editar: ["editar", "a", "campos"], eliminar: ["eliminar"], mover: ["mover", "a", "manija"], recargar: ["recargar"], pasar_mouse: ["pasar_mouse"] };
+const VEO_KEYS = { muestra: ["muestra", "en"], fondo: ["fondo", "en"], oculta: ["oculta"], encabezados: ["encabezados"], centrado: ["centrado"], pregunta: ["pregunta"], desborde: ["desborde"], esta: ["esta", "en"], no_esta: ["no_esta", "en"], contiene: ["en_item", "contiene"], orden: ["orden", "en"], contador: ["contador", "cambia", "vale"], control: ["control", "solo_en"], al_pasar: ["al_pasar", "en_item"], estilo: ["estilo"], color_en_item: ["color_en_item", "texto", "familia"] };
+const HAGO_KEYS = { escribir: ["escribir", "en"], clic: ["clic"], usar: ["usar", "valor"], agregar: ["agregar", "campos"], editar: ["editar", "a", "campos"], eliminar: ["eliminar"], mover: ["mover", "a", "manija"], recargar: ["recargar"], pasar_mouse: ["pasar_mouse"] };
 const CSS_WORD = /^(padding|margin|border|border-radius|width|height|color|background|background-color|font|font-size|box-shadow|overflow|display)$/i;
 function shapeExtras(row, I) {
   const p = [];
@@ -125,8 +135,9 @@ function shapeExtras(row, I) {
 /** Textos que la fila CREA (dado, agregar, editar → a, valores de campos). */
 function createdTexts(row) {
   const out = new Set();
-  for (const d of row.dado || []) { if (d?.agregar) out.add(d.agregar); Object.values(d?.campos || {}).forEach((x) => out.add(String(x))); }
+  for (const d of row.dado || []) { if (d?.escribir != null) out.add(String(d.escribir)); if (d?.agregar) out.add(d.agregar); Object.values(d?.campos || {}).forEach((x) => out.add(String(x))); }
   if (row.hago?.agregar) out.add(row.hago.agregar);
+  if (row.hago?.escribir != null) out.add(String(row.hago.escribir));
   if (row.hago?.editar && row.hago?.a) out.add(row.hago.a);
   Object.values(row.hago?.campos || {}).forEach((x) => out.add(String(x)));
   return out;
@@ -261,8 +272,8 @@ R7: "Cada receta es un div 'card' con un header y un body."
 { "sin_fila": "dice cómo está armada por dentro; no es algo que una persona haga o vea" }`;
 }
 
-export function userPrompt({ id, text, features, context }) {
-  return `${context ? `Proyecto: ${context}\n\n` : ""}Todos los requisitos (contexto; NO los escribas, solo el pedido):\n${features.map((f, i) => `R${i + 1}. ${f}`).join("\n")}\n\nEscribí la planilla SOLO de ${id}: "${text}"`;
+export function userPrompt({ id, text, features, context, ficha = "" }) {
+  return `${context ? `Proyecto: ${context}\n\n` : ""}${ficha ? `Lo que dicen fuentes de la web sobre este tipo de app (para entender cómo funciona; NO son requisitos):\n${ficha}\n\n` : ""}Todos los requisitos (contexto; NO los escribas, solo el pedido):\n${features.map((f, i) => `R${i + 1}. ${f}`).join("\n")}\n\nEscribí la planilla SOLO de ${id}: "${text}"`;
 }
 
 export const callLM = async (messages) => {
@@ -274,14 +285,17 @@ export const callLM = async (messages) => {
 
 /** 19/10: Qwen propone el GLOSARIO de la app (cómo se llaman lo que el usuario crea y los grupos donde está). Miche lo
  *  revisa junto con la planilla. Si la respuesta no sirve, queda el genérico (elemento, grupo) y se dice. */
-export async function proponerGlosario({ features, context = "", call = callLM }) {
+export async function proponerGlosario({ features, context = "", call = callLM, ficha = "" }) {
   // v0.2 (19/10, 1ª corrida con project26): Qwen dijo que el Kanban NO tiene grupos, y sin grupos se quedaron sin
   // pruebas mover, contadores, orden y la restricción de Completa. Ahora: las palabras se copian de los requisitos (el
   // harness lo verifica) y un "no tiene grupos" se vuelve a preguntar una vez, señalando los nombres entre comillas.
-  const sys = `Leés los requisitos de una app web y decís cómo se llaman, EN ESA APP, dos cosas:
-- "item": lo que el usuario crea, edita y borra. Copiá la palabra tal cual aparece en los requisitos, en singular.
+  // v0.5 (29/10, hoja de cálculo): "lugar" para lo que YA está en la pantalla y se nombra por columna y fila (celdas)
+  const sys = `Leés los requisitos de una app web y decís cómo se llaman, EN ESA APP, tres cosas:
+- "item": lo que el usuario CREA, edita y borra (tareas, contactos, recetas…). Copiá la palabra tal cual aparece en los requisitos, en singular. null si el usuario no crea cosas nuevas (todo ya está en la pantalla).
 - "grupo": el lugar con nombre propio donde están esos ítems (los requisitos suelen nombrar cada uno entre comillas, y a veces se pasan ítems de uno a otro). Copiá la palabra tal cual aparece, en singular. null SOLO si los ítems no están repartidos en lugares con nombre.
-Respondé SOLO JSON: { "item": "…", "grupo": "…" | null, "por_que": "el número de requisito donde lo dice" }`;
+- "lugar": si la pantalla es una grilla o tabla de lugares FIJOS que se nombran por su columna y su fila (como "A1"), cómo se llama cada uno, en singular, tal cual aparece. null si no hay una grilla así.
+${ficha ? `\nLo que dicen fuentes de la web sobre este tipo de app (con citas; usalo para entender, no lo copies como requisito):\n${ficha}\n` : ""}
+Respondé SOLO JSON: { "item": "…" | null, "grupo": "…" | null, "lugar": "…" | null, "por_que": "el número de requisito donde lo dice" }`;
   const user = `${context ? `Proyecto: ${context}\n\n` : ""}Requisitos:\n${features.map((f, i) => `R${i + 1}. ${f}`).join("\n")}`;
   const todo = nrm(features.join(" \n "));
   const esta = (w) => { const x = nrm(w); return !!x && (todo.includes(x) || todo.includes(x.replace(/s$/, ""))); };
@@ -293,26 +307,29 @@ Respondé SOLO JSON: { "item": "…", "grupo": "…" | null, "por_que": "el núm
       const r = await call(messages);
       crudos.push(r.content);
       const j = parseJsonLoose(r.content || "");
-      const g = j.ok ? { item: j.data?.item ? String(j.data.item).toLowerCase().trim() : null, grupo: j.data?.grupo ? String(j.data.grupo).toLowerCase().trim() : null } : null;
+      const g = j.ok ? { item: j.data?.item ? String(j.data.item).toLowerCase().trim() : null, grupo: j.data?.grupo ? String(j.data.grupo).toLowerCase().trim() : null, ...(j.data?.lugar ? { lugar: String(j.data.lugar).toLowerCase().trim() } : {}) } : null;
       const problemas = [];
-      if (!g || !g.item) problemas.push(`falta "item"`);
-      else if (!esta(g.item)) problemas.push(`"${g.item}" no aparece en los requisitos: copiá la palabra tal cual`);
+      if (!g || (!g.item && !g.lugar)) problemas.push(`falta "item" (lo que el usuario crea) o "lugar" (si es una grilla de lugares fijos)`);
+      else if (g.item && !esta(g.item)) problemas.push(`"${g.item}" no aparece en los requisitos: copiá la palabra tal cual`);
+      if (g?.lugar && !esta(g.lugar)) problemas.push(`"${g.lugar}" no aparece en los requisitos: copiá la palabra tal cual`);
+      // una grilla de lugares fijos: lo que se "edita" ahí no se crea (la 1ª corrida de la hoja dijo item = celda)
+      if (g?.lugar && g.item && nrm(g.item) === nrm(g.lugar)) { g.item = null; }
       if (g?.grupo && !esta(g.grupo)) problemas.push(`"${g.grupo}" no aparece en los requisitos: copiá la palabra tal cual`);
       // 2ª corrida (19/10): respondió "pendiente", que es el NOMBRE de uno de los lugares, no la palabra que los engloba
       if (g?.grupo && citados.some((c) => nrm(c) === nrm(g.grupo))) problemas.push(`"${g.grupo}" es el NOMBRE de uno de esos lugares; el grupo es la palabra que dice QUÉ SON (${[...new Set(citados)].slice(0, 3).map((x) => `"${x}"`).join(", ")} son… ¿qué?)`);
       if (g && !g.grupo && citados.length >= 2 && intento === 1) problemas.push(`dijiste que no hay grupos, pero los requisitos nombran entre comillas: ${[...new Set(citados)].slice(0, 6).map((x) => `"${x}"`).join(", ")}. Si los ítems están repartidos en esos lugares, el grupo es la palabra que dice QUÉ SON esos lugares (no uno de los nombres). Si de verdad no hay, repetí null`);
       if (!problemas.length && leerGlosario(g).ok) return { glosario: g, raw: crudos };
-      if (intento === 3) return g && g.item && esta(g.item) && leerGlosario(g).ok ? { glosario: g, raw: crudos, aviso: problemas.join("; ") } : { glosario: null, raw: crudos, problema: problemas.join("; ") || "la respuesta no es un glosario válido" };
+      if (intento === 3) return g && ((g.item && esta(g.item)) || (g.lugar && esta(g.lugar))) && leerGlosario(g).ok ? { glosario: g, raw: crudos, aviso: problemas.join("; ") } : { glosario: null, raw: crudos, problema: problemas.join("; ") || "la respuesta no es un glosario válido" };
       messages.push({ role: "assistant", content: r.content }, { role: "user", content: `Revisá: ${problemas.join("; ")}. Respondé de nuevo el JSON.` });
     }
   } catch (e) { return { glosario: null, problema: e.message }; }
 }
 
 /** Escribe la planilla de un requisito, con reintentos. call(messages) → {content}: inyectable (tests). */
-export async function writeRequirement({ id, text, features, context = "", call = callLM, modo = "plantillas", glosario = null }) {
+export async function writeRequirement({ id, text, features, context = "", call = callLM, modo = "plantillas", glosario = null, ficha = "" }) {
   const n = features.length;
   const tpl = modo === "plantillas";
-  const messages = [{ role: "system", content: tpl ? systemPromptPlantillas(glosario) : systemPrompt(glosario) }, { role: "user", content: userPrompt({ id, text, features, context }) }];
+  const messages = [{ role: "system", content: tpl ? systemPromptPlantillas(glosario) : systemPrompt(glosario) }, { role: "user", content: userPrompt({ id, text, features, context, ficha }) }];
   const calls = [];
   let last = null;
   for (let a = 1; a <= MAX_ATTEMPTS; a++) {
@@ -355,13 +372,13 @@ export async function writeRequirement({ id, text, features, context = "", call 
 }
 
 /** La planilla entera. features = refined_prompt.features. */
-export async function writePlanilla({ features, context = "", call = callLM, onProgress = null, modo = "plantillas", glosario = null, desde = 0, solo = null }) {
-  const out = { version: "planilla v0.1", autor: `${WRITER_VERSION} (${MODEL}, modo ${modo}${modo === "plantillas" ? `, ${PLANTILLAS_VERSION}` : ""})`, modo, ...(glosario ? { glosario } : {}), filas: [], sin_fila: {}, rechazadas: {}, calls: {} };
+export async function writePlanilla({ features, context = "", call = callLM, onProgress = null, modo = "plantillas", glosario = null, desde = 0, solo = null, ficha = "" }) {
+  const out = { version: "planilla v0.2", autor: `${WRITER_VERSION} (${MODEL}, modo ${modo}${modo === "plantillas" ? `, ${PLANTILLAS_VERSION}` : ""})`, modo, ...(glosario ? { glosario } : {}), filas: [], sin_fila: {}, rechazadas: {}, calls: {} };
   // desde (22/10, "agregar"): solo los requisitos nuevos; los anteriores quedan de contexto y los números siguen
   for (const [i, text] of features.entries()) {
     if (i < desde || (solo && !solo.includes(i + 1))) continue; // solo: números de requisito a rehacer (1 = R1)
     const id = `R${i + 1}`;
-    const r = await writeRequirement({ id, text, features, context, call, modo, glosario });
+    const r = await writeRequirement({ id, text, features, context, call, modo, glosario, ficha });
     out.filas.push(...r.filas);
     if (r.sin_fila) out.sin_fila[id] = r.sin_fila;
     else if (!r.filas.length) out.sin_fila[id] = `Qwen no dio filas válidas${r.error ? ` (${r.error})` : ""}`;

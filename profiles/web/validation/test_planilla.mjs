@@ -22,7 +22,7 @@ const FEATURES = JSON.parse(readFileSync(new URL("./fixtures/real_kanban_c22/che
 const V = validationFor(["web", "web/app"]);
 
 // ---------- sin navegador ----------
-t("versión", PLANILLA_VERSION === "planilla v0.1");
+t("versión", PLANILLA_VERSION.startsWith("planilla v0.2"));
 t("colores exactos (±1 por redondeo): #102C54 = rgb(16, 44, 84); rgb(16, 44, 80) no", styleMatches("rgb(16, 44, 84)", "#102C54") && !styleMatches("rgb(16, 44, 80)", "#102C54"));
 t("medidas ±2px: 248 ≈ 249.5; 8px ≠ '8px 15px'; listas de palabras; distinto de none", styleMatches("249.5px", "248px") && !styleMatches("8px 15px", "8px") && styleMatches("auto", ["scroll", "auto"]) && styleMatches("rgba(0,0,0,.2) 0px 2px 4px", { distinto: "none" }) && !styleMatches("none", { distinto: "none" }));
 t("familias de color: rojo, amarillo, verde; un gris no es ninguna", colorFamily("#e53935") === "rojo" && colorFamily("rgb(251, 192, 45)") === "amarillo" && colorFamily("#43a047") === "verde" && colorFamily("#888888") === null);

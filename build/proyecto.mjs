@@ -11,7 +11,7 @@
 //      La app que queda se guarda en <proyecto>/app. Volver a correr SEGUIR es RETOMAR el proyecto desde esa app.
 //   3. JUZGAR: una app contra una planilla (p. ej. la vara a mano), sin modelo.
 //
-//   node build/proyecto.mjs nuevo <pedido.txt> [--nombre kanban]
+//   node build/proyecto.mjs nuevo <pedido.txt> [--nombre kanban] [--sin-buscar]   (29/10: antes busca en la web con SearXNG)
 //   node build/proyecto.mjs seguir <carpeta del proyecto> [--max-vueltas 40] [--visual]
 //   node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json>
 
@@ -94,12 +94,24 @@ export function unificar(texto, correcciones) {
   return s;
 }
 
+// ---------- el buscador (29/10): lo que dice la web sobre este tipo de app ----------
+// Miche (29/10): "cerrar al modelo y privarlo del recurso de búsqueda online es ridículo". El buscador (searcher v0.3,
+// SearXNG local) ya existía pero no estaba en la cadena. Ahora corre antes del glosario y deja una FICHA corta: rasgos
+// con su cita verificada en la fuente. La ficha es para ENTENDER (glosario y examen), nunca un requisito: los rasgos
+// que no pediste vuelven como preguntas en planilla.md, y solo entran si los agregás vos.
+export function fichaDe(ev, max = 10) {
+  if (!ev?.grupos?.length) return "";
+  const cita = (id) => (ev.rasgos || []).find((t) => t.id === id);
+  return [...ev.grupos].filter((g) => !g.fuera_del_stack).sort((a, b) => Number(!!b.ya_pedido) - Number(!!a.ya_pedido) || b.fuentes.length - a.fuentes.length).slice(0, max)
+    .map((g) => { const t = cita(g.de[0]); return `- ${g.rasgo}${t ? ` (${t.fuente}: "${String(t.cita).replace(/\s+/g, " ").slice(0, 160)}")` : ""}`; }).join("\n");
+}
+
 // ---------- la planilla en palabras, para Miche ----------
-export async function planillaEnPalabras(p, requisitos, correcciones = []) {
+export async function planillaEnPalabras(p, requisitos, correcciones = [], busqueda = null) {
   const { describirFila } = await import("../profiles/web/validation/planilla_palabras.mjs");
   const g = p.glosario || {};
   const out = [`# Planilla: qué se va a probar`, "",
-    `**Primero, el glosario** (de esto dependen muchas pruebas): lo que el usuario crea se llama **${g.item || "elemento"}**; ${g.grupo ? `los lugares con nombre donde están se llaman **${g.grupo}**, y lo que se crea aparece en ${g.inicio ? `**${g.inicio}**` : "**(no se dijo: conviene fijarlo con \"inicio\")**"}` : `**no hay lugares con nombre donde se agrupen** (sin esto no se prueban mover, contadores ni orden)`}. Si no es así, avisá: se corrige con \`--glosario '{"item":"…","grupo":"…","inicio":"…"}'\` y se vuelve a armar.`, "",
+    `**Primero, el glosario** (de esto dependen muchas pruebas): ${g.lugar ? `la pantalla es una grilla de **${g.lugar}s** fijas, que se nombran por su columna y su fila (A1, B2…); ` : ""}${g.item || !g.lugar ? `lo que el usuario crea se llama **${g.item || "elemento"}**;` : "el usuario no crea cosas nuevas (todo ya está en la pantalla)"}${g.lugar && !g.item ? "" : " "}${g.lugar && !g.item ? "" : g.grupo ? `los lugares con nombre donde están se llaman **${g.grupo}**, y lo que se crea aparece en ${g.inicio ? `**${g.inicio}**` : "**(no se dijo: conviene fijarlo con \"inicio\")**"}` : `**no hay lugares con nombre donde se agrupen** (sin esto no se prueban mover, contadores ni orden)`}. Si no es así, avisá: se corrige con \`--glosario '{"item":"…","grupo":"…","inicio":"…","lugar":"…"}'\` y se vuelve a armar.`, "",
     ...(correcciones.length ? [`**Corregí ${correcciones.length === 1 ? "un nombre" : "unos nombres"}** (pusiste dos nombres para lo mismo): ${correcciones.map((c) => `usé **"${c.usa}"** (aparece ${c.veces.usa} ${c.veces.usa === 1 ? "vez" : "veces"}) en vez de "${c.en_vez_de}" (${c.veces.en_vez_de})`).join("; ")}. Si era al revés, o eran cosas distintas, avisá y se corrige el pedido.`, ""] : []),
     "Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, decí su número (p. ej. R10.3) y se saca con `npm run proyecto -- quitar <carpeta> R10.3`.", ""];
   requisitos.forEach((r, i) => {
@@ -109,6 +121,14 @@ export async function planillaEnPalabras(p, requisitos, correcciones = []) {
     else out.push(`- (sin prueba: ${p.sin_fila?.[id] || "no se pudo armar"})`);
     out.push("");
   });
+  if (busqueda) {
+    out.push("## Lo que encontró el buscador", "");
+    if (!busqueda.fuentes?.length) out.push(`No encontró fuentes${busqueda.motivo ? ` (${busqueda.motivo})` : ""}. La planilla se armó sin búsqueda.`, "");
+    else {
+      out.push(`Leyó ${busqueda.fuentes.length} página(s) (${busqueda.fuentes.map((f) => f.url).slice(0, 6).join(", ")}). Lo que entendió de este tipo de app (lo usó Qwen para el glosario y el examen, con su cita):`, "", busqueda.ficha || "(nada con cita verificada)", "");
+      if (busqueda.preguntas?.length) out.push("Cosas que tienen apps parecidas y vos **no** pediste. No entran solas: si querés alguna, se suma con `npm run proyecto -- agregar <carpeta> \"…\"`.", "", ...busqueda.preguntas.map((q) => `- ${q.pregunta.replace(/^¿Querés que tu app tenga esto\?: /, "")} (${q.porque})`), "");
+    }
+  }
   return out.join("\n");
 }
 
@@ -207,14 +227,27 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     console.log(`[PROYECTO] ${ped.titulo}: ${features.length} requisitos (${ped.requisitos.filter((r) => r.de === "feature").length} features, ${ped.requisitos.filter((r) => r.de === "criterio").length} criterios nuevos, ${ped.requisitos.filter((r) => r.de === "restriccion").length} restricciones; ${ped.repetidos.length} criterios repetían una feature) → ${dir}`);
     // --glosario '{"item":"tarjeta","grupo":"columna"}' (o un archivo .json): lo decide Miche y Qwen no lo propone
     const gArg = flag("--glosario");
-    const g = gArg ? { glosario: JSON.parse(existsSync(gArg) ? readFileSync(gArg, "utf8") : gArg), de: "Miche" } : await proponerGlosario({ features, context: ped.titulo });
+    // 29/10: el buscador antes del glosario (se saltea con --sin-buscar)
+    let busqueda = null;
+    if (!args.includes("--sin-buscar")) {
+      try {
+        const { runSearcher } = await import("../searcher/searcher.mjs");
+        const ev = await runSearcher({ idea: `${ped.titulo}. ${features.join(". ")}`.slice(0, 700), max: 6, log: (m) => console.log(`[BUSCADOR] ${m}`) });
+        const motivo = ev.fuentes?.length ? null : ev.llamadas?.find((l) => l.paso === "buscar" && l.error)?.error || "sin resultados";
+        busqueda = { version: ev.version, fecha: ev.fecha, consultas: ev.consultas, fuentes: (ev.fuentes || []).map(({ text, ...f }) => f), ficha: fichaDe(ev), preguntas: ev.preguntas || [], ...(motivo ? { motivo } : {}) };
+        writeFileSync(join(dir, "busqueda.json"), JSON.stringify({ type: "EVIDENCE", kind: "searcher", ...ev }, null, 2));
+        console.log(busqueda.ficha ? `[BUSCADOR] ficha para Qwen:\n${busqueda.ficha}` : `[BUSCADOR] no quedó nada con cita${motivo ? ` (${motivo}; ¿SearXNG está andando? npm run searxng)` : ""}: sigo sin búsqueda`);
+      } catch (e) { console.log(`[BUSCADOR] no anduvo (${e.message}): sigo sin búsqueda`); busqueda = { fuentes: [], motivo: e.message }; }
+    }
+    const ficha = busqueda?.ficha || "";
+    const g = gArg ? { glosario: JSON.parse(existsSync(gArg) ? readFileSync(gArg, "utf8") : gArg), de: "Miche" } : await proponerGlosario({ features, context: ped.titulo, ficha });
     console.log(`[PROYECTO] glosario (${g.de || "Qwen"}): ${g.glosario ? JSON.stringify(g.glosario) : `no salió (${g.problema}); queda el genérico`}${g.aviso ? ` · ojo: ${g.aviso}` : ""}`);
     const t0 = Date.now();
-    const p = await writePlanilla({ features, context: ped.titulo, glosario: g.glosario, onProgress: (id, r) => console.log(`[PLANILLA] ${id}: ${r.sin_fila ? `sin fila (${r.sin_fila})` : `${r.filas.length} fila(s)`}${r.rejected.length ? ` · ${r.rejected.length} rechazada(s)` : ""}`) });
+    const p = await writePlanilla({ features, context: ped.titulo, glosario: g.glosario, ficha, onProgress: (id, r) => console.log(`[PLANILLA] ${id}: ${r.sin_fila ? `sin fila (${r.sin_fila})` : `${r.filas.length} fila(s)`}${r.rejected.length ? ` · ${r.rejected.length} rechazada(s)` : ""}`) });
     const { calls, ...planilla } = p;
     writeFileSync(join(dir, "planilla.json"), JSON.stringify(planilla, null, 2));
     writeFileSync(join(dir, "planilla_evidencia.json"), JSON.stringify({ type: "EVIDENCE", kind: "planilla_writer", version: WRITER_VERSION, ms: Date.now() - t0, glosario: g, calls }, null, 2));
-    writeFileSync(join(dir, "planilla.md"), await planillaEnPalabras(planilla, ped.requisitos, correcciones));
+    writeFileSync(join(dir, "planilla.md"), await planillaEnPalabras(planilla, ped.requisitos, correcciones, busqueda));
     console.log(`\n[PROYECTO] listo. Leé ${join(dir, "planilla.md")} (qué se va a probar, en palabras).\nCuando esté bien, cargá Gemma en LM Studio y corré:\n  npm run proyecto -- seguir "${dir}"`);
   } else if (modo === "seguir" && a1) {
     const { ciclo } = await import("./run_ciclo.mjs");
@@ -267,7 +300,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     console.log(`[JUZGAR] ${r.cumplidos}/${r.de} requisitos cumplidos`);
     for (const f of r.fallan) console.log(`  ✗ ${f.r}: ${f.detalle.join(" | ").slice(0, 300)}`);
   } else {
-    console.log("uso:\n  node build/proyecto.mjs quitar <carpeta del proyecto> R10.3 R21.*   (saca pruebas que están mal)\n  node build/proyecto.mjs agregar <carpeta del proyecto> \"pedido nuevo\" [\"otro\"…]   (Qwen: pruebas solo de lo nuevo)\n  node build/proyecto.mjs rehacer <carpeta del proyecto> R6 R32   (Qwen: vuelve a escribir las pruebas de esos requisitos)\n  node build/proyecto.mjs cambiar <carpeta del proyecto> R12 \"texto nuevo\"   (cambia lo pedido y rehace sus pruebas)\n  node build/proyecto.mjs nuevo <pedido.txt> [--nombre x]      (Qwen: requisitos tal cual, glosario, planilla y planilla.md)\n  node build/proyecto.mjs seguir <carpeta del proyecto> [--visual] [--moderno]  (Gemma: borrador si no hay app, y el ciclo; retoma si ya hay; --visual suma las reglas visuales)\n  node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json> [--visual] [--moderno]");
+    console.log("uso:\n  node build/proyecto.mjs quitar <carpeta del proyecto> R10.3 R21.*   (saca pruebas que están mal)\n  node build/proyecto.mjs agregar <carpeta del proyecto> \"pedido nuevo\" [\"otro\"…]   (Qwen: pruebas solo de lo nuevo)\n  node build/proyecto.mjs rehacer <carpeta del proyecto> R6 R32   (Qwen: vuelve a escribir las pruebas de esos requisitos)\n  node build/proyecto.mjs cambiar <carpeta del proyecto> R12 \"texto nuevo\"   (cambia lo pedido y rehace sus pruebas)\n  node build/proyecto.mjs nuevo <pedido.txt> [--nombre x] [--sin-buscar]   (buscador + Qwen: requisitos tal cual, glosario, planilla y planilla.md)\n  node build/proyecto.mjs seguir <carpeta del proyecto> [--visual] [--moderno]  (Gemma: borrador si no hay app, y el ciclo; retoma si ya hay; --visual suma las reglas visuales)\n  node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json> [--visual] [--moderno]");
     process.exit(2);
   }
 }

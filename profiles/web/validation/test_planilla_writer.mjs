@@ -2,14 +2,14 @@
 //   node profiles/web/validation/test_planilla_writer.mjs
 import { readFileSync } from "node:fs";
 import { validateRow, normalizeRow, writeRequirement, writePlanilla, systemPrompt, userPrompt, proponerGlosario, WRITER_VERSION } from "./planilla_writer.mjs";
-import { rowsFromChoices, relevanceProblems, camposDe, systemPromptPlantillas, PLANTILLAS, PLANTILLAS_VERSION } from "./planilla_plantillas.mjs";
+import { rowsFromChoices, relevanceProblems, camposDe, systemPromptPlantillas, PLANTILLAS, PLANTILLAS_VERSION, plantillasPara } from "./planilla_plantillas.mjs";
 
 let ok = 0, fail = 0;
 const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
 const P = JSON.parse(readFileSync(new URL("./fixtures/planilla_kanban_c22.json", import.meta.url), "utf8"));
 const G = P.glosario; // el glosario del Kanban: { item: "tarjeta", grupo: "columna" } (dato del proyecto, no código)
 
-t("versión", WRITER_VERSION === "planilla_writer v0.4");
+t("versión", WRITER_VERSION.startsWith("planilla_writer v0.5"));
 // calibración: la planilla hecha a mano (la vara) cumple el validador entera
 const hand = P.filas.map((f) => [f.id, validateRow(f, 17, { glosario: G })]);
 t("las 23 filas de la planilla a mano pasan el validador", hand.every(([, v]) => v.ok), hand.filter(([, v]) => !v.ok).map(([id, v]) => `${id}: ${v.problems.join("; ")}`).join(" | "));
@@ -80,7 +80,7 @@ const caida = await writePlanilla({ features: ["x"], call: async () => { throw n
 t("LM Studio caído → el requisito queda sin fila, con el error (no se inventa)", /fetch failed/.test(caida.sin_fila.R1));
 
 // ---------- v0.3: modo PLANTILLAS (Qwen elige, el harness arma) ----------
-t("plantillas: versión y 17 plantillas (v0.4: no_borrar_en; v0.5: confirmar_al_borrar; v0.6: se_ve_en_item, centrado)", PLANTILLAS_VERSION === "planilla_plantillas v0.6" && Object.keys(PLANTILLAS).length === 17);
+t("plantillas: versión y 20 plantillas (v0.4: no_borrar_en; v0.5: confirmar_al_borrar; v0.6: se_ve_en_item, centrado; v0.7: escribir_y_ver, seleccionar_y_usar, grilla)", PLANTILLAS_VERSION.startsWith("planilla_plantillas v0.7") && Object.keys(PLANTILLAS).length === 20);
 const IDEAL = JSON.parse(readFileSync(new URL("./fixtures/real_qwen_c22/elecciones_ideales_c22.json", import.meta.url), "utf8"));
 const built = Object.entries(IDEAL).filter(([r]) => /^R\d+$/.test(r) && IDEAL[r].usa).flatMap(([r, a]) => { const x = rowsFromChoices(a.usa, r, G); return [...x.filas.map((f) => [r, validateRow(normalizeRow(f, G).row, 17, { features: FEATS, glosario: G })]), ...x.problems.map((p) => [r, { ok: false, problems: [p] }])]; });
 t("techo: las elecciones IDEALES para c22 arman 28 filas y TODAS pasan el validador (con los chequeos de sentido)", built.length === 28 && built.every(([, v]) => v.ok), built.filter(([, v]) => !v.ok).map(([r, v]) => `${r}: ${v.problems.join("; ")}`).join(" | "));
@@ -92,7 +92,7 @@ t("estilo: 'con sombra' → distinta de none, crea la tarjeta; botón → sus pa
 const malas = rowsFromChoices([{ plantilla: "volar" }, { plantilla: "mover" }, { plantilla: "estilo", de: "columna", prop: "width", valor: "248px" }], "R6", G).problems;
 t("elecciones mal completadas → afuera, cada una con qué falta", malas.length === 3 && /no existe/.test(malas[0]) && /"a": la columna de destino/.test(malas[1]) && /"nombre": el nombre de la columna/.test(malas[2]), malas.join(" | "));
 const sp = systemPromptPlantillas(G);
-t("pedido de plantillas: lista las 15, ejemplos de otra app (recetas), sin_fila", Object.keys(PLANTILLAS).every((k) => sp.includes(`- ${k}:`)) && /recetas/.test(sp) && /sin_fila/.test(sp) && !/Pendiente|En Curso/.test(sp));
+t("pedido de plantillas: lista las 17 del Kanban (las de lugares no: no tiene grilla), ejemplos de otra app (recetas), sin_fila", Object.keys(plantillasPara(G)).length === 17 && Object.keys(plantillasPara(G)).every((k) => sp.includes(`- ${k}:`)) && !sp.includes("- escribir_y_ver:") && /recetas/.test(sp) && /sin_fila/.test(sp) && !/Pendiente|En Curso/.test(sp));
 const tp = await writeRequirement({ id: "R1", text: feats[0], features: feats, glosario: G, call: replies([
   `{"usa":[{"plantilla":"crear","columna":"Columna Pendiente"},{"plantilla":"volar"}]}`,
   `{"usa":[{"plantilla":"crear","columna":"Pendiente"}]}`,
@@ -155,6 +155,47 @@ const g3 = await proponerGlosario({ features: FEATS, call: fakeG(['{"item": "tar
 t("glosario (2ª corrida real): 'pendiente' es el NOMBRE de una columna, no la palabra que las engloba → se re-pregunta", g3.glosario?.grupo === "columna" && /es el NOMBRE de uno de esos lugares/.test(pedidosG.at(-1)), JSON.stringify(g3));
 const dup = await writeRequirement({ id: "R1", text: "Se guardan los datos: recargar y que sigan", features: ["Se guardan los datos: recargar y que sigan"], glosario: G, call: async () => ({ content: '{"usa":[{"plantilla":"recargar_sigue"},{"plantilla":"recargar_sigue"},{"plantilla":"recargar_sigue"}]}' }) });
 t("la misma prueba 3 veces (R23 real) queda una sola", dup.filas.length === 1, JSON.stringify(dup.filas.map((f) => f.id)));
+
+// ---------- 29/10: 2º proyecto (hoja de cálculo): lugares que ya existen, con acciones de persona ----------
+{
+  const GH = { item: null, grupo: null, lugar: "celda" };
+  const ofrecidas = Object.keys(plantillasPara(GH));
+  t("hoja: sin ítems ni grupos se ofrecen las de lugares y las generales; ninguna de crear/editar/borrar/mover ítems", ["escribir_y_ver", "seleccionar_y_usar", "grilla", "recargar_sigue", "estilo"].every((k) => ofrecidas.includes(k)) && !["crear", "editar", "borrar", "mover", "al_pasar_mouse", "orden_por_campo"].some((k) => ofrecidas.includes(k)), ofrecidas.join());
+  const sph = systemPromptPlantillas(GH);
+  t("hoja: el pedido a Qwen trae ejemplos de una tabla (escribir en B2, =PROMEDIO, ocultar una columna), no de recetas", /escribir_y_ver/.test(sph) && /PROMEDIO/.test(sph) && /seleccionar_y_usar/.test(sph) && !/recetas/.test(sph));
+  const r = rowsFromChoices([
+    { plantilla: "escribir_y_ver", antes: { A1: "2", A2: "3" }, en: "a3", escribo: "=SUMA(A1:A2)", muestra: "5" },
+    { plantilla: "escribir_y_ver", antes: { A1: "2", A2: "3", A3: "=SUMA(A1:A2)" }, en: "A1", escribo: "10", muestra: 13, muestra_en: "A3" },
+    { plantilla: "escribir_y_ver", en: "B2", escribo: "Hola", muestra: "Hola" },
+    { plantilla: "seleccionar_y_usar", seleccion: "C", accion: "ocultar" },
+    { plantilla: "seleccionar_y_usar", seleccion: "3", accion: "vaciar" },
+    { plantilla: "seleccionar_y_usar", seleccion: "B2", accion: "borrar" },
+    { plantilla: "seleccionar_y_usar", seleccion: "2", accion: "color" },
+    { plantilla: "grilla", columnas: "A-J", filas: "1-20" },
+    { plantilla: "recargar_sigue" },
+  ], "R3", GH);
+  const [f1, f2, f3, f4, f5, f6, f7, f8, f9] = r.filas;
+  t("escribir_y_ver: lo de antes va en dado, la fórmula en hago, el resultado en veo (A3 en mayúscula)", f1.dado.length === 2 && f1.hago.escribir === "=SUMA(A1:A2)" && f1.hago.en === "A3" && f1.veo[0].muestra === "5" && f1.veo[0].en === "A3", JSON.stringify(f1));
+  t("escribir_y_ver: 'si cambia una celda, se actualiza' mira el resultado en muestra_en; un número se vuelve texto", f2.veo[0].en === "A3" && f2.veo[0].muestra === "13");
+  t("escribir_y_ver: un texto suelto (no una cuenta) se cambia por uno de prueba (vale con cualquier texto)", f3.hago.escribir === "QA Alfa" && f3.veo[0].muestra === "QA Alfa");
+  t("seleccionar_y_usar ocultar una columna: escribe en C1 y C2, clic en C, usa ocultar → no se ve lo escrito y la columna C ya no se ve", f4.dado.map((d) => d.en || d.clic).join() === "C1,C2,C" && f4.hago.usar === "ocultar" && f4.veo.some((v) => v.oculta === "C") && f4.veo.filter((v) => v.no_esta).length === 2);
+  t("vaciar una fila: A3 y B3 quedan vacías; borrar UNA celda es vaciarla; color: el de prueba en el lugar elegido", f5.veo.every((v) => v.muestra === "") && f5.veo.map((v) => v.en).join() === "A3,B3" && f6.hago.usar === "vaciar" && f7.hago.valor === "#ffcc00" && f7.veo.map((v) => v.en).join() === "A2,B2");
+  t("grilla: A-J y 1-20 → 10 encabezados de columna y 20 de fila; recargar_sigue en una hoja escribe en B2", f8.veo[0].encabezados.columnas.length === 10 && f8.veo[0].encabezados.filas.length === 20 && f9.dado[0].escribir === "QA Alfa" && f9.veo[0].muestra === "QA Alfa");
+  t("las 9 filas de lugares pasan el validador", r.filas.every((f) => validateRow(normalizeRow(f, GH).row, 20, { glosario: GH }).ok) && !r.problems.length, JSON.stringify(r.problems) + JSON.stringify(r.filas.map((f) => validateRow(normalizeRow(f, GH).row, 20, { glosario: GH }).problems)));
+  const malas = rowsFromChoices([{ plantilla: "escribir_y_ver", en: "arriba", escribo: "x", muestra: "x" }, { plantilla: "seleccionar_y_usar", seleccion: "C", accion: "pintar" }, { plantilla: "grilla", columnas: "muchas", filas: "1-5" }], "R1", GH).problems;
+  t("lugares mal completados → afuera con qué falta (por columna y fila; borrar, vaciar, ocultar o color; de cuál a cuál)", malas.length === 3 && /columna y su fila/.test(malas[0]) && /borrar, vaciar, ocultar o color/.test(malas[1]) && /A-J/.test(malas[2]), malas.join(" | "));
+  // 1ª corrida de la hoja (29/10): "hay un botón que dice 'Ocultar Columna'" sin que el usuario lo escribiera
+  const bt = relevanceProblems([{ plantilla: "boton_en", palabras: ["Ocultar", "Columna"] }], "Ocultar una columna y ocultar una fila");
+  const bk = relevanceProblems([{ plantilla: "boton_en", palabras: ["Agregar", "tarjeta"] }], "Botón 'Agregar tarjeta': padding: 8px");
+  t("boton_en: solo con el texto del botón que el usuario escribió entre comillas (si no, es el CÓMO)", bt.some((x) => /boton_en/.test(x) && /CÓMO/.test(x)) && !bk.some((x) => /boton_en/.test(x)), bt.join(" | ") + " || " + bk.join(" | "));
+  const fakeL = (rs) => { let i = 0; return async () => ({ content: rs[Math.min(i++, rs.length - 1)] }); };
+  const gl = await proponerGlosario({ features: ["Editar celdas inline", "La hoja tiene 10 columnas y 20 filas; cada celda se nombra por su columna y su fila (A1)"], call: fakeL(['{"item": "celda", "grupo": null, "lugar": "celda"}']) });
+  t("glosario: si lo que se edita es el mismo lugar de la grilla (la 1ª corrida dijo item = celda), no es un ítem que se crea", gl.glosario && gl.glosario.item === null && gl.glosario.lugar === "celda", JSON.stringify(gl));
+  let visto = "";
+  await proponerGlosario({ features: ["Editar celdas"], ficha: "- usar fórmulas (S1: \"Formulas start with =\")", call: async (m) => { visto = m[0].content; return { content: '{"item": null, "grupo": null, "lugar": "celda"}' }; } });
+  const up = userPrompt({ id: "R1", text: "x", features: ["x"], context: "Hoja", ficha: "- usar fórmulas" });
+  t("la ficha del buscador le llega a Qwen (glosario y examen) como contexto, aclarando que no son requisitos", /Formulas start with =/.test(visto) && /NO son requisitos/.test(up) && /usar fórmulas/.test(up));
+}
 
 console.log(`\n${ok}/${ok + fail} OK`);
 if (fail) process.exit(1);

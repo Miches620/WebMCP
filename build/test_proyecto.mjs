@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { leerPedido, planillaEnPalabras, juzgar, nombresParecidos, unificar, agregar, rehacer, PROYECTO_VERSION } from "./proyecto.mjs";
+import { leerPedido, planillaEnPalabras, juzgar, nombresParecidos, unificar, agregar, rehacer, fichaDe, PROYECTO_VERSION } from "./proyecto.mjs";
 import { borrador, ciclo } from "./run_ciclo.mjs";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -156,6 +156,37 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   t("moderno v0.2: la app 43/43 de Miche falla solo las 3 nuevas (gris que tapa el 78-89% de la columna, texto a 45/39px del borde, con las cuentas 30 + 15, el encabezado se sale de la esquina); arreglada a mano (6 líneas de CSS) pasa todas las V y M",
     a.fallan.map((f) => f.r).join() === "M11,M12,M13" && /tapa el 78%/.test(d("M11")) && /45px del borde de arriba y a 39px/.test(d("M12")) && /arriba 45px = relleno de <div class="card-body"> 30px \+ relleno de <div class="card"> 15px/.test(d("M12")) && /column-header.*se sale de la esquina/.test(d("M13")) && b.fallan.length === 0,
     `${a.fallan.map((f) => f.r)} · ${JSON.stringify(b.fallan).slice(0, 300)}`);
+}
+
+// ---------- 29/10: 2º proyecto (hoja de cálculo): el juez con acciones de persona, contra una hoja hecha a mano ----------
+{
+  const { rowsFromChoices } = await import("../profiles/web/validation/planilla_plantillas.mjs");
+  const { normalizeRow, validateRow } = await import("../profiles/web/validation/planilla_writer.mjs");
+  const GH = { item: null, grupo: null, lugar: "celda" };
+  const elige = {
+    R1: [{ plantilla: "escribir_y_ver", en: "B2", escribo: "hola", muestra: "hola" }], R2: [{ plantilla: "grilla", columnas: "A-J", filas: "1-20" }],
+    R3: [{ plantilla: "escribir_y_ver", antes: { A1: "2", A2: "3", A3: "4" }, en: "A4", escribo: "=SUMA(A1:A3)", muestra: "9" }, { plantilla: "escribir_y_ver", antes: { A1: "2", B2: "5" }, en: "C3", escribo: "=SUMA(A1;B2)", muestra: "7" }, { plantilla: "escribir_y_ver", antes: { A1: "10", B1: "4" }, en: "C1", escribo: "=A1/B1", muestra: "2.5" }],
+    R4: [{ plantilla: "escribir_y_ver", antes: { A1: "2", A2: "3", A3: "=SUMA(A1:A2)" }, en: "A1", escribo: "10", muestra: "13", muestra_en: "A3" }],
+    R5: [{ plantilla: "seleccionar_y_usar", seleccion: "B2", accion: "color" }],
+    R6: ["borrar", "vaciar", "color"].map((a) => ({ plantilla: "seleccionar_y_usar", seleccion: "C", accion: a })),
+    R7: ["borrar", "vaciar", "color"].map((a) => ({ plantilla: "seleccionar_y_usar", seleccion: "3", accion: a })),
+    R8: [{ plantilla: "seleccionar_y_usar", seleccion: "C", accion: "ocultar" }, { plantilla: "seleccionar_y_usar", seleccion: "4", accion: "ocultar" }],
+    R9: [{ plantilla: "recargar_sigue" }],
+  };
+  const filas = Object.entries(elige).flatMap(([id, ch]) => rowsFromChoices(ch, id, GH).filas.map((f, k) => ({ ...normalizeRow(f, GH).row, id: `${id}.${k + 1}` })));
+  const PH = { version: "planilla v0.2", glosario: GH, filas };
+  const mano = await juzgar(join(FIX, "flow_hoja_mano"), PH), rota = await juzgar(join(FIX, "flow_hoja_rota"), PH);
+  const d = (r) => rota.fallan.find((f) => f.r === r)?.detalle.join(" ") || "";
+  t("hoja: las filas que arman las plantillas de lugares pasan el validador", filas.every((f) => validateRow(f, 9, { glosario: GH }).ok));
+  t("hoja hecha a mano (la vara): el juez con acciones de persona la aprueba entera (escribir, fórmulas, se actualiza, color, borrar/vaciar/pintar columna y fila, ocultar, recargar)", mano.cumplidos === 9 && mano.de === 9, JSON.stringify(mano.fallan).slice(0, 600));
+  t("hoja rota a propósito: falla justo lo roto (fórmulas R3/R4, color R5/R6/R7, ocultar columna R8) y dice qué vio", rota.fallan.map((f) => f.r).join() === "R3,R4,R5,R6,R7,R8" && /A4 muestra "=SUMA\(A1:A3\)" \(se esperaba "9"/.test(d("R3")) && /fondo de B2: rgb\(255, 255, 255\) \(se esperaba #ffcc00/.test(d("R5")) && /la columna "C" se sigue viendo/.test(d("R8")), rota.fallan.map((f) => `${f.r}: ${f.detalle.join(" ").slice(-160)}`).join(" | "));
+  // el buscador: la ficha (rasgos con cita) y lo que no pediste como preguntas en planilla.md
+  const ev = { grupos: [{ rasgo: "escribir fórmulas", de: ["T2"], fuentes: ["S1", "S2"], ya_pedido: true }, { rasgo: "compartir con el equipo", de: ["T3"], fuentes: ["S1", "S2", "S3"], fuera_del_stack: "necesita servidor" }, { rasgo: "combinar celdas", de: ["T1"], fuentes: ["S3"] }], rasgos: [{ id: "T1", fuente: "S3", cita: "Merge cells across rows" }, { id: "T2", fuente: "S1", cita: "Formulas  begin with an equal sign" }, { id: "T3", fuente: "S1", cita: "Share with your team" }] };
+  const fi = fichaDe(ev);
+  t("ficha del buscador: primero lo que ya pediste, con su cita; lo que necesita servidor no entra", fi.split("\n")[0] === '- escribir fórmulas (S1: "Formulas begin with an equal sign")' && !/compartir/.test(fi) && /combinar celdas/.test(fi), fi);
+  const mdh = await planillaEnPalabras(PH, Object.keys(elige).map((k) => ({ texto: k })), [], { fuentes: [{ url: "https://ejemplo.org/hoja" }], ficha: fi, preguntas: [{ pregunta: "¿Querés que tu app tenga esto?: combinar celdas", porque: "lo tienen 1 de 3 fuentes (S3)" }] });
+  const mdn = await planillaEnPalabras(PH, Object.keys(elige).map((k) => ({ texto: k })), [], { fuentes: [], motivo: "fetch failed" });
+  t("planilla.md: glosario de grilla, filas en palabras de persona, y lo que encontró el buscador (ficha + lo que no pediste, que solo entra con agregar)", /grilla de \*\*celdas\*\* fijas/.test(mdh) && /Escribo "=SUMA\(A1:A3\)" en A4\. → A4 muestra "9"/.test(mdh) && /Antes: hago clic en la columna C \(en su letra\)\. Uso el control de ocultar\. → lo que se escribió ya no se ve · la columna C ya no se ve/.test(mdh) && /## Lo que encontró el buscador/.test(mdh) && /- combinar celdas \(lo tienen 1 de 3/.test(mdh) && /agregar/.test(mdh) && /No encontró fuentes \(fetch failed\)/.test(mdn), mdh.slice(0, 900));
 }
 
 // ---------- quitar: Miche saca pruebas que están mal ----------

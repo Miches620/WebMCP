@@ -25,7 +25,7 @@ import { SEEN, settle, errsSince, freshStart, verbControl, bestControlIn, useCon
 import { itemClassRe, palabra, filaATipos } from "./glosario.mjs";
 import { MEDIR_VISUAL, REGLAS_VISUALES, MEDIR_MODERNO, REGLAS_MODERNAS } from "./visual.mjs";
 
-export const PLANILLA_VERSION = "planilla v0.1";
+export const PLANILLA_VERSION = "planilla v0.2"; // v0.2 (29/10): acciones de persona en una grilla (escribir, clic, usar; muestra, fondo, oculta, encabezados)
 const DEFAULT_CONTROLS = { agregar: ["agregar", "añadir", "nueva", "nuevo", "crear"], editar: ["editar", "modificar"], eliminar: ["eliminar", "borrar"], mover: ["mover"] };
 
 // ---------- en la página ----------
@@ -150,6 +150,160 @@ export function colorFamily(v) {
   return null;
 }
 
+// ---------- lugares (29/10): acciones de PERSONA en una grilla ----------
+// 2º proyecto (hoja de cálculo): el vocabulario de arriba es el de las apps de "crear cosas" (agregar, editar, borrar,
+// mover un ítem). Una tabla necesita lo que hace una persona frente a cualquier pantalla: escribir en un lugar, hacer
+// clic en algo, usar un control por lo que hace (borrar, ocultar, vaciar, color) y mirar qué muestra un lugar.
+// Un lugar se nombra como lo lee una persona: por el encabezado de su columna y el de su fila ("A1"), o solo "C" / "3".
+// Se encuentra por los encabezados que se VEN (no por clases ni ids): la columna "C" es lo de más arriba que dice "C";
+// la fila "3", lo de más a la izquierda que dice "3"; la celda está donde se cruzan.
+export function nombreLugar(x) {
+  const t = String(x ?? "").trim();
+  let m;
+  if ((m = /^([A-Za-z]{1,3})(\d{1,4})$/.exec(t))) return { col: m[1].toUpperCase(), fila: m[2] };
+  if (/^[A-Za-z]{1,3}$/.test(t)) return { col: t.toUpperCase() };
+  if (/^\d{1,4}$/.test(t)) return { fila: t };
+  return null;
+}
+const LUGAR = ([L]) => {
+  const vis = (e) => { const r = e.getBoundingClientRect(), s = getComputedStyle(e); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none" && Number(s.opacity) > 0.05; };
+  const propio = (e) => [...e.childNodes].filter((n) => n.nodeType === 3).map((n) => n.nodeValue).join("").trim();
+  const cands = (t) => [...document.querySelectorAll("body *")].filter((e) => !e.closest("script, style, option, textarea, select") && e.tagName !== "INPUT" && vis(e) && propio(e).toLowerCase() === String(t).toLowerCase());
+  const quien = (el) => `<${el.tagName.toLowerCase()}${el.id ? ` id="${el.id}"` : ""}${el.classList.length ? ` class="${[...el.classList].slice(0, 2).join(" ")}"` : ""}>`;
+  let col = null, fila = null;
+  if (L.fila) {
+    const cs = cands(L.fila).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+    if (!cs.length) return { falta: `no se ve la fila "${L.fila}" (nada a la izquierda dice "${L.fila}")` };
+    fila = cs[0]; fila.scrollIntoView({ block: "center", inline: "nearest" });
+  }
+  if (L.col) {
+    const cs = cands(L.col).sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
+    if (!cs.length) return { falta: `no se ve la columna "${L.col}" (nada arriba dice "${L.col}")` };
+    col = cs[0]; col.scrollIntoView({ block: "nearest", inline: "center" });
+  }
+  const rc = col?.getBoundingClientRect(), rf = fila?.getBoundingClientRect();
+  if (col && fila) {
+    const x = rc.left + rc.width / 2, y = rf.top + rf.height / 2;
+    const el = document.elementFromPoint(x, y);
+    if (!el) return { falta: `no hay nada donde se cruzan la columna "${L.col}" y la fila "${L.fila}"` };
+    return { x, y, quien: quien(el) };
+  }
+  const h = col || fila, r = h.getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2, quien: quien(h), encabezado: true };
+};
+/** Lo que muestra un lugar, como lo lee una persona: sin campo en edición (se suelta el foco antes). */
+const LEER_LUGAR = ([x, y]) => {
+  const el = document.elementFromPoint(x, y);
+  if (!el) return { texto: null };
+  const t = el.matches("input, textarea") ? el.value : (el.innerText || el.textContent || "");
+  let fondo = null;
+  for (let z = el; z && z !== document.documentElement; z = z.parentElement) { const c = getComputedStyle(z).backgroundColor; if (c && !/rgba\(0, 0, 0, 0\)|transparent/.test(c)) { fondo = c; break; } }
+  return { texto: String(t).trim(), fondo };
+};
+const mismoValor = (a, b) => {
+  const n = (x) => { const t = String(x ?? "").trim().replace(/\s/g, ""); if (!/^-?[\d.,]+$/.test(t)) return null; const v = Number(t.includes(",") && !t.includes(".") ? t.replace(",", ".") : t.replace(/,/g, "")); return Number.isFinite(v) ? v : null; };
+  const x = n(a), y = n(b);
+  if (x != null && y != null) return Math.abs(x - y) < 1e-6;
+  return String(a ?? "").trim().toLowerCase() === String(b ?? "").trim().toLowerCase();
+};
+// usar un control por lo que HACE (las palabras y los íconos de siempre, en castellano e inglés): ninguno es de una app
+const VERBOS = {
+  borrar: { si: /\b(borrar|eliminar|quitar|suprimir|delete|remove)\b|🗑|✕|✖/i, no: /contenido|limpiar|vaciar|clear|todo|mostrar/i },
+  vaciar: { si: /\b(vaciar|limpiar|clear)\b|borrar (el )?contenido|🧹/i, no: /mostrar/i },
+  ocultar: { si: /\b(ocultar|esconder|hide)\b|👁/i, no: /mostrar|show/i },
+  color: { si: /\b(color|colorear|pintar|fondo)\b|🎨/i, no: /mostrar/i },
+};
+const BUSCAR_VERBO = ([si, no]) => {
+  const reSi = new RegExp(si, "i"), reNo = no ? new RegExp(no, "i") : null;
+  const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const vis = (e) => { const r = e.getBoundingClientRect(), s = getComputedStyle(e); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && Number(s.opacity) > 0.05; };
+  document.querySelectorAll("[data-plan-usar]").forEach((e) => e.removeAttribute("data-plan-usar"));
+  const els = [...document.querySelectorAll("button, [role=button], [role=menuitem], a, input[type=button], input[type=submit], label")].filter(vis);
+  const t = (e) => nrm([e.innerText || "", e.value || "", e.getAttribute("title") || "", e.getAttribute("aria-label") || ""].join(" "));
+  const b = els.find((e) => reSi.test(t(e)) && !(reNo && reNo.test(t(e))));
+  if (!b) return null;
+  b.setAttribute("data-plan-usar", "1");
+  return { texto: (b.innerText || b.value || b.getAttribute("title") || b.getAttribute("aria-label") || "").trim().slice(0, 30), tag: b.tagName };
+};
+const PONER_COLOR = ([valor]) => {
+  const ins = [...document.querySelectorAll("input[type=color]")];
+  if (!ins.length) return false;
+  const vis = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+  const inp = ins.find(vis) || ins[0];
+  inp.value = valor;
+  inp.dispatchEvent(new Event("input", { bubbles: true }));
+  inp.dispatchEvent(new Event("change", { bubbles: true }));
+  return true;
+};
+const COLOR_DE_PRUEBA = "#ffcc00";
+async function escribirEn(page, nombre, texto) {
+  const L = nombreLugar(nombre);
+  if (!L?.col || !L?.fila) return { fail: `"${nombre}" no es un lugar con columna y fila (p. ej. A1)` };
+  const p = await page.evaluate(LUGAR, [L]);
+  if (p.falta) return { fail: p.falta };
+  const campo = () => page.evaluate(() => {
+    document.querySelectorAll("[data-plan-campo]").forEach((e) => e.removeAttribute("data-plan-campo"));
+    const a = document.activeElement;
+    if (!a || !(a.matches("input:not([type=button]):not([type=submit]):not([type=color]):not([type=checkbox]), textarea") || a.isContentEditable)) return false;
+    a.setAttribute("data-plan-campo", "1"); return true;
+  });
+  await page.mouse.click(p.x, p.y); await settle(page);
+  let modo = "clic";
+  if (!(await campo())) { await page.mouse.dblclick(p.x, p.y); await settle(page); modo = "doble clic"; }
+  if (await campo()) await page.locator("[data-plan-campo]").first().fill(String(texto)).catch(() => {});
+  else { modo += " y teclado"; await page.keyboard.type(String(texto)); }
+  await page.keyboard.press("Enter"); await settle(page);
+  await page.evaluate(() => document.activeElement?.blur?.()); await settle(page);
+  return { why: `escribió "${texto}" en ${String(nombre).toUpperCase()} (${modo})` };
+}
+async function clicEn(page, nombre, ctx) {
+  const L = nombreLugar(nombre);
+  let p = L ? await page.evaluate(LUGAR, [L]) : null;
+  if (!L) {
+    // un texto cualquiera que se ve (no un lugar): lo más chico que lo dice
+    p = await page.evaluate(([t]) => {
+      const vis = (e) => { const r = e.getBoundingClientRect(), s = getComputedStyle(e); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && Number(s.opacity) > 0.05; };
+      const e = [...document.querySelectorAll("body *")].filter((x) => vis(x) && (x.innerText || "").trim().toLowerCase() === String(t).trim().toLowerCase()).sort((a, b) => a.innerText.length - b.innerText.length)[0];
+      if (!e) return { falta: `nada visible dice "${t}"` };
+      const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    }, [nombre]);
+  }
+  if (p.falta) return { fail: p.falta };
+  await page.mouse.click(p.x, p.y); await settle(page);
+  ctx.seleccion = { x: p.x, y: p.y, nombre };
+  return { why: `hizo clic en ${L ? (L.col && L.fila ? String(nombre).toUpperCase() : L.col ? `la columna "${L.col}"` : `la fila "${L.fila}"`) : `"${nombre}"`}` };
+}
+async function usarVerbo(page, verbo, valor, ctx) {
+  const v = VERBOS[verbo];
+  if (!v) return { fail: `no sé usar "${verbo}" (sé: ${Object.keys(VERBOS).join(", ")})` };
+  const buscar = () => page.evaluate(BUSCAR_VERBO, [v.si.source, v.no?.source || null]);
+  let b = await buscar(), donde = "";
+  if (!b && verbo === "color" && (await page.evaluate(() => [...document.querySelectorAll("input[type=color]")].some((e) => e.getBoundingClientRect().width > 0)))) b = { texto: "selector de color", directo: true };
+  if (!b && ctx.seleccion) { await page.mouse.click(ctx.seleccion.x, ctx.seleccion.y, { button: "right" }); await settle(page); b = await buscar(); donde = " (en el menú del botón derecho)"; }
+  if (!b) {
+    if (verbo === "vaciar" && ctx.seleccion) { await page.keyboard.press("Delete"); await settle(page); return { why: `vació con la tecla Supr (no hay un control que diga vaciar o limpiar)` }; }
+    return { fail: `no hay un control para ${verbo} (ninguno dice ${v.si.source.replace(/\\b|\(|\)/g, "").split("|").slice(0, 4).join(", ")}…)${ctx.seleccion ? `, ni en el menú del botón derecho sobre ${ctx.seleccion.nombre}` : ""}` };
+  }
+  if (verbo === "color") {
+    const color = valor || COLOR_DE_PRUEBA;
+    if (!b.directo && b.tag !== "LABEL") { await page.locator("[data-plan-usar]").first().click({ timeout: 2000 }).catch(() => {}); await settle(page); }
+    if (!(await page.evaluate(PONER_COLOR, [color]))) return { fail: `apretó "${b.texto}" pero no apareció dónde elegir el color` };
+    await settle(page);
+    return { why: `eligió el color ${color} con "${b.texto}"${donde}` };
+  }
+  await page.evaluate(() => document.querySelectorAll("button, [role=button]").forEach((x) => { if (x.getClientRects().length) x.setAttribute("data-plan-pre", "1"); else x.removeAttribute("data-plan-pre"); }));
+  await page.locator("[data-plan-usar]").first().click({ timeout: 2000 }).catch(() => {});
+  await settle(page);
+  // si aparece un botón de confirmar (que no estaba antes), se confirma, como una persona
+  const yes = await page.evaluate(() => {
+    const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+    const b = [...document.querySelectorAll("button, [role=button]")].filter((x) => x.getClientRects().length && !x.hasAttribute("data-plan-pre")).find((x) => /^(si|confirmar|eliminar|borrar|aceptar|ok|ocultar|vaciar)\b/.test(nrm(x.innerText).trim()));
+    if (!b) return null; b.setAttribute("data-plan-yes", "1"); return b.innerText.trim().slice(0, 20);
+  });
+  if (yes) { await page.locator("[data-plan-yes]").first().click({ timeout: 2000 }).catch(() => {}); await settle(page); }
+  return { why: `usó "${b.texto}" (${verbo})${donde}${yes ? ` y confirmó "${yes}"` : ""}` };
+}
+
 // ---------- acciones ----------
 async function addCard(page, ctls, spec, w) {
   const text = typeof spec === "string" ? spec : spec.agregar;
@@ -239,6 +393,9 @@ async function act(page, ctls, h, ctx, w) {
     await page.waitForTimeout(250);
     return `pasó el mouse por "${h.pasar_mouse}"`;
   }
+  if (h.escribir != null) { const r = await escribirEn(page, h.en, h.escribir); return r.fail ? r : r.why; }
+  if (h.clic != null) { const r = await clicEn(page, h.clic, ctx); return r.fail ? r : r.why; }
+  if (h.usar) { const r = await usarVerbo(page, h.usar, h.valor, ctx); return r.fail ? r : r.why; }
   return { fail: `acción desconocida: ${JSON.stringify(h)}` };
 }
 
@@ -431,6 +588,34 @@ async function see(page, v, before, w) {
     const fams = [...new Set(cs.map(colorFamily).filter(Boolean))];
     return [fams.includes(v.familia), `colores en "${v.color_en_item}"${v.texto ? ` (lo que dice "${v.texto}")` : ""}: ${fams.join(", ") || "ninguno de rojo/amarillo/verde"}${fams.includes(v.familia) ? "" : ` (se esperaba ${v.familia})`}`];
   }
+  if (v.muestra != null || v.fondo != null) {
+    const L = nombreLugar(v.en);
+    if (!L?.col || !L?.fila) return [false, `"${v.en}" no es un lugar con columna y fila`];
+    await page.evaluate(() => document.activeElement?.blur?.());
+    const p = await page.evaluate(LUGAR, [L]);
+    if (p.falta) return [false, p.falta];
+    const r = await page.evaluate(LEER_LUGAR, [p.x, p.y]);
+    const nom = String(v.en).toUpperCase();
+    if (v.muestra != null) {
+      const ok = mismoValor(r.texto, v.muestra);
+      return [ok, v.muestra === "" ? (ok ? `${nom} está vacía` : `${nom} muestra "${r.texto}" (tenía que estar vacía)`) : `${nom} muestra "${r.texto ?? ""}"${ok ? "" : ` (se esperaba "${v.muestra}"; es ${p.quien})`}`];
+    }
+    const ok = !!r.fondo && styleMatches(r.fondo, v.fondo);
+    return [ok, `fondo de ${nom}: ${r.fondo || "sin fondo propio"}${ok ? "" : ` (se esperaba ${v.fondo}; es ${p.quien})`}`];
+  }
+  if (v.oculta != null) {
+    const L = nombreLugar(v.oculta);
+    const p = L ? await page.evaluate(LUGAR, [L]) : { falta: true };
+    return [!!p.falta, p.falta ? `${L?.col ? `la columna "${L.col}"` : `la fila "${L?.fila}"`} ya no se ve` : `${L.col ? `la columna "${L.col}"` : `la fila "${L.fila}"`} se sigue viendo (${p.quien})`];
+  }
+  if (v.encabezados) {
+    const faltan = [];
+    const cols = v.encabezados.columnas || [], filas = v.encabezados.filas || [];
+    for (const c of cols) if ((await page.evaluate(LUGAR, [{ col: c }])).falta) faltan.push(c);
+    for (const f of filas) if ((await page.evaluate(LUGAR, [{ fila: f }])).falta) faltan.push(f);
+    const n = cols.length, m = filas.length;
+    return [!faltan.length, faltan.length ? `faltan encabezados: ${faltan.slice(0, 8).join(", ")}${faltan.length > 8 ? "…" : ""}` : `se ven ${n} encabezados de columna y ${m} de fila`];
+  }
   return [false, `"veo" desconocido: ${JSON.stringify(v)}`];
 }
 
@@ -454,7 +639,7 @@ export function conAzar(row, seed) {
 export async function runRow({ page, row: row0, controls, glosario, azar, ctx, reload }) {
   let row = conAzar(filaATipos(row0, glosario), azar);
   const w = { src: itemClassRe(glosario).source, it: palabra(glosario, "item"), gr: palabra(glosario, "grupo"), ctx };
-  ctx.trasClic = null;
+  ctx.trasClic = null; ctx.seleccion = null;
   const ctls = { ...DEFAULT_CONTROLS, ...(controls || {}) };
   await freshStart(page, reload);
   const e0 = ctx.pageErrors.length;
@@ -463,6 +648,13 @@ export async function runRow({ page, row: row0, controls, glosario, azar, ctx, r
   const dado = row.dado || [];
   for (const d of dado) {
     // 19/10: "dado" también puede mover un ítem que ya se creó (para restricciones como "no se borra en Completa")
+    // 29/10: "dado" también escribe en un lugar o hace clic (seleccionar una columna antes de usar un control)
+    if (d && (d.escribir != null || d.clic != null)) {
+      const m = await act(page, ctls, d, ctx, w);
+      if (m?.fail) return out("FAIL", `no se pudo preparar: ${m.fail}`);
+      steps.push(m);
+      continue;
+    }
     if (d && d.mover) {
       const m = await act(page, ctls, { mover: d.mover, a: d.a }, ctx, w);
       if (m?.fail) return out("FAIL", `no se pudo preparar: ${m.fail}`);

@@ -11,7 +11,7 @@ const K = { item: "tarjeta", grupo: "columna" };
 const REC = { item: "receta", grupo: "categoría" };
 const HOJA = { item: "fila", grupo: null };
 
-t("versión", GLOSARIO_VERSION === "glosario v0.2");
+t("versión", GLOSARIO_VERSION.startsWith("glosario v0.3"));
 t("un glosario se revisa: tipos que no existen y nombres que no son palabras → problemas", leerGlosario(K).ok && !leerGlosario({ tarjeta: "item" }).ok && !leerGlosario({ item: "<div>" }).ok && leerGlosario(HOJA).ok);
 t("sin glosario → palabras genéricas (elemento, grupo)", palabra(null, "item") === "elemento" && palabra(null, "grupo") === "grupo");
 t("tipoDe: el nombre de la app, su plural y sin tildes", tipoDe(K, "Columnas") === "grupo" && tipoDe(K, "tarjeta") === "item" && tipoDe(REC, "categoria") === "grupo" && tipoDe(K, "receta") === null);
@@ -40,8 +40,9 @@ const ri = rowsFromChoices([{ plantilla: "contador_al_crear", columna: "En Curso
 t("inicio: crear y mirar el contador de En Curso, mover A Pendiente u ordenar en Completa (donde no se crea nada) → afuera, diciendo dónde aparece lo nuevo", ri.filas.length === 1 && ri.filas[0].veo[0].contador === "Pendiente" && ri.problems.length === 3 && ri.problems.every((x) => /aparece (en )?"?Pendiente|ya aparece lo que se crea/.test(x)) && leerGlosario(KI).ok && leerGlosario(KI).glosario.inicio === "Pendiente", JSON.stringify(ri.problems));
 
 // GUARDIÁN: el código del juez y de las plantillas no nombra cosas de ninguna app (solo los comentarios cuentan la historia)
+// 29/10: "columna" junto con "fila", "encabezado", "lugar" o "seleccion" en la misma línea es la grilla (lugares: A1, la columna C, la fila 3), no el Kanban
 const code = (f) => readFileSync(new URL(`./${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").split("\n").map((l) => l.replace(/(^|\s)\/\/.*$/, "")).join("\n");
-const leaks = ["glosario.mjs", "planilla.mjs", "planilla_plantillas.mjs", "planilla_writer.mjs", "planilla_palabras.mjs"].flatMap((f) => code(f).split("\n").map((l, i) => [f, i + 1, l]).filter(([, , l]) => /tarjeta|columna|kanban/i.test(l)).map(([f, n, l]) => `${f}:${n}: ${l.trim().slice(0, 80)}`));
+const leaks = ["glosario.mjs", "planilla.mjs", "planilla_plantillas.mjs", "planilla_writer.mjs", "planilla_palabras.mjs"].flatMap((f) => code(f).split("\n").map((l, i) => [f, i + 1, l]).filter(([, , l]) => /tarjeta|kanban/i.test(l) || (/columna/i.test(l) && !/fila|encabezad|lugar|seleccion|L\.col/i.test(l))).map(([f, n, l]) => `${f}:${n}: ${l.trim().slice(0, 80)}`));
 t("GUARDIÁN: ni el juez, ni las plantillas, ni el writer dicen 'tarjeta', 'columna' o 'Kanban' en el código", !leaks.length, "\n    " + leaks.join("\n    "));
 
 console.log(`\n${ok}/${ok + fail} OK`);

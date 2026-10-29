@@ -15,7 +15,7 @@
 // se traducen acá. Regla para que no vuelva el monstruo: un tipo o una acción nueva entra a las capas 1 y 2 solo si
 // la piden 2 proyectos distintos (experiencia que se repite → conocimiento).
 
-export const GLOSARIO_VERSION = "glosario v0.2";
+export const GLOSARIO_VERSION = "glosario v0.3"; // v0.3 (29/10): tipo "lugar"
 // v0.2 (20/10, banco de 5 modelos escribiendo la planilla): el error que más se repitió fue probar "lo nuevo" en el grupo
 // equivocado ("creo una tarjeta → sube el contador de En Curso"). "inicio" dice DÓNDE aparece lo que se crea (lo decide
 // Miche en el glosario); las plantillas que crean usan ese grupo.
@@ -24,8 +24,12 @@ export const GLOSARIO_VERSION = "glosario v0.2";
 export const TIPOS = {
   item: "lo que el usuario crea, edita y borra; se encuentra por su texto",
   grupo: "un contenedor con título que agrupa ítems; se encuentra por su título",
+  // 29/10 (2º proyecto, hoja de cálculo): lo que YA está en la pantalla y no crea el usuario; se nombra por su columna
+  // y su fila, como lo lee una persona ("A1"). Excepción consciente a la regla de los 2 proyectos (ver CAMBIOS): no es
+  // un tipo de dominio sino la forma de nombrar un lugar en cualquier grilla o tabla.
+  lugar: "un lugar fijo de una grilla o tabla (no lo crea el usuario); se encuentra por el encabezado de su columna y el de su fila",
 };
-const GENERICO = { item: "elemento", grupo: "grupo" };
+const GENERICO = { item: "elemento", grupo: "grupo", lugar: null };
 
 const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
 const plural = (w) => (/[aeiou]$/i.test(w) ? `${w}s` : `${w}es`);

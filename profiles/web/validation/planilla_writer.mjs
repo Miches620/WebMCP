@@ -293,7 +293,7 @@ export async function proponerGlosario({ features, context = "", call = callLM, 
   const sys = `Leés los requisitos de una app web y decís cómo se llaman, EN ESA APP, tres cosas:
 - "item": lo que el usuario CREA, edita y borra (tareas, contactos, recetas…). Copiá la palabra tal cual aparece en los requisitos, en singular. null si el usuario no crea cosas nuevas (todo ya está en la pantalla).
 - "grupo": el lugar con nombre propio donde están esos ítems (los requisitos suelen nombrar cada uno entre comillas, y a veces se pasan ítems de uno a otro). Copiá la palabra tal cual aparece, en singular. null SOLO si los ítems no están repartidos en lugares con nombre.
-- "lugar": si la pantalla es una grilla o tabla de lugares FIJOS que se nombran por su columna y su fila (como "A1"), cómo se llama cada uno, en singular, tal cual aparece. null si no hay una grilla así.
+- "lugar": si la pantalla es una grilla o tabla de lugares FIJOS que se nombran por su columna y su fila (como "A1"), la PALABRA con que los requisitos llaman a cada uno, en singular (no el nombre de uno: no "A1"). null si no hay una grilla así.
 ${ficha ? `\nLo que dicen fuentes de la web sobre este tipo de app (con citas; usalo para entender, no lo copies como requisito):\n${ficha}\n` : ""}
 Respondé SOLO JSON: { "item": "…" | null, "grupo": "…" | null, "lugar": "…" | null, "por_que": "el número de requisito donde lo dice" }`;
   const user = `${context ? `Proyecto: ${context}\n\n` : ""}Requisitos:\n${features.map((f, i) => `R${i + 1}. ${f}`).join("\n")}`;
@@ -318,6 +318,10 @@ Respondé SOLO JSON: { "item": "…" | null, "grupo": "…" | null, "lugar": "�
       // 2ª corrida (19/10): respondió "pendiente", que es el NOMBRE de uno de los lugares, no la palabra que los engloba
       if (g?.grupo && citados.some((c) => nrm(c) === nrm(g.grupo))) problemas.push(`"${g.grupo}" es el NOMBRE de uno de esos lugares; el grupo es la palabra que dice QUÉ SON (${[...new Set(citados)].slice(0, 3).map((x) => `"${x}"`).join(", ")} son… ¿qué?)`);
       if (g && !g.grupo && citados.length >= 2 && intento === 1) problemas.push(`dijiste que no hay grupos, pero los requisitos nombran entre comillas: ${[...new Set(citados)].slice(0, 6).map((x) => `"${x}"`).join(", ")}. Si los ítems están repartidos en esos lugares, el grupo es la palabra que dice QUÉ SON esos lugares (no uno de los nombres). Si de verdad no hay, repetí null`);
+      // 29/10 (2ª corrida de la hoja): dijo "lugar": "A1" (el NOMBRE de uno, no la palabra) y el glosario no servía, pero
+      // el reintento iba con "Revisá: ." vacío: Qwen repetía lo mismo 3 veces y la planilla salió con el genérico
+      if (g?.lugar && /^[a-z]{1,3}\d{1,4}$/i.test(g.lugar)) problemas.push(`"${g.lugar.toUpperCase()}" es el NOMBRE de uno de esos lugares; "lugar" es la palabra que dice QUÉ ES cada uno (en los requisitos, la que va antes o después de "${g.lugar.toUpperCase()}")`);
+      else if (g && !leerGlosario(g).ok) problemas.push(...leerGlosario(g).problems);
       if (!problemas.length && leerGlosario(g).ok) return { glosario: g, raw: crudos };
       if (intento === 3) return g && ((g.item && esta(g.item)) || (g.lugar && esta(g.lugar))) && leerGlosario(g).ok ? { glosario: g, raw: crudos, aviso: problemas.join("; ") } : { glosario: null, raw: crudos, problema: problemas.join("; ") || "la respuesta no es un glosario válido" };
       messages.push({ role: "assistant", content: r.content }, { role: "user", content: `Revisá: ${problemas.join("; ")}. Respondé de nuevo el JSON.` });

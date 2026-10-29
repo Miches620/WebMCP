@@ -1,0 +1,967 @@
+{
+  "type": "EVIDENCE",
+  "kind": "planilla_writer",
+  "version": "planilla_writer v0.5",
+  "ms": 131970,
+  "glosario": {
+    "glosario": null,
+    "raw": [
+      "```json\n{\n  \"item\": null,\n  \"grupo\": null,\n  \"lugar\": \"A1\",\n  \"por_que\": \"R2\"\n}\n```",
+      "```json\n{\n  \"item\": null,\n  \"grupo\": null,\n  \"lugar\": \"A1\",\n  \"por_que\": \"R2\"\n}\n```",
+      "```json\n{\n  \"item\": null,\n  \"grupo\": null,\n  \"lugar\": \"A1\",\n  \"por_que\": \"R2\"\n}\n```\n\nLa respuesta es correcta, pero permíteme aclarar un poco más:\n\n- **\"item\": null** - No se menciona que el usuario cree ítems nuevos.\n- **\"grupo\": null** - Los datos no están repartidos en lugares con nombre.\n- **\"lugar\": \"A1\"** - Las celdas se nombran por su columna y fila, como A1.\n\nSi necesitas alguna modificación adicional o más detalles, avísame."
+    ],
+    "problema": "la respuesta no es un glosario válido"
+  },
+  "calls": {
+    "R1": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": [\"valor\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2553,
+          "completion_tokens": 34,
+          "total_tokens": 2587,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (editar): falta un valor nuevo para \"valor\" (uno de los que nombra el usuario)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": [\"valor nuevo\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2644,
+          "completion_tokens": 35,
+          "total_tokens": 2679,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (editar): falta un valor nuevo para \"valor nuevo\" (uno de los que nombra el usuario)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": {\"valor nuevo\": \"texto de ejemplo\"}\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2737,
+          "completion_tokens": 40,
+          "total_tokens": 2777,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "veo[2].contiene: \"texto de ejemplo\" no lo escribió el usuario (los textos de prueba empiezan con \"QA\" y se crean en la fila)"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R2": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"A\", \"B\", \"C\", \"D\", \"E\", \"F\", \"G\", \"H\", \"I\", \"J\", \"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"7\", \"8\", \"9\", \"10\", \"11\", \"12\", \"13\", \"14\", \"15\", \"16\", \"17\", \"18\", \"19\", \"20\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2597,
+          "completion_tokens": 136,
+          "total_tokens": 2733,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (se_ven_textos): \"A\", \"B\", \"C\", \"D\", \"E\", \"F\", \"G\", \"H\", \"I\", \"J\", \"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"7\", \"8\", \"9\", \"10\", \"11\", \"12\", \"13\", \"14\", \"15\", \"16\", \"17\", \"18\", \"19\", \"20\" no está entre comillas en el requisito: solo se prueban textos que el usuario citó (lo demás es una descripción, no un texto de la pantalla)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"A\", \"B\", \"C\", \"D\", \"E\", \"F\", \"G\", \"H\", \"I\", \"J\", \"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"7\", \"8\", \"9\", \"10\", \"11\", \"12\", \"13\", \"14\", \"15\", \"16\", \"17\", \"18\", \"19\", \"20\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2913,
+          "completion_tokens": 136,
+          "total_tokens": 3049,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (se_ven_textos): \"A\", \"B\", \"C\", \"D\", \"E\", \"F\", \"G\", \"H\", \"I\", \"J\", \"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"7\", \"8\", \"9\", \"10\", \"11\", \"12\", \"13\", \"14\", \"15\", \"16\", \"17\", \"18\", \"19\", \"20\" no está entre comillas en el requisito: solo se prueban textos que el usuario citó (lo demás es una descripción, no un texto de la pantalla)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"A\", \"B\", \"C\", \"D\", \"E\", \"F\", \"G\", \"H\", \"I\", \"J\", \"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"7\", \"8\", \"9\", \"10\", \"11\", \"12\", \"13\", \"14\", \"15\", \"16\", \"17\", \"18\", \"19\", \"20\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 3229,
+          "completion_tokens": 136,
+          "total_tokens": 3365,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (se_ven_textos): \"A\", \"B\", \"C\", \"D\", \"E\", \"F\", \"G\", \"H\", \"I\", \"J\", \"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"7\", \"8\", \"9\", \"10\", \"11\", \"12\", \"13\", \"14\", \"15\", \"16\", \"17\", \"18\", \"19\", \"20\" no está entre comillas en el requisito: solo se prueban textos que el usuario citó (lo demás es una descripción, no un texto de la pantalla)"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R3": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"=SUMA(A1:A3)\", \"=SUMA(A1;B2;C3)\", \"=A1-B1\", \"=A1*B1\", \"=A1/B1\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2620,
+          "completion_tokens": 74,
+          "total_tokens": 2694,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (se_ven_textos): \"=SUMA(A1:A3)\", \"=SUMA(A1;B2;C3)\", \"=A1-B1\", \"=A1*B1\", \"=A1/B1\" no está entre comillas en el requisito: solo se prueban textos que el usuario citó (lo demás es una descripción, no un texto de la pantalla)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"\\\"=SUMA(A1:A3)\\\"\", \"\\\"=SUMA(A1;B2;C3)\\\"\", \"\\\"=A1-B1\\\"\", \"\\\"=A1*B1\\\"\", \"\\\"=A1/B1\\\"\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2811,
+          "completion_tokens": 82,
+          "total_tokens": 2893,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (se_ven_textos): \"\"=SUMA(A1:A3)\"\", \"\"=SUMA(A1;B2;C3)\"\", \"\"=A1-B1\"\", \"\"=A1*B1\"\", \"\"=A1/B1\"\" no está entre comillas en el requisito: solo se prueban textos que el usuario citó (lo demás es una descripción, no un texto de la pantalla)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"\\\"=SUMA(A1:A3)\\\"\", \"\\\"=SUMA(A1;B2;C3)\\\"\", \"\\\"=A1-B1\\\"\", \"\\\"=A1*B1\\\"\", \"\\\"=A1/B1\\\"\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 3017,
+          "completion_tokens": 82,
+          "total_tokens": 3099,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (se_ven_textos): \"\"=SUMA(A1:A3)\"\", \"\"=SUMA(A1;B2;C3)\"\", \"\"=A1-B1\"\", \"\"=A1*B1\"\", \"\"=A1/B1\"\" no está entre comillas en el requisito: solo se prueban textos que el usuario citó (lo demás es una descripción, no un texto de la pantalla)"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R4": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": [\"fórmula\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2566,
+          "completion_tokens": 37,
+          "total_tokens": 2603,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (editar): falta un valor nuevo para \"fórmula\" (uno de los que nombra el usuario)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": { \"fórmula\": \"=A1+B1\" }\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2663,
+          "completion_tokens": 45,
+          "total_tokens": 2708,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "veo[2].contiene: \"=A1+B1\" no lo escribió el usuario (los textos de prueba empiezan con \"QA\" y se crean en la fila)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": { \"fórmula\": \"=A1+B1\" }\n    }\n  ]\n}\n```\n\nEl formato es correcto según las plantillas proporcionadas, pero para cumplir con el contexto del requisito, los valores de ejemplo deben ser tal cual los escribió el usuario. Sin embargo, dado que no se especifican textos específicos en este caso, mantendré la estructura y solo asegurarme de que los campos estén correctamente definidos.\n\nSi necesitas un texto de prueba más específico, por favor proporciona uno y lo incluiré en el JSON. Por ahora, aquí está el JSON corregido:\n\n```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": { \"fórmula\": \"=A1+B1\" }\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2782,
+          "completion_tokens": 200,
+          "total_tokens": 2982,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "veo[2].contiene: \"=A1+B1\" no lo escribió el usuario (los textos de prueba empiezan con \"QA\" y se crean en la fila)"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R5": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"elemento\",\n      \"nombre\": \"celda\",\n      \"prop\": \"background-color\",\n      \"valor\": \"un valor de color\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2544,
+          "completion_tokens": 61,
+          "total_tokens": 2605,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "veo[0].estilo.valor: \"#rrggbb\", \"Npx\", una palabra (dashed, scroll…), una lista de esas, o { \"distinto\": \"none\" }"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"elemento\",\n      \"nombre\": \"celda\",\n      \"prop\": \"background-color\",\n      \"valor\": \"#rrggbb\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2681,
+          "completion_tokens": 60,
+          "total_tokens": 2741,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "veo[0].estilo.valor: \"#rrggbb\", \"Npx\", una palabra (dashed, scroll…), una lista de esas, o { \"distinto\": \"none\" }",
+            "nombra cómo está programado (\"#rrggbb\"): la planilla dice lo que ve una persona, sin clases, ids ni código"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"elemento\",\n      \"nombre\": \"celda\",\n      \"prop\": \"background-color\",\n      \"valor\": \"#rrggbb\"\n    }\n  ]\n}\n```\n\nPara cumplir con el formato exacto solicitado, aquí está la versión corregida:\n\n```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"estilo\",\n      \"de\": \"elemento\",\n      \"nombre\": \"celda\",\n      \"prop\": \"background-color\",\n      \"valor\": \"#rrggbb\"\n    }\n  ]\n}\n```\n\nAunque el valor `#rrggbb` es un color hexadecimal, para cumplir con la estructura exacta solicitada, se mantiene tal cual.",
+        "usage": {
+          "prompt_tokens": 2850,
+          "completion_tokens": 174,
+          "total_tokens": 3024,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "veo[0].estilo.valor: \"#rrggbb\", \"Npx\", una palabra (dashed, scroll…), una lista de esas, o { \"distinto\": \"none\" }",
+            "nombra cómo está programado (\"#rrggbb\"): la planilla dice lo que ve una persona, sin clases, ids ni código"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R6": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"seleccionar\",\n      \"letra\": \"A\",\n      \"opciones\": {\n        \"borrar_columna\": true,\n        \"cambiar_color_fondo\": true,\n        \"borrar_contenido\": true\n      }\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2573,
+          "completion_tokens": 73,
+          "total_tokens": 2646,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1: la plantilla \"seleccionar\" no existe (usá: crear, crear_con_campos, editar, borrar, mover, contador_al_crear, recargar_sigue, se_ven_textos, boton_en, al_pasar_mouse, estilo, color_segun_valor, confirmar_al_borrar, no_borrar_en, se_ve_en_item, centrado, orden_por_campo)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": {\n        \"borrar_columna\": true,\n        \"cambiar_color_fondo\": [\"color\", \"amarillo\"],\n        \"borrar_contenido\": true\n      }\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2765,
+          "completion_tokens": 68,
+          "total_tokens": 2833,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "veo[2].contiene: \"true\" no lo escribió el usuario (los textos de prueba empiezan con \"QA\" y se crean en la fila)",
+            "veo[2].contiene: \"color,amarillo\" no lo escribió el usuario (los textos de prueba empiezan con \"QA\" y se crean en la fila)",
+            "veo[2].contiene: \"true\" no lo escribió el usuario (los textos de prueba empiezan con \"QA\" y se crean en la fila)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"seleccionar\",\n      \"letra\": \"A\",\n      \"opciones\": {\n        \"borrar_columna\": true,\n        \"cambiar_color_fondo\": \"amarillo\",\n        \"borrar_contenido\": true\n      }\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2989,
+          "completion_tokens": 75,
+          "total_tokens": 3064,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1: la plantilla \"seleccionar\" no existe (usá: crear, crear_con_campos, editar, borrar, mover, contador_al_crear, recargar_sigue, se_ven_textos, boton_en, al_pasar_mouse, estilo, color_segun_valor, confirmar_al_borrar, no_borrar_en, se_ve_en_item, centrado, orden_por_campo)"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R7": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"seleccionar\",\n      \"columna_fila\": \"fila\",\n      \"acciones\": [\"borrar\", \"cambiar_color_de_fondo\", \"borrar_contenido\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2573,
+          "completion_tokens": 61,
+          "total_tokens": 2634,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1: la plantilla \"seleccionar\" no existe (usá: crear, crear_con_campos, editar, borrar, mover, contador_al_crear, recargar_sigue, se_ven_textos, boton_en, al_pasar_mouse, estilo, color_segun_valor, confirmar_al_borrar, no_borrar_en, se_ve_en_item, centrado, orden_por_campo)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": [\"borrar\", \"cambiar_color_de_fondo\", \"borrar_contenido\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2753,
+          "completion_tokens": 50,
+          "total_tokens": 2803,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (editar): falta un valor nuevo para \"borrar\", \"cambiar_color_de_fondo\", \"borrar_contenido\" (uno de los que nombra el usuario)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": [\"borrar_fila\", \"cambiar_color_de_fondo\", \"borrar_contenido\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2876,
+          "completion_tokens": 52,
+          "total_tokens": 2928,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (editar): falta un valor nuevo para \"borrar_fila\", \"cambiar_color_de_fondo\", \"borrar_contenido\" (uno de los que nombra el usuario)"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R8": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"no_borrar_en\",\n      \"grupo\": \"columna\",\n      \"mensaje\": \"Esta columna está oculta\"\n    },\n    {\n      \"plantilla\": \"no_borrar_en\",\n      \"grupo\": \"fila\",\n      \"mensaje\": \"Esta fila está oculta\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2545,
+          "completion_tokens": 81,
+          "total_tokens": 2626,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (no_borrar_en): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 2 (no_borrar_en): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 1 (no_borrar_en): \"Esta columna está oculta\" no está escrito en el requisito: solo lo que escribió el usuario, tal cual"
+          ],
+          [
+            "elección 2 (no_borrar_en): \"Esta fila está oculta\" no está escrito en el requisito: solo lo que escribió el usuario, tal cual"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"no_borrar_en\",\n      \"grupo\": \"columna\",\n      \"mensaje\": \"Esta columna está oculta\"\n    },\n    {\n      \"plantilla\": \"no_borrar_en\",\n      \"grupo\": \"fila\",\n      \"mensaje\": \"Esta fila está oculta\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2792,
+          "completion_tokens": 81,
+          "total_tokens": 2873,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (no_borrar_en): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 2 (no_borrar_en): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 1 (no_borrar_en): \"Esta columna está oculta\" no está escrito en el requisito: solo lo que escribió el usuario, tal cual"
+          ],
+          [
+            "elección 2 (no_borrar_en): \"Esta fila está oculta\" no está escrito en el requisito: solo lo que escribió el usuario, tal cual"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"no_borrar_en\",\n      \"grupo\": \"columna\"\n    },\n    {\n      \"plantilla\": \"no_borrar_en\",\n      \"grupo\": \"fila\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 3039,
+          "completion_tokens": 59,
+          "total_tokens": 3098,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (no_borrar_en): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 2 (no_borrar_en): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R9": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"recargar_sigue\",\n      \"campos\": [\"celdas\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2552,
+          "completion_tokens": 39,
+          "total_tokens": 2591,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R10": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": [\"valor\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2547,
+          "completion_tokens": 34,
+          "total_tokens": 2581,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (editar): falta un valor nuevo para \"valor\" (uno de los que nombra el usuario)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": [\"valor nuevo\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2639,
+          "completion_tokens": 35,
+          "total_tokens": 2674,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (editar): falta un valor nuevo para \"valor nuevo\" (uno de los que nombra el usuario)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": {\"valor nuevo\": \"ejemplo\"}\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2733,
+          "completion_tokens": 39,
+          "total_tokens": 2772,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "veo[2].contiene: \"ejemplo\" no lo escribió el usuario (los textos de prueba empiezan con \"QA\" y se crean en la fila)"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R11": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": [\"resultado\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2559,
+          "completion_tokens": 34,
+          "total_tokens": 2593,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (editar): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"crear_con_campos\",\n      \"campos\": { \"fórmula\": \"=A1+B1\", \"resultado\": \"3\" }\n    },\n    {\n      \"plantilla\": \"orden_por_campo\",\n      \"campo\": \"resultado\",\n      \"valores\": [\"3\"],\n      \"grupo\": \"celdas_con_fórmulas\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2651,
+          "completion_tokens": 98,
+          "total_tokens": 2749,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (crear_con_campos): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 2 (orden_por_campo): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"editar\",\n      \"campos\": { \"fórmula\": \"=A1+B1\", \"resultado\": \"3\" }\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2840,
+          "completion_tokens": 51,
+          "total_tokens": 2891,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (editar): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R12": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"-\", \"*\", \"/\"]\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2549,
+          "completion_tokens": 40,
+          "total_tokens": 2589,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (se_ven_textos): \"-\", \"*\", \"/\" no está entre comillas en el requisito: solo se prueban textos que el usuario citó (lo demás es una descripción, no un texto de la pantalla)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"-\", \"*\", \"/\"]\n    }\n  ]\n}\n```\n\nCorrigiendo según la regla:\n\n```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": ['-', '*', '/']\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2672,
+          "completion_tokens": 88,
+          "total_tokens": 2760,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (se_ven_textos): \"-\", \"*\", \"/\" no está entre comillas en el requisito: solo se prueban textos que el usuario citó (lo demás es una descripción, no un texto de la pantalla)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": [\"-\", \"*\", \"/\"]\n    }\n  ]\n}\n```\n\nCorrigiendo según la regla:\n\n```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"se_ven_textos\",\n      \"textos\": ['-', '*', '/']\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2843,
+          "completion_tokens": 88,
+          "total_tokens": 2931,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (se_ven_textos): \"-\", \"*\", \"/\" no está entre comillas en el requisito: solo se prueban textos que el usuario citó (lo demás es una descripción, no un texto de la pantalla)"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R13": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"borrar\",\n      \"grupo\": \"columnas\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2541,
+          "completion_tokens": 35,
+          "total_tokens": 2576,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R14": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"no_borrar_en\",\n      \"grupo\": \"columna\",\n      \"mensaje\": \"Esta columna no se puede ocultar\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2542,
+          "completion_tokens": 51,
+          "total_tokens": 2593,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (no_borrar_en): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 1 (no_borrar_en): \"Esta columna no se puede ocultar\" no está escrito en el requisito: solo lo que escribió el usuario, tal cual"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"borrar\",\n      \"grupo\": \"columna\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2695,
+          "completion_tokens": 35,
+          "total_tokens": 2730,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (borrar): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"sin_fila\": \"el requisito no menciona la posibilidad de borrar una columna\"\n}\n```",
+        "usage": {
+          "prompt_tokens": 2789,
+          "completion_tokens": 29,
+          "total_tokens": 2818,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "sin_fila": "el requisito no menciona la posibilidad de borrar una columna"
+      }
+    ],
+    "R15": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"borrar\",\n      \"grupo\": \"Fila\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2541,
+          "completion_tokens": 35,
+          "total_tokens": 2576,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R16": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"ocultar\",\n      \"fila\": \"una\"\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2542,
+          "completion_tokens": 35,
+          "total_tokens": 2577,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1: la plantilla \"ocultar\" no existe (usá: crear, crear_con_campos, editar, borrar, mover, contador_al_crear, recargar_sigue, se_ven_textos, boton_en, al_pasar_mouse, estilo, color_segun_valor, confirmar_al_borrar, no_borrar_en, se_ve_en_item, centrado, orden_por_campo)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 2,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"ocultar\",\n      \"fila\": \"una\"\n    }\n  ]\n}\n```\n\nLa plantilla `ocultar` no existe en la lista proporcionada, pero podemos usar una plantilla similar para simular la funcionalidad. En este caso, usaremos la plantilla `borrar` con un mensaje de restricción.\n\n```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"no_borrar_en\",\n      \"grupo\": \"fila\",\n      \"mensaje\": \"No se puede ocultar esta fila\"\n    }\n  ]\n}\n```\n\nEsta plantilla simula la funcionalidad de ocultar una fila con un mensaje de restricción.",
+        "usage": {
+          "prompt_tokens": 2697,
+          "completion_tokens": 161,
+          "total_tokens": 2858,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1: la plantilla \"ocultar\" no existe (usá: crear, crear_con_campos, editar, borrar, mover, contador_al_crear, recargar_sigue, se_ven_textos, boton_en, al_pasar_mouse, estilo, color_segun_valor, confirmar_al_borrar, no_borrar_en, se_ve_en_item, centrado, orden_por_campo)"
+          ]
+        ],
+        "problems": []
+      },
+      {
+        "attempt": 3,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"no_borrar_en\",\n      \"grupo\": \"fila\",\n      \"mensaje\": \"No se puede ocultar esta fila\"\n    }\n  ]\n}\n```\n\nEsta plantilla simula la funcionalidad de ocultar una fila con un mensaje de restricción.",
+        "usage": {
+          "prompt_tokens": 2978,
+          "completion_tokens": 74,
+          "total_tokens": 3052,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 0,
+        "rejected": [
+          [
+            "elección 1 (no_borrar_en): el requisito no habla de eso; usá solo plantillas de lo que dice"
+          ],
+          [
+            "elección 1 (no_borrar_en): \"No se puede ocultar esta fila\" no está escrito en el requisito: solo lo que escribió el usuario, tal cual"
+          ]
+        ],
+        "problems": []
+      }
+    ],
+    "R17": [
+      {
+        "attempt": 1,
+        "raw": "```json\n{\n  \"usa\": [\n    {\n      \"plantilla\": \"recargar_sigue\",\n      \"grupo\": null\n    }\n  ]\n}\n```",
+        "usage": {
+          "prompt_tokens": 2547,
+          "completion_tokens": 35,
+          "total_tokens": 2582,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "accepted": 1,
+        "rejected": [],
+        "problems": []
+      }
+    ],
+    "R18": [
+      {
+        "attempt": 1,
+        "raw": "{ \"sin_fila\": \"dice cómo está programada por dentro\" }",
+        "usage": {
+          "prompt_tokens": 2543,
+          "completion_tokens": 17,
+          "total_tokens": 2560,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "sin_fila": "dice cómo está programada por dentro"
+      }
+    ],
+    "R19": [
+      {
+        "attempt": 1,
+        "raw": "{ \"sin_fila\": \"dice cómo está programada por dentro\" }",
+        "usage": {
+          "prompt_tokens": 2545,
+          "completion_tokens": 17,
+          "total_tokens": 2562,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "sin_fila": "dice cómo está programada por dentro"
+      }
+    ],
+    "R20": [
+      {
+        "attempt": 1,
+        "raw": "{ \"sin_fila\": \"dice cómo está programada por dentro\" }",
+        "usage": {
+          "prompt_tokens": 2541,
+          "completion_tokens": 17,
+          "total_tokens": 2558,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "sin_fila": "dice cómo está programada por dentro"
+      }
+    ]
+  }
+}

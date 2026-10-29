@@ -191,6 +191,10 @@ t("la misma prueba 3 veces (R23 real) queda una sola", dup.filas.length === 1, J
   const fakeL = (rs) => { let i = 0; return async () => ({ content: rs[Math.min(i++, rs.length - 1)] }); };
   const gl = await proponerGlosario({ features: ["Editar celdas inline", "La hoja tiene 10 columnas y 20 filas; cada celda se nombra por su columna y su fila (A1)"], call: fakeL(['{"item": "celda", "grupo": null, "lugar": "celda"}']) });
   t("glosario: si lo que se edita es el mismo lugar de la grilla (la 1ª corrida dijo item = celda), no es un ítem que se crea", gl.glosario && gl.glosario.item === null && gl.glosario.lugar === "celda", JSON.stringify(gl));
+  // 2ª corrida real (29/10): Qwen dijo "lugar": "A1" las 3 veces y el reintento no le decía qué estaba mal
+  const vistosA1 = [];
+  const ga1 = await proponerGlosario({ features: ["Editar celdas inline", "La hoja tiene 10 columnas y 20 filas; cada celda se nombra por su columna y su fila (A1, B2...)"], call: async (m) => { vistosA1.push(m.at(-1).content); return { content: vistosA1.length === 1 ? '{"item": null, "grupo": null, "lugar": "A1"}' : '{"item": null, "grupo": null, "lugar": "celda"}' }; } });
+  t("glosario: si dice \"lugar\": \"A1\" (el nombre de uno), el reintento le dice que es el NOMBRE y pide la palabra; la 2ª dice celda", ga1.glosario?.lugar === "celda" && /"A1" es el NOMBRE de uno/.test(vistosA1[1] || ""), JSON.stringify(ga1) + (vistosA1[1] || "").slice(0, 200));
   let visto = "";
   await proponerGlosario({ features: ["Editar celdas"], ficha: "- usar fórmulas (S1: \"Formulas start with =\")", call: async (m) => { visto = m[0].content; return { content: '{"item": null, "grupo": null, "lugar": "celda"}' }; } });
   const up = userPrompt({ id: "R1", text: "x", features: ["x"], context: "Hoja", ficha: "- usar fórmulas" });

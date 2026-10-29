@@ -111,6 +111,8 @@ export async function planillaEnPalabras(p, requisitos, correcciones = [], busqu
   const { describirFila } = await import("../profiles/web/validation/planilla_palabras.mjs");
   const g = p.glosario || {};
   const out = [`# Planilla: qué se va a probar`, "",
+    // 29/10 (2ª corrida de la hoja): el glosario no salió y planilla.md decía "elemento" como si nada
+    ...(p.glosario_problema ? [`**OJO: Qwen no pudo armar el glosario** (${p.glosario_problema}). Las pruebas salieron con palabras genéricas y seguramente estén mal: conviene fijarlo a mano con \`--glosario\` (abajo) y volver a armar.`, ""] : []),
     `**Primero, el glosario** (de esto dependen muchas pruebas): ${g.lugar ? `la pantalla es una grilla de **${g.lugar}s** fijas, que se nombran por su columna y su fila (A1, B2…); ` : ""}${g.item || !g.lugar ? `lo que el usuario crea se llama **${g.item || "elemento"}**;` : "el usuario no crea cosas nuevas (todo ya está en la pantalla)"}${g.lugar && !g.item ? "" : " "}${g.lugar && !g.item ? "" : g.grupo ? `los lugares con nombre donde están se llaman **${g.grupo}**, y lo que se crea aparece en ${g.inicio ? `**${g.inicio}**` : "**(no se dijo: conviene fijarlo con \"inicio\")**"}` : `**no hay lugares con nombre donde se agrupen** (sin esto no se prueban mover, contadores ni orden)`}. Si no es así, avisá: se corrige con \`--glosario '{"item":"…","grupo":"…","inicio":"…","lugar":"…"}'\` y se vuelve a armar.`, "",
     ...(correcciones.length ? [`**Corregí ${correcciones.length === 1 ? "un nombre" : "unos nombres"}** (pusiste dos nombres para lo mismo): ${correcciones.map((c) => `usé **"${c.usa}"** (aparece ${c.veces.usa} ${c.veces.usa === 1 ? "vez" : "veces"}) en vez de "${c.en_vez_de}" (${c.veces.en_vez_de})`).join("; ")}. Si era al revés, o eran cosas distintas, avisá y se corrige el pedido.`, ""] : []),
     "Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, decí su número (p. ej. R10.3) y se saca con `npm run proyecto -- quitar <carpeta> R10.3`.", ""];
@@ -245,6 +247,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const t0 = Date.now();
     const p = await writePlanilla({ features, context: ped.titulo, glosario: g.glosario, ficha, onProgress: (id, r) => console.log(`[PLANILLA] ${id}: ${r.sin_fila ? `sin fila (${r.sin_fila})` : `${r.filas.length} fila(s)`}${r.rejected.length ? ` · ${r.rejected.length} rechazada(s)` : ""}`) });
     const { calls, ...planilla } = p;
+    if (!g.glosario) planilla.glosario_problema = g.problema || "la respuesta no sirvió";
     writeFileSync(join(dir, "planilla.json"), JSON.stringify(planilla, null, 2));
     writeFileSync(join(dir, "planilla_evidencia.json"), JSON.stringify({ type: "EVIDENCE", kind: "planilla_writer", version: WRITER_VERSION, ms: Date.now() - t0, glosario: g, calls }, null, 2));
     writeFileSync(join(dir, "planilla.md"), await planillaEnPalabras(planilla, ped.requisitos, correcciones, busqueda));

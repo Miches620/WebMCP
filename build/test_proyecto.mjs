@@ -186,6 +186,8 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   t("ficha del buscador: primero lo que ya pediste, con su cita; lo que necesita servidor no entra", fi.split("\n")[0] === '- escribir fórmulas (S1: "Formulas begin with an equal sign")' && !/compartir/.test(fi) && /combinar celdas/.test(fi), fi);
   const mdh = await planillaEnPalabras(PH, Object.keys(elige).map((k) => ({ texto: k })), [], { fuentes: [{ url: "https://ejemplo.org/hoja" }], ficha: fi, preguntas: [{ pregunta: "¿Querés que tu app tenga esto?: combinar celdas", porque: "lo tienen 1 de 3 fuentes (S3)" }] });
   const mdn = await planillaEnPalabras(PH, Object.keys(elige).map((k) => ({ texto: k })), [], { fuentes: [], motivo: "fetch failed" });
+  const mdg = await planillaEnPalabras({ filas: [], glosario_problema: '"A1" es el NOMBRE de uno de esos lugares' }, [{ texto: "x" }]);
+  t("planilla.md: si el glosario no salió, lo dice arriba de todo (la 2ª corrida de la hoja decía \"elemento\" como si nada)", /^# Planilla: qué se va a probar\n\n\*\*OJO: Qwen no pudo armar el glosario\*\* \("A1" es el NOMBRE/.test(mdg), mdg.slice(0, 200));
   t("planilla.md: glosario de grilla, filas en palabras de persona, y lo que encontró el buscador (ficha + lo que no pediste, que solo entra con agregar)", /grilla de \*\*celdas\*\* fijas/.test(mdh) && /Escribo "=SUMA\(A1:A3\)" en A4\. → A4 muestra "9"/.test(mdh) && /Antes: hago clic en la columna C \(en su letra\)\. Uso el control de ocultar\. → lo que se escribió ya no se ve · la columna C ya no se ve/.test(mdh) && /## Lo que encontró el buscador/.test(mdh) && /- combinar celdas \(lo tienen 1 de 3/.test(mdh) && /agregar/.test(mdh) && /No encontró fuentes \(fetch failed\)/.test(mdn), mdh.slice(0, 900));
 }
 

@@ -1289,3 +1289,4 @@
 - Gemma bajaba el relleno de adentro (card-body) de 30 a 15 y el texto quedaba a 30px: 15 del ítem + 15 de adentro. El aviso nombraba los dos rellenos pero no sumaba; igual que V2 el 23/10.
 - M12 ahora da las cuentas ("arriba 30px = relleno de card-body 15px + relleno de card 15px") y dice que cuenta la SUMA; el `como` aclara que los rellenos de adentro se suman al del ítem.
 - El ir y venir con V6 (botones arriba tapan el título largo) ya lo resuelve el `como` (botones abajo a la derecha); Gemma lo hizo en 4 de 6 vueltas.
+- Corrida de Miche (28/10 noche) después del arreglo: 45 → 45 → 45 → 45 → **46/46** (58/58 pruebas). M12 quedó en la 2ª pasada: card-body con 10px de relleno (texto a 25px). Kanban moderno congelado (tag `kanban-moderno-v1`).

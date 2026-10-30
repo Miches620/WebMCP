@@ -1,0 +1,146 @@
+/* Global Reset and Body Styling */
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f9;
+}
+
+#spreadsheet-container {
+    display: flex;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    /* Fixed width/height for the entire grid area */
+}
+
+/* --- Header Styling (Column Letters) --- */
+#column-headers {
+    display: flex;
+    flex-direction: row; /* CORREGIDO: Debe ser fila para que las letras estén horizontales */
+    border-bottom: 1px solid #ccc;
+    background-color: #e0e0e0;
+    user-select: none;
+}
+
+.header-cell {
+    width: 50px; /* Fixed width for column headers */
+    min-width: 50px;
+    text-align: center;
+    padding: 10px 5px;
+    font-weight: bold;
+    background-color: #d0d0d0;
+    cursor: pointer;
+    border-right: 1px solid #ccc;
+}
+
+/* --- Row Header Styling (Numbers) --- */
+#grid-area {
+    display: flex;
+    flex-direction: column;
+}
+
+.row-header {
+    width: 40px; /* Fixed width for row numbers */
+    background-color: #e0e0e0;
+    border-right: 1px solid #ccc;
+    cursor: pointer;
+    user-select: none;
+}
+
+.row-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px; /* Match cell height */
+    width: 100%;
+    background-color: #d0d0d0;
+}
+
+/* --- Data Grid Area --- */
+#data-grid {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Takes up remaining space */
+}
+
+.row {
+    display: flex;
+    width: calc(100% - 40px); /* Total width minus row header width */
+    border-bottom: 1px solid #eee;
+}
+
+/* --- Individual Cell Styling --- */
+.spreadsheet-cell {
+    flex-grow: 1; /* Distributes space equally among columns A-J */
+    min-width: 80px; /* Ensure minimum visible width */
+    height: 30px;
+    border-right: 1px solid #eee;
+    padding: 5px;
+    box-sizing: border-box;
+    cursor: text;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Remove right border from the last cell in a row */
+.row > .spreadsheet-cell:last-child {
+    border-right: none;
+}
+
+/* --- Interaction States and Focus --- */
+
+/* Editable state (when focused or clicked) */
+.spreadsheet-cell[contenteditable="true"]:focus,
+.spreadsheet-cell.active-edit {
+    outline: 2px solid #4a90e2; /* Blue focus ring */
+    background-color: #fffbe6; /* Light yellow background on edit */
+}
+
+/* Selected cell (for visual feedback) */
+.selected-cell {
+    border: 1px dashed #333 !important;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+    background-color: #cceeff; /* Light blue selection background */
+}
+
+/* Column/Row Selection Highlighting (Visual feedback when header is clicked) */
+.col-selected .spreadsheet-cell {
+    background-color: #d9eaf7 !important;
+}
+
+.row-selected .spreadsheet-cell {
+    background-color: #d9eaf7 !important;
+}
+
+
+/* --- Utility Classes (Applied by JS) --- */
+
+/* Background color change */
+.bg-color-applied {
+    background-color: var(--custom-bg-color);
+}
+
+/* Hidden state (for hiding columns/rows) */
+.hidden-col, .hidden-row {
+    display: none !important;
+}
+
+/* Formula display styling (optional, but good practice) */
+.formula-cell {
+    font-style: italic;
+    color: #555;
+}
+
+/* --- Specific Layout Adjustments for the Corner Cell --- */
+.corner-cell {
+    width: 40px; /* Matches row header width */
+    height: 30px; /* Matches cell height */
+    background-color: #d0d0d0;
+    border-right: 1px solid #ccc;
+}
+
+/* Ensure the overall container structure is maintained */
+#spreadsheet-container {
+    width: fit-content; /* Allows the grid to size itself based on content/columns */
+}

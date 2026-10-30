@@ -189,7 +189,21 @@ const LUGAR = ([L]) => {
     const px = (r) => `x ${Math.round(r.left)}–${Math.round(r.right)}, y ${Math.round(r.top)}–${Math.round(r.bottom)}`;
     const arriba = rc.bottom <= rf.top + 2, izquierda = rf.right <= rc.left + 2;
     const mal = [...(arriba ? [] : [`la letra "${L.col}" (${quien(col)}, ${px(rc)}) no está ARRIBA de la fila "${L.fila}"`]), ...(izquierda ? [] : [`el número "${L.fila}" (${quien(fila)}, ${px(rf)}) no está a la IZQUIERDA de la columna "${L.col}"`])];
-    if (mal.length) return { falta: `no hay celda ${L.col}${L.fila}: ${mal.join(" y ")}. Las letras van en una fila arriba de la grilla, una al lado de la otra y cada una encima de su columna de celdas; los números, a la izquierda, cada uno al lado de su fila` };
+    // 30/10 (2ª corrida de Gemma, 1/17 en 40 vueltas): con el aviso de arriba puso las letras en fila, pero el contenedor de
+    // todo seguía poniendo "letras" y "grilla" uno AL LADO del otro. Se dice qué contenedor los pone así (el CSS a cambiar).
+    let porque = "";
+    for (let ca = col.parentElement; ca && ca !== document.body; ca = ca.parentElement) {
+      if (!ca.contains(fila)) continue;
+      const hijo = (x) => [...ca.children].find((h) => h.contains(x));
+      const h1 = hijo(col), h2 = hijo(fila);
+      if (h1 && h2 && h1 !== h2) {
+        const r1 = h1.getBoundingClientRect(), r2 = h2.getBoundingClientRect(), st = getComputedStyle(ca);
+        const lado = r1.right <= r2.left + 2 || r2.right <= r1.left + 2;
+        if (lado) porque = ` Es porque ${quien(ca)} (display: ${st.display}${/flex/.test(st.display) ? `; flex-direction: ${st.flexDirection}` : ""}) pone ${quien(h1)} —donde están las letras— y ${quien(h2)} —donde están los números y las celdas— uno AL LADO del otro; para que las letras queden arriba, ${quien(h1)} tiene que ir ENCIMA de ${quien(h2)}.`;
+      }
+      break;
+    }
+    if (mal.length) return { falta: `no hay celda ${L.col}${L.fila}: ${mal.join(" y ")}.${porque} Las letras van en una fila arriba de la grilla, una al lado de la otra y cada una encima de su columna de celdas; los números, a la izquierda, cada uno al lado de su fila` };
     const x = rc.left + rc.width / 2, y = rf.top + rf.height / 2;
     const el = document.elementFromPoint(x, y);
     if (!el) return { falta: `no hay nada donde se cruzan la columna "${L.col}" y la fila "${L.fila}" (x ${Math.round(x)}, y ${Math.round(y)}: ¿fuera de la ventana?)` };
@@ -630,6 +644,8 @@ async function see(page, v, before, w) {
       const enFila = rc.every(([, p], i) => i === 0 || (p.dx > rc[i - 1][1].dx + 4 && Math.abs(p.dy - rc[0][1].dy) < 8));
       const numerosApilados = rf.every(([, p], i) => i === 0 || (p.dy > rf[i - 1][1].dy + 4 && Math.abs(p.dx - rf[0][1].dx) < 8));
       if (!enFila || !numerosApilados) return [false, `${!enFila ? `las letras ${cols[0]}–${cols.at(-1)} no están en UNA fila de izquierda a derecha (${rc.slice(0, 3).map(([c, p]) => `"${c}" en x ${Math.round(p.dx)}, y ${Math.round(p.dy)}`).join(" · ")}…: tienen que estar a la misma altura, una al lado de la otra)` : ""}${!enFila && !numerosApilados ? " y " : ""}${!numerosApilados ? `los números ${filas[0]}–${filas.at(-1)} no están en UNA columna de arriba abajo (${rf.slice(0, 3).map(([f, p]) => `"${f}" en x ${Math.round(p.dx)}, y ${Math.round(p.dy)}`).join(" · ")}…)` : ""}`];
+      // y la grilla tiene que cerrar: la primera letra ENCIMA de la primera fila de celdas (si no, A1 no existe)
+      if (enFila && numerosApilados && cols.length && filas.length) { const p = await page.evaluate(LUGAR, [{ col: cols[0], fila: filas[0] }]); if (p.falta) return [false, `las letras y los números están, pero ${p.falta}`]; }
     }
     return [!faltan.length, faltan.length ? `faltan encabezados: ${faltan.slice(0, 8).join(", ")}${faltan.length > 8 ? "…" : ""}` : `se ven ${n} encabezados de columna y ${m} de fila`];
   }

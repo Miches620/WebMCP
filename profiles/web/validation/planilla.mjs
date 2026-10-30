@@ -183,13 +183,22 @@ const LUGAR = ([L]) => {
   }
   const rc = col?.getBoundingClientRect(), rf = fila?.getBoundingClientRect();
   if (col && fila) {
+    // 30/10 (1ª corrida de Gemma con la hoja, 3/17 en 40 vueltas): las letras estaban apiladas a la izquierda y el cruce
+    // caía en la esquina; el aviso solo decía "A1 muestra '' (es <div class="corner-cell">)" y Gemma no veía por qué.
+    // Ahora se dice dónde está cada encabezado y dónde tendría que estar (como lo ve una persona: letras arriba, números a la izquierda).
+    const px = (r) => `x ${Math.round(r.left)}–${Math.round(r.right)}, y ${Math.round(r.top)}–${Math.round(r.bottom)}`;
+    const arriba = rc.bottom <= rf.top + 2, izquierda = rf.right <= rc.left + 2;
+    const mal = [...(arriba ? [] : [`la letra "${L.col}" (${quien(col)}, ${px(rc)}) no está ARRIBA de la fila "${L.fila}"`]), ...(izquierda ? [] : [`el número "${L.fila}" (${quien(fila)}, ${px(rf)}) no está a la IZQUIERDA de la columna "${L.col}"`])];
+    if (mal.length) return { falta: `no hay celda ${L.col}${L.fila}: ${mal.join(" y ")}. Las letras van en una fila arriba de la grilla, una al lado de la otra y cada una encima de su columna de celdas; los números, a la izquierda, cada uno al lado de su fila` };
     const x = rc.left + rc.width / 2, y = rf.top + rf.height / 2;
     const el = document.elementFromPoint(x, y);
-    if (!el) return { falta: `no hay nada donde se cruzan la columna "${L.col}" y la fila "${L.fila}"` };
+    if (!el) return { falta: `no hay nada donde se cruzan la columna "${L.col}" y la fila "${L.fila}" (x ${Math.round(x)}, y ${Math.round(y)}: ¿fuera de la ventana?)` };
+    if (el === col || el === fila || el.contains(col) || el.contains(fila) || col.contains(el) || fila.contains(el)) return { falta: `donde se cruzan la letra "${L.col}" y el número "${L.fila}" no hay una celda sino ${quien(el)}: cada letra tiene que quedar justo encima de su columna de celdas y cada número al lado de su fila` };
     return { x, y, quien: quien(el) };
   }
   const h = col || fila, r = h.getBoundingClientRect();
-  return { x: r.left + r.width / 2, y: r.top + r.height / 2, quien: quien(h), encabezado: true };
+  // dx/dy: en la PÁGINA (no en la ventana): LUGAR scrollea, y comparar posiciones de ventana entre llamadas engaña
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2, dx: r.left + r.width / 2 + scrollX, dy: r.top + r.height / 2 + scrollY, quien: quien(h), encabezado: true };
 };
 /** Lo que muestra un lugar, como lo lee una persona: sin campo en edición (se suelta el foco antes). */
 const LEER_LUGAR = ([x, y]) => {
@@ -611,9 +620,17 @@ async function see(page, v, before, w) {
   if (v.encabezados) {
     const faltan = [];
     const cols = v.encabezados.columnas || [], filas = v.encabezados.filas || [];
-    for (const c of cols) if ((await page.evaluate(LUGAR, [{ col: c }])).falta) faltan.push(c);
-    for (const f of filas) if ((await page.evaluate(LUGAR, [{ fila: f }])).falta) faltan.push(f);
+    const rc = [], rf = [];
+    for (const c of cols) { const p = await page.evaluate(LUGAR, [{ col: c }]); if (p.falta) faltan.push(c); else rc.push([c, p]); }
+    for (const f of filas) { const p = await page.evaluate(LUGAR, [{ fila: f }]); if (p.falta) faltan.push(f); else rf.push([f, p]); }
     const n = cols.length, m = filas.length;
+    // 30/10 (1ª corrida de Gemma con la hoja): las letras A–J estaban apiladas una ABAJO de la otra y esto pasaba igual.
+    // Una grilla, como la ve una persona: las letras en una fila (de izquierda a derecha), los números en una columna (de arriba abajo)
+    if (!faltan.length) {
+      const enFila = rc.every(([, p], i) => i === 0 || (p.dx > rc[i - 1][1].dx + 4 && Math.abs(p.dy - rc[0][1].dy) < 8));
+      const numerosApilados = rf.every(([, p], i) => i === 0 || (p.dy > rf[i - 1][1].dy + 4 && Math.abs(p.dx - rf[0][1].dx) < 8));
+      if (!enFila || !numerosApilados) return [false, `${!enFila ? `las letras ${cols[0]}–${cols.at(-1)} no están en UNA fila de izquierda a derecha (${rc.slice(0, 3).map(([c, p]) => `"${c}" en x ${Math.round(p.dx)}, y ${Math.round(p.dy)}`).join(" · ")}…: tienen que estar a la misma altura, una al lado de la otra)` : ""}${!enFila && !numerosApilados ? " y " : ""}${!numerosApilados ? `los números ${filas[0]}–${filas.at(-1)} no están en UNA columna de arriba abajo (${rf.slice(0, 3).map(([f, p]) => `"${f}" en x ${Math.round(p.dx)}, y ${Math.round(p.dy)}`).join(" · ")}…)` : ""}`];
+    }
     return [!faltan.length, faltan.length ? `faltan encabezados: ${faltan.slice(0, 8).join(", ")}${faltan.length > 8 ? "…" : ""}` : `se ven ${n} encabezados de columna y ${m} de fila`];
   }
   return [false, `"veo" desconocido: ${JSON.stringify(v)}`];

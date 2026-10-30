@@ -12,10 +12,9 @@ Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, 
 
 ## R3. Fórmulas estilo Excel en castellano, empezando con '=': suma con =SUMA(A1:A3) (un rango) o =SUMA(A1;B2;C3) (celdas sueltas); resta, multiplicación y división con signos: =A1-B1, =A1*B1, =A1/B1. La celda muestra el resultado
 - **R3.1** · Antes: escribo "2" en A1, "3" en A2, "4" en A3. Escribo "=SUMA(A1:A3)" en B4. → B4 muestra "9"
-- **R3.2** · Antes: escribo "2" en A1, "5" en B2, "3" en C3. Escribo "=A1-B2*C3" en D6. → D6 muestra "-7"
 
 ## R4. Cada celda puede tener su propia fórmula; si cambia una celda que la fórmula usa, el resultado se actualiza
-- **R4.1** · Antes: escribo "=B1+C1" en A1, "2" en B1, "3" en C1. Escribo "5" en A1. → A1 muestra "8"
+- **R4.1** · Antes: escribo "=B1+C1" en A1, "2" en B1, "3" en C1. Escribo "4" en B1. → A1 muestra "7"
 
 ## R5. Cambiar el color de fondo de una celda
 - **R5.1** · Antes: hago clic en A1. Elijo el color de fondo #FF0000. → A1 tiene fondo #FF0000

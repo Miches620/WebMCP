@@ -188,6 +188,10 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   const gem2 = await juzgar(join(FIX, "flow_hoja_gemma2"), PH);
   const dg2 = (r) => gem2.fallan.find((f) => f.r === r)?.detalle.join(" ") || "";
   t("hoja de Gemma 2 (letras en fila pero al costado de la grilla): R2 ya no pasa, y el aviso dice QUÉ contenedor las pone al lado (display flex, flex-direction row) y qué tiene que ir encima de qué", gem2.cumplidos === 0 && /Es porque <div id="spreadsheet-container"> \(display: flex; flex-direction: row\) pone <div id="column-headers"> —donde están las letras— y <div id="grid-area">/.test(dg2("R2")) && /tiene que ir ENCIMA de <div id="grid-area">/.test(dg2("R1")), dg2("R2").slice(-400));
+  // 31/10 (3ª corrida): letras arriba pero con otro ancho que las celdas; celdas de las filas 1–2 sin poder editarse
+  const gem3 = await juzgar(join(FIX, "flow_hoja_gemma3"), PH);
+  const dg3 = (r) => gem3.fallan.find((f) => f.r === r)?.detalle.join(" ") || "";
+  t("hoja de Gemma 3 (letras arriba, mal alineadas): R2 da las medidas de las letras y de las cajas de la fila; R1 dice que al hacer clic no quedó dónde escribir", gem3.cumplidos === 0 && /Arriba, los encabezados van así: .*"A" x \d+–\d+ .*; en la fila "1", las cajas van así: /.test(dg3("R2")) && /MISMO ancho y la MISMA posición/.test(dg3("R2")) && /no quedó con el foco ningún lugar para escribir/.test(dg3("R1")), dg3("R2").slice(-300) + " || " + dg3("R1").slice(0, 300));
   // el buscador: la ficha (rasgos con cita) y lo que no pediste como preguntas en planilla.md
   const ev = { grupos: [{ rasgo: "escribir fórmulas", de: ["T2"], fuentes: ["S1", "S2"], ya_pedido: true }, { rasgo: "compartir con el equipo", de: ["T3"], fuentes: ["S1", "S2", "S3"], fuera_del_stack: "necesita servidor" }, { rasgo: "combinar celdas", de: ["T1"], fuentes: ["S3"] }], rasgos: [{ id: "T1", fuente: "S3", cita: "Merge cells across rows" }, { id: "T2", fuente: "S1", cita: "Formulas  begin with an equal sign" }, { id: "T3", fuente: "S1", cita: "Share with your team" }] };
   const fi = fichaDe(ev);

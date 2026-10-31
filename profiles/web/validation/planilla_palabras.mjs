@@ -69,7 +69,7 @@ export function describirFila(row00, g) {
     if (v.muestra != null) return v.muestra === "" ? `${String(v.en).toUpperCase()} queda vacía` : `${String(v.en).toUpperCase()} muestra ${isQA(v.muestra) ? "el texto que se escribió" : q(v.muestra)}`;
     if (v.fondo != null) return `${String(v.en).toUpperCase()} tiene fondo ${v.fondo}`;
     if (v.oculta != null) return `${lugarTxt(v.oculta).replace(/ \(en su (letra|número)\)/, "")} ya no se ve`;
-    if (v.encabezados) { const c = v.encabezados.columnas || [], f = v.encabezados.filas || []; return `se ven los encabezados ${c.length ? `de columna ${c[0]} a ${c[c.length - 1]}` : ""}${c.length && f.length ? " y " : ""}${f.length ? `de fila ${f[0]} a ${f[f.length - 1]}` : ""}`; }
+    if (v.encabezados) { const c = v.encabezados.columnas || [], f = v.encabezados.filas || []; return `${c.length ? `se ven las letras ${c[0]} a ${c[c.length - 1]} arriba, en una fila, cada una justo encima de su columna de celdas` : ""}${c.length && f.length ? ", y " : ""}${f.length ? `los números ${f[0]} a ${f[f.length - 1]} a la izquierda, uno debajo del otro, cada uno al lado de su fila de celdas` : ""}`; }
     if (v.color_en_item) return N(`{el_item} se pinta de ${v.familia}${v.texto ? ` donde dice ${q(v.texto)}` : ""}`);
     return "?";
   });

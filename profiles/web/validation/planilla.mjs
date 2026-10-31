@@ -207,7 +207,14 @@ const LUGAR = ([L]) => {
     const x = rc.left + rc.width / 2, y = rf.top + rf.height / 2;
     const el = document.elementFromPoint(x, y);
     if (!el) return { falta: `no hay nada donde se cruzan la columna "${L.col}" y la fila "${L.fila}" (x ${Math.round(x)}, y ${Math.round(y)}: ¿fuera de la ventana?)` };
-    if (el === col || el === fila || el.contains(col) || el.contains(fila) || col.contains(el) || fila.contains(el)) return { falta: `donde se cruzan la letra "${L.col}" y el número "${L.fila}" no hay una celda sino ${quien(el)}: cada letra tiene que quedar justo encima de su columna de celdas y cada número al lado de su fila` };
+    // 31/10 (3ª corrida de Gemma): las letras ya estaban arriba, pero con otro ancho que las celdas (50px contra 80px y un
+    // número de fila que ocupaba media fila): el cruce caía entre cajas. Se dan las medidas de las dos cosas, para compararlas.
+    const contenedor = el === col || el === fila || el.contains(col) || el.contains(fila) || col.contains(el) || fila.contains(el) || el.children.length > 2;
+    if (contenedor) {
+      const letras = [...col.parentElement.children].filter((e) => e.getBoundingClientRect().width > 0).slice(0, 4).map((e) => { const r = e.getBoundingClientRect(); return `"${(e.textContent || "").trim().slice(0, 3) || "·"}" x ${Math.round(r.left)}–${Math.round(r.right)}`; });
+      const cajas = [...document.querySelectorAll("body *")].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.top <= rf.top + rf.height / 2 && r.bottom >= rf.top + rf.height / 2 && e.children.length === 0 && !e.closest("button, label, input, select"); }).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left).slice(0, 5).map((e) => { const r = e.getBoundingClientRect(); return `${quien(e)} x ${Math.round(r.left)}–${Math.round(r.right)}`; });
+      return { falta: `donde se cruzan la letra "${L.col}" y el número "${L.fila}" (x ${Math.round(x)}) no hay una celda sino ${quien(el)}. Arriba, los encabezados van así: ${letras.join(" · ")}; en la fila "${L.fila}", las cajas van así: ${cajas.join(" · ") || "ninguna"}. Cada letra tiene que tener el MISMO ancho y la MISMA posición que su columna de celdas (y lo que está antes de la "A" arriba, el mismo ancho que el número de cada fila)` };
+    }
     return { x, y, quien: quien(el) };
   }
   const h = col || fila, r = h.getBoundingClientRect();
@@ -274,7 +281,7 @@ async function escribirEn(page, nombre, texto) {
   let modo = "clic";
   if (!(await campo())) { await page.mouse.dblclick(p.x, p.y); await settle(page); modo = "doble clic"; }
   if (await campo()) await page.locator("[data-plan-campo]").first().fill(String(texto)).catch(() => {});
-  else { modo += " y teclado"; await page.keyboard.type(String(texto)); }
+  else { modo += " y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—"; await page.keyboard.type(String(texto)); }
   await page.keyboard.press("Enter"); await settle(page);
   await page.evaluate(() => document.activeElement?.blur?.()); await settle(page);
   return { why: `escribió "${texto}" en ${String(nombre).toUpperCase()} (${modo})` };

@@ -283,8 +283,11 @@ function handleCellInput(e) {
     key = `${colLetter}${rowNum}`;
 
     // 1. Update raw input state
-    spreadsheetData[key].rawInput = target.value;
-    spreadsheetData[key].isFormula = target.value.startsWith('=');
+    if (spreadsheetData[key]) {
+        spreadsheetData[key].rawInput = target.value;
+        // Check if the value is a string before calling startsWith to prevent errors during cleanup/deletion tests
+        spreadsheetData[key].isFormula = typeof target.value === 'string' && target.value.startsWith('=');
+    }
 
     // 2. Recalculate and update the cell value (R3, R4)
     calculateAndSetCell(key);
@@ -300,16 +303,26 @@ function handleCellInput(e) {
  * @param {Event} e 
  */
 function handleFormatChange(e, key, colIdx, rowNum) {
-    const color = e.target.value;
+    const newColor = e.target.dataset.color;
+    if (!newColor) return;
 
-    // Update state style
-    spreadsheetData[key].style.backgroundColor = color;
+    // 1. Apply the background color to all cells in the selected row (rowNum)
+    for (let i = 0; i < MAX_COLUMNS; i++) {
+        const colLetter = colIndexToLetter(i);
+        const cellKey = `${colLetter}${rowNum}`;
+        const cellElement = getCellElement(i, rowNum);
 
-    // Apply to the specific cell element
-    updateCellDOM(key, spreadsheetData[key]);
+        if (cellElement) {
+            // Apply the background color style directly to the DOM element
+            cellElement.style.backgroundColor = newColor;
+            // Update state representation for formatting if needed (though usually visual only)
+            spreadsheetData[cellKey].format = newColor; 
+        }
+    }
 
-    // Save state (R9)
+    // 2. Save state and trigger recalculation/update
     saveState();
+    triggerRecalculation(key);
 }
 
 

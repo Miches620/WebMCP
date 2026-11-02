@@ -29,7 +29,7 @@ import { syntaxOf as syntaxOfLocal } from "../harness/js_tools.mjs";
 import { describirFila } from "../profiles/web/validation/planilla_palabras.mjs";
 import { REGLAS_VISUALES, REGLAS_MODERNAS } from "../profiles/web/validation/visual.mjs";
 
-export const CICLO_VERSION = "ciclo v0.4";
+export const CICLO_VERSION = "ciclo v0.5";
 // v0.4 (19/10, después del 16/16): VUELTA 0, el borrador. Si no hay app de partida, Gemma la escribe desde los pedidos
 // de Miche y la consigna de la planilla (en palabras), UN ARCHIVO POR PEDIDO: index.html → styles.css (viendo el HTML)
 // → script.js (viendo el HTML). Así cada pedido entra holgado en 12k y los tres archivos usan los mismos ids y clases.
@@ -286,7 +286,8 @@ export async function ciclo(o) {
     const presupuesto = contexto - 4500 - estTokens(SYS_ARREGLO) - estTokens(fijo) - 200;
     const codigo = armarCodigo(app, ver, lugaresDeError(mias.map((f) => est[f.id]?.detail)), Math.max(500, presupuesto));
     const userB = fijo + (codigo.texto || "(no hay código para mostrar: pedí funciones o archivos que existan)");
-    const maxResp = Math.max(2500, Math.min(6000, contexto - estTokens(SYS_ARREGLO + userB) - 300));
+    // 02/11: hasta 7.500 si entra (con 6.000, 5 de 40 respuestas se cortaron pensando)
+    const maxResp = Math.max(2500, Math.min(7500, contexto - estTokens(SYS_ARREGLO + userB) - 300));
     const b = await call([{ role: "system", content: SYS_ARREGLO }, { role: "user", content: userB }], maxResp, "arreglo");
     Object.assign(vuelta, { ver, codigo: codigo.piezas, codigo_fuera: codigo.fuera, tokens_pedido: { ver: estTokens(SYS_VER + userA), arreglo: estTokens(SYS_ARREGLO + userB) }, ms: { ver: a.ms, arreglo: b.ms }, usage: { ver: a.usage, arreglo: b.usage }, respuesta: b.content });
     let ap = { app, aplicados: [], problemas: [], bloques: [] }, veredicto;
@@ -301,11 +302,14 @@ export async function ciclo(o) {
       const pts = mias.reduce((a, f) => a + puntaje(despues[f.id]), 0);
       const ok = !rotas.length && pts > antesPts;
       const por = rotas.length ? `rompió lo que ya andaba: ${rotas.map((f) => `${f.r} (${describirFila(f, planilla.glosario)}) → ${despues[f.id]?.detail}`).join(" | ")}`
-        : pts <= antesPts ? `aplicó ${etiqueta} pero no avanzó: ${mias.filter((f) => despues[f.id]?.result !== "PASS").map((f) => despues[f.id]?.detail).join(" | ")}`
+        : pts <= antesPts ? `aplicó ${etiqueta} pero no avanzó: ${mias.filter((f) => despues[f.id]?.result !== "PASS").map((f) => despues[f.id]?.detail).join(" | ")}${cand.avisos?.length ? ` · OJO: ${cand.avisos.join("; ")}` : ""}`
         : `${mias.filter((f) => despues[f.id]?.result === "PASS").length}/${mias.length} pruebas de ${target} pasan y suma lo que se ve bien (${antesPts} → ${pts}), sin romper nada${etiqueta !== "todo" ? ` (quedó solo: ${etiqueta})` : ""}`;
       return { ok, por, pts, despues, cand, etiqueta };
     };
-    if (!ap.aplicados.length) veredicto = { ok: false, por: `no se pudo aplicar nada: ${ap.problemas.join("; ")}` };
+    // 02/11 (hoja: 5 de 40 vueltas): Gemma pensó hasta el tope y la respuesta llegó cortada, sin código. Decirlo, con el número
+    const cortada = (b.usage?.completion_tokens ?? 0) >= maxResp - 5;
+    if (cortada) vuelta.cortada = true;
+    if (!ap.aplicados.length) veredicto = { ok: false, por: cortada ? `la respuesta se cortó: llegó al tope de ${maxResp} tokens pensando${b.usage?.completion_tokens_details?.reasoning_tokens ? ` (${b.usage.completion_tokens_details.reasoning_tokens} de pensar)` : ""} y no alcanzó para escribir el código. Esta vez pensá poco y escribí enseguida los bloques ### FUNCION: / ### ARCHIVO:` : `no se pudo aplicar nada: ${ap.problemas.join("; ")}` };
     else {
       let mejor = await evaluar(ap, "todo", "b");
       vuelta.pruebas = [{ que: "todo", ok: mejor.ok, pts: mejor.pts }];

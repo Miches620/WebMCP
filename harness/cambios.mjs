@@ -20,7 +20,7 @@
 
 import { findMember, replaceMember, syntaxOf, blockEndLines } from "./js_tools.mjs";
 
-export const CAMBIOS_VERSION = "cambios v0.2";
+export const CAMBIOS_VERSION = "cambios v0.3";
 // v0.2 (19/10, 1ª corrida real): Gemma mandó "### FUNCION: document.getElementById('card-form').addEventListener('submit', …"
 // para cambiar código suelto (fuera de funciones), y el nombre rompía la búsqueda. Ahora un nombre que no es un nombre
 // de función se busca como BLOQUE suelto por su primera línea.
@@ -55,13 +55,22 @@ export function findSueltoCss(css, primera) {
 }
 const cssRoto = (css) => { const t = String(css).replace(/\/\*[\s\S]*?\*\//g, ""); let d = 0; for (const ch of t) { if (ch === "{") d++; else if (ch === "}" && --d < 0) return "una llave } de más"; } return d ? "falta cerrar una llave }" : null; };
 
+const ARCHIVO_RE = /^[\w./-]+\.(html|css|js)$/i;
 /** Los bloques de la respuesta: [{ tipo: "funcion" | "archivo", nombre, en?, codigo }]. */
 export function leerBloques(raw) {
   const out = [];
   const re = /###\s*(FUNCI[OÓ]N|FUNCTION|BLOQUE|BLOCK|ARCHIVO|FILE)\s*:\s*(([^\s`]+)(?:\s+en\s+([^\s`]+))?[^\n]*)\n+```[\w-]*\n([\s\S]*?)```/gi;
   let m;
-  while ((m = re.exec(String(raw || "")))) out.push({ tipo: /^arch|^file/i.test(m[1]) ? "archivo" : /^bloq/i.test(m[1]) ? "bloque" : "funcion", nombre: m[3].replace(/\(.*$/, "").replace(/\(\)$/, ""), primera: m[2].trim(), en: m[4] || null, codigo: m[5] });
-  return out;
+  while ((m = re.exec(String(raw || "")))) {
+    const b = { at: m.index, tipo: /^arch|^file/i.test(m[1]) ? "archivo" : /^bloq/i.test(m[1]) ? "bloque" : "funcion", nombre: m[3].replace(/\(.*$/, "").replace(/\(\)$/, ""), primera: m[2].trim(), en: m[4] || null, codigo: m[5] };
+    // 02/11 (hoja, vuelta 1): "### BLOQUE: styles.css" con el archivo entero adentro → es un ARCHIVO, no código suelto
+    if (b.tipo !== "archivo" && ARCHIVO_RE.test(b.primera)) Object.assign(b, { tipo: "archivo", nombre: b.primera, en: null });
+    out.push(b);
+  }
+  // 02/11 (hoja, vueltas 10 y 26): "### index.html" a secas, sin "ARCHIVO:" → también es el archivo entero
+  const solo = /###\s*([\w./-]+\.(?:html|css|js))\s*\n+```[\w-]*\n([\s\S]*?)```/gi;
+  while ((m = solo.exec(String(raw || "")))) out.push({ at: m.index, tipo: "archivo", nombre: m[1], primera: m[1], en: null, codigo: m[2] });
+  return out.sort((x, y) => x.at - y.at).map(({ at, ...b }) => b);
 }
 
 /** Aplica los bloques a una copia de la app. Devuelve { app, aplicados[], problemas[] }. Función pura. */
@@ -74,7 +83,7 @@ export function aplicar(app0, raw) {
 /** Lo mismo, con los bloques ya leídos (el ciclo prueba también cada bloque por separado). */
 export function aplicarBloques(app0, bloques) {
   const app = { ...app0 };
-  const aplicados = [], problemas = [];
+  const aplicados = [], problemas = [], nuevas = [];
   const jsFiles = Object.keys(app).filter((f) => f.endsWith(".js"));
   for (const b of bloques) {
     if (b.tipo === "archivo") {
@@ -116,7 +125,15 @@ export function aplicarBloques(app0, bloques) {
       if (e) { problemas.push(`${b.nombre} (nueva): no compila (${e})`); continue; }
       app[f] = next;
       aplicados.push(`función nueva ${b.nombre} (${f})`);
+      nuevas.push(b.nombre);
     }
   }
-  return { app, aplicados, problemas };
+  // 02/11 (hoja, vuelta 6): Gemma escribió populateRowLabels() y nadie la llamaba: los números nunca aparecían y el aviso
+  // solo decía "faltan encabezados". Una función nueva que nadie nombra no corre: se avisa con el nombre.
+  const avisos = [];
+  for (const n of nuevas) {
+    const usos = Object.values(app).reduce((a, src) => a + (String(src).match(new RegExp(`(^|[^\\w$.])${n.replace(/\$/g, "\\$")}\\b`, "g")) || []).length, 0);
+    if (usos <= 1) avisos.push(`escribiste la función nueva ${n}() pero nadie la llama (ni al arrancar ni en un evento): así no corre nunca. Llamala desde donde corresponda (por ejemplo, donde arranca la app)`);
+  }
+  return { app, aplicados, problemas, avisos };
 }

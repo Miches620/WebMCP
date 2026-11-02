@@ -204,6 +204,11 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   const gem4 = await juzgar(join(FIX, "flow_hoja_gemma4"), PH);
   const dg4 = (r) => gem4.fallan.find((f) => f.r === r)?.detalle.join(" ") || "";
   t("borrador nuevo de Gemma (grilla bien, sin lógica, 3 filas): escribir en A1 se lee bien aunque Enter agregue un renglón (R1 pasa); R2 dice que faltan las filas 4 a 20", !gem4.fallan.some((f) => f.r === "R1") && /faltan encabezados: 4, 5, 6/.test(dg4("R2")), JSON.stringify(gem4.fallan.map((f) => f.r)) + dg4("R2").slice(-200));
+  // 02/11 (2º borrador): sin números de fila. El intento de la vuelta 30 los hizo aparecer pero mal acomodados: antes valía
+  // lo mismo que no hacer nada (0 ✓) y se tiraba; ahora "✓ se ve la fila" cuenta como avance
+  const g5 = await juzgar(join(FIX, "flow_hoja_gemma5"), PH), g5b = await juzgar(join(FIX, "flow_hoja_gemma5_v30"), PH);
+  const d5 = (g, r) => g.fallan.find((f) => f.r === r)?.detalle.join(" ") || "";
+  t("borrador 2 de Gemma: sin números de fila, R1 dice lo que sí ve (✓ la columna A) y lo que no; con el arreglo de la vuelta 30 ve las dos y suma", /✓ se ve la columna "B" · no se ve la fila "2"/.test(d5(g5, "R1")) && /✓ se ve la columna "B" · ✓ se ve la fila "2" · no hay celda B2/.test(d5(g5b, "R1")) && /✓ se ven las letras A–J · faltan encabezados: 1, 2/.test(d5(g5, "R2")), d5(g5, "R1").slice(0, 200) + " || " + d5(g5b, "R1").slice(0, 200) + " || " + d5(g5, "R2").slice(0, 200));
   // el buscador: la ficha (rasgos con cita) y lo que no pediste como preguntas en planilla.md
   const ev = { grupos: [{ rasgo: "escribir fórmulas", de: ["T2"], fuentes: ["S1", "S2"], ya_pedido: true }, { rasgo: "compartir con el equipo", de: ["T3"], fuentes: ["S1", "S2", "S3"], fuera_del_stack: "necesita servidor" }, { rasgo: "combinar celdas", de: ["T1"], fuentes: ["S3"] }], rasgos: [{ id: "T1", fuente: "S3", cita: "Merge cells across rows" }, { id: "T2", fuente: "S1", cita: "Formulas  begin with an equal sign" }, { id: "T3", fuente: "S1", cita: "Share with your team" }] };
   const fi = fichaDe(ev);

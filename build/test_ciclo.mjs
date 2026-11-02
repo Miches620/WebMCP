@@ -19,7 +19,7 @@ const ROTA = leerApp(join(FIX, "flow_gemma_sola_rota")), ARREGLADA = leerApp(joi
 const P = JSON.parse(readFileSync(join(FIX, "planilla_kanban_c22.json"), "utf8"));
 const FEATS = JSON.parse(readFileSync(join(FIX, "real_kanban_c22/snapshot_min.json"), "utf8")).intentForge.refined_prompt.features;
 
-t("versiones", CICLO_VERSION === "ciclo v0.4" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.2");
+t("versiones", CICLO_VERSION === "ciclo v0.5" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.3");
 
 // ---------- el mapa ----------
 const mapa = mapaTexto(ROTA);
@@ -142,6 +142,22 @@ t("2ª corrida, vuelta 2: el index.html bueno venía junto con un openModal roto
   const g = { id: "R7.1", r: "R7", dado: [{ agregar: "QA Alfa" }], hago: { eliminar: "QA Alfa" }, veo: [{ no_esta: "QA Alfa" }] };
   const txt = fallas([f, g], { "R28.1": { result: "FAIL", detail: "→ ✗ \"QA Alfa\" NO se ve (y tenía que verse en \"Completa\")" }, "R7.1": { result: "FAIL", detail: "x" } });
   t("fallas: si la prueba borra y espera que siga, se avisa que borrarse ES el error (y solo en esa)", /espera que NO se borre: en "Completa" borrar no tiene que funcionar/.test(txt) && (txt.match(/OJO/g) || []).length === 1, txt);
+}
+
+// ---------- 02/11: 2º borrador de la hoja (40 vueltas en 0) ----------
+{
+  const bs = leerBloques("### BLOQUE: styles.css\n```css\nbody { margin: 0; }\n```\n### index.html\n```html\n<p>hola</p>\n```\n### FUNCION: init\n```js\nfunction init() {}\n```");
+  t("encabezados que Gemma inventa: \"### BLOQUE: styles.css\" y \"### index.html\" son archivos enteros (y el orden se respeta)", bs.map((b) => `${b.tipo}:${b.nombre}`).join() === "archivo:styles.css,archivo:index.html,funcion:init", JSON.stringify(bs.map((b) => [b.tipo, b.nombre])));
+  const base = { "index.html": "<script src=\"script.js\"></script>", "script.js": "function init() {\n  return 1;\n}\ninit();\n" };
+  const sola = aplicar(base, "### FUNCION: ponerNumeros en script.js\n```js\nfunction ponerNumeros() { return 2; }\n```");
+  const llamada = aplicar(base, "### FUNCION: ponerNumeros en script.js\n```js\nfunction ponerNumeros() { return 2; }\n```\n### FUNCION: init\n```js\nfunction init() {\n  ponerNumeros();\n}\n```");
+  t("una función nueva que nadie llama se avisa con su nombre (vuelta 6: populateRowLabels nunca corría); si alguien la llama, no", sola.avisos.length === 1 && /ponerNumeros\(\) pero nadie la llama/.test(sola.avisos[0]) && llamada.avisos.length === 0, JSON.stringify(sola.avisos));
+  t("puntaje: lo que se pudo hacer antes de fallar cuenta (✓ se ve la columna · ✓ se ve la fila > solo la columna)", puntaje({ result: "FAIL", detail: "no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · no hay celda A1" }) > puntaje({ result: "FAIL", detail: "✓ se ve la columna \"A\" · no se ve la fila \"1\"" }));
+  // la respuesta que se corta pensando: se dice, con el número
+  const callC = async (messages, max, tipo) => (tipo === "ver" ? { content: '{"ver": ["index.html"]}', ms: 1 } : { content: "Voy a pensar...", ms: 1, usage: { completion_tokens: max, completion_tokens_details: { reasoning_tokens: max - 10 } } });
+  const rc = await ciclo({ app: ROTA, planilla: P, features: FEATS, outDir: mkdtempSync(join(tmpdir(), "ciclo-")), call: callC, maxVueltas: 1, log: () => {} });
+  const vc = rc.ev.vueltas[0];
+  t("respuesta cortada en el tope pensando: el motivo lo dice (y el próximo intento lo lee), y el tope es más alto si entra", vc.cortada && /se cortó: llegó al tope de \d+ tokens pensando \(\d+ de pensar\)/.test(vc.motivo) && vc.tokens_pedido.arreglo < 6000, vc.motivo);
 }
 
 console.log(`\n${ok}/${ok + fail} OK`);

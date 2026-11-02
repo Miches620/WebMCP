@@ -279,10 +279,21 @@ const PONER_COLOR = ([valor]) => {
   return true;
 };
 const COLOR_DE_PRUEBA = "#ffcc00";
+// 02/11 (2º borrador de la hoja, 40 vueltas en 0): casi todo fallaba en "no se ve la fila 1" o "no hay celda A1", sin un solo ✓,
+// y el ciclo no podía saber si un cambio acercaba: el que dejaba ver los números (y solo faltaba acomodarlos) se tiraba igual
+// que el que no hacía nada. Ahora, si una celda no aparece, se dice lo que SÍ se ve (✓ la columna, ✓ la fila): cuenta como avance.
+async function buscarLugar(page, L) {
+  const p = await page.evaluate(LUGAR, [L]);
+  if (!p.falta || !L?.col || !L?.fila) return p;
+  const vistos = [];
+  if (!(await page.evaluate(LUGAR, [{ col: L.col }])).falta) vistos.push(`✓ se ve la columna "${L.col}"`);
+  if (!(await page.evaluate(LUGAR, [{ fila: L.fila }])).falta) vistos.push(`✓ se ve la fila "${L.fila}"`);
+  return vistos.length ? { ...p, falta: `${vistos.join(" · ")} · ${p.falta}` } : p;
+}
 async function escribirEn(page, nombre, texto) {
   const L = nombreLugar(nombre);
   if (!L?.col || !L?.fila) return { fail: `"${nombre}" no es un lugar con columna y fila (p. ej. A1)` };
-  const p = await page.evaluate(LUGAR, [L]);
+  const p = await buscarLugar(page, L);
   if (p.falta) return { fail: p.falta };
   const campo = () => page.evaluate(() => {
     document.querySelectorAll("[data-plan-campo]").forEach((e) => e.removeAttribute("data-plan-campo"));
@@ -301,7 +312,7 @@ async function escribirEn(page, nombre, texto) {
 }
 async function clicEn(page, nombre, ctx) {
   const L = nombreLugar(nombre);
-  let p = L ? await page.evaluate(LUGAR, [L]) : null;
+  let p = L ? await buscarLugar(page, L) : null;
   if (!L) {
     // un texto cualquiera que se ve (no un lugar): lo más chico que lo dice
     p = await page.evaluate(([t]) => {
@@ -635,7 +646,7 @@ async function see(page, v, before, w) {
     const L = nombreLugar(v.en);
     if (!L?.col || !L?.fila) return [false, `"${v.en}" no es un lugar con columna y fila`];
     await page.evaluate(() => document.activeElement?.blur?.());
-    const p = await page.evaluate(LUGAR, [L]);
+    const p = await buscarLugar(page, L);
     if (p.falta) return [false, p.falta];
     const r = await page.evaluate(LEER_LUGAR, [p.x, p.y]);
     const nom = String(v.en).toUpperCase();
@@ -667,7 +678,9 @@ async function see(page, v, before, w) {
       // y la grilla tiene que cerrar: la primera letra ENCIMA de la primera fila de celdas (si no, A1 no existe)
       if (enFila && numerosApilados && cols.length && filas.length) { const p = await page.evaluate(LUGAR, [{ col: cols[0], fila: filas[0] }]); if (p.falta) return [false, `las letras y los números están, pero ${p.falta}`]; }
     }
-    return [!faltan.length, faltan.length ? `faltan encabezados: ${faltan.slice(0, 8).join(", ")}${faltan.length > 8 ? "…" : ""}` : `se ven ${n} encabezados de columna y ${m} de fila`];
+    // 02/11: si faltan solo los números (o solo las letras), lo que sí está cuenta como avance
+    const yaEstan = [rc.length === n && n ? `✓ se ven las letras ${cols[0]}–${cols.at(-1)}` : "", rf.length === m && m ? `✓ se ven los números ${filas[0]}–${filas.at(-1)}` : ""].filter(Boolean).join(" · ");
+    return [!faltan.length, faltan.length ? `${yaEstan ? `${yaEstan} · ` : ""}faltan encabezados: ${faltan.slice(0, 8).join(", ")}${faltan.length > 8 ? "…" : ""}` : `se ven ${n} encabezados de columna y ${m} de fila`];
   }
   return [false, `"veo" desconocido: ${JSON.stringify(v)}`];
 }
@@ -697,7 +710,8 @@ export async function runRow({ page, row: row0, controls, glosario, azar, ctx, r
   await freshStart(page, reload);
   const e0 = ctx.pageErrors.length;
   const steps = [];
-  const out = (result, last) => { const errs = errsSince(ctx, e0); return { result, detail: [...steps, last].filter(Boolean).join(" · ") + (errs.length ? ` · error de JS: ${errs[0].slice(0, 160)}` : ""), ...(errs.length ? { errors: errs } : {}) }; };
+  // 02/11: cada paso que se pudo hacer lleva ✓ (el ciclo cuenta los ✓ para saber si un cambio acercó, aunque la prueba siga fallando)
+  const out = (result, last) => { const errs = errsSince(ctx, e0); return { result, detail: [...steps.filter(Boolean).map((x) => /^(✓|no pudo)/.test(x) ? x : `✓ ${x}`), last].filter(Boolean).join(" · ") + (errs.length ? ` · error de JS: ${errs[0].slice(0, 160)}` : ""), ...(errs.length ? { errors: errs } : {}) }; };
   const dado = row.dado || [];
   for (const d of dado) {
     // 19/10: "dado" también puede mover un ítem que ya se creó (para restricciones como "no se borra en Completa")

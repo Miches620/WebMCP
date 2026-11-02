@@ -215,7 +215,19 @@ const LUGAR = ([L]) => {
       const cajas = [...document.querySelectorAll("body *")].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.top <= rf.top + rf.height / 2 && r.bottom >= rf.top + rf.height / 2 && e.children.length === 0 && !e.closest("button, label, input, select"); }).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left).slice(0, 5).map((e) => { const r = e.getBoundingClientRect(); return `${quien(e)} x ${Math.round(r.left)}–${Math.round(r.right)}`; });
       return { falta: `donde se cruzan la letra "${L.col}" y el número "${L.fila}" (x ${Math.round(x)}) no hay una celda sino ${quien(el)}. Arriba, los encabezados van así: ${letras.join(" · ")}; en la fila "${L.fila}", las cajas van así: ${cajas.join(" · ") || "ninguna"}. Cada letra tiene que tener el MISMO ancho y la MISMA posición que su columna de celdas (y lo que está antes de la "A" arriba, el mismo ancho que el número de cada fila)` };
     }
-    return { x, y, quien: quien(el) };
+    // 01/11 (borrador nuevo de la hoja): Enter en una celda editable agrega un renglón vacío (<div><br></div>) y en el
+    // centro de la celda quedaba ESE renglón: se leía "" aunque la celda decía "hola". Se sube hasta la celda entera
+    // (sin llegar a la fila: lo que contiene al número o a la letra, o lo que ocupa varias columnas, ya no es la celda).
+    document.querySelectorAll("[data-plan-lugar]").forEach((e) => e.removeAttribute("data-plan-lugar"));
+    let cel = el;
+    const base = Math.max(rc.width, el.getBoundingClientRect().width);
+    for (let P = cel.parentElement; P && P !== document.body; P = P.parentElement) {
+      const pr = P.getBoundingClientRect();
+      if (P.contains(col) || P.contains(fila) || pr.height > rf.height * 1.6 + 4 || pr.width > base * 2.5) break;
+      cel = P;
+    }
+    cel.setAttribute("data-plan-lugar", "1");
+    return { x, y, quien: quien(cel) };
   }
   const h = col || fila, r = h.getBoundingClientRect();
   // dx/dy: en la PÁGINA (no en la ventana): LUGAR scrollea, y comparar posiciones de ventana entre llamadas engaña
@@ -223,9 +235,10 @@ const LUGAR = ([L]) => {
 };
 /** Lo que muestra un lugar, como lo lee una persona: sin campo en edición (se suelta el foco antes). */
 const LEER_LUGAR = ([x, y]) => {
-  const el = document.elementFromPoint(x, y);
+  const el = document.querySelector("[data-plan-lugar]") || document.elementFromPoint(x, y);
   if (!el) return { texto: null };
-  const t = el.matches("input, textarea") ? el.value : (el.innerText || el.textContent || "");
+  const campo = el.matches("input, textarea") ? el : el.querySelector("input:not([type=hidden]):not([type=color]), textarea");
+  const t = el.matches("input, textarea") ? el.value : (String(el.innerText || el.textContent || "").trim() || campo?.value || "");
   let fondo = null;
   for (let z = el; z && z !== document.documentElement; z = z.parentElement) { const c = getComputedStyle(z).backgroundColor; if (c && !/rgba\(0, 0, 0, 0\)|transparent/.test(c)) { fondo = c; break; } }
   return { texto: String(t).trim(), fondo };

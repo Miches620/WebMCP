@@ -210,9 +210,13 @@ export async function borrador({ features, planilla, call = llamarLM, contexto =
   const app = {}, pedidos = [];
   for (const archivo of ["index.html", "styles.css", "script.js"]) {
     if (archivo !== "index.html") { const sep = separarArchivos(app); if (sep.cambios.length) { Object.assign(app, sep.app); sep.cambios.forEach((c) => log(`[CICLO] borrador: ${c}`)); } }
-    if (archivo !== "index.html" && String(app[archivo] || "").trim().length >= 50) { log(`[CICLO] borrador: ${archivo} ya salió de index.html (no se le pide a Gemma)`); continue; }
+    // 01/11 (borrador de la hoja): el <script> de index.html era un pedacito (unas funciones sueltas, sin fórmulas, sin
+    // guardar, sin arrancar) y como "ya había" script.js no se le pidió a Gemma: la app quedó sin lógica y 40 vueltas en 0.
+    // Ahora se le pide igual, con lo que había como punto de partida; si no sale, queda lo que había.
+    const yaHabia = archivo !== "index.html" && String(app[archivo] || "").trim().length >= 50 ? String(app[archivo]) : "";
+    if (yaHabia) log(`[CICLO] borrador: ${archivo} tiene lo que estaba adentro de index.html; se le pide a Gemma el archivo entero`);
     const sys = SYS_BORRADOR(archivo, archivo !== "index.html");
-    const user = `${pedido}${app["index.html"] ? `\n\nindex.html (ya escrito):\n${app["index.html"]}` : ""}`;
+    const user = `${pedido}${app["index.html"] ? `\n\nindex.html (ya escrito):\n${app["index.html"]}` : ""}${yaHabia ? `\n\nEsto estaba adentro de index.html y ya pasó a ${archivo}; es SOLO un pedazo. Escribí ${archivo} ENTERO: con esto adentro y todo lo que falta para que haga lo que pide el usuario:\n${yaHabia}` : ""}`;
     let codigo = null, por = "";
     for (let intento = 1; intento <= 2 && codigo == null; intento++) {
       const max = Math.max(2500, Math.min(8000, contexto - estTokens(sys + user) - 300));
@@ -223,7 +227,7 @@ export async function borrador({ features, planilla, call = llamarLM, contexto =
       if (archivo.endsWith(".js")) { const e = syntaxOfLocal(b.codigo); if (e) { por = `script.js no compila: ${e}`; continue; } }
       codigo = b.codigo;
     }
-    app[archivo] = codigo ?? (archivo === "index.html" ? "<!DOCTYPE html><html><head><link rel=\"stylesheet\" href=\"styles.css\"></head><body><script src=\"script.js\"></script></body></html>" : "");
+    app[archivo] = codigo ?? (yaHabia || archivo === "index.html" ? yaHabia ||  "<!DOCTYPE html><html><head><link rel=\"stylesheet\" href=\"styles.css\"></head><body><script src=\"script.js\"></script></body></html>" : "");
     log(`[CICLO] borrador: ${archivo} ${codigo != null ? `(${estTokens(codigo)} tokens)` : "NO salió: queda vacío y lo arregla el ciclo"}`);
   }
   return { app, pedidos };

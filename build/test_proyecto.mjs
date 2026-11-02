@@ -41,6 +41,14 @@ const malo = async (messages, max, tipo) => { n2++; const f = tipo.split(" ")[1]
 const b2 = await borrador({ features: ["x"], planilla: VARA, call: malo });
 t("un script.js que no compila se vuelve a pedir, diciendo el error", b2.pedidos.filter((p) => p.archivo === "script.js").length === 2 && b2.app["script.js"].trimEnd() === ARR["script.js"].trimEnd());
 
+// 01/11 (borrador de la hoja): un <script> chiquito adentro de index.html NO reemplaza el pedido de script.js
+{
+  const ped3 = [];
+  const pedazo = "function selectRow(event) { const r = event.currentTarget; r.classList.add('selected'); }";
+  const fake = async (messages, max, tipo) => { ped3.push({ tipo, user: messages[1].content }); const f = tipo.split(" ")[1]; const txt = f === "index.html" ? `<!DOCTYPE html><html><head><link rel="stylesheet" href="styles.css"></head><body><div id="hoja"></div><script>${pedazo}</script></body></html>` : f === "styles.css" ? "body { margin: 0; padding: 10px; font-family: Arial, sans-serif; }" : "function selectRow(event) { event.currentTarget.classList.add('selected'); }\nfunction arrancar() { document.getElementById('hoja').textContent = 'ok'; }\ndocument.addEventListener('DOMContentLoaded', arrancar);"; return { content: `### ARCHIVO: ${f}\n\`\`\`\n${txt}\n\`\`\``, ms: 1 }; };
+  const b3 = await borrador({ features: ["x"], planilla: VARA, call: fake });
+  t("borrador: si index.html traía un <script> (un pedazo), igual se le pide script.js a Gemma, mostrándole ese pedazo, y queda el suyo entero", ped3.map((p) => p.tipo).join() === "borrador index.html,borrador styles.css,borrador script.js" && /es SOLO un pedazo/.test(ped3[2].user) && ped3[2].user.includes("selectRow") && /DOMContentLoaded/.test(b3.app["script.js"]), ped3.map((p) => p.tipo).join() + " · " + b3.app["script.js"].slice(0, 120));
+}
 const c0 = await ciclo({ app: null, planilla: VARA, features: ["x"], outDir: mkdtempSync(join(tmpdir(), "c0-")), maxVueltas: 1, log: () => {}, call: async (m, max, tipo) => (tipo.startsWith("borrador") ? call(m, max, tipo) : { content: "no sé", ms: 1 }) });
 t("el ciclo sin app de partida arranca por la vuelta 0 (borrador) y lo juzga: con el borrador de Gemma sola arreglada, 9 requisitos", c0.ev.borrador?.length === 3 && c0.ev.curva[0].cumplidos === 9, JSON.stringify(c0.ev.curva));
 
@@ -192,6 +200,10 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   const gem3 = await juzgar(join(FIX, "flow_hoja_gemma3"), PH);
   const dg3 = (r) => gem3.fallan.find((f) => f.r === r)?.detalle.join(" ") || "";
   t("hoja de Gemma 3 (letras arriba, mal alineadas): R2 da las medidas de las letras y de las cajas de la fila; R1 dice que al hacer clic no quedó dónde escribir", gem3.cumplidos === 0 && /Arriba, los encabezados van así: .*"A" x \d+–\d+ .*; en la fila "1", las cajas van así: /.test(dg3("R2")) && /MISMO ancho y la MISMA posición/.test(dg3("R2")) && /no quedó con el foco ningún lugar para escribir/.test(dg3("R1")), dg3("R2").slice(-300) + " || " + dg3("R1").slice(0, 300));
+  // 01/11 (borrador nuevo): Enter en una celda editable deja un renglón vacío en el centro; se lee la celda entera
+  const gem4 = await juzgar(join(FIX, "flow_hoja_gemma4"), PH);
+  const dg4 = (r) => gem4.fallan.find((f) => f.r === r)?.detalle.join(" ") || "";
+  t("borrador nuevo de Gemma (grilla bien, sin lógica, 3 filas): escribir en A1 se lee bien aunque Enter agregue un renglón (R1 pasa); R2 dice que faltan las filas 4 a 20", !gem4.fallan.some((f) => f.r === "R1") && /faltan encabezados: 4, 5, 6/.test(dg4("R2")), JSON.stringify(gem4.fallan.map((f) => f.r)) + dg4("R2").slice(-200));
   // el buscador: la ficha (rasgos con cita) y lo que no pediste como preguntas en planilla.md
   const ev = { grupos: [{ rasgo: "escribir fórmulas", de: ["T2"], fuentes: ["S1", "S2"], ya_pedido: true }, { rasgo: "compartir con el equipo", de: ["T3"], fuentes: ["S1", "S2", "S3"], fuera_del_stack: "necesita servidor" }, { rasgo: "combinar celdas", de: ["T1"], fuentes: ["S3"] }], rasgos: [{ id: "T1", fuente: "S3", cita: "Merge cells across rows" }, { id: "T2", fuente: "S1", cita: "Formulas  begin with an equal sign" }, { id: "T3", fuente: "S1", cita: "Share with your team" }] };
   const fi = fichaDe(ev);

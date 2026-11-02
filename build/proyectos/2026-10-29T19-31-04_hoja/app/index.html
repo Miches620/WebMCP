@@ -3,81 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoja de Cálculo Avanzada</title>
+    <title>Hoja de Cálculo Simulación</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body >
 
-    <div id="spreadsheet-container">
-        <!-- Header for Column Letters (A to J) -->
-        <div id="column-headers">
+    <div class="spreadsheet-container">
+        <!-- Header Row (Column Letters A-J) -->
+        <div class="header row-labels">
             <div class="corner-cell"></div>
-            <!-- Column letters A through J will be dynamically generated or structured here -->
-            <div data-col="A" class="header-cell col-header">A <button class="control-btn hide-col" data-action="hide" title="Ocultar Columna"></button></div>
-            <div data-col="B" class="header-cell col-header">B <button class="control-btn hide-col" data-action="hide" title="Ocultar Columna"></button></div>
-            <div data-col="C" class="header-cell col-header">C <button class="control-btn hide-col" data-action="hide" title="Ocultar Columna"></button></div>
-            <div data-col="D" class="header-cell col-header">D <button class="control-btn hide-col" data-action="hide" title="Ocultar Columna"></button></div>
-            <div data-col="E" class="header-cell col-header">E <button class="control-btn hide-col" data-action="hide" title="Ocultar Columna"></button></div>
-            <div data-col="F" class="header-cell col-header">F <button class="control-btn hide-col" data-action="hide" title="Ocultar Columna"></button></div>
-            <div data-col="G" class="header-cell col-header">G <button class="control-btn hide-col" data-action="hide" title="Ocultar Columna"></button></div>
-            <div data-col="H" class="header-cell col-header">H <button class="control-btn hide-col" data-action="hide" title="Ocultar Columna"></button></div>
-            <div data-col="I" class="header-cell col-header">I <button class="control-btn hide-col" data-action="hide" title="Ocultar Columna"></button></div>
-            <div data-col="J" class="header-cell col-header">J <button class="control-btn hide-col" data-action="hide" title="Ocultar Columna"></button></div>
-        </div >
+            <div class="col-label" data-col="A">A</div>
+            <div class="col-label" data-col="B">B</div>
+            <div class="col-label" data-col="C">C</div>
+            <div class="col-label" data-col="D">D</div>
+            <div class="col-label" data-col="E">E</div>
+            <div class="col-label" data-col="F">F</div>
+            <div class="col-label" data-col="G">G</div>
+            <div class="col-label" data-col="H">H</div>
+            <div class="col-label" data-col="I">I</div>
+            <div class="col-label" data-col="J">J</div>
+        </div>
 
-        <!-- Main Grid Area -->
-        <div id="grid-area">
-            <!-- Row 1 Header (Number) -->
-            <div class="row-header" data-row="1">
-                <span class="row-number">1</span>
-                <div class="controls">
-                    <button class="control-btn delete-row" data-action="delete">🗑️ Borrar Fila</button>
-                    <label for="color-picker-1" class="control-btn color-btn">🎨 Color:</label>
-                    <input type="color" id="color-picker-1" class="color-picker" value="#ffffff" data-row="1">
-                    <button class="control-btn hide-row" data-action="hide" title="Ocultar Fila"></button>
-                    <button class="control-btn clear-content" data-action="clear">🧹 Vaciar Contenido</button>
-                </div>
+        <!-- Main Grid Content (Rows 1 to 20) -->
+        <div id="spreadsheet-grid">
+            <!-- Row 1 -->
+            <div class="row-container" data-row="1">
+                <div class="row-label" data-row="1">1</div>
+                <!-- Cells A1 to J1 -->
+                <div class="cell" data-col="A" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="1" contenteditable="true"></div>
             </div>
 
-            <!-- Rows 1 through 20 will be generated here by JS, but we need the structure for the first few rows to ensure layout integrity. -->
-            <!-- We will use a loop in JS, so only the structural container is needed, but let's pre-populate enough cells/rows to define the scope (A1:J20). -->
-
-            <div id="data-grid">
-                <!-- Row 1 -->
-                <div class="row" data-row="1">
-                    <div class="cell row-header-content">1</div>
-                    <div class="spreadsheet-cell" data-col="A" data-row="1"></div>
-                    <div class="spreadsheet-cell" data-col="B" data-row="1"></div>
-                    <div class="spreadsheet-cell" data-col="C" data-row="1"></div>
-                    <div class="spreadsheet-cell" data-col="D" data-row="1"></div>
-                    <div class="spreadsheet-cell" data-col="E" data-row="1"></div>
-                    <div class="spreadsheet-cell" data-col="F" data-row="1"></div>
-                    <div class="spreadsheet-cell" data-col="G" data-row="1"></div>
-                    <div class="spreadsheet-cell" data-col="H" data-row="1"></div>
-                    <div class="spreadsheet-cell" data-col="I" data-row="1"></div>
-                    <div class="spreadsheet-cell" data-col="J" data-row="1"></div>
-                </div>
-
-                <!-- Row 2 -->
-                <div class="row" data-row="2">
-                    <div class="cell row-header-content">2</div>
-                    <div class="spreadsheet-cell" data-col="A" data-row="2"></div>
-                    <div class="spreadsheet-cell" data-col="B" data-row="2"></div>
-                    <div class="spreadsheet-cell" data-col="C" data-row="2"></div>
-                    <div class="spreadsheet-cell" data-col="D" data-row="2"></div>
-                    <div class="spreadsheet-cell" data-col="E" data-row="2"></div>
-                    <div class="spreadsheet-cell" data-col="F" data-row="2"></div>
-                    <div class="spreadsheet-cell" data-col="G" data-row="2"></div>
-                    <div class="spreadsheet-cell" data-col="H" data-row="2"></div>
-                    <div class="spreadsheet-cell" data-col="I" data-row="2"></div>
-                    <div class="spreadsheet-cell" data-col="J" data-row="2"></div>
-                </div>
-
-                <!-- ... (Rows 3 through 19 would follow this pattern) ... -->
-                <!-- To keep the HTML clean and manageable, we rely on JS to generate the remaining 18 rows dynamically based on the structure defined by the first two. -->
+            <!-- Row 2 -->
+            <div class="row-container" data-row="2">
+                <div class="row-label" data-row="2">2</div>
+                <div class="cell" data-col="A" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="2" contenteditable="true"></div>
             </div>
+
+            <!-- Row 3 -->
+            <div class="row-container" data-row="3">
+                <div class="row-label" data-row="3">3</div>
+                <div class="cell" data-col="A" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="3" contenteditable="true"></div>
+            </div>
+
+            <!-- Placeholder for Rows 4 through 20 -->
+
         </div >
-    </div>
+
+        <!-- Row Control Panel (NEW) -->
+        <div class="row-controls">
+            <h4>Controles de Fila</h4>
+            <button id="delete-row-btn" disabled>🗑️ Borrar Fila</button>
+            <label for="bg-color">Color Fondo:</label>
+            <input type="color" id="bg-color" value="#ffffff">
+            <button id="set-color-btn" disabled>🎨 Aplicar Color</button>
+            <button id="clear-content-btn" disabled>🗑️ Vaciar Contenido</button>
+        </div>
+
+        <!-- Column Control Panel (NEW) -->
+        <div class="col-controls">
+            <h4>Controles de Columna</h4>
+            <button id="hide-column-btn" disabled>👁️ Ocultar Columna</button>
+            <button id="show-column-btn" disabled>🔍 Mostrar Columna</button>
+        </div>
+
+    </div >
 
     <script src="script.js"></script>
 </body>

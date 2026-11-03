@@ -201,7 +201,9 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   const dg3 = (r) => gem3.fallan.find((f) => f.r === r)?.detalle.join(" ") || "";
   t("hoja de Gemma 3 (letras arriba, mal alineadas): R2 da las medidas de las letras y de las cajas de la fila; R1 dice que al hacer clic no quedó dónde escribir", gem3.cumplidos === 0 && /Arriba, los encabezados van así: .*"A" x \d+–\d+ .*; en la fila "1", las cajas van así: /.test(dg3("R2")) && /MISMO ancho y la MISMA posición/.test(dg3("R2")) && /no quedó con el foco ningún lugar para escribir/.test(dg3("R1")), dg3("R2").slice(-300) + " || " + dg3("R1").slice(0, 300));
   // 01/11 (borrador nuevo): Enter en una celda editable deja un renglón vacío en el centro; se lee la celda entera
-  const gem4 = await juzgar(join(FIX, "flow_hoja_gemma4"), PH);
+  // 03/11: ese borrador tenía letras de 50px y celdas de 120px (el juez de hoy lo marca); la variante _ancho tiene las celdas
+  // del ancho de su letra y sirve para lo que se probaba acá: leer la celda entera después de Enter
+  const gem4 = await juzgar(join(FIX, "flow_hoja_gemma4_ancho"), PH);
   const dg4 = (r) => gem4.fallan.find((f) => f.r === r)?.detalle.join(" ") || "";
   t("borrador nuevo de Gemma (grilla bien, sin lógica, 3 filas): escribir en A1 se lee bien aunque Enter agregue un renglón (R1 pasa); R2 dice que faltan las filas 4 a 20", !gem4.fallan.some((f) => f.r === "R1") && /faltan encabezados: 4, 5, 6/.test(dg4("R2")), JSON.stringify(gem4.fallan.map((f) => f.r)) + dg4("R2").slice(-200));
   // 02/11 (2º borrador): sin números de fila. El intento de la vuelta 30 los hizo aparecer pero mal acomodados: antes valía
@@ -216,6 +218,12 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   const d6 = (g, r) => g.fallan.find((f) => f.r === r)?.detalle.join(" ") || "";
   t("hoja de Gemma 6: R1 da las DOS causas (el contenedor y la fila display: block con celdas de 0 de alto); R2 dice que la J baja de renglón y por qué", /Y el número: es porque <div class="spreadsheet-row"> \(display: block\) pone el número y lo que tiene al lado uno DEBAJO del otro.*\(0 de alto: no se ve\)/.test(d6(g6, "R1")) && /de "A" a "I" van bien, pero "I" en x \d+, y \d+ · "J" en x \d+, y \d+.*Es porque <div id="column-labels"> \(display: grid\) arma renglones de 10 y tiene 11 cosas adentro/.test(d6(g6, "R2")) && /✓ se ven las letras A–J y los números 1–20 · ✓ los números están uno debajo del otro/.test(d6(g6, "R2")), d6(g6, "R1").slice(0, 300) + " || " + d6(g6, "R2").slice(0, 400));
   t("con el arreglo de la vuelta 4 (letras arriba) suma un ✓ y el aviso pasa a la causa que queda (la fila display: block)", /✓ la letra "B" está arriba de la fila "2" · no hay celda B2: el número "2" .* Es porque <div class="spreadsheet-row"> \(display: block\)/.test(d6(g6b, "R1")), d6(g6b, "R1").slice(0, 400));
+  // 03/11 (3ª vez retomando): grilla con letras de 115px y celdas de 18px; en el cruce de A y 1 caía la "I1" y R2 pasaba igual.
+  // Y con celdas que no se pueden escribir, "borrar la columna → ya no se ve lo escrito" pasaba sin haber escrito nada
+  const g7 = await juzgar(join(FIX, "flow_hoja_gemma7"), PH), ne = await juzgar(join(FIX, "flow_hoja_no_edita"), PH);
+  const d7 = (g, r) => g.fallan.find((f) => f.r === r)?.detalle.join(" ") || "";
+  t("hoja de Gemma 7: R2 ya no pasa con celdas más angostas que sus letras, y el aviso da las medidas y el CSS de hoy (display: flex, width 18px)", g7.fallan.some((f) => f.r === "R2") && /pero la letra "A" va de x \d+ a \d+: esa caja no es la celda A1 \(es más angosta.*display: flex y <div class="cell"> tiene width: 18px/.test(d7(g7, "R2")), d7(g7, "R2").slice(0, 500));
+  t("celdas que no dejan escribir: escribir no cuenta como hecho (dice dónde quedó el foco) y borrar/vaciar ya no pasan en falso", /el foco quedó en <td>, que tiene tabindex pero no es editable.*quedó vacía: no se escribió nada/.test(d7(ne, "R1")) && ["R6", "R7", "R8"].every((r) => ne.fallan.some((f) => f.r === r)) && !ne.fallan.some((f) => f.r === "R2"), d7(ne, "R1").slice(0, 300) + " || " + JSON.stringify(ne.fallan.map((f) => f.r)));
   // el buscador: la ficha (rasgos con cita) y lo que no pediste como preguntas en planilla.md
   const ev = { grupos: [{ rasgo: "escribir fórmulas", de: ["T2"], fuentes: ["S1", "S2"], ya_pedido: true }, { rasgo: "compartir con el equipo", de: ["T3"], fuentes: ["S1", "S2", "S3"], fuera_del_stack: "necesita servidor" }, { rasgo: "combinar celdas", de: ["T1"], fuentes: ["S3"] }], rasgos: [{ id: "T1", fuente: "S3", cita: "Merge cells across rows" }, { id: "T2", fuente: "S1", cita: "Formulas  begin with an equal sign" }, { id: "T3", fuente: "S1", cita: "Share with your team" }] };
   const fi = fichaDe(ev);

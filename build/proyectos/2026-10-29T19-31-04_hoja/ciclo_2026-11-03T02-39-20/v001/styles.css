@@ -1,0 +1,140 @@
+/* Global Reset and Base Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f9;
+}
+
+#spreadsheet-container {
+    display: grid;
+    /* Define the overall structure: Row Labels | Grid Content */
+    grid-template-rows: auto 1fr; /* Changed from columns to rows for correct stacking of labels and grid area */
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Column Labels (A-J) --- */
+#column-labels {
+    display: grid;
+    grid-template-columns: repeat(10, auto); /* 10 columns for A through J */
+    border-bottom: 1px solid #ccc;
+    background-color: #e9e9e9;
+}
+
+.col-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 0;
+    font-weight: bold;
+    cursor: pointer;
+    border-right: 1px solid #ccc;
+    background-color: #dcdcdc;
+}
+
+/* Remove border from the last column header */
+.col-header:nth-child(10) {
+    border-right: none;
+}
+
+
+/* --- Main Grid Area (Row Numbers + Cells) --- */
+#grid-area {
+    display: grid;
+    /* Define 20 rows, each taking equal space */
+    grid-template-rows: repeat(20, 1em); /* Use em for consistent row height */
+}
+
+/* Structure for the entire Row Label column (the numbers 1-20) */
+.row-label {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 0;
+    font-weight: bold;
+    background-color: #e9e9e9;
+    border-right: 1px solid #ccc;
+    cursor: pointer;
+    user-select: none; /* Prevent text selection on click */
+}
+
+/* The container for the actual cells (A1 to J20) */
+.cell-grid {
+    display: grid;
+    /* Define 10 columns, each taking equal space */
+    grid-template-columns: repeat(10, 1fr);
+    width: 100%; /* Ensure it fills the remaining space in #spreadsheet-container */
+}
+
+/* Individual Cell Styling (A1, B2, etc.) */
+.cell {
+    border: 1px solid #ccc;
+    padding: 8px;
+    box-sizing: border-box;
+    min-height: 30px; /* Ensure visible height even when empty */
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* State Styles */
+.cell:hover {
+    background-color: #f0f8ff; /* Light hover effect */
+}
+
+/* Active/Selected Cell (for editing or focus) */
+.cell[contenteditable="true"] {
+    outline: 2px solid royalblue;
+    background-color: #ffffff !important; /* Ensure white background when active */
+}
+
+/* Highlight for selected column/row interaction area */
+.selected-column-label, .selected-row-label {
+    background-color: #cce0ff;
+    font-weight: bold;
+}
+
+/* --- Controls Area Styling --- */
+#controls {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+button {
+    padding: 8px 12px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+#color-picker {
+    width: 50px;
+    height: 30px;
+    border: none;
+    padding: 0;
+    vertical-align: middle;
+}
+
+/* Utility classes for visual feedback */
+.hidden {
+    display: none !important;
+}

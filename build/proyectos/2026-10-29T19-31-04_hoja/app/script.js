@@ -273,7 +273,7 @@ function initializeGrid() {
         for (let c = 0; c < NUM_COLUMNS; c++) {
             const coord = getCoord(c, r);
             const cell = document.createElement('div');
-            cell.className = 'spreadsheet-cell';
+            cell.className = 'cell'; // Changed class name to match CSS definition
             cell.dataset.coord = coord;
             cell.setAttribute('tabindex', 0); // Make cells focusable
 
@@ -567,12 +567,16 @@ function hideColumn() {
     if (!selectedColumn) return;
 
     const colChar = selectedColumn;
-    // 1. Hide all elements in the DOM
+    // 1. Hide all elements in the DOM (cells)
     document.querySelectorAll(`.spreadsheet-cell[data-col="${colChar}"]`).forEach(el => {
         el.style.display = 'none';
     });
+    // 2. Hide the column label itself
+    const colLabel = document.querySelector(`.col-header[data-col="${colChar}"]`);
+    if (colLabel) {
+        colLabel.style.display = 'none';
+    }
 
-    // Note: We keep the data model intact, only hiding the view.
     clearSelection();
     saveState();
 }
@@ -584,10 +588,15 @@ function hideRow() {
     if (!selectedRow) return;
 
     const rowNum = parseInt(selectedRow);
-    // 1. Hide all elements in the DOM
+    // 1. Hide all elements in the DOM (cells)
     document.querySelectorAll(`.spreadsheet-row[data-row="${rowNum}"]`).forEach(el => {
         el.style.display = 'none';
     });
+    // 2. Hide the row number label itself
+    const rowLabel = document.querySelector(`.row-number[data-row="${rowNum}"]`);
+    if (rowLabel) {
+        rowLabel.style.display = 'none';
+    }
 
     clearSelection();
     saveState();
@@ -621,7 +630,9 @@ function setupEventListeners() {
     });
 
     document.getElementById('btn-delete-column').addEventListener('click', deleteColumn);
+    document.getElementById('btn-hide-column').addEventListener('click', hideColumn);
     document.getElementById('btn-delete-row').addEventListener('click', deleteRow);
+    document.getElementById('btn-hide-row').addEventListener('click', hideRow);
     document.getElementById('btn-apply-color').addEventListener('click', applyColor);
 }
 

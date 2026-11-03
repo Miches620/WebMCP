@@ -239,6 +239,14 @@ const LUGAR = ([L]) => {
       if (P.contains(col) || P.contains(fila) || pr.height > rf.height * 1.6 + 4 || pr.width > base * 2.5) break;
       cel = P;
     }
+    // 03/11 (retomando la hoja, 3ª vez): las celdas medían 18px y las letras 115px; en el cruce de A y 1 caía la 9ª celda de la
+    // fila (la "I1") y R2 pasaba igual. Una celda es de esa letra si tiene más o menos su ancho y está debajo de ella.
+    const rcel = cel.getBoundingClientRect();
+    const solapa = Math.min(rcel.right, rc.right) - Math.max(rcel.left, rc.left);
+    if (rcel.width < rc.width * 0.5 || rcel.width > rc.width * 2 || solapa < Math.min(rcel.width, rc.width) * 0.6) {
+      const fila1 = [...(cel.parentElement?.children || [])].filter((e) => e.getBoundingClientRect().width > 0).slice(0, 4).map((e) => { const r = e.getBoundingClientRect(); return `${quien(e)} x ${Math.round(r.left)}–${Math.round(r.right)}`; });
+      return { falta: `${bien.join(" · ")} · en el cruce de la letra "${L.col}" y el número "${L.fila}" hay ${quien(cel)} (${px(rcel)}), pero la letra "${L.col}" va de x ${Math.round(rc.left)} a ${Math.round(rc.right)}: esa caja no es la celda ${L.col}${L.fila} (es más ${rcel.width < rc.width ? "angosta" : "ancha"} o está corrida). En la fila "${L.fila}" las cajas van así: ${fila1.join(" · ")}.${(() => { const P = cel.parentElement, sp = P && getComputedStyle(P), sc = getComputedStyle(cel); return P ? ` Hoy ${quien(P)} es display: ${sp.display}${/grid/.test(sp.display) ? ` (grid-template-columns: ${sp.gridTemplateColumns})` : ""} y ${quien(cel)} tiene width: ${sc.width}, flex: ${sc.flex}.` : ""; })()} Cada celda tiene que tener el MISMO ancho y la MISMA posición que la letra de su columna (y lo que está antes de la "A" arriba, el mismo ancho que el número de cada fila)` };
+    }
     cel.setAttribute("data-plan-lugar", "1");
     return { x, y, quien: quien(cel) };
   }
@@ -308,19 +316,31 @@ async function escribirEn(page, nombre, texto) {
   if (!L?.col || !L?.fila) return { fail: `"${nombre}" no es un lugar con columna y fila (p. ej. A1)` };
   const p = await buscarLugar(page, L);
   if (p.falta) return { fail: p.falta };
+  // 03/11: si al hacer clic el foco queda en algo que NO se puede escribir (un <div tabindex> sin contenteditable), se dice QUÉ es
   const campo = () => page.evaluate(() => {
     document.querySelectorAll("[data-plan-campo]").forEach((e) => e.removeAttribute("data-plan-campo"));
     const a = document.activeElement;
-    if (!a || !(a.matches("input:not([type=button]):not([type=submit]):not([type=color]):not([type=checkbox]), textarea") || a.isContentEditable)) return false;
-    a.setAttribute("data-plan-campo", "1"); return true;
+    if (!a || !(a.matches("input:not([type=button]):not([type=submit]):not([type=color]):not([type=checkbox]), textarea") || a.isContentEditable)) {
+      if (!a || a === document.body) return { ok: false, foco: "" };
+      return { ok: false, foco: ` (el foco quedó en <${a.tagName.toLowerCase()}${a.className && typeof a.className === "string" ? ` class="${a.className.trim().split(/\s+/).slice(0, 2).join(" ")}"` : ""}>${a.hasAttribute("tabindex") ? ", que tiene tabindex pero" : ", que"} no es editable: ni contenteditable ni un campo adentro)` };
+    }
+    a.setAttribute("data-plan-campo", "1"); return { ok: true };
   });
   await page.mouse.click(p.x, p.y); await settle(page);
-  let modo = "clic";
-  if (!(await campo())) { await page.mouse.dblclick(p.x, p.y); await settle(page); modo = "doble clic"; }
-  if (await campo()) await page.locator("[data-plan-campo]").first().fill(String(texto)).catch(() => {});
-  else { modo += " y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—"; await page.keyboard.type(String(texto)); }
+  let modo = "clic", c = await campo();
+  if (!c.ok) { await page.mouse.dblclick(p.x, p.y); await settle(page); modo = "doble clic"; c = await campo(); }
+  if (c.ok) await page.locator("[data-plan-campo]").first().fill(String(texto)).catch(() => {});
+  else { modo += ` y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—${c.foco}`; await page.keyboard.type(String(texto)); }
   await page.keyboard.press("Enter"); await settle(page);
   await page.evaluate(() => document.activeElement?.blur?.()); await settle(page);
+  // 03/11 (3ª corrida retomando la hoja): las celdas no se podían escribir, el teclado no escribía nada y "borrar la columna →
+  // lo que se escribió ya no se ve" PASABA (nunca se había escrito). Esa prueba falsa después bloqueaba el arreglo bueno
+  // ("rompió lo que ya andaba"). Ahora, si lo escrito no aparece en el lugar, escribir no cuenta como hecho.
+  if (String(texto).trim()) {
+    const q = await buscarLugar(page, L);
+    const r = q.falta ? { texto: "" } : await page.evaluate(LEER_LUGAR, [q.x, q.y]);
+    if (!String(r.texto || "").trim()) return { fail: `escribió "${texto}" en ${String(nombre).toUpperCase()} (${modo}), pero ${String(nombre).toUpperCase()} quedó vacía: no se escribió nada` };
+  }
   return { why: `escribió "${texto}" en ${String(nombre).toUpperCase()} (${modo})` };
 }
 async function clicEn(page, nombre, ctx) {

@@ -8,7 +8,7 @@ body {
 #spreadsheet-container {
     display: grid;
     /* Define the overall structure: Row Labels | Grid Content */
-    grid-template-columns: auto 1fr; /* Auto for row labels, 1fr for the rest of the grid */
+    grid-template-rows: auto 1fr; /* Changed from columns to rows for correct stacking of labels and grid area */
     border: 1px solid #ccc;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -16,7 +16,7 @@ body {
 /* --- Column Labels (A-J) --- */
 #column-labels {
     display: grid;
-    grid-template-columns: repeat(10, auto); /* 10 columns for A through J */
+    grid-template-columns: repeat(11, auto); /* 11 columns for Corner + A through J */
     border-bottom: 1px solid #ccc;
     background-color: #e9e9e9;
 }
@@ -56,6 +56,12 @@ body {
     border-right: 1px solid #ccc;
     cursor: pointer;
     user-select: none; /* Prevent text selection on click */
+}
+
+/* Structure for a single row containing label and cells (FIX) */
+.spreadsheet-row {
+    display: flex;
+    align-items: stretch;
 }
 
 /* The container for the actual cells (A1 to J20) */

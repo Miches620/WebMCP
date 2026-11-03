@@ -258,6 +258,18 @@ function initializeGrid() {
         rowWrapper.className = 'spreadsheet-row';
         rowWrapper.dataset.row = r;
 
+        // --- FIX: Add Row Label (the number 1, 2, 3...) ---
+        const label = document.createElement('div');
+        label.className = 'row-label';
+        label.textContent = r;
+        label.dataset.row = r;
+        label.addEventListener('click', handleRowNumberClick);
+
+        // Append the row label first, so it occupies the first column slot
+        rowWrapper.appendChild(label);
+        // ----------------------------------------------------
+
+
         for (let c = 0; c < NUM_COLUMNS; c++) {
             const coord = getCoord(c, r);
             const cell = document.createElement('div');

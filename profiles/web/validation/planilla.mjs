@@ -203,7 +203,20 @@ const LUGAR = ([L]) => {
       }
       break;
     }
-    if (mal.length) return { falta: `no hay celda ${L.col}${L.fila}: ${mal.join(" y ")}.${porque} Las letras van en una fila arriba de la grilla, una al lado de la otra y cada una encima de su columna de celdas; los números, a la izquierda, cada uno al lado de su fila` };
+    // 02/11 (2ª corrida del 2º borrador, 37 vueltas trabadas): el número "1" quedaba dentro de <div class="spreadsheet-row">
+    // con display: block → ocupaba todo el ancho y las celdas quedaban ABAJO, con 0 de alto. El aviso no lo decía.
+    let porque2 = "";
+    if (!izquierda) {
+      const P = fila.parentElement, otros = P ? [...P.children].filter((h) => h !== fila && !h.contains(fila)) : [];
+      if (P && P !== document.body && otros.length) {
+        const st = getComputedStyle(P), o = otros[0], ro = o.getBoundingClientRect();
+        const apila = st.display === "block" || (/flex/.test(st.display) && /column/.test(st.flexDirection)) || (/grid/.test(st.display) && st.gridTemplateColumns.trim().split(/\s+/).length < 2);
+        if (apila) porque2 = ` ${porque ? "Y el número: es" : "Es"} porque ${quien(P)} (display: ${st.display}${/flex/.test(st.display) ? `; flex-direction: ${st.flexDirection}` : ""}${/grid/.test(st.display) ? `; grid-template-columns: ${st.gridTemplateColumns}` : ""}) pone el número y lo que tiene al lado uno DEBAJO del otro: el número ocupa ${px(rf)} y ${quien(o)} queda en ${px(ro)}${ro.height < 1 ? " (0 de alto: no se ve)" : ""}. Para que el número quede a la izquierda de sus celdas, ${quien(P)} tiene que ponerlos uno AL LADO del otro, y cada celda tiene que tener alto.`;
+      }
+    }
+    // y lo que ya está bien cuenta (el ciclo suma los ✓): la letra arriba aunque el número no esté a la izquierda, o al revés
+    const bien = [...(arriba ? [`✓ la letra "${L.col}" está arriba de la fila "${L.fila}"`] : []), ...(izquierda ? [`✓ el número "${L.fila}" está a la izquierda de la columna "${L.col}"`] : [])];
+    if (mal.length) return { falta: `${bien.length ? `${bien.join(" · ")} · ` : ""}no hay celda ${L.col}${L.fila}: ${mal.join(" y ")}.${porque}${porque2} Las letras van en una fila arriba de la grilla, una al lado de la otra y cada una encima de su columna de celdas; los números, a la izquierda, cada uno al lado de su fila` };
     const x = rc.left + rc.width / 2, y = rf.top + rf.height / 2;
     const el = document.elementFromPoint(x, y);
     if (!el) return { falta: `no hay nada donde se cruzan la columna "${L.col}" y la fila "${L.fila}" (x ${Math.round(x)}, y ${Math.round(y)}: ¿fuera de la ventana?)` };
@@ -213,7 +226,7 @@ const LUGAR = ([L]) => {
     if (contenedor) {
       const letras = [...col.parentElement.children].filter((e) => e.getBoundingClientRect().width > 0).slice(0, 4).map((e) => { const r = e.getBoundingClientRect(); return `"${(e.textContent || "").trim().slice(0, 3) || "·"}" x ${Math.round(r.left)}–${Math.round(r.right)}`; });
       const cajas = [...document.querySelectorAll("body *")].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.top <= rf.top + rf.height / 2 && r.bottom >= rf.top + rf.height / 2 && e.children.length === 0 && !e.closest("button, label, input, select"); }).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left).slice(0, 5).map((e) => { const r = e.getBoundingClientRect(); return `${quien(e)} x ${Math.round(r.left)}–${Math.round(r.right)}`; });
-      return { falta: `donde se cruzan la letra "${L.col}" y el número "${L.fila}" (x ${Math.round(x)}) no hay una celda sino ${quien(el)}. Arriba, los encabezados van así: ${letras.join(" · ")}; en la fila "${L.fila}", las cajas van así: ${cajas.join(" · ") || "ninguna"}. Cada letra tiene que tener el MISMO ancho y la MISMA posición que su columna de celdas (y lo que está antes de la "A" arriba, el mismo ancho que el número de cada fila)` };
+      return { falta: `${bien.join(" · ")} · donde se cruzan la letra "${L.col}" y el número "${L.fila}" (x ${Math.round(x)}) no hay una celda sino ${quien(el)}. Arriba, los encabezados van así: ${letras.join(" · ")}; en la fila "${L.fila}", las cajas van así: ${cajas.join(" · ") || "ninguna"}. Cada letra tiene que tener el MISMO ancho y la MISMA posición que su columna de celdas (y lo que está antes de la "A" arriba, el mismo ancho que el número de cada fila)` };
     }
     // 01/11 (borrador nuevo de la hoja): Enter en una celda editable agrega un renglón vacío (<div><br></div>) y en el
     // centro de la celda quedaba ESE renglón: se leía "" aunque la celda decía "hola". Se sube hasta la celda entera
@@ -674,9 +687,26 @@ async function see(page, v, before, w) {
     if (!faltan.length) {
       const enFila = rc.every(([, p], i) => i === 0 || (p.dx > rc[i - 1][1].dx + 4 && Math.abs(p.dy - rc[0][1].dy) < 8));
       const numerosApilados = rf.every(([, p], i) => i === 0 || (p.dy > rf[i - 1][1].dy + 4 && Math.abs(p.dx - rf[0][1].dx) < 8));
-      if (!enFila || !numerosApilados) return [false, `${!enFila ? `las letras ${cols[0]}–${cols.at(-1)} no están en UNA fila de izquierda a derecha (${rc.slice(0, 3).map(([c, p]) => `"${c}" en x ${Math.round(p.dx)}, y ${Math.round(p.dy)}`).join(" · ")}…: tienen que estar a la misma altura, una al lado de la otra)` : ""}${!enFila && !numerosApilados ? " y " : ""}${!numerosApilados ? `los números ${filas[0]}–${filas.at(-1)} no están en UNA columna de arriba abajo (${rf.slice(0, 3).map(([f, p]) => `"${f}" en x ${Math.round(p.dx)}, y ${Math.round(p.dy)}`).join(" · ")}…)` : ""}`];
+      // 02/11: lo que ya está bien de la forma también cuenta (el ciclo suma los ✓)
+      const yaBien = [`✓ se ven las letras ${cols[0]}–${cols.at(-1)} y los números ${filas[0]}–${filas.at(-1)}`, ...(enFila ? [`✓ las letras están en una fila`] : []), ...(numerosApilados ? [`✓ los números están uno debajo del otro`] : [])].join(" · ") + " · ";
+      // 02/11: la "J" bajaba a otro renglón porque el contenedor tenía 10 columnas y 11 cosas adentro (la esquina vacía + A–J); el aviso
+      // mostraba "A", "B", "C" (que estaban bien) y no la que se caía. Ahora: dónde se corta la fila y qué contenedor la corta.
+      let corte = "";
+      if (!enFila) {
+        const i = rc.findIndex(([, p], k) => k > 0 && !(p.dx > rc[k - 1][1].dx + 4 && Math.abs(p.dy - rc[0][1].dy) < 8));
+        corte = i > 0 ? await page.evaluate(([t]) => {
+          const e = [...document.querySelectorAll("body *")].filter((x) => [...x.childNodes].filter((n) => n.nodeType === 3).map((n) => n.nodeValue).join("").trim() === t && x.getClientRects().length).sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)[0];
+          const P = e?.parentElement; if (!P) return "";
+          const st = getComputedStyle(P), n = [...P.children].filter((h) => getComputedStyle(h).display !== "none").length;
+          const q = `<${P.tagName.toLowerCase()}${P.id ? ` id="${P.id}"` : ""}${P.classList.length ? ` class="${[...P.classList].slice(0, 2).join(" ")}"` : ""}>`;
+          if (/grid/.test(st.display)) { const k = st.gridTemplateColumns.trim().split(/\s+/).length; if (n > k) return ` Es porque ${q} (display: grid) arma renglones de ${k} y tiene ${n} cosas adentro: lo que no entra baja a otro renglón.`; }
+          if (/flex/.test(st.display) && st.flexWrap !== "nowrap") return ` Es porque ${q} (display: flex; flex-wrap: ${st.flexWrap}) no tiene lugar y pasa lo que sobra a otro renglón.`;
+          return "";
+        }, [rc[i][0]]) : "";
+      }
+      if (!enFila || !numerosApilados) return [false, `${yaBien}${!enFila ? `las letras ${cols[0]}–${cols.at(-1)} no están en UNA fila de izquierda a derecha (${(() => { const i = Math.max(1, rc.findIndex(([, p], k) => k > 0 && !(p.dx > rc[k - 1][1].dx + 4 && Math.abs(p.dy - rc[0][1].dy) < 8))); return `${i > 1 ? `de "${rc[0][0]}" a "${rc[i - 1][0]}" van bien, pero ` : ""}${rc.slice(Math.max(0, i - 1), i + 1).map(([c, p]) => `"${c}" en x ${Math.round(p.dx)}, y ${Math.round(p.dy)}`).join(" · ")}`; })()}: tienen que estar a la misma altura, una al lado de la otra)${corte}` : ""}${!enFila && !numerosApilados ? " y " : ""}${!numerosApilados ? `los números ${filas[0]}–${filas.at(-1)} no están en UNA columna de arriba abajo (${rf.slice(0, 3).map(([f, p]) => `"${f}" en x ${Math.round(p.dx)}, y ${Math.round(p.dy)}`).join(" · ")}…)` : ""}`];
       // y la grilla tiene que cerrar: la primera letra ENCIMA de la primera fila de celdas (si no, A1 no existe)
-      if (enFila && numerosApilados && cols.length && filas.length) { const p = await page.evaluate(LUGAR, [{ col: cols[0], fila: filas[0] }]); if (p.falta) return [false, `las letras y los números están, pero ${p.falta}`]; }
+      if (enFila && numerosApilados && cols.length && filas.length) { const p = await page.evaluate(LUGAR, [{ col: cols[0], fila: filas[0] }]); if (p.falta) return [false, `${yaBien}pero ${p.falta}`]; }
     }
     // 02/11: si faltan solo los números (o solo las letras), lo que sí está cuenta como avance
     const yaEstan = [rc.length === n && n ? `✓ se ven las letras ${cols[0]}–${cols.at(-1)}` : "", rf.length === m && m ? `✓ se ven los números ${filas[0]}–${filas.at(-1)}` : ""].filter(Boolean).join(" · ");

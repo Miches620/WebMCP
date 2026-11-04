@@ -204,7 +204,9 @@ export function separarArchivos(app0) {
 }
 
 /** La app desde cero: 3 pedidos, uno por archivo. Devuelve { app, pedidos[] }. */
-export async function borrador({ features, planilla, call = llamarLM, contexto = CONTEXTO, log = () => {} }) {
+// 03/11 (Miche: "¿le estamos asignando su role?"): `rol` es el texto del Role (persona + Skills, roles/registry.mjs
+// rolTexto) que va al principio del system. Vacío = como siempre. Se mide con build/exp_rol.mjs antes de usarlo.
+export async function borrador({ features, planilla, call = llamarLM, contexto = CONTEXTO, log = () => {}, rol = "" }) {
   const ctx = { planilla, features };
   const pedido = `Lo que pide el usuario:\n${features.map((f, i) => `R${i + 1}. ${f}`).join("\n")}\n\n${consigna(ctx, planilla.filas || [])}`;
   const app = {}, pedidos = [];
@@ -215,7 +217,7 @@ export async function borrador({ features, planilla, call = llamarLM, contexto =
     // Ahora se le pide igual, con lo que había como punto de partida; si no sale, queda lo que había.
     const yaHabia = archivo !== "index.html" && String(app[archivo] || "").trim().length >= 50 ? String(app[archivo]) : "";
     if (yaHabia) log(`[CICLO] borrador: ${archivo} tiene lo que estaba adentro de index.html; se le pide a Gemma el archivo entero`);
-    const sys = SYS_BORRADOR(archivo, archivo !== "index.html");
+    const sys = `${rol ? `${rol}\n\n` : ""}${SYS_BORRADOR(archivo, archivo !== "index.html")}`;
     const user = `${pedido}${app["index.html"] ? `\n\nindex.html (ya escrito):\n${app["index.html"]}` : ""}${yaHabia ? `\n\nEsto estaba adentro de index.html y ya pasó a ${archivo}; es SOLO un pedazo. Escribí ${archivo} ENTERO: con esto adentro y todo lo que falta para que haga lo que pide el usuario:\n${yaHabia}` : ""}`;
     let codigo = null, por = "";
     for (let intento = 1; intento <= 2 && codigo == null; intento++) {

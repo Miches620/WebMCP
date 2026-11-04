@@ -38,3 +38,12 @@ export function skillsBlock(skills, kind) {
   const mine = (skills || []).filter((s) => s.kinds.includes(kind));
   return mine.length ? `HABILIDADES (lo que sabe hacer un programador con experiencia en este tipo de proyecto):\n${mine.map((s) => `- ${s.text}`).join("\n")}` : "";
 }
+
+/** 03/11: el texto de Role que va al principio del system de un paso (persona + Skills de esa clase de paso).
+ *  Con un Role placebo, la persona se cambia por su placebo (mismo largo, neutro). "" si no hay Role. */
+export function rolTexto(role, kind, { persona = true, skills = true } = {}) {
+  if (!role) return "";
+  const p = persona ? (role.status === "PLACEBO" ? role.placeboPersona || "" : role.persona || "") : "";
+  const sk = skills ? skillsBlock(role.skills, kind) : "";
+  return [p, sk].filter(Boolean).join("\n\n");
+}

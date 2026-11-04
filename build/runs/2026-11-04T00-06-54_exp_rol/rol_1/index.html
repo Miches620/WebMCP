@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoja de Cálculo Simple</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div id="spreadsheet-container">
+        <!-- Área de cabecera de columnas (A-J) -->
+        <div class="header-row">
+            <div class="corner-cell"></div>
+            <div data-col-index="A" class="column-label">A</div>
+            <div data-col-index="B" class="column-label">B</div>
+            <div data-col-index="C" class="column-label">C</div>
+            <div data-col-index="D" class="column-label">D</div>
+            <div data-col-index="E" class="column-label">E</div>
+            <div data-col-index="F" class="column-label">F</div>
+            <div data-col-index="G" class="column-label">G</div>
+            <div data-col-index="H" class="column-label">H</div>
+            <div data-col-index="I" class="column-label">I</div>
+            <div data-col-index="J" class="column-label">J</div>
+        </div>
+
+        <!-- Contenedor principal de la grilla (Filas 1 a 20) -->
+        <div id="grid-container">
+            <!-- Las filas se generarán aquí por JS, pero necesitamos el esqueleto para los números de fila y las celdas -->
+            <!-- La estructura debe ser lo suficientemente robusta para que JS pueda inyectar/manipular todas las 20 * 10 celdas. -->
+
+            <div class="row-header"></div> <!-- Placeholder for the corner (already covered by .corner-cell) -->
+
+            <!-- Las filas se insertarán dinámicamente o se definirá un patrón para que JS las encuentre.
+                 Dado el tamaño fijo y la necesidad de control, vamos a crear 20 contenedores de fila vacíos/placeholders
+                 y hacer que JavaScript los rellene con las celdas A-J. -->
+
+            <div class="row" data-row-index="1">
+                <!-- Las celdas se insertarán aquí: A1, B1, ..., J1 -->
+            </div>
+            <div class="row" data-row-index="2">
+                <!-- Las celdas se insertarán aquí: A2, B2, ..., J2 -->
+            </div>
+            <div class="row" data-row-index="3">
+                <!-- Las celdas se insertarán aquí: A3, B3, ..., J3 -->
+            </div>
+            <div class="row" data-row-index="4"></div>
+            <div class="row" data-row-index="5"></div>
+            <div class="row" data-row-index="6"></div>
+            <div class="row" data-row-index="7"></div>
+            <div class="row" data-row-index="8"></div>
+            <div class="row" data-row-index="9"></div>
+            <div class="row" data-row-index="10"></div>
+            <div class="row" data-row-index="11"></div>
+            <div class="row" data-row-index="12"></div>
+            <div class="row" data-row-index="13"></div>
+            <div class="row" data-row-index="14"></div>
+            <div class="row" data-row-index="15"></div>
+            <div class="row" data-row-index="16"></div>
+            <div class="row" data-row-index="17"></div>
+            <div class="row" data-row-index="18"></div>
+            <div class="row" data-row-index="19"></div>
+            <div class="row" data-row-index="20"></div>
+
+        </div>
+    </div>
+
+
+    <!-- Menú de herramientas (simulado para accesibilidad al control) -->
+    <div id="toolbar">
+        <button id="tool-col-delete" disabled>🗑️ Borrar Columna</button>
+        <button id="tool-row-delete" disabled>🗑️ Borrar Fila</button>
+        <input type="color" id="bg-color-picker" value="#ffffff">
+        <select id="hide-col-toggle" disabled></select>
+        <select id="hide-row-toggle" disabled></select>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

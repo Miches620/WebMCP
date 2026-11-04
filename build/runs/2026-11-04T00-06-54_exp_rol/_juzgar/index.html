@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoja de Cálculo</title>
+    <!-- Enlace a la hoja de estilos -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div id="spreadsheet-controls">
+        <!-- Controles para manejar filas y columnas seleccionadas -->
+        <button id="add-column-btn">Añadir Columna</button>
+        <button id="remove-column-btn" disabled>Borrar Columna</button>
+        <button id="set-bg-color-btn">Color Fondo</button>
+        <input type="color" id="color-picker" value="#ffffff">
+
+        <button id="add-row-btn">Añadir Fila</button>
+        <button id="remove-row-btn" disabled>Borrar Fila</button>
+    </div>
+
+    <!-- Contenedor principal de la hoja de cálculo -->
+    <div id="spreadsheet-wrapper">
+        <div id="column-headers">
+            <!-- Encabezados de Columna (A a J) -->
+            <div class="col-header" data-col="A">A</div>
+            <div class="col-header" data-col="B">B</div>
+            <div class="col-header" data-col="C">C</div>
+            <div class="col-header" data-col="D">D</div>
+            <div class="col-header" data-col="E">E</div>
+            <div class="col-header" data-col="F">F</div>
+            <div class="col-header" data-col="G">G</div>
+            <div class="col-header" data-col="H">H</div>
+            <div class="col-header" data-col="I">I</div>
+            <div class="col-header" data-col="J">J</div>
+        </div>
+
+        <!-- Contenedor principal de la cuadrícula (Filas y Celdas) -->
+        <div id="grid-container">
+            <!-- Fila 1 a 20 -->
+            <!-- Esta estructura simula las filas. Cada div representa una fila completa. -->
+            <!-- La primera columna del div es el número de fila, el resto son los datos. -->
+
+            <!-- Fila 1 (Número visible en la esquina superior izquierda) -->
+            <div class="row-container" data-row="1">
+                <div class="row-label">1</div>
+                <div class="cell" data-col="A" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="1" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="1" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 2 -->
+            <div class="row-container" data-row="2">
+                <div class="row-label">2</div>
+                <div class="cell" data-col="A" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="2" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="2" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 3 -->
+            <div class="row-container" data-row="3">
+                <div class="row-label">3</div>
+                <div class="cell" data-col="A" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="3" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="3" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 4 -->
+            <div class="row-container" data-row="4">
+                <div class="row-label">4</div>
+                <div class="cell" data-col="A" data-row="4" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="4" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="4" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="4" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="4" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="4" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="4" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="4" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="4" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="4" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 5 -->
+            <div class="row-container" data-row="5">
+                <div class="row-label">5</div>
+                <div class="cell" data-col="A" data-row="5" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="5" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="5" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="5" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="5" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="5" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="5" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="5" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="5" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="5" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 6 -->
+            <div class="row-container" data-row="6">
+                <div class="row-label">6</div>
+                <div class="cell" data-col="A" data-row="6" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="6" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="6" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="6" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="6" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="6" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="6" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="6" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="6" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="6" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 7 -->
+            <div class="row-container" data-row="7">
+                <div class="row-label">7</div>
+                <div class="cell" data-col="A" data-row="7" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="7" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="7" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="7" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="7" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="7" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="7" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="7" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="7" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="7" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 8 -->
+            <div class="row-container" data-row="8">
+                <div class="row-label">8</div>
+                <div class="cell" data-col="A" data-row="8" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="8" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="8" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="8" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="8" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="8" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="8" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="8" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="8" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="8" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 9 -->
+            <div class="row-container" data-row="9">
+                <div class="row-label">9</div>
+                <div class="cell" data-col="A" data-row="9" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="9" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="9" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="9" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="9" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="9" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="9" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="9" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="9" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="9" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 10 -->
+            <div class="row-container" data-row="10">
+                <div class="row-label">10</div>
+                <div class="cell" data-col="A" data-row="10" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="10" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="10" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="10" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="10" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="10" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="10" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="10" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="10" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="10" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 11 -->
+            <div class="row-container" data-row="11">
+                <div class="row-label">11</div>
+                <div class="cell" data-col="A" data-row="11" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="11" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="11" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="11" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="11" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="11" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="11" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="11" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="11" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="11" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 12 -->
+            <div class="row-container" data-row="12">
+                <div class="row-label">12</div>
+                <div class="cell" data-col="A" data-row="12" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="12" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="12" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="12" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="12" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="12" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="12" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="12" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="12" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="12" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 13 -->
+            <div class="row-container" data-row="13">
+                <div class="row-label">13</div>
+                <div class="cell" data-col="A" data-row="13" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="13" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="13" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="13" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="13" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="13" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="13" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="13" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="13" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="13" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 14 -->
+            <div class="row-container" data-row="14">
+                <div class="row-label">14</div>
+                <div class="cell" data-col="A" data-row="14" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="14" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="14" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="14" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="14" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="14" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="14" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="14" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="14" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="14" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 15 -->
+            <div class="row-container" data-row="15">
+                <div class="row-label">15</div>
+                <div class="cell" data-col="A" data-row="15" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="15" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="15" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="15" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="15" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="15" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="15" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="15" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="15" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="15" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 16 -->
+            <div class="row-container" data-row="16">
+                <div class="row-label">16</div>
+                <div class="cell" data-col="A" data-row="16" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="16" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="16" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="16" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="16" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="16" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="16" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="16" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="16" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="16" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 17 -->
+            <div class="row-container" data-row="17">
+                <div class="row-label">17</div>
+                <div class="cell" data-col="A" data-row="17" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="17" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="17" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="17" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="17" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="17" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="17" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="17" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="17" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="17" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 18 -->
+            <div class="row-container" data-row="18">
+                <div class="row-label">18</div>
+                <div class="cell" data-col="A" data-row="18" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="18" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="18" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="18" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="18" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="18" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="18" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="18" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="18" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="18" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 19 -->
+            <div class="row-container" data-row="19">
+                <div class="row-label">19</div>
+                <div class="cell" data-col="A" data-row="19" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="19" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="19" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="19" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="19" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="19" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="19" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="19" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="19" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="19" contenteditable="true"></div>
+            </div>
+
+            <!-- Fila 20 -->
+            <div class="row-container" data-row="20">
+                <div class="row-label">20</div>
+                <div class="cell" data-col="A" data-row="20" contenteditable="true"></div>
+                <div class="cell" data-col="B" data-row="20" contenteditable="true"></div>
+                <div class="cell" data-col="C" data-row="20" contenteditable="true"></div>
+                <div class="cell" data-col="D" data-row="20" contenteditable="true"></div>
+                <div class="cell" data-col="E" data-row="20" contenteditable="true"></div>
+                <div class="cell" data-col="F" data-row="20" contenteditable="true"></div>
+                <div class="cell" data-col="G" data-row="20" contenteditable="true"></div>
+                <div class="cell" data-col="H" data-row="20" contenteditable="true"></div>
+                <div class="cell" data-col="I" data-row="20" contenteditable="true"></div>
+                <div class="cell" data-col="J" data-row="20" contenteditable="true"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enlace a la lógica de la aplicación -->
+    <script src="script.js"></script>
+
+</body>
+</html>

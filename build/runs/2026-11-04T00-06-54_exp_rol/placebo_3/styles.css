@@ -1,0 +1,160 @@
+/* =============================== */
+/* Estilos Globales y Reset          */
+/* Define la fuente base para toda la app */
+body {
+    font-family: Arial, sans-serif; /* Fuente legible para hojas de cálculo */
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f9; /* Color suave de fondo de página */
+}
+
+/* Estilo general del wrapper principal */
+#spreadsheet-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1200px; /* Limitar el ancho para mejor lectura */
+    margin: 20px auto;
+    border: 1px solid #ccc; /* Borde general de la hoja */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* =============================== */
+/* Controles y Cabeceras de Columna  */
+/* Estilizan los botones de control */
+#spreadsheet-controls {
+    display: flex;
+    flex-wrap: wrap; /* Permite que los controles pasen a la siguiente línea si no hay espacio */
+    gap: 10px; /* Espacio entre grupos de botones */
+    padding: 15px;
+    background-color: #e9e9e9; /* Fondo ligeramente gris para separación visual */
+    border-bottom: 2px solid #ccc;
+}
+
+button {
+    padding: 8px 15px;
+    cursor: pointer;
+    border: 1px solid #aaa;
+    background-color: #ffffff;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+    background-color: #dcdcdc; /* Efecto hover sutil */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilo específico para el color picker */
+#color-picker {
+    width: 50px;
+    height: 30px;
+    border: 1px solid #aaa;
+    padding: 0;
+}
+
+/* =============================== */
+/* Encabezados de Columna (A, B, C...)*/
+#column-headers {
+    display: flex;
+    background-color: #cccccc; /* Fondo gris oscuro para la cabecera superior */
+    border-bottom: 1px solid #aaa;
+    padding: 0;
+}
+
+.col-header {
+    flex-grow: 1; /* Distribuye el espacio equitativamente entre las 10 columnas */
+    text-align: center;
+    padding: 10px 5px;
+    font-weight: bold;
+    background-color: #e6e6e6;
+    border-right: 1px solid #ccc;
+    user-select: none; /* Evita la selección de texto en los encabezados */
+}
+
+/* Eliminar el borde derecho del último header (J) */
+.col-header:last-child {
+    border-right: none;
+}
+
+/* =============================== */
+/* Contenido Principal (Grid)         */
+#grid-container {
+    display: flex; /* Flexbox para alinear la etiqueta de fila y el contenido restante */
+    flex-direction: column;
+    width: 100%;
+}
+
+/* Estiliza cada contenedor de fila completo */
+.row-container {
+    display: flex;
+    border-bottom: 1px solid #eee; /* Separación sutil entre filas */
+    min-height: 35px; /* Altura mínima para que las celdas se vean bien */
+}
+
+/* Etiqueta de número de fila (1, 2, 3...) */
+.row-label {
+    flex-shrink: 0; /* Asegura que el label no se encoja */
+    width: 40px; /* Ancho fijo para los números de fila */
+    text-align: center;
+    padding: 10px 5px;
+    background-color: #f9f9f9;
+    border-right: 2px solid #ccc; /* Separación visual del contenido */
+    font-weight: bold;
+    user-select: none;
+}
+
+/* Estilo base para todas las celdas de datos */
+.cell {
+    flex-grow: 1; /* Hace que cada celda ocupe el espacio restante en la fila */
+    padding: 8px 10px;
+    border-right: 1px solid #eee; /* Separación lateral entre celdas */
+    cursor: text; /* Indica que es editable */
+    overflow: hidden; /* Controla el desbordamiento de contenido */
+    white-space: pre-wrap; /* Mantiene saltos de línea y espacios si se edita */
+}
+
+/* Eliminar el borde derecho del último cell (J) en cada fila */
+.row-container > .cell:last-child {
+    border-right: none;
+}
+
+/* =============================== */
+/* Estados Interactivos y Selectores   */
+/* Estilo cuando una celda está seleccionada/enfocada */
+.cell[contenteditable="true"]:focus,
+.selected-cell {
+    box-shadow: inset 0 0 0 1px #2196F3; /* Borde azul al enfocar */
+    outline: none; /* Quita el borde de navegador por defecto */
+}
+
+/* Estilo cuando se selecciona una fila completa (por click en el número) */
+.selected-row {
+    background-color: #dbeeff !important; /* Fondo suave para la selección de fila */
+}
+
+/* Estilo cuando se selecciona una columna completa (por click en la letra) */
+.selected-column .cell {
+    background-color: #cce0ff !important; /* Fondo azul más claro para el contenido */
+}
+
+/* Estilo aplicado a todas las celdas de un grupo seleccionado*/
+.selected-row .cell,
+.selected-column .cell {
+    border: 1px solid #9bb8e6; /* Borde visible en la selección */
+}
+
+
+/* =============================== */
+/* Funcionalidad de Color Fondo        */
+/* Clase aplicada al contenido de las celdas para cambiar color */
+.custom-bg {
+    transition: background-color 0.2s ease; /* Suaviza el cambio de color */
+    background-color: inherit !important; /* Asegura que el fondo se respete */
+}
+
+/* =============================== */
+/* Estilos para contenido editable     */
+/* Asegura un buen padding cuando está activo en edición */
+.cell[contenteditable="true"]:active {
+    padding: 8px 10px;
+}

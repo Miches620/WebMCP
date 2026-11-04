@@ -1,0 +1,181 @@
+/* Global Reset and Base Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Spreadsheet Container Styling */
+.spreadsheet-container {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ccc;
+    background-color: #fff;
+    margin-bottom: 20px;
+}
+
+/* Table Structure Definition */
+#spreadsheet-table {
+    width: fit-content; /* Allow table to expand based on content/columns */
+    border-collapse: collapse;
+    table-layout: fixed; /* Crucial for maintaining consistent column widths */
+}
+
+/* Thead and Tbody Styling */
+thead, tbody tr {
+    /* Ensure rows are treated as blocks for spacing */
+    display: table-row;
+}
+
+/* Header Cells (Column Letters) - First row of thead */
+thead th[data-col-letter] {
+    background-color: #e9ecef;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Corner Header (Row/Col Label intersection) */
+.corner-header {
+    background-color: #e9ecef;
+    border-right: none !important; /* Prevent double border lines */
+    border-bottom: 1px solid #ccc;
+    cursor: default;
+}
+
+/* Row Labels (The numbers on the left) */
+.row-label {
+    background-color: #e9ecef;
+    font-weight: bold;
+    width: 30px; /* Fixed width for row labels */
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* General Cell Styling (.cell) */
+.cell {
+    border: 1px solid #ccc;
+    padding: 5px 8px;
+    min-width: 70px; /* Minimum width for data cells */
+    height: 30px; /* Fixed height for consistency */
+    box-sizing: border-box;
+    cursor: text;
+    /* Ensure contenteditable areas look clean */
+}
+
+/* Specific styling for the outer borders of the main grid area */
+#spreadsheet-table th, #spreadsheet-table td {
+    border: 1px solid #ccc !important;
+}
+/* Remove redundant borders on the top row and left column edges */
+.corner-header {
+    border-top: none;
+    border-left: none;
+}
+
+/* Focus/Selection States (R1, R10) */
+.cell:focus, .row-label:focus, th[contenteditable]:focus {
+    outline: 2px solid #007bff; /* Blue focus ring */
+    background-color: #e6f7ff !important; /* Light blue background on click/focus */
+}
+
+/* Active Selection (When a cell is programmatically selected) */
+.selected-cell {
+    border: 2px solid #3498db !important;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles for the contenteditable area when it has text */
+[contenteditable="true"]:empty:before {
+    content: attr(data-placeholder); /* If we were using placeholders */
+}
+
+
+/* --- Controls Area Styling --- */
+
+.controls {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+button, label {
+    padding: 8px 12px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+button {
+    background-color: #3498db;
+    color: white;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: #2980b9;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Color Picker Specifics */
+#color-picker {
+    width: 50px;
+    height: 30px;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+/* --- State Management Styles (R5, R6, R7, R8) --- */
+
+/* Class applied when color is filled (R5) */
+.color-applied {
+    transition: background-color 0.2s;
+}
+
+/* Hidden state for rows and columns (R8, R14, R16) */
+.hidden-row {
+    display: none !important;
+}
+
+.hidden-column .cell, 
+.hidden-column th[data-col-letter] {
+    display: none !important;
+}
+
+/* When the row label is hidden (R8), ensure it doesn't occupy space if JS handles display */
+.hidden-row .row-label {
+    display: none;
+}
+
+
+/* Media Query for Responsiveness (Optional, but good practice) */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    .controls {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    button, label {
+        width: 100%; /* Make buttons full width on small screens */
+        max-width: 300px;
+        box-sizing: border-box;
+    }
+    .cell {
+        min-width: 50px;
+        font-size: 0.9em;
+    }
+}

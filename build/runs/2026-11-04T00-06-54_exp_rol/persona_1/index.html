@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoja de Cálculo Avanzada</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Contenedor principal que contiene todo el sistema -->
+    <div class="spreadsheet-container">
+
+        <!-- 1. Encabezado de Columnas (A, B, C...) -->
+        <header class="column-headers">
+            <!-- Las letras A a J se generarán aquí o manualmente para asegurar la estructura -->
+            <div class="corner-spacer"></div>
+            <span id="col-A">A</span>
+            <span id="col-B">B</span>
+            <span id="col-C">C</span>
+            <span id="col-D">D</span>
+            <span id="col-E">E</span>
+            <span id="col-F">F</span>
+            <span id="col-G">G</span>
+            <span id="col-H">H</span>
+            <span id="col-I">I</span>
+            <span id="col-J">J</span>
+        </header>
+
+        <!-- 2. Área de la Hoja de Cálculo (Grid) -->
+        <div class="grid-area" id="spreadsheet-grid">
+            <!-- Las filas y celdas se generarán dinámicamente por JS, pero necesitamos el esqueleto para la estructura -->
+            <!-- Filas 1 a 20. Cada fila contendrá un número de índice y las 10 columnas (A-J) -->
+
+            <!-- Ejemplo de cómo debe verse una fila completa (el script lo llenará): -->
+            <div class="row" data-row-index="1">
+                <!-- Celda del Corner Spacer para la esquina superior izquierda -->
+                <div class="corner-cell"></div>
+                <!-- Column A, Fila 1 -->
+                <div class="cell" data-col="A" data-row="1" contenteditable="true"></div>
+                <!-- Column B, Fila 1 -->
+                <div class="cell" data-col="B" data-row="1" contenteditable="true"></div>
+                <!-- ... hasta J1 -->
+                <div class="cell" data-col="J" data-row="1" contenteditable="true"></div>
+            </div>
+
+            <!-- Se deben generar 19 filas más (2 a 20) siguiendo la misma estructura. -->
+        </div>
+    </div>
+
+    <!-- Panel de Controles Lateral Izquierdo (para seleccionar/manipular filas y columnas) -->
+    <div class="controls-panel">
+        <div id="row-selectors" class="selection-section">
+            <h4>Filas</h4>
+            <!-- Los selectores de fila se generarán aquí o se llenarán con divs para la estructura -->
+            <div class="selector-item row-selector" data-row-index="1">1</div>
+            <!-- ... hasta el 20 -->
+            <div class="selector-item row-selector" data-row-index="20">20</div>
+        </div>
+
+        <div id="column-selectors" class="selection-section">
+            <h4>Columnas</h4>
+            <!-- Los selectores de columna se generarán aquí o se llenarán con divs para la estructura -->
+            <div class="selector-item col-selector" data-col-index="A">A</div>
+            <div class="selector-item col-selector" data-col-index="B">B</div>
+            <!-- ... hasta J -->
+            <div class="selector-item col-selector" data-col-index="J">J</div>
+        </div>
+
+        <div id="action-buttons" class="action-section">
+            <h3>Acciones</h3>
+            <button id="btn-clear-selection">Borrar Selección</button>
+            <button id="btn-delete-row">Borrar Fila Seleccionada</button>
+            <button id="btn-delete-col">Borrar Columna Seleccionada</button>
+            <hr>
+            <button id="btn-hide-row">Ocultar Fila</button>
+            <button id="btn-show-row" disabled>Mostrar Fila</button>
+            <button id="btn-hide-col">Ocultar Columna</button>
+            <button id="btn-show-col" disabled>Mostrar Columna</button>
+        </div>
+
+    </div>
+
+
+    <script src="script.js"></script>
+</body>
+</html>

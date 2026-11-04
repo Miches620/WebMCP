@@ -1,0 +1,123 @@
+/* ========================================================= */
+/* Estilos Generales y Reseteo de la Página                */
+/* ========================================================= */
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0; /* Fondo gris claro para el cuerpo */
+    padding: 20px;
+    margin: 0;
+}
+
+/* Contenedor principal que delimita la hoja de cálculo */
+#spreadsheet-wrapper {
+    display: inline-block;
+    border: 1px solid #ccc; /* Borde visible alrededor del área total */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil para destacar el área */
+    background-color: white;
+}
+
+/* ========================================================= */
+/* Estilos de la Tabla y Celdas Globales                   */
+/* ========================================================= */
+
+#spreadsheet-container {
+    width: 900px; /* Ancho fijo para simular un área de trabajo estándar (10 columnas) */
+    border-collapse: collapse; /* Elimina el espacio doble entre bordes */
+}
+
+th, td {
+    padding: 8px 10px; /* Espaciado interno uniforme en todas las celdas */
+    text-align: left; /* Alineación por defecto del contenido */
+    border: 1px solid #ddd; /* Borde sutil para cada celda individual */
+    box-sizing: border-box; /* Incluye padding y borde dentro del tamaño de la celda */
+    min-width: 50px; /* Asegura un ancho mínimo razonable */
+    vertical-align: top; /* Alineación vertical en el contenido */
+}
+
+/* Estilo específico para las celdas que contienen fórmulas o resultados */
+.cell-content {
+    font-weight: normal;
+    cursor: default;
+    min-height: 1em; /* Para asegurar altura mínima incluso si está vacío */
+}
+
+
+/* ========================================================= */
+/* Encabezados de Columna (A - J) y Esquina Superior      */
+/* ========================================================= */
+
+thead th {
+    background-color: #e9e9e9; /* Fondo gris claro para la cabecera superior */
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer; /* Indica que se puede hacer clic en el encabezado de columna */
+}
+
+/* Estilo del contenedor de la esquina (vacío) */
+.corner-cell {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    cursor: default;
+}
+
+
+/* ========================================================= */
+/* Contenido de las Celdas de Datos (BODY)                  */
+/* ========================================================= */
+
+#spreadsheet-body tr:nth-child(even) {
+    background-color: #f9f9f9; /* Bandas de color para mejorar la lectura */
+}
+
+/* Estilo aplicado al foco o celda seleccionada */
+.selected, .editing {
+    border: 2px solid #007bff !important; /* Borde azul fuerte al seleccionar/editar */
+    background-color: #e6f2ff; /* Fondo muy claro para indicar selección */
+}
+
+/* ========================================================= */
+/* Estilos de Interacción y Gestión (Columnas/Filas)       */
+/* ========================================================= */
+
+/* El manejo visual de la columna A, B, C... se realiza en <thead> th.
+   Los números de fila (1-20) están implícitos o deben ser manejados por JS
+   en el primer TH de cada grupo de celdas si no existe una estructura separada. */
+
+/* Estilo para los encabezados numéricos de las filas (si se añaden en la primera columna th) */
+#spreadsheet-body thead tr :nth-child(1) {
+    background-color: #e9e9e9; 
+    position: sticky; /* Permite que el cabezal permanezca visible al hacer scroll lateral */
+    left: -50px; /* Ajustar si los números están fuera de la tabla principal, ajustado a la estructura actual */
+    z-index: 10;
+}
+
+/* Estilo para las celdas editables (cuando el cursor está dentro) */
+textarea.edit-input {
+    width: calc(100% - 20px); /* Ajuste del ancho al padding de la celda */
+    height: 100%;
+    box-sizing: border-box;
+    border: none;
+    padding: 8px 10px;
+    resize: none; /* Evita que el usuario cambie el tamaño del textarea */
+    background-color: white;
+    font-family: inherit;
+}
+
+/* Estilos de botones o elementos de control (aunque se manejen en JS, definimos sus estilos) */
+.control-button {
+    padding: 5px 10px;
+    margin-right: 5px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background-color: #fff;
+}
+
+/* ========================================================= */
+/* Estilos de Colores Personalizados (Prueba R5)            */
+/* ========================================================= */
+
+/* Se aplica el color directamente al fondo, sobrescribiendo los estilos por defecto */
+.custom-bg {
+    background-color: var(--custom-color); 
+}

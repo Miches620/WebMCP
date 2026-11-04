@@ -1,0 +1,133 @@
+/* Estilos generales para el cuerpo de la página */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f9; /* Fondo suave para la hoja de cálculo */
+}
+
+/* Contenedor principal que simula el área de trabajo de Excel */
+.spreadsheet-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1200px; /* Limita el ancho para mejor visualización */
+    margin: 20px auto;
+    border: 1px solid #ccc; /* Borde general de la hoja */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Sección de cabeceras de columna (A a J) y el rincón superior izquierdo */
+.column-headers {
+    display: flex;
+    border-bottom: 1px solid #ccc; /* Separador entre encabezado y celdas */
+    background-color: #e9e9e9; /* Color de fondo para los encabezados */
+}
+
+/* Celda del rincón superior izquierdo (vacía) */
+.corner-cell {
+    width: 50px; /* Ancho fijo para las letras */
+    height: 30px; /* Altura fija para las letras */
+    padding: 5px;
+    border-right: 1px solid #ccc;
+}
+
+/* Estilo de las letras de columna (A, B, C...) */
+.column-letter {
+    width: 50px; /* Ancho fijo para mantener la alineación */
+    flex-shrink: 0; /* Evita que se encoja */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #e9e9e9;
+    cursor: pointer; /* Indica interactividad al pasar el ratón */
+    font-weight: bold;
+    border-right: 1px solid #ccc;
+}
+
+/* Contenedor de la grilla de celdas (Filas y Columnas) */
+#spreadsheet-grid {
+    display: flex;
+    flex-grow: 1; /* Ocupa el espacio restante verticalmente */
+    overflow-x: auto; /* Permite scroll horizontal si hay muchas columnas */
+}
+
+/* Estilo de la columna de números de fila (1, 2, 3...) */
+.row-number-header {
+    flex-shrink: 0; /* No debe encogerse */
+    width: 50px; /* Ancho fijo para los números */
+    display: flex;
+    flex-direction: column;
+    background-color: #e9e9e9;
+    border-right: 1px solid #ccc;
+    cursor: pointer;
+}
+
+/* Estilo general de cada fila (contenedor) */
+.row {
+    display: flex;
+    flex-shrink: 0; /* Evita que las filas se compriman */
+    width: calc(100% - 5 * 50px); /* Ancho total menos los encabezados fijos */
+}
+
+/* Estilo de la celda individual (TD/DIV) */
+.cell {
+    flex-grow: 1; /* Permite que las celdas ocupen el espacio disponible */
+    min-width: 100px; /* Ancho mínimo para cada columna */
+    height: 30px; /* Altura fija para todas las celdas visibles */
+    padding: 5px 8px;
+    border-right: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    box-sizing: border-box; /* Incluye padding y borde en el tamaño total */
+    cursor: text; /* Indica que es editable */
+    outline: none; /* Quita el borde de foco por defecto del input/div */
+}
+
+/* Estilo para la celda activa o seleccionada (clic directa) */
+.cell.active-edit {
+    border: 1px solid #3498db; /* Borde azul visible cuando se edita */
+    background-color: #ecf0f1; /* Fondo ligeramente grisáceo al editar */
+}
+
+/* Estilo para la celda con fórmula (para diferenciación visual) */
+.cell[data-is-formula="true"] {
+    font-weight: bold;
+    color: #2980b9; /* Color azul oscuro para fórmulas */
+}
+
+/* --- Controles de Columna y Fila --- */
+
+/* Estilo del manejador de selección de columna (la letra) */
+.column-letter:hover {
+    background-color: #d4e6fa;
+    text-decoration: underline; /* Feedback visual al pasar el ratón */
+}
+
+/* Estilo del manejador de selección de fila (el número) */
+.row-number-header:hover {
+    background-color: #d4e6fa;
+    text-decoration: underline;
+}
+
+/* Indicadores de ocultamiento/selección general */
+.hidden-column, .hidden-row {
+    display: none !important; /* Ocultar completamente el elemento */
+}
+
+/* --- Estilos de Interacción y Estado --- */
+
+/* Color de fondo aplicado por usuario (ejemplo #ff0000) */
+.cell[data-background-color] {
+    background-color: var(--user-bg-color, transparent);
+    transition: background-color 0.2s ease; /* Transición suave al cambiar color */
+}
+
+/* Estilo cuando se selecciona una columna completa (ej. B) */
+.column-selection .cell {
+    box-shadow: inset 0 0 0 1px #3498db;
+}
+
+/* Estilo cuando se selecciona una fila completa (ej. 3) */
+.row-selection > * {
+    background-color: rgba(52, 152, 219, 0.1); /* Fondo azul muy claro para la selección de fila */
+}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoja de Cálculo Virtual</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Contenedor principal que contendrá todos los elementos del Excel -->
+    <div class="excel-container">
+
+        <!-- 1. Panel de Acciones de Fila/Columna (Sección lateral/superior) -->
+        <aside id="controls-panel">
+            <h2>Controles</h2>
+            
+            <section id="column-actions" class="control-group">
+                <h3>Acciones Columna</h3>
+                <!-- Las letras A a J se añadirán aquí por JS, pero necesitamos un placeholder para la estructura -->
+                <div class="col-header-select" data-col-letter="A">A</div>
+                <button class="action-btn col-delete" data-col-letter="A">Borrar Columna</button>
+                <button class="action-btn col-clear" data-col-letter="A">Vaciar Contenido</button>
+                <button class="action-btn col-color" data-col-letter="A">Color Fondo</button>
+                <button class="action-btn col-hide" data-col-letter="A">Ocultar Columna</button>
+            </section>
+
+            <section id="row-actions" class="control-group">
+                <h3>Acciones Fila</h3>
+                <!-- Los números 1 a 20 se añadirán aquí por JS -->
+                <div class="row-header-select" data-row-index="1">1</div>
+                <button class="action-btn row-delete" data-row-index="1">Borrar Fila</button>
+                <button class="action-btn row-clear" data-row-index="1">Vaciar Contenido</button>
+                <button class="action-btn row-color" data-row-index="1">Color Fondo</button>
+                <button class="action-btn row-hide" data-row-index="1">Ocultar Fila</button>
+            </section>
+
+        </aside>
+
+        <!-- 2. Grid principal de la hoja (Contiene encabezados y celdas) -->
+        <div id="spreadsheet-grid">
+            
+            <!-- Encabezado superior: Column Letters (A - J) -->
+            <header id="column-letters-header" class="grid-row header">
+                <!-- Las letras A a J se generarán aquí por JS o se insertarán manualmente para asegurar la estructura. -->
+                <div class="corner-cell"></div> <!-- Celda superior izquierda vacía (para esquina) -->
+            </header>
+
+            <!-- Contenedor principal de las celdas, usando un layout Grid interno para manejar los 20x10 datos + índices -->
+            <main id="data-grid" class="grid-content">
+                <!-- Las filas y columnas se generarán dinámicamente por script.js -->
+            </main>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1364,3 +1364,9 @@
 - **`borrador({ rol })`:** el texto del Role va al principio del system. Vacío = como siempre (no cambia nada hasta medir).
 - **`npm run exp-rol -- <proyecto> [--k 3]`** (`build/exp_rol.mjs`): borrador desde cero en 4 condiciones (sin · persona · rol · placebo), k veces, temperature 0.7 con la misma semilla por repetición en las 4, alternadas; cada borrador se juzga con la planilla del proyecto. Mide: grilla bien (R2), se puede escribir, requisitos, pruebas y ✓ a medias. Guarda cada borrador, `resultados.json` y `resumen.md`; con `--out` de una corrida cortada sigue desde donde quedó. `test_exp_rol` 7/7 (modelo de mentira + juez de verdad).
 - **Regla para leerlo:** el Role entra al ciclo solo si le gana al placebo (no alcanza con ganarle a "sin"). Si la persona sola no cambia nada y las Skills sí, la lección es que lo que sirve es el saber hacer, no el título.
+
+## 03/11 noche, 2 — resultado del experimento de Role (n = 3 por condición)
+- Corrida `build/runs/2026-11-04T00-06-54_exp_rol` (12 borradores, 137 min). Grilla bien: sin 0/3 · persona **1/3** · rol 0/3 · placebo 0/3. Se puede escribir: 0/3 · 1/3 · 1/3 · 1/3. Requisitos: sin 0·0·0 · persona 0·0·**4** · rol 0·0·2 · placebo 0·0·0.
+- Cualquier texto agregado le ganó a "sin" (también el placebo). La persona sola le ganó al placebo en 2 de 3 pares y dio el único borrador bueno (persona #3: R1 y R2 de entrada). Las Skills se notan en el código (render() 3/3), pero no en el resultado; la de la tabla no se siguió. La falla común a todas: el borrador arma 1–3 filas y deja "el resto igual".
+- "✓ a medias" no sirve para comparar borradores (un HTML estático sin script.js sacó 79). Sirven: grilla, se escribe, requisitos.
+- Estado: Role DRAFT, indicio a favor de la persona; falta n. Evidencia en el Project: `claude/evidencia_exp_rol_2026-11-03.md`.

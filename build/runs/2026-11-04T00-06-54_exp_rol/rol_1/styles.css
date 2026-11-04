@@ -1,0 +1,179 @@
+/* =========================================
+   GLOBAL STYLES & RESET 
+   ========================================= */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f9;
+}
+
+/* Main container that holds the entire spreadsheet structure */
+#spreadsheet-container {
+    display: grid;
+    /* Define columns: Row Label Area (fixed width) + 10 Columns (A-J, equal width) */
+    grid-template-columns: 50px repeat(10, 1fr);
+    border: 1px solid #ccc;
+    background-color: white;
+}
+
+/* =========================================
+   HEADER STYLES (Column Labels A-J)
+   ========================================= */
+
+.header-row {
+    display: contents; /* Allows children to participate in the parent grid layout */
+}
+
+/* Corner cell (Row numbers vs Column letters intersection) */
+.corner-cell {
+    grid-column: 1;
+    grid-row: 1;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    background-color: #e0e0e0; /* Slightly darker background for the corner */
+}
+
+/* Column labels (A, B, C...) */
+.column-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 5px;
+    font-weight: bold;
+    background-color: #e0e0e0;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    text-transform: uppercase;
+}
+
+/* =========================================
+   ROW STRUCTURE & GRID LAYOUT (Rows 1-20)
+   ========================================= */
+
+#grid-container {
+    display: contents; /* Makes the rows participate directly in the spreadsheet grid structure */
+}
+
+/* The row wrapper element needs to occupy a specific grid area. 
+   Since we use display:contents, we rely on the children (.row) filling the space correctly. */
+.row {
+    display: contents; /* Crucial: Makes the row div itself transparent to the grid layout, letting its children fill it */
+}
+
+/* Styling for individual cells (A1, B1, ..., J20) */
+/* We assume JS generates a structure where each cell is a direct child of the container/row wrapper. 
+   We target the actual editable content area which will be wrapped in divs by JS. */
+[data-cell] { /* Using data-attribute selector for robustness if JS uses it on cells */
+    border: 1px solid #ccc;
+    padding: 5px;
+    box-sizing: border-box;
+    min-height: 20px; /* Ensure visible space even when empty */
+    display: flex;
+    align-items: center;
+}
+
+/* Specific styling for the row number labels (1, 2, 3...) 
+   Although not in HTML placeholders, JS must render them. We style the container that holds them. */
+.row-number-label {
+    background-color: #f9f9f9;
+    padding: 8px 0;
+    text-align: right;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    font-weight: normal;
+}
+
+/* =========================================
+   INTERACTIVITY & STATES
+   ========================================= */
+
+/* Selected cell styling (used when a user clicks/focuses) */
+.selected {
+    box-shadow: inset 0 0 0 1px #3498db; /* Blue highlight border */
+    border: 2px solid #3498db !important; /* Stronger border for visual confirmation */
+}
+
+/* Formula/Input focus styling (when editing) */
+[contenteditable="true"]:focus {
+    outline: none;
+    background-color: #fffbe6; /* Light yellow background hint for active input */
+    cursor: text;
+}
+
+/* Background color change visualization */
+.bg-highlighted {
+    transition: background-color 0.1s ease;
+}
+
+
+/* =========================================
+   TOOLBAR STYLES (Controls)
+   ========================================= */
+#toolbar {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    background-color: #fafafa;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+#toolbar button, #toolbar select {
+    padding: 8px 12px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background-color: white;
+    transition: background-color 0.2s;
+}
+
+#toolbar button:hover:not([disabled]),
+#toolbar select:hover:not([disabled]) {
+    background-color: #e9ecef;
+}
+
+#toolbar button[disabled], #toolbar select[disabled] {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Styling for the color picker input */
+#bg-color-picker {
+    width: 50px;
+    height: 35px;
+    border: none;
+    padding: 0;
+}
+
+/* =========================================
+   VISIBILITY & UTILITIES
+   ========================================= */
+
+/* Class used by JS to hide rows or columns */
+.hidden {
+    display: none !important;
+}
+
+/* Ensure contentEditable areas look clean when not focused */
+[contenteditable="true"] {
+    min-height: 100%; /* Fill the cell space */
+    border: none;
+    padding: inherit;
+    background: transparent;
+    outline: none;
+}
+
+/* =========================================
+   RESPONSIVENESS (Optional but good practice)
+   ========================================= */
+@media (max-width: 768px) {
+    #spreadsheet-container {
+        overflow-x: auto; /* Allows horizontal scrolling if content exceeds screen width */
+    }
+
+    .column-label, .row-number-label {
+        padding: 5px;
+        font-size: 0.8em;
+    }
+}

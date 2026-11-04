@@ -1,0 +1,245 @@
+/* GLOBAL STYLES AND RESETS */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f9;
+    color: #333;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* LAYOUT CONTAINER */
+.excel-container {
+    display: flex;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* CONTROLS PANEL (ASIDE) STYLING */
+#controls-panel {
+    flex: 0 0 250px; /* Fixed width for controls sidebar */
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    height: fit-content; /* Ensures it doesn't stretch unnecessarily */
+}
+
+#controls-panel h2 {
+    margin-top: 0;
+    color: #007bff;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.control-group {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed #ddd;
+}
+
+.control-group h3 {
+    font-size: 1em;
+    color: #666;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+/* HEADER SELECTORS (A, B, C... / 1, 2, 3...) */
+.col-header-select, .row-header-select {
+    display: block;
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    text-align: center;
+    padding: 5px 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* ACTION BUTTONS */
+.action-btn {
+    width: 100%;
+    display: block;
+    padding: 8px;
+    margin-bottom: 5px;
+    border: none;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.action-btn:hover {
+    background-color: #e2e6ea;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* MAIN SPREADSHEET GRID STYLING */
+#spreadsheet-grid {
+    flex-grow: 1; /* Takes up remaining space */
+    background-color: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* GRID LAYOUT SETUP (The core structure) */
+#spreadsheet-grid {
+    display: grid;
+    /* Grid template defines 11 columns: Corner + A..J */
+    grid-template-columns: 50px repeat(10, 1fr); /* Col Index width fixed, then 10 equal cols for data */
+}
+
+/* HEADER ROW (Column Letters) STYLING */
+#column-letters-header {
+    display: contents; /* Allows children to participate in the main grid flow */
+}
+
+.grid-row > div, .grid-col > div {
+    /* Default styling for all cells */
+    border: 1px solid #ddd;
+    padding: 0; /* Padding will be applied by JS contenteditable/input */
+    min-height: 35px;
+    position: relative;
+}
+
+/* CORNER CELL (Top Left) */
+.corner-cell {
+    background-color: #eee;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    cursor: default;
+}
+
+/* ROW INDEX HEADER (The numbers 1, 2, 3...) */
+.row-index-header {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+/* COLUMN LETTER HEADER (The letters A, B, C...) */
+.col-letter-header {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+
+/* DATA CELL STYLING (The content area) */
+.spreadsheet-cell {
+    overflow: hidden; /* Ensures text doesn't spill visually */
+    min-height: 35px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px; /* Padding inside the cell content */
+    cursor: pointer;
+}
+
+/* Editable Content Handling (Input/Textarea) */
+.spreadsheet-cell[contenteditable="true"] {
+    outline: none; /* Remove default focus outline */
+    min-height: unset; /* Allow height adjustment when editing */
+    padding: 0 8px;
+}
+
+.spreadsheet-cell[contenteditable="true"]:focus,
+.spreadsheet-cell.selected {
+    background-color: #fffacd !important; /* Highlight color on selection/focus */
+    border: 2px solid #a9d1ff !important;
+    z-index: 10; /* Bring selected cell to front visually */
+}
+
+/* FORMULA INDICATORS */
+.spreadsheet-cell[data-formula]:before {
+    content: attr(data-formula);
+    font-size: 0.8em;
+    color: #6c757d;
+    margin-right: 4px;
+}
+
+/* STYLING FOR VISUAL STATE CHANGES */
+/* Color Background (R5) */
+.background-color-applied {
+    transition: background-color 0.2s ease;
+}
+
+/* Hidden State (R8, R6, R7) */
+.hidden-column, .hidden-row {
+    display: none !important;
+}
+
+/* ================================================
+   GRID STRUCTURE ADJUSTMENTS FOR LAYOUT ACCURACY
+   We use CSS Grid to force the layout into 11 columns (Index + A..J) and 21 rows (Header Letters + Data Rows).
+   Since JS will dynamically populate cells, we define a conceptual grid structure here.
+================================================ */
+
+/* The actual content area needs 10 columns (A-J) plus the index column */
+#data-grid {
+    display: grid;
+    /* Column 1: Index | Columns 2-11: A through J */
+    grid-template-columns: 50px repeat(10, 1fr); 
+}
+
+/* --- Overriding the header structure to fit the main data flow --- */
+
+/* The column letters header (A-J) sits above columns 2-11 */
+#column-letters-header {
+    display: grid;
+    grid-template-columns: 50px repeat(10, 1fr);
+}
+
+.col-letter-header[data-col-letter="A"] {
+    grid-column: 2 / span 1;
+}
+/* ... (This pattern repeats for B through J) */
+
+
+/* === Specific Cell Placement Targeting (Conceptual grid mapping) === */
+
+/* Row Index Headers (The numbers 1, 2, 3...) are in the first column (index 1) of every data row. */
+.row-index-header {
+    grid-column: 1 / span 1;
+}
+
+/* The main cell content for A1 will be at grid position Row 1, Col 2. */
+/* The general cells are placed in the remaining slots (Row N, Col M). */
+
+
+/* ================================================
+   OVERRIDING FOR INTERACTIVITY AND UX
+   ================================================= */
+
+/* Cursor changes when selecting headers/controls */
+.row-index-header:hover, .col-letter-header:hover {
+    background-color: #e0e7eb;
+}
+
+/* Visual feedback for selection/focus on controls (optional) */
+#controls-panel button:focus {
+    outline: 2px solid #007bff;
+}
+
+
+/* ================================================
+   MEDIA QUERIES & RESPONSIVENESS (Basic adjustment)
+   ================================================= */
+@media (max-width: 1000px) {
+    .excel-container {
+        flex-direction: column; /* Stack controls above the grid */
+    }
+
+    #controls-panel {
+        flex-basis: auto;
+        padding: 15px;
+    }
+}

@@ -1,0 +1,235 @@
+/* Global Reset and Base Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f9;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* ========================================== */
+/* 1. MAIN LAYOUT CONTAINER (Flex/Grid) */
+/* ========================================== */
+
+.spreadsheet-container {
+    display: flex;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto; /* Center the entire application */
+}
+
+/* ========================================== */
+/* 2. CONTROLS PANEL (Sidebar) */
+/* ========================================== */
+
+.controls-panel {
+    width: 250px;
+    padding: 15px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0; /* Prevent the panel from shrinking */
+}
+
+.selection-section {
+    margin-bottom: 25px;
+}
+
+.selection-section h4 {
+    font-size: 1em;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+    margin-top: 0;
+}
+
+/* Selector items (Row/Col labels) */
+.selector-item {
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 4px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    user-select: none; /* Prevent text selection on click */
+}
+
+.selector-item:hover {
+    background-color: #e6f7ff;
+    border-color: #91d5ff;
+}
+
+/* Active selector state (when a row/col is selected) */
+.selection-section .active {
+    background-color: #bae0ff !important;
+    border-color: #096dd2 !important;
+    font-weight: bold;
+}
+
+
+/* Action Buttons */
+#action-buttons button, #btn-clear-selection {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s, opacity 0.2s;
+}
+
+#action-buttons button {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+#action-buttons button:hover:not(:disabled) {
+    background-color: #e0e0e0;
+}
+
+/* Disabled state for buttons */
+#action-buttons button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 15px 0;
+}
+
+/* ========================================== */
+/* 3. HEADER (Column Letters) */
+/* ========================================== */
+
+.column-headers {
+    display: flex;
+    background-color: #cccccc;
+    border-bottom: 2px solid #999;
+    font-weight: bold;
+}
+
+.corner-spacer {
+    width: 30px; /* Must match the width of row selectors */
+    min-width: 30px;
+}
+
+/* Column letter headers (A, B, C...) */
+#col-A, #col-B, #col-C, #col-D, #col-E, #col-F, #col-G, #col-H, #col-I, #col-J {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 5px;
+    cursor: pointer; /* Indicates they are clickable selectors */
+    background-color: #e9e9e9;
+    border-right: 1px solid #ccc;
+    flex-basis: calc(100% / 10); /* Distribute width equally for A-J */
+    text-align: center;
+}
+
+/* Remove right border from the last column header (J) */
+#col-J {
+    border-right: none;
+}
+
+
+/* ========================================== */
+/* 4. GRID AREA AND ROWS/CELLS */
+/* ========================================== */
+
+.grid-area {
+    flex-grow: 1; /* Takes up remaining space */
+    display: grid;
+    /* Use Grid template rows to define the height of all cells based on row selectors, plus extra padding for structure */
+    grid-template-columns: 30px repeat(10, 1fr); /* 1 column for index + 10 columns for A-J */
+    border-left: 1px solid #ccc;
+}
+
+/* Row Wrapper (The element that contains the row content) */
+.row {
+    display: contents; /* Makes the row wrapper transparent, allowing grid items inside to define layout */
+}
+
+/* Corner Cell (Top-Left empty corner) */
+.corner-cell {
+    width: 30px;
+    height: 30px; /* Fixed height for visual alignment with selectors */
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Cell Styling (The actual content cells) */
+.cell {
+    /* The width is defined by the grid template columns above, but we need to ensure consistency */
+    width: 100%;
+    height: 35px; /* Fixed height for all visible cells */
+    padding: 0 8px;
+    border-right: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    background-color: #ffffff;
+    transition: background-color 0.2s, border 0.2s;
+    overflow: hidden; /* Keeps content within boundaries */
+}
+
+/* Focus/Active Cell State (When editing) */
+.cell[contenteditable]:focus {
+    outline: none;
+    background-color: #ffffcc; /* Light yellow highlight when typing */
+    border: 1px solid #aaa !important;
+}
+
+/* Visual state for selected cells (e.g., by JS selection logic) */
+.cell.selected {
+    box-shadow: inset 0 0 0 2px rgba(33, 150, 243, 0.5); /* Blue focus ring effect */
+}
+
+
+/* ========================================== */
+/* 5. VISUAL STATES AND MANIPULATION EFFECTS (R5, R6, R7) */
+/* ========================================== */
+
+/* Background color change applied to the cell itself */
+.cell[data-background-color] {
+    background-color: attr(data-background-color);
+}
+
+/* Visual effect for hidden rows/columns (R8) */
+/* JS will handle display: none on the wrapper elements, but we style the visibility changes */
+
+/* Column Hiding - The grid structure handles this by simply removing or hiding columns */
+.col-hidden {
+    display: none !important;
+}
+
+/* Row Hiding - The grid structure handles this by simply removing or hiding rows */
+.row-hidden {
+    display: none;
+}
+
+
+/* ========================================== */
+/* 6. RESPONSIVENESS AND MINIMAL ADJUSTMENTS */
+/* ========================================== */
+
+@media (max-width: 1024px) {
+    .spreadsheet-container {
+        flex-direction: column; /* Stack controls and grid vertically on smaller screens */
+        align-items: center;
+    }
+
+    .controls-panel {
+        width: 95%;
+        max-width: 800px;
+        margin-bottom: 20px;
+    }
+
+    /* Adjusting the overall grid layout for smaller screens if necessary, though sticking to fixed widths is safer for a spreadsheet */
+}

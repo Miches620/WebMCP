@@ -1,0 +1,162 @@
+/* Global Reset and Base Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    padding: 20px;
+    margin: 0;
+}
+
+/* --- Spreadsheet Container Layout --- */
+.spreadsheet-container {
+    width: fit-content; /* Adjust width to fit content + padding */
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Header Area (Column Letters) --- */
+.column-headers {
+    display: grid;
+    grid-template-columns: 30px repeat(10, 1fr); /* Corner cell + 10 columns */
+    background-color: #e8e8e8;
+    border-bottom: 1px solid #aaa;
+}
+
+.corner-cell {
+    padding: 5px 10px;
+    font-weight: bold;
+    cursor: default;
+    background-color: #ddd;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Column Letter Headers (A, B, C...) */
+#col-A, #col-B, #col-C, #col-D, #col-E, #col-F, #col-G, #col-H, #col-I, #col-J {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 10px;
+    font-weight: bold;
+    cursor: pointer; /* Indicates clickable column header */
+    border-right: 1px solid #ccc;
+    z-index: 2; /* Ensure headers are above the grid body */
+}
+
+/* --- Sheet Body (Row Numbers and Cells) --- */
+.sheet-body {
+    display: grid;
+    /* Define columns: Row Header + 10 data columns */
+    grid-template-columns: 30px repeat(10, 1fr);
+    border-collapse: collapse; /* To manage borders cleanly */
+}
+
+/* Grid Item Styling (General) */
+.sheet-body > div {
+    /* All grid items share a common border setup */
+    border-right: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    padding: 0; /* Padding handled by nested elements or cells */
+}
+
+/* Row Header Numbers (1, 2, 3...) */
+.row-header {
+    background-color: #e8e8e8;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 10px;
+    cursor: pointer; /* Indicates clickable row header */
+    z-index: 2;
+}
+
+/* Individual Cell Container (The actual cell content wrapper) */
+.cell {
+    height: 30px; /* Fixed height for all rows */
+    padding: 0 5px;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+
+/* Styling for the editable input area inside the cell */
+.cell input[type="text"] {
+    width: 95%;
+    height: 100%;
+    box-sizing: border-box;
+    border: none;
+    outline: none; /* Remove default focus outline */
+    padding: 5px;
+    font-size: 1em;
+    background-color: transparent;
+}
+
+/* --- Interaction States and Selection --- */
+
+/* Cell selected state (Focus/Active) */
+.cell.selected {
+    box-shadow: inset 0 0 0 2px #aaa; /* Visual indicator of selection */
+}
+
+/* Column Header Selected State (When a column is actively being manipulated) */
+.column-headers span.active-col, .row-header.active-row {
+    background-color: #cceeff;
+    border: 1px solid #6aa8ff;
+}
+
+
+/* --- Context Menu / Control Styling (Conceptual - for visual feedback on interaction) --- */
+/* If a control panel were visible, it would use these classes */
+
+.control-button {
+    padding: 5px 10px;
+    margin-right: 5px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background-color: #fff;
+}
+
+/* --- Background Color Changes (R5) --- */
+.bg-red { background-color: #FF0000 !important; }
+.bg-blue { background-color: #0000FF !important; }
+.bg-yellow { background-color: #FFFF00 !important; }
+
+/* --- Hidden States (R8) --- */
+
+/* Hiding a Column */
+/* We hide the column letters and all cells within that logical group of columns */
+.column-hidden .cell, 
+.column-headers span:nth-child(n+2):nth-child(-n+10) { /* Targeting grid cells based on index if hiding dynamically */ }
+
+/* Since we rely on JS to manage the visibility by modifying CSS properties or removing/adding classes to column letters and cell wrappers, 
+   we define a general hidden class for robustness. */
+.hidden-column {
+    display: none !important;
+}
+
+/* Hiding a Row */
+.hidden-row {
+    display: none !important;
+}
+
+
+/* --- Specific Layout Adjustments for Grid Structure --- */
+
+/* Ensuring the first column of data cells align correctly with the row header numbers */
+/* Note: The actual cell elements are children of #spreadsheet-grid, and they are rendered dynamically. 
+   We need to ensure their structure respects the grid layout defined on the parent. */
+
+
+/* Styling for empty/default cells */
+.cell[data-content=""] {
+    background-color: white;
+}
+
+/* Ensuring formulas look distinct if displayed */
+.formula-output {
+    font-weight: bold;
+    color: #006400; /* Dark green for formula result */
+}

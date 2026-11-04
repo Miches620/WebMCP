@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoja de Cálculo Avanzada</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Contenedor principal que contendrá toda la estructura de la hoja -->
+    <div id="spreadsheet-container">
+
+        <!-- 1. Cabecera de Columnas (A - J) -->
+        <div id="column-headers" class="header row">
+            <!-- El primer "celda" vacío es para el espacio del número de fila -->
+            <div class="corner-cell corner"></div>
+            <!-- Generación dinámica de A a J -->
+            <script>
+                const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+                let html = '';
+                letters.forEach(letter => {
+                    html += `<div class="col-header">${letter}</div>`;
+                });
+                document.getElementById('column-headers').innerHTML += html;
+            </script>
+        </div>
+
+        <!-- 2. Contenedor de Filas y Celdas -->
+        <div id="row-container">
+            <!-- Generación dinámica de las 20 filas (1 a 20) -->
+            <script>
+                const numRows = 20;
+                const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+
+                let rowHtml = '';
+
+                for (let i = 1; i <= numRows; i++) {
+                    // Estructura para la fila actual: [Número | A | B | ... | J]
+                    rowHtml += `<div class="spreadsheet-row" data-row="${i}">`;
+
+                    // Celda de cabecera (Número de Fila)
+                    rowHtml += `<div class="row-header">${i}</div>`;
+
+                    // Celdas A a J
+                    for (let j = 0; j < letters.length; j++) {
+                        const letter = letters[j];
+                        const cellId = `${letter}${i}`;
+                        // Cada celda debe tener un ID único y clases para el manejo de la cuadrícula
+                        rowHtml += `
+                            <div class="cell" 
+                                id="${cellId}" 
+                                data-col="${letter}" 
+                                data-row="${i}"
+                                contenteditable="true">
+                            </div>`;
+                    }
+
+                    rowHtml += `</div>`; // Cierre del row div
+                }
+                document.getElementById('row-container').innerHTML = rowHtml;
+            </script>
+        </div>
+
+
+        <!-- 3. Controles de Gestión (Simulación en el body, aunque la lógica estará en JS) -->
+    </div>
+
+    <!-- Menú/Panel lateral para acciones (Ocultar, Borrar Columna/Fila, Color) -->
+    <div id="sidebar">
+        <h3>Gestión</h3>
+        
+        <h4>Acciones de Selección:</h4>
+        <p>Selección activa: <span id="selection-info">Ninguna</span></p>
+
+        <!-- Controles para Columnas (Se activan al hacer clic en el encabezado A-J) -->
+        <div class="action-group" id="column-actions" style="display: none;">
+            <h4>Columna <span id="active-col-letter"></span></h4>
+            <button id="btn-delete-col">Borrar Columna</button>
+            <button id="btn-clear-col">Vaciar Contenido</button>
+            <button id="btn-color-col">Color de Fondo</button>
+            <input type="color" id="col-color-picker" value="#ffffff" style="display: none;">
+            <button id="btn-hide-col">Ocultar Columna</button>
+        </div>
+
+        <!-- Controles para Filas (Se activan al hacer clic en el encabezado 1-20) -->
+        <div class="action-group" id="row-actions" style="display: none;">
+            <h4>Fila <span id="active-row-number"></span></h4>
+            <button id="btn-delete-row">Borrar Fila</button>
+            <button id="btn-clear-row">Vaciar Contenido</button>
+            <button id="btn-color-row">Color de Fondo</button>
+            <input type="color" id="row-color-picker" value="#ffffff" style="display: none;">
+            <button id="btn-hide-row">Ocultar Fila</button>
+        </div>
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>

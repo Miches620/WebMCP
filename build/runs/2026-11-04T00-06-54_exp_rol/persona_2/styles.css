@@ -1,0 +1,195 @@
+/* GLOBAL RESET AND BASE STYLES */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f9;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* MAIN LAYOUT CONTAINER */
+#spreadsheet-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1200px; /* Limitar el ancho para mejor visualización en escritorio */
+    margin-bottom: 30px;
+}
+
+/* HEADER ROW (Column Letters A-J) */
+#column-headers {
+    display: flex;
+    background-color: #cccccc;
+    border-bottom: 1px solid #999;
+    user-select: none; /* Previene la selección de texto en los headers */
+}
+
+.corner-cell {
+    /* Placeholder para el espacio del número de fila */
+    width: 50px; /* Debe coincidir con el ancho de .row-header */
+    height: 30px;
+    background-color: #cccccc;
+    border-right: 1px solid #999;
+}
+
+.col-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px; /* Ancho fijo para cada columna */
+    height: 30px;
+    background-color: #e9e9e9;
+    border-right: 1px solid #ccc;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* ROW CONTAINER (Contiene todos los .spreadsheet-row) */
+#row-container {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Controla el flujo de las filas */
+}
+
+/* INDIVIDUAL ROW STRUCTURE */
+.spreadsheet-row {
+    display: flex;
+    width: 100%;
+}
+
+/* ROW HEADER (Números 1-20) */
+.row-header {
+    flex-shrink: 0; /* Evita que la cabecera de la fila se encoja */
+    width: 50px; /* Debe coincidir con el ancho del corner-cell */
+    height: auto; /* Altura determinada por el contenido/celdas */
+    background-color: #e9e9e9;
+    border-right: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer; /* Indica que es seleccionable */
+}
+
+/* CORE CELL STYLING */
+.cell {
+    flex-grow: 1; /* Hace que la celda ocupe el espacio restante en la fila */
+    height: 35px; /* Altura estándar de las celdas */
+    min-width: 80px; /* Mínimo ancho para mantener la estructura */
+    border: 1px solid #ccc;
+    padding: 0 8px;
+    cursor: text;
+    background-color: white;
+    /* Asegura que el contenido editable se vea bien */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* ESTADOS DE INTERACCIÓN Y FOCO (FOCUS) */
+
+/* Celda seleccionada o con foco de edición */
+.cell[contenteditable="true"]:focus,
+.selected {
+    outline: 2px solid #4CAF50; /* Resaltado verde al seleccionar/editar */
+    background-color: #e8f5e9;
+}
+
+/* Celda activa (cuando se hace clic) */
+.cell:hover {
+    border-color: #a0c3b2;
+    cursor: pointer;
+}
+
+/* HEADER INTERACTION (Columnas/Filas seleccionadas para gestión) */
+.col-header.selected, .row-header.selected {
+    background-color: #ffeb3b !important; /* Amarillo fuerte al seleccionar la columna/fila completa */
+    cursor: pointer;
+}
+
+/* ------------------------- ESTILOS DE GESTIÓN (SIDEBAR) ------------------------- */
+
+#sidebar {
+    width: 280px;
+    padding: 20px;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+#sidebar h3 {
+    margin-top: 0;
+    color: #333;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* Grupos de Acciones */
+.action-group {
+    margin-top: 15px;
+    padding: 10px;
+    border: 1px dashed #ccc;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.action-group h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1em;
+    color: #555;
+}
+
+/* Botones */
+button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+/* Estilos específicos de botones */
+#btn-delete-col, #btn-delete-row {
+    background-color: #f44336; /* Rojo para borrar */
+    color: white;
+}
+
+#btn-clear-col, #btn-clear-row {
+    background-color: #ff9800; /* Naranja para vaciar */
+    color: white;
+}
+
+#btn-hide-col, #btn-hide-row {
+    background-color: #2196F3; /* Azul para ocultar */
+    color: white;
+}
+
+/* INPUT COLOR PICKER */
+input[type="color"] {
+    width: 50px;
+    height: 30px;
+    margin-right: 10px;
+    vertical-align: middle;
+    border: 1px solid #ccc;
+}
+
+/* MANEJO DE VISIBILIDAD (Ocultar) */
+.hidden {
+    display: none !important;
+}
+
+/* Mantenimiento de la Estructura al Ocultar/Borrar */
+/* Nota: La lógica de JS debe gestionar el 'flex-basis' o 'width' para que el flujo no se rompa, 
+   pero CSS debe asegurar que los elementos ocultos desaparezcan completamente. */

@@ -1,0 +1,1190 @@
+{
+  "version": "exp_rol v0.1",
+  "modelo": "google/gemma-4-e4b",
+  "temp": 0.7,
+  "k": 3,
+  "conds": [
+    "sin",
+    "persona",
+    "rol",
+    "placebo"
+  ],
+  "role": "web-app",
+  "textos": {
+    "sin": "",
+    "persona": "Sos un desarrollador Frontend Senior, con años de experiencia haciendo apps web en HTML, CSS y JavaScript sin frameworks. Escribís código como para producción: simple, coherente entre archivos y que funciona la primera vez que se abre.",
+    "rol": "Sos un desarrollador Frontend Senior, con años de experiencia haciendo apps web en HTML, CSS y JavaScript sin frameworks. Escribís código como para producción: simple, coherente entre archivos y que funciona la primera vez que se abre.\n\nHABILIDADES (lo que sabe hacer un programador con experiencia en este tipo de proyecto):\n- Todo lugar donde el usuario escribe es un `<input>` / `<textarea>`, o tiene `contenteditable=\"true\"`. El valor se lee de `.value` en un input y de `.textContent` en un contenteditable. Lo escrito se confirma con Enter o al salir (blur), y recién ahí se calcula y se guarda.\n- Los datos viven en un objeto de JavaScript (la única fuente de verdad). Una función `render()` dibuja la pantalla entera desde ese objeto. Cada acción del usuario cambia el objeto, lo guarda en localStorage y llama a `render()`. Al arrancar: se carga de localStorage y se llama a `render()`.\n- Lo que se ve en filas y columnas alineadas (encabezados arriba y a la izquierda, datos en el medio) se arma con una `<table>` (encabezados de arriba en `<thead>`, el de cada fila como primer `<th>` de su `<tr>`) o con UNA sola CSS grid que contiene encabezados y datos. Nunca con dos contenedores separados que se intentan alinear a mano.\n- Las clases, ids y atributos `data-` que usa script.js son exactamente los de index.html y styles.css, con la misma ortografía. Lo que se crea desde JavaScript lleva las mismas clases que espera el CSS. Antes de terminar, se revisa que cada selector de script.js exista.",
+    "placebo": "Respondé siempre en el formato pedido, sin explicaciones antes ni después del código. Usá nombres en inglés para el código y comentarios cortos en castellano. Mantené el mismo estilo de escritura en los tres archivos de principio a fin.\n\nHABILIDADES (lo que sabe hacer un programador con experiencia en este tipo de proyecto):\n- La sangría es siempre de cuatro espacios, sin mezclar con tabulaciones. Las líneas no pasan de unos cien caracteres. Las comillas son siempre las mismas en todo el archivo. Cada archivo termina con una línea vacía y no deja espacios sueltos al final de las líneas.\n- Las funciones tienen un nombre que empieza con un verbo y hacen una sola cosa. Se ordenan de lo general a lo particular dentro del archivo. Las constantes van arriba de todo, en mayúsculas. Se prefiere const a let cuando el valor no cambia, y nunca se usa var.\n- Los comentarios del código explican el porqué y no el qué, en frases cortas y en el mismo idioma en todo el proyecto. Se evita dejar código comentado que ya no se usa. Los bloques largos se separan con una línea en blanco para que se lean de corrido. Los nombres de variables son palabras completas y descriptivas.\n- Los colores, tamaños y espaciados que se repiten se escriben siempre igual en todos los lugares. Las reglas del CSS se agrupan por sección con un comentario de título. Las propiedades de cada regla siguen un orden parejo. Se usan unidades consistentes en toda la hoja de estilos."
+  },
+  "resultados": [
+    {
+      "cond": "sin",
+      "rep": 1,
+      "seed": 1001,
+      "temp": 0.7,
+      "requisitos": 0,
+      "de": 17,
+      "pruebas": 0,
+      "de_pruebas": 24,
+      "parcial": 23,
+      "grilla": false,
+      "escribe": false,
+      "cumplidos": [],
+      "ms": 375181,
+      "pedidos": [
+        {
+          "archivo": "index.html",
+          "intento": 1,
+          "ms": 29026,
+          "usage": {
+            "prompt_tokens": 1785,
+            "completion_tokens": 669,
+            "total_tokens": 2454,
+            "completion_tokens_details": {
+              "reasoning_tokens": 224
+            }
+          },
+          "tokens_pedido": 1750,
+          "max": 8000
+        },
+        {
+          "archivo": "styles.css",
+          "intento": 1,
+          "ms": 76186,
+          "usage": {
+            "prompt_tokens": 2210,
+            "completion_tokens": 1936,
+            "total_tokens": 4146,
+            "completion_tokens_details": {
+              "reasoning_tokens": 473
+            }
+          },
+          "tokens_pedido": 2203,
+          "max": 8000
+        },
+        {
+          "archivo": "script.js",
+          "intento": 1,
+          "ms": 250311,
+          "usage": {
+            "prompt_tokens": 2210,
+            "completion_tokens": 5942,
+            "total_tokens": 8152,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1036
+            }
+          },
+          "tokens_pedido": 2202,
+          "max": 8000
+        }
+      ],
+      "detalle": {
+        "R1.1": "FAIL ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R2.1": "FAIL → ✗ ✓ se ven las letras A–J · faltan encabezados: 1, 2, 3, 4, 5, 6, 7, 8…",
+        "R3.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R4.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R5.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R6.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R6.2": "FAIL ✓ hizo clic en la columna \"A\" · no hay un control para color (ninguno dice color, colorear, pintar, fondo…), ni en el menú del botón derecho sobre A",
+        "R6.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R7.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.2": "FAIL no se pudo preparar: no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R8.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R8.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R9.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"2\" (nada a la izquierda dice \"2\")",
+        "R10.1": "FAIL ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R11.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R12.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R12.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R12.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R13.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R14.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R15.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R16.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R17.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"2\" (nada a la izquierda dice \"2\")"
+      }
+    },
+    {
+      "cond": "persona",
+      "rep": 1,
+      "seed": 1001,
+      "temp": 0.7,
+      "requisitos": 0,
+      "de": 17,
+      "pruebas": 0,
+      "de_pruebas": 24,
+      "parcial": 53,
+      "grilla": false,
+      "escribe": false,
+      "cumplidos": [],
+      "ms": 883848,
+      "pedidos": [
+        {
+          "archivo": "index.html",
+          "intento": 1,
+          "ms": 58566,
+          "usage": {
+            "prompt_tokens": 1833,
+            "completion_tokens": 1450,
+            "total_tokens": 3283,
+            "completion_tokens_details": {
+              "reasoning_tokens": 396
+            }
+          },
+          "tokens_pedido": 1824,
+          "max": 8000
+        },
+        {
+          "archivo": "styles.css",
+          "intento": 1,
+          "ms": 107941,
+          "usage": {
+            "prompt_tokens": 2909,
+            "completion_tokens": 2580,
+            "total_tokens": 5489,
+            "completion_tokens_details": {
+              "reasoning_tokens": 604
+            }
+          },
+          "tokens_pedido": 2982,
+          "max": 8000
+        },
+        {
+          "archivo": "script.js",
+          "intento": 1,
+          "ms": 362311,
+          "usage": {
+            "prompt_tokens": 2909,
+            "completion_tokens": 8000,
+            "total_tokens": 10909,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1475
+            }
+          },
+          "tokens_pedido": 2981,
+          "max": 8000
+        },
+        {
+          "archivo": "script.js",
+          "intento": 2,
+          "ms": 336683,
+          "usage": {
+            "prompt_tokens": 2928,
+            "completion_tokens": 7727,
+            "total_tokens": 10655,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1313
+            }
+          },
+          "tokens_pedido": 2981,
+          "max": 8000
+        }
+      ],
+      "detalle": {
+        "R1.1": "FAIL ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"selector-item row-selector\">, x 35–255, y 120–156) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"row-selectors\" class=\"selection-section\"> (display: b",
+        "R2.1": "FAIL → ✗ ✓ se ven las letras A–J · faltan encabezados: 2, 3, 4, 5, 6, 7, 8, 9…",
+        "R3.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"selector-item row-selector\">, x 35–255, y 120–156) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"row-selectors\" class=\"selection-",
+        "R4.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"selector-item row-selector\">, x 35–255, y 120–156) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"row-selectors\" class=\"selection-",
+        "R5.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"selector-item row-selector\">, x 35–255, y 120–156) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"row-selectors\" class=\"selection-",
+        "R6.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"selector-item row-selector\">, x 35–255, y 120–156) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"row-selectors\" class=\"selection-",
+        "R6.2": "FAIL ✓ hizo clic en la columna \"A\" · no hay un control para color (ninguno dice color, colorear, pintar, fondo…), ni en el menú del botón derecho sobre A",
+        "R6.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"selector-item row-selector\">, x 35–255, y 120–156) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"row-selectors\" class=\"selection-",
+        "R7.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.2": "FAIL no se pudo preparar: no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R8.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"selector-item row-selector\">, x 35–255, y 120–156) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"row-selectors\" class=\"selection-",
+        "R8.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"selector-item row-selector\">, x 35–255, y 120–156) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"row-selectors\" class=\"selection-",
+        "R9.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"2\" (nada a la izquierda dice \"2\")",
+        "R10.1": "FAIL ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"selector-item row-selector\">, x 35–255, y 120–156) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"row-selectors\" class=\"selection-section\"> (display: b",
+        "R11.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"selector-item row-selector\">, x 35–255, y 120–156) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"row-selectors\" class=\"selection-",
+        "R12.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"selector-item row-selector\">, x 35–255, y 120–156) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"row-selectors\" class=\"selection-",
+        "R12.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"selector-item row-selector\">, x 35–255, y 120–156) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"row-selectors\" class=\"selection-",
+        "R12.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"selector-item row-selector\">, x 35–255, y 120–156) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"row-selectors\" class=\"selection-",
+        "R13.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · ✓ se ve la fila \"1\" · ✓ la letra \"B\" está arriba de la fila \"1\" · no hay celda B1: el número \"1\" (<div class=\"selector-item row-selector\">, x 35–255, y 120–156) no está a la IZQUIERDA de la columna \"B\". Es porque <div id=\"row-selectors\" class=\"selection-",
+        "R14.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · ✓ se ve la fila \"1\" · ✓ la letra \"B\" está arriba de la fila \"1\" · no hay celda B1: el número \"1\" (<div class=\"selector-item row-selector\">, x 35–255, y 120–156) no está a la IZQUIERDA de la columna \"B\". Es porque <div id=\"row-selectors\" class=\"selection-",
+        "R15.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R16.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R17.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"2\" (nada a la izquierda dice \"2\")"
+      }
+    },
+    {
+      "cond": "rol",
+      "rep": 1,
+      "seed": 1001,
+      "temp": 0.7,
+      "requisitos": 0,
+      "de": 17,
+      "pruebas": 0,
+      "de_pruebas": 24,
+      "parcial": 26,
+      "grilla": false,
+      "escribe": false,
+      "cumplidos": [],
+      "ms": 867259,
+      "pedidos": [
+        {
+          "archivo": "index.html",
+          "intento": 1,
+          "ms": 63626,
+          "usage": {
+            "prompt_tokens": 2140,
+            "completion_tokens": 1582,
+            "total_tokens": 3722,
+            "completion_tokens_details": {
+              "reasoning_tokens": 470
+            }
+          },
+          "tokens_pedido": 2222,
+          "max": 8000
+        },
+        {
+          "archivo": "styles.css",
+          "intento": 1,
+          "ms": 106773,
+          "usage": {
+            "prompt_tokens": 3260,
+            "completion_tokens": 2420,
+            "total_tokens": 5680,
+            "completion_tokens_details": {
+              "reasoning_tokens": 944
+            }
+          },
+          "tokens_pedido": 3356,
+          "max": 8000
+        },
+        {
+          "archivo": "script.js",
+          "intento": 1,
+          "ms": 376533,
+          "usage": {
+            "prompt_tokens": 3260,
+            "completion_tokens": 8000,
+            "total_tokens": 11260,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1433
+            }
+          },
+          "tokens_pedido": 3355,
+          "max": 8000
+        },
+        {
+          "archivo": "script.js",
+          "intento": 2,
+          "ms": 301770,
+          "usage": {
+            "prompt_tokens": 3279,
+            "completion_tokens": 6904,
+            "total_tokens": 10183,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1469
+            }
+          },
+          "tokens_pedido": 3355,
+          "max": 8000
+        }
+      ],
+      "detalle": {
+        "R1.1": "FAIL ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R2.1": "FAIL → ✗ ✓ se ven las letras A–J · faltan encabezados: 1, 2, 3, 4, 5, 6, 7, 8…",
+        "R3.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R4.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R5.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R6.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R6.2": "FAIL ✓ hizo clic en la columna \"A\" · ✓ eligió el color #ff0000 con \"selector de color\" · → ✗ ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\") · ✗ ✓ se ve la columna \"A\" · no se ve la fila \"2\" (nada a la izquierda dice \"2\")",
+        "R6.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R7.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.2": "FAIL no se pudo preparar: no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R8.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R8.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R9.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"2\" (nada a la izquierda dice \"2\")",
+        "R10.1": "FAIL ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R11.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R12.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R12.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R12.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R13.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R14.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R15.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R16.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R17.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"2\" (nada a la izquierda dice \"2\")"
+      }
+    },
+    {
+      "cond": "placebo",
+      "rep": 1,
+      "seed": 1001,
+      "temp": 0.7,
+      "requisitos": 0,
+      "de": 17,
+      "pruebas": 0,
+      "de_pruebas": 24,
+      "parcial": 23,
+      "grilla": false,
+      "escribe": false,
+      "cumplidos": [],
+      "ms": 685221,
+      "pedidos": [
+        {
+          "archivo": "index.html",
+          "intento": 1,
+          "ms": 38938,
+          "usage": {
+            "prompt_tokens": 2112,
+            "completion_tokens": 885,
+            "total_tokens": 2997,
+            "completion_tokens_details": {
+              "reasoning_tokens": 401
+            }
+          },
+          "tokens_pedido": 2205,
+          "max": 8000
+        },
+        {
+          "archivo": "styles.css",
+          "intento": 1,
+          "ms": 73366,
+          "usage": {
+            "prompt_tokens": 2574,
+            "completion_tokens": 1731,
+            "total_tokens": 4305,
+            "completion_tokens_details": {
+              "reasoning_tokens": 305
+            }
+          },
+          "tokens_pedido": 2684,
+          "max": 8000
+        },
+        {
+          "archivo": "script.js",
+          "intento": 1,
+          "ms": 314537,
+          "usage": {
+            "prompt_tokens": 2574,
+            "completion_tokens": 7178,
+            "total_tokens": 9752,
+            "completion_tokens_details": {
+              "reasoning_tokens": 835
+            }
+          },
+          "tokens_pedido": 2683,
+          "max": 8000
+        },
+        {
+          "archivo": "script.js",
+          "intento": 2,
+          "ms": 240278,
+          "usage": {
+            "prompt_tokens": 2613,
+            "completion_tokens": 5933,
+            "total_tokens": 8546,
+            "completion_tokens_details": {
+              "reasoning_tokens": 831
+            }
+          },
+          "tokens_pedido": 2683,
+          "max": 8000
+        }
+      ],
+      "detalle": {
+        "R1.1": "FAIL ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R2.1": "FAIL → ✗ ✓ se ven las letras A–J · faltan encabezados: 1, 2, 3, 4, 5, 6, 7, 8…",
+        "R3.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R4.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R5.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R6.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R6.2": "FAIL ✓ hizo clic en la columna \"A\" · no hay un control para color (ninguno dice color, colorear, pintar, fondo…), ni en el menú del botón derecho sobre A",
+        "R6.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R7.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.2": "FAIL no se pudo preparar: no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R8.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R8.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R9.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"2\" (nada a la izquierda dice \"2\")",
+        "R10.1": "FAIL ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R11.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R12.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R12.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R12.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R13.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R14.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R15.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R16.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R17.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"2\" (nada a la izquierda dice \"2\")"
+      }
+    },
+    {
+      "cond": "sin",
+      "rep": 2,
+      "seed": 1002,
+      "temp": 0.7,
+      "requisitos": 0,
+      "de": 17,
+      "pruebas": 0,
+      "de_pruebas": 24,
+      "parcial": 7,
+      "grilla": false,
+      "escribe": false,
+      "cumplidos": [],
+      "ms": 580453,
+      "pedidos": [
+        {
+          "archivo": "index.html",
+          "intento": 1,
+          "ms": 80788,
+          "usage": {
+            "prompt_tokens": 1785,
+            "completion_tokens": 2370,
+            "total_tokens": 4155,
+            "completion_tokens_details": {
+              "reasoning_tokens": 727
+            }
+          },
+          "tokens_pedido": 1750,
+          "max": 8000
+        },
+        {
+          "archivo": "styles.css",
+          "intento": 1,
+          "ms": 96036,
+          "usage": {
+            "prompt_tokens": 3467,
+            "completion_tokens": 2321,
+            "total_tokens": 5788,
+            "completion_tokens_details": {
+              "reasoning_tokens": 757
+            }
+          },
+          "tokens_pedido": 3447,
+          "max": 8000
+        },
+        {
+          "archivo": "script.js",
+          "intento": 1,
+          "ms": 353212,
+          "usage": {
+            "prompt_tokens": 3467,
+            "completion_tokens": 7549,
+            "total_tokens": 11016,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1199
+            }
+          },
+          "tokens_pedido": 3446,
+          "max": 8000
+        }
+      ],
+      "detalle": {
+        "R1.1": "FAIL escribió \"QA Benteveo 1\" en A1 (doble clic y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—), pero A1 quedó vacía: no se escribió nada",
+        "R2.1": "FAIL → ✗ ✓ se ven las letras A–J · faltan encabezados: 3, 4, 5, 6, 7, 8, 9, 10…",
+        "R3.1": "FAIL no se pudo preparar: escribió \"2\" en A1 (doble clic y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—), pero A1 quedó vacía: no se escribió nada",
+        "R4.1": "FAIL no se pudo preparar: escribió \"=B1+C1\" en A1 (doble clic y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—), pero A1 quedó vacía: no se escribió nada",
+        "R5.1": "FAIL ✓ hizo clic en A1 · no hay un control para color (ninguno dice color, colorear, pintar, fondo…), ni en el menú del botón derecho sobre A1",
+        "R6.1": "FAIL no se pudo preparar: escribió \"QA Benteveo 1\" en A1 (doble clic y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—), pero A1 quedó vacía: no se escribió nada",
+        "R6.2": "FAIL ✓ hizo clic en la columna \"A\" · no hay un control para color (ninguno dice color, colorear, pintar, fondo…), ni en el menú del botón derecho sobre A",
+        "R6.3": "FAIL no se pudo preparar: escribió \"QA Benteveo 1\" en A1 (doble clic y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—), pero A1 quedó vacía: no se escribió nada",
+        "R7.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.2": "FAIL no se pudo preparar: no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R8.1": "FAIL no se pudo preparar: escribió \"QA Benteveo 1\" en A1 (doble clic y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—), pero A1 quedó vacía: no se escribió nada",
+        "R8.2": "FAIL no se pudo preparar: escribió \"QA Benteveo 1\" en A1 (doble clic y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—), pero A1 quedó vacía: no se escribió nada",
+        "R9.1": "FAIL no se pudo preparar: escribió \"QA Benteveo 1\" en B2 (doble clic y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—), pero B2 quedó vacía: no se escribió nada",
+        "R10.1": "FAIL escribió \"QA Benteveo 1\" en A1 (doble clic y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—), pero A1 quedó vacía: no se escribió nada",
+        "R11.1": "FAIL no se pudo preparar: escribió \"5\" en A1 (doble clic y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—), pero A1 quedó vacía: no se escribió nada",
+        "R12.1": "FAIL no se pudo preparar: escribió \"4\" en A1 (doble clic y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—), pero A1 quedó vacía: no se escribió nada",
+        "R12.2": "FAIL no se pudo preparar: escribió \"4\" en A1 (doble clic y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—), pero A1 quedó vacía: no se escribió nada",
+        "R12.3": "FAIL no se pudo preparar: escribió \"4\" en A1 (doble clic y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—), pero A1 quedó vacía: no se escribió nada",
+        "R13.1": "FAIL no se pudo preparar: escribió \"QA Benteveo 1\" en B1 (doble clic y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—), pero B1 quedó vacía: no se escribió nada",
+        "R14.1": "FAIL no se pudo preparar: escribió \"QA Benteveo 1\" en B1 (doble clic y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—), pero B1 quedó vacía: no se escribió nada",
+        "R15.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R16.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R17.1": "FAIL no se pudo preparar: escribió \"QA Benteveo 1\" en B2 (doble clic y teclado: al hacer clic no quedó con el foco ningún lugar para escribir —ni un campo ni algo editable—), pero B2 quedó vacía: no se escribió nada"
+      }
+    },
+    {
+      "cond": "persona",
+      "rep": 2,
+      "seed": 1002,
+      "temp": 0.7,
+      "requisitos": 0,
+      "de": 17,
+      "pruebas": 0,
+      "de_pruebas": 24,
+      "parcial": 55,
+      "grilla": false,
+      "escribe": false,
+      "cumplidos": [],
+      "ms": 474587,
+      "pedidos": [
+        {
+          "archivo": "index.html",
+          "intento": 1,
+          "ms": 72002,
+          "usage": {
+            "prompt_tokens": 1833,
+            "completion_tokens": 1939,
+            "total_tokens": 3772,
+            "completion_tokens_details": {
+              "reasoning_tokens": 822
+            }
+          },
+          "tokens_pedido": 1824,
+          "max": 8000
+        },
+        {
+          "archivo": "styles.css",
+          "intento": 1,
+          "ms": 108006,
+          "usage": {
+            "prompt_tokens": 2943,
+            "completion_tokens": 2590,
+            "total_tokens": 5533,
+            "completion_tokens_details": {
+              "reasoning_tokens": 948
+            }
+          },
+          "tokens_pedido": 3095,
+          "max": 8000
+        },
+        {
+          "archivo": "script.js",
+          "intento": 1,
+          "ms": 276204,
+          "usage": {
+            "prompt_tokens": 2943,
+            "completion_tokens": 6361,
+            "total_tokens": 9304,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1192
+            }
+          },
+          "tokens_pedido": 3094,
+          "max": 8000
+        }
+      ],
+      "detalle": {
+        "R1.1": "FAIL ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<span id=\"active-row-number\">, x 84–93, y 464–481) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra y cada una en",
+        "R2.1": "FAIL → ✗ ✓ se ven las letras A–J · faltan encabezados: 2, 3, 4, 5, 6, 7, 8, 9…",
+        "R3.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<span id=\"active-row-number\">, x 84–93, y 464–481) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de ",
+        "R4.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<span id=\"active-row-number\">, x 84–93, y 464–481) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de ",
+        "R5.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<span id=\"active-row-number\">, x 84–93, y 464–481) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de ",
+        "R6.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<span id=\"active-row-number\">, x 84–93, y 464–481) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de ",
+        "R6.2": "FAIL ✓ hizo clic en la columna \"A\" · no hay un control para color (ninguno dice color, colorear, pintar, fondo…), ni en el menú del botón derecho sobre A",
+        "R6.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<span id=\"active-row-number\">, x 84–93, y 464–481) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de ",
+        "R7.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.2": "FAIL no se pudo preparar: no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R8.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<span id=\"active-row-number\">, x 84–93, y 464–481) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de ",
+        "R8.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<span id=\"active-row-number\">, x 84–93, y 464–481) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de ",
+        "R9.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"2\" (nada a la izquierda dice \"2\")",
+        "R10.1": "FAIL ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<span id=\"active-row-number\">, x 84–93, y 464–481) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra y cada una en",
+        "R11.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<span id=\"active-row-number\">, x 84–93, y 464–481) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de ",
+        "R12.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<span id=\"active-row-number\">, x 84–93, y 464–481) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de ",
+        "R12.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<span id=\"active-row-number\">, x 84–93, y 464–481) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de ",
+        "R12.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<span id=\"active-row-number\">, x 84–93, y 464–481) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de ",
+        "R13.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · ✓ se ve la fila \"1\" · ✓ la letra \"B\" está arriba de la fila \"1\" · ✓ el número \"1\" está a la izquierda de la columna \"B\" · donde se cruzan la letra \"B\" y el número \"1\" (x 190) no hay una celda sino <h4>. Arriba, los encabezados van así: \"·\" x 20–70 · \"A\" ",
+        "R14.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · ✓ se ve la fila \"1\" · ✓ la letra \"B\" está arriba de la fila \"1\" · ✓ el número \"1\" está a la izquierda de la columna \"B\" · donde se cruzan la letra \"B\" y el número \"1\" (x 190) no hay una celda sino <h4>. Arriba, los encabezados van así: \"·\" x 20–70 · \"A\" ",
+        "R15.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R16.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R17.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"2\" (nada a la izquierda dice \"2\")"
+      }
+    },
+    {
+      "cond": "rol",
+      "rep": 2,
+      "seed": 1002,
+      "temp": 0.7,
+      "requisitos": 0,
+      "de": 17,
+      "pruebas": 0,
+      "de_pruebas": 24,
+      "parcial": 46,
+      "grilla": false,
+      "escribe": false,
+      "cumplidos": [],
+      "ms": 863593,
+      "pedidos": [
+        {
+          "archivo": "index.html",
+          "intento": 1,
+          "ms": 339264,
+          "usage": {
+            "prompt_tokens": 2140,
+            "completion_tokens": 8000,
+            "total_tokens": 10140,
+            "completion_tokens_details": {
+              "reasoning_tokens": 839
+            }
+          },
+          "tokens_pedido": 2222,
+          "max": 8000
+        },
+        {
+          "archivo": "index.html",
+          "intento": 2,
+          "ms": 51511,
+          "usage": {
+            "prompt_tokens": 2159,
+            "completion_tokens": 1540,
+            "total_tokens": 3699,
+            "completion_tokens_details": {
+              "reasoning_tokens": 787
+            }
+          },
+          "tokens_pedido": 2222,
+          "max": 8000
+        },
+        {
+          "archivo": "styles.css",
+          "intento": 1,
+          "ms": 123846,
+          "usage": {
+            "prompt_tokens": 2875,
+            "completion_tokens": 3066,
+            "total_tokens": 5941,
+            "completion_tokens_details": {
+              "reasoning_tokens": 938
+            }
+          },
+          "tokens_pedido": 3056,
+          "max": 8000
+        },
+        {
+          "archivo": "script.js",
+          "intento": 1,
+          "ms": 330494,
+          "usage": {
+            "prompt_tokens": 2875,
+            "completion_tokens": 7497,
+            "total_tokens": 10372,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1231
+            }
+          },
+          "tokens_pedido": 3055,
+          "max": 8000
+        }
+      ],
+      "detalle": {
+        "R1.1": "FAIL ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-header-select\">, x 35–255, y 387–420) no está a la IZQUIERDA de la columna \"A\". Es porque <section id=\"row-actions\" class=\"control-group\"> (display: block) pone ",
+        "R2.1": "FAIL → ✗ faltan encabezados: B, C, D, E, F, G, H, I…",
+        "R3.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-header-select\">, x 35–255, y 387–420) no está a la IZQUIERDA de la columna \"A\". Es porque <section id=\"row-actions\" class=\"control-group\"> (",
+        "R4.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-header-select\">, x 35–255, y 387–420) no está a la IZQUIERDA de la columna \"A\". Es porque <section id=\"row-actions\" class=\"control-group\"> (",
+        "R5.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-header-select\">, x 35–255, y 387–420) no está a la IZQUIERDA de la columna \"A\". Es porque <section id=\"row-actions\" class=\"control-group\"> (",
+        "R6.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-header-select\">, x 35–255, y 387–420) no está a la IZQUIERDA de la columna \"A\". Es porque <section id=\"row-actions\" class=\"control-group\"> (",
+        "R6.2": "FAIL ✓ hizo clic en la columna \"A\" · apretó \"Color Fondo\" pero no apareció dónde elegir el color",
+        "R6.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-header-select\">, x 35–255, y 387–420) no está a la IZQUIERDA de la columna \"A\". Es porque <section id=\"row-actions\" class=\"control-group\"> (",
+        "R7.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.2": "FAIL no se pudo preparar: no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R8.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-header-select\">, x 35–255, y 387–420) no está a la IZQUIERDA de la columna \"A\". Es porque <section id=\"row-actions\" class=\"control-group\"> (",
+        "R8.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-header-select\">, x 35–255, y 387–420) no está a la IZQUIERDA de la columna \"A\". Es porque <section id=\"row-actions\" class=\"control-group\"> (",
+        "R9.1": "FAIL no se pudo preparar: no se ve la fila \"2\" (nada a la izquierda dice \"2\")",
+        "R10.1": "FAIL ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-header-select\">, x 35–255, y 387–420) no está a la IZQUIERDA de la columna \"A\". Es porque <section id=\"row-actions\" class=\"control-group\"> (display: block) pone ",
+        "R11.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-header-select\">, x 35–255, y 387–420) no está a la IZQUIERDA de la columna \"A\". Es porque <section id=\"row-actions\" class=\"control-group\"> (",
+        "R12.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-header-select\">, x 35–255, y 387–420) no está a la IZQUIERDA de la columna \"A\". Es porque <section id=\"row-actions\" class=\"control-group\"> (",
+        "R12.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-header-select\">, x 35–255, y 387–420) no está a la IZQUIERDA de la columna \"A\". Es porque <section id=\"row-actions\" class=\"control-group\"> (",
+        "R12.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-header-select\">, x 35–255, y 387–420) no está a la IZQUIERDA de la columna \"A\". Es porque <section id=\"row-actions\" class=\"control-group\"> (",
+        "R13.1": "FAIL no se pudo preparar: ✓ se ve la fila \"1\" · no se ve la columna \"B\" (nada arriba dice \"B\")",
+        "R14.1": "FAIL no se pudo preparar: ✓ se ve la fila \"1\" · no se ve la columna \"B\" (nada arriba dice \"B\")",
+        "R15.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R16.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R17.1": "FAIL no se pudo preparar: no se ve la fila \"2\" (nada a la izquierda dice \"2\")"
+      }
+    },
+    {
+      "cond": "placebo",
+      "rep": 2,
+      "seed": 1002,
+      "temp": 0.7,
+      "requisitos": 0,
+      "de": 17,
+      "pruebas": 0,
+      "de_pruebas": 24,
+      "parcial": 23,
+      "grilla": false,
+      "escribe": false,
+      "cumplidos": [],
+      "ms": 424111,
+      "pedidos": [
+        {
+          "archivo": "index.html",
+          "intento": 1,
+          "ms": 43712,
+          "usage": {
+            "prompt_tokens": 2112,
+            "completion_tokens": 1049,
+            "total_tokens": 3161,
+            "completion_tokens_details": {
+              "reasoning_tokens": 691
+            }
+          },
+          "tokens_pedido": 2205,
+          "max": 8000
+        },
+        {
+          "archivo": "styles.css",
+          "intento": 1,
+          "ms": 75196,
+          "usage": {
+            "prompt_tokens": 2473,
+            "completion_tokens": 2103,
+            "total_tokens": 4576,
+            "completion_tokens_details": {
+              "reasoning_tokens": 834
+            }
+          },
+          "tokens_pedido": 2630,
+          "max": 8000
+        },
+        {
+          "archivo": "script.js",
+          "intento": 1,
+          "ms": 286839,
+          "usage": {
+            "prompt_tokens": 2473,
+            "completion_tokens": 6783,
+            "total_tokens": 9256,
+            "completion_tokens_details": {
+              "reasoning_tokens": 784
+            }
+          },
+          "tokens_pedido": 2629,
+          "max": 8000
+        }
+      ],
+      "detalle": {
+        "R1.1": "FAIL ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R2.1": "FAIL → ✗ ✓ se ven las letras A–J · faltan encabezados: 1, 2, 3, 4, 5, 6, 7, 8…",
+        "R3.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R4.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R5.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R6.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R6.2": "FAIL ✓ hizo clic en la columna \"A\" · no hay un control para color (ninguno dice color, colorear, pintar, fondo…), ni en el menú del botón derecho sobre A",
+        "R6.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R7.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.2": "FAIL no se pudo preparar: no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R8.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R8.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R9.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"2\" (nada a la izquierda dice \"2\")",
+        "R10.1": "FAIL ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R11.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R12.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R12.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R12.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R13.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R14.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"1\" (nada a la izquierda dice \"1\")",
+        "R15.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R16.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R17.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"2\" (nada a la izquierda dice \"2\")"
+      }
+    },
+    {
+      "cond": "sin",
+      "rep": 3,
+      "seed": 1003,
+      "temp": 0.7,
+      "requisitos": 0,
+      "de": 17,
+      "pruebas": 0,
+      "de_pruebas": 24,
+      "parcial": 40,
+      "grilla": false,
+      "escribe": false,
+      "cumplidos": [],
+      "ms": 472796,
+      "pedidos": [
+        {
+          "archivo": "index.html",
+          "intento": 1,
+          "ms": 62985,
+          "usage": {
+            "prompt_tokens": 1785,
+            "completion_tokens": 1695,
+            "total_tokens": 3480,
+            "completion_tokens_details": {
+              "reasoning_tokens": 969
+            }
+          },
+          "tokens_pedido": 1750,
+          "max": 8000
+        },
+        {
+          "archivo": "styles.css",
+          "intento": 1,
+          "ms": 88924,
+          "usage": {
+            "prompt_tokens": 2499,
+            "completion_tokens": 2404,
+            "total_tokens": 4903,
+            "completion_tokens_details": {
+              "reasoning_tokens": 864
+            }
+          },
+          "tokens_pedido": 2432,
+          "max": 8000
+        },
+        {
+          "archivo": "script.js",
+          "intento": 1,
+          "ms": 302682,
+          "usage": {
+            "prompt_tokens": 2499,
+            "completion_tokens": 7091,
+            "total_tokens": 9590,
+            "completion_tokens_details": {
+              "reasoning_tokens": 997
+            }
+          },
+          "tokens_pedido": 2431,
+          "max": 8000
+        }
+      ],
+      "detalle": {
+        "R1.1": "FAIL ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · no hay celda A1: la letra \"A\" (<div class=\"col-header\">, x 101–182, y 21–52) no está ARRIBA de la fila \"1\" y el número \"1\" (<div class=\"row-number\">, x 71–121, y 21–51) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"spreadsheet-container\">",
+        "R2.1": "FAIL → ✗ ✓ se ven las letras A–J · faltan encabezados: 2, 3, 4, 5, 6, 7, 8, 9…",
+        "R3.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · no hay celda A1: la letra \"A\" (<div class=\"col-header\">, x 101–182, y 21–52) no está ARRIBA de la fila \"1\" y el número \"1\" (<div class=\"row-number\">, x 71–121, y 21–51) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"sp",
+        "R4.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · no hay celda A1: la letra \"A\" (<div class=\"col-header\">, x 101–182, y 21–52) no está ARRIBA de la fila \"1\" y el número \"1\" (<div class=\"row-number\">, x 71–121, y 21–51) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"sp",
+        "R5.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · no hay celda A1: la letra \"A\" (<div class=\"col-header\">, x 101–182, y 21–52) no está ARRIBA de la fila \"1\" y el número \"1\" (<div class=\"row-number\">, x 71–121, y 21–51) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"sp",
+        "R6.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · no hay celda A1: la letra \"A\" (<div class=\"col-header\">, x 101–182, y 21–52) no está ARRIBA de la fila \"1\" y el número \"1\" (<div class=\"row-number\">, x 71–121, y 21–51) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"sp",
+        "R6.2": "FAIL ✓ hizo clic en la columna \"A\" · no hay un control para color (ninguno dice color, colorear, pintar, fondo…), ni en el menú del botón derecho sobre A",
+        "R6.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · no hay celda A1: la letra \"A\" (<div class=\"col-header\">, x 101–182, y 21–52) no está ARRIBA de la fila \"1\" y el número \"1\" (<div class=\"row-number\">, x 71–121, y 21–51) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"sp",
+        "R7.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.2": "FAIL no se pudo preparar: no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R7.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R8.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · no hay celda A1: la letra \"A\" (<div class=\"col-header\">, x 101–182, y 21–52) no está ARRIBA de la fila \"1\" y el número \"1\" (<div class=\"row-number\">, x 71–121, y 21–51) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"sp",
+        "R8.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · no hay celda A1: la letra \"A\" (<div class=\"col-header\">, x 101–182, y 21–52) no está ARRIBA de la fila \"1\" y el número \"1\" (<div class=\"row-number\">, x 71–121, y 21–51) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"sp",
+        "R9.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"2\" (nada a la izquierda dice \"2\")",
+        "R10.1": "FAIL ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · no hay celda A1: la letra \"A\" (<div class=\"col-header\">, x 101–182, y 21–52) no está ARRIBA de la fila \"1\" y el número \"1\" (<div class=\"row-number\">, x 71–121, y 21–51) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"spreadsheet-container\">",
+        "R11.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · no hay celda A1: la letra \"A\" (<div class=\"col-header\">, x 101–182, y 21–52) no está ARRIBA de la fila \"1\" y el número \"1\" (<div class=\"row-number\">, x 71–121, y 21–51) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"sp",
+        "R12.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · no hay celda A1: la letra \"A\" (<div class=\"col-header\">, x 101–182, y 21–52) no está ARRIBA de la fila \"1\" y el número \"1\" (<div class=\"row-number\">, x 71–121, y 21–51) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"sp",
+        "R12.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · no hay celda A1: la letra \"A\" (<div class=\"col-header\">, x 101–182, y 21–52) no está ARRIBA de la fila \"1\" y el número \"1\" (<div class=\"row-number\">, x 71–121, y 21–51) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"sp",
+        "R12.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · no hay celda A1: la letra \"A\" (<div class=\"col-header\">, x 101–182, y 21–52) no está ARRIBA de la fila \"1\" y el número \"1\" (<div class=\"row-number\">, x 71–121, y 21–51) no está a la IZQUIERDA de la columna \"A\". Es porque <div id=\"sp",
+        "R13.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · ✓ se ve la fila \"1\" · ✓ el número \"1\" está a la izquierda de la columna \"B\" · no hay celda B1: la letra \"B\" (<div class=\"col-header\">, x 182–263, y 21–52) no está ARRIBA de la fila \"1\". Es porque <div id=\"spreadsheet-container\"> (display: grid) pone <hea",
+        "R14.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · ✓ se ve la fila \"1\" · ✓ el número \"1\" está a la izquierda de la columna \"B\" · no hay celda B1: la letra \"B\" (<div class=\"col-header\">, x 182–263, y 21–52) no está ARRIBA de la fila \"1\". Es porque <div id=\"spreadsheet-container\"> (display: grid) pone <hea",
+        "R15.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R16.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · no se ve la fila \"3\" (nada a la izquierda dice \"3\")",
+        "R17.1": "FAIL no se pudo preparar: ✓ se ve la columna \"B\" · no se ve la fila \"2\" (nada a la izquierda dice \"2\")"
+      }
+    },
+    {
+      "cond": "persona",
+      "rep": 3,
+      "seed": 1003,
+      "temp": 0.7,
+      "requisitos": 4,
+      "de": 17,
+      "pruebas": 5,
+      "de_pruebas": 24,
+      "parcial": 77,
+      "grilla": true,
+      "escribe": true,
+      "cumplidos": [
+        "R1",
+        "R2",
+        "R10",
+        "R15"
+      ],
+      "ms": 877240,
+      "pedidos": [
+        {
+          "archivo": "index.html",
+          "intento": 1,
+          "ms": 60571,
+          "usage": {
+            "prompt_tokens": 1833,
+            "completion_tokens": 1612,
+            "total_tokens": 3445,
+            "completion_tokens_details": {
+              "reasoning_tokens": 778
+            }
+          },
+          "tokens_pedido": 1824,
+          "max": 8000
+        },
+        {
+          "archivo": "styles.css",
+          "intento": 1,
+          "ms": 79544,
+          "usage": {
+            "prompt_tokens": 2685,
+            "completion_tokens": 1932,
+            "total_tokens": 4617,
+            "completion_tokens_details": {
+              "reasoning_tokens": 791
+            }
+          },
+          "tokens_pedido": 2711,
+          "max": 8000
+        },
+        {
+          "archivo": "script.js",
+          "intento": 1,
+          "ms": 354566,
+          "usage": {
+            "prompt_tokens": 2685,
+            "completion_tokens": 8000,
+            "total_tokens": 10685,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1137
+            }
+          },
+          "tokens_pedido": 2710,
+          "max": 8000
+        },
+        {
+          "archivo": "script.js",
+          "intento": 2,
+          "ms": 281064,
+          "usage": {
+            "prompt_tokens": 2704,
+            "completion_tokens": 6808,
+            "total_tokens": 9512,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1012
+            }
+          },
+          "tokens_pedido": 2710,
+          "max": 8000
+        }
+      ],
+      "detalle": {
+        "R1.1": "PASS ✓ escribió \"QA Zorzal 1\" en A1 (clic) · → ✓ A1 muestra \"QA Zorzal 1\"",
+        "R2.1": "PASS → ✓ se ven 10 encabezados de columna y 20 de fila",
+        "R3.1": "FAIL ✓ escribió \"2\" en A1 (clic) · ✓ escribió \"3\" en A2 (clic) · ✓ escribió \"4\" en A3 (clic) · ✓ escribió \"=SUMA(A1:A3)\" en B4 (clic) · → ✗ B4 muestra \"=SUMA(A1:A3)\" (se esperaba \"9\"; es <td>)",
+        "R4.1": "FAIL ✓ escribió \"=B1+C1\" en A1 (clic) · ✓ escribió \"2\" en B1 (clic) · ✓ escribió \"3\" en C1 (clic) · ✓ escribió \"4\" en B1 (clic) · → ✗ A1 muestra \"=B1+C1\" (se esperaba \"7\"; es <td>)",
+        "R5.1": "FAIL ✓ hizo clic en A1 · no hay un control para color (ninguno dice color, colorear, pintar, fondo…), ni en el menú del botón derecho sobre A1",
+        "R6.1": "FAIL ✓ escribió \"QA Zorzal 1\" en A1 (clic) · ✓ escribió \"QA Zorzal 2\" en A2 (clic) · ✓ hizo clic en la columna \"A\" · ✓ usó \"Borrar Columna\" (borrar) · → ✓ \"QA Zorzal 1\" ya no está · ✗ \"QA Zorzal 2\" SIGUE · error de JS: Cannot read properties of null (reading 'toUpperCase') (script.js:439)",
+        "R6.2": "FAIL ✓ hizo clic en la columna \"A\" · no hay un control para color (ninguno dice color, colorear, pintar, fondo…), ni en el menú del botón derecho sobre A",
+        "R6.3": "FAIL ✓ escribió \"QA Zorzal 1\" en A1 (clic) · ✓ escribió \"QA Zorzal 2\" en A2 (clic) · ✓ hizo clic en la columna \"A\" · ✓ usó \"Vaciar Datos Seleccionados\" (vaciar) · → ✓ A1 está vacía · ✗ A2 muestra \"QA Zorzal 2\" (tenía que estar vacía)",
+        "R7.1": "PASS ✓ escribió \"QA Zorzal 1\" en A3 (clic) · ✓ escribió \"QA Zorzal 2\" en B3 (clic) · ✓ hizo clic en la fila \"3\" · ✓ usó \"Borrar Columna\" (borrar) · → ✓ \"QA Zorzal 1\" ya no está · ✓ \"QA Zorzal 2\" ya no está",
+        "R7.2": "FAIL ✓ hizo clic en la fila \"3\" · no hay un control para color (ninguno dice color, colorear, pintar, fondo…), ni en el menú del botón derecho sobre 3",
+        "R7.3": "FAIL ✓ escribió \"QA Zorzal 1\" en A3 (clic) · ✓ escribió \"QA Zorzal 2\" en B3 (clic) · ✓ hizo clic en la fila \"3\" · ✓ usó \"Vaciar Datos Seleccionados\" (vaciar) · → ✗ ✓ se ve la columna \"A\" · ✓ se ve la fila \"3\" · ✓ la letra \"A\" está arriba de la fila \"3\" · ✓ el número \"3\" está a la izquierda de la columna ",
+        "R8.1": "FAIL ✓ escribió \"QA Zorzal 1\" en A1 (clic) · ✓ escribió \"QA Zorzal 2\" en A2 (clic) · ✓ hizo clic en la columna \"A\" · ✓ usó \"Ocultar Fila\" (ocultar) · → ✓ \"QA Zorzal 1\" ya no está · ✗ \"QA Zorzal 2\" SIGUE · ✗ la columna \"A\" se sigue viendo (<th>)",
+        "R8.2": "FAIL ✓ escribió \"QA Zorzal 1\" en A1 (clic) · ✓ escribió \"QA Zorzal 2\" en B1 (clic) · ✓ hizo clic en la fila \"1\" · ✓ usó \"Ocultar Fila\" (ocultar) · → ✓ \"QA Zorzal 1\" ya no está · ✓ \"QA Zorzal 2\" ya no está · ✗ la fila \"1\" se sigue viendo (<td class=\"row-index\">)",
+        "R9.1": "FAIL ✓ escribió \"QA Zorzal 1\" en B2 (clic) · ✓ recargó · → ✗ B2 muestra \"\" (se esperaba \"QA Zorzal 1\"; es <td>) · error de JS: Cannot convert undefined or null to object (script.js:115)",
+        "R10.1": "PASS ✓ escribió \"QA Zorzal 1\" en A1 (clic) · → ✓ A1 muestra \"QA Zorzal 1\"",
+        "R11.1": "FAIL ✓ escribió \"5\" en A1 (clic) · ✓ escribió \"3\" en B1 (clic) · ✓ escribió \"\" en C1 (clic) · ✓ escribió \"=SUMA(A1;B1)\" en C1 (clic) · → ✗ C1 muestra \"=SUMA(A1;B1)\" (se esperaba \"8\"; es <td>)",
+        "R12.1": "FAIL ✓ escribió \"4\" en A1 (clic) · ✓ escribió \"2\" en B1 (clic) · ✓ escribió \"=A1-B1\" en C1 (clic) · → ✗ C1 muestra \"=A1-B1\" (se esperaba \"2\"; es <td>)",
+        "R12.2": "FAIL ✓ escribió \"4\" en A1 (clic) · ✓ escribió \"2\" en B1 (clic) · ✓ escribió \"=A1*B1\" en D1 (clic) · → ✗ D1 muestra \"=A1*B1\" (se esperaba \"8\"; es <td>)",
+        "R12.3": "FAIL ✓ escribió \"4\" en A1 (clic) · ✓ escribió \"2\" en B1 (clic) · ✓ escribió \"=A1/B1\" en E1 (clic) · → ✗ E1 muestra \"=A1/B1\" (se esperaba \"2\"; es <td>)",
+        "R13.1": "FAIL ✓ escribió \"QA Zorzal 1\" en B1 (clic) · ✓ escribió \"QA Zorzal 2\" en B2 (clic) · ✓ hizo clic en la columna \"B\" · ✓ usó \"Borrar Columna\" (borrar) · → ✓ \"QA Zorzal 1\" ya no está · ✗ \"QA Zorzal 2\" SIGUE · error de JS: Cannot read properties of null (reading 'toUpperCase') (script.js:439)",
+        "R14.1": "FAIL ✓ escribió \"QA Zorzal 1\" en B1 (clic) · ✓ escribió \"QA Zorzal 2\" en B2 (clic) · ✓ hizo clic en la columna \"B\" · ✓ usó \"Ocultar Fila\" (ocultar) · → ✓ \"QA Zorzal 1\" ya no está · ✗ \"QA Zorzal 2\" SIGUE · ✗ la columna \"B\" se sigue viendo (<th>)",
+        "R15.1": "PASS ✓ escribió \"QA Zorzal 1\" en A3 (clic) · ✓ escribió \"QA Zorzal 2\" en B3 (clic) · ✓ hizo clic en la fila \"3\" · ✓ usó \"Borrar Columna\" (borrar) · → ✓ \"QA Zorzal 1\" ya no está · ✓ \"QA Zorzal 2\" ya no está",
+        "R16.1": "FAIL ✓ escribió \"QA Zorzal 1\" en A3 (clic) · ✓ escribió \"QA Zorzal 2\" en B3 (clic) · ✓ hizo clic en la fila \"3\" · ✓ usó \"Ocultar Fila\" (ocultar) · → ✓ \"QA Zorzal 1\" ya no está · ✓ \"QA Zorzal 2\" ya no está · ✗ la fila \"3\" se sigue viendo (<td class=\"row-index\">)",
+        "R17.1": "FAIL ✓ escribió \"QA Zorzal 1\" en B2 (clic) · ✓ recargó · → ✗ B2 muestra \"\" (se esperaba \"QA Zorzal 1\"; es <td>) · error de JS: Cannot convert undefined or null to object (script.js:115)"
+      }
+    },
+    {
+      "cond": "rol",
+      "rep": 3,
+      "seed": 1003,
+      "temp": 0.7,
+      "requisitos": 2,
+      "de": 17,
+      "pruebas": 2,
+      "de_pruebas": 24,
+      "parcial": 72,
+      "grilla": false,
+      "escribe": true,
+      "cumplidos": [
+        "R9",
+        "R17"
+      ],
+      "ms": 878191,
+      "pedidos": [
+        {
+          "archivo": "index.html",
+          "intento": 1,
+          "ms": 92788,
+          "usage": {
+            "prompt_tokens": 2140,
+            "completion_tokens": 2426,
+            "total_tokens": 4566,
+            "completion_tokens_details": {
+              "reasoning_tokens": 623
+            }
+          },
+          "tokens_pedido": 2222,
+          "max": 8000
+        },
+        {
+          "archivo": "styles.css",
+          "intento": 1,
+          "ms": 104449,
+          "usage": {
+            "prompt_tokens": 3942,
+            "completion_tokens": 2266,
+            "total_tokens": 6208,
+            "completion_tokens_details": {
+              "reasoning_tokens": 797
+            }
+          },
+          "tokens_pedido": 4216,
+          "max": 7484
+        },
+        {
+          "archivo": "script.js",
+          "intento": 1,
+          "ms": 355434,
+          "usage": {
+            "prompt_tokens": 4029,
+            "completion_tokens": 7378,
+            "total_tokens": 11407,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1232
+            }
+          },
+          "tokens_pedido": 4322,
+          "max": 7378
+        },
+        {
+          "archivo": "script.js",
+          "intento": 2,
+          "ms": 294310,
+          "usage": {
+            "prompt_tokens": 4048,
+            "completion_tokens": 6577,
+            "total_tokens": 10625,
+            "completion_tokens_details": {
+              "reasoning_tokens": 962
+            }
+          },
+          "tokens_pedido": 4322,
+          "max": 7378
+        }
+      ],
+      "detalle": {
+        "R1.1": "FAIL ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<th class=\"row-label\">, x 571–584, y 52–82) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra y cada una encima de",
+        "R2.1": "FAIL → ✗ ✓ se ven las letras A–J · faltan encabezados: 4, 5, 6, 7, 8, 9, 10, 11…",
+        "R3.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<th class=\"row-label\">, x 571–584, y 52–82) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra",
+        "R4.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<th class=\"row-label\">, x 571–584, y 52–82) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra",
+        "R5.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<th class=\"row-label\">, x 571–584, y 52–82) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra",
+        "R6.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<th class=\"row-label\">, x 571–584, y 52–82) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra",
+        "R6.2": "FAIL ✓ hizo clic en la columna \"A\" · ✓ eligió el color #ff0000 con \"Color de Fondo:\" · → ✗ ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<th class=\"row-label\">, x 571–584, y 52–82) no está a la IZQUIERDA de la columna \"A\". Las l",
+        "R6.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<th class=\"row-label\">, x 571–584, y 52–82) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra",
+        "R7.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"3\" · ✓ la letra \"A\" está arriba de la fila \"3\" · no hay celda A3: el número \"3\" (<th class=\"row-label\">, x 571–584, y 112–142) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la ot",
+        "R7.2": "FAIL ✓ hizo clic en la fila \"3\" · ✓ eligió el color #ff0000 con \"Color de Fondo:\" · → ✗ ✓ se ve la columna \"A\" · ✓ se ve la fila \"3\" · ✓ la letra \"A\" está arriba de la fila \"3\" · no hay celda A3: el número \"3\" (<th class=\"row-label selected\">, x 571–584, y 112–142) no está a la IZQUIERDA de la columna \"A",
+        "R7.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"3\" · ✓ la letra \"A\" está arriba de la fila \"3\" · no hay celda A3: el número \"3\" (<th class=\"row-label\">, x 571–584, y 112–142) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la ot",
+        "R8.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<th class=\"row-label\">, x 571–584, y 52–82) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra",
+        "R8.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<th class=\"row-label\">, x 571–584, y 52–82) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra",
+        "R9.1": "PASS ✓ escribió \"QA Zorzal 1\" en B2 (clic) · ✓ recargó · → ✓ B2 muestra \"QA Zorzal 1\"",
+        "R10.1": "FAIL ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<th class=\"row-label\">, x 571–584, y 52–82) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra y cada una encima de",
+        "R11.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<th class=\"row-label\">, x 571–584, y 52–82) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra",
+        "R12.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<th class=\"row-label\">, x 571–584, y 52–82) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra",
+        "R12.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<th class=\"row-label\">, x 571–584, y 52–82) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra",
+        "R12.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<th class=\"row-label\">, x 571–584, y 52–82) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra",
+        "R13.1": "FAIL ✓ escribió \"QA Zorzal 1\" en B1 (clic) · ✓ escribió \"QA Zorzal 2\" en B2 (clic) · ✓ hizo clic en la columna \"B\" · ✓ usó \"Borrar Selección\" (borrar) · → ✗ \"QA Zorzal 1\" SIGUE · ✗ \"QA Zorzal 2\" SIGUE",
+        "R14.1": "FAIL ✓ escribió \"QA Zorzal 1\" en B1 (clic) · ✓ escribió \"QA Zorzal 2\" en B2 (clic) · ✓ hizo clic en la columna \"B\" · no hay un control para ocultar (ninguno dice ocultar, esconder, hide, 👁…), ni en el menú del botón derecho sobre B",
+        "R15.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"3\" · ✓ la letra \"A\" está arriba de la fila \"3\" · no hay celda A3: el número \"3\" (<th class=\"row-label\">, x 571–584, y 112–142) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la ot",
+        "R16.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"3\" · ✓ la letra \"A\" está arriba de la fila \"3\" · no hay celda A3: el número \"3\" (<th class=\"row-label\">, x 571–584, y 112–142) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la ot",
+        "R17.1": "PASS ✓ escribió \"QA Zorzal 1\" en B2 (clic) · ✓ recargó · → ✓ B2 muestra \"QA Zorzal 1\""
+      }
+    },
+    {
+      "cond": "placebo",
+      "rep": 3,
+      "seed": 1003,
+      "temp": 0.7,
+      "requisitos": 0,
+      "de": 17,
+      "pruebas": 0,
+      "de_pruebas": 24,
+      "parcial": 79,
+      "grilla": false,
+      "escribe": true,
+      "cumplidos": [],
+      "ms": 844768,
+      "pedidos": [
+        {
+          "archivo": "index.html",
+          "intento": 1,
+          "ms": 310669,
+          "usage": {
+            "prompt_tokens": 2112,
+            "completion_tokens": 7443,
+            "total_tokens": 9555,
+            "completion_tokens_details": {
+              "reasoning_tokens": 710
+            }
+          },
+          "tokens_pedido": 2205,
+          "max": 8000
+        },
+        {
+          "archivo": "styles.css",
+          "intento": 1,
+          "ms": 183390,
+          "usage": {
+            "prompt_tokens": 9108,
+            "completion_tokens": 2470,
+            "total_tokens": 11578,
+            "completion_tokens_details": {
+              "reasoning_tokens": 893
+            }
+          },
+          "tokens_pedido": 9405,
+          "max": 2500
+        },
+        {
+          "archivo": "script.js",
+          "intento": 1,
+          "ms": 184752,
+          "usage": {
+            "prompt_tokens": 9108,
+            "completion_tokens": 2500,
+            "total_tokens": 11608,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1207
+            }
+          },
+          "tokens_pedido": 9404,
+          "max": 2500
+        },
+        {
+          "archivo": "script.js",
+          "intento": 2,
+          "ms": 131524,
+          "usage": {
+            "prompt_tokens": 9127,
+            "completion_tokens": 2500,
+            "total_tokens": 11627,
+            "completion_tokens_details": {
+              "reasoning_tokens": 1175
+            }
+          },
+          "tokens_pedido": 9404,
+          "max": 2500
+        }
+      ],
+      "detalle": {
+        "R1.1": "FAIL ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-label\">, x 40–92, y 145–183) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra y cada una encima d",
+        "R2.1": "FAIL → ✗ ✓ se ven las letras A–J y los números 1–20 · ✓ las letras están en una fila · ✓ los números están uno debajo del otro · pero ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-label\">, x 40–92, y 145–183) no está a la IZQUIERDA de la columna \"A\". Las letr",
+        "R3.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-label\">, x 40–92, y 145–183) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otr",
+        "R4.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-label\">, x 40–92, y 145–183) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otr",
+        "R5.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-label\">, x 40–92, y 145–183) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otr",
+        "R6.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-label\">, x 40–92, y 145–183) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otr",
+        "R6.2": "FAIL ✓ hizo clic en la columna \"A\" · ✓ eligió el color #ff0000 con \"Color Fondo\" · → ✗ ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-label\">, x 40–92, y 145–183) no está a la IZQUIERDA de la columna \"A\". Las letr",
+        "R6.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-label\">, x 40–92, y 145–183) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otr",
+        "R7.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"3\" · ✓ la letra \"A\" está arriba de la fila \"3\" · no hay celda A3: el número \"3\" (<div class=\"row-label\">, x 40–92, y 223–261) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otr",
+        "R7.2": "FAIL ✓ hizo clic en la fila \"3\" · ✓ eligió el color #ff0000 con \"Color Fondo\" · → ✗ ✓ se ve la columna \"A\" · ✓ se ve la fila \"3\" · ✓ la letra \"A\" está arriba de la fila \"3\" · no hay celda A3: el número \"3\" (<div class=\"row-label\">, x 40–92, y 223–261) no está a la IZQUIERDA de la columna \"A\". Las letras ",
+        "R7.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"3\" · ✓ la letra \"A\" está arriba de la fila \"3\" · no hay celda A3: el número \"3\" (<div class=\"row-label\">, x 40–92, y 223–261) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otr",
+        "R8.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-label\">, x 40–92, y 145–183) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otr",
+        "R8.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-label\">, x 40–92, y 145–183) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otr",
+        "R9.1": "FAIL ✓ escribió \"QA Zorzal 1\" en B2 (clic) · ✓ recargó · → ✗ B2 muestra \"\" (se esperaba \"QA Zorzal 1\"; es <div class=\"cell\">)",
+        "R10.1": "FAIL ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-label\">, x 40–92, y 145–183) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otra y cada una encima d",
+        "R11.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-label\">, x 40–92, y 145–183) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otr",
+        "R12.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-label\">, x 40–92, y 145–183) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otr",
+        "R12.2": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-label\">, x 40–92, y 145–183) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otr",
+        "R12.3": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"1\" · ✓ la letra \"A\" está arriba de la fila \"1\" · no hay celda A1: el número \"1\" (<div class=\"row-label\">, x 40–92, y 145–183) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otr",
+        "R13.1": "FAIL ✓ escribió \"QA Zorzal 1\" en B1 (clic) · ✓ escribió \"QA Zorzal 2\" en B2 (clic) · ✓ hizo clic en la columna \"B\" · ✓ usó \"Borrar Columna\" (borrar) · → ✗ \"QA Zorzal 1\" SIGUE · ✗ \"QA Zorzal 2\" SIGUE",
+        "R14.1": "FAIL ✓ escribió \"QA Zorzal 1\" en B1 (clic) · ✓ escribió \"QA Zorzal 2\" en B2 (clic) · ✓ hizo clic en la columna \"B\" · no hay un control para ocultar (ninguno dice ocultar, esconder, hide, 👁…), ni en el menú del botón derecho sobre B",
+        "R15.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"3\" · ✓ la letra \"A\" está arriba de la fila \"3\" · no hay celda A3: el número \"3\" (<div class=\"row-label\">, x 40–92, y 223–261) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otr",
+        "R16.1": "FAIL no se pudo preparar: ✓ se ve la columna \"A\" · ✓ se ve la fila \"3\" · ✓ la letra \"A\" está arriba de la fila \"3\" · no hay celda A3: el número \"3\" (<div class=\"row-label\">, x 40–92, y 223–261) no está a la IZQUIERDA de la columna \"A\". Las letras van en una fila arriba de la grilla, una al lado de la otr",
+        "R17.1": "FAIL ✓ escribió \"QA Zorzal 1\" en B2 (clic) · ✓ recargó · → ✗ B2 muestra \"\" (se esperaba \"QA Zorzal 1\"; es <div class=\"cell\">)"
+      }
+    }
+  ]
+}

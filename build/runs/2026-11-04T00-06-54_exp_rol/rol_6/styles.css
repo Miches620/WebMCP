@@ -1,0 +1,177 @@
+/* General Reset and Typography */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f9;
+}
+
+#app-container {
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Control Panel Styling */
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #e9ecef;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+button {
+    padding: 10px 15px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+/* Spreadsheet Table Structure */
+#spreadsheet-wrapper {
+    overflow-x: auto; /* Allows scrolling if columns exceed space */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ccc;
+}
+
+#spreadsheet {
+    width: fit-content; /* Ensures table is wide enough for all columns */
+    border-collapse: collapse;
+    table-layout: fixed; /* Important for consistent column widths */
+}
+
+/* Styling for Header Cells (Column Letters and Row Numbers) */
+
+/* The corner cell (A/1 intersection) */
+#spreadsheet thead tr :first-child {
+    background-color: #e0e0e0;
+    border-right: 1px solid #ccc;
+}
+
+/* Column Headers (Letters A-J) */
+.col-header {
+    width: 40px; /* Fixed width for column letters */
+    padding: 8px 5px;
+    text-align: center;
+    background-color: #d3d3d3;
+    font-weight: bold;
+    border: 1px solid #ccc;
+}
+
+/* Row Headers (Numbers 1-20) */
+.row-header {
+    width: 50px; /* Fixed width for row numbers */
+    padding: 8px 5px;
+    text-align: center;
+    background-color: #d3d3d3;
+    font-weight: bold;
+    border: 1px solid #ccc;
+    cursor: pointer; /* Indicates interactivity */
+}
+
+/* Standard Cell Styling (The actual data cells) */
+.cell {
+    min-width: 100px; /* Minimum width for readability */
+    padding: 8px 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    cursor: pointer;
+    /* Ensures content is visible, even if formula output is complex */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Visual feedback for selection/focus */
+.cell:hover {
+    background-color: #f0f8ff; /* Light blue hover effect */
+}
+
+/* Active editing state (when user is typing) */
+.cell[contenteditable="true"]:focus {
+    outline: 2px solid #ff9800; /* Orange focus ring */
+    background-color: #fffacd; /* Lemon chiffon background when active */
+}
+
+
+/* --- State Styling --- */
+
+/* Background color applied by user selection (R5, R6, R7) */
+.has-custom-bg {
+    transition: background-color 0.1s ease-in-out;
+}
+
+/* Style for the cell that is currently selected/focused by clicking on it */
+.cell[data-selected="true"] {
+    border: 2px solid #4CAF50 !important; /* Green border for selection */
+    box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.5);
+}
+
+/* --- Hidden States (R8) --- */
+
+/* Hiding Columns/Rows via CSS Grid properties */
+/* When a column is hidden, it should effectively disappear and shift content */
+th.hidden-col {
+    display: none !important;
+}
+td.hidden-col {
+    display: none !important;
+}
+
+/* When a row is hidden, the entire <tr> element handles the visibility change */
+tr.hidden-row td, tr.hidden-row th {
+    display: none !important;
+}
+
+
+/* --- Formula Display (R3) --- */
+/* Although JS calculates the result, if the content starts with '=', it implies a formula structure visually. */
+/* We ensure that the display style remains consistent regardless of whether the input is raw text or a calculated number/formula output. */
+
+/* Ensures numbers are aligned nicely */
+td, th {
+    text-align: left; /* Default alignment */
+}
+
+/* Special handling for numerical calculations (optional refinement) */
+.cell[data-is-numeric] {
+    /* If the content is a calculated number, maybe right align it */
+    text-align: right; 
+}
+
+
+/* --- Column/Row Selection Styles (R6, R7) --- */
+
+/* The header cell representing the selected column letter (e.g., A, B) */
+th.col-header[data-selected="true"] {
+    background-color: #c8e6c9; /* Light green background for selection */
+}
+
+/* The header cell representing the selected row number (e.g., 1, 2) */
+th.row-header[data-selected="true"] {
+    background-color: #c8e6c9; /* Light green background for selection */
+}
+
+/* Specific styling to make the corner area visually distinct if needed */
+#spreadsheet > thead > tr :first-child {
+    background-color: #f0f0f0;
+}

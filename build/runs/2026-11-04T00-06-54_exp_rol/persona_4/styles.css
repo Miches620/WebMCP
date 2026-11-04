@@ -1,0 +1,163 @@
+/* Global Reset and Base Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f9;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* Main Container Styling */
+.spreadsheet-container {
+    max-width: 1500px;
+    margin: 20px auto;
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Table Styling */
+#spreadsheet {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Ensures columns maintain equal width based on content/structure */
+    border: 1px solid #ccc;
+}
+
+/* Header Cells (Row Numbers and Column Letters) */
+.spreadsheet-grid th {
+    background-color: #e0e0e0;
+    font-weight: bold;
+    text-align: center;
+    padding: 8px 5px;
+    border: 1px solid #ccc;
+    cursor: default;
+}
+
+/* Corner Cell (Top Left) */
+#spreadsheet thead tr th:first-child {
+    background-color: #d0d0d0; /* Slightly darker for visual separation */
+    border-right: none;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Column Headers (A to J) */
+.col-header {
+    width: 40px; /* Fixed width for column labels */
+    text-align: center;
+    position: sticky;
+    top: 0; /* Sticky positioning helps if scrolling were implemented, good practice */
+    z-index: 10;
+}
+
+/* Row Headers (1 to 20) */
+.row-header {
+    width: 50px; /* Fixed width for row numbers */
+    position: sticky;
+    left: 0;
+    background-color: #e8e8e8;
+    z-index: 5;
+}
+
+/* Data Cells (.cell) */
+.cell {
+    padding: 8px;
+    min-width: 1em; /* Ensures cells don't collapse completely */
+    border: 1px solid #ddd;
+    cursor: text;
+    outline: none; /* Remove default focus outline */
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+/* Visual feedback when a cell is focused/selected for editing */
+.cell:focus {
+    background-color: #fffbe6; /* Light yellow hint for active edit area */
+    border-color: #aaa;
+}
+
+/* Highlight the currently selected operational element (row or column) */
+.selected-element {
+    box-shadow: inset 0 0 0 2px rgba(50, 150, 255, 0.8); /* Blue box shadow for selection feedback */
+}
+
+/* --- State Styling --- */
+
+/* Hidden elements (Row/Column) - Use display none to remove from layout flow entirely */
+.hidden-row {
+    display: none !important;
+}
+
+.hidden-col th, .hidden-col td {
+    display: none !important;
+}
+
+/* Background Color Change */
+.custom-background {
+    /* This class will be dynamically added with a specific color in JS, 
+       but we define the base style here for consistency. */
+    transition: background-color 0.2s;
+}
+
+
+/* --- Control Panel Styling (Operation Buttons) --- */
+
+#controls {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f9f9ff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+#controls h4 {
+    margin-top: 0;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+#controls button {
+    padding: 8px 15px;
+    margin-right: 10px;
+    margin-bottom: 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+#controls button:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+/* --- Context Menu Styling (Right Click) --- */
+#context-menu {
+    position: absolute; /* Must be positioned relative to the document or a parent container */
+    z-index: 100;
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    padding: 5px;
+    border-radius: 4px;
+}
+
+#context-menu button {
+    display: block; /* Stack buttons vertically */
+    width: 100%;
+    text-align: left;
+    background: none;
+    padding: 8px 12px;
+    border: none;
+    cursor: pointer;
+}
+
+#context-menu button:hover {
+    background-color: #e9ecef;
+}

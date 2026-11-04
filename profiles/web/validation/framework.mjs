@@ -137,7 +137,9 @@ export async function runChecks(htmlPath, checks, { registry, env = {} } = {}) {
   page.on("pageerror", (e) => { ctx.pageErrors.push(e.message); ctx.pageStacks.push({ message: e.message, stack: String(e.stack || "") }); });
   // 12/10 (Kanban real, decisión de Miche): un confirm() se ACEPTA, como haría el usuario que apretó "Borrar"
   // (descartarlo dio un FAIL falso en click_changes). alert y prompt siguen como antes (alert: aceptar = cerrar).
-  page.on("dialog", (d) => { ctx.dialogs.push(d.message()); (d.type() === "confirm" ? d.accept() : d.dismiss()).catch(() => {}); });
+  // 04/11 (hoja): "Borrar Columna" abría prompt("Ingrese la letra de la columna…"); se descartaba (null) y saltaba un error.
+  // Una persona escribe lo que tiene seleccionado: si el juez tiene una selección (ctx.respuestaPrompt), contesta eso.
+  page.on("dialog", (d) => { ctx.dialogs.push(d.message()); (d.type() === "confirm" ? d.accept() : d.type() === "prompt" && ctx.respuestaPrompt ? d.accept(String(ctx.respuestaPrompt)) : d.dismiss()).catch(() => {}); });
   await page.addInitScript(INIT);
   await page.route(/^https?:/, (r) => r.abort());
   const reload = async () => { ctx.pageErrors.length = 0; ctx.pageStacks.length = 0; await page.goto(url, { waitUntil: "load" }); await waitForSettle(page); };

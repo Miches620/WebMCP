@@ -1,0 +1,148 @@
+/* Global Reset and Base Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    padding: 20px;
+}
+
+/* Main Container Styling */
+#spreadsheet-container {
+    display: flex;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: white;
+}
+
+/* Column Headers (A to J) */
+#column-headers {
+    display: flex;
+    flex-direction: column; /* Stacks the corner and then the labels vertically/horizontally if needed, but here it acts as a horizontal row of labels */
+    border-bottom: 1px solid #ccc;
+    /* Ensure the headers take up space for all columns */
+    width: calc(10 * 80px); /* Assuming each column label area is 80px wide */
+}
+
+.col-label {
+    width: 80px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid #ccc;
+    background-color: #e0e0e0;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Corner Cell (Top Left) */
+.corner-corner {
+    width: 80px; /* Needs to match column label width */
+    height: 30px; /* Needs to match row header height */
+    background-color: #e0e0e0;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Spreadsheet Grid (Row Labels and Cells) */
+#spreadsheet-grid {
+    display: grid;
+    /* Define the layout structure using CSS Grid */
+    /* Column 1: Row Headers (Numbers) - Fixed width for selection/labeling */
+    /* Columns 2-11: The actual data columns A through J (10 columns * 80px each) */
+    grid-template-columns: 50px repeat(10, 80px);
+    grid-auto-rows: 30px; /* Fixed height for all rows */
+}
+
+/* Row Label Styling (The numbers 1 to 20 on the left) */
+.row-header {
+    grid-column: 1 / 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid #ccc;
+    background-color: #f9f9f9;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none; /* Prevent text selection on number click */
+}
+
+/* General Cell Styling (A1, B1, etc.) */
+.cell {
+    border: 1px solid #ccc;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    cursor: text; /* Indicates editable area */
+}
+
+/* Cell Content Display (The inner div where content/value appears) */
+.cell-content {
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+    min-height: 1em; /* Ensure visibility when empty */
+}
+
+/* Editable State (When focused or actively being typed in) */
+.cell[contenteditable="true"]:focus {
+    outline: 2px solid #007bff; /* Blue focus ring */
+    background-color: #fffacd; /* Light yellow background on edit */
+}
+
+/* Formula Display vs Editable Content */
+.formula-indicator {
+    display: block;
+    font-size: 0.8em;
+    opacity: 0.7;
+    margin-bottom: 2px;
+}
+
+
+/* State Management Classes */
+
+/* Highlight for selected column/row (Visual feedback on click) */
+.selected-column {
+    background-color: #d9eaff !important; /* Light blue background */
+}
+
+.selected-row {
+    background-color: #ffe6b3 !important; /* Light orange background */
+}
+
+/* Background Color Change (R5) */
+.custom-bg-color {
+    transition: background-color 0.1s ease;
+}
+
+/* Hiding Functionality (R8, R14, R16) */
+
+/* Hide Column/Row visibility in the grid structure */
+.hidden-col {
+    display: none !important;
+}
+.hidden-row {
+    display: none !important;
+}
+
+
+/* Utility Classes for Specific Columns/Rows (A to J and 1 to 20) */
+
+/* Ensures column labels are correctly positioned relative to the grid structure, although CSS Grid handles most positioning here. */
+/* This class might be used if specific columns need unique styling later. */
+.col-A { width: 80px; }
+.col-B { width: 80px; }
+.col-C { width: 80px; }
+.col-D { width: 80px; }
+.col-E { width: 80px; }
+.col-F { width: 80px; }
+.col-G { width: 80px; }
+.col-H { width: 80px; }
+.col-I { width: 80px; }
+.col-J { width: 80px; }
+
+/* Adjusting the overall layout flow for cleaner presentation */
+#spreadsheet-container > *:not(#column-headers) {
+    margin-left: -1px; /* Counteract borders/spacing issues */
+}

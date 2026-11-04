@@ -1,160 +1,175 @@
-/* =============================== */
-/* Estilos Globales y Reset          */
-/* Define la fuente base para toda la app */
+/* Estilos globales y reset */
 body {
-    font-family: Arial, sans-serif; /* Fuente legible para hojas de cálculo */
+    font-family: Arial, sans-serif; /* Fuente legible para datos tabulares */
     margin: 0;
     padding: 20px;
-    background-color: #f4f4f9; /* Color suave de fondo de página */
+    background-color: #f4f4f9; /* Fondo suave para la aplicación */
 }
 
-/* Estilo general del wrapper principal */
-#spreadsheet-wrapper {
+#spreadsheet-container {
+    /* Contenedor principal del componente de hoja de cálculo */
+    display: grid;
+    grid-template-columns: auto auto 1fr; /* Columnas: Selectores de fila | Etiquetas columna | Grid principal */
+    gap: 1px; /* Espacio mínimo entre los componentes principales */
+    background-color: #ccc; /* Color visible para separar las secciones del grid */
+    border: 1px solid #aaa;
+}
+
+/* Sección superior que contiene selectores de filas y etiquetas de columna (A-J) */
+.header-selectors {
+    display: contents; /* Permite que el contenido fluya en la estructura Grid principal */
+}
+
+/* Estiliza los números de fila (1 a 20) en el borde izquierdo */
+.row-headers {
+    background-color: #e0e0e0;
+    border-right: 1px solid #ccc;
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Apila los números verticalmente */
+}
+
+/* Estiliza las letras de columna (A a J) en el encabezado superior */
+.column-labels {
+    background-color: #e0e0e0;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    align-items: center; /* Centra verticalmente si hay contenido extra */
+}
+
+/* Estilo para el contenedor principal del grid de celdas (A1:J20) */
+#sheet-grid {
+    /* Este es el área donde se dibujan todas las 20x10 celdas */
+    display: grid;
+    /* Creamos 10 columnas iguales para A a J */
+    grid-template-columns: repeat(10, 1fr);
+}
+
+/* Estilos generales de la celda (cada div dentro del grid) */
+.cell {
+    border: 1px solid #ccc; /* Borde estándar visible en todas las celdas */
+    padding: 5px;
+    min-height: 30px; /* Altura mínima para asegurar visibilidad */
+    box-sizing: border-box; /* Incluye padding y borde dentro del tamaño de la celda */
+    background-color: white;
+    cursor: pointer;
+    transition: background-color 0.1s ease; /* Transición suave al pasar el ratón o hacer clic */
+}
+
+/* Estado cuando se pasa el cursor sobre una celda (hover) */
+.cell:hover {
+    background-color: #f0f8ff; /* Azul muy claro para indicar interactividad */
+}
+
+/* Estilos específicos de las celdas en los encabezados */
+.row-header-label, .col-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
-    max-width: 1200px; /* Limitar el ancho para mejor lectura */
-    margin: 20px auto;
-    border: 1px solid #ccc; /* Borde general de la hoja */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    height: 100%;
 }
 
-/* =============================== */
-/* Controles y Cabeceras de Columna  */
-/* Estilizan los botones de control */
-#spreadsheet-controls {
-    display: flex;
-    flex-wrap: wrap; /* Permite que los controles pasen a la siguiente línea si no hay espacio */
-    gap: 10px; /* Espacio entre grupos de botones */
+/* Estilo para las celdas que están siendo editadas (foco) */
+.cell[contenteditable="true"]:focus {
+    outline: 2px solid #4a90e2; /* Resaltado azul fuerte cuando se edita */
+    background-color: #ffffff;
+}
+
+/* Estilos de control global y botones */
+.controls {
+    margin-top: 20px;
     padding: 15px;
-    background-color: #e9e9e9; /* Fondo ligeramente gris para separación visual */
-    border-bottom: 2px solid #ccc;
+    border: 1px solid #ccc;
+    display: flex;
+    gap: 10px; /* Espacio entre los botones */
 }
 
 button {
     padding: 8px 15px;
     cursor: pointer;
-    border: 1px solid #aaa;
-    background-color: #ffffff;
-    transition: background-color 0.2s, box-shadow 0.2s;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff; /* Azul primario para acción principal */
+    color: white;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
 }
 
-button:hover {
-    background-color: #dcdcdc; /* Efecto hover sutil */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+/* Estado deshabilitado de los botones */
+button[disabled] {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
-/* Estilo específico para el color picker */
-#color-picker {
-    width: 50px;
-    height: 30px;
-    border: 1px solid #aaa;
-    padding: 0;
+button:hover:not([disabled]) {
+    background-color: #0056b3; /* Oscurece al pasar el ratón */
 }
 
-/* =============================== */
-/* Encabezados de Columna (A, B, C...)*/
-#column-headers {
-    display: flex;
-    background-color: #cccccc; /* Fondo gris oscuro para la cabecera superior */
-    border-bottom: 1px solid #aaa;
-    padding: 0;
+
+/* ========================================
+   ESTILOS DE MANEJO DE VISTA (FILAS Y COLUMNAS)
+   ======================================== */
+
+/* Ocultar una columna o fila: se maneja aplicando display: none a la celda, 
+   pero para mantener el grid layout intacto, es mejor manipular 'visibility' 
+   o ajustar las propiedades de flex/grid si fuera posible. 
+   Sin embargo, en este caso, solo ocultaremos contenido y apariencia visualmente. */
+
+/* Estilo aplicado cuando una columna o fila está oculta (controlado por JS) */
+.hidden-col {
+    display: none; /* Oculta completamente la estructura de la columna */
 }
 
-.col-header {
-    flex-grow: 1; /* Distribuye el espacio equitativamente entre las 10 columnas */
-    text-align: center;
-    padding: 10px 5px;
+/* Si se trata de un selector visible, pero el contenido del grid debe mostrarse vacío
+   (Esto es más complejo y depende de cómo js maneje los divs en #sheet-grid) */
+.hidden-row {
+    display: none; /* Oculta completamente la estructura de la fila */
+}
+
+/* ========================================
+   ESTILOS DE FORMATO Y SELECCIÓN (ACCIONES DE USUARIO)
+   ======================================== */
+
+/* Color de fondo personalizado aplicado a una celda específica */
+.custom-background {
+    /* Se aplicará el color específico mediante JS, pero se define la clase para consistencia */
+}
+
+/* Estilos visuales para las etiquetas de los selectores (A y 1) */
+.row-header-label, .col-label {
     font-weight: bold;
-    background-color: #e6e6e6;
-    border-right: 1px solid #ccc;
-    user-select: none; /* Evita la selección de texto en los encabezados */
+    background-color: #d9eefc; /* Fondo suave para destacar el selector */
+    user-select: none; /* Evita la selección de texto en los selectores */
 }
 
-/* Eliminar el borde derecho del último header (J) */
-.col-header:last-child {
-    border-right: none;
+/* Estilo visual cuando se selecciona una columna entera (clicando en su letra) */
+.column-selected .cell {
+    background-color: #b3d9ff; /* Resaltado azul claro al seleccionar el bloque completo */
 }
 
-/* =============================== */
-/* Contenido Principal (Grid)         */
-#grid-container {
-    display: flex; /* Flexbox para alinear la etiqueta de fila y el contenido restante */
-    flex-direction: column;
-    width: 100%;
-}
-
-/* Estiliza cada contenedor de fila completo */
-.row-container {
-    display: flex;
-    border-bottom: 1px solid #eee; /* Separación sutil entre filas */
-    min-height: 35px; /* Altura mínima para que las celdas se vean bien */
-}
-
-/* Etiqueta de número de fila (1, 2, 3...) */
-.row-label {
-    flex-shrink: 0; /* Asegura que el label no se encoja */
-    width: 40px; /* Ancho fijo para los números de fila */
-    text-align: center;
-    padding: 10px 5px;
-    background-color: #f9f9f9;
-    border-right: 2px solid #ccc; /* Separación visual del contenido */
-    font-weight: bold;
-    user-select: none;
-}
-
-/* Estilo base para todas las celdas de datos */
-.cell {
-    flex-grow: 1; /* Hace que cada celda ocupe el espacio restante en la fila */
-    padding: 8px 10px;
-    border-right: 1px solid #eee; /* Separación lateral entre celdas */
-    cursor: text; /* Indica que es editable */
-    overflow: hidden; /* Controla el desbordamiento de contenido */
-    white-space: pre-wrap; /* Mantiene saltos de línea y espacios si se edita */
-}
-
-/* Eliminar el borde derecho del último cell (J) en cada fila */
-.row-container > .cell:last-child {
-    border-right: none;
-}
-
-/* =============================== */
-/* Estados Interactivos y Selectores   */
-/* Estilo cuando una celda está seleccionada/enfocada */
-.cell[contenteditable="true"]:focus,
-.selected-cell {
-    box-shadow: inset 0 0 0 1px #2196F3; /* Borde azul al enfocar */
-    outline: none; /* Quita el borde de navegador por defecto */
-}
-
-/* Estilo cuando se selecciona una fila completa (por click en el número) */
-.selected-row {
-    background-color: #dbeeff !important; /* Fondo suave para la selección de fila */
-}
-
-/* Estilo cuando se selecciona una columna completa (por click en la letra) */
-.selected-column .cell {
-    background-color: #cce0ff !important; /* Fondo azul más claro para el contenido */
-}
-
-/* Estilo aplicado a todas las celdas de un grupo seleccionado*/
-.selected-row .cell,
-.selected-column .cell {
-    border: 1px solid #9bb8e6; /* Borde visible en la selección */
+/* Estilo visual cuando se selecciona una fila completa (clicando en su número) */
+.row-selected .cell {
+    background-color: #cce0ff; /* Resaltado más suave para filas */
 }
 
 
-/* =============================== */
-/* Funcionalidad de Color Fondo        */
-/* Clase aplicada al contenido de las celdas para cambiar color */
-.custom-bg {
-    transition: background-color 0.2s ease; /* Suaviza el cambio de color */
-    background-color: inherit !important; /* Asegura que el fondo se respete */
+/* ========================================
+   ESTILOS DE CONTENIDO Y FORMULAS
+   ======================================== */
+
+/* Asegura que el texto de las fórmulas o resultados no se vea mal en los bordes */
+.cell:empty {
+    background-color: white; /* Fondo limpio si la celda está vacía */
 }
 
-/* =============================== */
-/* Estilos para contenido editable     */
-/* Asegura un buen padding cuando está activo en edición */
-.cell[contenteditable="true"]:active {
-    padding: 8px 10px;
+/* Limita el contenido a un tamaño razonable para mejor visualización */
+.cell p, .cell div {
+    margin: 0;
+    padding: inherit;
+    line-height: normal; /* Asegura que el texto no tenga espaciado extra */
+}
+
+/* Estilo de los botones de control (manejo de la interfaz) */
+#delete-row-btn, #delete-col-btn, #clear-all-content-btn {
+    text-transform: uppercase;
 }

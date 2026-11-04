@@ -1,0 +1,170 @@
+/* ================================================== */
+/* GLOBAL STYLES AND RESET */
+/* ================================================== */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f9;
+}
+
+button {
+    padding: 10px 15px;
+    margin-right: 10px;
+    border: none;
+    cursor: pointer;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+button:hover:not([disabled]) {
+    background-color: #cccccc;
+}
+
+button[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ================================================== */
+/* TOOLBAR STYLING (R5, R6, R7 actions) */
+/* ================================================== */
+#toolbar {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+}
+
+/* ================================================== */
+/* SPREADSHEET LAYOUT (R2) */
+/* ================================================== */
+
+#spreadsheet-container {
+    display: grid;
+    /* Definimos 1 columna para la numeración de filas + 10 columnas para A-J */
+    grid-template-columns: 50px repeat(10, 1fr); 
+    border: 1px solid #ccc;
+}
+
+/* Contenedor que maneja las letras (A-J) y los números (1-20) */
+#column-headers {
+    display: grid;
+    grid-template-columns: 50px repeat(10, 1fr);
+    border-bottom: 1px solid #ccc;
+    background-color: #e9e9e9;
+}
+
+/* Esquina superior izquierda (corner-cell) */
+.corner-cell {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    background-color: #d9d9d9; /* Diferenciador visual */
+}
+
+/* Estilos para las letras de columna (A, B, C...) */
+.column-header {
+    text-align: center;
+    padding: 8px 0;
+    font-weight: bold;
+    background-color: #e9e9e9;
+    border-right: 1px solid #ccc;
+    cursor: pointer; /* Indica interactividad */
+}
+
+/* Estilos para los números de fila (1, 2, 3...) */
+.row-header {
+    text-align: center;
+    padding: 8px 0;
+    font-weight: bold;
+    background-color: #e9e9e9;
+    border-right: none; /* Ya tiene el borde del grid */
+    cursor: pointer;
+}
+
+
+/* ================================================== */
+/* GRID AREA STYLING (Celdas) */
+/* ================================================== */
+
+#grid-area {
+    display: grid;
+    /* Mantenemos la estructura de 10 columnas A-J */
+    grid-template-columns: repeat(10, 1fr);
+}
+
+/* Estilo base para todas las celdas (A1, B2...) */
+.cell {
+    border: 1px solid #ccc;
+    padding: 5px;
+    min-height: 30px; /* Asegura que haya altura visible */
+    box-sizing: border-box;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+/* El contenido editable de la celda (cuando se hace click) */
+.cell input[type="text"] {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    border: none;
+    outline: none; /* Quitar el borde por defecto al enfocar */
+    padding: 5px;
+    font-size: inherit;
+}
+
+/* Estilos visuales para la selección (R6, R7) */
+.selected {
+    background-color: #cfe2f3 !important; /* Azul claro de selección */
+    border: 1px solid #8faed9 !important;
+    z-index: 10; /* Asegura que el borde se vea bien */
+}
+
+/* Estilo visual para la celda activa (donde estamos editando) */
+.active-cell {
+    border: 2px solid #3498db !important;
+    background-color: #dceaff !important;
+}
+
+
+/* ================================================== */
+/* ESTADOS ESPECÍFICOS Y FORMATO (R5, R10) */
+/* ================================================== */
+
+.formatted {
+    /* Clase que se añade por JS para aplicar el color de fondo */
+    background-color: var(--user-bg-color, white) !important;
+}
+
+
+/* ================================================== */
+/* ESTADOS DE OCULTAMIENTO (R8) */
+/* 
+ * Nota: La lógica de ocultamiento debe aplicarse a los elementos 
+ * en el DOM. Aquí definimos cómo se ven si están 'hidden'.
+ * Usamos display: none; para simular la funcionalidad.
+*/
+.hidden {
+    display: none !important;
+}
+
+/* ================================================== */
+/* RESPONSIVE ADJUSTMENTS (Optional but good practice) */
+/* ================================================== */
+@media (max-width: 768px) {
+    #spreadsheet-container {
+        padding: 0;
+    }
+    .cell, .column-header, .row-header {
+        font-size: 12px;
+        padding: 3px;
+    }
+}

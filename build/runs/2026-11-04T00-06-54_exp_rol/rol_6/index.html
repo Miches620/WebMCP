@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoja de Cálculo Sin Frameworks</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div id="app-container">
+        <h1>Spreadsheet App</h1>
+        
+        <!-- Controles de vista globales -->
+        <div class="controls">
+            <button id="btn-columna-borrar">🗑️ Borrar Columna Seleccionada</button>
+            <button id="btn-fila-borrar">🗑️ Borrar Fila Seleccionada</button>
+            <button id="btn-toggle-columna">�em Ocultar/Mostrar Columna</button>
+            <button id="btn-toggle-fila">�em Ocultar/Mostrar Fila</button>
+        </div>
+
+        <!-- Área principal de la hoja de cálculo -->
+        <div id="spreadsheet-wrapper">
+            <table id="spreadsheet">
+                <thead>
+                    <tr>
+                        <th></th> <!-- Esquina superior izquierda (vacío) -->
+                        <th class="col-header" data-column-index="A">A</th>
+                        <th class="col-header" data-column-index="B">B</th>
+                        <th class="col-header" data-column-index="C">C</th>
+                        <th class="col-header" data-column-index="D">D</th>
+                        <th class="col-header" data-column-index="E">E</th>
+                        <th class="col-header" data-column-index="F">F</th>
+                        <th class="col-header" data-column-index="G">G</th>
+                        <th class="col-header" data-column-index="H">H</th>
+                        <th class="col-header" data-column-index="I">I</th>
+                        <th class="col-header" data-column-index="J">J</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Filas 1 a 20 -->
+                    <!-- Fila 1 (i=0, para coincidir con el índice de JS) -->
+                    <tr>
+                        <th class="row-header" data-row-index="1">1</th>
+                        <!-- Celdas A1 a J1 -->
+                        <td class="cell" data-row-index="1" data-col-index="A"></td>
+                        <td class="cell" data-row-index="1" data-col-index="B"></td>
+                        <td class="cell" data-row-index="1" data-col-index="C"></td>
+                        <td class="cell" data-row-index="1" data-col-index="D"></td>
+                        <td class="cell" data-row-index="1" data-col-index="E"></td>
+                        <td class="cell" data-row-index="1" data-col-index="F"></td>
+                        <td class="cell" data-row-index="1" data-col-index="G"></td>
+                        <td class="cell" data-row-index="1" data-col-index="H"></td>
+                        <td class="cell" data-row-index="1" data-col-index="I"></td>
+                        <td class="cell" data-row-index="1" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 2 -->
+                    <tr>
+                        <th class="row-header" data-row-index="2">2</th>
+                        <td class="cell" data-row-index="2" data-col-index="A"></td>
+                        <td class="cell" data-row-index="2" data-col-index="B"></td>
+                        <td class="cell" data-row-index="2" data-col-index="C"></td>
+                        <td class="cell" data-row-index="2" data-col-index="D"></td>
+                        <td class="cell" data-row-index="2" data-col-index="E"></td>
+                        <td class="cell" data-row-index="2" data-col-index="F"></td>
+                        <td class="cell" data-row-index="2" data-col-index="G"></td>
+                        <td class="cell" data-row-index="2" data-col-index="H"></td>
+                        <td class="cell" data-row-index="2" data-col-index="I"></td>
+                        <td class="cell" data-row-index="2" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 3 -->
+                    <tr>
+                        <th class="row-header" data-row-index="3">3</th>
+                        <td class="cell" data-row-index="3" data-col-index="A"></td>
+                        <td class="cell" data-row-index="3" data-col-index="B"></td>
+                        <td class="cell" data-row-index="3" data-col-index="C"></td>
+                        <td class="cell" data-row-index="3" data-col-index="D"></td>
+                        <td class="cell" data-row-index="3" data-col-index="E"></td>
+                        <td class="cell" data-row-index="3" data-col-index="F"></td>
+                        <td class="cell" data-row-index="3" data-col-index="G"></td>
+                        <td class="cell" data-row-index="3" data-col-index="H"></td>
+                        <td class="cell" data-row-index="3" data-col-index="I"></td>
+                        <td class="cell" data-row-index="3" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 4 -->
+                    <tr>
+                        <th class="row-header" data-row-index="4">4</th>
+                        <td class="cell" data-row-index="4" data-col-index="A"></td>
+                        <td class="cell" data-row-index="4" data-col-index="B"></td>
+                        <td class="cell" data-row-index="4" data-col-index="C"></td>
+                        <td class="cell" data-row-index="4" data-col-index="D"></td>
+                        <td class="cell" data-row-index="4" data-col-index="E"></td>
+                        <td class="cell" data-row-index="4" data-col-index="F"></td>
+                        <td class="cell" data-row-index="4" data-col-index="G"></td>
+                        <td class="cell" data-row-index="4" data-col-index="H"></td>
+                        <td class="cell" data-row-index="4" data-col-index="I"></td>
+                        <td class="cell" data-row-index="4" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 5 -->
+                    <tr>
+                        <th class="row-header" data-row-index="5">5</th>
+                        <td class="cell" data-row-index="5" data-col-index="A"></td>
+                        <td class="cell" data-row-index="5" data-col-index="B"></td>
+                        <td class="cell" data-row-index="5" data-col-index="C"></td>
+                        <td class="cell" data-row-index="5" data-col-index="D"></td>
+                        <td class="cell" data-row-index="5" data-col-index="E"></td>
+                        <td class="cell" data-row-index="5" data-col-index="F"></td>
+                        <td class="cell" data-row-index="5" data-col-index="G"></td>
+                        <td class="cell" data-row-index="5" data-col-index="H"></td>
+                        <td class="cell" data-row-index="5" data-col-index="I"></td>
+                        <td class="cell" data-row-index="5" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 6 -->
+                    <tr>
+                        <th class="row-header" data-row-index="6">6</th>
+                        <td class="cell" data-row-index="6" data-col-index="A"></td>
+                        <td class="cell" data-row-index="6" data-col-index="B"></td>
+                        <td class="cell" data-row-index="6" data-col-index="C"></td>
+                        <td class="cell" data-row-index="6" data-col-index="D"></td>
+                        <td class="cell" data-row-index="6" data-col-index="E"></td>
+                        <td class="cell" data-row-index="6" data-col-index="F"></td>
+                        <td class="cell" data-row-index="6" data-col-index="G"></td>
+                        <td class="cell" data-row-index="6" data-col-index="H"></td>
+                        <td class="cell" data-row-index="6" data-col-index="I"></td>
+                        <td class="cell" data-row-index="6" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 7 -->
+                    <tr>
+                        <th class="row-header" data-row-index="7">7</th>
+                        <td class="cell" data-row-index="7" data-col-index="A"></td>
+                        <td class="cell" data-row-index="7" data-col-index="B"></td>
+                        <td class="cell" data-row-index="7" data-col-index="C"></td>
+                        <td class="cell" data-row-index="7" data-col-index="D"></td>
+                        <td class="cell" data-row-index="7" data-col-index="E"></td>
+                        <td class="cell" data-row-index="7" data-col-index="F"></td>
+                        <td class="cell" data-row-index="7" data-col-index="G"></td>
+                        <td class="cell" data-row-index="7" data-col-index="H"></td>
+                        <td class="cell" data-row-index="7" data-col-index="I"></td>
+                        <td class="cell" data-row-index="7" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 8 -->
+                    <tr>
+                        <th class="row-header" data-row-index="8">8</th>
+                        <td class="cell" data-row-index="8" data-col-index="A"></td>
+                        <td class="cell" data-row-index="8" data-col-index="B"></td>
+                        <td class="cell" data-row-index="8" data-col-index="C"></td>
+                        <td class="cell" data-row-index="8" data-col-index="D"></td>
+                        <td class="cell" data-row-index="8" data-col-index="E"></td>
+                        <td class="cell" data-row-index="8" data-col-index="F"></td>
+                        <td class="cell" data-row-index="8" data-col-index="G"></td>
+                        <td class="cell" data-row-index="8" data-col-index="H"></td>
+                        <td class="cell" data-row-index="8" data-col-index="I"></td>
+                        <td class="cell" data-row-index="8" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 9 -->
+                    <tr>
+                        <th class="row-header" data-row-index="9">9</th>
+                        <td class="cell" data-row-index="9" data-col-index="A"></td>
+                        <td class="cell" data-row-index="9" data-col-index="B"></td>
+                        <td class="cell" data-row-index="9" data-col-index="C"></td>
+                        <td class="cell" data-row-index="9" data-col-index="D"></td>
+                        <td class="cell" data-row-index="9" data-col-index="E"></td>
+                        <td class="cell" data-row-index="9" data-col-index="F"></td>
+                        <td class="cell" data-row-index="9" data-col-index="G"></td>
+                        <td class="cell" data-row-index="9" data-col-index="H"></td>
+                        <td class="cell" data-row-index="9" data-col-index="I"></td>
+                        <td class="cell" data-row-index="9" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 10 -->
+                    <tr>
+                        <th class="row-header" data-row-index="10">10</th>
+                        <td class="cell" data-row-index="10" data-col-index="A"></td>
+                        <td class="cell" data-row-index="10" data-col-index="B"></td>
+                        <td class="cell" data-row-index="10" data-col-index="C"></td>
+                        <td class="cell" data-row-index="10" data-col-index="D"></td>
+                        <td class="cell" data-row-index="10" data-col-index="E"></td>
+                        <td class="cell" data-row-index="10" data-col-index="F"></td>
+                        <td class="cell" data-row-index="10" data-col-index="G"></td>
+                        <td class="cell" data-row-index="10" data-col-index="H"></td>
+                        <td class="cell" data-row-index="10" data-col-index="I"></td>
+                        <td class="cell" data-row-index="10" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 11 -->
+                    <tr>
+                        <th class="row-header" data-row-index="11">11</th>
+                        <td class="cell" data-row-index="11" data-col-index="A"></td>
+                        <td class="cell" data-row-index="11" data-col-index="B"></td>
+                        <td class="cell" data-row-index="11" data-col-index="C"></td>
+                        <td class="cell" data-row-index="11" data-col-index="D"></td>
+                        <td class="cell" data-row-index="11" data-col-index="E"></td>
+                        <td class="cell" data-row-index="11" data-col-index="F"></td>
+                        <td class="cell" data-row-index="11" data-col-index="G"></td>
+                        <td class="cell" data-row-index="11" data-col-index="H"></td>
+                        <td class="cell" data-row-index="11" data-col-index="I"></td>
+                        <td class="cell" data-row-index="11" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 12 -->
+                    <tr>
+                        <th class="row-header" data-row-index="12">12</th>
+                        <td class="cell" data-row-index="12" data-col-index="A"></td>
+                        <td class="cell" data-row-index="12" data-col-index="B"></td>
+                        <td class="cell" data-row-index="12" data-col-index="C"></td>
+                        <td class="cell" data-row-index="12" data-col-index="D"></td>
+                        <td class="cell" data-row-index="12" data-col-index="E"></td>
+                        <td class="cell" data-row-index="12" data-col-index="F"></td>
+                        <td class="cell" data-row-index="12" data-col-index="G"></td>
+                        <td class="cell" data-row-index="12" data-col-index="H"></td>
+                        <td class="cell" data-row-index="12" data-col-index="I"></td>
+                        <td class="cell" data-row-index="12" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 13 -->
+                    <tr>
+                        <th class="row-header" data-row-index="13">13</th>
+                        <td class="cell" data-row-index="13" data-col-index="A"></td>
+                        <td class="cell" data-row-index="13" data-col-index="B"></td>
+                        <td class="cell" data-row-index="13" data-col-index="C"></td>
+                        <td class="cell" data-row-index="13" data-col-index="D"></td>
+                        <td class="cell" data-row-index="13" data-col-index="E"></td>
+                        <td class="cell" data-row-index="13" data-col-index="F"></td>
+                        <td class="cell" data-row-index="13" data-col-index="G"></td>
+                        <td class="cell" data-row-index="13" data-col-index="H"></td>
+                        <td class="cell" data-row-index="13" data-col-index="I"></td>
+                        <td class="cell" data-row-index="13" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 14 -->
+                    <tr>
+                        <th class="row-header" data-row-index="14">14</th>
+                        <td class="cell" data-row-index="14" data-col-index="A"></td>
+                        <td class="cell" data-row-index="14" data-col-index="B"></td>
+                        <td class="cell" data-row-index="14" data-col-index="C"></td>
+                        <td class="cell" data-row-index="14" data-col-index="D"></td>
+                        <td class="cell" data-row-index="14" data-col-index="E"></td>
+                        <td class="cell" data-row-index="14" data-col-index="F"></td>
+                        <td class="cell" data-row-index="14" data-col-index="G"></td>
+                        <td class="cell" data-row-index="14" data-col-index="H"></td>
+                        <td class="cell" data-row-index="14" data-col-index="I"></td>
+                        <td class="cell" data-row-index="14" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 15 -->
+                    <tr>
+                        <th class="row-header" data-row-index="15">15</th>
+                        <td class="cell" data-row-index="15" data-col-index="A"></td>
+                        <td class="cell" data-row-index="15" data-col-index="B"></td>
+                        <td class="cell" data-row-index="15" data-col-index="C"></td>
+                        <td class="cell" data-row-index="15" data-col-index="D"></td>
+                        <td class="cell" data-row-index="15" data-col-index="E"></td>
+                        <td class="cell" data-row-index="15" data-col-index="F"></td>
+                        <td class="cell" data-row-index="15" data-col-index="G"></td>
+                        <td class="cell" data-row-index="15" data-col-index="H"></td>
+                        <td class="cell" data-row-index="15" data-col-index="I"></td>
+                        <td class="cell" data-row-index="15" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 16 -->
+                    <tr>
+                        <th class="row-header" data-row-index="16">16</th>
+                        <td class="cell" data-row-index="16" data-col-index="A"></td>
+                        <td class="cell" data-row-index="16" data-col-index="B"></td>
+                        <td class="cell" data-row-index="16" data-col-index="C"></td>
+                        <td class="cell" data-row-index="16" data-col-index="D"></td>
+                        <td class="cell" data-row-index="16" data-col-index="E"></td>
+                        <td class="cell" data-row-index="16" data-col-index="F"></td>
+                        <td class="cell" data-row-index="16" data-col-index="G"></td>
+                        <td class="cell" data-row-index="16" data-col-index="H"></td>
+                        <td class="cell" data-row-index="16" data-col-index="I"></td>
+                        <td class="cell" data-row-index="16" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 17 -->
+                    <tr>
+                        <th class="row-header" data-row-index="17">17</th>
+                        <td class="cell" data-row-index="17" data-col-index="A"></td>
+                        <td class="cell" data-row-index="17" data-col-index="B"></td>
+                        <td class="cell" data-row-index="17" data-col-index="C"></td>
+                        <td class="cell" data-row-index="17" data-col-index="D"></td>
+                        <td class="cell" data-row-index="17" data-col-index="E"></td>
+                        <td class="cell" data-row-index="17" data-col-index="F"></td>
+                        <td class="cell" data-row-index="17" data-col-index="G"></td>
+                        <td class="cell" data-row-index="17" data-col-index="H"></td>
+                        <td class="cell" data-row-index="17" data-col-index="I"></td>
+                        <td class="cell" data-row-index="17" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 18 -->
+                    <tr>
+                        <th class="row-header" data-row-index="18">18</th>
+                        <td class="cell" data-row-index="18" data-col-index="A"></td>
+                        <td class="cell" data-row-index="18" data-col-index="B"></td>
+                        <td class="cell" data-row-index="18" data-col-index="C"></td>
+                        <td class="cell" data-row-index="18" data-col-index="D"></td>
+                        <td class="cell" data-row-index="18" data-col-index="E"></td>
+                        <td class="cell" data-row-index="18" data-col-index="F"></td>
+                        <td class="cell" data-row-index="18" data-col-index="G"></td>
+                        <td class="cell" data-row-index="18" data-col-index="H"></td>
+                        <td class="cell" data-row-index="18" data-col-index="I"></td>
+                        <td class="cell" data-row-index="18" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 19 -->
+                    <tr>
+                        <th class="row-header" data-row-index="19">19</th>
+                        <td class="cell" data-row-index="19" data-col-index="A"></td>
+                        <td class="cell" data-row-index="19" data-col-index="B"></td>
+                        <td class="cell" data-row-index="19" data-col-index="C"></td>
+                        <td class="cell" data-row-index="19" data-col-index="D"></td>
+                        <td class="cell" data-row-index="19" data-col-index="E"></td>
+                        <td class="cell" data-row-index="19" data-col-index="F"></td>
+                        <td class="cell" data-row-index="19" data-col-index="G"></td>
+                        <td class="cell" data-row-index="19" data-col-index="H"></td>
+                        <td class="cell" data-row-index="19" data-col-index="I"></td>
+                        <td class="cell" data-row-index="19" data-col-index="J"></td>
+                    </tr>
+                    <!-- Fila 20 -->
+                    <tr>
+                        <th class="row-header" data-row-index="20">20</th>
+                        <td class="cell" data-row-index="20" data-col-index="A"></td>
+                        <td class="cell" data-row-index="20" data-col-index="B"></td>
+                        <td class="cell" data-row-index="20" data-col-index="C"></td>
+                        <td class="cell" data-row-index="20" data-col-index="D"></td>
+                        <td class="cell" data-row-index="20" data-col-index="E"></td>
+                        <td class="cell" data-row-index="20" data-col-index="F"></td>
+                        <td class="cell" data-row-index="20" data-col-index="G"></td>
+                        <td class="cell" data-row-index="20" data-col-index="H"></td>
+                        <td class="cell" data-row-index="20" data-col-index="I"></td>
+                        <td class="cell" data-row-index="20" data-col-index="J"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

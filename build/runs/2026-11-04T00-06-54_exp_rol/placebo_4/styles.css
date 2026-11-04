@@ -1,0 +1,113 @@
+/* ------------------------------------------ */
+/* Global Styles and Typography Setup         */
+/* ------------------------------------------ */
+
+body {
+    font-family: Arial, sans-serif; /* Define la fuente general del documento */
+    margin: 20px;
+    background-color: #f4f4f9; /* Color de fondo suave para el cuerpo */
+}
+
+h1 {
+    color: #333; /* Título con color oscuro y visible */
+    margin-bottom: 20px;
+}
+
+/* ------------------------------------------ */
+/* Spreadsheet Container and Table Setup       */
+/* ------------------------------------------ */
+
+#spreadsheet-container {
+    overflow-x: auto; /* Permite scroll horizontal si hay muchas columnas */
+    border: 1px solid #ccc; /* Borde visible alrededor de la hoja completa */
+    background-color: white; /* Fondo blanco para el área de trabajo */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra sutil para elevar la tabla */
+}
+
+#spreadsheet {
+    border-collapse: collapse; /* Elimina espacios dobles entre bordes de celdas */
+    width: fit-content; /* Ajusta el ancho al contenido total (A a J) */
+    table-layout: fixed; /* Asegura que las columnas tengan anchos uniformes */
+}
+
+/* ------------------------------------------ */
+/* Header Styling (Column Letters and Row Labels)*/
+/* ------------------------------------------ */
+
+.column-header {
+    background-color: #e9ecef; /* Fondo gris claro para el encabezado de columna */
+    font-weight: bold;
+    text-align: center;
+    padding: 10px 5px;
+    border: 1px solid #ddd; /* Borde sutil del encabezado */
+    width: 80px; /* Ancho fijo para cada columna letra (A-J) */
+}
+
+.row-label {
+    background-color: #e9ecef; /* Fondo gris claro para el encabezado de fila */
+    font-weight: bold;
+    text-align: center;
+    padding: 10px 5px;
+    border: 1px solid #ddd; /* Borde sutil del encabezado */
+    width: 40px; /* Ancho fijo para la etiqueta de fila (número) */
+    position: sticky; /* Mantiene visible el número al hacer scroll lateral */
+    left: 0;
+    z-index: 10;
+}
+
+/* Estilo del borde superior izquierdo vacío */
+#spreadsheet thead tr :first-child {
+    border: none !important; /* Elimina borde innecesario en la esquina */
+}
+
+
+/* ------------------------------------------ */
+/* Cell Styling (Data Cells)                   */
+/* ------------------------------------------ */
+
+.cell {
+    height: 30px; /* Altura fija para cada fila de contenido */
+    padding: 8px 10px; /* Espaciado interno uniforme en celdas */
+    border: 1px solid #ddd; /* Borde estándar alrededor de todas las celdas */
+    box-sizing: border-box; /* Incluye padding y borde dentro del tamaño total */
+    min-width: 80px; /* Asegura el ancho base para la columna A-J */
+    cursor: text; /* Indica que la celda es editable */
+    transition: background-color 0.15s ease; /* Transición suave al cambiar fondo/hover */
+}
+
+/* Estilo de las celdas cuando están en foco (editable) o seleccionadas */
+.cell:focus, .selected {
+    outline: none; /* Quita el borde de enfoque por defecto del navegador */
+    border-color: #007bff; /* Borde azul al seleccionar/editar */
+    box-shadow: 0 0 0 1px #007bff; /* Efecto visual de selección */
+    background-color: #e6f2ff; /* Fondo muy claro para indicar que está activo */
+}
+
+/* Estilo cuando el usuario hace hover sobre la celda */
+.cell:hover {
+    background-color: #f0f8ff; /* Suave cambio de color al pasar el ratón */
+}
+
+/* ------------------------------------------ */
+/* Column/Row Selection Controls (Visual Feedback)*/
+/* ------------------------------------------ */
+
+/* Estilo aplicado a todas las celdas en una columna seleccionada */
+.column-selected {
+    background-color: #ffe0b2 !important; /* Naranja suave para la selección de columna */
+}
+
+/* Estilo aplicado a todas las celdas en una fila seleccionada */
+.row-selected {
+    background-color: #c8e6c9 !important; /* Verde suave para la selección de fila */
+}
+
+
+/* ------------------------------------------ */
+/* Utility Classes (Manipulados por JS)        */
+/* ------------------------------------------ */
+
+/* Clase para indicar que una celda está oculta */
+.hidden {
+    display: none !important;
+}

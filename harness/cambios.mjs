@@ -20,7 +20,7 @@
 
 import { findMember, replaceMember, syntaxOf, blockEndLines } from "./js_tools.mjs";
 
-export const CAMBIOS_VERSION = "cambios v0.3";
+export const CAMBIOS_VERSION = "cambios v0.4";
 // v0.2 (19/10, 1ª corrida real): Gemma mandó "### FUNCION: document.getElementById('card-form').addEventListener('submit', …"
 // para cambiar código suelto (fuera de funciones), y el nombre rompía la búsqueda. Ahora un nombre que no es un nombre
 // de función se busca como BLOQUE suelto por su primera línea.
@@ -103,6 +103,12 @@ export function aplicarBloques(app0, bloques) {
       const hit = (esCss ? [...cssFiles, ...jsFiles] : [...jsFiles, ...cssFiles]).map((f) => [f, f.endsWith(".css") ? findSueltoCss(app[f], b.primera) : findSuelto(app[f], b.primera)]).find(([, x]) => x);
       if (!hit) { problemas.push(`no encontré el bloque que empieza con "${b.primera.slice(0, 60)}" (para código suelto, la primera línea tiene que estar tal cual; para una función, ### FUNCION: nombre)`); continue; }
       const [f, x] = hit, lines = app[f].split("\n");
+      // 04/11 (hoja, retomando desde persona #3): todo script.js estaba adentro de document.addEventListener('DOMContentLoaded', …).
+      // 27 de 40 respuestas traían "### BLOQUE: document.addEventListener('DOMContentLoaded'…" con un PEDAZO adentro, y eso
+      // reemplazaba la app entera (se perdían las filas 2–20, el guardado…). Si el bloque es casi todo el archivo y lo que
+      // llega es mucho más corto, no se aplica, y se dice qué mandar.
+      const largo = x.end - x.start + 1, nuevas = b.codigo.trim().split("\n").length;
+      if (largo > lines.length * 0.5 && nuevas < largo * 0.5) { problemas.push(`el bloque que empieza con "${b.primera.slice(0, 60)}" es casi todo ${f} (líneas ${x.start}–${x.end}, ${largo} líneas) y mandaste ${nuevas}: se perdería el resto de la app. Mandá solo las funciones que cambian, cada una con ### FUNCION: nombre (aunque estén adentro de ese bloque)`); continue; }
       const next = [...lines.slice(0, x.start - 1), b.codigo.replace(/\s+$/, ""), ...lines.slice(x.end)].join("\n");
       const e = f.endsWith(".css") ? cssRoto(next) : syntaxOf(next);
       if (e) { problemas.push(`bloque "${b.primera.slice(0, 40)}": no compila (${e})`); continue; }

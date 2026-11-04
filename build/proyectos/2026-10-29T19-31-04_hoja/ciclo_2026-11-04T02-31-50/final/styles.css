@@ -1,0 +1,149 @@
+/* Global Reset and Base Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f9;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Container and Table Structure */
+#spreadsheet-container {
+    overflow: auto; /* Allows scrolling if content exceeds viewport */
+    border: 1px solid #ccc;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+table {
+    width: auto; /* Let the content define the width */
+    border-collapse: collapse;
+    table-layout: fixed; /* Ensures columns maintain consistent widths */
+}
+
+/* Cell Styling (General) */
+th, td {
+    padding: 0; /* Padding handled by specific elements or padding on cells themselves */
+    border: 1px solid #ddd;
+    min-width: 50px; /* Minimum width for visibility */
+    height: 30px; /* Standard row height */
+    text-align: left;
+    vertical-align: top;
+}
+
+/* Thead - Column Headers (A, B, C...) */
+thead th {
+    background-color: #e8e8e8;
+    font-weight: bold;
+    width: 50px; /* Consistent width for column letters */
+    text-align: center;
+}
+
+/* Row Index Column (1, 2, 3...) */
+.row-index {
+    background-color: #e8e8e8;
+    font-weight: bold;
+    width: 50px; /* Consistent width for row numbers */
+    text-align: center;
+}
+
+/* Data Cells (td) */
+td {
+    padding: 4px 8px;
+    cursor: text;
+    transition: background-color 0.1s ease;
+}
+
+/* State and Interaction Styles */
+
+/* Hover effect for selection indication */
+td:hover, th:hover {
+    background-color: #f0f0f0;
+}
+
+/* Active/Selected Cell Focus (When user clicks or focuses) */
+td:focus, [contenteditable="true"]:focus {
+    outline: 2px solid #4a90e2; /* Blue focus ring */
+    background-color: #d9e8ff;
+}
+
+/* Editing State - When input is active (already handled by :focus, but good to reinforce) */
+[contenteditable="true"]:active {
+    cursor: text;
+}
+
+
+/* Column/Row Management Styling */
+
+/* Background Color Change (R5) */
+.background-color {
+    /* This class will be dynamically set with specific hex codes or names */
+    /* Example usage: background-color: #FF0000 !important; */
+}
+
+/* Hidden Elements (R8, R14, R16) */
+.hidden-column {
+    display: none;
+    width: 0 !important; /* Ensure no space is reserved visually */
+    padding: 0;
+}
+
+.hidden-row td {
+    display: none;
+}
+
+
+/* Controls Section Styling */
+#controls {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    border-radius: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+button {
+    padding: 8px 15px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+button:hover:not([disabled]) {
+    background-color: #0056b3;
+}
+
+button[disabled] {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Specific button overrides */
+#btn-clear-data, #btn-delete-row, #btn-delete-column, #btn-clear-column {
+    background-color: #dc3545; /* Red for destructive actions */
+}
+
+#btn-clear-data, #btn-delete-row, #btn-delete-column, #btn-clear-column {
+    &:hover:not([disabled]) {
+        background-color: #c82333;
+    }
+}
+
+
+/* Formula Display (Optional visual cue for cells containing formulas) */
+.formula-cell {
+    font-style: italic;
+    color: #555;
+}

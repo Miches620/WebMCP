@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoja de Cálculo Avanzada</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="spreadsheet-container">
+        <h1>Mi Hoja de Cálculo</h1>
+
+        <!-- Contenedor para los controles globales (Borrar/Ocultar/Color) -->
+        <div class="controls-bar">
+            <div>
+                <span>Operaciones:</span>
+                <button id="btn-delete-col" disabled>🗑 Borrar Columna</button>
+                <button id="btn-clear-col" disabled>🧹 Vaciar Columna</button>
+                <button id="btn-hide-col" disabled>🙈 Ocultar Columna</button>
+            </div>
+            <div>
+                <span>Operaciones:</span>
+                <button id="btn-delete-row" disabled>🗑 Borrar Fila</button>
+                <button id="btn-clear-row" disabled>🧹 Vaciar Fila</button>
+                <button id="btn-hide-row" disabled>🙈 Ocultar Fila</button>
+            </div>
+            <div>
+                <span>Color de Fondo:</span>
+                <input type="color" id="color-picker" value="#ffffff">
+            </div>
+        </div>
+
+        <!-- Estructura principal tipo tabla (Grid) -->
+        <div class="table-wrapper">
+            <table id="spreadsheet-grid">
+                <thead>
+                    <tr>
+                        <!-- Celda de esquina superior izquierda, vacía -->
+                        <th></th> 
+                        <th data-col="A" role="columnheader" aria-label="Columna A">A</th>
+                        <th data-col="B" role="columnheader" aria-label="Columna B">B</th>
+                        <th data-col="C" role="columnheader" aria-label="Columna C">C</th>
+                        <th data-col="D" role="columnheader" aria-label="Columna D">D</th>
+                        <th data-col="E" role="columnheader" aria-label="Columna E">E</th>
+                        <th data-col="F" role="columnheader" aria-label="Columna F">F</th>
+                        <th data-col="G" role="columnheader" aria-label="Columna G">G</th>
+                        <th data-col="H" role="columnheader" aria-label="Columna H">H</th>
+                        <th data-col="I" role="columnheader" aria-label="Columna I">I</th>
+                        <th data-col="J" role="columnheader" aria-label="Columna J">J</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Filas 1 a 20 -->
+                    <!-- Fila 1 -->
+                    <tr id="row-1" class="spreadsheet-row selected-row">
+                        <th data-row="1" role="rowheader" aria-label="Fila 1">1</th>
+                        <td data-cell="A1" contenteditable="true" role="textbox" aria-labelledby="col-A row-1"></td>
+                        <td data-cell="B1" contenteditable="true" role="textbox" aria-labelledby="col-B row-1"></td>
+                        <td data-cell="C1" contenteditable="true" role="textbox" aria-labelledby="col-C row-1"></td>
+                        <td data-cell="D1" contenteditable="true" role="textbox" aria-labelledby="col-D row-1"></td>
+                        <td data-cell="E1" contenteditable="true" role="textbox" aria-labelledby="col-E row-1"></td>
+                        <td data-cell="F1" contenteditable="true" role="textbox" aria-labelledby="col-F row-1"></td>
+                        <td data-cell="G1" contenteditable="true" role="textbox" aria-labelledby="col-G row-1"></td>
+                        <td data-cell="H1" contenteditable="true" role="textbox" aria-labelledby="col-H row-1"></td>
+                        <td data-cell="I1" contenteditable="true" role="textbox" aria-labelledby="col-I row-1"></td>
+                        <td data-cell="J1" contenteditable="true" role="textbox" aria-labelledby="col-J row-1"></td>
+                    </tr>
+                    <!-- Fila 2 -->
+                    <tr id="row-2" class="spreadsheet-row">
+                        <th data-row="2" role="rowheader" aria-label="Fila 2">2</th>
+                        <td data-cell="A2" contenteditable="true" role="textbox" aria-labelledby="col-A row-2"></td>
+                        <td data-cell="B2" contenteditable="true" role="textbox" aria-labelledby="col-B row-2"></td>
+                        <td data-cell="C2" contenteditable="true" role="textbox" aria-labelledby="col-C row-2"></td>
+                        <td data-cell="D2" contenteditable="true" role="textbox" aria-labelledby="col-D row-2"></td>
+                        <td data-cell="E2" contenteditable="true" role="textbox" aria-labelledby="col-E row-2"></td>
+                        <td data-cell="F2" contenteditable="true" role="textbox" aria-labelledby="col-F row-2"></td>
+                        <td data-cell="G2" contenteditable="true" role="textbox" aria-labelledby="col-G row-2"></td>
+                        <td data-cell="H2" contenteditable="true" role="textbox" aria-labelledby="col-H row-2"></td>
+                        <td data-cell="I2" contenteditable="true" role="textbox" aria-labelledby="col-I row-2"></td>
+                        <td data-cell="J2" contenteditable="true" role="textbox" aria-labelledby="col-J row-2"></td>
+                    </tr>
+                    <!-- Fila 3 -->
+                    <tr id="row-3" class="spreadsheet-row">
+                        <th data-row="3" role="rowheader" aria-label="Fila 3">3</th>
+                        <td data-cell="A3" contenteditable="true" role="textbox" aria-labelledby="col-A row-3"></td>
+                        <td data-cell="B3" contenteditable="true" role="textbox" aria-labelledby="col-B row-3"></td>
+                        <td data-cell="C3" contenteditable="true" role="textbox" aria-labelledby="col-C row-3"></td>
+                        <td data-cell="D3" contenteditable="true" role="textbox" aria-labelledby="col-D row-3"></td>
+                        <td data-cell="E3" contenteditable="true" role="textbox" aria-labelledby="col-E row-3"></td>
+                        <td data-cell="F3" contenteditable="true" role="textbox" aria-labelledby="col-F row-3"></td>
+                        <td data-cell="G3" contenteditable="true" role="textbox" aria-labelledby="col-G row-3"></td>
+                        <td data-cell="H3" contenteditable="true" role="textbox" aria-labelledby="col-H row-3"></td>
+                        <td data-cell="I3" contenteditable="true" role="textbox" aria-labelledby="col-I row-3"></td>
+                        <td data-cell="J3" contenteditable="true" role="textbox" aria-labelledby="col-J row-3"></td>
+                    </tr>
+                    <!-- ... (Se repetirán hasta la Fila 20) -->
+
+                    <!-- Placeholder para las filas restantes (4 a 20) -->
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

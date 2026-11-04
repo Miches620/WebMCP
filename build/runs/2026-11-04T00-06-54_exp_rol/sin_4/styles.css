@@ -1,0 +1,120 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    padding: 20px;
+}
+
+#spreadsheet-container {
+    max-width: 1200px; /* Limitar el ancho para mejor visualización */
+    margin: 0 auto;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Encabezados de Columnas (A-J) --- */
+#column-headers {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    background-color: #e6e6fa; /* Color suave para el encabezado superior */
+}
+
+.col-header {
+    flex-grow: 1; /* Hace que cada columna ocupe espacio equitativo */
+    text-align: center;
+    padding: 10px 5px;
+    font-weight: bold;
+    background-color: #f9f9f9;
+    border-right: 1px solid #ddd;
+    cursor: pointer; /* Indica que es interactivo */
+}
+
+/* El espacio del rincón superior izquierdo (donde se cruzan las letras y los números) */
+.corner-spacer {
+    width: 50px; /* Ancho fijo para el área de la fila/columna lateral */
+    flex-shrink: 0;
+    border-right: 1px solid #ddd;
+}
+
+/* --- Área Principal de Celdas (Grid) --- */
+#grid-area {
+    display: grid;
+    /* Definimos 10 columnas con un ancho uniforme y espaciado */
+    grid-template-columns: repeat(10, 1fr);
+    /* El contenido real de las filas se gestionará por JS, pero establecemos el contexto aquí. */
+}
+
+/* Estilo base para cada celda (A1, B2, etc.) */
+.cell {
+    border: 1px solid #ddd;
+    padding: 8px;
+    min-height: 30px; /* Altura mínima visible */
+    box-sizing: border-box;
+    cursor: text; /* Indica que es editable */
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+/* Estilo cuando la celda está en foco o seleccionada (editable) */
+.cell[contenteditable="true"]:focus {
+    outline: 2px solid #4a90e2; /* Resaltado azul al editar */
+    background-color: #fff;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilo para la celda activa o seleccionada (al hacer click) */
+.cell.selected {
+    border: 2px solid #3498db;
+    background-color: #eaf6ff; /* Fondo ligeramente azulado al seleccionar */
+}
+
+
+/* --- Área de Control Lateral (Números de Fila) --- */
+/* Aunque los números se generan en JS, debemos manejar el contenedor lateral para que el grid funcione correctamente. 
+   Asumiendo que JS envolverá la estructura completa (número + celdas) dentro del grid-area y usará flex/grid adecuadamente. 
+   Si el diseño requiere una columna separada de números: */
+
+/* Si se usa un contenedor wrapper para gestionar las filas, esto lo manejaría mejor. 
+   Dado que JS genera la estructura completa en #grid-area, nos enfocamos en mantener la apariencia del grid. */
+
+
+/* --- Controles Globales (Botones) --- */
+#controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 20px 0;
+    border-top: 2px solid #ccc;
+}
+
+#controls button {
+    padding: 10px 15px;
+    cursor: pointer;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.2s, opacity 0.2s;
+}
+
+#controls button:hover:not([disabled]) {
+    background-color: #2980b9;
+}
+
+#controls button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* --- Estilos de Estado (Ocultado/Borrado) --- */
+
+/* Ocultar Fila o Columna: Se maneja mediante la propiedad display: none en JS, pero es bueno tener un fallback visual */
+
+/* Cuando una celda está vacía y no contiene fórmula visible */
+.cell[data-contenteditable="false"] {
+    background-color: #ffffff;
+}
+
+/* Estilos específicos para fórmulas (opcional, solo si se quiere diferenciar visualmente) */
+.formula-display {
+    font-weight: bold;
+    color: #2c3e50;
+}

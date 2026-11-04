@@ -19,7 +19,7 @@ const ROTA = leerApp(join(FIX, "flow_gemma_sola_rota")), ARREGLADA = leerApp(joi
 const P = JSON.parse(readFileSync(join(FIX, "planilla_kanban_c22.json"), "utf8"));
 const FEATS = JSON.parse(readFileSync(join(FIX, "real_kanban_c22/snapshot_min.json"), "utf8")).intentForge.refined_prompt.features;
 
-t("versiones", CICLO_VERSION === "ciclo v0.5" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.3");
+t("versiones", CICLO_VERSION === "ciclo v0.5" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.4");
 
 // ---------- el mapa ----------
 const mapa = mapaTexto(ROTA);
@@ -158,6 +158,14 @@ t("2ª corrida, vuelta 2: el index.html bueno venía junto con un openModal roto
   const rc = await ciclo({ app: ROTA, planilla: P, features: FEATS, outDir: mkdtempSync(join(tmpdir(), "ciclo-")), call: callC, maxVueltas: 1, log: () => {} });
   const vc = rc.ev.vueltas[0];
   t("respuesta cortada en el tope pensando: el motivo lo dice (y el próximo intento lo lee), y el tope es más alto si entra", vc.cortada && /se cortó: llegó al tope de \d+ tokens pensando \(\d+ de pensar\)/.test(vc.motivo) && vc.tokens_pedido.arreglo < 6000, vc.motivo);
+}
+
+// ---------- 04/11: todo script.js adentro de DOMContentLoaded (27 de 40 respuestas lo pisaban con un pedazo) ----------
+{
+  const js = `document.addEventListener('DOMContentLoaded', () => {\n${Array.from({ length: 30 }, (_, i) => `  const v${i} = ${i};`).join("\n")}\n  function render() { return v1; }\n});\n`;
+  const r = aplicar({ "script.js": js }, "### BLOQUE: document.addEventListener('DOMContentLoaded', () => {\n```js\ndocument.addEventListener('DOMContentLoaded', () => {\n  function render() { return 2; }\n});\n```");
+  const r2 = aplicar({ "script.js": js }, "### FUNCION: render\n```js\nfunction render() { return 2; }\n```");
+  t("un BLOQUE que es casi todo el archivo, con un pedazo adentro, no se aplica (y dice que mande funciones); la función de adentro sí se cambia", !r.aplicados.length && /es casi todo script\.js .*Mandá solo las funciones que cambian/.test(r.problemas.join()) && r2.aplicados.length === 1 && /return 2/.test(r2.app["script.js"]) && /const v29/.test(r2.app["script.js"]), JSON.stringify(r.problemas) + JSON.stringify(r2.problemas));
 }
 
 console.log(`\n${ok}/${ok + fail} OK`);

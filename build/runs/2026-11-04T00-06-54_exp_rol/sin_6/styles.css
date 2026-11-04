@@ -1,0 +1,190 @@
+/* Global Reset and Base Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f9;
+    user-select: none; /* Prevent text selection on accidental clicks */
+}
+
+.spreadsheet-container {
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Controls Panel Styling (R6, R7) --- */
+.control-panel {
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+    background-color: #eef;
+}
+
+#controls h3 {
+    margin-top: 0;
+    color: #333;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+}
+
+.control-panel button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px 12px;
+    margin: 5px 5px 5px 0;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.control-panel button:hover:not(:disabled) {
+    background-color: #45a049;
+}
+
+.control-panel button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+hr {
+    margin: 15px 0;
+    border: 0;
+    height: 1px;
+    background-color: #ddd;
+}
+
+/* --- Sheet Wrapper and Grid Layout (R2, R3) --- */
+.sheet-wrapper {
+    display: grid;
+    /* Define the structure: Row Labels | Main Content Area */
+    /* The row label width must accommodate 20 rows of numbers/text */
+    grid-template-columns: auto 1fr; 
+    overflow: hidden; /* Important to contain content */
+}
+
+.header {
+    /* These headers span the full width of the grid area, but we need them placed correctly */
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    background-color: #e9e9e9;
+}
+
+/* Column Labels (A to J) - Top Header */
+#column-headers {
+    grid-column: 2 / 3; /* Occupy the second column slot (the main content area) */
+    display: grid;
+    /* Define 10 columns for A through J */
+    grid-template-columns: repeat(10, 1fr);
+}
+
+#column-headers div {
+    border: 1px solid #ccc;
+    padding: 5px 8px;
+    text-align: center;
+    font-weight: bold;
+    background-color: #dcdcdc;
+    /* Ensure the column letters are visible */
+}
+
+/* Row Labels (1 to 20) - Left Header */
+#row-headers {
+    grid-column: 1 / 2; /* Occupy the first column slot (the row label area) */
+    display: grid;
+    /* Define 20 rows for 1 through 20 */
+    grid-template-rows: repeat(20, 40px); /* Fixed height for visibility */
+}
+
+#row-headers div {
+    border-right: 1px solid #ccc;
+    padding: 5px 8px;
+    text-align: center;
+    font-weight: bold;
+    background-color: #dcdcdc;
+}
+
+
+/* --- The Main Grid Area (The actual cells) --- */
+.grid-area {
+    /* This element must occupy the intersection of column 2 and rows 1 to 20 */
+    grid-column: 2 / 3;
+    grid-row: 2 / span 20; /* Start from row 2 (below col headers) and span 20 rows. */
+    display: grid;
+    /* Define the 10 columns for A through J */
+    grid-template-columns: repeat(10, 1fr); 
+}
+
+/* Style for individual cells (A1, B2, etc.) */
+.cell {
+    border: 1px solid #ccc;
+    padding: 5px;
+    box-sizing: border-box;
+    min-height: 40px; /* Match row header height approximation */
+    background-color: white;
+    transition: background-color 0.1s, box-shadow 0.1s;
+}
+
+/* Editable cell appearance (R1, R10) */
+.cell[contenteditable="true"]:focus {
+    outline: 2px solid royalblue;
+    box-shadow: 0 0 5px rgba(65, 105, 225, 0.5); /* Blue shadow on focus */
+}
+
+/* Styling for the displayed content vs formula input */
+.cell[data-is-formula] {
+    font-style: italic;
+    color: #888;
+    background-color: #fcfcfc;
+}
+
+/* Cell selection visual feedback (Active cell) */
+.cell.selected {
+    border: 2px solid #333 !important; /* Stronger border when selected */
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Control Styling (R5) --- */
+
+/* Visual feedback for background color changes */
+.has-custom-bg {
+    background-color: var(--custom-bg-color) !important;
+    border-color: var(--custom-border-color, #333);
+}
+
+/* When a cell is selected and we apply a color via the control panel */
+.cell.selected.has-custom-bg {
+     box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+
+/* --- Utility Classes (Used by JS to manage visibility) --- */
+
+/* Hiding elements (R8 - Column/Row hiding) */
+.hidden-element {
+    display: none !important;
+}
+
+/* Specific styling for the formula input display when editing */
+.cell[data-editing="true"] {
+    border: 2px dashed #007bff; /* Indicator that it is actively being edited */
+    background-color: #fffbe6; /* Light yellow background while typing */
+}
+
+/* --- Responsive Adjustments (Optional but good practice) --- */
+@media print {
+    body {
+        padding: 10px;
+        box-shadow: none;
+    }
+    .spreadsheet-container {
+        box-shadow: none;
+    }
+    /* Print media might require adjustments to remove control buttons */
+    #controls, .control-panel button {
+        display: none !important;
+    }
+}

@@ -1,0 +1,136 @@
+/* Global Reset and Base Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f9;
+}
+
+#spreadsheet-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Controls Section */
+.controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    background-color: #fafafa;
+}
+
+#background-color-picker {
+    width: 50px;
+    height: 30px;
+    cursor: pointer;
+}
+
+button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Table Structure Styling */
+#spreadsheet-table {
+    width: auto; /* Let the content define width, but manage internal grid structure */
+    border-collapse: collapse;
+    table-layout: fixed; /* Ensures columns maintain consistent widths */
+}
+
+/* Header Row (Column Letters A-J) */
+thead th.col-header {
+    background-color: #e0e0e0;
+    padding: 10px 5px;
+    font-weight: bold;
+    text-align: center;
+    width: 5%; /* Estimate width for A through J */
+}
+
+/* Row Header Column (Numbers 1-20) */
+.row-header {
+    background-color: #f0f0f0;
+    font-weight: bold;
+    text-align: center;
+    width: 40px; /* Fixed width for row numbers */
+    padding: 8px 5px;
+    border-right: 1px solid #ddd;
+}
+
+/* All Cells (Data content) */
+.cell {
+    /* Core appearance */
+    border: 1px solid #ccc;
+    padding: 5px 8px;
+    min-width: 60px; /* Ensure a minimum visible size */
+    height: 30px;
+    box-sizing: border-box;
+
+    /* Editable behavior */
+    background-color: white;
+    cursor: text;
+    outline: none; /* Remove default focus outline */
+}
+
+/* State Management for Cells */
+
+/* Focus/Active state when editing (R1, R10) */
+.cell[contenteditable="true"]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
+}
+
+/* Selected state (Clicking a cell) */
+.selected {
+    background-color: #cce5ff !important; /* Light blue background for selection */
+    border-color: #007bff !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Background color applied by JS (R5) */
+/* No specific CSS needed here if we use inline style/JS manipulation, but defining a fallback is good practice */
+
+
+/* Handling Hidden Rows and Columns (R8, R13, R14, R15) */
+
+/* When a row or column is hidden, we must visually remove it.
+   For structural table elements, 'display: none;' is the most reliable method. */
+
+/* Hiding an entire Row (JS will apply this to the <tr> element) */
+.sheet-row.hidden {
+    display: none !important;
+}
+
+/* When a column is hidden (JS applies this class or style), we need to hide the content of all cells in that column index/group.
+   Since JS controls visibility by manipulating classes on individual elements, we rely on `display: none` being applied directly to the container element (the cell itself). */
+
+
+/* General Styling Enhancements for Readability */
+tbody tr:nth-child(even) {
+    background-color: #f9f9f9; /* Zebra striping for better readability */
+}
+
+/* Ensure the first column of data cells always has padding/style consistency */
+.row-header th {
+    text-align: center;
+}

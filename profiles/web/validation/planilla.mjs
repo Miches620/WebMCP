@@ -181,6 +181,9 @@ const LUGAR = ([L]) => {
     if (!cs.length) return { falta: `no se ve la columna "${L.col}" (nada arriba dice "${L.col}")` };
     col = cs[0]; col.scrollIntoView({ block: "nearest", inline: "center" });
   }
+  // 04/11: en una grilla más alta que la ventana, el cruce de "J" y "20" quedaba afuera (la letra arriba de todo, el 20 abajo de
+  // todo). Se lleva la página a que la columna quede centrada a lo ancho y la fila a lo alto; el cruce entra aunque la letra no.
+  if (col && fila) { const a = col.getBoundingClientRect(), b = fila.getBoundingClientRect(); window.scrollBy({ left: a.left + a.width / 2 - innerWidth / 2, top: b.top + b.height / 2 - innerHeight / 2, behavior: "instant" }); }
   const rc = col?.getBoundingClientRect(), rf = fila?.getBoundingClientRect();
   if (col && fila) {
     // 30/10 (1ª corrida de Gemma con la hoja, 3/17 en 40 vueltas): las letras estaban apiladas a la izquierda y el cruce
@@ -277,14 +280,19 @@ const VERBOS = {
   ocultar: { si: /\b(ocultar|esconder|hide)\b|👁/i, no: /mostrar|show/i },
   color: { si: /\b(color|colorear|pintar|fondo)\b|🎨/i, no: /mostrar/i },
 };
-const BUSCAR_VERBO = ([si, no]) => {
+// 04/11 (hoja): con la fila 3 seleccionada el juez apretaba "Borrar Columna" (el primero que dice borrar). Una persona aprieta
+// el de su selección: con `tipo` ("fila" | "columna") se prefiere el que lo nombra y se evita el que nombra al otro.
+const BUSCAR_VERBO = ([si, no, tipo]) => {
   const reSi = new RegExp(si, "i"), reNo = no ? new RegExp(no, "i") : null;
   const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
   const vis = (e) => { const r = e.getBoundingClientRect(), s = getComputedStyle(e); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && Number(s.opacity) > 0.05; };
   document.querySelectorAll("[data-plan-usar]").forEach((e) => e.removeAttribute("data-plan-usar"));
   const els = [...document.querySelectorAll("button, [role=button], [role=menuitem], a, input[type=button], input[type=submit], label")].filter(vis);
   const t = (e) => nrm([e.innerText || "", e.value || "", e.getAttribute("title") || "", e.getAttribute("aria-label") || ""].join(" "));
-  const b = els.find((e) => reSi.test(t(e)) && !(reNo && reNo.test(t(e))));
+  const ok = els.filter((e) => reSi.test(t(e)) && !(reNo && reNo.test(t(e))));
+  const de = { fila: /\b(fila|filas|row|rows)\b/, columna: /\b(columna|columnas|col|column|columns)\b/ };
+  const otro = tipo === "fila" ? de.columna : tipo === "columna" ? de.fila : null;
+  const b = (tipo && de[tipo] && ok.find((e) => de[tipo].test(t(e)))) || (otro && ok.find((e) => !otro.test(t(e)))) || ok[0];
   if (!b) return null;
   b.setAttribute("data-plan-usar", "1");
   return { texto: (b.innerText || b.value || b.getAttribute("title") || b.getAttribute("aria-label") || "").trim().slice(0, 30), tag: b.tagName };
@@ -357,13 +365,16 @@ async function clicEn(page, nombre, ctx) {
   }
   if (p.falta) return { fail: p.falta };
   await page.mouse.click(p.x, p.y); await settle(page);
-  ctx.seleccion = { x: p.x, y: p.y, nombre };
+  // 04/11 (hoja): hacer clic en el número 3 OCULTABA la fila; después "borrar la fila → ya no se ve lo escrito" pasaba sin borrar
+  if (L && !(L.col && L.fila) && (await buscarLugar(page, L)).falta) return { fail: `al hacer clic en ${L.col ? `la letra "${L.col}"` : `el número "${L.fila}"`} para seleccionar${L.col ? " la columna" : " la fila"}, ${L.col ? "la columna" : "la fila"} desapareció: hacer clic tiene que seleccionarla, no ocultarla ni borrarla` };
+  ctx.seleccion = { x: p.x, y: p.y, nombre, tipo: L ? (L.col && L.fila ? "celda" : L.col ? "columna" : "fila") : null };
+  ctx.respuestaPrompt = L ? String(nombre).toUpperCase() : null;
   return { why: `hizo clic en ${L ? (L.col && L.fila ? String(nombre).toUpperCase() : L.col ? `la columna "${L.col}"` : `la fila "${L.fila}"`) : `"${nombre}"`}` };
 }
 async function usarVerbo(page, verbo, valor, ctx) {
   const v = VERBOS[verbo];
   if (!v) return { fail: `no sé usar "${verbo}" (sé: ${Object.keys(VERBOS).join(", ")})` };
-  const buscar = () => page.evaluate(BUSCAR_VERBO, [v.si.source, v.no?.source || null]);
+  const buscar = () => page.evaluate(BUSCAR_VERBO, [v.si.source, v.no?.source || null, ctx.seleccion?.tipo || null]);
   let b = await buscar(), donde = "";
   if (!b && verbo === "color" && (await page.evaluate(() => [...document.querySelectorAll("input[type=color]")].some((e) => e.getBoundingClientRect().width > 0)))) b = { texto: "selector de color", directo: true };
   if (!b && ctx.seleccion) { await page.mouse.click(ctx.seleccion.x, ctx.seleccion.y, { button: "right" }); await settle(page); b = await buscar(); donde = " (en el menú del botón derecho)"; }
@@ -376,7 +387,18 @@ async function usarVerbo(page, verbo, valor, ctx) {
     if (!b.directo && b.tag !== "LABEL") { await page.locator("[data-plan-usar]").first().click({ timeout: 2000 }).catch(() => {}); await settle(page); }
     if (!(await page.evaluate(PONER_COLOR, [color]))) return { fail: `apretó "${b.texto}" pero no apareció dónde elegir el color` };
     await settle(page);
-    return { why: `eligió el color ${color} con "${b.texto}"${donde}` };
+    // 04/11 (hoja, retomando desde el borrador persona #3): la app tenía "Color Fondo: [selector]" y un botón "Aplicar Color".
+    // El juez elegía el color en el selector y nunca apretaba Aplicar (una persona sí): R5 y R7 fallaban en falso.
+    // Después de elegir, si hay un botón visible que dice aplicar/color (que no sea el que ya se usó), se aprieta.
+    const aplicar = await page.evaluate(() => {
+      const vis = (e) => { const r = e.getBoundingClientRect(), s = getComputedStyle(e); return r.width > 0 && r.height > 0 && s.visibility !== "hidden"; };
+      const nrm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const bt = [...document.querySelectorAll("button, [role=button], input[type=button], input[type=submit]")].filter(vis).find((e) => !e.hasAttribute("data-plan-usar") && !e.disabled && /\b(aplicar|apply|ok|aceptar)\b/.test(nrm(e.innerText || e.value)) && /(color|fondo|pintar|aplicar)/.test(nrm(e.innerText || e.value)));
+      if (!bt) return null;
+      bt.setAttribute("data-plan-aplicar", "1"); return (bt.innerText || bt.value || "").trim().slice(0, 30);
+    });
+    if (aplicar) { await page.locator("[data-plan-aplicar]").first().click({ timeout: 2000 }).catch(() => {}); await settle(page); await page.evaluate(() => document.querySelectorAll("[data-plan-aplicar]").forEach((e) => e.removeAttribute("data-plan-aplicar"))); }
+    return { why: `eligió el color ${color} con "${b.texto}"${donde}${aplicar ? ` y apretó "${aplicar}"` : ""}` };
   }
   await page.evaluate(() => document.querySelectorAll("button, [role=button]").forEach((x) => { if (x.getClientRects().length) x.setAttribute("data-plan-pre", "1"); else x.removeAttribute("data-plan-pre"); }));
   await page.locator("[data-plan-usar]").first().click({ timeout: 2000 }).catch(() => {});
@@ -679,6 +701,8 @@ async function see(page, v, before, w) {
     const L = nombreLugar(v.en);
     if (!L?.col || !L?.fila) return [false, `"${v.en}" no es un lugar con columna y fila`];
     await page.evaluate(() => document.activeElement?.blur?.());
+    // 04/11: con "transition: background-color" leer enseguida daba el color de :focus a medio irse (rgb(217, 232, 255))
+    await settle(page); await page.waitForTimeout(250);
     const p = await buscarLugar(page, L);
     if (p.falta) return [false, p.falta];
     const r = await page.evaluate(LEER_LUGAR, [p.x, p.y]);
@@ -726,7 +750,10 @@ async function see(page, v, before, w) {
       }
       if (!enFila || !numerosApilados) return [false, `${yaBien}${!enFila ? `las letras ${cols[0]}–${cols.at(-1)} no están en UNA fila de izquierda a derecha (${(() => { const i = Math.max(1, rc.findIndex(([, p], k) => k > 0 && !(p.dx > rc[k - 1][1].dx + 4 && Math.abs(p.dy - rc[0][1].dy) < 8))); return `${i > 1 ? `de "${rc[0][0]}" a "${rc[i - 1][0]}" van bien, pero ` : ""}${rc.slice(Math.max(0, i - 1), i + 1).map(([c, p]) => `"${c}" en x ${Math.round(p.dx)}, y ${Math.round(p.dy)}`).join(" · ")}`; })()}: tienen que estar a la misma altura, una al lado de la otra)${corte}` : ""}${!enFila && !numerosApilados ? " y " : ""}${!numerosApilados ? `los números ${filas[0]}–${filas.at(-1)} no están en UNA columna de arriba abajo (${rf.slice(0, 3).map(([f, p]) => `"${f}" en x ${Math.round(p.dx)}, y ${Math.round(p.dy)}`).join(" · ")}…)` : ""}`];
       // y la grilla tiene que cerrar: la primera letra ENCIMA de la primera fila de celdas (si no, A1 no existe)
-      if (enFila && numerosApilados && cols.length && filas.length) { const p = await page.evaluate(LUGAR, [{ col: cols[0], fila: filas[0] }]); if (p.falta) return [false, `${yaBien}pero ${p.falta}`]; }
+      if (enFila && numerosApilados && cols.length && filas.length) { const p = await page.evaluate(LUGAR, [{ col: cols[0], fila: filas[0] }]); if (p.falta) return [false, `${yaBien}pero ${p.falta}`];
+        // 04/11 (hoja): las filas 2–20 se armaban sin la celda de la "A" (9 celdas): A1 estaba, pero J2…J20 no. La grilla tiene que
+        // cerrar también en la otra punta (última letra × último número)
+        const q = await page.evaluate(LUGAR, [{ col: cols.at(-1), fila: filas.at(-1) }]); if (q.falta) return [false, `${yaBien}✓ hay celda ${cols[0]}${filas[0]} · pero en la otra punta ${q.falta}`]; }
     }
     // 02/11: si faltan solo los números (o solo las letras), lo que sí está cuenta como avance
     const yaEstan = [rc.length === n && n ? `✓ se ven las letras ${cols[0]}–${cols.at(-1)}` : "", rf.length === m && m ? `✓ se ven los números ${filas[0]}–${filas.at(-1)}` : ""].filter(Boolean).join(" · ");
@@ -755,7 +782,7 @@ export function conAzar(row, seed) {
 export async function runRow({ page, row: row0, controls, glosario, azar, ctx, reload }) {
   let row = conAzar(filaATipos(row0, glosario), azar);
   const w = { src: itemClassRe(glosario).source, it: palabra(glosario, "item"), gr: palabra(glosario, "grupo"), ctx };
-  ctx.trasClic = null; ctx.seleccion = null;
+  ctx.trasClic = null; ctx.seleccion = null; ctx.respuestaPrompt = null;
   const ctls = { ...DEFAULT_CONTROLS, ...(controls || {}) };
   await freshStart(page, reload);
   const e0 = ctx.pageErrors.length;

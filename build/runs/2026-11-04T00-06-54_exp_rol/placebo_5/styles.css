@@ -1,0 +1,115 @@
+/* Estilos generales y reseteo */
+body {
+    font-family: Arial, sans-serif; /* Fuente legible para datos */
+    background-color: #f4f4f4; 
+    margin: 0;
+    padding: 20px; /* Espaciado general alrededor del grid */
+}
+
+/* Contenedor principal de la hoja de cálculo */
+#spreadsheet-container {
+    display: flex;
+    flex-direction: column; /* Organiza cabecera y grid verticalmente */
+    border: 1px solid #ccc; /* Borde visible para delimitar el área de trabajo */
+    background-color: white;
+}
+
+/* Estilos de la Cabecera de Columnas (A - J) */
+#column-headers {
+    display: flex;
+    width: calc(100% - 1em); /* Ocupa casi todo el ancho, dejando espacio para los números de fila */
+    border-bottom: 2px solid #ccc; /* Separador visual debajo de las letras */
+}
+
+/* Celda superior izquierda (Corner) */
+.corner-cell {
+    width: 50px; /* Ancho fijo para alinear con el número de filas */
+    height: 30px; /* Altura visible para la cabecera */
+    background-color: #eee;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Etiquetas de columna (A, B, C...) */
+.col-label {
+    flex: 0 0 auto; /* No crece ni encoge */
+    width: 50px; /* Ancho consistente para todas las etiquetas de columna */
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    border-right: 1px solid #ccc;
+    background-color: #f9f9f9; /* Fondo ligeramente diferente para la cabecera */
+}
+
+/* Estilos del Contenedor Principal de la Grilla */
+#spreadsheet-grid {
+    display: grid;
+    /* Definimos las 10 columnas, cada una con un ancho fijo similar a los labels */
+    grid-template-columns: repeat(10, 1fr); 
+}
+
+/* Estilos para el contenedor de la etiqueta de fila (el número) */
+.row-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px; /* Ancho fijo igual al corner cell y col labels */
+    font-weight: bold;
+    background-color: #f9f9f9;
+    border-right: 1px solid #ccc;
+    cursor: pointer; /* Indica que es cliqueable para selección */
+}
+
+/* Estilos de las celdas individuales (inputs) */
+.cell-input {
+    width: 100%;
+    height: 30px; /* Altura consistente para todas las celdas */
+    box-sizing: border-box; /* Incluye padding/border en el tamaño total */
+    border: 1px solid #ddd; /* Borde sutil por cada celda */
+    padding: 4px;
+    font-size: 16px;
+    transition: background-color 0.15s, border-color 0.15s;
+}
+
+/* Estilo al enfocar (para la edición) */
+.cell-input:focus {
+    outline: none; /* Quitamos el outline por defecto del navegador */
+    border-color: #4a90e2; /* Borde azul visible cuando se edita */
+    box-shadow: 0 0 3px rgba(74, 144, 226, 0.5); /* Sombra suave de enfoque */
+}
+
+/* Estilos de selección (cuando el usuario hace clic en la letra/número) */
+.col-label:hover, .row-label:hover {
+    background-color: #e9ecef;
+}
+
+/* ---------------------- */
+/* SELECCIÓN Y ESTILOS AVANZADOS */
+/* ---------------------- */
+
+/* Clase aplicada a una columna seleccionada (por su letra) */
+.column-selected {
+    background-color: #cce0ff !important; /* Fondo azul claro para selección de columna */
+}
+
+/* Clase aplicada a una fila seleccionada (por su número) */
+.row-selected {
+    background-color: #b3e0cc !important; /* Fondo verde claro para selección de fila */
+}
+
+/* Estilo cuando la celda es parte de un rango seleccionado */
+.range-highlight {
+    background-color: rgba(173, 216, 230, 0.5) !important; /* Azul muy transparente */
+}
+
+/* Color de fondo personalizado aplicado por el usuario */
+.custom-background-color {
+    transition: background-color 0.15s; /* Suaviza cambios de color */
+}
+
+/* Estilos para celdas ocultas (para simular la eliminación visual) */
+.hidden {
+    display: none !important;
+}

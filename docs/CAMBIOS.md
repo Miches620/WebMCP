@@ -1390,3 +1390,13 @@
 - **cambios v0.5:** un BLOQUE se busca también adentro de un envoltorio, si su primera línea aparece UNA sola vez; si el archivo es un envoltorio grande (`envoltorio()`), la función nueva va adentro, antes del cierre.
 - **Borrador:** la consigna de script.js pide funciones sueltas arriba de todo y una sola llamada al final ("no adentro de DOMContentLoaded"), porque es el formato que el ciclo puede arreglar por partes (contrato del harness, no saber de dominio).
 - Re-jugando las 40 respuestas con v0.5: las fórmulas siguen sin arreglarse en ninguna (C1 muestra "=SUMA(A1;B1)": handleCellInput nunca guarda la fórmula; arreglarlo pide tocar 3 funciones a la vez). `test_ciclo` +2.
+
+## 04/11 noche, 2 — "de a poco": tareas chicas para modelos chicos (decisión de Miche)
+- **Miche (04/11):** "Tareas chicas para modelos chicos, prefiero asignarle 80 tareas chicas y que las pueda hacer en vez de 17 y que no pueda… El tiempo es la única inversión que estamos dispuestos a ceder… Si un modelo grande me hace una webapp completa en 4 horas y MicheLab con los modelos chicos tarda 15 horas para hacer lo mismo, me sirve." Es la idea con la que nació MicheLab.
+- **Por qué:** en la hoja, el borrador intentaba los 17 requisitos de una vez → una app de ~600 líneas rota desde la base, y cada arreglo pedía tocar 3–4 lugares a la vez. ~320 vueltas, techo 5/17 (3 con el juez honesto).
+- **`seguir <proyecto> --de-a-poco [--base 2] [--sin-rol]`** (ciclo v0.6):
+  - borrador MÍNIMO: solo los primeros `--base` requisitos (por defecto 2) y sus pruebas, con el aviso "la app va a crecer: ahora hacé SOLO esto, bien y simple". Con la persona Frontend Senior del Role web-app (lo único que el experimento del 03–04/11 mostró a favor; las Skills quedan afuera).
+  - el ciclo trabaja de a UNA prueba (R3.1, R3.2…), no de a requisito entero; cada cambio queda solo si suma en esa prueba y no rompe ninguna que ya pasaba (como siempre).
+  - tope de 150 vueltas por defecto (el tiempo es lo que se cede).
+- **`copiar <proyecto> [nombre]`:** el mismo pedido, requisitos y planilla en una carpeta nueva, sin app ni corridas, para probar otra forma de construir con la misma vara.
+- `test_ciclo` 46/46 (+2: el borrador mínimo pide solo R1 y R2; la unidad es una prueba).

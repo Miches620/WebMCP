@@ -266,10 +266,25 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const hay = existsSync(appDir) && readdirSync(appDir).some((f) => f.endsWith(".html"));
     const outDir = join(dir, `ciclo_${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}`);
     console.log(`[PROYECTO] ${req.titulo}: ${hay ? "RETOMA desde la app que ya tiene" : "desde cero (vuelta 0: borrador)"} → ${outDir}`);
-    const { app } = await ciclo({ app: hay ? leerApp(appDir) : null, planilla, features: req.intentForge.refined_prompt.features, outDir, maxVueltas: Number(flag("--max-vueltas")) || 40, log: console.log });
+    // --de-a-poco (04/11, decisión de Miche: tareas chicas para modelos chicos): borrador MÍNIMO (los primeros --base requisitos,
+    // 2 por defecto) con la persona del Role web-app, y después de a UNA prueba por vez. El tiempo es lo que se cede.
+    const deAPoco = args.includes("--de-a-poco") ? { base: Number(flag("--base")) || 2 } : null;
+    let rol = "";
+    if (deAPoco && !args.includes("--sin-rol")) { const { loadRole, rolTexto } = await import("../roles/registry.mjs"); rol = rolTexto(await loadRole("web-app"), "borrador", { skills: false }); }
+    if (deAPoco) console.log(`[PROYECTO] de a poco: borrador mínimo (${deAPoco.base} requisito/s)${rol ? " con la persona Frontend Senior" : ""}, después de a una prueba`);
+    const { app } = await ciclo({ app: hay ? leerApp(appDir) : null, planilla, features: req.intentForge.refined_prompt.features, outDir, maxVueltas: Number(flag("--max-vueltas")) || (deAPoco ? 150 : 40), log: console.log, deAPoco, rol });
     mkdirSync(appDir, { recursive: true });
     for (const [f, s] of Object.entries(app)) writeFileSync(join(appDir, f), s);
     console.log(`[PROYECTO] la app quedó en ${appDir} (abrí index.html). Volver a correr "seguir" la retoma desde ahí.`);
+  } else if (modo === "copiar" && a1) {
+    // 04/11: el mismo proyecto (pedido, requisitos, planilla) en una carpeta nueva, SIN app ni corridas: para probar otra
+    // forma de construir y comparar con la misma vara
+    const dir = resolve(a1), nombre = (a2 && !a2.startsWith("--") ? a2 : "copia").replace(/[^\w-]+/g, "_");
+    const nuevo = join(dirname(dir), `${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}_${nombre}`);
+    mkdirSync(nuevo, { recursive: true });
+    const van = ["pedido.txt", "requisitos.json", "planilla.json", "planilla.md", "planilla_evidencia.json", "busqueda.json"].filter((f) => existsSync(join(dir, f)));
+    for (const f of van) writeFileSync(join(nuevo, f), readFileSync(join(dir, f)));
+    console.log(`[PROYECTO] copié ${van.join(", ")} → ${nuevo}\n  con Gemma:  npm run proyecto -- seguir "${nuevo}" --de-a-poco`);
   } else if (modo === "cambiar" && a1 && a2) {
     const dir = resolve(a1);
     const r = await cambiar(dir, a2, args.slice(3).filter((x) => !x.startsWith("--")).join(" "), { log: console.log });
@@ -303,7 +318,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     console.log(`[JUZGAR] ${r.cumplidos}/${r.de} requisitos cumplidos`);
     for (const f of r.fallan) console.log(`  ✗ ${f.r}: ${f.detalle.join(" | ").slice(0, 300)}`);
   } else {
-    console.log("uso:\n  node build/proyecto.mjs quitar <carpeta del proyecto> R10.3 R21.*   (saca pruebas que están mal)\n  node build/proyecto.mjs agregar <carpeta del proyecto> \"pedido nuevo\" [\"otro\"…]   (Qwen: pruebas solo de lo nuevo)\n  node build/proyecto.mjs rehacer <carpeta del proyecto> R6 R32   (Qwen: vuelve a escribir las pruebas de esos requisitos)\n  node build/proyecto.mjs cambiar <carpeta del proyecto> R12 \"texto nuevo\"   (cambia lo pedido y rehace sus pruebas)\n  node build/proyecto.mjs nuevo <pedido.txt> [--nombre x] [--sin-buscar]   (buscador + Qwen: requisitos tal cual, glosario, planilla y planilla.md)\n  node build/proyecto.mjs seguir <carpeta del proyecto> [--visual] [--moderno]  (Gemma: borrador si no hay app, y el ciclo; retoma si ya hay; --visual suma las reglas visuales)\n  node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json> [--visual] [--moderno]");
+    console.log("uso:\n  node build/proyecto.mjs quitar <carpeta del proyecto> R10.3 R21.*   (saca pruebas que están mal)\n  node build/proyecto.mjs agregar <carpeta del proyecto> \"pedido nuevo\" [\"otro\"…]   (Qwen: pruebas solo de lo nuevo)\n  node build/proyecto.mjs rehacer <carpeta del proyecto> R6 R32   (Qwen: vuelve a escribir las pruebas de esos requisitos)\n  node build/proyecto.mjs cambiar <carpeta del proyecto> R12 \"texto nuevo\"   (cambia lo pedido y rehace sus pruebas)\n  node build/proyecto.mjs nuevo <pedido.txt> [--nombre x] [--sin-buscar]   (buscador + Qwen: requisitos tal cual, glosario, planilla y planilla.md)\n  node build/proyecto.mjs seguir <carpeta del proyecto> [--visual] [--moderno] [--de-a-poco [--base 2] [--sin-rol]]  (Gemma: borrador si no hay app, y el ciclo; retoma si ya hay; --visual suma las reglas visuales; --de-a-poco: borrador mínimo y de a una prueba)\n  node build/proyecto.mjs copiar <carpeta del proyecto> [nombre]   (el mismo pedido y planilla en una carpeta nueva, sin app)\n  node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json> [--visual] [--moderno]");
     process.exit(2);
   }
 }

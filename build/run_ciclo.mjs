@@ -29,7 +29,7 @@ import { syntaxOf as syntaxOfLocal } from "../harness/js_tools.mjs";
 import { describirFila } from "../profiles/web/validation/planilla_palabras.mjs";
 import { REGLAS_VISUALES, REGLAS_MODERNAS } from "../profiles/web/validation/visual.mjs";
 
-export const CICLO_VERSION = "ciclo v0.5";
+export const CICLO_VERSION = "ciclo v0.6";
 // v0.4 (19/10, después del 16/16): VUELTA 0, el borrador. Si no hay app de partida, Gemma la escribe desde los pedidos
 // de Miche y la consigna de la planilla (en palabras), UN ARCHIVO POR PEDIDO: index.html → styles.css (viendo el HTML)
 // → script.js (viendo el HTML). Así cada pedido entra holgado en 12k y los tres archivos usan los mismos ids y clases.
@@ -206,9 +206,14 @@ export function separarArchivos(app0) {
 /** La app desde cero: 3 pedidos, uno por archivo. Devuelve { app, pedidos[] }. */
 // 03/11 (Miche: "¿le estamos asignando su role?"): `rol` es el texto del Role (persona + Skills, roles/registry.mjs
 // rolTexto) que va al principio del system. Vacío = como siempre. Se mide con build/exp_rol.mjs antes de usarlo.
-export async function borrador({ features, planilla, call = llamarLM, contexto = CONTEXTO, log = () => {}, rol = "" }) {
+// 04/11 (decisión de Miche: "tareas chicas para modelos chicos, prefiero 80 tareas chicas que pueda hacer a 17 que no"):
+// `base` (lista de requisitos, p. ej. ["R1", "R2"]) = borrador MÍNIMO: solo eso, bien y simple; lo demás se suma después, de a uno.
+export async function borrador({ features, planilla, call = llamarLM, contexto = CONTEXTO, log = () => {}, rol = "", base = null }) {
   const ctx = { planilla, features };
-  const pedido = `Lo que pide el usuario:\n${features.map((f, i) => `R${i + 1}. ${f}`).join("\n")}\n\n${consigna(ctx, planilla.filas || [])}`;
+  const enBase = (r) => !base || base.includes(r);
+  const pedido = base
+    ? `Lo que pide el usuario PARA EMPEZAR (la app va a crecer: después se le suman otros pedidos, de a uno; ahora hacé SOLO esto, bien y simple, sin adelantar lo que no se pide acá):\n${features.map((f, i) => [`R${i + 1}`, f]).filter(([r]) => enBase(r)).map(([r, f]) => `${r}. ${f}`).join("\n")}\n\n${consigna(ctx, (planilla.filas || []).filter((f) => enBase(f.r)))}`
+    : `Lo que pide el usuario:\n${features.map((f, i) => `R${i + 1}. ${f}`).join("\n")}\n\n${consigna(ctx, planilla.filas || [])}`;
   const app = {}, pedidos = [];
   for (const archivo of ["index.html", "styles.css", "script.js"]) {
     if (archivo !== "index.html") { const sep = separarArchivos(app); if (sep.cambios.length) { Object.assign(app, sep.app); sep.cambios.forEach((c) => log(`[CICLO] borrador: ${c}`)); } }
@@ -247,10 +252,20 @@ export async function ciclo(o) {
   const ctx = { planilla, features };
   const filas = planilla.filas || [];
   const reqs = [...new Set(filas.map((f) => f.r))].sort((a, b) => ordenReq(a) - ordenReq(b));
-  const filasDe = (r) => filas.filter((f) => f.r === r);
+  const filasDeReq = (r) => filas.filter((f) => f.r === r);
+  // 04/11 (de a poco): la unidad de trabajo pasa a ser UNA prueba (no un requisito entero) y el borrador es mínimo
+  const deAPoco = o.deAPoco || null, porFila = !!deAPoco;
+  const unidades = porFila ? reqs.flatMap((r) => filasDeReq(r).map((f) => f.id)) : reqs;
+  const filasDe = (u) => (porFila ? filas.filter((f) => f.id === u) : filasDeReq(u));
+  const reqDe = (u) => (porFila ? filasDe(u)[0]?.r || u : u);
   let app = o.app ? { ...o.app } : null;
   let hechoBorrador = null;
-  if (!app) { log(`[CICLO] vuelta 0: no hay app de partida → Gemma escribe el borrador (index.html, styles.css, script.js)`); hechoBorrador = await borrador({ features, planilla, call, contexto, log }); app = hechoBorrador.app; }
+  if (!app) {
+    const base = deAPoco ? reqs.slice(0, deAPoco.base || 2) : null;
+    log(`[CICLO] vuelta 0: no hay app de partida → Gemma escribe el borrador (index.html, styles.css, script.js)${base ? ` MÍNIMO: solo ${base.join(", ")}; lo demás se suma de a una prueba` : ""}${o.rol ? " · con Role" : ""}`);
+    hechoBorrador = await borrador({ features, planilla, call, contexto, log, rol: o.rol || "", base });
+    app = hechoBorrador.app;
+  }
   { const sep = separarArchivos(app); if (sep.cambios.length) { app = sep.app; sep.cambios.forEach((c) => log(`[CICLO] ${c}`)); } }
   mkdirSync(outDir, { recursive: true });
   const foto = (n) => { const d = join(outDir, `v${String(n).padStart(3, "0")}`); mkdirSync(d, { recursive: true }); for (const [f, s] of Object.entries(app)) writeFileSync(join(d, f), s); return d; };
@@ -259,18 +274,20 @@ export async function ciclo(o) {
   const guardar = () => writeFileSync(join(outDir, "ciclo.json"), JSON.stringify(ev, null, 2));
   const intentos = {}, ultimo = {};
   let pendientes = new Set(), segunda = false, version = 0;
-  const cumplidos = (est) => reqs.filter((r) => filasDe(r).every((f) => est[f.id]?.result === "PASS"));
+  const cumplidos = (est) => reqs.filter((r) => filasDeReq(r).every((f) => est[f.id]?.result === "PASS"));
+  const unidadesOk = (est) => unidades.filter((u) => filasDe(u).every((f) => est[f.id]?.result === "PASS"));
 
   for (let n = 1; n <= maxVueltas; n++) {
     const est = await juez(app, filas, `v${n}`, join(outDir, "trabajo"));
     const ok = cumplidos(est);
     ev.curva.push({ vuelta: n, cumplidos: ok.length, de: reqs.length, filas_pass: filas.filter((f) => est[f.id]?.result === "PASS").length, de_filas: filas.length });
     log(`[CICLO] vuelta ${n}: ${ok.length}/${reqs.length} requisitos · ${ev.curva.at(-1).filas_pass}/${filas.length} pruebas${pendientes.size ? ` · pendientes: ${[...pendientes].join(", ")}` : ""}`);
-    let target = reqs.find((r) => !ok.includes(r) && !pendientes.has(r));
-    if (!target && pendientes.size && !segunda) { segunda = true; log(`[CICLO] segunda pasada por los pendientes: ${[...pendientes].join(", ")}`); pendientes = new Set(); for (const k of Object.keys(intentos)) intentos[k] = 0; target = reqs.find((r) => !ok.includes(r)); }
-    if (!target) { ev.fin = ok.length === reqs.length ? "todo cumplido" : `quedan pendientes: ${reqs.filter((r) => !ok.includes(r)).join(", ")}`; break; }
+    const okU = porFila ? unidadesOk(est) : ok;
+    let target = unidades.find((u) => !okU.includes(u) && !pendientes.has(u));
+    if (!target && pendientes.size && !segunda) { segunda = true; log(`[CICLO] segunda pasada por los pendientes: ${[...pendientes].join(", ")}`); pendientes = new Set(); for (const k of Object.keys(intentos)) intentos[k] = 0; target = unidades.find((u) => !okU.includes(u)); }
+    if (!target) { ev.fin = okU.length === unidades.length ? "todo cumplido" : `quedan pendientes: ${unidades.filter((u) => !okU.includes(u)).join(", ")}`; break; }
     const mias = filasDe(target);
-    const pasaban = filas.filter((f) => est[f.id]?.result === "PASS" && f.r !== target);
+    const pasaban = filas.filter((f) => est[f.id]?.result === "PASS" && !mias.includes(f));
     const vuelta = { vuelta: n, requisito: target, antes: Object.fromEntries(mias.map((f) => [f.id, est[f.id]?.result])) };
     // ---- pedido A: qué quiere ver ----
     const mapa = mapaTexto(app);
@@ -278,12 +295,12 @@ export async function ciclo(o) {
     // si el intento anterior arreglaba esto pero rompía otra cosa, se le pide el mismo cambio MÁS lo que lo deja andando
     const rompio = /^rompió lo que ya andaba/.test(ultimo[target] || "");
     const previo = ultimo[target] ? `\n\nEl intento anterior NO sirvió: ${ultimo[target]}${rompio ? "\nOJO: tu cambio iba bien para esta regla, pero rompió lo de arriba. Mandá el MISMO cambio y, en el mismo bloque, lo que hace falta para que lo otro siga andando (p. ej. si sacaste un fondo, cambiá también el color de la letra que estaba encima)." : ""}` : "";
-    const userA = `${reqTexto(ctx, target)}\n\n${consigna(ctx, mias)}\n\n${fallas(mias, est)}${previo}\n\nMapa de la app:\n${mapa}`;
+    const userA = `${reqTexto(ctx, reqDe(target))}\n\n${consigna(ctx, mias)}\n\n${fallas(mias, est)}${previo}\n\nMapa de la app:\n${mapa}`;
     const a = await call([{ role: "system", content: SYS_VER }, { role: "user", content: userA }], 1500, "ver"); // 1500: Gemma 4 puede pensar antes de responder, y eso cuenta
     const pa = parseJsonLoose(a.content || "");
     const ver = pa.ok && Array.isArray(pa.data?.ver) ? pa.data.ver.slice(0, 4) : [];
     // ---- pedido B: el arreglo, con solo el código necesario ----
-    const fijo = `${reqTexto(ctx, target)}\n\n${consigna(ctx, mias)}\n\n${fallas(mias, est)}${previo}\n\nMapa de la app:\n${mapa}\n\nCódigo:\n`;
+    const fijo = `${reqTexto(ctx, reqDe(target))}\n\n${consigna(ctx, mias)}\n\n${fallas(mias, est)}${previo}\n\nMapa de la app:\n${mapa}\n\nCódigo:\n`;
     // el código entra dejando lugar para pensar y responder (~4.500); la respuesta usa lo que sobre, hasta 6.000
     const presupuesto = contexto - 4500 - estTokens(SYS_ARREGLO) - estTokens(fijo) - 200;
     const codigo = armarCodigo(app, ver, lugaresDeError(mias.map((f) => est[f.id]?.detail)), Math.max(500, presupuesto));

@@ -19,7 +19,7 @@ const ROTA = leerApp(join(FIX, "flow_gemma_sola_rota")), ARREGLADA = leerApp(joi
 const P = JSON.parse(readFileSync(join(FIX, "planilla_kanban_c22.json"), "utf8"));
 const FEATS = JSON.parse(readFileSync(join(FIX, "real_kanban_c22/snapshot_min.json"), "utf8")).intentForge.refined_prompt.features;
 
-t("versiones", CICLO_VERSION === "ciclo v0.5" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.5");
+t("versiones", CICLO_VERSION === "ciclo v0.6" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.5");
 
 // ---------- el mapa ----------
 const mapa = mapaTexto(ROTA);
@@ -176,6 +176,19 @@ t("2ª corrida, vuelta 2: el index.html bueno venía junto con un openModal roto
   const fin = r.app["script.js"];
   t("adentro de un envoltorio: un BLOQUE con sangría se encuentra por su primera línea, y una función nueva va ADENTRO (ve las variables)", !!envoltorio(js) && r.aplicados.length === 2 && /estado = 3/.test(fin) && !/estado = 2/.test(fin) && fin.indexOf("function otra") < fin.lastIndexOf("});") && /adentro de/.test(r.aplicados[1]), JSON.stringify(r.aplicados) + JSON.stringify(r.problemas));
   t("un archivo con funciones sueltas no es un envoltorio (la función nueva va al final, como siempre)", envoltorio("function a() {\n  return 1;\n}\nfunction b() {\n  return 2;\n}\na();\n") === null);
+}
+
+// ---------- 04/11: de a poco (borrador mínimo + de a una prueba) ----------
+{
+  const users = [];
+  const callB = async (messages) => { users.push(messages[1].content); const a = (messages[0].content.match(/Ahora escribí SOLO ([\w.]+)/) || [])[1]; return { content: `### ARCHIVO: ${a}\n\`\`\`\n${ARREGLADA[a]}\n\`\`\``, ms: 1 }; };
+  const { borrador: bor } = await import("./run_ciclo.mjs");
+  await bor({ features: FEATS, planilla: P, call: callB, base: ["R1", "R2"], rol: "Sos un desarrollador Frontend Senior." });
+  const u = users[0];
+  t("borrador mínimo: pide SOLO R1 y R2 (y sus pruebas), avisa que la app va a crecer de a uno", /PARA EMPEZAR/.test(u) && /^R1\. /m.test(u) && /^R2\. /m.test(u) && !/^R3\. /m.test(u) && !/^R16\. /m.test(u), u.slice(0, 400));
+  const r = await ciclo({ app: ROTA, planilla: P, features: FEATS, outDir: mkdtempSync(join(tmpdir(), "ciclo-")), call: async (m, max, tipo) => ({ content: tipo === "ver" ? '{"ver": ["index.html"]}' : "nada", ms: 1 }), maxVueltas: 2, maxIntentos: 1, deAPoco: { base: 2 }, log: () => {} });
+  const [a1, a2] = r.ev.vueltas;
+  t("de a poco: la unidad es UNA prueba (R1.1, después la siguiente), y el pedido habla de su requisito", /^R\d+\.\d+$/.test(a1.requisito) && /^R\d+\.\d+$/.test(a2.requisito) && a1.requisito !== a2.requisito, JSON.stringify([a1.requisito, a2.requisito]));
 }
 
 console.log(`\n${ok}/${ok + fail} OK`);

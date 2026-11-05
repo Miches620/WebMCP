@@ -19,7 +19,7 @@ const ROTA = leerApp(join(FIX, "flow_gemma_sola_rota")), ARREGLADA = leerApp(joi
 const P = JSON.parse(readFileSync(join(FIX, "planilla_kanban_c22.json"), "utf8"));
 const FEATS = JSON.parse(readFileSync(join(FIX, "real_kanban_c22/snapshot_min.json"), "utf8")).intentForge.refined_prompt.features;
 
-t("versiones", CICLO_VERSION === "ciclo v0.5" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.4");
+t("versiones", CICLO_VERSION === "ciclo v0.5" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.5");
 
 // ---------- el mapa ----------
 const mapa = mapaTexto(ROTA);
@@ -166,6 +166,16 @@ t("2ª corrida, vuelta 2: el index.html bueno venía junto con un openModal roto
   const r = aplicar({ "script.js": js }, "### BLOQUE: document.addEventListener('DOMContentLoaded', () => {\n```js\ndocument.addEventListener('DOMContentLoaded', () => {\n  function render() { return 2; }\n});\n```");
   const r2 = aplicar({ "script.js": js }, "### FUNCION: render\n```js\nfunction render() { return 2; }\n```");
   t("un BLOQUE que es casi todo el archivo, con un pedazo adentro, no se aplica (y dice que mande funciones); la función de adentro sí se cambia", !r.aplicados.length && /es casi todo script\.js .*Mandá solo las funciones que cambian/.test(r.problemas.join()) && r2.aplicados.length === 1 && /return 2/.test(r2.app["script.js"]) && /const v29/.test(r2.app["script.js"]), JSON.stringify(r.problemas) + JSON.stringify(r2.problemas));
+}
+
+// ---------- 04/11 noche: código adentro de DOMContentLoaded se puede arreglar por partes ----------
+{
+  const { envoltorio } = await import("../harness/cambios.mjs");
+  const js = `document.addEventListener("DOMContentLoaded", () => {\n  let estado = 1;\n${Array.from({ length: 12 }, (_, i) => `  const v${i} = ${i};`).join("\n")}\n  document.getElementById("b").addEventListener("click", () => {\n    estado = 2;\n  });\n  function init() { return estado; }\n  init();\n});\n`;
+  const r = aplicar({ "script.js": js }, '### BLOQUE: document.getElementById("b").addEventListener("click", () => {\n```js\ndocument.getElementById("b").addEventListener("click", () => {\n  estado = 3;\n});\n```\n### FUNCION: otra en script.js\n```js\nfunction otra() { return estado; }\n```');
+  const fin = r.app["script.js"];
+  t("adentro de un envoltorio: un BLOQUE con sangría se encuentra por su primera línea, y una función nueva va ADENTRO (ve las variables)", !!envoltorio(js) && r.aplicados.length === 2 && /estado = 3/.test(fin) && !/estado = 2/.test(fin) && fin.indexOf("function otra") < fin.lastIndexOf("});") && /adentro de/.test(r.aplicados[1]), JSON.stringify(r.aplicados) + JSON.stringify(r.problemas));
+  t("un archivo con funciones sueltas no es un envoltorio (la función nueva va al final, como siempre)", envoltorio("function a() {\n  return 1;\n}\nfunction b() {\n  return 2;\n}\na();\n") === null);
 }
 
 console.log(`\n${ok}/${ok + fail} OK`);

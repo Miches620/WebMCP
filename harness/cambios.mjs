@@ -20,7 +20,7 @@
 
 import { findMember, replaceMember, syntaxOf, blockEndLines } from "./js_tools.mjs";
 
-export const CAMBIOS_VERSION = "cambios v0.4";
+export const CAMBIOS_VERSION = "cambios v0.5";
 // v0.2 (19/10, 1ª corrida real): Gemma mandó "### FUNCION: document.getElementById('card-form').addEventListener('submit', …"
 // para cambiar código suelto (fuera de funciones), y el nombre rompía la búsqueda. Ahora un nombre que no es un nombre
 // de función se busca como BLOQUE suelto por su primera línea.
@@ -33,7 +33,10 @@ export function findSuelto(js, primera) {
   if (want.length < 8) return null;
   // el nivel de arriba del archivo es la sangría más chica (no siempre la columna 0: un archivo que salió de index.html)
   const base = Math.min(...lines.filter((l) => l.trim()).map((l) => l.match(/^[ \t]*/)[0].length), 99);
-  const i = lines.findIndex((l) => l.trim() && l.match(/^[ \t]*/)[0].length === base && norm(l).startsWith(want));
+  let i = lines.findIndex((l) => l.trim() && l.match(/^[ \t]*/)[0].length === base && norm(l).startsWith(want));
+  // 04/11 (hoja): todo script.js estaba adentro de DOMContentLoaded; "### BLOQUE: document.getElementById('btn-delete-column')…"
+  // no se encontraba porque esa línea tiene sangría. Si no está arriba de todo, vale una línea ÚNICA a cualquier sangría.
+  if (i < 0) { const hits = lines.map((l, k) => (l.trim() && norm(l).startsWith(want) ? k : -1)).filter((k) => k >= 0); if (hits.length === 1) i = hits[0]; }
   if (i < 0) return null;
   const end = /\{/.test(lines[i]) ? blockEndLines(lines, i) : i;
   if (end < 0) return null;
@@ -55,6 +58,16 @@ export function findSueltoCss(css, primera) {
 }
 const cssRoto = (css) => { const t = String(css).replace(/\/\*[\s\S]*?\*\//g, ""); let d = 0; for (const ch of t) { if (ch === "{") d++; else if (ch === "}" && --d < 0) return "una llave } de más"; } return d ? "falta cerrar una llave }" : null; };
 
+/** 04/11: si el archivo es UN bloque que envuelve casi todo (DOMContentLoaded, una IIFE…): { start, end, primera }; si no, null. */
+export function envoltorio(js) {
+  const lines = String(js || "").split("\n"), total = lines.filter((l) => l.trim()).length;
+  const k = lines.findIndex((l) => l.trim() && !/^\s*(\/\/|\/\*|\*)/.test(l));
+  if (k < 0 || !/\{\s*$/.test(lines[k])) return null;
+  const x = findSuelto(js, lines[k].trim());
+  if (!x || x.start !== k + 1) return null;
+  const dentro = lines.slice(x.start - 1, x.end).filter((l) => l.trim()).length;
+  return dentro >= total * 0.8 && x.end - x.start > 10 ? { ...x, primera: lines[k].trim() } : null;
+}
 const ARCHIVO_RE = /^[\w./-]+\.(html|css|js)$/i;
 /** Los bloques de la respuesta: [{ tipo: "funcion" | "archivo", nombre, en?, codigo }]. */
 export function leerBloques(raw) {
@@ -126,11 +139,14 @@ export function aplicarBloques(app0, bloques) {
     } else {
       const f = (b.en && jsFiles.find((k) => k === b.en || k.endsWith("/" + b.en))) || jsFiles[0];
       if (!f) { problemas.push(`${b.nombre}: la app no tiene un archivo .js`); continue; }
-      const next = `${app[f].replace(/\s+$/, "")}\n\n${b.codigo.replace(/\s+$/, "")}\n`;
+      // 04/11 (hoja): con todo adentro de document.addEventListener('DOMContentLoaded', () => { … }), una función nueva pegada
+      // al final quedaba AFUERA y no veía las variables de adentro (sheetState…). Si el archivo es un envoltorio así, va adentro.
+      const env = envoltorio(app[f]);
+      const next = env ? (() => { const ls = app[f].split("\n"); return [...ls.slice(0, env.end - 1), "", b.codigo.replace(/\s+$/, "").split("\n").map((l) => (l ? `    ${l}` : l)).join("\n"), ...ls.slice(env.end - 1)].join("\n"); })() : `${app[f].replace(/\s+$/, "")}\n\n${b.codigo.replace(/\s+$/, "")}\n`;
       const e = syntaxOf(next);
       if (e) { problemas.push(`${b.nombre} (nueva): no compila (${e})`); continue; }
       app[f] = next;
-      aplicados.push(`función nueva ${b.nombre} (${f})`);
+      aplicados.push(`función nueva ${b.nombre} (${f}${env ? `, adentro de "${env.primera.slice(0, 50)}"` : ""})`);
       nuevas.push(b.nombre);
     }
   }

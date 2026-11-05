@@ -154,7 +154,7 @@ export function puntaje(r) {
 
 // ---------- vuelta 0: el borrador ----------
 const SYS_BORRADOR = (archivo, otros) => `Sos el programador de una app web: HTML + CSS + JavaScript, sin frameworks ni librerías, que se abre con doble clic (sin servidor). La app tiene tres archivos: index.html, styles.css y script.js${otros ? " (index.html ya está escrito: usá exactamente sus ids y clases)" : ""}.
-Ahora escribí SOLO ${archivo}, completo, cumpliendo TODO lo que pide el usuario y lo que se va a probar.${archivo === "index.html" ? '\nindex.html lleva solo la estructura: enlazá styles.css (<link rel="stylesheet" href="styles.css">) y script.js (<script src="script.js"></script> al final del body), sin <style> ni <script> adentro.' : ""}
+Ahora escribí SOLO ${archivo}, completo, cumpliendo TODO lo que pide el usuario y lo que se va a probar.${archivo.endsWith(".js") ? "\nEn script.js cada función va suelta, arriba de todo (no adentro de document.addEventListener('DOMContentLoaded', …) ni de otra función grande: el <script> ya está al final del body), y al final una sola llamada que arranca la app. Así cada función se puede arreglar por separado." : ""}${archivo === "index.html" ? '\nindex.html lleva solo la estructura: enlazá styles.css (<link rel="stylesheet" href="styles.css">) y script.js (<script src="script.js"></script> al final del body), sin <style> ni <script> adentro.' : ""}
 Respondé con un único bloque:
 
 ### ARCHIVO: ${archivo}

@@ -376,20 +376,56 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /** Oculta una columna */
-    function hideColumn(colName) {
-        const colElements = document.querySelectorAll(`[data-col="${colName}"]`);
-        colElements.forEach(el => el.style.display = 'none');
-        document.getElementById(`col-header-${colName}`)?.classList.add('hidden');
+function hideColumn(colIndex) {
+    const colLetter = getColumnLetterFromIndex(colIndex);
+    if (!colLetter) return;
 
-        // Actualizar estado: marcar como oculto (aunque no afecta mucho la lógica, mejora UX)
+    // 1. Ocultar el encabezado (<th>)
+    const headerCell = document.querySelector(`th[data-col-name="${colLetter}"]`);
+    if (headerCell) {
+        headerCell.style.display = 'none';
     }
+
+    // 2. Ocultar todas las celdas de datos (<td>) en esa columna
+    const dataCells = document.querySelectorAll(`td[data-col="${colLetter}"]`);
+    dataCells.forEach(cell => {
+        cell.style.display = 'none';
+    });
+
+    // 3. Actualizar la visibilidad y el estado de los botones
+    document.getElementById('btn-delete-column').disabled = false;
+    document.getElementById('btn-clear-column').disabled = true; // Vaciar columna no tiene sentido si está oculta
+    updateColumnButtonsState();
+
+    // 4. Actualizar índices (aunque solo afecta a la visibilidad, es buena práctica)
+    updateRowIndices();
+}
 
     /** Muestra una columna */
-    function showColumn(colName) {
-        const colElements = document.querySelectorAll(`[data-col="${colName}"]`);
-        colElements.forEach(el => el.style.display = ''); // Reset display
-        document.getElementById(`col-header-${colName}`)?.classList.remove('hidden');
+function showColumn(colIndex) {
+    const colLetter = getColumnLetterFromIndex(colIndex);
+    if (!colLetter) return;
+
+    // 1. Mostrar el encabezado (<th>)
+    const headerCell = document.querySelector(`th[data-col-name="${colLetter}"]`);
+    if (headerCell) {
+        headerCell.style.display = ''; // Restaura display normal
     }
+
+    // 2. Mostrar todas las celdas de datos (<td>) en esa columna
+    const dataCells = document.querySelectorAll(`td[data-col="${colLetter}"]`);
+    dataCells.forEach(cell => {
+        cell.style.display = ''; // Restaura display normal
+    });
+
+    // 3. Actualizar la visibilidad y el estado de los botones
+    document.getElementById('btn-delete-column').disabled = false;
+    document.getElementById('btn-clear-column').disabled = true;
+    updateColumnButtonsState();
+
+    // 4. Actualizar índices
+    updateRowIndices();
+}
 
 
     // 2. Headers de Fila (1-20) - R7
@@ -422,22 +458,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /** Oculta una fila */
 function hideRow(rowIndex) {
-    // El rowIndex es el número de fila (1-based). Buscamos la fila en el tbody.
-    const row = document.querySelector(`tbody tr:nth-child(${rowIndex})`);
-    if (row) {
-        // Ocultar toda la fila completa, incluyendo el índice y los datos.
-        row.style.display = 'none';
-
-        // Si hay un elemento de índice visible que no es parte del <tr> principal, asegurar su ocultamiento.
-        // Pero dado que el índice está dentro del <tr>, simplemente ocultar el <tr> debería ser suficiente.
+    const rowElement = document.querySelector(`tr[data-row="${rowIndex}"]`);
+    if (rowElement) {
+        rowElement.style.display = 'none';
+        // Actualizar índices después de ocultar una fila
+        updateRowIndices();
     }
 }
 
     /** Muestra una fila */
-    function showRow(rowIndex) {
-        const rowElements = document.querySelectorAll(`[data-row="${rowIndex}"]`);
-        rowElements.forEach(el => el.style.display = ''); // Reset display
+function showRow(rowIndex) {
+    const rowElement = document.querySelector(`tr[data-row="${rowIndex}"]`);
+    if (rowElement) {
+        rowElement.style.display = ''; // Restaura display normal
+        // Actualizar índices después de mostrar una fila
+        updateRowIndices();
     }
+}
 
 
     // --- BOTÓN HANDLERS (Controles de gestión) ---
@@ -591,4 +628,27 @@ function applyBackground_color() {
     } else {
         alert("Por favor, selecciona una celda de la hoja para aplicar el color.");
     }
+}
+
+function getColumnLetterFromIndex(index) {
+    let letter = '';
+    while (index >= 0) {
+        letter = String.fromCharCode((index % 26) + 65) + letter;
+        index = Math.floor(index / 26) - 1;
+    }
+    return letter;
+}
+
+function updateRowIndices() {
+    const rows = document.querySelectorAll('#spreadsheet-container tbody tr');
+    rows.forEach((row, index) => {
+        const rowIndexCell = row.querySelector('.row-index');
+        if (rowIndexCell) {
+            // El índice visible debe ser el número de fila real + 1
+            // Si la primera fila es la 0 en DOM, su índice visual es 1.
+            // Como ya se maneja que los índices son visibles y no están ocultos por defecto,
+            // simplemente actualizamos el texto del índice.
+            rowIndexCell.textContent = index + 1;
+        }
+    });
 }

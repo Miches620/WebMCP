@@ -19,7 +19,7 @@ const ROTA = leerApp(join(FIX, "flow_gemma_sola_rota")), ARREGLADA = leerApp(joi
 const P = JSON.parse(readFileSync(join(FIX, "planilla_kanban_c22.json"), "utf8"));
 const FEATS = JSON.parse(readFileSync(join(FIX, "real_kanban_c22/snapshot_min.json"), "utf8")).intentForge.refined_prompt.features;
 
-t("versiones", CICLO_VERSION === "ciclo v0.6" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.5");
+t("versiones", CICLO_VERSION === "ciclo v0.7" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.6");
 
 // ---------- el mapa ----------
 const mapa = mapaTexto(ROTA);
@@ -189,6 +189,23 @@ t("2ª corrida, vuelta 2: el index.html bueno venía junto con un openModal roto
   const r = await ciclo({ app: ROTA, planilla: P, features: FEATS, outDir: mkdtempSync(join(tmpdir(), "ciclo-")), call: async (m, max, tipo) => ({ content: tipo === "ver" ? '{"ver": ["index.html"]}' : "nada", ms: 1 }), maxVueltas: 2, maxIntentos: 1, deAPoco: { base: 2 }, log: () => {} });
   const [a1, a2] = r.ev.vueltas;
   t("de a poco: la unidad es UNA prueba (R1.1, después la siguiente), y el pedido habla de su requisito", /^R\d+\.\d+$/.test(a1.requisito) && /^R\d+\.\d+$/.test(a2.requisito) && a1.requisito !== a2.requisito, JSON.stringify([a1.requisito, a2.requisito]));
+}
+
+// ---------- 06/11: hoja de a poco — index.html de 20 filas escritas a mano (~5.000 tokens) ----------
+{
+  const { resumirRepetido, MARCA_RESUMIDO } = await import("../harness/cambios.mjs");
+  const filas = Array.from({ length: 20 }, (_, i) => `      <tr id="f${i + 1}">\n        <th>${i + 1}</th>\n        <td data-c="A${i + 1}" contenteditable="true"></td>\n      </tr>`).join("\n");
+  const html = `<!DOCTYPE html>\n<html>\n<body>\n  <div class="controles">\n    <button id="ocultar">Ocultar Fila</button>\n    <button id="aplicar" class="b">Aplicar</button>\n  </div>\n  <table>\n    <tbody>\n${filas}\n    </tbody>\n  </table>\n  <script src="script.js"></script>\n</body>\n</html>\n`;
+  const r = resumirRepetido(html);
+  t("HTML grande: lo repetido se muestra abreviado (primera y última fila + una línea RESUMIDO)", r.length < html.length * 0.4 && /id="f1"/.test(r) && /id="f20"/.test(r) && !/id="f10"/.test(r) && r.includes(MARCA_RESUMIDO), r.slice(0, 300));
+  const a = aplicar({ "index.html": html }, '### BLOQUE: <div class="controles">\n```html\n<div class="controles">\n  <button id="ocultar">Ocultar Fila</button>\n  <button id="borrar">Borrar Fila</button>\n</div>\n```');
+  t("un elemento de HTML se cambia por BLOQUE (hasta su etiqueta de cierre), sin tocar el resto", a.aplicados.length === 1 && /Borrar Fila/.test(a.app["index.html"]) && !/id="aplicar"/.test(a.app["index.html"]) && /id="f20"/.test(a.app["index.html"]), JSON.stringify(a.problemas));
+  const b = aplicar({ "index.html": html }, '### BLOQUE: <button id="aplicar">Aplicar Fondo</button>\n```html\n<button id="aplicar">X</button>\n```');
+  t("si un BLOQUE no se encuentra, el aviso muestra las líneas que más se le parecen", /Lo que más se le parece: index\.html:6: <button id="aplicar" class="b">Aplicar<\/button>/.test(b.problemas.join()), b.problemas.join());
+  const c = aplicar({ "index.html": html }, "### ARCHIVO: index.html\n```html\n" + r + "\n```");
+  t("devolver el archivo con la parte RESUMIDA no se aplica (borraría las filas)", !c.aplicados.length && /RESUMIDA/.test(c.problemas.join()));
+  const cod = armarCodigo({ "index.html": html.replace(/<\/tbody>/, `${["g", "h", "k", "m"].map((p) => filas.replace(/f(\d+)/g, `${p}$1`)).join("\n")}\n    </tbody>`), "script.js": "function a() {}\n" }, ["index.html"], [], 6000);
+  t("armarCodigo muestra el HTML grande como RESUMIDO", /archivo index\.html \(RESUMIDO/.test(cod.piezas.join()), JSON.stringify(cod.piezas));
 }
 
 console.log(`\n${ok}/${ok + fail} OK`);

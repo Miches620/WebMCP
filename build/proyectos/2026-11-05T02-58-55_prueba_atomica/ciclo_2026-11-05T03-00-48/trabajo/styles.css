@@ -1,0 +1,75 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Estilos generales de la tabla */
+#spreadsheet {
+    width: fit-content; /* Ajusta el ancho al contenido total (A-J) */
+    border-collapse: collapse;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}
+
+/* Estilos de las celdas en general (th y td) */
+#spreadsheet th,
+#spreadsheet td {
+    border: 1px solid #ccc;
+    padding: 8px 10px;
+    text-align: left;
+    min-width: 50px; /* Asegura un ancho mínimo para las celdas de datos */
+    height: 30px; /* Altura fija para uniformidad */
+    box-sizing: border-box; /* Incluye padding y borde en el tamaño total */
+}
+
+/* Estilos del encabezado (A-J) */
+thead th {
+    background-color: #e9ecef;
+    font-weight: bold;
+    text-align: center;
+    width: 30px; /* Ancho para las letras de columna */
+}
+
+/* Estilos del contenedor principal de la tabla (el primer TH vacío) */
+#spreadsheet thead tr th:first-child {
+    background-color: #d4e1f5;
+    border: none; /* Quitamos el borde extra en la esquina superior izquierda */
+    width: 30px;
+}
+
+/* Estilos de las etiquetas de fila (Números 1-20) */
+.row-label {
+    background-color: #e9ecef;
+    font-weight: bold;
+    text-align: center;
+    width: 40px; /* Ancho fijo para los números de fila */
+}
+
+/* Estilos de las celdas de datos (td) - donde se escribe el contenido */
+#spreadsheet tbody td {
+    cursor: text;
+    transition: background-color 0.1s ease;
+}
+
+/* Efecto visual al hacer clic o enfocar una celda editable */
+#spreadsheet tbody td[contenteditable="true"]:focus,
+#spreadsheet tbody td:hover {
+    background-color: #fffbe6; /* Amarillo muy claro para indicar interactividad */
+    outline: 1px solid #a0c4ff; /* Borde azul suave al enfocar */
+}
+
+/* Asegurar que el contenido editable se vea bien y respete los bordes */
+#spreadsheet tbody td[contenteditable="true"] {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

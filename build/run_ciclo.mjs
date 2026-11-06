@@ -24,12 +24,12 @@ import { chatStream } from "./lm_stream.mjs";
 import { estTokens } from "./tokens.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
 import { leerApp, mapaTexto, codigoDe, funcionEnLinea, llamadas } from "../harness/mapa.mjs";
-import { aplicar, aplicarBloques, findSuelto, leerBloques as leerBloquesLocal } from "../harness/cambios.mjs";
+import { aplicar, aplicarBloques, findSuelto, leerBloques as leerBloquesLocal, resumirRepetido } from "../harness/cambios.mjs";
 import { syntaxOf as syntaxOfLocal } from "../harness/js_tools.mjs";
 import { describirFila } from "../profiles/web/validation/planilla_palabras.mjs";
 import { REGLAS_VISUALES, REGLAS_MODERNAS } from "../profiles/web/validation/visual.mjs";
 
-export const CICLO_VERSION = "ciclo v0.6";
+export const CICLO_VERSION = "ciclo v0.7";
 // v0.4 (19/10, después del 16/16): VUELTA 0, el borrador. Si no hay app de partida, Gemma la escribe desde los pedidos
 // de Miche y la consigna de la planilla (en palabras), UN ARCHIVO POR PEDIDO: index.html → styles.css (viendo el HTML)
 // → script.js (viendo el HTML). Así cada pedido entra holgado en 12k y los tres archivos usan los mismos ids y clases.
@@ -81,6 +81,11 @@ function nombreDeLaFuncion(...) { ...la función ENTERA, corregida... }
 ...el bloque ENTERO, corregido...
 \`\`\`
 
+### BLOQUE: primera línea de un elemento de index.html, tal cual está (p. ej. <div class="controles">)
+\`\`\`html
+...el elemento ENTERO (hasta su etiqueta de cierre), corregido; para agregar un botón, devolvé el elemento que lo va a contener con el botón nuevo adentro...
+\`\`\`
+
 ### ARCHIVO: index.html
 \`\`\`html
 ...el archivo ENTERO, corregido...
@@ -127,6 +132,9 @@ export function armarCodigo(app, ver, errores, presupuesto) {
     const name = (String(v).trim().match(/^[\w$./-]+/) || [""])[0];
     if (!name) continue;
     const f = Object.keys(app).find((k) => k === name || k.endsWith("/" + name));
+    // 06/11 (hoja de a poco): index.html con 20 filas escritas a mano = ~5.000 tokens; verlo entero dejaba afuera a script.js
+    // y reescribirlo cortaba la respuesta. Un HTML grande se muestra con lo repetido abreviado, y se cambia por BLOQUE.
+    if (f && f.endsWith(".html") && estTokens(app[f]) > 1500) { const r = resumirRepetido(app[f]); if (r.length < app[f].length * 0.8) { add(`archivo ${f} (RESUMIDO: lo repetido está abreviado; para cambiar una parte mandá ### BLOQUE: <primera línea del elemento, tal cual> con el elemento entero, no el archivo)`, r, 2); continue; } }
     if (f) { add(`archivo ${f} (entero)`, app[f], 2); continue; }
     const fn = /^[A-Za-z_$][\w$]*$/.test(name) ? codigoDe(app, name) : null; // solo nombres de función (no "document.getElementById")
     if (fn) { add(`función ${fn.name} (${fn.file}:${fn.start}-${fn.end})`, fn.text, 1); continue; }

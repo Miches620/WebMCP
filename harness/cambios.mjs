@@ -20,7 +20,7 @@
 
 import { findMember, replaceMember, syntaxOf, blockEndLines } from "./js_tools.mjs";
 
-export const CAMBIOS_VERSION = "cambios v0.5";
+export const CAMBIOS_VERSION = "cambios v0.6";
 // v0.2 (19/10, 1ª corrida real): Gemma mandó "### FUNCION: document.getElementById('card-form').addEventListener('submit', …"
 // para cambiar código suelto (fuera de funciones), y el nombre rompía la búsqueda. Ahora un nombre que no es un nombre
 // de función se busca como BLOQUE suelto por su primera línea.
@@ -68,6 +68,55 @@ export function envoltorio(js) {
   const dentro = lines.slice(x.start - 1, x.end).filter((l) => l.trim()).length;
   return dentro >= total * 0.8 && x.end - x.start > 10 ? { ...x, primera: lines[k].trim() } : null;
 }
+/** 06/11 (hoja de a poco): en HTML, el elemento que empieza en esa línea (línea ÚNICA), hasta su etiqueta de cierre.
+ *  Antes un "### BLOQUE: <button id=…>" o "<div class=…>" nunca se encontraba: el HTML solo se podía cambiar ENTERO, y con
+ *  la grilla escrita a mano (20 filas, ~5.000 tokens) reescribirlo cortaba la respuesta o dejaba a script.js afuera. */
+export function findSueltoHtml(html, primera) {
+  const lines = String(html || "").split("\n");
+  const want = norm(primera);
+  if (want.length < 6 || !want.startsWith("<")) return null;
+  const hits = lines.map((l, k) => (norm(l).startsWith(want) ? k : -1)).filter((k) => k >= 0);
+  if (hits.length !== 1) return null;
+  const i = hits[0], tag = (lines[i].trim().match(/^<([a-zA-Z][\w-]*)/) || [])[1];
+  if (!tag) return null;
+  if (/^(input|img|br|hr|meta|link|source|col|wbr|area|base|track|embed|param)$/i.test(tag) || /\/>\s*$/.test(lines[i])) return { start: i + 1, end: i + 1, text: lines[i] };
+  const ab = new RegExp(`<${tag}(\\s|>)`, "gi"), ci = new RegExp(`</${tag}\\s*>`, "gi");
+  let d = 0;
+  for (let k = i; k < lines.length; k++) {
+    d += (lines[k].match(ab) || []).length - (lines[k].match(ci) || []).length;
+    if (d <= 0) return { start: i + 1, end: k + 1, text: lines.slice(i, k + 1).join("\n") };
+  }
+  return null;
+}
+/** 06/11: si un BLOQUE no se encuentra, las líneas que más se le parecen (comparten un id, una clase o un texto) */
+export function parecidas(app, primera, max = 3) {
+  const palabras = (String(primera).match(/[\w-]{4,}/g) || []).filter((w) => !/^(class|button|function|document|const|return|style|span|div)$/i.test(w));
+  if (!palabras.length) return [];
+  const out = [];
+  for (const [f, src] of Object.entries(app)) String(src).split("\n").forEach((l, k) => { const n = palabras.filter((w) => l.includes(w)).length; if (n && l.trim()) out.push({ n, t: `${f}:${k + 1}: ${l.trim().slice(0, 120)}` }); });
+  return out.sort((a, b) => b.n - a.n).slice(0, max).map((x) => x.t);
+}
+/** 06/11: para MOSTRAR un HTML grande: lo que se repite (20 filas iguales que solo cambian el número) se abrevia.
+ *  Deja la primera y la última repetición y en el medio una línea con RESUMIDO. Si no hay repeticiones, devuelve el mismo. */
+export const MARCA_RESUMIDO = "RESUMIDO por el harness";
+export function resumirRepetido(html, minVeces = 3) {
+  const L = String(html || "").split("\n"), N = L.map((l) => l.replace(/\d+/g, "#").trim());
+  const out = [];
+  for (let i = 0; i < L.length; ) {
+    let mejor = null;
+    for (let k = 1; k <= 40 && i + k * minVeces <= L.length; k++) {
+      let veces = 1;
+      while (i + (veces + 1) * k <= L.length && N.slice(i, i + k).every((x, j) => x === N[i + veces * k + j])) veces++;
+      if (veces >= minVeces && (!mejor || veces * k > mejor.veces * mejor.k)) mejor = { k, veces };
+    }
+    if (mejor && mejor.k * mejor.veces >= 6) {
+      const { k, veces } = mejor, ind = L[i].match(/^\s*/)[0];
+      out.push(...L.slice(i, i + k), `${ind}<!-- ${MARCA_RESUMIDO}: acá van ${veces - 2} repeticiones más, iguales a la de arriba y la de abajo (solo cambian los números) -->`, ...L.slice(i + (veces - 1) * k, i + veces * k));
+      i += veces * k;
+    } else { out.push(L[i]); i++; }
+  }
+  return out.join("\n");
+}
 const ARCHIVO_RE = /^[\w./-]+\.(html|css|js)$/i;
 /** Los bloques de la respuesta: [{ tipo: "funcion" | "archivo", nombre, en?, codigo }]. */
 export function leerBloques(raw) {
@@ -103,6 +152,7 @@ export function aplicarBloques(app0, bloques) {
       const f = Object.keys(app).find((k) => k === b.nombre || k.endsWith("/" + b.nombre));
       if (!f) { problemas.push(`${b.nombre}: no es un archivo de la app (${Object.keys(app).join(", ")}); los archivos nuevos no se agregan`); continue; }
       if (f.endsWith(".js")) { const e = syntaxOf(b.codigo); if (e) { problemas.push(`${f}: no compila (${e})`); continue; } }
+      if (b.codigo.includes(MARCA_RESUMIDO)) { problemas.push(`${f}: lo devolviste con la parte RESUMIDA (la que dice "${MARCA_RESUMIDO}"): eso borraría lo abreviado. Para cambiar una parte de ${f}, mandá ### BLOQUE: <la primera línea del elemento, tal cual> con el elemento entero (por ejemplo un <div> o un <button>)`); continue; }
       if (b.codigo.trim().length < app[f].trim().length * 0.5) { problemas.push(`${f}: el archivo nuevo tiene menos de la mitad que el actual; si querías cambiar una parte, devolvé el archivo ENTERO`); continue; }
       app[f] = b.codigo;
       aplicados.push(`archivo ${f}`);
@@ -113,8 +163,11 @@ export function aplicarBloques(app0, bloques) {
       // 22/10: también en los .css (antes solo .js: un "### BLOQUE:" de CSS nunca se encontraba)
       const cssFiles = Object.keys(app).filter((f) => f.endsWith(".css"));
       const esCss = /^\s*(\/\*|[.#@:a-z*\[][^({;]*\{)/i.test(b.codigo) && !/\b(function|const|let|var|=>)\b/.test(b.codigo);
-      const hit = (esCss ? [...cssFiles, ...jsFiles] : [...jsFiles, ...cssFiles]).map((f) => [f, f.endsWith(".css") ? findSueltoCss(app[f], b.primera) : findSuelto(app[f], b.primera)]).find(([, x]) => x);
-      if (!hit) { problemas.push(`no encontré el bloque que empieza con "${b.primera.slice(0, 60)}" (para código suelto, la primera línea tiene que estar tal cual; para una función, ### FUNCION: nombre)`); continue; }
+      const htmlFiles = Object.keys(app).filter((f) => f.endsWith(".html"));
+      const esHtml = /^\s*</.test(b.primera);
+      const orden = esHtml ? htmlFiles : esCss ? [...cssFiles, ...jsFiles] : [...jsFiles, ...cssFiles];
+      const hit = orden.map((f) => [f, f.endsWith(".html") ? findSueltoHtml(app[f], b.primera) : f.endsWith(".css") ? findSueltoCss(app[f], b.primera) : findSuelto(app[f], b.primera)]).find(([, x]) => x);
+      if (!hit) { const pr = parecidas(app, b.primera); problemas.push(`no encontré el bloque que empieza con "${b.primera.slice(0, 60)}" (para código suelto, la primera línea tiene que estar tal cual y aparecer UNA vez; para una función, ### FUNCION: nombre)${pr.length ? `. Lo que más se le parece: ${pr.join(" | ")}` : ""}`); continue; }
       const [f, x] = hit, lines = app[f].split("\n");
       // 04/11 (hoja, retomando desde persona #3): todo script.js estaba adentro de document.addEventListener('DOMContentLoaded', …).
       // 27 de 40 respuestas traían "### BLOQUE: document.addEventListener('DOMContentLoaded'…" con un PEDAZO adentro, y eso
@@ -123,7 +176,7 @@ export function aplicarBloques(app0, bloques) {
       const largo = x.end - x.start + 1, nuevas = b.codigo.trim().split("\n").length;
       if (largo > lines.length * 0.5 && nuevas < largo * 0.5) { problemas.push(`el bloque que empieza con "${b.primera.slice(0, 60)}" es casi todo ${f} (líneas ${x.start}–${x.end}, ${largo} líneas) y mandaste ${nuevas}: se perdería el resto de la app. Mandá solo las funciones que cambian, cada una con ### FUNCION: nombre (aunque estén adentro de ese bloque)`); continue; }
       const next = [...lines.slice(0, x.start - 1), b.codigo.replace(/\s+$/, ""), ...lines.slice(x.end)].join("\n");
-      const e = f.endsWith(".css") ? cssRoto(next) : syntaxOf(next);
+      const e = f.endsWith(".html") ? null : f.endsWith(".css") ? cssRoto(next) : syntaxOf(next);
       if (e) { problemas.push(`bloque "${b.primera.slice(0, 40)}": no compila (${e})`); continue; }
       app[f] = next;
       aplicados.push(`bloque suelto ${f}:${x.start}`);

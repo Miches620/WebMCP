@@ -1,0 +1,100 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* --- Spreadsheet Table Styling --- */
+#spreadsheet {
+    width: fit-content; /* Adjust width to fit content, or set a fixed large size if needed */
+    border-collapse: collapse;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}
+
+/* General cell styling for all parts of the table */
+#spreadsheet th,
+#spreadsheet td {
+    border: 1px solid #ccc;
+    padding: 8px 10px;
+    text-align: left;
+    min-width: 50px; /* Ensure columns have minimum visible width */
+    height: 30px; /* Standard row height */
+    box-sizing: border-box; /* Include padding/border in the element's total width and height */
+}
+
+/* --- Header (Column Letters A-J) Styling --- */
+#spreadsheet thead {
+    background-color: #e9ecef;
+    font-weight: bold;
+}
+
+/* The top row containing column letters */
+#spreadsheet thead tr th {
+    text-align: center;
+    width: 50px; /* Standard width for a single column letter header */
+    padding: 10px 5px;
+    border-right: none; /* Remove internal border lines in the top row */
+}
+
+/* The corner cell (empty th) - needs special handling to align with other headers */
+#spreadsheet thead tr th:first-child {
+    width: 60px; /* Give enough space for row labels */
+    text-align: left;
+    padding-left: 15px;
+}
+
+/* --- Row Labels (Numbers 1-20) Styling --- */
+.row-label {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    width: 60px; /* Match the width of the corner cell th */
+    text-align: center;
+    padding: 10px 5px;
+}
+
+/* --- Data Cells (A1 to J20) Styling --- */
+tbody tr {
+    background-color: #fff;
+}
+
+td[contenteditable="true"] {
+    cursor: text; /* Indicate that the cell is editable */
+    transition: background-color 0.1s ease;
+}
+
+/* Visual feedback when a cell is focused/edited (R1) */
+td[contenteditable]:focus {
+    outline: none;
+    background-color: #fffbe6; /* Light yellow highlight on focus */
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+/* Ensure the first column (row labels) doesn't get a double border effect from the table structure */
+tbody th {
+    border-right: none;
+}
+
+/* Final cleanup for borders to ensure clean grid lines */
+#spreadsheet th:not(.row-label), 
+#spreadsheet td {
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Specific border adjustments for the corner cell and row labels */
+.row-label {
+    border-right: none; /* The row label should not have a right border that overlaps with data cells */
+}
+
+#spreadsheet th:first-child {
+    border-right: 1px solid #ccc; /* Ensure the first column header has a proper separator */
+}

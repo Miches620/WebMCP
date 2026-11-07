@@ -20,7 +20,7 @@
 
 import { findMember, replaceMember, syntaxOf, blockEndLines } from "./js_tools.mjs";
 
-export const CAMBIOS_VERSION = "cambios v0.6";
+export const CAMBIOS_VERSION = "cambios v0.7";
 // v0.2 (19/10, 1ª corrida real): Gemma mandó "### FUNCION: document.getElementById('card-form').addEventListener('submit', …"
 // para cambiar código suelto (fuera de funciones), y el nombre rompía la búsqueda. Ahora un nombre que no es un nombre
 // de función se busca como BLOQUE suelto por su primera línea.
@@ -167,6 +167,10 @@ export function aplicarBloques(app0, bloques) {
       const esHtml = /^\s*</.test(b.primera);
       const orden = esHtml ? htmlFiles : esCss ? [...cssFiles, ...jsFiles] : [...jsFiles, ...cssFiles];
       const hit = orden.map((f) => [f, f.endsWith(".html") ? findSueltoHtml(app[f], b.primera) : f.endsWith(".css") ? findSueltoCss(app[f], b.primera) : findSuelto(app[f], b.primera)]).find(([, x]) => x);
+      // 07/11 (hoja de a poco, 2ª corrida): un cambio aceptado dejó DOS <button id="hideColButton"…> y dos <div class="controls-group">;
+      // desde ahí "no encontré el bloque" en cada intento, sin decir por qué. Si la línea está repetida, se dice dónde.
+      const rep = Object.entries(app).flatMap(([f, src]) => String(src).split("\n").map((l, k) => (l.trim() && norm(l).startsWith(norm(b.primera)) && norm(b.primera).length >= 6 ? `${f}:${k + 1}` : null)).filter(Boolean));
+      if (!hit && rep.length > 1) { problemas.push(`la línea "${b.primera.slice(0, 60)}" aparece ${rep.length} veces (${rep.join(", ")}): así no sé cuál cambiar. Usá la primera línea del elemento que las contiene (si también se repite, uno más afuera, p. ej. el que tiene un id), y devolvelo entero sin las repetidas`); continue; }
       if (!hit) { const pr = parecidas(app, b.primera); problemas.push(`no encontré el bloque que empieza con "${b.primera.slice(0, 60)}" (para código suelto, la primera línea tiene que estar tal cual y aparecer UNA vez; para una función, ### FUNCION: nombre)${pr.length ? `. Lo que más se le parece: ${pr.join(" | ")}` : ""}`); continue; }
       const [f, x] = hit, lines = app[f].split("\n");
       // 04/11 (hoja, retomando desde persona #3): todo script.js estaba adentro de document.addEventListener('DOMContentLoaded', …).
@@ -174,7 +178,7 @@ export function aplicarBloques(app0, bloques) {
       // reemplazaba la app entera (se perdían las filas 2–20, el guardado…). Si el bloque es casi todo el archivo y lo que
       // llega es mucho más corto, no se aplica, y se dice qué mandar.
       const largo = x.end - x.start + 1, nuevas = b.codigo.trim().split("\n").length;
-      if (largo > lines.length * 0.5 && nuevas < largo * 0.5) { problemas.push(`el bloque que empieza con "${b.primera.slice(0, 60)}" es casi todo ${f} (líneas ${x.start}–${x.end}, ${largo} líneas) y mandaste ${nuevas}: se perdería el resto de la app. Mandá solo las funciones que cambian, cada una con ### FUNCION: nombre (aunque estén adentro de ese bloque)`); continue; }
+      if (largo > lines.length * 0.5 && nuevas < largo * 0.5) { problemas.push(`el bloque que empieza con "${b.primera.slice(0, 60)}" es casi todo ${f} (líneas ${x.start}–${x.end}, ${largo} líneas) y mandaste ${nuevas}: se perdería el resto de la app. ${f.endsWith(".html") ? "Mandá solo el elemento que cambia, con ### BLOQUE: <su primera línea>" : "Mandá solo las funciones que cambian, cada una con ### FUNCION: nombre (aunque estén adentro de ese bloque)"}`); continue; }
       const next = [...lines.slice(0, x.start - 1), b.codigo.replace(/\s+$/, ""), ...lines.slice(x.end)].join("\n");
       const e = f.endsWith(".html") ? null : f.endsWith(".css") ? cssRoto(next) : syntaxOf(next);
       if (e) { problemas.push(`bloque "${b.primera.slice(0, 40)}": no compila (${e})`); continue; }

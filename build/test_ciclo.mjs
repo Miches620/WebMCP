@@ -19,7 +19,7 @@ const ROTA = leerApp(join(FIX, "flow_gemma_sola_rota")), ARREGLADA = leerApp(joi
 const P = JSON.parse(readFileSync(join(FIX, "planilla_kanban_c22.json"), "utf8"));
 const FEATS = JSON.parse(readFileSync(join(FIX, "real_kanban_c22/snapshot_min.json"), "utf8")).intentForge.refined_prompt.features;
 
-t("versiones", CICLO_VERSION === "ciclo v0.7" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.6");
+t("versiones", CICLO_VERSION === "ciclo v0.7" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.7");
 
 // ---------- el mapa ----------
 const mapa = mapaTexto(ROTA);
@@ -206,6 +206,14 @@ t("2ª corrida, vuelta 2: el index.html bueno venía junto con un openModal roto
   t("devolver el archivo con la parte RESUMIDA no se aplica (borraría las filas)", !c.aplicados.length && /RESUMIDA/.test(c.problemas.join()));
   const cod = armarCodigo({ "index.html": html.replace(/<\/tbody>/, `${["g", "h", "k", "m"].map((p) => filas.replace(/f(\d+)/g, `${p}$1`)).join("\n")}\n    </tbody>`), "script.js": "function a() {}\n" }, ["index.html"], [], 6000);
   t("armarCodigo muestra el HTML grande como RESUMIDO", /archivo index\.html \(RESUMIDO/.test(cod.piezas.join()), JSON.stringify(cod.piezas));
+}
+
+// ---------- 07/11: una línea repetida (dos botones iguales) ----------
+{
+  const html = `<body>\n  <div id="barra">\n    <div class="g">\n      <button id="x">Ocultar</button>\n      <button id="x">Ocultar</button>\n    </div>\n    <div class="g">\n      <button id="y">Aplicar</button>\n    </div>\n  </div>\n${Array.from({ length: 20 }, (_, i) => `  <p>texto ${i}</p>`).join("\n")}\n</body>\n`;
+  const r = aplicar({ "index.html": html }, '### BLOQUE: <button id="x">Ocultar</button>\n```html\n<button id="x">Ocultar Columna</button>\n```');
+  const r2 = aplicar({ "index.html": html }, '### BLOQUE: <div id="barra">\n```html\n<div id="barra">\n  <button id="x">Ocultar</button>\n  <button id="y">Aplicar</button>\n</div>\n```');
+  t("una línea repetida no se cambia y el aviso dice cuántas veces y dónde; el elemento que las contiene (único) sí", /aparece 2 veces \(index\.html:4, index\.html:5\)/.test(r.problemas.join()) && r2.aplicados.length === 1 && (r2.app["index.html"].match(/id="x"/g) || []).length === 1, r.problemas.join() + JSON.stringify(r2.problemas));
 }
 
 console.log(`\n${ok}/${ok + fail} OK`);

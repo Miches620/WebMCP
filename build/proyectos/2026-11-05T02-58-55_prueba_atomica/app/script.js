@@ -199,6 +199,8 @@ function initializeSpreadsheet() {
     setupCellEditing();
     // Llamar a la nueva función para manejar la selección y ocultación de filas
     setupRowHidingListeners(); 
+    // Inicializar el manejo de columnas y colores (NUEVO)
+    setupColumnSelectionAndColoring();
 }
 
 // Llamada principal para arrancar la aplicación
@@ -298,4 +300,146 @@ function setupRowHidingListeners() {
             alert("Por favor, selecciona una fila primero para ocultarla.");
         }
     });
+}
+
+/**
+ * Configura los listeners para la selección de columnas y la aplicación de color.
+ */
+function setupColumnSelectionAndColoring() {
+    const colHeaders = document.querySelectorAll('.col-header');
+    const applyButton = document.getElementById('applyColorButton');
+
+    // Obtener el estado de la fila seleccionada (necesario para R7)
+    const getSelectedRow = setupRowSelectionListener(); 
+
+    // 1. Listener para seleccionar una columna haciendo clic en su letra (<th>)
+    colHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            // Deseleccionar todos los headers primero
+            colHeaders.forEach(h => h.classList.remove('selected-column'));
+            
+            // Seleccionar el actual y guardar su índice
+            this.classList.add('selected-column');
+            window.selectedColIndex = parseInt(this.getAttribute('data-col-index'));
+            console.log(`Columna seleccionada: ${this.innerText}, Índice: ${window.selectedColIndex}`);
+        });
+    });
+
+    // 2. Listener para aplicar el color seleccionado (Ahora maneja Columna o Fila)
+    applyButton.addEventListener('click', function() {
+        const selectedColor = document.getElementById('cellColorPicker').value;
+        let targetElement = null;
+        let isRowOperation = false;
+
+        // Priorizar la operación de fila si hay una fila seleccionada (R7)
+        const selectedRow = getSelectedRow();
+        if (selectedRow) {
+            targetElement = selectedRow;
+            isRowOperation = true;
+        } else {
+            // Si no hay fila seleccionada, intentar operar por columna
+            const colIndex = window.selectedColIndex;
+            if (colIndex === undefined || isNaN(colIndex)) {
+                alert("Por favor, selecciona una columna o una fila primero.");
+                return;
+            }
+            targetElement = document.getElementById('spreadsheet'); // Operar sobre la tabla completa para encontrar la columna
+        }
+
+        let colorAppliedCount = 0;
+
+        if (isRowOperation && targetElement) {
+             // Aplicar color a todas las celdas de la fila seleccionada
+            const cells = targetElement.querySelectorAll('td');
+            cells.forEach(cell => {
+                cell.style.backgroundColor = selectedColor;
+                colorAppliedCount++;
+            });
+        } else if (targetElement) {
+             // Operación por columna (manteniendo la lógica original)
+            const colIndex = window.selectedColIndex;
+
+            const rows = document.getElementById('spreadsheet').querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                // En cada fila, buscamos el TD que corresponde al índice seleccionado (colIndex)
+                const targetCell = row.querySelectorAll('td')[colIndex]; 
+                
+                if (targetCell) {
+                    // Aplicar el color de fondo directamente al elemento TD
+                    targetCell.style.backgroundColor = selectedColor;
+                    colorAppliedCount++;
+                }
+            });
+        }
+
+
+        if (colorAppliedCount > 0) {
+             console.log(`Color ${selectedColor} aplicado exitosamente a ${isRowOperation ? 'la fila' : `columna ${String.fromCharCode('A'.charCodeAt(0) + window.selectedColIndex)}`}.`);
+        } else {
+             console.warn("No se encontraron celdas para aplicar el color.");
+        }
+    });
+
+    // 3. Listener global para manejar borrado de columna o fila al presionar Delete
+    document.addEventListener('keydown', function(e) {
+        // Solo actuar si la tecla es 'Delete'
+        if (e.key === 'Delete') {
+            const selectedRow = getSelectedRow();
+
+            // 1. Priorizar Borrar Fila si está seleccionada
+            if (selectedRow) {
+                handleDeleteRow(selectedRow);
+                e.preventDefault(); // Prevenir cualquier acción por defecto del navegador
+                return;
+            }
+
+            // 2. Si no hay fila seleccionada, verificar borrado de columna
+            const colIndex = window.selectedColIndex;
+            if (colIndex !== undefined && !isNaN(colIndex)) {
+                // Evitar que el evento de borrado se propague si estamos en un campo editable
+                const target = e.target;
+                if (target.tagName === 'TD' && target.hasAttribute('data-cell')) {
+                    return; 
+                }
+
+                e.preventDefault(); // Prevenir la acción por defecto del navegador
+
+                // Obtener todas las filas del cuerpo de la tabla
+                const rows = document.getElementById('spreadsheet').querySelectorAll('tbody tr');
+                let clearedCount = 0;
+
+                rows.forEach(row => {
+                    // En cada fila, buscamos el TD que corresponde al índice seleccionado (colIndex)
+                    const targetCell = row.querySelectorAll('td')[colIndex]; 
+                    
+                    if (targetCell) {
+                        // Borrar contenido y limpiar datos de cálculo/estado
+                        targetCell.innerText = '';
+                        targetCell.dataset.isCalculated = 'false';
+                        clearedCount++;
+                    }
+                });
+
+                console.log(`Columna ${String.fromCharCode('A'.charCodeAt(0) + colIndex)} vaciada exitosamente.`);
+            }
+        }
+    });
+}
+
+function handleDeleteRow(rowElement) {
+    if (!rowElement || !rowElement.closest('tr')) {
+        console.error("No row element provided or invalid.");
+        return;
+    }
+
+    // 1. Borrar el contenido de todas las celdas
+    const cells = rowElement.querySelectorAll('td');
+    cells.forEach(cell => {
+        cell.textContent = ''; // Limpia texto
+        cell.setAttribute('contenteditable', 'true'); // Asegura que siga siendo editable
+        // Opcional: Resetear color de fondo al borrar contenido, si es necesario para la UX
+        cell.style.backgroundColor = ''; 
+    });
+
+    // 2. Borrar físicamente la fila del DOM (Borrar la fila)
 }

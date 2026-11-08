@@ -11,7 +11,7 @@
 //
 //   npm run proyecto -- plan <carpeta del proyecto>     → plan.json + plan.md en la carpeta
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, renameSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { resolveProfiles } from "../profiles/registry.mjs";
 import { buildTechLeaderPrompt } from "../techleader_prompt.mjs";
@@ -178,6 +178,13 @@ export async function planDeProyecto(dir, { log = console.log, ...o } = {}) {
     plan = await armarPlan({ req, planilla, criterio, log, ...o });
   }
   plan.ms = Date.now() - t0;
+  // un plan anterior no se pisa: queda como plan_<fecha>.json / .md (para comparar)
+  if (existsSync(join(dir, "plan.json"))) {
+    const viejo = JSON.parse(readFileSync(join(dir, "plan.json"), "utf8")), sello = String(viejo.creado || statSync(join(dir, "plan.json")).mtime.toISOString()).replace(/[:.]/g, "-").slice(0, 19);
+    renameSync(join(dir, "plan.json"), join(dir, `plan_${sello}.json`));
+    if (existsSync(join(dir, "plan.md"))) renameSync(join(dir, "plan.md"), join(dir, `plan_${sello}.md`));
+  }
+  plan.creado = new Date().toISOString();
   writeFileSync(join(dir, "plan.json"), JSON.stringify(plan, null, 2));
   writeFileSync(join(dir, "plan.md"), planEnPalabras(plan, req, planilla));
   return plan;

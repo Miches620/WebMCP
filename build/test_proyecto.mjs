@@ -236,6 +236,11 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   const da = await juzgar(join(FIX, "flow_hoja_deapoco2"), { ...PJ, filas: PJ.filas.filter((f) => f.id === "R5.1") });
   const dda = da.fallan.find((f) => f.r === "R5")?.detalle.join(" ") || "";
   t("si falla y la app mostró un alert, el detalle dice cuál (R5.1: \"selecciona una columna o una fila\")", /la app mostró el aviso "Por favor, selecciona una columna o una fila primero\."/.test(dda), dda.slice(0, 300));
+  // 08/11: borrar columna/fila pide que la siguiente ocupe su lugar: la hoja a mano (borra de verdad) pasa; la de Gemma (solo vacía) no
+  const { PLANTILLAS: PL } = await import("../profiles/web/validation/planilla_plantillas.mjs");
+  const FB = [["R6.1", "A"], ["R7.1", "3"]].map(([id, sel]) => ({ r: id.split(".")[0], id, ...PL.seleccionar_y_usar.arma({ seleccion: sel, accion: "borrar" }) }));
+  const bm = await juzgar(join(FIX, "flow_hoja_mano"), { ...PJ, filas: FB }), bg = await juzgar(join(FIX, "flow_hoja_deapoco2"), { ...PJ, filas: FB });
+  t("borrar ≠ vaciar: la hoja a mano pasa las dos; la de Gemma (que solo vacía y no tiene botón de columna) no, y el aviso dice que A1 sigue con lo suyo", bm.cumplidos === 2 && bg.cumplidos === 0 && /A1 muestra "QA Alfa" \(se esperaba "QA Gamma"/.test(bg.fallan.find((f) => f.r === "R6")?.detalle.join(" ") || ""), JSON.stringify(bg.fallan).slice(0, 400));
   // el buscador: la ficha (rasgos con cita) y lo que no pediste como preguntas en planilla.md
   const ev = { grupos: [{ rasgo: "escribir fórmulas", de: ["T2"], fuentes: ["S1", "S2"], ya_pedido: true }, { rasgo: "compartir con el equipo", de: ["T3"], fuentes: ["S1", "S2", "S3"], fuera_del_stack: "necesita servidor" }, { rasgo: "combinar celdas", de: ["T1"], fuentes: ["S3"] }], rasgos: [{ id: "T1", fuente: "S3", cita: "Merge cells across rows" }, { id: "T2", fuente: "S1", cita: "Formulas  begin with an equal sign" }, { id: "T3", fuente: "S1", cita: "Share with your team" }] };
   const fi = fichaDe(ev);

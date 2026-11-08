@@ -87,6 +87,9 @@ saltear = new Set(); tlUsers.length = 0;
 const pl2 = await planDeProyecto(d, { call: async () => JSON.stringify({ fases: FASES2 }), log: () => {} });
 const pj = JSON.parse(readFileSync(join(d, "plan.json"), "utf8"));
 t("planDeProyecto: plan.json (PROPUESTO, con versión) y plan.md en la carpeta", pj.estado === "PROPUESTO" && pj.version === PLAN_VERSION && pj.tareas.length === pl2.tareas.length && /# Plan: cómo se va a construir/.test(readFileSync(join(d, "plan.md"), "utf8")));
+const { readdirSync } = await import("node:fs");
+await planDeProyecto(d, { call: async () => JSON.stringify({ fases: FASES2 }), log: () => {} });
+t("un plan anterior no se pisa: queda como plan_<fecha>.json y .md", readdirSync(d).filter((f) => /^plan_.*\.(json|md)$/.test(f)).length === 2 && JSON.parse(readFileSync(join(d, "plan.json"), "utf8")).creado, readdirSync(d).join());
 globalThis.fetch = realFetch;
 
 console.log(`\n${ok}/${ok + fail} OK`);

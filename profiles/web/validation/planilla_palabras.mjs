@@ -49,7 +49,10 @@ export function describirFila(row00, g) {
   else if (h.usar) partes.push({ borrar: "Uso el control de borrar.", vaciar: "Uso el control de vaciar (borrar el contenido).", ocultar: "Uso el control de ocultar.", color: `Elijo el color de fondo ${h.valor || "(uno cualquiera)"}.` }[h.usar] || `Uso "${h.usar}".`);
   const veo = (row.veo || []).map((v) => {
     if (v.esta) return isQA(v.esta) ? (h.editar && v.esta === h.a ? "el título nuevo aparece" : h.eliminar && v.esta === h.eliminar ? N(`{el_item} sigue${v.en ? ` en ${q(v.en)}` : ""} (no se borró)`) : N(`{el_item} aparece${v.en ? ` en ${q(v.en)}` : ""}`)) : `se ve ${q(v.esta)}${v.en ? ` en ${q(v.en)}` : ""}`;
-    if (v.no_esta) return isQA(v.no_esta) ? (h.editar ? "el título viejo ya no está" : escritos.length ? "lo que se escribió ya no se ve" : N("{el_item} ya no está")) : `no se ve ${q(v.no_esta)}`;
+    // 08/11: si uno de los textos escritos tiene que seguir viéndose (borrar columna: la siguiente ocupa su lugar), se dice DÓNDE se escribió cada uno
+    const dondeEsc = (x) => escritos.find((d) => d.escribir === x)?.en;
+    const algunoQueda = escritos.some((d) => isQA(d.escribir) && (row.veo || []).some((w) => w.muestra === d.escribir));
+    if (v.no_esta) return isQA(v.no_esta) ? (h.editar ? "el título viejo ya no está" : escritos.length ? (algunoQueda && dondeEsc(v.no_esta) ? `lo que se escribió en ${String(dondeEsc(v.no_esta)).toUpperCase()} ya no se ve` : "lo que se escribió ya no se ve") : N("{el_item} ya no está")) : `no se ve ${q(v.no_esta)}`;
     if (v.contiene) return N(`{el_item} muestra ${lista(v.contiene)}`);
     if (v.orden) return `en ${q(v.en)} quedan de arriba abajo: ${v.orden.map(nombre).join(" · ")}`;
     if (v.contador != null) return v.vale != null ? `el contador de ${q(v.contador)} vale ${v.vale}` : `el contador de ${q(v.contador)} ${v.cambia > 0 ? "sube" : "baja"} ${Math.abs(v.cambia)}`;
@@ -66,7 +69,7 @@ export function describirFila(row00, g) {
     if (v.moderno) return REGLAS_MODERNAS[v.moderno]?.dice || `regla de diseño ${v.moderno}`;
     if (v.visual) return REGLAS_VISUALES[v.visual]?.dice || `regla visual ${v.visual}`;
     if (v.desborde) return N(`con ${dado.length || "muchos"} {items} en ${q(v.desborde)}, se desplaza (scroll) adentro de {el_grupo} y la página NO se desplaza`);
-    if (v.muestra != null) return v.muestra === "" ? `${String(v.en).toUpperCase()} queda vacía` : `${String(v.en).toUpperCase()} muestra ${isQA(v.muestra) ? "el texto que se escribió" : q(v.muestra)}`;
+    if (v.muestra != null) { const de = isQA(v.muestra) && escritos.find((d) => d.escribir === v.muestra)?.en; return v.muestra === "" ? `${String(v.en).toUpperCase()} queda vacía` : `${String(v.en).toUpperCase()} muestra ${isQA(v.muestra) ? (de && String(de).toUpperCase() !== String(v.en).toUpperCase() ? `lo que se escribió en ${String(de).toUpperCase()} (ocupó su lugar)` : "el texto que se escribió") : q(v.muestra)}`; }
     if (v.fondo != null) return `${String(v.en).toUpperCase()} tiene fondo ${v.fondo}`;
     if (v.oculta != null) return `${lugarTxt(v.oculta).replace(/ \(en su (letra|número)\)/, "")} ya no se ve`;
     if (v.encabezados) { const c = v.encabezados.columnas || [], f = v.encabezados.filas || []; return `${c.length ? `se ven las letras ${c[0]} a ${c[c.length - 1]} arriba, en una fila, cada una justo encima de su columna de celdas` : ""}${c.length && f.length ? ", y " : ""}${f.length ? `los números ${f[0]} a ${f[f.length - 1]} a la izquierda, uno debajo del otro, cada uno al lado de su fila de celdas` : ""}`; }

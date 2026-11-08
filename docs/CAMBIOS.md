@@ -1438,3 +1438,14 @@
   - Perfil del plan: `web/app` sin el rol QA y sin receta.
 - `build/test_plan.mjs` 18/18 (TechLeader y LM Studio de mentira; Checker, normalización y dependencias reales), en `npm test`. Siguen bien test_recipe 44/44, test_profiles 30/30, dependencias 7/7 y 8/8, stack 24/24, etapa 8/8, asignaciones 19/19.
 - **Etapa 1 (medir, sin construir):** sobre una copia de la hoja, ¿17/17 requisitos y 24/24 filas cubiertas? ¿la tarea de R4.1 ya no pide pisar la fórmula? ¿aparece "clic en una celda la selecciona"? (en el bench: 0/4 las dos).
+
+## 08/11 — etapa 1, 1ª corrida del plan + borrar ≠ vaciar en la planilla (plantillas v0.7.1)
+- **1ª corrida de `proyecto plan`** (`build/proyectos/2026-11-08T14-10-21_hoja_plan`, 23 min): 17/17 requisitos y 24/24 filas cubiertas. El 1er intento de TechLeader dejó afuera R6, R7, R8, R13–R16 y el reintento por código los cubrió. R4.1 bien: F3.1 guarda la fórmula en el estado y F3.4 recalcula las dependientes. R5.1 bien: F4.1 hace que el clic en una celda la capture. En el bench del Atomizer tal cual, las dos salieron 0/4. Evidencia: Project `claude/evidencia_plan_hoja_2026-11-08.md`.
+- **Lo que salió mal era de la planilla:** F5.3 y F5.5 juntaron "vaciar o borrar" porque la prueba de borrar la columna o la fila solo miraba que lo escrito ya no se viera, y vaciar también la pasa. Miche (08/11): arreglar primero las 4 pruebas de borrar (R6.1, R13.1, R7.1, R15.1), rehacer el plan y recién después la etapa 2.
+- **plantillas v0.7.1:**
+  - En `seleccionar_y_usar`, borrar una columna o una fila escribe también en la siguiente (B1 o A4). Después de borrar, ese texto tiene que aparecer en el lugar de la borrada (A1 o A3), como en una planilla.
+  - Borrar UNA celda sigue siendo vaciarla.
+  - El texto para Qwen dice "borrar (saca la columna o la fila: la siguiente ocupa su lugar)".
+- **planilla en palabras:** si uno de los textos escritos tiene que seguir viéndose, se dice dónde se escribió cada uno: "lo que se escribió en A1 ya no se ve · A1 muestra lo que se escribió en B1 (ocupó su lugar)".
+- Juez sin cambios: la hoja a mano pasa las nuevas y la de Gemma (que solo vacía) no. `test_planilla_writer` 80/80 (+2); `test_proyecto` +1.
+- Siguiente: `rehacer` R6 R7 R13 R15 con Qwen sobre la copia, después `plan` otra vez.

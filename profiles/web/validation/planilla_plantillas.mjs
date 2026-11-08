@@ -9,7 +9,7 @@
 //
 // Una respuesta de Qwen:  { "usa": [ { "plantilla": "borrar", "columna": "Pendiente" }, … ] }   o   { "sin_fila": "motivo" }
 
-export const PLANTILLAS_VERSION = "planilla_plantillas v0.7"; // v0.7 (29/10): lugares (escribir_y_ver, seleccionar_y_usar, grilla); las de ítems piden "item"; boton_en solo con texto entre comillas // v0.6 (22/10): se_ve_en_item, centrado, mover con manija
+export const PLANTILLAS_VERSION = "planilla_plantillas v0.7.1"; // v0.7.1 (08/11): borrar columna/fila pide que la siguiente ocupe su lugar // v0.7 (29/10): lugares (escribir_y_ver, seleccionar_y_usar, grilla); las de ítems piden "item"; boton_en solo con texto entre comillas // v0.6 (22/10): se_ve_en_item, centrado, mover con manija
 // v0.5 (19/10, 1ª corrida de npm run proyecto con project26): (a) una RESTRICCIÓN no se prueba con una plantilla que
 // HACE lo prohibido (R28: "Sin … eliminar tarjetas en Completa" salió como "borro y desaparece", lo contrario);
 // (b) "se ven estos textos" solo con textos que el usuario puso ENTRE COMILLAS en ese requisito (salían "contador de
@@ -231,7 +231,7 @@ export const PLANTILLAS = {
   },
   seleccionar_y_usar: {
     requiere: ["lugar"],
-    dice: "selecciono {un_lugar}, una columna o una fila (con un clic en ella, en su letra o en su número) y uso un control: borrar, vaciar (borra el contenido y deja el lugar), ocultar o color (de fondo)",
+    dice: "selecciono {un_lugar}, una columna o una fila (con un clic en ella, en su letra o en su número) y uso un control: borrar (saca la columna o la fila: la siguiente ocupa su lugar), vaciar (borra el contenido y deja el lugar), ocultar o color (de fondo)",
     casilleros: { seleccion: '"C" (una columna), "3" (una fila) o "A1" ({un_lugar})', accion: "borrar | vaciar | ocultar | color", color: "opcional: SOLO si el usuario dice el color, #rrggbb" },
     arma: (c) => {
       const sel = String(c.seleccion).trim().toUpperCase(), m = /^([A-Z]{1,3})?(\d{1,4})?$/.exec(sel), col = m[1], fil = m[2];
@@ -242,6 +242,14 @@ export const PLANTILLAS = {
       if (accion === "color") { const valor = /^#[0-9a-f]{6}$/i.test(String(c.color || "")) ? c.color : COLOR_PRUEBA; return { dado: [{ clic: sel }], hago: { usar: "color", valor }, veo: lugares.map((l) => ({ fondo: valor, en: l })) }; }
       const dado = [...lugares.map((l, i) => ({ escribir: textos[i], en: l })), { clic: sel }];
       if (accion === "vaciar") return { dado, hago: { usar: "vaciar" }, veo: lugares.map((l) => ({ muestra: "", en: l })) };
+      // 08/11 (plan de la hoja): "borrar la columna/fila" solo miraba que lo escrito ya no se vea, y VACIAR también lo pasa
+      // (el plan juntó borrar y vaciar en una tarea). Borrar saca la columna/fila: la de al lado ocupa su lugar, como en
+      // una planilla. Se escribe algo en la siguiente y tiene que aparecer en el lugar de la borrada.
+      if (accion === "borrar" && !(col && fil)) {
+        const sig = col ? `${String.fromCharCode(col.charCodeAt(col.length - 1) + 1)}1` : `A${Number(fil) + 1}`, C = "QA Gamma";
+        const sigOk = col ? col.length === 1 && col !== "Z" : true;
+        if (sigOk) return { dado: [...lugares.map((l, i) => ({ escribir: textos[i], en: l })), { escribir: C, en: sig }, { clic: sel }], hago: { usar: "borrar" }, veo: [...textos.map((t) => ({ no_esta: t })), { muestra: C, en: lugares[0] }] };
+      }
       return { dado, hago: { usar: accion }, veo: [...textos.map((t) => ({ no_esta: t })), ...(accion === "ocultar" && !(col && fil) ? [{ oculta: sel }] : [])] };
     },
     necesita: (c) => (!/^([A-Z]{1,3}\d{1,4}|[A-Z]{1,3}|\d{1,4})$/i.test(String(c.seleccion || "").trim()) ? `"seleccion": una columna ("C"), una fila ("3") o un lugar ("A1")` : !["borrar", "vaciar", "ocultar", "color"].includes(String(c.accion || "").trim().toLowerCase()) ? `"accion": borrar, vaciar, ocultar o color` : null),

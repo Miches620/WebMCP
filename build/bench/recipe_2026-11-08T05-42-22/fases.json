@@ -1,0 +1,46 @@
+[
+  {
+    "id": "F1",
+    "name": "Inicialización de la Estructura y el Estado del Grid",
+    "responsable_sugerido": "Frontend",
+    "description": "Crear la estructura visual (HTML/CSS) para las 20 filas y 10 columnas, incluyendo los encabezados de letras y números. Inicializar el objeto de estado en memoria con todas las celdas definidas (A1:J20), sin contenido inicial.",
+    "depends_on": []
+  },
+  {
+    "id": "F2",
+    "name": "Manejo Básico de Datos y Persistencia",
+    "responsable_sugerido": "Frontend",
+    "description": "Implementar la funcionalidad de edición inline en cualquier celda. Asegurar que el contenido ingresado actualice correctamente el estado interno del objeto JavaScript. Implementar la lógica para guardar todo el estado completo de la hoja en localStorage y cargar dicho estado al iniciar la aplicación.",
+    "depends_on": [
+      "F1"
+    ]
+  },
+  {
+    "id": "F3",
+    "name": "Motor de Cálculo de Fórmulas",
+    "responsable_sugerido": "Backend",
+    "description": "Desarrollar el motor que detecta si una celda contiene una fórmula (empezando por '='). Este motor debe ser capaz de analizar la sintaxis de fórmulas comunes (SUMA, -, *, /) y rangos. Debe calcular el resultado basado en los valores actuales del estado y actualizar el valor visible de la celda.",
+    "depends_on": [
+      "F2"
+    ]
+  },
+  {
+    "id": "F4",
+    "name": "Controles Estructurales y Visuales",
+    "responsable_sugerido": "Frontend",
+    "description": "Implementar la lógica de selección (clic en letra/número) para activar acciones estructurales: borrar columna/fila, cambiar color de fondo masivo, borrar contenido masivo. Implementar las funcionalidades de ocultar y mostrar columnas y filas, actualizando tanto el estado como la representación visual del grid.",
+    "depends_on": [
+      "F2",
+      "F3"
+    ]
+  },
+  {
+    "id": "F5",
+    "name": "Integración y Pruebas Funcionales de End-to-End",
+    "responsable_sugerido": "QA",
+    "description": "Verificar que todas las funcionalidades operen juntas: 1) Ingresar datos (F2). 2) Verificar que la fórmula se recalcule automáticamente al cambiar un dato dependiente (F3). 3) Aplicar cambios estructurales (ej. ocultar una columna y luego borrarla, F4). 4) Confirmar que el estado final persista correctamente en localStorage tras todas las interacciones.",
+    "depends_on": [
+      "F4"
+    ]
+  }
+]

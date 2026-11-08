@@ -8,7 +8,7 @@ Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, 
 - **R1.1** · Escribo un texto cualquiera en A1. → A1 muestra el texto que se escribió
 
 ## R2. La hoja tiene 10 columnas (A a J) y 20 filas (1 a 20), con las letras arriba y los números al costado, como en Excel; cada celda se nombra por su columna y su fila (A1, B2...)
-- **R2.1** · → se ven los encabezados de columna A a J y de fila 1 a 20
+- **R2.1** · → se ven las letras A a J arriba, en una fila, cada una justo encima de su columna de celdas, y los números 1 a 20 a la izquierda, uno debajo del otro, cada uno al lado de su fila de celdas
 
 ## R3. Fórmulas estilo Excel en castellano, empezando con '=': suma con =SUMA(A1:A3) (un rango) o =SUMA(A1;B2;C3) (celdas sueltas); resta, multiplicación y división con signos: =A1-B1, =A1*B1, =A1/B1. La celda muestra el resultado
 - **R3.1** · Antes: escribo "2" en A1, "3" en A2, "4" en A3. Escribo "=SUMA(A1:A3)" en B4. → B4 muestra "9"
@@ -20,13 +20,13 @@ Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, 
 - **R5.1** · Antes: hago clic en A1. Elijo el color de fondo #FF0000. → A1 tiene fondo #FF0000
 
 ## R6. Seleccionar una columna haciendo clic en su letra y poder: borrar la columna, cambiar el color de fondo de todas sus celdas, borrar el contenido de todas sus celdas
-- **R6.1** · Antes: escribo un texto cualquiera en A1, un texto cualquiera en A2. Antes: hago clic en la columna A (en su letra). Uso el control de borrar. → lo que se escribió ya no se ve
-- **R6.2** · Antes: hago clic en la columna A (en su letra). Elijo el color de fondo #ff0000. → A1 tiene fondo #ff0000 · A2 tiene fondo #ff0000
+- **R6.1** · Antes: escribo un texto cualquiera en A1, un texto cualquiera en A2, un texto cualquiera en B1. Antes: hago clic en la columna A (en su letra). Uso el control de borrar. → lo que se escribió en A1 ya no se ve · lo que se escribió en A2 ya no se ve · A1 muestra lo que se escribió en B1 (ocupó su lugar)
+- **R6.2** · Antes: hago clic en la columna A (en su letra). Elijo el color de fondo #FF0000. → A1 tiene fondo #FF0000 · A2 tiene fondo #FF0000
 - **R6.3** · Antes: escribo un texto cualquiera en A1, un texto cualquiera en A2. Antes: hago clic en la columna A (en su letra). Uso el control de vaciar (borrar el contenido). → A1 queda vacía · A2 queda vacía
 
 ## R7. Seleccionar una fila haciendo clic en su número y poder: borrar la fila, cambiar el color de fondo de todas sus celdas, borrar el contenido de todas sus celdas
-- **R7.1** · Antes: escribo un texto cualquiera en A3, un texto cualquiera en B3. Antes: hago clic en la fila 3 (en su número). Uso el control de borrar. → lo que se escribió ya no se ve
-- **R7.2** · Antes: hago clic en la fila 3 (en su número). Elijo el color de fondo #ff0000. → A3 tiene fondo #ff0000 · B3 tiene fondo #ff0000
+- **R7.1** · Antes: escribo un texto cualquiera en A3, un texto cualquiera en B3, un texto cualquiera en A4. Antes: hago clic en la fila 3 (en su número). Uso el control de borrar. → lo que se escribió en A3 ya no se ve · lo que se escribió en B3 ya no se ve · A3 muestra lo que se escribió en A4 (ocupó su lugar)
+- **R7.2** · Antes: hago clic en la fila 3 (en su número). Elijo el color de fondo #FF0000. → A3 tiene fondo #FF0000 · B3 tiene fondo #FF0000
 - **R7.3** · Antes: escribo un texto cualquiera en A3, un texto cualquiera en B3. Antes: hago clic en la fila 3 (en su número). Uso el control de vaciar (borrar el contenido). → A3 queda vacía · B3 queda vacía
 
 ## R8. Ocultar una columna y ocultar una fila
@@ -48,13 +48,13 @@ Después, leé cada requisito y lo que se va a probar. Si una prueba está mal, 
 - **R12.3** · Antes: escribo "4" en A1, "2" en B1. Escribo "=A1/B1" en E1. → E1 muestra "2"
 
 ## R13. Se puede borrar una columna
-- **R13.1** · Antes: escribo un texto cualquiera en B1, un texto cualquiera en B2. Antes: hago clic en la columna B (en su letra). Uso el control de borrar. → lo que se escribió ya no se ve
+- **R13.1** · Antes: escribo un texto cualquiera en B1, un texto cualquiera en B2, un texto cualquiera en C1. Antes: hago clic en la columna B (en su letra). Uso el control de borrar. → lo que se escribió en B1 ya no se ve · lo que se escribió en B2 ya no se ve · B1 muestra lo que se escribió en C1 (ocupó su lugar)
 
 ## R14. Se puede ocultar una columna
 - **R14.1** · Antes: escribo un texto cualquiera en B1, un texto cualquiera en B2. Antes: hago clic en la columna B (en su letra). Uso el control de ocultar. → lo que se escribió ya no se ve · la columna B ya no se ve
 
 ## R15. Se puede borrar una fila
-- **R15.1** · Antes: escribo un texto cualquiera en A3, un texto cualquiera en B3. Antes: hago clic en la fila 3 (en su número). Uso el control de borrar. → lo que se escribió ya no se ve
+- **R15.1** · Antes: escribo un texto cualquiera en A3, un texto cualquiera en B3, un texto cualquiera en A4. Antes: hago clic en la fila 3 (en su número). Uso el control de borrar. → lo que se escribió en A3 ya no se ve · lo que se escribió en B3 ya no se ve · A3 muestra lo que se escribió en A4 (ocupó su lugar)
 
 ## R16. Se puede ocultar una fila
 - **R16.1** · Antes: escribo un texto cualquiera en A3, un texto cualquiera en B3. Antes: hago clic en la fila 3 (en su número). Uso el control de ocultar. → lo que se escribió ya no se ve · la fila 3 ya no se ve

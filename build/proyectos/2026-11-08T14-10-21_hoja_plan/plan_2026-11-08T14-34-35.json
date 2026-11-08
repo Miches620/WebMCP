@@ -1,0 +1,710 @@
+{
+  "type": "PLAN",
+  "version": "plan v0.1",
+  "modelo": "google/gemma-4-e4b",
+  "estado": "PROPUESTO",
+  "fases": [
+    {
+      "id": "F1",
+      "name": "Creación de la estructura base de la hoja de cálculo",
+      "responsable_sugerido": "Frontend",
+      "description": "Implementar el esqueleto visual de la aplicación. Esto incluye dibujar las 20 filas y 10 columnas (A a J) con sus respectivas etiquetas en los bordes, asegurando que cada celda esté correctamente nombrada por su columna y su fila (ej: A1, B2).",
+      "cubre": [
+        "R2"
+      ],
+      "depends_on": [],
+      "pruebas": [
+        "R2.1"
+      ]
+    },
+    {
+      "id": "F2",
+      "name": "Manejo de datos básicos e interacción con celdas",
+      "responsable_sugerido": "Frontend",
+      "description": "Permitir la edición de contenido en las celdas, ya sea mediante un clic para escribir directamente (editar celdas inline) o al hacer click en una celda. Además, se debe implementar el guardado automático del estado completo de la hoja en localStorage para que los datos persistan tras recargar la página.",
+      "cubre": [
+        "R1",
+        "R9",
+        "R10",
+        "R17"
+      ],
+      "depends_on": [
+        "F1"
+      ],
+      "pruebas": [
+        "R1.1",
+        "R9.1",
+        "R10.1",
+        "R17.1"
+      ]
+    },
+    {
+      "id": "F3",
+      "name": "Implementación del motor de fórmulas y cálculos",
+      "responsable_sugerido": "Frontend",
+      "description": "Desarrollar la lógica para que las celdas puedan contener fórmulas estilo Excel, empezando con '='. Esto incluye soportar funciones como =SUMA(rango) o =SUMA(celdas sueltas), y manejar operaciones matemáticas básicas (resta, multiplicación y división). Es crucial asegurar que si cambia una celda que la fórmula usa, el resultado de esa fórmula se actualice automáticamente.",
+      "cubre": [
+        "R3",
+        "R4",
+        "R11",
+        "R12"
+      ],
+      "depends_on": [
+        "F2"
+      ],
+      "pruebas": [
+        "R3.1",
+        "R4.1",
+        "R11.1",
+        "R12.1",
+        "R12.2",
+        "R12.3"
+      ]
+    },
+    {
+      "id": "F4",
+      "name": "Funcionalidades de formato y manipulación de celdas individuales",
+      "responsable_sugerido": "Frontend",
+      "description": "Implementar la capacidad de cambiar el color de fondo de una celda específica al hacer clic en ella. Esta funcionalidad debe actualizar tanto el estado interno como la representación visual de la celda.",
+      "cubre": [
+        "R5"
+      ],
+      "depends_on": [
+        "F2"
+      ],
+      "pruebas": [
+        "R5.1"
+      ]
+    },
+    {
+      "id": "F5",
+      "name": "Gestión estructural avanzada: Filas y Columnas",
+      "responsable_sugerido": "Frontend",
+      "description": "Implementar la funcionalidad de selección y manipulación masiva de secciones. Esto incluye poder seleccionar una columna haciendo clic en su letra para borrarla, cambiar el color de fondo de todas sus celdas o vaciar su contenido; lo mismo debe hacerse al seleccionar una fila por su número (borrar/cambiar color/vaciar). Adicionalmente, se deben implementar los controles para ocultar tanto columnas como filas.",
+      "cubre": [
+        "R6",
+        "R7",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+        "R8"
+      ],
+      "depends_on": [
+        "F1"
+      ],
+      "pruebas": [
+        "R6.1",
+        "R6.2",
+        "R6.3",
+        "R7.1",
+        "R7.2",
+        "R7.3",
+        "R8.1",
+        "R8.2",
+        "R13.1",
+        "R14.1",
+        "R15.1",
+        "R16.1"
+      ]
+    }
+  ],
+  "diferido": [],
+  "tareas": [
+    {
+      "id": "F1.1",
+      "phase": "F1",
+      "phase_name": "Creación de la estructura base de la hoja de cálculo",
+      "task": "Crear y posicionar las etiquetas de columna (A a J) en la cabecera superior.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Implementar el código para dibujar una fila de 10 elementos etiquetados secuencialmente desde 'A' hasta 'J', ubicándolos en la parte superior del área de trabajo, sirviendo como encabezado de las columnas.",
+      "prueba": [
+        "R2.1"
+      ],
+      "depends_on": [],
+      "status": "ACCEPTED",
+      "phase_index": 0,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea cumple con todos los criterios de atomicidad. Su objetivo es único y específico: dibujar y posicionar 10 etiquetas de encabezado (A-J). El alcance está perfectamente acotado al componente visual del encabezado, no requiere decisiones de diseño adicionales y puede ser ejecutada completamente por el rol Frontend.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F1.2",
+      "phase": "F1",
+      "phase_name": "Creación de la estructura base de la hoja de cálculo",
+      "task": "Crear y posicionar las etiquetas de fila (1 a 20) en el lateral izquierdo.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Implementar el código para dibujar una columna vertical de 20 elementos etiquetados secuencialmente desde '1' hasta '20', ubicándolos en la parte izquierda del área de trabajo, sirviendo como encabezado de las filas.",
+      "prueba": [
+        "R2.1"
+      ],
+      "depends_on": [],
+      "status": "ACCEPTED",
+      "phase_index": 0,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea tiene un objetivo único y muy acotado: la implementación visual de una columna específica (etiquetas 1 a 20) en el lateral izquierdo. El resultado es tangible e identificable para el rol Frontend, y no requiere decisiones de diseño ni mezcla múltiples funcionalidades.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F1.3",
+      "phase": "F1",
+      "phase_name": "Creación de la estructura base de la hoja de cálculo",
+      "task": "Generar y poblar el esqueleto principal de celdas (20x10) con nomenclatura correcta.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Crear la matriz contenedora para las 20 filas y 10 columnas. Debe generar 200 elementos de celda individuales, asegurando que cada celda esté correctamente identificada (ej: A1, B5, J20) mediante su estructura DOM o atributos internos.",
+      "prueba": [
+        "R2.1"
+      ],
+      "depends_on": [],
+      "status": "ACCEPTED",
+      "phase_index": 0,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea tiene un objetivo único y muy acotado: la creación de una estructura base (el esqueleto) con dimensiones específicas (20x10). El resultado esperado es tangible (la matriz DOM/HTML poblada). No requiere decisiones de diseño complejas ni mezcla lógica de negocio, limitándose exclusivamente a la implementación estructural del Frontend. Cumple con todos los criterios de atomicidad.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F2.1",
+      "phase": "F2",
+      "phase_name": "Manejo de datos básicos e interacción con celdas",
+      "task": "Implementar la funcionalidad de edición inline en celdas al hacer click o enfocar.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Añadir los manejadores de eventos (click/focus) a las celdas generadas en F1.3 para que, al interactuar con ellas, se conviertan en un campo editable (input o similar), permitiendo la escritura directa del contenido.",
+      "prueba": [
+        "R1.1",
+        "R10.1"
+      ],
+      "depends_on": [
+        "F1.3"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 1,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea tiene un único objetivo (implementar la edición inline en celdas) y su alcance está claramente acotado a añadir manejadores de eventos y transformar el contenido de las celdas en campos editables. Cumple con todos los criterios de atomicidad sin mezclar objetivos o requerir decisiones de diseño mayores.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F2.2",
+      "phase": "F2",
+      "phase_name": "Manejo de datos básicos e interacción con celdas",
+      "task": "Actualizar el estado interno de la hoja al finalizar la edición de una celda.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Implementar la lógica para capturar el valor escrito por el usuario cuando termina la edición (ej. evento blur o Enter) y actualizar de forma atómica el objeto de estado en memoria con este nuevo valor, sin modificar la visualización aún.",
+      "prueba": [
+        "R1.1",
+        "R10.1"
+      ],
+      "depends_on": [
+        "F2.1"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 1,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea cumple con todos los criterios de atomicidad. Su objetivo es único y altamente acotado: implementar la lógica específica para capturar el valor del evento de finalización de edición (blur/Enter) y actualizar *solo* el estado interno en memoria. Al especificar explícitamente 'sin modificar la visualización aún', se asegura que no mezcla objetivos, manteniendo un alcance limitado a la gestión de datos internos, lo cual es una responsabilidad clara del Frontend.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F2.3",
+      "phase": "F2",
+      "phase_name": "Manejo de datos básicos e interacción con celdas",
+      "task": "Implementar el guardado automático del estado completo de la hoja en localStorage tras cualquier cambio de datos.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Añadir un observador o disparador que, cada vez que el estado interno (objeto JavaScript) sea modificado exitosamente (después de F2.2), serialice y guarde la totalidad del objeto de estado en localStorage.",
+      "prueba": [
+        "R9.1",
+        "R17.1"
+      ],
+      "depends_on": [
+        "F2.2"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 1,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea cumple con todos los criterios de atomicidad. Su objetivo es único y específico: implementar el mecanismo de guardado automático del estado en localStorage. El alcance está perfectamente acotado a la lógica de observación (observer/trigger), serialización y persistencia de datos, sin mezclar objetivos de negocio o diseño de interfaz. Es un paso técnico autocontenido que depende únicamente de la existencia del objeto de estado definido previamente.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F2.4",
+      "phase": "F2",
+      "phase_name": "Manejo de datos básicos e interacción con celdas",
+      "task": "Cargar el estado inicial completo de la hoja desde localStorage al iniciar la aplicación.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Al cargar la página, verificar si existe un estado guardado en localStorage. Si lo hay, debe inicializar el objeto de estado interno con esos datos antes de dibujar o mostrar cualquier contenido.",
+      "prueba": [
+        "R9.1",
+        "R17.1"
+      ],
+      "depends_on": [],
+      "status": "ACCEPTED",
+      "phase_index": 1,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea cumple con todos los criterios de atomicidad. Su objetivo es único y específico: inicializar el estado interno utilizando datos persistidos en localStorage al cargar la aplicación. El alcance está perfectamente acotado a esta única acción de lectura/inicialización, sin mezclar lógica de negocio, salvado o interacción compleja.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F3.1",
+      "phase": "F3",
+      "phase_name": "Implementación del motor de fórmulas y cálculos",
+      "task": "Implementar la detección de fórmulas y el parsing inicial de argumentos.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Modificar la lógica de edición para detectar si el contenido ingresado en una celda comienza con '='. Si lo hace, debe extraer la cadena completa de la fórmula y sus argumentos (ej: 'SUMA(A1:A3)' o 'B1+C1'), almacenando esta estructura en el estado interno de la hoja.",
+      "prueba": [
+        "R3.1",
+        "R4.1",
+        "R11.1",
+        "R12.1",
+        "R12.2",
+        "R12.3"
+      ],
+      "depends_on": [
+        "F2.1",
+        "F2.2"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 2,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea se centra exclusivamente en la detección de fórmulas y el parsing inicial de argumentos al nivel de entrada del usuario. Su alcance está claramente acotado a modificar la lógica de edición para capturar y estructurar esta información en el estado interno, sin abordar aún la ejecución o el cálculo real (lo cual sería una tarea posterior). Cumple con tener un único objetivo y un resultado identificable.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F3.2",
+      "phase": "F3",
+      "phase_name": "Implementación del motor de fórmulas y cálculos",
+      "task": "Implementar el motor de cálculo para operaciones matemáticas básicas (suma, resta, multiplicación, división).",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Desarrollar la lógica de evaluación para fórmulas que contienen operadores matemáticos básicos (+, -, *, /) y referencias directas a celdas (ej: =A1+B1). Esta tarea debe ser capaz de resolver las referencias de celda usando los valores actuales del estado interno.",
+      "prueba": [
+        "R4.1",
+        "R12.1",
+        "R12.2",
+        "R12.3"
+      ],
+      "depends_on": [
+        "F3.1",
+        "F2.2"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 2,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea es altamente atómica y cumple con todos los criterios. Su objetivo es único (implementar la lógica de evaluación aritmética básica) y su alcance está claramente acotado a operadores (+, -, *, /) y la resolución de referencias de celda dentro del estado interno. No mezcla objetivos ni requiere decisiones de diseño arquitectónico mayores; se centra exclusivamente en la implementación funcional del motor definido.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F3.3",
+      "phase": "F3",
+      "phase_name": "Implementación del motor de fórmulas y cálculos",
+      "task": "Implementar el cálculo de funciones de rango (ej: SUMA).",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Desarrollar la lógica para identificar y procesar referencias de rango (ej: A1:A3 o A1;B1). Debe implementar funciones como SUMA, iterando sobre todas las celdas dentro del rango especificado y aplicando la función requerida.",
+      "prueba": [
+        "R3.1",
+        "R11.1"
+      ],
+      "depends_on": [
+        "F3.1",
+        "F2.2"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 2,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea tiene un objetivo único y bien acotado: implementar la lógica específica para procesar referencias de rango (ej. A1:A3) y aplicar funciones agregadas como SUMA sobre ellas. El alcance es claro y no mezcla objetivos más amplios del motor de fórmulas ni requiere decisiones de diseño fundamentales, sino la implementación de una funcionalidad definida.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F3.4",
+      "phase": "F3",
+      "phase_name": "Implementación del motor de fórmulas y cálculos",
+      "task": "Implementar el sistema de dependencia y actualización automática de fórmulas.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Crear un mecanismo que, cada vez que se actualiza una celda (después de F2.2), identifique todas las demás celdas en la hoja que dependan del valor cambiado. Para estas celdas dependientes, debe forzar el re-ejecución del motor de cálculo (F3.2 o F3.3) y actualizar su valor visible.",
+      "prueba": [
+        "R4.1",
+        "R3.1"
+      ],
+      "depends_on": [
+        "F2.2",
+        "F3.2",
+        "F3.3"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 2,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea tiene un único objetivo bien definido: implementar el mecanismo de detección y actualización automática de dependencias. Su alcance está acotado a la lógica de 'trigger' (detectar cambio) y 'propagación' (forzar recálculo en celdas dependientes), utilizando componentes ya definidos como dependencias (F2.2, F3.2, F3.3). Cumple con todos los criterios de atomicidad.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F4.1",
+      "phase": "F4",
+      "phase_name": "Funcionalidades de formato y manipulación de celdas individuales",
+      "task": "Implementar un manejador de eventos (event listener) en las celdas para detectar clics y obtener la coordenada de la celda objetivo.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Añadir la lógica JavaScript necesaria para que, al hacer clic en cualquier celda del grid, se capture su identificador único (coordenadas A1, B5, etc.).",
+      "prueba": [],
+      "depends_on": [
+        "F1.3"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 3,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea tiene un único objetivo bien definido: implementar la funcionalidad de detección de clics y captura de coordenadas en las celdas del grid. El alcance es extremadamente acotado a la lógica de manejo de eventos (JavaScript) para una función específica. Cumple con todos los criterios de atomicidad, ya que no mezcla objetivos ni requiere decisiones de diseño arquitectónico mayores.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F4.2",
+      "phase": "F4",
+      "phase_name": "Funcionalidades de formato y manipulación de celdas individuales",
+      "task": "Crear y posicionar la interfaz de usuario para la selección del color de fondo.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Implementar el componente visual (ej: paleta o selector) que permitirá al usuario elegir un nuevo color hexadecimal (#RRGGBB).",
+      "prueba": [],
+      "depends_on": [],
+      "status": "ACCEPTED",
+      "phase_index": 3,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea tiene un objetivo único y muy acotado: la creación y posicionamiento de un componente visual específico (el selector de color). El alcance se limita exclusivamente a la implementación del frontend de esta interfaz, sin mezclar lógica de negocio, manejo de estado o decisiones de diseño mayores. Cumple con todos los criterios de atomicidad.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F4.3",
+      "phase": "F4",
+      "phase_name": "Funcionalidades de formato y manipulación de celdas individuales",
+      "task": "Actualizar el estado interno de la hoja para registrar el color de fondo en una celda específica.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Desarrollar la lógica que, al recibir un color seleccionado y las coordenadas de la celda clickeada (F4.1), actualice el objeto de estado global con el nuevo valor de fondo para esa celda.",
+      "prueba": [],
+      "depends_on": [
+        "F2.2",
+        "F4.1"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 3,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea se centra exclusivamente en la lógica de negocio de actualizar el estado interno (state management) con un dato específico (color de fondo). Es una acción única y bien acotada que recibe entradas definidas por otras tareas (F4.1) y produce un único resultado: el objeto de estado actualizado. Cumple con todos los criterios de atomicidad.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F4.4",
+      "phase": "F4",
+      "phase_name": "Funcionalidades de formato y manipulación de celdas individuales",
+      "task": "Aplicar visualmente el color de fondo seleccionado a la celda en el DOM.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Implementar el mecanismo que, tras actualizar el estado (F4.3), modifique directamente el estilo CSS del elemento DOM de la celda clickeada para reflejar el nuevo color de fondo.",
+      "prueba": [
+        "R5.1"
+      ],
+      "depends_on": [
+        "F4.1",
+        "F4.3"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 3,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea tiene un objetivo único y muy acotado: modificar el estilo CSS de un elemento DOM específico (la celda) para reflejar un estado ya determinado por otra tarea (F4.3). El alcance es puramente la implementación del mecanismo de renderizado visual en el frontend, sin mezclar lógica de negocio o gestión de estado.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F5.1",
+      "phase": "F5",
+      "phase_name": "Gestión estructural avanzada: Filas y Columnas",
+      "task": "Implementar la detección de clics en las etiquetas de columna (A-J) para seleccionar y registrar el estado activo de una columna completa.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Añadir manejadores de eventos a los encabezados de columna (F1.1) para que, al hacer clic, se identifique la columna seleccionada y se actualice el estado interno de la aplicación con esta información.",
+      "prueba": [
+        "R6.1",
+        "R6.2",
+        "R6.3",
+        "R8.1",
+        "R13.1",
+        "R14.1"
+      ],
+      "depends_on": [
+        "F1.1"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 4,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea tiene un objetivo único y muy acotado: implementar la lógica de detección de clics en los encabezados de columna para actualizar el estado interno de la aplicación. No requiere decisiones de diseño nuevas (asume la estructura de F1.1) y se centra exclusivamente en la funcionalidad de manejo de eventos, cumpliendo con todos los criterios de atomicidad.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F5.2",
+      "phase": "F5",
+      "phase_name": "Gestión estructural avanzada: Filas y Columnas",
+      "task": "Implementar la detección de clics en las etiquetas de fila (1-20) para seleccionar y registrar el estado activo de una fila completa.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Añadir manejadores de eventos a los encabezados de fila (F1.2) para que, al hacer clic, se identifique la fila seleccionada y se actualice el estado interno de la aplicación con esta información.",
+      "prueba": [
+        "R7.1",
+        "R7.2",
+        "R7.3",
+        "R8.2",
+        "R15.1",
+        "R16.1"
+      ],
+      "depends_on": [
+        "F1.2"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 4,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea tiene un objetivo único y muy acotado: implementar la funcionalidad de detección de clics en las etiquetas de fila para actualizar el estado activo de toda la fila. El alcance está limitado a los manejadores de eventos (event handlers) y la actualización del estado interno, lo cual es una implementación directa sobre una dependencia existente (F1.2). Cumple con todos los criterios de atomicidad.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F5.3",
+      "phase": "F5",
+      "phase_name": "Gestión estructural avanzada: Filas y Columnas",
+      "task": "Implementar la funcionalidad para vaciar o borrar el contenido de todas las celdas dentro de una columna previamente seleccionada.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Utilizar el identificador de la columna activa (F5.1) para iterar sobre todas las celdas correspondientes en el DOM y establecer su contenido a vacío.",
+      "prueba": [
+        "R6.1",
+        "R6.3",
+        "R13.1"
+      ],
+      "depends_on": [
+        "F5.1"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 4,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea tiene un objetivo único y muy acotado: implementar la lógica de vaciado/borrado para una columna específica. El alcance está limitado a la manipulación del DOM dentro de los límites de la columna seleccionada, lo cual es apropiado para el rol Frontend y no requiere decisiones de diseño adicionales.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F5.4",
+      "phase": "F5",
+      "phase_name": "Gestión estructural avanzada: Filas y Columnas",
+      "task": "Implementar la funcionalidad para aplicar un color de fondo uniforme a todas las celdas dentro de una columna previamente seleccionada.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Utilizar el identificador de la columna activa (F5.1) y los mecanismos de color (F4.2, F4.3) para aplicar visualmente un fondo de color a todas las celdas de esa columna.",
+      "prueba": [
+        "R6.2"
+      ],
+      "depends_on": [
+        "F5.1",
+        "F4.4"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 4,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea es altamente atómica y cumple con todos los criterios. Su objetivo es único (aplicar color de fondo a una columna seleccionada), su alcance está estrictamente acotado al manejo visual del estilo CSS/DOM, y depende únicamente de la funcionalidad de selección de columnas ya definida (F5.1) y los mecanismos de color existentes (F4.2, F4.3). No mezcla objetivos ni requiere decisiones de diseño fundamentales.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F5.5",
+      "phase": "F5",
+      "phase_name": "Gestión estructural avanzada: Filas y Columnas",
+      "task": "Implementar la funcionalidad para vaciar o borrar el contenido de todas las celdas dentro de una fila previamente seleccionada.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Utilizar el identificador de la fila activa (F5.2) para iterar sobre todas las celdas correspondientes en el DOM y establecer su contenido a vacío.",
+      "prueba": [
+        "R7.1",
+        "R7.3",
+        "R15.1"
+      ],
+      "depends_on": [
+        "F5.2"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 4,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea tiene un objetivo único y muy acotado: implementar la funcionalidad de vaciar el contenido de una fila específica. El alcance se limita a manipular el DOM basándose en un identificador preexistente (F5.2). Cumple con todos los criterios de atomicidad ya que no mezcla objetivos, su resultado es claramente identificable (la fila vacía), y puede ser ejecutada completamente por el rol Frontend.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F5.6",
+      "phase": "F5",
+      "phase_name": "Gestión estructural avanzada: Filas y Columnas",
+      "task": "Implementar la funcionalidad para aplicar un color de fondo uniforme a todas las celdas dentro de una fila previamente seleccionada.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Utilizar el identificador de la fila activa (F5.2) y los mecanismos de color (F4.2, F4.3) para aplicar visualmente un fondo de color a todas las celdas de esa fila.",
+      "prueba": [
+        "R7.2"
+      ],
+      "depends_on": [
+        "F5.2",
+        "F4.4"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 4,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea tiene un objetivo único y bien definido (aplicar color de fondo a una fila seleccionada). Su alcance está estrictamente acotado al manejo visual del estado 'seleccionado' en el componente de filas, utilizando mecanismos ya definidos (F4.2, F4.3) e identificadores existentes (F5.2). Cumple con todos los criterios de atomicidad.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F5.7",
+      "phase": "F5",
+      "phase_name": "Gestión estructural avanzada: Filas y Columnas",
+      "task": "Implementar la funcionalidad para ocultar visualmente todas las celdas de una columna previamente seleccionada.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Utilizar el identificador de la columna activa (F5.1) para aplicar un estilo CSS que oculte completamente todas las celdas pertenecientes a esa columna.",
+      "prueba": [
+        "R8.1",
+        "R14.1"
+      ],
+      "depends_on": [
+        "F5.1"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 4,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea cumple con todos los criterios de atomicidad. Su objetivo es único y específico: implementar la funcionalidad de ocultar una columna seleccionada mediante CSS. El alcance está acotado a la manipulación del estilo visual (frontend) utilizando un identificador ya existente (F5.1). No requiere decisiones de diseño complejas ni mezcla múltiples funcionalidades, lo que garantiza su ejecución como una unidad de trabajo atómica.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    },
+    {
+      "id": "F5.8",
+      "phase": "F5",
+      "phase_name": "Gestión estructural avanzada: Filas y Columnas",
+      "task": "Implementar la funcionalidad para ocultar visualmente todas las celdas de una fila previamente seleccionada.",
+      "role": "Frontend",
+      "responsable_sugerido": "Frontend",
+      "description": "Utilizar el identificador de la fila activa (F5.2) para aplicar un estilo CSS que oculte completamente todas las celdas pertenecientes a esa fila.",
+      "prueba": [
+        "R8.2",
+        "R16.1"
+      ],
+      "depends_on": [
+        "F5.2"
+      ],
+      "status": "ACCEPTED",
+      "phase_index": 4,
+      "checker": {
+        "is_valid": true,
+        "reason": "La tarea tiene un objetivo único y muy acotado: aplicar la lógica de ocultamiento visual a una fila específica, utilizando como pre-requisito el identificador proporcionado por F5.2. Cumple con todos los criterios de atomicidad sin mezclar objetivos ni requerir decisiones de diseño nuevas.",
+        "attempt": 1
+      },
+      "attempt": 1,
+      "parent_at": null
+    }
+  ],
+  "sin_resolver": [],
+  "cobertura": {
+    "requisitos_sin_fase": [],
+    "filas_sin_tarea": []
+  },
+  "llamadas": [
+    {
+      "paso": "techleader",
+      "intento": 1,
+      "ms": 113212,
+      "raw": "```json\n{\n  \"fases\": [\n    {\n      \"id\": \"F1\",\n      \"name\": \"Inicialización de la estructura de la hoja y nomenclatura\",\n      \"responsable_sugerido\": \"Frontend\",\n      \"description\": \"Crear el esqueleto visual de la hoja de cálculo, incluyendo las 10 columnas (A-J) y 20 filas (1-20). Se debe implementar la lógica para que se muestren correctamente las letras en la parte superior y los números a la izquierda, nombrando cada celda por su columna y fila (R2).\",\n      \"cubre\": [\n        \"R2\"\n      ],\n      \"depends_on\": []\n    },\n    {\n      \"id\": \"F2\",\n      \"name\": \"Manejo de entrada, edición e persistencia de datos\",\n      \"responsable_sugerido\": \"Frontend\",\n      \"description\": \"Implementar la capacidad de editar celdas directamente al hacer clic (R1, R10). El sistema debe gestionar el estado interno de los valores escritos en las celdas. Además, se debe asegurar que todos los datos ingresados se guarden automáticamente en localStorage para que persistan tras recargar la página (R9, R17).\",\n      \"cubre\": [\n        \"R1\",\n        \"R9\",\n        \"R10\",\n        \"R17\"\n      ],\n      \"depends_on\": [\n        \"F1\"\n      ]\n    },\n    {\n      \"id\": \"F3\",\n      \"name\": \"Motor de cálculo y manejo de fórmulas complejas\",\n      \"responsable_sugerido\": \"Frontend\",\n      \"description\": \"Desarrollar el motor que interpreta las fórmulas escritas en formato Excel (empezando con '=') para realizar cálculos. Esto incluye la implementación de funciones como SUMA(rango) y manejo de celdas sueltas, así como operaciones básicas matemáticas: resta, multiplicación y división (R3, R12). Es crucial implementar la lógica de dependencia: cuando el valor de una celda utilizada en una fórmula cambia, el resultado de esa fórmula debe actualizarse automáticamente (R4, R11).\",\n      \"cubre\": [\n        \"R3\",\n        \"R4\",\n        \"R11\",\n        \"R12\"\n      ],\n      \"depends_on\": [\n        \"F2\"\n      ]\n    },\n    {\n      \"id\": \"F4\",\n      \"name\": \"Funcionalidad de formato básico y selección de celdas\",\n      \"responsable_sugerido\": \"Frontend\",\n      \"description\": \"Implementar la capacidad de cambiar el color de fondo de una celda seleccionada (R5). Esta fase también debe incluir la lógica para que al seleccionar una columna o fila completa, se puedan aplicar acciones de formato a todas las celdas contenidas en esa selección (parte del manejo de R6 y R7).\",\n      \"cubre\": [\n        \"R5\"\n      ],\n      \"depends_on\": [\n        \"F3\"\n      ]\n    }\n  ],\n  \"features_clave\": [\n    \"Grid Structure (A-J, 1-20)\",\n    \"Inline Editing\",\n    \"State Persistence (localStorage)\",\n    \"Formula Calculation Engine\",\n    \"Basic Formatting (Background Color)\"\n  ],\n  \"diferido\": [\n    \"Implementación de la selección y manipulación completa de columnas: borrar columna, ocultar columna, vaciar contenido de toda la columna (R6, R13, R14).\",\n    \"Implementación de la selección y manipulación completa de filas: borrar fila, ocultar fila, vaciar contenido de toda la fila (R7, R15, R16).\"\n  ]\n}\n```"
+    },
+    {
+      "paso": "techleader",
+      "intento": 2,
+      "ms": 79008,
+      "raw": "```json\n{\n  \"fases\": [\n    {\n      \"id\": \"F1\",\n      \"name\": \"Creación de la estructura base de la hoja de cálculo\",\n      \"responsable_sugerido\": \"Frontend\",\n      \"description\": \"Implementar el esqueleto visual de la aplicación. Esto incluye dibujar las 20 filas y 10 columnas (A a J) con sus respectivas etiquetas en los bordes, asegurando que cada celda esté correctamente nombrada por su columna y su fila (ej: A1, B2).\",\n      \"cubre\": [\n        \"R2\"\n      ],\n      \"depends_on\": []\n    },\n    {\n      \"id\": \"F2\",\n      \"name\": \"Manejo de datos básicos e interacción con celdas\",\n      \"responsable_sugerido\": \"Frontend\",\n      \"description\": \"Permitir la edición de contenido en las celdas, ya sea mediante un clic para escribir directamente (editar celdas inline) o al hacer click en una celda. Además, se debe implementar el guardado automático del estado completo de la hoja en localStorage para que los datos persistan tras recargar la página.\",\n      \"cubre\": [\n        \"R1\",\n        \"R9\",\n        \"R10\",\n        \"R17\"\n      ],\n      \"depends_on\": [\n        \"F1\"\n      ]\n    },\n    {\n      \"id\": \"F3\",\n      \"name\": \"Implementación del motor de fórmulas y cálculos\",\n      \"responsable_sugerido\": \"Frontend\",\n      \"description\": \"Desarrollar la lógica para que las celdas puedan contener fórmulas estilo Excel, empezando con '='. Esto incluye soportar funciones como =SUMA(rango) o =SUMA(celdas sueltas), y manejar operaciones matemáticas básicas (resta, multiplicación y división). Es crucial asegurar que si cambia una celda que la fórmula usa, el resultado de esa fórmula se actualice automáticamente.\",\n      \"cubre\": [\n        \"R3\",\n        \"R4\",\n        \"R11\",\n        \"R12\"\n      ],\n      \"depends_on\": [\n        \"F2\"\n      ]\n    },\n    {\n      \"id\": \"F4\",\n      \"name\": \"Funcionalidades de formato y manipulación de celdas individuales\",\n      \"responsable_sugerido\": \"Frontend\",\n      \"description\": \"Implementar la capacidad de cambiar el color de fondo de una celda específica al hacer clic en ella. Esta funcionalidad debe actualizar tanto el estado interno como la representación visual de la celda.\",\n      \"cubre\": [\n        \"R5\"\n      ],\n      \"depends_on\": [\n        \"F2\"\n      ]\n    },\n    {\n      \"id\": \"F5\",\n      \"name\": \"Gestión estructural avanzada: Filas y Columnas\",\n      \"responsable_sugerido\": \"Frontend\",\n      \"description\": \"Implementar la funcionalidad de selección y manipulación masiva de secciones. Esto incluye poder seleccionar una columna haciendo clic en su letra para borrarla, cambiar el color de fondo de todas sus celdas o vaciar su contenido; lo mismo debe hacerse al seleccionar una fila por su número (borrar/cambiar color/vaciar). Adicionalmente, se deben implementar los controles para ocultar tanto columnas como filas.\",\n      \"cubre\": [\n        \"R6\",\n        \"R7\",\n        \"R13\",\n        \"R14\",\n        \"R15\",\n        \"R16\",\n        \"R8\"\n      ],\n      \"depends_on\": [\n        \"F1\"\n      ]\n    }\n  ],\n  \"features_clave\": [\n    \"Grid de 20x10 con nomenclatura A1-J20\",\n    \"Edición inline y persistencia en localStorage\",\n    \"Motor de fórmulas (SUMA, +, -, *, /)\",\n    \"Control de color de fondo por celda/sección\",\n    \"Gestión estructural (Ocultar/Borrar/Formatear filas y columnas)\"\n  ],\n  \"diferido\": []\n}\n```"
+    }
+  ],
+  "ms": 1388994
+}

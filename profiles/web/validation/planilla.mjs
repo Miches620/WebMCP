@@ -785,10 +785,11 @@ export async function runRow({ page, row: row0, controls, glosario, azar, ctx, r
   ctx.trasClic = null; ctx.seleccion = null; ctx.respuestaPrompt = null;
   const ctls = { ...DEFAULT_CONTROLS, ...(controls || {}) };
   await freshStart(page, reload);
-  const e0 = ctx.pageErrors.length;
+  const e0 = ctx.pageErrors.length, d0 = ctx.dialogs.length;
   const steps = [];
   // 02/11: cada paso que se pudo hacer lleva ✓ (el ciclo cuenta los ✓ para saber si un cambio acercó, aunque la prueba siga fallando)
-  const out = (result, last) => { const errs = errsSince(ctx, e0); return { result, detail: [...steps.filter(Boolean).map((x) => /^(✓|no pudo)/.test(x) ? x : `✓ ${x}`), last].filter(Boolean).join(" · ") + (errs.length ? ` · error de JS: ${errs[0].slice(0, 160)}` : ""), ...(errs.length ? { errors: errs } : {}) }; };
+  // 07/11: si FALLA y la app mostró un alert/confirm, se dice cuál (R5.1: "Por favor, selecciona una columna…" explicaba por qué no pintaba)
+  const out = (result, last) => { const errs = errsSince(ctx, e0), avisos = result === "FAIL" ? [...new Set(ctx.dialogs.slice(d0))] : []; return { result, detail: [...steps.filter(Boolean).map((x) => /^(✓|no pudo)/.test(x) ? x : `✓ ${x}`), last].filter(Boolean).join(" · ") + (errs.length ? ` · error de JS: ${errs[0].slice(0, 160)}` : "") + (avisos.length ? ` · la app mostró el aviso "${avisos[0].slice(0, 120)}"${avisos.length > 1 ? ` (y ${avisos.length - 1} más)` : ""}` : ""), ...(errs.length ? { errors: errs } : {}) }; };
   const dado = row.dado || [];
   for (const d of dado) {
     // 19/10: "dado" también puede mover un ítem que ya se creó (para restricciones como "no se borra en Completa")

@@ -230,6 +230,12 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   const g8 = await juzgar(join(FIX, "flow_hoja_gemma8"), PH);
   const d8 = (r) => g8.fallan.find((f) => f.r === r)?.detalle.join(" ") || "";
   t("hoja de Gemma 8: aprieta Aplicar después de elegir el color; usa el control de su selección (Ocultar Columna); contesta el prompt (sin error de JS); clic que oculta la fila no pasa; R2 mira la otra punta (J20)", /eligió el color #?\w+ con "Color Fondo:" y apretó "Aplicar Color"/.test(d8("R5") + d8("R6")) && /usó "Ocultar Columna"/.test(d8("R8")) && !/toUpperCase/.test(d8("R6")) && /la fila desapareció: hacer clic tiene que seleccionarla/.test(d8("R7")) && /en la otra punta .*donde se cruzan la letra "J" y el número "20"/.test(d8("R2")), [d8("R2").slice(0, 200), d8("R6").slice(0, 300), d8("R7").slice(0, 200), d8("R8").slice(0, 200)].join(" || "));
+  // 07/11 (de a poco, 2ª vuelta: R5.1 trabado 4 vueltas): al apretar Aplicar la app decía con un alert "selecciona una columna o
+  // una fila" (el clic en la celda no la seleccionaba) y el juez no lo contaba
+  const PJ = JSON.parse(readFileSync(join(FIX, "proyecto_hoja/planilla.json"), "utf8"));
+  const da = await juzgar(join(FIX, "flow_hoja_deapoco2"), { ...PJ, filas: PJ.filas.filter((f) => f.id === "R5.1") });
+  const dda = da.fallan.find((f) => f.r === "R5")?.detalle.join(" ") || "";
+  t("si falla y la app mostró un alert, el detalle dice cuál (R5.1: \"selecciona una columna o una fila\")", /la app mostró el aviso "Por favor, selecciona una columna o una fila primero\."/.test(dda), dda.slice(0, 300));
   // el buscador: la ficha (rasgos con cita) y lo que no pediste como preguntas en planilla.md
   const ev = { grupos: [{ rasgo: "escribir fórmulas", de: ["T2"], fuentes: ["S1", "S2"], ya_pedido: true }, { rasgo: "compartir con el equipo", de: ["T3"], fuentes: ["S1", "S2", "S3"], fuera_del_stack: "necesita servidor" }, { rasgo: "combinar celdas", de: ["T1"], fuentes: ["S3"] }], rasgos: [{ id: "T1", fuente: "S3", cita: "Merge cells across rows" }, { id: "T2", fuente: "S1", cita: "Formulas  begin with an equal sign" }, { id: "T3", fuente: "S1", cita: "Share with your team" }] };
   const fi = fichaDe(ev);

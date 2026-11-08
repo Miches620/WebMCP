@@ -1416,3 +1416,14 @@
 - **cambios v0.7:** si la primera línea de un BLOQUE aparece más de una vez, el aviso dice cuántas veces y dónde (`index.html:16, index.html:18`) y pide la primera línea del elemento que las contiene (si también se repite, uno más afuera, p. ej. el que tiene id), devuelto entero y sin las repetidas. El aviso de "casi todo el archivo" en HTML pide el elemento que cambia (antes hablaba de funciones).
 - Sigue trabado (de la app, no del harness): R4.1 (recalcular dependencias: A1 muestra "0"), R5.1 (un clic en una celda no la selecciona), R6.1/R13.1 (borrar columna), R7.1/R15.1 (borrar fila: `handleDeleteRow` vacía y un `onclick` con `${}` adentro del HTML), R8.1/R14.1 (ocultar columna).
 - `test_ciclo` 52/52 (+1).
+
+## 07/11 noche — 2ª vuelta "de a poco" con cambios v0.7: 49 vueltas, 0 aceptadas (9/17, 16/24). Merge de `visual` a `main`
+- Corrida `2026-11-05T02-58-55_prueba_atomica/ciclo_2026-11-07T16-17-05`: las 8 pruebas pendientes, dos pasadas, ningún cambio quedó. Curva plana.
+- El aviso de línea repetida (v0.7) se disparó una vez (vuelta 22); Gemma no volvió a intentar el HTML. En las vueltas 15 y 20 la línea del botón no coincidía tal cual (el index.html tiene `\${…}` literal) y salió "no encontré".
+- **Por qué no avanza (lo que muestran las respuestas):**
+  - R4.1 (recalcular): `calculateCell` reemplaza el texto de la celda por el resultado y la fórmula se pierde; recalcular necesita GUARDAR la fórmula aparte. Gemma tocó `calculateCell`/`setupCellEditing` 5 veces sin ese cambio de diseño.
+  - R5.1 (color de una celda): Gemma lee `window.selectedCellTarget` pero nada lo asigna (no hay clic en las celdas); al apretar Aplicar la app hacía `alert("Por favor, selecciona una columna o una fila primero.")` y **el juez no lo decía**.
+  - Borrar/ocultar (R6.1, R7.1, R8.1, R13.1, R14.1, R15.1): los botones de index.html tienen `onclick` con `\${selectedRowIndex}` literal → error de JS en cada clic (el aviso lo decía con `index.html:17`), pero Gemma arreglaba la función de script.js. Y "vaciar" (tecla Supr) y "Borrar Fila" usan la misma `handleDeleteRow`: cuando Gemma hacía que borre la fila, se rompía vaciar (R7). No hay botón "Borrar Columna" (el juez usa "Borrar Fila").
+  - **Lectura:** lo que falta ya no es "una prueba"; cada prueba pide 2–3 cambios en lugares distintos (HTML + estado de selección + separar dos acciones). La unidad "una fila de la planilla" no es atómica para Gemma: hace falta partirla en tareas. Es el trabajo del Atomizer → se pasa a la fusión con WebMCP (decisión de Miche, 07/11: "1 primero, luego 2").
+- **planilla v0.x (juez):** si una prueba FALLA y la app mostró un alert/confirm, el detalle termina con `la app mostró el aviso "…"`. Fixture `flow_hoja_deapoco2` (la app final de esta corrida); test en `test_proyecto` (+1).
+- Git: `visual` (28 commits) se fusionó en `main` (fast-forward) y se subió a GitHub.

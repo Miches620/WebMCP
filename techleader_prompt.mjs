@@ -11,8 +11,12 @@
 // resuelto en profiles/registry.mjs desde standards/catalog.mjs).
 import { stackText, standardMeta } from "./standards/catalog.mjs";
 
-/** @param {{roles:string[], exampleRole:string, standard?:string, stack?:object}} profile  resultado de resolveProfiles() */
-export function buildTechLeaderPrompt(profile) {
+/**
+ * @param {{roles:string[], exampleRole:string, standard?:string, stack?:object}} profile  resultado de resolveProfiles()
+ * @param {{cubre?:boolean}} [o]  08/11 (fusión con la planilla): cada fase dice qué requisitos cubre ("cubre": ["R1"…]) y no hay
+ *   fases de pruebas (la planilla las corre). Sin la opción, el prompt es el de siempre (UI).
+ */
+export function buildTechLeaderPrompt(profile, o = {}) {
   if (!profile?.roles?.length || !profile.exampleRole)
     throw new Error("TechLeader: falta el profile del proyecto (roles); ¿qué tipo de proyecto es?");
   const roleList = profile.roles.map((r) => `"${r}"`).join("\n");
@@ -64,7 +68,13 @@ Si existe una dependencia necesaria, exprésala mediante "depends_on".
 10. El resultado debe permitir que cada fase sea enviada posteriormente,
 de manera independiente, a un Atomizer que asumirá temporalmente el rol
 indicado en "responsable_sugerido".
+${o.cubre ? `
+11. El PROYECTO trae sus REQUISITOS numerados (R1, R2…), cada uno con las pruebas que se le van a hacer a la app terminada.
+Cada requisito tiene que estar en "cubre" de al menos una fase, y la descripción de esa fase tiene que decir lo que pide ese
+requisito con sus palabras (no lo resumas en algo más general: "color de una celda" no es "color de muchas celdas").
 
+12. NO planifiques fases de pruebas, verificación ni QA: las pruebas ya están escritas y las corre el harness.
+` : ""}
 RESPONDE ÚNICAMENTE CON JSON VÁLIDO.
 FORMATO OBLIGATORIO:
 
@@ -74,7 +84,8 @@ FORMATO OBLIGATORIO:
       "id": "F1",
       "name": "...",
       "responsable_sugerido": "${profile.exampleRole}",
-      "description": "...",
+      "description": "...",${o.cubre ? `
+      "cubre": ["R1", "R2"],` : ""}
       "depends_on": []
     }
   ],

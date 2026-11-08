@@ -114,6 +114,7 @@ npm run searcher "<idea>"                             # Searcher: preguntas con 
 npm run planilla <snapshot> [--glosario g.json] [--modo libre]   # Qwen arma la planilla (por defecto con plantillas de fila; el glosario dice cómo se llaman las cosas de la app)
 npm run ciclo -- <app> --planilla <p.json> --snapshot <s.json>   # el ciclo: la app mejora vuelta a vuelta hasta cumplir la planilla
 npm run proyecto -- nuevo <pedido.txt>      # Qwen: requisitos tal cual + glosario + planilla (y planilla.md en palabras)
+npm run proyecto -- plan <proyecto> [--aprobar]   # TechLeader + Atomizer con la planilla adentro → plan.json / plan.md (Miche aprueba)
 npm run proyecto -- seguir <proyecto>       # Gemma: borrador si no hay app + el ciclo (volver a correrlo retoma)
 npm run proyecto -- juzgar <app> <planilla>  # una app contra una planilla, sin modelo
 npm run comparar <planilla_vara> <planilla_otra>      # ¿juzgan igual? (sobre las 4 apps reales)

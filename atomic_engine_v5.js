@@ -77,6 +77,24 @@ function extractJSON(text) {
 const piezaLine = (recipe) =>
   recipe ? `\n      "pieza": "${Object.keys(recipe.piezas).join(" | ")}",` : "";
 
+// 08/11 (fusión con la planilla, decisión de Miche): si la fase trae las PRUEBAS que tiene que hacer pasar (filas de la
+// planilla), cada Atomic Task dice cuáles verifica en "prueba". Sin pruebas (UI, corridas viejas) el prompt es el de siempre.
+const pruebaLine = (phase) =>
+  phase.pruebas?.length ? `\n      "prueba": ["${phase.pruebas[0].id}"],` : "";
+const pruebasBlock = (phase) => !phase.pruebas?.length ? "" : `PRUEBAS QUE ESTA FASE TIENE QUE HACER PASAR:
+
+Así se va a probar la app terminada, como una persona frente a la pantalla:
+
+${phase.pruebas.map((p) => `- ${p.id}: ${p.texto}`).join("\n")}
+
+- Cada prueba de la lista necesita al menos una Atomic Task que la haga pasar.
+- En "prueba" poné los ids de las pruebas que esa tarea ayuda a pasar ([] si es una preparación que no se ve sola).
+- Lo que dice una tarea no puede contradecir una prueba: si una prueba espera algo después de un cambio, la tarea tiene que dejarlo posible.
+- No agregues tareas de "verificar" o "probar": las pruebas las corre el harness.
+
+`;
+const sinPruebas = (phase) => { const { pruebas, ...rest } = phase; return rest; };
+
 const DECOMPOSE_PROMPT = (
   phase,
   rolePadre,
@@ -100,7 +118,7 @@ La fase fue definida previamente por TechLeader y asignada al rol:
 "${rolePadre}"
 
 FASE:
-${JSON.stringify(phase, null, 2)}
+${JSON.stringify(sinPruebas(phase), null, 2)}
 
 TU OBJETIVO:
 
@@ -155,7 +173,7 @@ Roles permitidos:
 
 ${roles.map((r) => `"${r}"`).join("\n")}
 
-${recipe ? recipe.text + "\n" : ""}SALIDA:
+${recipe ? recipe.text + "\n" : ""}${pruebasBlock(phase)}SALIDA:
 
 Devuelve ÚNICAMENTE JSON válido.
 
@@ -168,7 +186,7 @@ FORMATO:
     {
       "id": "F1.1",
       "task": "...",
-      "role": "${rolePadre}",${piezaLine(recipe)}
+      "role": "${rolePadre}",${piezaLine(recipe)}${pruebaLine(phase)}
       "description": "...",
       "depends_on": []
     }
@@ -185,7 +203,7 @@ Si la fase completa puede convertirse directamente en una
     {
       "id": "F1.1",
 "task": "...",
-      "role": "${rolePadre}",${piezaLine(recipe)}
+      "role": "${rolePadre}",${piezaLine(recipe)}${pruebaLine(phase)}
       "description": "...",
       "depends_on": []
     }
@@ -716,6 +734,9 @@ function normalizeAtomicTask(rawAT, phase, phaseIndex, sequence, lineage = {}) {
     // Una subtarea re-atomizada sin pieza hereda la de su madre (lineage.pieza).
     ...(rawAT.pieza || lineage.pieza ? { pieza: rawAT.pieza || lineage.pieza } : {}),
 
+    // 08/11: las pruebas de la planilla que verifican esta tarea; una subtarea re-atomizada sin "prueba" hereda la de su madre.
+    ...(Array.isArray(rawAT.prueba) || lineage.prueba ? { prueba: (Array.isArray(rawAT.prueba) ? rawAT.prueba : lineage.prueba).filter((x) => typeof x === "string" && x.trim()).map((x) => x.trim()) } : {}),
+
     depends_on: normalizeDependsOn(rawAT.depends_on, id),
 
     status: "PROPOSED",
@@ -928,6 +949,7 @@ export async function resolveAtomicTask(
           attempt: nextAttempt,
           parent_at: currentTask.id,
           pieza: currentTask.pieza,
+          prueba: currentTask.prueba,
         },
       );
     });
@@ -1466,6 +1488,9 @@ export async function runAtomicGraph(
   }
 
   const BATCH_SIZE = 1;
+  // 08/11: opts.previousTasks = tareas de una pasada anterior (p. ej. las fases ya atomizadas, cuando se vuelve a
+  // atomizar solo lo que faltó cubrir). Son contexto y dependencias válidas; no se devuelven.
+  const prior = Array.isArray(opts.previousTasks) ? opts.previousTasks : [];
   const acceptedTasks = [];
   const unresolvedTasks = [];
   const rejectedTasks = [];
@@ -1487,7 +1512,7 @@ export async function runAtomicGraph(
       const result = await atomizePhase(
         phase,
         phase.responsable_sugerido,
-        acceptedTasks,
+        [...prior, ...acceptedTasks],
         logCallback,
         { profile },
       );
@@ -1549,6 +1574,7 @@ export async function runAtomicGraph(
       // el mismo llamado al Atomizer). Si hay un id inventado, falla acá
       // y no se gastan las fases que faltan.
       const knownIdsSoFar = new Set([
+        ...prior.map((t) => t.id),
         ...acceptedTasks.map((t) => t.id),
         ...unresolvedTasks.map((t) => t.id),
       ]);

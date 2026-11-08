@@ -276,6 +276,23 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     mkdirSync(appDir, { recursive: true });
     for (const [f, s] of Object.entries(app)) writeFileSync(join(appDir, f), s);
     console.log(`[PROYECTO] la app quedó en ${appDir} (abrí index.html). Volver a correr "seguir" la retoma desde ahí.`);
+  } else if (modo === "plan" && a1) {
+    // 08/11 (fusión con WebMCP, decisión de Miche): TechLeader + Atomizer con la planilla adentro → plan.json + plan.md.
+    // Miche lo lee y lo aprueba (--aprobar) antes de que Gemma construya.
+    const dir = resolve(a1);
+    if (args.includes("--aprobar")) {
+      const f = join(dir, "plan.json");
+      if (!existsSync(f)) { console.log(`[PLAN] no hay plan en ${dir}: primero npm run proyecto -- plan "${dir}"`); process.exit(2); }
+      const pl = JSON.parse(readFileSync(f, "utf8"));
+      pl.estado = "APROBADO"; pl.aprobado = new Date().toISOString();
+      writeFileSync(f, JSON.stringify(pl, null, 2));
+      console.log(`[PLAN] aprobado (${pl.tareas.length} tareas).`);
+    } else {
+      const { planDeProyecto, PLAN_VERSION } = await import("./plan.mjs");
+      console.log(`[PLAN] ${PLAN_VERSION} → ${dir}`);
+      const pl = await planDeProyecto(dir);
+      console.log(`\n[PLAN] listo en ${Math.round(pl.ms / 60000)} min. Leé ${join(dir, "plan.md")} y, si está bien:\n  npm run proyecto -- plan "${dir}" --aprobar`);
+    }
   } else if (modo === "copiar" && a1) {
     // 04/11: el mismo proyecto (pedido, requisitos, planilla) en una carpeta nueva, SIN app ni corridas: para probar otra
     // forma de construir y comparar con la misma vara
@@ -318,7 +335,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     console.log(`[JUZGAR] ${r.cumplidos}/${r.de} requisitos cumplidos`);
     for (const f of r.fallan) console.log(`  ✗ ${f.r}: ${f.detalle.join(" | ").slice(0, 300)}`);
   } else {
-    console.log("uso:\n  node build/proyecto.mjs quitar <carpeta del proyecto> R10.3 R21.*   (saca pruebas que están mal)\n  node build/proyecto.mjs agregar <carpeta del proyecto> \"pedido nuevo\" [\"otro\"…]   (Qwen: pruebas solo de lo nuevo)\n  node build/proyecto.mjs rehacer <carpeta del proyecto> R6 R32   (Qwen: vuelve a escribir las pruebas de esos requisitos)\n  node build/proyecto.mjs cambiar <carpeta del proyecto> R12 \"texto nuevo\"   (cambia lo pedido y rehace sus pruebas)\n  node build/proyecto.mjs nuevo <pedido.txt> [--nombre x] [--sin-buscar]   (buscador + Qwen: requisitos tal cual, glosario, planilla y planilla.md)\n  node build/proyecto.mjs seguir <carpeta del proyecto> [--visual] [--moderno] [--de-a-poco [--base 2] [--sin-rol]]  (Gemma: borrador si no hay app, y el ciclo; retoma si ya hay; --visual suma las reglas visuales; --de-a-poco: borrador mínimo y de a una prueba)\n  node build/proyecto.mjs copiar <carpeta del proyecto> [nombre]   (el mismo pedido y planilla en una carpeta nueva, sin app)\n  node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json> [--visual] [--moderno]");
+    console.log("uso:\n  node build/proyecto.mjs quitar <carpeta del proyecto> R10.3 R21.*   (saca pruebas que están mal)\n  node build/proyecto.mjs agregar <carpeta del proyecto> \"pedido nuevo\" [\"otro\"…]   (Qwen: pruebas solo de lo nuevo)\n  node build/proyecto.mjs rehacer <carpeta del proyecto> R6 R32   (Qwen: vuelve a escribir las pruebas de esos requisitos)\n  node build/proyecto.mjs cambiar <carpeta del proyecto> R12 \"texto nuevo\"   (cambia lo pedido y rehace sus pruebas)\n  node build/proyecto.mjs nuevo <pedido.txt> [--nombre x] [--sin-buscar]   (buscador + Qwen: requisitos tal cual, glosario, planilla y planilla.md)\n  node build/proyecto.mjs seguir <carpeta del proyecto> [--visual] [--moderno] [--de-a-poco [--base 2] [--sin-rol]]  (Gemma: borrador si no hay app, y el ciclo; retoma si ya hay; --visual suma las reglas visuales; --de-a-poco: borrador mínimo y de a una prueba)\n  node build/proyecto.mjs plan <carpeta del proyecto> [--aprobar]   (TechLeader + Atomizer con la planilla adentro: plan.json y plan.md; Miche lo aprueba)\n  node build/proyecto.mjs copiar <carpeta del proyecto> [nombre]   (el mismo pedido y planilla en una carpeta nueva, sin app)\n  node build/proyecto.mjs juzgar <carpeta de la app> <planilla.json> [--visual] [--moderno]");
     process.exit(2);
   }
 }

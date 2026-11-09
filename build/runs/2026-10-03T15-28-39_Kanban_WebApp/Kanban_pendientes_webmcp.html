@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-11-08d'; // 08/11: plan 2ª corrida, en pausa por migración
+  const SEED = '2026-11-09a'; // 09/11: PC nueva; juez en paralelo y aviso en consola, después de la corrida de prueba
   let state = loadState() || {
  "columns": [
   {
@@ -543,6 +543,24 @@
    "isInbox": true,
    "isDefault": true,
    "cards": [
+    {
+     "id": "w95",
+     "title": "Juez más rápido: correr las pruebas de la planilla en paralelo",
+     "desc": "[09/11, PC nueva] Medido en la hoja: 8 vueltas en 31 min, Gemma 13 min y el juez ~18 min (6 de cada 10). El juez corre las filas de a una en Chromium; con el 9700X (8 núcleos) se pueden correr varias a la vez, una pestaña por fila. Decisión de Miche: aplicarlo cuando termine la corrida de prueba. Verificar que dé los mismos veredictos que de a una (mismas filas, mismo azar) antes de usarlo.",
+     "priority": "alta"
+    },
+    {
+     "id": "w96",
+     "title": "Consola: avisar qué hace el juez mientras prueba",
+     "desc": "[09/11] Entre vuelta y vuelta la consola queda quieta varios minutos y parece colgada: es el juez probando. Agregar una línea tipo \"probando 24 pruebas…\" / \"probando el cambio (bloque 2 de 4)…\" con el tiempo que tardó. Decisión de Miche: junto con el juez en paralelo.",
+     "priority": "media"
+    },
+    {
+     "id": "w97",
+     "title": "Migración: nombre del modelo y Parallel en LM Studio",
+     "desc": "[09/11] En la PC nueva Gemma quedó como gemma-4-e4b-it (sin el apodo google/gemma-4-e4b): por ahora se corre con set SPECIALIST_MODEL=gemma-4-e4b-it. Arreglo de fondo: bajar google/gemma-4-e4b (Q4_K_M) desde Model Search para recuperar el apodo, o revisar todos los lugares que lo nombran. Además, LM Studio nuevo carga con Parallel 4: pasarlo a 1 para que el contexto de 12k no se reparta.",
+     "priority": "alta"
+    },
     {
      "id": "n84",
      "title": "Intent Forge en la pantalla: hacer SOLO lo de la cadena",
@@ -1061,7 +1079,7 @@
   }
  ],
  "customColumnsCount": 1,
- "cardCounter": 94
+ "cardCounter": 97
 };
   
   let editingColumnId = null;

@@ -51,15 +51,24 @@ const MODEL = process.env.SPECIALIST_MODEL || "google/gemma-4-e4b";
 const CONTEXTO = Number(process.env.WEBMCP_CONTEXT) || 12000;
 
 // ---------- el juez ----------
+// 09/11 (PC nueva, decisión de Miche): el juez corre varias pruebas a la vez (JUEZ_PARALELO, 6 por defecto; 1 = como
+// antes) y avisa en la consola qué prueba y cuánto tardó: entre vuelta y vuelta la consola quedaba quieta minutos y
+// parecía colgada. Verificado en la hoja (app del ciclo y la hecha a mano): mismos veredictos y mismos detalles
+// que de a una, en 1/4 a 1/6 del tiempo.
+export const JUEZ_PARALELO = Math.max(1, Number(process.env.JUEZ_PARALELO) || 6);
+const queProbe = (azar) => /^v\d+$/.test(azar) ? "la app como está" : /b$/.test(azar) ? "el cambio de Gemma" : /c(\d+)$/.test(azar) ? `solo el bloque ${Number(azar.match(/c(\d+)$/)[1]) + 1}` : azar;
 /** Juez real: escribe la app en dir y corre las filas en Chromium. Devuelve { [id]: {result, detail} }. */
-export function juezReal(planilla) {
+export function juezReal(planilla, { log = () => {}, paralelo = JUEZ_PARALELO } = {}) {
   let V = null;
   return async (app, filas, azar, dir) => {
     if (!V) V = (await import("../profiles/web/validation/check_catalog.mjs")).validationFor(["web", "web/app"]);
     mkdirSync(dir, { recursive: true });
     for (const [f, s] of Object.entries(app)) writeFileSync(join(dir, f), s);
     const checks = filas.map((f) => V.normalizeCheck({ type: "planilla_fila", params: { fila: f, ...(planilla.controles ? { controles: planilla.controles } : {}), ...(planilla.glosario ? { glosario: planilla.glosario } : {}), azar: [azar] } }));
-    const res = await V.runChecks(join(dir, "index.html"), checks);
+    const t0 = Date.now();
+    log(`[JUEZ] probando ${queProbe(azar)}: ${filas.length} prueba${filas.length === 1 ? "" : "s"}${paralelo > 1 ? ` (${Math.min(paralelo, filas.length)} a la vez)` : ""}…`);
+    const res = await V.runChecks(join(dir, "index.html"), checks, { paralelo });
+    log(`[JUEZ] listo en ${Math.round((Date.now() - t0) / 1000)} s: ${res.filter((x) => x.result === "PASS").length}/${res.length} pasan`);
     return Object.fromEntries(res.map((x, i) => [filas[i].id, { result: x.result, detail: x.detail }]));
   };
 }
@@ -255,7 +264,7 @@ export async function borrador({ features, planilla, call = llamarLM, contexto =
  */
 export async function ciclo(o) {
   const { planilla, features, outDir } = o;
-  const call = o.call || llamarLM, juez = o.juez || juezReal(planilla), log = o.log || (() => {});
+  const call = o.call || llamarLM, log = o.log || (() => {}), juez = o.juez || juezReal(planilla, { log });
   const maxIntentos = o.maxIntentos ?? 3, maxVueltas = o.maxVueltas ?? 40, contexto = o.contexto ?? CONTEXTO;
   const ctx = { planilla, features };
   const filas = planilla.filas || [];

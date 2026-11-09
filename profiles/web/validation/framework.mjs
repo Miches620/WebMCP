@@ -128,41 +128,61 @@ export function normalizeCheck(c, catalog) {
   return { type: c.type, params };
 }
 
-export async function runChecks(htmlPath, checks, { registry, env = {} } = {}) {
+// 09/11 (PC nueva, decisión de Miche): el juez puede correr VARIOS chequeos a la vez (opts.paralelo = cuántos).
+// Cada uno en su propio contexto del navegador (su página, su almacenamiento y sus diálogos), así no se pisan; el
+// resultado sale en el mismo orden que los chequeos. Sin `paralelo` (o con 1) es exactamente lo de antes: una página.
+// Medido en la hoja: 24 filas, el juez se llevaba 6 de cada 10 minutos del ciclo.
+export async function runChecks(htmlPath, checks, { registry, env = {}, paralelo = 1 } = {}) {
   if (!registry) throw new Error("runChecks: falta el Validation profile (registry de chequeos)");
   const url = pathToFileURL(resolve(htmlPath)).href;
   const browser = await chromium.launch();
-  const page = await browser.newPage();
-  const ctx = { dialogs: [], pageErrors: [], pageStacks: [] };
-  page.on("pageerror", (e) => { ctx.pageErrors.push(e.message); ctx.pageStacks.push({ message: e.message, stack: String(e.stack || "") }); });
-  // 12/10 (Kanban real, decisión de Miche): un confirm() se ACEPTA, como haría el usuario que apretó "Borrar"
-  // (descartarlo dio un FAIL falso en click_changes). alert y prompt siguen como antes (alert: aceptar = cerrar).
-  // 04/11 (hoja): "Borrar Columna" abría prompt("Ingrese la letra de la columna…"); se descartaba (null) y saltaba un error.
-  // Una persona escribe lo que tiene seleccionado: si el juez tiene una selección (ctx.respuestaPrompt), contesta eso.
-  page.on("dialog", (d) => { ctx.dialogs.push(d.message()); (d.type() === "confirm" ? d.accept() : d.type() === "prompt" && ctx.respuestaPrompt ? d.accept(String(ctx.respuestaPrompt)) : d.dismiss()).catch(() => {}); });
-  await page.addInitScript(INIT);
-  await page.route(/^https?:/, (r) => r.abort());
-  const reload = async () => { ctx.pageErrors.length = 0; ctx.pageStacks.length = 0; await page.goto(url, { waitUntil: "load" }); await waitForSettle(page); };
+  /** Un lugar de trabajo: página + lo que junta (errores, diálogos) + recargar. */
+  const abrir = async (page) => {
+    const ctx = { dialogs: [], pageErrors: [], pageStacks: [] };
+    page.on("pageerror", (e) => { ctx.pageErrors.push(e.message); ctx.pageStacks.push({ message: e.message, stack: String(e.stack || "") }); });
+    // 12/10 (Kanban real, decisión de Miche): un confirm() se ACEPTA, como haría el usuario que apretó "Borrar"
+    // (descartarlo dio un FAIL falso en click_changes). alert y prompt siguen como antes (alert: aceptar = cerrar).
+    // 04/11 (hoja): "Borrar Columna" abría prompt("Ingrese la letra de la columna…"); se descartaba (null) y saltaba un error.
+    // Una persona escribe lo que tiene seleccionado: si el juez tiene una selección (ctx.respuestaPrompt), contesta eso.
+    page.on("dialog", (d) => { ctx.dialogs.push(d.message()); (d.type() === "confirm" ? d.accept() : d.type() === "prompt" && ctx.respuestaPrompt ? d.accept(String(ctx.respuestaPrompt)) : d.dismiss()).catch(() => {}); });
+    await page.addInitScript(INIT);
+    await page.route(/^https?:/, (r) => r.abort());
+    const reload = async () => { ctx.pageErrors.length = 0; ctx.pageStacks.length = 0; await page.goto(url, { waitUntil: "load" }); await waitForSettle(page); };
+    return { page, ctx, reload };
+  };
+  const correr = async ({ page, ctx, reload }, c) => {
+    const r = { ...c, result: "FAIL", detail: "" };
+    try {
+      await reload();
+      const fields = (await fieldsInfo(page)) || [];
+      const findField = () => fields.filter((f) => matches(fieldText(f), c.params.field));
+      const def = registry[c.type];
+      if (def?.run) await def.run({ page, c, r, ctx, fields, findField, reload, browser, url, env, htmlPath });
+      else {
+        r.result = "NOT_APPLICABLE";
+        r.detail = "tipo fuera del catálogo";
+      }
+    } catch (e) {
+      r.result = "FAIL";
+      r.detail = `error del chequeo: ${e.message.slice(0, 150)}`;
+    }
+    return r;
+  };
 
   const out = [];
   try {
-    for (const c of checks) {
-      const r = { ...c, result: "FAIL", detail: "" };
-      try {
-        await reload();
-        const fields = (await fieldsInfo(page)) || [];
-        const findField = () => fields.filter((f) => matches(fieldText(f), c.params.field));
-        const def = registry[c.type];
-        if (def?.run) await def.run({ page, c, r, ctx, fields, findField, reload, browser, url, env, htmlPath });
-        else {
-          r.result = "NOT_APPLICABLE";
-          r.detail = "tipo fuera del catálogo";
-        }
-      } catch (e) {
-        r.result = "FAIL";
-        r.detail = `error del chequeo: ${e.message.slice(0, 150)}`;
-      }
-      out.push(r);
+    const n = Math.max(1, Math.min(Number(paralelo) || 1, checks.length));
+    if (n === 1) {
+      const lugar = await abrir(await browser.newPage());
+      for (const c of checks) out.push(await correr(lugar, c));
+    } else {
+      let next = 0;
+      await Promise.all(Array.from({ length: n }, async () => {
+        const contexto = await browser.newContext();
+        const lugar = await abrir(await contexto.newPage());
+        try { while (next < checks.length) { const i = next++; out[i] = await correr(lugar, checks[i]); } }
+        finally { await contexto.close().catch(() => {}); }
+      }));
     }
   } finally {
     await browser.close();

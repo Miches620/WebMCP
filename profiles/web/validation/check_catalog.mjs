@@ -33,6 +33,6 @@ export function validationFor(chainIds, env = {}) {
   const registry = composeValidation(chain);
   const catalog = specsOf(registry);
   return { ids: chain.map((p) => p.id), registry, catalog, env, always: chain.flatMap((p) => p.always || []),
-    runChecks: (htmlPath, checks) => runWith(htmlPath, checks, { registry, env }),
+    runChecks: (htmlPath, checks, opts = {}) => runWith(htmlPath, checks, { registry, env, ...opts }), // opts.paralelo (09/11)
     normalizeCheck: (c) => normalizeWith(c, catalog) };
 }

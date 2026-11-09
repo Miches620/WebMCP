@@ -89,11 +89,20 @@ export function findSueltoHtml(html, primera) {
   return null;
 }
 /** 06/11: si un BLOQUE no se encuentra, las líneas que más se le parecen (comparten un id, una clase o un texto) */
+// 09/11: sin lista de palabras de ninguna plataforma (antes descartaba a mano palabras de web). Ahora una palabra vale
+// menos cuantas más líneas de la app la tienen, y la que está en más de un cuarto de las líneas no cuenta: así se caen
+// solas las palabras de relleno de cualquier lenguaje o plataforma, y pesa lo raro (un id, una clase, un texto).
 export function parecidas(app, primera, max = 3) {
-  const palabras = (String(primera).match(/[\w-]{4,}/g) || []).filter((w) => !/^(class|button|function|document|const|return|style|span|div)$/i.test(w));
-  if (!palabras.length) return [];
+  const lineas = Object.entries(app).flatMap(([f, src]) => String(src).split("\n").map((l, k) => ({ f, k, l })).filter((x) => x.l.trim()));
+  const tope = Math.max(2, Math.floor(lineas.length / 4));
+  const peso = new Map();
+  for (const w of new Set(String(primera).match(/[\w-]{4,}/g) || [])) {
+    const veces = lineas.filter((x) => x.l.includes(w)).length;
+    if (veces && veces <= tope) peso.set(w, 1 / veces);
+  }
+  if (!peso.size) return [];
   const out = [];
-  for (const [f, src] of Object.entries(app)) String(src).split("\n").forEach((l, k) => { const n = palabras.filter((w) => l.includes(w)).length; if (n && l.trim()) out.push({ n, t: `${f}:${k + 1}: ${l.trim().slice(0, 120)}` }); });
+  for (const { f, k, l } of lineas) { let n = 0; for (const [w, p] of peso) if (l.includes(w)) n += p; if (n) out.push({ n, t: `${f}:${k + 1}: ${l.trim().slice(0, 120)}` }); }
   return out.sort((a, b) => b.n - a.n).slice(0, max).map((x) => x.t);
 }
 /** 06/11: para MOSTRAR un HTML grande: lo que se repite (20 filas iguales que solo cambian el número) se abrevia.

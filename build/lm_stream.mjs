@@ -23,7 +23,12 @@ export async function chatStream(url, body, { onProgress } = {}) {
       body: JSON.stringify({ ...body, stream: true, stream_options: { include_usage: true } }),
       signal: ctrl.signal,
     });
-    if (!res.ok) throw new Error(`LM Studio ${res.status}: ${(await res.text()).slice(0, 300)}`);
+    if (!res.ok) {
+      const txt = (await res.text()).slice(0, 300);
+      // 10/11: "No models loaded" en LM Studio casi siempre es un nombre de modelo que LM Studio no tiene: decir cuál se pidió
+      const pista = /no models loaded|model.*(not found|does not exist|invalid)|invalid model/i.test(txt) ? ` · se pidió el modelo "${body.model}": revisá que se llame así en LM Studio (curl http://127.0.0.1:1234/v1/models) o cambialo en PUESTOS.md` : "";
+      throw new Error(`LM Studio ${res.status}: ${txt}${pista}`);
+    }
     const reader = res.body.getReader();
     const dec = new TextDecoder();
     let buf = "", content = "", finish_reason = null, usage = null, chunks = 0, reasoning = 0;

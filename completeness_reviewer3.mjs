@@ -31,10 +31,11 @@
 import { loadStageBlock } from "./context/stage_loader.mjs";
 import { norm, terms, synKey } from "./text_terms.mjs";
 import { parseJsonLoose } from "./json_loose.mjs";
+import { modeloDe } from "./modelos.mjs";
 
 const LM_STUDIO_URL = "http://localhost:1234/v1/chat/completions";
 // Default; se puede pisar por corrida con opts.model.
-const MODEL_ID_DEFAULT = "qwen2.5-7b-instruct";
+const MODEL_ID_DEFAULT = modeloDe("revisor"); // 10/11: el modelo sale de PUESTOS.md (puesto "revisor"), no se nombra en el código
 
 /**
  * Etiquetas de sección reconocidas como "acá viven los requisitos", no

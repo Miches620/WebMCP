@@ -1,6 +1,9 @@
 import { stackText, standardMeta } from "./standards/catalog.mjs";
 const LLAMA_URL = "http://127.0.0.1:1234/v1/chat/completions";
-const MODEL_NAME = "google/gemma-4-e4b";
+// 10/11: el modelo lo decide PUESTOS.md (puesto "techleader"). Este archivo corre también en el navegador y no puede
+// leer el .md: Node lo fija con usarModelo(modeloDe("techleader")); el navegador, con lo que le pasa el server (/api/puestos).
+let MODEL_NAME = "google/gemma-4-e4b";
+export function usarModelo(m) { if (m) MODEL_NAME = m; }
 
 const MAX_RETRIES = 3;
 

@@ -19,10 +19,11 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { parseJsonLoose } from "../json_loose.mjs";
 import { SEARXNG_URL } from "./check_searxng.mjs";
+import { modeloDe } from "../modelos.mjs";
 
 export const SEARCHER_VERSION = "searcher v0.3.1";
 const LM_URL = process.env.LM_STUDIO_URL || "http://localhost:1234/v1/chat/completions";
-const MODEL = process.env.SEARCHER_MODEL || process.env.REVIEWER_MODEL || "qwen2.5-7b-instruct";
+const MODEL = modeloDe("buscador"); // 10/11: el modelo sale de PUESTOS.md (puesto "buscador"), no se nombra en el código
 const SOURCE_CHARS = 6000; // por fuente: entra holgado en 16k con el pedido
 const ent = (t) => String(t || "").replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16))).replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d))).replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&raquo;|&laquo;/g, "").replace(/&copy;|&reg;/g, "");
 const nrm = (t) => ent(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/['"\u2018\u2019\u201c\u201d\u00ab\u00bb`]/g, "").replace(/[\u2013\u2014]/g, "-").replace(/\s+/g, " ").trim();

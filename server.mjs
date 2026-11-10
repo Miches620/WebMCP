@@ -6,13 +6,14 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { loadStageBlock } from "./context/stage_loader.mjs";
 import { resolveProfiles } from "./profiles/registry.mjs";
+import { modeloDe, puestos } from "./modelos.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const STATIC_DIR = __dirname;
 const PORT = 3000;
 const STAGE_FILE = join(__dirname, "context", "ProjectStage.md");
 // Completeness Reviewer: modelo y contexto con el que está cargado en LM Studio.
-const REVIEWER_MODEL = process.env.REVIEWER_MODEL || "qwen2.5-7b-instruct";
+const REVIEWER_MODEL = modeloDe("revisor"); // 10/11: el modelo sale de PUESTOS.md (puesto "revisor"), no se nombra en el código
 const REVIEWER_CONTEXT = Number(process.env.REVIEWER_CONTEXT) || 16000;
 
 // Se lee en cada uso (no se cachea): si ProjectStage.md cambia, la corrida
@@ -68,7 +69,7 @@ const server = createServer(async (req, res) => {
         const lmRes = await fetch("http://127.0.0.1:1234/v1/chat/completions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ model: "qwen2.5-7b-instruct", messages, temperature: 0.2 }),
+          body: JSON.stringify({ model: modeloDe("intent"), messages, temperature: 0.2 }), // 10/11: puesto "intent" de PUESTOS.md
         });
         if (!lmRes.ok)
           throw new Error(`LM Studio ${lmRes.status}: ${(await lmRes.text()).slice(0, 800)}`);
@@ -169,6 +170,13 @@ const server = createServer(async (req, res) => {
   }
 
   // === API VERSION: BUILD_ID de script.js tal como está en disco ===
+  // === 10/11: qué modelo ocupa cada puesto (PUESTOS.md), para el navegador (script.js) ===
+  if (req.method === "GET" && req.url === "/api/puestos") {
+    res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
+    res.end(JSON.stringify(puestos()));
+    return;
+  }
+
   if (req.method === "GET" && req.url === "/api/version") {
     const src = await readFile(join(STATIC_DIR, "script.js"), "utf8").catch(() => "");
     const build = (src.match(/const BUILD_ID = "([^"]+)"/) || [])[1] || null;
@@ -198,7 +206,7 @@ const server = createServer(async (req, res) => {
       const { runPlanStageCheck } = await import("./plan_stage_check.mjs");
       const logs = [];
       const result = await runPlanStageCheck(brief, fases, {
-        model: "qwen2.5-7b-instruct",
+        model: modeloDe("revisor"), // 10/11: puesto "revisor" de PUESTOS.md
         stageFile: STAGE_FILE,
         logCallback: (m) => logs.push(m),
       });

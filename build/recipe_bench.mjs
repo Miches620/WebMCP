@@ -14,16 +14,18 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { atomizePhase, buildDecomposePrompt } from "../atomic_engine_v5.js";
+import { atomizePhase, buildDecomposePrompt, usarModelo } from "../atomic_engine_v5.js";
 import { resolveProfiles } from "../profiles/registry.mjs";
 import { buildTechLeaderPrompt } from "../techleader_prompt.mjs";
 import { buildTechLeaderInput } from "../intent_brief.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
 import { summarize, compareTable, RECIPE_METRICS_VERSION } from "./recipe_metrics.mjs";
+import { modeloDe } from "../modelos.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const LM = "http://127.0.0.1:1234/v1/chat/completions";
-const MODEL = "google/gemma-4-e4b";
+const MODEL = modeloDe("techleader"); // 10/11: el modelo sale de PUESTOS.md (puesto "techleader"), no se nombra en el código
+usarModelo(MODEL);
 
 const args = process.argv.slice(2);
 const arg = (k, d = null) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };

@@ -25,6 +25,7 @@ import { briefText } from "../profiles/web/landing/specialist_spa.mjs";
 import { rulesBrief } from "../profiles/web/app/specialist_rules.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
 import { chatStream } from "./lm_stream.mjs";
+import { modeloDe } from "../modelos.mjs";
 
 const args = process.argv.slice(2);
 const flag = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
@@ -36,7 +37,7 @@ const bankDirs = flags("--bank");
 const TEMP = Number(flag("--temp", 0));
 if (!runDirs.length || !bankDirs.length) { console.log("uso: node build/examples_bench.mjs --k 5 --bank build\\bench\\<carpeta> <run_dir> ..."); process.exit(1); }
 const LM = "http://127.0.0.1:1234/v1/chat/completions";
-const MODEL = "google/gemma-4-e4b";
+const MODEL = modeloDe("specialist"); // 10/11: el modelo sale de PUESTOS.md (puesto "specialist"), no se nombra en el código
 const REFS = ["BX-1042", "QM-7731", "TR-2208", "LP-5160", "ZN-3397", "HD-8824", "WK-6015", "CF-4473", "JV-9286", "RS-1559"];
 if (K > REFS.length) throw new Error(`--k como máximo ${REFS.length}`);
 

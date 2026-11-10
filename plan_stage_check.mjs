@@ -17,9 +17,10 @@
 // feedback a TechLeader lo repite.
 
 import { loadStageBlock } from "./context/stage_loader.mjs";
+import { modeloDe } from "./modelos.mjs";
 
 const LM_STUDIO_URL = "http://localhost:1234/v1/chat/completions";
-const MODEL_ID_DEFAULT = "qwen2.5-7b-instruct";
+const MODEL_ID_DEFAULT = modeloDe("revisor"); // 10/11: el modelo sale de PUESTOS.md (puesto "revisor"), no se nombra en el código
 export const VERDICTS = ["IN_SCOPE", "DEFERRED", "EXCESS"];
 
 function buildSystemPrompt() {

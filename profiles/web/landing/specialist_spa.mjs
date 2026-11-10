@@ -37,9 +37,10 @@ import vm from "node:vm";
 import { topoOrder } from "../../../pilot/specialist_runner.mjs";
 import { chatStream } from "../../../build/lm_stream.mjs";
 import { planPrompt, applyBlocks, filesBlockDiet, CONTEXT_TOKENS } from "./file_diet.mjs";
+import { modeloDe } from "../../../modelos.mjs";
 
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
-export const SPECIALIST_MODEL = "google/gemma-4-e4b";
+export const SPECIALIST_MODEL = modeloDe("specialist"); // 10/11: el modelo sale de PUESTOS.md (puesto "specialist"), no se nombra en el código
 export const SPECIALIST_VERSION = "spa_specialist v0.6.1-file-diet";
 
 export const FILES = ["index.html", "styles.css", "api.js", "app.js"];

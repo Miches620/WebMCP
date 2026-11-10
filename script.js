@@ -1,5 +1,13 @@
 import { validateRoleDependencies } from "./validation_profile_role_dependencies.mjs";
-import { runAtomicGraph, resolveDependencies } from "./atomic_engine_v5.js";
+import { runAtomicGraph, resolveDependencies, usarModelo } from "./atomic_engine_v5.js";
+
+// 10/11: qué modelo ocupa cada puesto lo dice PUESTOS.md; el navegador no lo puede leer y se lo pide al server.
+// Si el server no responde, queda el de antes (Gemma) para no cortar la UI.
+let PUESTOS = null;
+async function modeloDelPuesto(puesto) {
+  if (!PUESTOS) { try { PUESTOS = await (await fetch("/api/puestos")).json(); } catch { PUESTOS = {}; } }
+  return PUESTOS?.[puesto]?.modelo || "google/gemma-4-e4b";
+}
 import { reviewStatus } from "./review_gate.mjs";
 import { parseJsonLoose } from "./json_loose.mjs";
 import { resolveProfiles, SELECTABLE, profileLabel } from "./profiles/registry.mjs";
@@ -1290,7 +1298,7 @@ async function generateTechLeaderPlan(promptText, previousFeedback = "") {
     const techRes = await fetch("http://127.0.0.1:1234/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "google/gemma-4-e4b", messages, temperature: 0.0 }),
+      body: JSON.stringify({ model: await modeloDelPuesto("techleader"), messages, temperature: 0.0 }), // 10/11: PUESTOS.md
     });
     if (!techRes.ok) throw new Error(`TechLeader Error: ${techRes.status}`);
     const techData = await techRes.json();
@@ -1453,6 +1461,7 @@ async function runGraph(plan) {
   };
   try {
     const profile = activeProfile();
+    usarModelo(await modeloDelPuesto("techleader")); // 10/11: el atomizador usa el modelo del puesto techleader
     const result = await runAtomicGraph(
       plan.fases,
       logCallback,

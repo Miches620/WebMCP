@@ -13,11 +13,12 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createInterface } from "node:readline/promises";
 import { runIntentForge, linesWithItems, fieldLabel, TEMPLATE_TEXT, BRIEF_VERSION } from "./intent_brief.mjs";
+import { modeloDe } from "./modelos.mjs";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const args = process.argv.slice(2);
 const mi = args.indexOf("--model");
-const model = mi >= 0 ? args[mi + 1] : "qwen2.5-7b-instruct";
+const model = mi >= 0 ? args[mi + 1] : modeloDe("intent"); // 10/11: el modelo sale de PUESTOS.md (puesto "intent"), no se nombra en el código
 const file = args.find((a, i) => !a.startsWith("--") && args[i - 1] !== "--model");
 const rl = createInterface({ input: process.stdin, terminal: false });
 const lineIt = rl[Symbol.asyncIterator]();

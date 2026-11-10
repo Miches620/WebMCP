@@ -15,13 +15,15 @@ import { readFileSync, writeFileSync, existsSync, renameSync, statSync } from "n
 import { join } from "node:path";
 import { resolveProfiles } from "../profiles/registry.mjs";
 import { buildTechLeaderPrompt } from "../techleader_prompt.mjs";
-import { runAtomicGraph, resolveDependencies } from "../atomic_engine_v5.js";
+import { runAtomicGraph, resolveDependencies, usarModelo } from "../atomic_engine_v5.js";
 import { parseJsonLoose } from "../json_loose.mjs";
 import { describirFila } from "../profiles/web/validation/planilla_palabras.mjs";
+import { modeloDe } from "../modelos.mjs";
 
 export const PLAN_VERSION = "plan v0.1";
 const LM = process.env.LM_STUDIO_URL || "http://127.0.0.1:1234/v1/chat/completions";
-const MODEL = process.env.SPECIALIST_MODEL || "google/gemma-4-e4b";
+const MODEL = modeloDe("techleader"); // 10/11: el modelo sale de PUESTOS.md (puesto "techleader"), no se nombra en el código
+usarModelo(MODEL); // el atomizador (atomic_engine_v5.js, que también corre en el navegador) usa el mismo
 
 /** El profile del camino de la planilla: web/app sin receta y sin el rol QA. */
 export function perfilPlan(ids = ["web/app"]) {

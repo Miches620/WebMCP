@@ -24,11 +24,12 @@ import { rowsFromChoices, relevanceProblems, systemPromptPlantillas, PLANTILLAS_
 // v0.4 (17/10, diseño de 3 capas): el writer no sabe de tarjetas ni columnas. Los nombres de la app vienen del glosario
 // (--glosario o el campo "glosario" del snapshot) y las filas salen con tipos (item, grupo).
 import { leerGlosario, palabra, prefijoDe, tipoDe, filaATipos } from "./glosario.mjs";
+import { modeloDe } from "../../../modelos.mjs";
 
 export const WRITER_VERSION = "planilla_writer v0.5"; // v0.5 (29/10): acciones de persona en lugares (escribir, clic, usar; muestra, fondo, oculta, encabezados)
 const MAX_ATTEMPTS = 3;
 const LM_URL = process.env.LM_STUDIO_URL || "http://localhost:1234/v1/chat/completions";
-const MODEL = process.env.PLANILLA_MODEL || process.env.REVIEWER_MODEL || "qwen2.5-7b-instruct";
+const MODEL = modeloDe("planilla"); // 10/11: el modelo sale de PUESTOS.md (puesto "planilla"), no se nombra en el código
 
 // ---------- el vocabulario (lo mismo que ejecuta planilla.mjs) ----------
 const HAGO = ["agregar", "editar", "eliminar", "mover", "recargar", "pasar_mouse", "escribir", "clic", "usar"];

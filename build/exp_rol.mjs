@@ -20,11 +20,12 @@ import { fileURLToPath } from "node:url";
 import { chatStream } from "./lm_stream.mjs";
 import { borrador, juezReal, puntaje } from "./run_ciclo.mjs";
 import { loadRole, rolTexto } from "../roles/registry.mjs";
+import { modeloDe } from "../modelos.mjs";
 
 export const EXP_ROL_VERSION = "exp_rol v0.1";
 const here = dirname(fileURLToPath(import.meta.url));
 const LM_URL = process.env.LM_STUDIO_URL || "http://127.0.0.1:1234/v1/chat/completions";
-const MODEL = process.env.SPECIALIST_MODEL || "google/gemma-4-e4b";
+const MODEL = modeloDe("specialist"); // 10/11: el modelo sale de PUESTOS.md (puesto "specialist"), no se nombra en el código
 
 /** El texto de Role de cada condición. */
 export async function textosDeCondicion(roleId = "web-app") {

@@ -27,12 +27,13 @@ import { chatStream } from "../build/lm_stream.mjs";
 import { estTokens } from "../build/tokens.mjs";
 import { parseJsonLoose } from "../json_loose.mjs";
 import { assignByStep, assignmentText, assignmentSummary } from "./assignments.mjs";
+import { modeloDe } from "../modelos.mjs";
 // compatibilidad: las herramientas de JS se siguen pudiendo importar desde acá (viven en js_tools.mjs)
 export { loadScripts, syntaxOf, runAcceptance, findMember, replaceMember, stripComments, topNames, clashes, shadowProblems } from "./js_tools.mjs";
 
 export const ENGINE_VERSION = "files_engine v0.13.3";
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
-const MODEL = "google/gemma-4-e4b";
+const MODEL = modeloDe("specialist"); // 10/11: el modelo sale de PUESTOS.md (puesto "specialist"), no se nombra en el código
 const CONTEXT = Number(process.env.WEBMCP_CONTEXT) || 16000;
 
 // ---------- problemas que rompen el archivo ----------

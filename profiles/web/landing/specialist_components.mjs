@@ -28,9 +28,10 @@ import {
   topLevelFunctions, functionAt, functionsUsingId, wrapJs, jsError,
 } from "./components.mjs";
 import { runChecks } from "../validation/check_catalog.mjs";
+import { modeloDe } from "../../../modelos.mjs";
 
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
-export const SPECIALIST_MODEL = "google/gemma-4-e4b";
+export const SPECIALIST_MODEL = modeloDe("specialist"); // 10/11: el modelo sale de PUESTOS.md (puesto "specialist"), no se nombra en el código
 export const SPECIALIST_VERSION = "spa_specialist v0.7.6-componentes";
 // v0.7.6 (05/10, Boxworld build 6): el JS compiló pero tenía dos bugs de UNA línea cada uno
 // (dibujar() creaba los casilleros y nunca hacía appendChild; mostrarMensaje() pisaba el <h3>

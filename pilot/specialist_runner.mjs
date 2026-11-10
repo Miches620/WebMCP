@@ -10,9 +10,10 @@
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
+import { modeloDe } from "../modelos.mjs";
 
 const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/chat/completions";
-export const SPECIALIST_MODEL = "google/gemma-4-e4b";
+export const SPECIALIST_MODEL = modeloDe("specialist"); // 10/11: el modelo sale de PUESTOS.md (puesto "specialist"), no se nombra en el código
 export const SPECIALIST_VERSION = "frontend_specialist v0.1";
 
 export const SYSTEM_PROMPT = `Sos un Specialist Frontend de MicheLab.

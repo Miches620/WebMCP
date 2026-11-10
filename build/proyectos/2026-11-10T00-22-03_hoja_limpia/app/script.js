@@ -87,6 +87,9 @@ function evaluateFormula(formula) {
     // 2. Manejo de operaciones básicas (A1-B1, A1*B1, etc.)
     try {
         let expression = cleanFormula;
+        if (expression.startsWith('=')) {
+            expression = expression.substring(1);
+        }
         const cellRegex = /([A-Z]+)(\d+)/g; // Captura A1, B2, etc.
 
         expression = expression.replace(cellRegex, (match, col, row) => {
@@ -129,6 +132,7 @@ function setupCellEditing() {
             const col = target.getAttribute('data-col');
             const row = target.getAttribute('data-row');
             let rawValue = target.textContent;
+            let finalValueToDisplay = rawValue;
 
             // 1. Si el contenido comienza con '=', asumimos que es una fórmula y la calculamos.
             if (rawValue && typeof rawValue === 'string' && rawValue.trim().startsWith('=')) {
@@ -136,7 +140,9 @@ function setupCellEditing() {
                     const calculatedValue = evaluateFormula(rawValue);
                     
                     // Actualizamos el texto de la celda con el resultado numérico, no la fórmula.
-                    target.textContent = calculatedValue; 
+                    finalValueToDisplay = calculatedValue; 
+                    target.textContent = finalValueToDisplay; 
+
                 } catch (e) {
                     console.error("Error al calcular la fórmula:", e);
                     // Si falla el cálculo, mantenemos el valor original para que el usuario lo vea.
@@ -144,6 +150,9 @@ function setupCellEditing() {
             } else {
                  // Si es solo texto o número, simplemente dejamos el contenido como está.
             }
+
+            // 2. Guardar el contenido final en localStorage (independientemente de si fue calculado o escrito)
+            localStorage.setItem(`${col}${row}`, finalValueToDisplay);
         }
     });
 
@@ -162,10 +171,13 @@ function setupCellEditing() {
  * Función principal que inicializa todas las funcionalidades de la hoja de cálculo.
  */
 function initializeSpreadsheet() {
-    // 1. Configurar la edición inline (R1)
+    // 1. Cargar datos guardados al iniciar la aplicación (R9)
+    loadDataFromLocalStorage();
+
+    // 2. Configurar la edición inline (R1)
     setupCellEditing();
 
-    // 2. Configurar selección y formato de celdas (R5)
+    // 3. Configurar selección y formato de celdas (R5)
     setupCellSelectionAndFormatting();
 }
 
@@ -178,9 +190,10 @@ function setupCellSelectionAndFormatting() {
     const headerRow = document.querySelector('#spreadsheet-grid thead tr'); // Captura la fila de encabezados (A, B, C...)
     const colorPicker = document.getElementById('color-picker');
     const applyButton = document.getElementById('apply-format-btn');
-    // Nuevos elementos de control para ocultar
+    // Nuevos elementos de control para ocultar y borrar contenido
     const hideColumnBtn = document.getElementById('hide-column-btn');
     const hideRowBtn = document.getElementById('hide-row-btn');
+    const clearColumnContentBtn = document.getElementById('clear-column-content-btn');
 
     let selectedCell = null; // Celda individual seleccionada
     let selectedColumnLetter = null; // Columna completa seleccionada (ej: 'A')
@@ -208,10 +221,11 @@ function setupCellSelectionAndFormatting() {
         });
     };
 
-    // Función para actualizar el estado de los botones de ocultar
-    const updateHideButtonsState = () => {
+    // Función para actualizar el estado de los botones de ocultar y borrar contenido
+    const updateControlsState = () => {
         hideColumnBtn.disabled = !selectedColumnLetter;
         hideRowBtn.disabled = !selectedRowNumber;
+        clearColumnContentBtn.disabled = !(selectedRowNumber || selectedColumnLetter); // Habilitar el botón si hay fila o columna seleccionada
     };
 
 
@@ -242,7 +256,7 @@ function setupCellSelectionAndFormatting() {
              // Si hacemos clic en cualquier otro lugar, limpiamos todo
              clearSelection();
         }
-        updateHideButtonsState();
+        updateControlsState();
     });
 
     // 2. Manejar la selección de columnas (Click en TH del thead)
@@ -265,7 +279,7 @@ function setupCellSelectionAndFormatting() {
                  selectedColumnLetter = null;
                  Array.from(headerRow.children).forEach(th => th.style.backgroundColor = ''); 
             }
-            updateHideButtonsState();
+            updateControlsState();
         });
     }
 
@@ -280,7 +294,7 @@ function setupCellSelectionAndFormatting() {
         } else if (target.tagName === 'TD' && target.hasAttribute('contenteditable')) {
              // Si se hace clic en una celda, la lógica de TD ya lo maneja y llama a clearSelection()
         }
-        updateHideButtonsState();
+        updateControlsState();
     });
 
     // 4. Manejar la aplicación del color (Botón o Input)
@@ -309,6 +323,42 @@ function setupCellSelectionAndFormatting() {
 
     // Evento para el botón "Aplicar Formato"
     applyButton.addEventListener('click', applyFormat);
+
+    // --- NUEVA LÓGICA DE BORRAR CONTENIDO DE COLUMNA/FILA ---
+    clearColumnContentBtn.addEventListener('click', () => {
+        let cleared = false;
+        let message = '';
+
+        if (selectedRowNumber) {
+            // Prioridad: Borrar Fila si está seleccionada (Coincide con el test case fallido)
+            const targetElements = document.querySelectorAll(`#spreadsheet-body tr[data-row="${selectedRowNumber}"] td`);
+            targetElements.forEach(element => {
+                element.textContent = '';
+                element.innerHTML = '';
+            });
+            message = `Fila ${selectedRowNumber} ha sido borrada (contenido).`;
+            cleared = true;
+
+        } else if (selectedColumnLetter) {
+            // Fallback: Borrar Columna si está seleccionada
+            const colLetter = selectedColumnLetter;
+            const targetElements = document.querySelectorAll(`#spreadsheet-body td[data-col="${colLetter}"]`);
+
+            targetElements.forEach(element => {
+                element.textContent = '';
+                element.innerHTML = '';
+            });
+            message = `Contenido de la Columna ${colLetter} ha sido borrado.`;
+            cleared = true;
+        }
+
+        if (cleared) {
+            alert(message);
+        } else {
+            alert("Por favor, selecciona una fila o columna para borrar su contenido.");
+        }
+    });
+
 
     // --- NUEVA LÓGICA DE OCULTAR COLUMNA ---
     hideColumnBtn.addEventListener('click', () => {
@@ -380,6 +430,23 @@ function setupCellSelectionAndFormatting() {
                 element.innerHTML = '';
             });
             return;
+        }
+    });
+}
+
+/**
+ * Carga los datos guardados en localStorage y los aplica a las celdas editables al iniciar la aplicación.
+ */
+function loadDataFromLocalStorage() {
+    const cells = document.querySelectorAll('#spreadsheet-body td[contenteditable="true"]');
+    cells.forEach(cell => {
+        const col = cell.getAttribute('data-col');
+        const row = cell.getAttribute('data-row');
+        const key = `${col}${row}`;
+        
+        // Comprobar si existe data guardada y cargarla en la celda
+        if (localStorage.getItem(key) !== null) {
+            cell.textContent = localStorage.getItem(key);
         }
     });
 }

@@ -784,12 +784,15 @@ export async function runRow({ page, row: row0, controls, glosario, azar, ctx, r
   const w = { src: itemClassRe(glosario).source, it: palabra(glosario, "item"), gr: palabra(glosario, "grupo"), ctx };
   ctx.trasClic = null; ctx.seleccion = null; ctx.respuestaPrompt = null;
   const ctls = { ...DEFAULT_CONTROLS, ...(controls || {}) };
+  const c0 = (ctx.consola || []).length; // 09/11: desde ANTES de cargar (lo que la app anota al arrancar también cuenta)
   await freshStart(page, reload);
   const e0 = ctx.pageErrors.length, d0 = ctx.dialogs.length;
   const steps = [];
   // 02/11: cada paso que se pudo hacer lleva ✓ (el ciclo cuenta los ✓ para saber si un cambio acercó, aunque la prueba siga fallando)
   // 07/11: si FALLA y la app mostró un alert/confirm, se dice cuál (R5.1: "Por favor, selecciona una columna…" explicaba por qué no pintaba)
-  const out = (result, last) => { const errs = errsSince(ctx, e0), avisos = result === "FAIL" ? [...new Set(ctx.dialogs.slice(d0))] : []; return { result, detail: [...steps.filter(Boolean).map((x) => /^(✓|no pudo)/.test(x) ? x : `✓ ${x}`), last].filter(Boolean).join(" · ") + (errs.length ? ` · error de JS: ${errs[0].slice(0, 160)}` : "") + (avisos.length ? ` · la app mostró el aviso "${avisos[0].slice(0, 120)}"${avisos.length > 1 ? ` (y ${avisos.length - 1} más)` : ""}` : ""), ...(errs.length ? { errors: errs } : {}) }; };
+  // 09/11: si FALLA y la app anotó errores/avisos en la consola, se dicen (hasta 2 distintos): suelen nombrar la causa
+  const consolaDe = (result) => result === "FAIL" ? [...new Set((ctx.consola || []).slice(c0).map((m) => m.replace(/\(?(?:file|https?):\/\/\S+?\)?(?=\s|$)/g, "").replace(/\s+/g, " ").replace(/(\bat \S+)(?: at \S+)+/, "$1").trim()))].filter(Boolean) : []; // sin rutas de archivo ni la pila entera
+  const out = (result, last) => { const errs = errsSince(ctx, e0), avisos = result === "FAIL" ? [...new Set(ctx.dialogs.slice(d0))] : [], cons = consolaDe(result).filter((m) => !errs.some((e) => m.includes(e.slice(0, 60)))); return { result, detail: [...steps.filter(Boolean).map((x) => /^(✓|no pudo)/.test(x) ? x : `✓ ${x}`), last].filter(Boolean).join(" · ") + (errs.length ? ` · error de JS: ${errs[0].slice(0, 160)}` : "") + (avisos.length ? ` · la app mostró el aviso "${avisos[0].slice(0, 120)}"${avisos.length > 1 ? ` (y ${avisos.length - 1} más)` : ""}` : "") + (cons.length ? ` · la consola del navegador dijo: ${cons.slice(0, 2).map((m) => `"${m.slice(0, 160)}"`).join(" y ")}${cons.length > 2 ? ` (y ${cons.length - 2} más)` : ""}` : ""), ...(errs.length ? { errors: errs } : {}) }; };
   const dado = row.dado || [];
   for (const d of dado) {
     // 19/10: "dado" también puede mover un ítem que ya se creó (para restricciones como "no se borra en Completa")

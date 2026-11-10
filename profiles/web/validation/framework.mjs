@@ -138,8 +138,13 @@ export async function runChecks(htmlPath, checks, { registry, env = {}, paralelo
   const browser = await chromium.launch();
   /** Un lugar de trabajo: página + lo que junta (errores, diálogos) + recargar. */
   const abrir = async (page) => {
-    const ctx = { dialogs: [], pageErrors: [], pageStacks: [] };
+    const ctx = { dialogs: [], pageErrors: [], pageStacks: [], consola: [] };
     page.on("pageerror", (e) => { ctx.pageErrors.push(e.message); ctx.pageStacks.push({ message: e.message, stack: String(e.stack || "") }); });
+    // 09/11 (hoja, decisión de Miche): también lo que la app ANOTA en la consola (console.error / console.warn). Los errores
+    // que el código atrapa con try/catch no hacen caer la página y el juez no se enteraba: en la hoja, "Error al evaluar
+    // fórmula: SyntaxError…" decía la causa y Gemma solo veía "A1 muestra =B1+C1" (9 vueltas perdidas). Los avisos del
+    // navegador al no poder cargar algo (el juez corta internet a propósito, favicon) no son de la app: se dejan afuera.
+    page.on("console", (m) => { const t = m.type(); if ((t === "error" || t === "warning") && !/^Failed to load resource/i.test(m.text())) ctx.consola.push(m.text()); });
     // 12/10 (Kanban real, decisión de Miche): un confirm() se ACEPTA, como haría el usuario que apretó "Borrar"
     // (descartarlo dio un FAIL falso en click_changes). alert y prompt siguen como antes (alert: aceptar = cerrar).
     // 04/11 (hoja): "Borrar Columna" abría prompt("Ingrese la letra de la columna…"); se descartaba (null) y saltaba un error.

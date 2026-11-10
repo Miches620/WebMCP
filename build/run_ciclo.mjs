@@ -28,6 +28,7 @@ import { aplicar, aplicarBloques, findSuelto, leerBloques as leerBloquesLocal, r
 import { syntaxOf as syntaxOfLocal } from "../harness/js_tools.mjs";
 import { describirFila } from "../profiles/web/validation/planilla_palabras.mjs";
 import { REGLAS_VISUALES, REGLAS_MODERNAS } from "../profiles/web/validation/visual.mjs";
+import { modeloDe } from "../modelos.mjs";
 
 export const CICLO_VERSION = "ciclo v0.7";
 // v0.4 (19/10, después del 16/16): VUELTA 0, el borrador. Si no hay app de partida, Gemma la escribe desde los pedidos
@@ -47,7 +48,7 @@ export const CICLO_VERSION = "ciclo v0.7";
 //     vuelta falla por un error del harness, queda anotada y el ciclo sigue.
 const here = dirname(fileURLToPath(import.meta.url));
 const LM_URL = process.env.LM_STUDIO_URL || "http://127.0.0.1:1234/v1/chat/completions";
-const MODEL = process.env.SPECIALIST_MODEL || "google/gemma-4-e4b";
+const MODEL = modeloDe("specialist"); // 10/11: el modelo sale de PUESTOS.md (puesto "specialist"), no se nombra en el código
 const CONTEXTO = Number(process.env.WEBMCP_CONTEXT) || 12000;
 
 // ---------- el juez ----------
@@ -265,6 +266,9 @@ export async function borrador({ features, planilla, call = llamarLM, contexto =
 export async function ciclo(o) {
   const { planilla, features, outDir } = o;
   const call = o.call || llamarLM, log = o.log || (() => {}), juez = o.juez || juezReal(planilla, { log });
+  // 10/11 (rama rol-en-vueltas, decisión de Miche): el Role también en las vueltas de arreglo. Hasta hoy el Senior solo
+  // escribía el borrador (vuelta 0) y las 40-50 vueltas siguientes las hacía un "arreglador" sin rol.
+  const rolA = o.rolArreglo || "", SYS_V = rolA ? `${rolA}\n\n${SYS_VER}` : SYS_VER, SYS_A = rolA ? `${rolA}\n\n${SYS_ARREGLO}` : SYS_ARREGLO;
   const maxIntentos = o.maxIntentos ?? 3, maxVueltas = o.maxVueltas ?? 40, contexto = o.contexto ?? CONTEXTO;
   const ctx = { planilla, features };
   const filas = planilla.filas || [];
@@ -287,7 +291,7 @@ export async function ciclo(o) {
   mkdirSync(outDir, { recursive: true });
   const foto = (n) => { const d = join(outDir, `v${String(n).padStart(3, "0")}`); mkdirSync(d, { recursive: true }); for (const [f, s] of Object.entries(app)) writeFileSync(join(d, f), s); return d; };
   foto(0);
-  const ev = { type: "EVIDENCE", kind: "ciclo", version: CICLO_VERSION, modelo: MODEL, contexto, inicio: new Date().toISOString(), ...(hechoBorrador ? { borrador: hechoBorrador.pedidos } : { desde: "una app que ya existía" }), vueltas: [], curva: [] };
+  const ev = { type: "EVIDENCE", kind: "ciclo", version: CICLO_VERSION, modelo: MODEL, contexto, rol: { borrador: !!o.rol, arreglo: !!rolA }, inicio: new Date().toISOString(), ...(hechoBorrador ? { borrador: hechoBorrador.pedidos } : { desde: "una app que ya existía" }), vueltas: [], curva: [] };
   const guardar = () => writeFileSync(join(outDir, "ciclo.json"), JSON.stringify(ev, null, 2));
   const intentos = {}, ultimo = {};
   let pendientes = new Set(), segunda = false, version = 0;
@@ -313,19 +317,19 @@ export async function ciclo(o) {
     const rompio = /^rompió lo que ya andaba/.test(ultimo[target] || "");
     const previo = ultimo[target] ? `\n\nEl intento anterior NO sirvió: ${ultimo[target]}${rompio ? "\nOJO: tu cambio iba bien para esta regla, pero rompió lo de arriba. Mandá el MISMO cambio y, en el mismo bloque, lo que hace falta para que lo otro siga andando (p. ej. si sacaste un fondo, cambiá también el color de la letra que estaba encima)." : ""}` : "";
     const userA = `${reqTexto(ctx, reqDe(target))}\n\n${consigna(ctx, mias)}\n\n${fallas(mias, est)}${previo}\n\nMapa de la app:\n${mapa}`;
-    const a = await call([{ role: "system", content: SYS_VER }, { role: "user", content: userA }], 1500, "ver"); // 1500: Gemma 4 puede pensar antes de responder, y eso cuenta
+    const a = await call([{ role: "system", content: SYS_V }, { role: "user", content: userA }], 1500, "ver"); // 1500: Gemma 4 puede pensar antes de responder, y eso cuenta
     const pa = parseJsonLoose(a.content || "");
     const ver = pa.ok && Array.isArray(pa.data?.ver) ? pa.data.ver.slice(0, 4) : [];
     // ---- pedido B: el arreglo, con solo el código necesario ----
     const fijo = `${reqTexto(ctx, reqDe(target))}\n\n${consigna(ctx, mias)}\n\n${fallas(mias, est)}${previo}\n\nMapa de la app:\n${mapa}\n\nCódigo:\n`;
     // el código entra dejando lugar para pensar y responder (~4.500); la respuesta usa lo que sobre, hasta 6.000
-    const presupuesto = contexto - 4500 - estTokens(SYS_ARREGLO) - estTokens(fijo) - 200;
+    const presupuesto = contexto - 4500 - estTokens(SYS_A) - estTokens(fijo) - 200;
     const codigo = armarCodigo(app, ver, lugaresDeError(mias.map((f) => est[f.id]?.detail)), Math.max(500, presupuesto));
     const userB = fijo + (codigo.texto || "(no hay código para mostrar: pedí funciones o archivos que existan)");
     // 02/11: hasta 7.500 si entra (con 6.000, 5 de 40 respuestas se cortaron pensando)
-    const maxResp = Math.max(2500, Math.min(7500, contexto - estTokens(SYS_ARREGLO + userB) - 300));
-    const b = await call([{ role: "system", content: SYS_ARREGLO }, { role: "user", content: userB }], maxResp, "arreglo");
-    Object.assign(vuelta, { ver, codigo: codigo.piezas, codigo_fuera: codigo.fuera, tokens_pedido: { ver: estTokens(SYS_VER + userA), arreglo: estTokens(SYS_ARREGLO + userB) }, ms: { ver: a.ms, arreglo: b.ms }, usage: { ver: a.usage, arreglo: b.usage }, respuesta: b.content });
+    const maxResp = Math.max(2500, Math.min(7500, contexto - estTokens(SYS_A + userB) - 300));
+    const b = await call([{ role: "system", content: SYS_A }, { role: "user", content: userB }], maxResp, "arreglo");
+    Object.assign(vuelta, { ver, codigo: codigo.piezas, codigo_fuera: codigo.fuera, tokens_pedido: { ver: estTokens(SYS_V + userA), arreglo: estTokens(SYS_A + userB) }, ms: { ver: a.ms, arreglo: b.ms }, usage: { ver: a.usage, arreglo: b.usage }, respuesta: b.content });
     let ap = { app, aplicados: [], problemas: [], bloques: [] }, veredicto;
     try { ap = aplicar(app, b.content); } catch (e) { ap.problemas = [`error del harness al aplicar: ${e.message}`]; vuelta.error_harness = e.stack?.slice(0, 600); }
     vuelta.aplicados = ap.aplicados; vuelta.problemas = ap.problemas;

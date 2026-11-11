@@ -19,7 +19,7 @@ const ROTA = leerApp(join(FIX, "flow_gemma_sola_rota")), ARREGLADA = leerApp(joi
 const P = JSON.parse(readFileSync(join(FIX, "planilla_kanban_c22.json"), "utf8"));
 const FEATS = JSON.parse(readFileSync(join(FIX, "real_kanban_c22/snapshot_min.json"), "utf8")).intentForge.refined_prompt.features;
 
-t("versiones", CICLO_VERSION === "ciclo v0.7" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.7");
+t("versiones", CICLO_VERSION === "ciclo v0.8" && MAPA_VERSION === "mapa v0.2" && CAMBIOS_VERSION === "cambios v0.7");
 
 // ---------- el mapa ----------
 const mapa = mapaTexto(ROTA);

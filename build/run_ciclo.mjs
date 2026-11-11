@@ -29,8 +29,12 @@ import { syntaxOf as syntaxOfLocal } from "../harness/js_tools.mjs";
 import { describirFila } from "../profiles/web/validation/planilla_palabras.mjs";
 import { REGLAS_VISUALES, REGLAS_MODERNAS } from "../profiles/web/validation/visual.mjs";
 import { modeloDe } from "../modelos.mjs";
+import { SYS_MVC, REGLA_MVC, problemasMvc, ponerArranque, fijarArranque, pedidoEsqueleto, MVC_VERSION } from "./mvc.mjs";
 
-export const CICLO_VERSION = "ciclo v0.7";
+export const CICLO_VERSION = "ciclo v0.8";
+// v0.8 (11/11, rama mvc-borrador): --mvc. El borrador de script.js parte de un esqueleto DATOS → LÓGICA → DIBUJO → CONTROLES
+// (build/mvc.mjs); el arranque lo escribe el código y se repone si un arreglo lo rompe; los arreglos reciben la regla.
+// Sin --mvc, todo igual que v0.7.
 // v0.4 (19/10, después del 16/16): VUELTA 0, el borrador. Si no hay app de partida, Gemma la escribe desde los pedidos
 // de Miche y la consigna de la planilla (en palabras), UN ARCHIVO POR PEDIDO: index.html → styles.css (viendo el HTML)
 // → script.js (viendo el HTML). Así cada pedido entra holgado en 12k y los tres archivos usan los mismos ids y clases.
@@ -174,8 +178,8 @@ export function puntaje(r) {
 }
 
 // ---------- vuelta 0: el borrador ----------
-const SYS_BORRADOR = (archivo, otros) => `Sos el programador de una app web: HTML + CSS + JavaScript, sin frameworks ni librerías, que se abre con doble clic (sin servidor). La app tiene tres archivos: index.html, styles.css y script.js${otros ? " (index.html ya está escrito: usá exactamente sus ids y clases)" : ""}.
-Ahora escribí SOLO ${archivo}, completo, cumpliendo TODO lo que pide el usuario y lo que se va a probar.${archivo.endsWith(".js") ? "\nEn script.js cada función va suelta, arriba de todo (no adentro de document.addEventListener('DOMContentLoaded', …) ni de otra función grande: el <script> ya está al final del body), y al final una sola llamada que arranca la app. Así cada función se puede arreglar por separado." : ""}${archivo === "index.html" ? '\nindex.html lleva solo la estructura: enlazá styles.css (<link rel="stylesheet" href="styles.css">) y script.js (<script src="script.js"></script> al final del body), sin <style> ni <script> adentro.' : ""}
+const SYS_BORRADOR = (archivo, otros, mvc = false) => `Sos el programador de una app web: HTML + CSS + JavaScript, sin frameworks ni librerías, que se abre con doble clic (sin servidor). La app tiene tres archivos: index.html, styles.css y script.js${otros ? " (index.html ya está escrito: usá exactamente sus ids y clases)" : ""}.
+Ahora escribí SOLO ${archivo}, completo, cumpliendo TODO lo que pide el usuario y lo que se va a probar.${archivo.endsWith(".js") && mvc ? `\n${SYS_MVC}` : ""}${archivo.endsWith(".js") && !mvc ? "\nEn script.js cada función va suelta, arriba de todo (no adentro de document.addEventListener('DOMContentLoaded', …) ni de otra función grande: el <script> ya está al final del body), y al final una sola llamada que arranca la app. Así cada función se puede arreglar por separado." : ""}${archivo === "index.html" ? '\nindex.html lleva solo la estructura: enlazá styles.css (<link rel="stylesheet" href="styles.css">) y script.js (<script src="script.js"></script> al final del body), sin <style> ni <script> adentro.' : ""}
 Respondé con un único bloque:
 
 ### ARCHIVO: ${archivo}
@@ -229,7 +233,7 @@ export function separarArchivos(app0) {
 // rolTexto) que va al principio del system. Vacío = como siempre. Se mide con build/exp_rol.mjs antes de usarlo.
 // 04/11 (decisión de Miche: "tareas chicas para modelos chicos, prefiero 80 tareas chicas que pueda hacer a 17 que no"):
 // `base` (lista de requisitos, p. ej. ["R1", "R2"]) = borrador MÍNIMO: solo eso, bien y simple; lo demás se suma después, de a uno.
-export async function borrador({ features, planilla, call = llamarLM, contexto = CONTEXTO, log = () => {}, rol = "", base = null }) {
+export async function borrador({ features, planilla, call = llamarLM, contexto = CONTEXTO, log = () => {}, rol = "", base = null, mvc = false }) {
   const ctx = { planilla, features };
   const enBase = (r) => !base || base.includes(r);
   const pedido = base
@@ -243,9 +247,10 @@ export async function borrador({ features, planilla, call = llamarLM, contexto =
     // Ahora se le pide igual, con lo que había como punto de partida; si no sale, queda lo que había.
     const yaHabia = archivo !== "index.html" && String(app[archivo] || "").trim().length >= 50 ? String(app[archivo]) : "";
     if (yaHabia) log(`[CICLO] borrador: ${archivo} tiene lo que estaba adentro de index.html; se le pide a Gemma el archivo entero`);
-    const sys = `${rol ? `${rol}\n\n` : ""}${SYS_BORRADOR(archivo, archivo !== "index.html")}`;
-    const user = `${pedido}${app["index.html"] ? `\n\nindex.html (ya escrito):\n${app["index.html"]}` : ""}${yaHabia ? `\n\nEsto estaba adentro de index.html y ya pasó a ${archivo}; es SOLO un pedazo. Escribí ${archivo} ENTERO: con esto adentro y todo lo que falta para que haga lo que pide el usuario:\n${yaHabia}` : ""}`;
-    let codigo = null, por = "";
+    const sys = `${rol ? `${rol}\n\n` : ""}${SYS_BORRADOR(archivo, archivo !== "index.html", mvc)}`;
+    const esqueleto = mvc && archivo === "script.js" ? `\n\n${pedidoEsqueleto()}` : "";
+    const user = `${pedido}${app["index.html"] ? `\n\nindex.html (ya escrito):\n${app["index.html"]}` : ""}${yaHabia ? `\n\nEsto estaba adentro de index.html y ya pasó a ${archivo}; es SOLO un pedazo. Escribí ${archivo} ENTERO: con esto adentro y todo lo que falta para que haga lo que pide el usuario:\n${yaHabia}` : ""}${esqueleto}`;
+    let codigo = null, por = "", casi = null;
     for (let intento = 1; intento <= 2 && codigo == null; intento++) {
       const max = Math.max(2500, Math.min(8000, contexto - estTokens(sys + user) - 300));
       const r = await call([{ role: "system", content: sys }, { role: "user", content: user + (por ? `\n\nEl intento anterior no sirvió: ${por}` : "") }], max, `borrador ${archivo}`);
@@ -253,8 +258,12 @@ export async function borrador({ features, planilla, call = llamarLM, contexto =
       pedidos.push({ archivo, intento, ms: r.ms, usage: r.usage, tokens_pedido: estTokens(sys + user), max });
       if (!b || b.codigo.trim().length < 50) { por = "no vino el archivo en un bloque ### ARCHIVO:"; continue; }
       if (archivo.endsWith(".js")) { const e = syntaxOfLocal(b.codigo); if (e) { por = `script.js no compila: ${e}`; continue; } }
+      // --mvc: si no sigue la estructura se pide otra vez diciendo qué falta; si el 2º tampoco, queda el que compila (mejor que nada)
+      if (mvc && archivo === "script.js") { const pm = problemasMvc(b.codigo); pedidos.at(-1).mvc_problemas = pm; if (pm.length) { casi = b.codigo; por = `script.js no sigue el esqueleto: ${pm.join("; ")}`; continue; } }
       codigo = b.codigo;
     }
+    if (codigo == null && casi) { codigo = casi; log(`[CICLO] borrador: script.js compila pero no sigue del todo el esqueleto (${por}); queda igual`); }
+    if (mvc && archivo === "script.js" && codigo != null) codigo = ponerArranque(codigo);
     app[archivo] = codigo ?? (yaHabia || archivo === "index.html" ? yaHabia ||  "<!DOCTYPE html><html><head><link rel=\"stylesheet\" href=\"styles.css\"></head><body><script src=\"script.js\"></script></body></html>" : "");
     log(`[CICLO] borrador: ${archivo} ${codigo != null ? `(${estTokens(codigo)} tokens)` : "NO salió: queda vacío y lo arregla el ciclo"}`);
   }
@@ -271,7 +280,8 @@ export async function ciclo(o) {
   const call = o.call || llamarLM, log = o.log || (() => {}), juez = o.juez || juezReal(planilla, { log });
   // 10/11 (rama rol-en-vueltas, decisión de Miche): el Role también en las vueltas de arreglo. Hasta hoy el Senior solo
   // escribía el borrador (vuelta 0) y las 40-50 vueltas siguientes las hacía un "arreglador" sin rol.
-  const rolA = o.rolArreglo || "", SYS_V = rolA ? `${rolA}\n\n${SYS_VER}` : SYS_VER, SYS_A = rolA ? `${rolA}\n\n${SYS_ARREGLO}` : SYS_ARREGLO;
+  const rolA = o.rolArreglo || "", mvc = !!o.mvc, regla = mvc ? `\n\n${REGLA_MVC}` : "";
+  const SYS_V = `${rolA ? `${rolA}\n\n` : ""}${SYS_VER}${regla}`, SYS_A = `${rolA ? `${rolA}\n\n` : ""}${SYS_ARREGLO}${regla}`;
   const maxIntentos = o.maxIntentos ?? 3, maxVueltas = o.maxVueltas ?? 40, contexto = o.contexto ?? CONTEXTO;
   const ctx = { planilla, features };
   const filas = planilla.filas || [];
@@ -287,14 +297,15 @@ export async function ciclo(o) {
   if (!app) {
     const base = deAPoco ? reqs.slice(0, deAPoco.base || 2) : null;
     log(`[CICLO] vuelta 0: no hay app de partida → Gemma escribe el borrador (index.html, styles.css, script.js)${base ? ` MÍNIMO: solo ${base.join(", ")}; lo demás se suma de a una prueba` : ""}${o.rol ? " · con Role" : ""}`);
-    hechoBorrador = await borrador({ features, planilla, call, contexto, log, rol: o.rol || "", base });
+    hechoBorrador = await borrador({ features, planilla, call, contexto, log, rol: o.rol || "", base, mvc });
     app = hechoBorrador.app;
   }
   { const sep = separarArchivos(app); if (sep.cambios.length) { app = sep.app; sep.cambios.forEach((c) => log(`[CICLO] ${c}`)); } }
+  if (mvc) app = fijarArranque(app);
   mkdirSync(outDir, { recursive: true });
   const foto = (n) => { const d = join(outDir, `v${String(n).padStart(3, "0")}`); mkdirSync(d, { recursive: true }); for (const [f, s] of Object.entries(app)) writeFileSync(join(d, f), s); return d; };
   foto(0);
-  const ev = { type: "EVIDENCE", kind: "ciclo", version: CICLO_VERSION, modelo: MODEL, contexto, rol: { borrador: !!o.rol, arreglo: !!rolA }, muestreo: MUESTREO, inicio: new Date().toISOString(), ...(hechoBorrador ? { borrador: hechoBorrador.pedidos } : { desde: "una app que ya existía" }), vueltas: [], curva: [] };
+  const ev = { type: "EVIDENCE", kind: "ciclo", version: CICLO_VERSION, modelo: MODEL, contexto, rol: { borrador: !!o.rol, arreglo: !!rolA }, mvc: mvc ? MVC_VERSION : false, muestreo: MUESTREO, inicio: new Date().toISOString(), ...(hechoBorrador ? { borrador: hechoBorrador.pedidos } : { desde: "una app que ya existía" }), vueltas: [], curva: [] };
   const guardar = () => writeFileSync(join(outDir, "ciclo.json"), JSON.stringify(ev, null, 2));
   const intentos = {}, ultimo = {};
   let pendientes = new Set(), segunda = false, version = 0;
@@ -334,7 +345,7 @@ export async function ciclo(o) {
     const b = await call([{ role: "system", content: SYS_A }, { role: "user", content: userB }], maxResp, "arreglo");
     Object.assign(vuelta, { ver, codigo: codigo.piezas, codigo_fuera: codigo.fuera, tokens_pedido: { ver: estTokens(SYS_V + userA), arreglo: estTokens(SYS_A + userB) }, ms: { ver: a.ms, arreglo: b.ms }, usage: { ver: a.usage, arreglo: b.usage }, respuesta: b.content });
     let ap = { app, aplicados: [], problemas: [], bloques: [] }, veredicto;
-    try { ap = aplicar(app, b.content); } catch (e) { ap.problemas = [`error del harness al aplicar: ${e.message}`]; vuelta.error_harness = e.stack?.slice(0, 600); }
+    try { ap = aplicar(app, b.content); if (mvc) ap = { ...ap, app: fijarArranque(ap.app) }; } catch (e) { ap.problemas = [`error del harness al aplicar: ${e.message}`]; vuelta.error_harness = e.stack?.slice(0, 600); }
     vuelta.aplicados = ap.aplicados; vuelta.problemas = ap.problemas;
     const antesPts = mias.reduce((a, f) => a + puntaje(est[f.id]), 0);
     const antesOk = mias.filter((f) => est[f.id]?.result === "PASS");
@@ -360,7 +371,8 @@ export async function ciclo(o) {
       if (!mejor.ok && ap.bloques.length > 1) {
         const primero = mejor;
         for (const [i, bl] of ap.bloques.slice(0, 4).entries()) {
-          const uno = aplicarBloques(app, [bl]);
+          let uno = aplicarBloques(app, [bl]);
+          if (mvc) uno = { ...uno, app: fijarArranque(uno.app) };
           if (!uno.aplicados.length) continue;
           const r = await evaluar(uno, uno.aplicados.join(", "), `c${i}`);
           vuelta.pruebas.push({ que: uno.aplicados.join(", "), ok: r.ok, pts: r.pts });

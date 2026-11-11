@@ -1,0 +1,89 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background-color: #f4f4f9;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* --- Spreadsheet Table Styling --- */
+#spreadsheet {
+    width: 100%;
+    border-collapse: collapse; /* Essential for clean grid lines */
+    table-layout: fixed; /* Ensures columns maintain equal width */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}
+
+/* General cell styling for all cells (th and td) */
+#spreadsheet th,
+#spreadsheet td {
+    border: 1px solid #ccc;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+    min-width: 50px; /* Minimum width for usability */
+    box-sizing: border-box; /* Include padding/border in the element's total width/height */
+}
+
+/* Styling for editable cells (R1 requirement) */
+[contenteditable="true"]:focus {
+    outline: 2px solid #007bff; /* Highlight when focused/editing */
+    background-color: #e6f3ff;
+}
+
+/* --- Header Row (Column Letters A-J) --- */
+thead th {
+    background-color: #e9ecef;
+    font-weight: bold;
+    text-align: center;
+    width: 50px; /* Fixed width for the corner cell and column headers */
+}
+
+/* The empty corner cell (top-left) */
+thead tr th:first-child {
+    background-color: #f8f9fa;
+    border-right: none;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Column letter headers (A, B, C...) */
+thead th:not(:first-child) {
+    text-align: center;
+    width: calc(100% / 10); /* Distribute remaining width equally among the 10 columns */
+}
+
+
+/* --- Row Headers (Numbers 1-20) --- */
+.row-header {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    text-align: center;
+    width: 50px; /* Fixed width for row numbers */
+}
+
+/* Ensure the first column (row headers) doesn't stretch too much */
+tbody tr th.row-header {
+    border-right: none;
+}
+
+
+/* --- Data Cells (The main grid area) --- */
+tbody td {
+    background-color: #fff;
+    cursor: text; /* Indicates that the cell is editable */
+}
+
+/* Optional: Zebra striping for better readability */
+tr:nth-child(even) td {
+    background-color: #f9f9f9;
+}
+
+/* Ensure the last column (J) doesn't look separated by a border if it's the edge of the table */
+#spreadsheet tbody tr td:last-child {
+    border-right: 1px solid #ccc; /* Keep right border for consistency */
+}

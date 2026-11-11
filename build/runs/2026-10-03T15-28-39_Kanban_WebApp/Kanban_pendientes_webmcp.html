@@ -424,7 +424,7 @@
 <script>
   const STORAGE_KEY = 'michelab_pendientes_webmcp';
   // Cada vez que Claude actualiza la lista sube SEED; lo guardado con un SEED anterior se reemplaza por la lista nueva.
-  const SEED = '2026-11-09a'; // 09/11: PC nueva; juez en paralelo y aviso en consola, después de la corrida de prueba
+  const SEED = '2026-11-10a'; // 10/11: juez/consola/migración hechos; panel de salud del equipo (baja)
   let state = loadState() || {
  "columns": [
   {
@@ -544,24 +544,6 @@
    "isDefault": true,
    "cards": [
     {
-     "id": "w95",
-     "title": "Juez más rápido: correr las pruebas de la planilla en paralelo",
-     "desc": "[09/11, PC nueva] Medido en la hoja: 8 vueltas en 31 min, Gemma 13 min y el juez ~18 min (6 de cada 10). El juez corre las filas de a una en Chromium; con el 9700X (8 núcleos) se pueden correr varias a la vez, una pestaña por fila. Decisión de Miche: aplicarlo cuando termine la corrida de prueba. Verificar que dé los mismos veredictos que de a una (mismas filas, mismo azar) antes de usarlo.",
-     "priority": "alta"
-    },
-    {
-     "id": "w96",
-     "title": "Consola: avisar qué hace el juez mientras prueba",
-     "desc": "[09/11] Entre vuelta y vuelta la consola queda quieta varios minutos y parece colgada: es el juez probando. Agregar una línea tipo \"probando 24 pruebas…\" / \"probando el cambio (bloque 2 de 4)…\" con el tiempo que tardó. Decisión de Miche: junto con el juez en paralelo.",
-     "priority": "media"
-    },
-    {
-     "id": "w97",
-     "title": "Migración: nombre del modelo y Parallel en LM Studio",
-     "desc": "[09/11] En la PC nueva Gemma quedó como gemma-4-e4b-it (sin el apodo google/gemma-4-e4b): por ahora se corre con set SPECIALIST_MODEL=gemma-4-e4b-it. Arreglo de fondo: bajar google/gemma-4-e4b (Q4_K_M) desde Model Search para recuperar el apodo, o revisar todos los lugares que lo nombran. Además, LM Studio nuevo carga con Parallel 4: pasarlo a 1 para que el contexto de 12k no se reparta.",
-     "priority": "alta"
-    },
-    {
      "id": "n84",
      "title": "Intent Forge en la pantalla: hacer SOLO lo de la cadena",
      "desc": "[27/10] Para integrar a webmcp: Intent Forge queda SOLO como la entrada del pedido (las líneas tal cual) + el glosario que propone Qwen; la revisión es planilla.md (botones aprobar / cambiar / quitar / rehacer). Nada de preguntar el CÓMO ni reescribir. — Decisión de Miche (17-19/10, ingeniería inversa): tus líneas tal cual (sin reescribir ni clasificar), la planilla en palabras para aprobar (reemplaza al \"Así entendí\" confuso), y preguntas SOLO cuando a una prueba le falta un dato (nunca el CÓMO). Lo mismo que npm run proyecto nuevo, pero en la UI. Esperar el resultado de la 1ª corrida real.",
@@ -602,6 +584,12 @@
      "title": "Punto 10 · Al terminar, el Orchestrator pregunta si cumple",
      "desc": "[#Orchestrator] Se reabre el chat: si sí, el proyecto termina; si no, nueva ronda de Intent Forge sobre el proyecto en curso. Separar 'no cumple algo pedido' (falla del pipeline, evidencia) de 'quiero algo nuevo' (+ Feature).",
      "priority": "medio"
+    },
+    {
+     "id": "w98",
+     "title": "Panel \"salud del equipo\" en la UI (drivers, Windows, chipset, temperatura vs tok/s)",
+     "priority": "bajo",
+     "desc": "[10/11, idea de Miche] Panel chico al pie de la UI de webmcp: Drivers GPU / Update Windows / Drivers chipset / motor de LM Studio / GPU temp, en verde si con esos valores la velocidad es buena. Cada 6 h compara la \"foto\" del equipo y la velocidad; si algo cambió y bajaron los tok/s, lo marca en amarillo con alerta para revisar. Origen: el 10/11 una actualización preliminar de Windows (KB5127936, build 26300) bajó a Gemma de ~54 a ~41 tok/s y costó horas encontrarla. Ajustes acordados: (1) velocidad leída de los logs de LM Studio (líneas tg = … t/s), sin correr pruebas ni frenar corridas; bench_gemma solo como desempate con la placa libre; (2) valor bueno guardado POR MODELO/puesto; (3) amarillo = 'cambió justo cuando bajó' (sospechoso), no 'responsable'; (4) temperatura con regla propia (p. ej. >85 °C) y lectura vía LibreHardwareMonitor (v1); versiones en v0. Módulo aparte del harness (salud del equipo)."
     }
    ]
   },
@@ -631,6 +619,24 @@
    "isInbox": false,
    "isDefault": true,
    "cards": [
+    {
+     "id": "w97",
+     "title": "Migración: nombre del modelo y Parallel en LM Studio",
+     "desc": "[09/11] En la PC nueva Gemma quedó como gemma-4-e4b-it (sin el apodo google/gemma-4-e4b): por ahora se corre con set SPECIALIST_MODEL=gemma-4-e4b-it. Arreglo de fondo: bajar google/gemma-4-e4b (Q4_K_M) desde Model Search para recuperar el apodo, o revisar todos los lugares que lo nombran. Además, LM Studio nuevo carga con Parallel 4: pasarlo a 1 para que el contexto de 12k no se reparta. · HECHO 10/11: PUESTOS.md + modelos.mjs (el código pide el modelo por puesto) y Parallel en 1.",
+     "priority": "urgente"
+    },
+    {
+     "id": "w96",
+     "title": "Consola: avisar qué hace el juez mientras prueba",
+     "desc": "[09/11] Entre vuelta y vuelta la consola queda quieta varios minutos y parece colgada: es el juez probando. Agregar una línea tipo \"probando 24 pruebas…\" / \"probando el cambio (bloque 2 de 4)…\" con el tiempo que tardó. Decisión de Miche: junto con el juez en paralelo. · HECHO 09/11: [JUEZ] probando…/listo en N s. Commit en visual.",
+     "priority": "medio"
+    },
+    {
+     "id": "w95",
+     "title": "Juez más rápido: correr las pruebas de la planilla en paralelo",
+     "desc": "[09/11, PC nueva] Medido en la hoja: 8 vueltas en 31 min, Gemma 13 min y el juez ~18 min (6 de cada 10). El juez corre las filas de a una en Chromium; con el 9700X (8 núcleos) se pueden correr varias a la vez, una pestaña por fila. Decisión de Miche: aplicarlo cuando termine la corrida de prueba. Verificar que dé los mismos veredictos que de a una (mismas filas, mismo azar) antes de usarlo. · HECHO 09/11: juez en paralelo (JUEZ_PARALELO=6), mismos veredictos, ~5× más rápido. Commit en visual.",
+     "priority": "urgente"
+    },
     {
      "id": "h96",
      "title": "25–27/10 · Kanban MVP congelado como Skill + pasada moderna (M1–M10): 35 → 41 → 42/43, y el choque M9 vs V5 arreglado → 43/43 → moderno v0.2 (M11–M13) → 46/46 (28/10)",
@@ -1079,7 +1085,7 @@
   }
  ],
  "customColumnsCount": 1,
- "cardCounter": 97
+ "cardCounter": 98
 };
   
   let editingColumnId = null;

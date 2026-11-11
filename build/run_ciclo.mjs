@@ -158,9 +158,12 @@ export function armarCodigo(app, ver, errores, presupuesto) {
   return { texto: out.map((p) => `--- ${p.titulo}\n${p.texto}`).join("\n\n"), piezas: out.map((p) => p.titulo), fuera, tokens: usados };
 }
 
+// 10/11 (réplicas del Role, decisión de Miche): por defecto todo igual (temperatura 0, sin semilla). Para repetir una corrida
+// con un poco de azar y medir cuánto varía: CICLO_TEMPERATURA=0.7 CICLO_SEMILLA=1 (queda anotado en ciclo.json → muestreo).
+export const MUESTREO = { temperatura: Number(process.env.CICLO_TEMPERATURA) || 0, semilla: process.env.CICLO_SEMILLA ? Number(process.env.CICLO_SEMILLA) : null };
 async function llamarLM(messages, maxTokens) {
   const t0 = Date.now();
-  const r = await chatStream(LM_URL, { model: MODEL, messages, temperature: 0, max_tokens: maxTokens });
+  const r = await chatStream(LM_URL, { model: MODEL, messages, temperature: MUESTREO.temperatura, ...(MUESTREO.semilla != null ? { seed: MUESTREO.semilla } : {}), max_tokens: maxTokens });
   return { content: r.content, usage: r.usage, finish_reason: r.finish_reason, ms: Date.now() - t0 };
 }
 
@@ -291,7 +294,7 @@ export async function ciclo(o) {
   mkdirSync(outDir, { recursive: true });
   const foto = (n) => { const d = join(outDir, `v${String(n).padStart(3, "0")}`); mkdirSync(d, { recursive: true }); for (const [f, s] of Object.entries(app)) writeFileSync(join(d, f), s); return d; };
   foto(0);
-  const ev = { type: "EVIDENCE", kind: "ciclo", version: CICLO_VERSION, modelo: MODEL, contexto, rol: { borrador: !!o.rol, arreglo: !!rolA }, inicio: new Date().toISOString(), ...(hechoBorrador ? { borrador: hechoBorrador.pedidos } : { desde: "una app que ya existía" }), vueltas: [], curva: [] };
+  const ev = { type: "EVIDENCE", kind: "ciclo", version: CICLO_VERSION, modelo: MODEL, contexto, rol: { borrador: !!o.rol, arreglo: !!rolA }, muestreo: MUESTREO, inicio: new Date().toISOString(), ...(hechoBorrador ? { borrador: hechoBorrador.pedidos } : { desde: "una app que ya existía" }), vueltas: [], curva: [] };
   const guardar = () => writeFileSync(join(outDir, "ciclo.json"), JSON.stringify(ev, null, 2));
   const intentos = {}, ultimo = {};
   let pendientes = new Set(), segunda = false, version = 0;

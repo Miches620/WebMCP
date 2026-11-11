@@ -269,15 +269,17 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     // --de-a-poco (04/11, decisión de Miche: tareas chicas para modelos chicos): borrador MÍNIMO (los primeros --base requisitos,
     // 2 por defecto) con la persona del Role web-app, y después de a UNA prueba por vez. El tiempo es lo que se cede.
     const deAPoco = args.includes("--de-a-poco") ? { base: Number(flag("--base")) || 2 } : null;
-    // 10/11 (rama rol-en-vueltas, decisión de Miche): la persona va también en las vueltas de arreglo, no solo en el borrador.
-    // --rol-solo-borrador = como antes (para comparar). --con-skills suma las Skills del Role (paso aparte, para medir de a una cosa).
+    // 10/11 (rama rol-en-vueltas): se midió la persona también en las vueltas de arreglo. 11/11, con 3 réplicas de cada
+    // versión (build/replicas_rol.ps1): sin diferencia medible (6,7 vs 5,7 requisitos en promedio; el azar pesa más), así que
+    // por defecto vuelve a ir SOLO en el borrador. --rol-en-todas la pone en todas las vueltas (para volver a medir);
+    // --rol-solo-borrador se acepta pero ya es lo de siempre. --con-skills suma las Skills del Role.
     let rol = "", rolArreglo = "";
     const conSkills = args.includes("--con-skills");
     if (deAPoco && !args.includes("--sin-rol")) {
       const { loadRole, rolTexto } = await import("../roles/registry.mjs");
       const role = await loadRole("web-app");
       rol = rolTexto(role, "borrador", { skills: conSkills });
-      if (!args.includes("--rol-solo-borrador")) rolArreglo = rolTexto(role, "arreglo", { skills: conSkills });
+      if (args.includes("--rol-en-todas")) rolArreglo = rolTexto(role, "arreglo", { skills: conSkills });
     }
     if (deAPoco) console.log(`[PROYECTO] de a poco: borrador mínimo (${deAPoco.base} requisito/s)${rol ? ` con la persona Frontend Senior${conSkills ? " + sus Skills" : ""} ${rolArreglo ? "en TODAS las vueltas" : "solo en el borrador"}` : ""}, después de a una prueba`);
     const { app } = await ciclo({ app: hay ? leerApp(appDir) : null, planilla, features: req.intentForge.refined_prompt.features, outDir, maxVueltas: Number(flag("--max-vueltas")) || (deAPoco ? 150 : 40), log: console.log, deAPoco, rol, rolArreglo });

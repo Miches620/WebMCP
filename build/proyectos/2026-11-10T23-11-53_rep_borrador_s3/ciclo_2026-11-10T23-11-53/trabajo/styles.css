@@ -1,0 +1,90 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    padding: 20px;
+}
+
+#spreadsheet-container {
+    overflow-x: auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+#spreadsheet-grid {
+    display: table; /* Usamos display: table para que las propiedades de tabla funcionen */
+    width: auto;
+    border-collapse: collapse;
+    table-layout: fixed; /* Asegura distribución uniforme */
+}
+
+/* Estilo general de encabezados (Columna y Fila) */
+.col-header, .row-header {
+    background-color: #e0e0e0;
+    text-align: center;
+    cursor: pointer;
+    padding: 10px 5px;
+    font-weight: bold;
+}
+
+/* Estilo de la esquina superior izquierda */
+#spreadsheet-grid thead tr th:first-child {
+    background-color: #cccccc;
+    cursor: default;
+    pointer-events: none; /* Desactiva clics en la celda de esquina */
+}
+
+/* Estilos para el contenido visible del encabezado (letra o número) */
+.col-letter, .row-number {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+/* Botón de Ocultar */
+.hide-col-btn, .hide-row-btn {
+    background-color: #ff6b6b; /* Rojo suave para acción secundaria */
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-top: 3px;
+    display: block; /* Ocupa su propia línea */
+    width: calc(100% - 2px); /* Ajuste para el margen si lo hubiera */
+}
+
+.hide-col-btn:hover, .hide-row-btn:hover {
+    background-color: #ff4757;
+}
+
+
+/* Estilos de las celdas de datos (TD) */
+#spreadsheet-grid td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    min-width: 100px;
+    height: 30px; /* Altura fija para simular filas uniformes */
+    box-sizing: border-box;
+}
+
+/* Estilos específicos para el contenido editable y foco */
+[contenteditable="true"]:focus {
+    outline: 2px solid #4a90e2;
+    background-color: #f8fbff;
+    cursor: text;
+}
+
+.focused-cell {
+    box-shadow: inset 0 0 5px rgba(74, 144, 226, 0.5);
+}
+
+/* Estilos para simular la apariencia de ocultar elementos */
+.hidden-col {
+    display: none !important;
+}
+
+.hidden-row {
+    display: none !important;
+}

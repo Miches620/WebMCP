@@ -41,7 +41,7 @@ t("inicio: crear y mirar el contador de En Curso, mover A Pendiente u ordenar en
 
 // GUARDIÁN: el código del juez y de las plantillas no nombra cosas de ninguna app (solo los comentarios cuentan la historia)
 // 29/10: "columna" junto con "fila", "encabezado", "lugar" o "seleccion" en la misma línea es la grilla (lugares: A1, la columna C, la fila 3), no el Kanban
-const code = (f) => readFileSync(new URL(`./${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").split("\n").map((l) => l.replace(/(^|\s)\/\/.*$/, "")).join("\n");
+const code = (f) => readFileSync(new URL(`./${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").split(/\r?\n/).map((l) => l.replace(/(^|\s)\/\/.*$/, "")).join("\n"); // 11/11: \r?\n — con saltos de Windows (CRLF) el ".*$" no llegaba al final y los comentarios contaban como código
 const leaks = ["glosario.mjs", "planilla.mjs", "planilla_plantillas.mjs", "planilla_writer.mjs", "planilla_palabras.mjs"].flatMap((f) => code(f).split("\n").map((l, i) => [f, i + 1, l]).filter(([, , l]) => /tarjeta|kanban/i.test(l) || (/columna/i.test(l) && !/fila|encabezad|lugar|seleccion|L\.col/i.test(l))).map(([f, n, l]) => `${f}:${n}: ${l.trim().slice(0, 80)}`));
 t("GUARDIÁN: ni el juez, ni las plantillas, ni el writer dicen 'tarjeta', 'columna' o 'Kanban' en el código", !leaks.length, "\n    " + leaks.join("\n    "));
 

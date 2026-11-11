@@ -18,7 +18,7 @@ const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name
 
 // 1. el motor no nombra ningún dominio (se miran el código y los textos, sin los comentarios)
 const src = readFileSync(fileURLToPath(new URL("./files_engine.mjs", import.meta.url)), "utf8")
-  .replace(/\/\*[\s\S]*?\*\//g, "").split("\n").map((l) => l.replace(/^\s*\/\/.*$/, "").replace(/\s\/\/ .*$/, "")).join("\n");
+  .replace(/\/\*[\s\S]*?\*\//g, "").split(/\r?\n/).map((l) => l.replace(/^\s*\/\/.*$/, "").replace(/\s\/\/ .*$/, "")).join("\n");
 const DOMAIN = /\b(niveles?|NIVELES|Reglas|cajas?|jugador|sokoban|boxworld|tablero|dibujar|dibujo|mover|ganado|juego|snake|controles)\b/gi;
 const hits = [...new Set(src.match(DOMAIN) || [])];
 t("files_engine.mjs no nombra ningún juego ni dominio", hits.length === 0, hits.join(", "));
@@ -123,8 +123,11 @@ t("motor sin plataforma → PLATFORM_REQUIRED", await (async () => { try { await
   t("write: el harness escribe el archivo, lo juzga una vez y no llama al modelo", r1.steps[0].by === "harness" && r1.steps[0].attempts.length === 1 && judged.join() === "hola" && r1.steps[0].problems_final.length === 0, JSON.stringify(r1.steps[0]));
   const r2 = await run(toyS(() => ({ "x.js": "chau" })));
   t("write: si el juez encuentra problemas no se reintenta (vienen de otro paso)", r2.steps[0].attempts.length === 1 && r2.steps[0].problems_final[0] === "el archivo no dice hola" && !r2.steps[0].broken);
-  const e3 = await run(toyS(() => ({ "x.js": "hola" })), { noWrite: true }).then(() => "", (e) => e.message);
-  t("write: con noWrite (--gemma-writes-all) se le pide al modelo", /fetch failed|ECONNREFUSED|LM Studio/i.test(e3), e3);
+  // 11/11: antes se esperaba que LM Studio NO respondiera (fetch failed); con LM Studio prendido el modelo
+  // contestaba y la prueba fallaba. Ahora se corta justo antes de llamar al modelo con la guardia de holdout
+  // (opts.forbidden): si el pedido llega a armarse, se le iba a pedir al modelo. No usa la red.
+  const e3 = await run(toyS(() => ({ "x.js": "hola" })), { noWrite: true, forbidden: ["BRIEF:"] }).then(() => "", (e) => e.message);
+  t("write: con noWrite (--gemma-writes-all) se le pide al modelo", /criterio holdout filtrado/.test(e3), e3);
   // v0.11.1: clase de paso universal "written" (un archivo que escribe solo el código; no tiene pedido)
   const wS = (write, check) => ({ id: "w", version: "0", status: "DRAFT", scripts: ["h.js"], contract: "C", steps: [{ id: "h", kind: "written", file: "h.js", write, check }] });
   const wP = { ...toyP, finish: (env) => Object.keys(env.files) };

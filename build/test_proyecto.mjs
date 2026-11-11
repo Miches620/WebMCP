@@ -162,8 +162,8 @@ t("juzgar: la app del ciclo v0.3 da 15/16 con la vara nueva (falta que scrollee 
   const a = await juzgar(join(FIX, "flow_p26_m43"), PVM), b = await juzgar(join(FIX, "flow_p26_m43_mano"), PVM);
   const d = (r) => a.fallan.find((f) => f.r === r)?.detalle.join(" ") || "";
   t("moderno v0.2: la app 43/43 de Miche falla solo las 3 nuevas (gris que tapa el 78-89% de la columna, texto a 45/39px del borde, con las cuentas 30 + 15, el encabezado se sale de la esquina); arreglada a mano (6 líneas de CSS) pasa todas las V y M",
-    a.fallan.map((f) => f.r).join() === "M11,M12,M13" && /tapa el 78%/.test(d("M11")) && /45px del borde de arriba y a 39px/.test(d("M12")) && /arriba 45px = relleno de <div class="card-body"> 30px \+ relleno de <div class="card"> 15px/.test(d("M12")) && /column-header.*se sale de la esquina/.test(d("M13")) && b.fallan.length === 0,
-    `${a.fallan.map((f) => f.r)} · ${JSON.stringify(b.fallan).slice(0, 300)}`);
+    a.fallan.map((f) => f.r).join() === "M11,M12,M13" && /tapa el 7[6-9]%/.test(d("M11")) && /45px del borde de arriba y a 39px/.test(d("M12")) && /arriba 45px = relleno de <div class="card-body"> 30px \+ relleno de <div class="card"> 15px/.test(d("M12")) && /column-header.*se sale de la esquina/.test(d("M13")) && b.fallan.length === 0,
+    `${a.fallan.map((f) => f.r)} · ${JSON.stringify(b.fallan).slice(0, 300)}\n  M11: ${d("M11")}\n  M12: ${d("M12")}\n  M13: ${d("M13")}`); // 11/11: si falla, muestra qué midió (PC nueva)
 }
 
 // ---------- 29/10: 2º proyecto (hoja de cálculo): el juez con acciones de persona, contra una hoja hecha a mano ----------

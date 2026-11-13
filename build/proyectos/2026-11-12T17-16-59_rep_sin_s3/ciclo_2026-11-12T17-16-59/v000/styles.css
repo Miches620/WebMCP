@@ -1,0 +1,69 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f5;
+    padding: 20px;
+}
+
+#spreadsheet-container {
+    /* Limita el ancho y centro la hoja de cálculo */
+    max-width: 1200px;
+    margin: 0 auto;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos generales de la tabla */
+#spreadsheet-grid {
+    width: 100%;
+    border-collapse: collapse; /* Hace que los bordes se junten */
+    table-layout: fixed; /* Asegura distribución uniforme de las columnas */
+}
+
+/* Estilo para todas las celdas (<th> y <td>) */
+#spreadsheet-grid th, #spreadsheet-grid td {
+    border: 1px solid #ddd; /* Borde gris claro por defecto */
+    padding: 8px 10px;
+    height: 30px; /* Altura estándar de las filas para consistencia */
+    box-sizing: border-box; /* Incluye padding y border en el ancho total */
+    vertical-align: top;
+}
+
+/* Estilo específico para las celdas de encabezado de columna (A, B, C...) */
+.col-header {
+    background-color: #e9e9e9;
+    font-weight: bold;
+    text-align: center;
+    width: 30px; /* Ancho fijo para las letras de la columna */
+}
+
+/* Estilo específico para las celdas de encabezado de fila (1, 2, 3...) */
+.row-header {
+    background-color: #e9e9e9;
+    font-weight: bold;
+    width: 40px; /* Ancho fijo para los números de la fila */
+    text-align: center;
+}
+
+/* Estilos para las celdas de datos (<td>) */
+#spreadsheet-grid td {
+    background-color: #ffffff;
+    cursor: text; /* Indica que es editable */
+}
+
+/* Efecto visual al pasar el ratón por encima o al estar enfocado en una celda */
+#spreadsheet-grid th:hover, 
+#spreadsheet-grid td:hover {
+    background-color: #f0f8ff; /* Azul muy claro de hover */
+}
+
+/* Estilo cuando la celda está siendo editada (focus) */
+[contenteditable="true"]:focus {
+    outline: 2px solid royalblue; /* Resaltado azul para indicar que se puede escribir aquí */
+    background-color: #fff;
+    box-shadow: inset 0 0 5px rgba(0, 100, 255, 0.3);
+}
+
+/* Estilo de las filas impares (opcional, mejora la legibilidad) */
+tbody tr:nth-child(odd) td {
+    background-color: #f9f9f9;
+}

@@ -11,7 +11,7 @@ import { syntaxOf } from "../harness/js_tools.mjs";
 let ok = 0, fail = 0;
 const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
 
-t("versión", MVC_VERSION === "mvc v0.1");
+t("versión", MVC_VERSION === "mvc v0.2");
 
 // ---------- el esqueleto ----------
 t("el esqueleto compila, tiene las 4 secciones y no tiene arranque", !syntaxOf(ESQUELETO_MVC) && ["DATOS", "LÓGICA", "DIBUJO", "CONTROLES"].every((x) => ESQUELETO_MVC.includes(`===== ${x}`)) && !ESQUELETO_MVC.includes(MARCA_ARRANQUE));
@@ -32,6 +32,12 @@ t("problemasMvc: conectar() suelto → lo dice (dos veces duplica cada evento)",
 t("problemasMvc: la definición de conectar y el arranque del harness NO cuentan como llamadas", !/no llames/.test(p(ponerArranque(bueno))));
 t("problemasMvc: LÓGICA que usa document → lo dice; en un comentario no cuenta", /LÓGICA usa document/.test(p(bueno.replace("estado.celdas[id] = v;", "document.getElementById(id).textContent = v;"))) && !/LÓGICA/.test(p(bueno.replace("estado.celdas[id] = v;", "estado.celdas[id] = v; // no usar document.x"))));
 
+// v0.2: guardar y redibujar con cada tecla pisaba lo que se escribía ("=B1+C1" → "1C+1Bundefined", R4.1 en las 6 réplicas)
+const conInput = bueno.replace("// completá (si render()", "document.getElementById(\"hoja\").addEventListener(\"input\", (e) => { poner(e.target.id, e.target.textContent); guardar(); render(); });\n  // completá (si render()");
+const conFocusout = conInput.replace('addEventListener("input"', 'addEventListener("focusout"');
+t("problemasMvc v0.2: escuchar 'input' y redibujar → lo dice; con focusout no", /cada tecla/.test(p(conInput)) && !/cada tecla/.test(p(conFocusout)), p(conInput));
+t("v0.2: la consigna del borrador y la regla de los arreglos dicen que no se redibuja lo que se está editando", /document\.activeElement/.test(SYS_MVC) && /no con cada tecla/.test(REGLA_MVC) && /no con cada tecla/.test(ESQUELETO_MVC));
+
 // ---------- fijarArranque (en el ciclo) ----------
 const appMvc = { "index.html": "<div id=a></div>", "script.js": bueno };
 t("fijarArranque: con la estructura pone el arranque; si un arreglo lo borró, lo repone", fijarArranque(appMvc)["script.js"].endsWith(ARRANQUE) && fijarArranque({ ...appMvc, "script.js": ponerArranque(bueno).split(MARCA_ARRANQUE)[0] })["script.js"].endsWith(ARRANQUE));
@@ -44,7 +50,7 @@ t("fijarArranque: una app sin la estructura (retomada con --mvc) no se toca", fi
     .replace("/* completá: los datos de la app (textos, números, listas, objetos). Nada de elementos de la página. */", "n: 0")
     .replace("// completá\n\n// ===== DIBUJO", "function sumar() { estado.n = estado.n + 1; }\n\n// ===== DIBUJO")
     .replace("function render() {\n  // completá\n}", "function render() { document.getElementById(\"n\").textContent = String(estado.n); }")
-    .replace("function conectar() {\n  // completá (si render() vuelve a crear elementos, escuchá en un contenedor que no cambia y mirá event.target)\n}", "function conectar() { document.getElementById(\"mas\").addEventListener(\"click\", () => { sumar(); guardar(); render(); }); }"));
+    .replace(/function conectar\(\) \{\n[\s\S]*?\n\}/, "function conectar() { document.getElementById(\"mas\").addEventListener(\"click\", () => { sumar(); guardar(); render(); }); }"));
   const dir = mkdtempSync(join(tmpdir(), "mvc-"));
   // el script en el <head> (sin defer): el arranque espera a DOMContentLoaded; al final del body arranca enseguida
   writeFileSync(join(dir, "index.html"), `<!DOCTYPE html><html><head><script src="script.js"></script></head><body><span id="n"></span><button id="mas">+</button></body></html>`);

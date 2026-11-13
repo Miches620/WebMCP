@@ -1,0 +1,64 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    padding: 20px;
+}
+
+#spreadsheet-container table {
+    /* Estilo general de la tabla para que parezca una hoja */
+    border-collapse: collapse;
+    width: 100%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: white;
+}
+
+/* Estilo para todas las celdas (th y td) */
+th, td {
+    border: 1px solid #ccc; /* Borde gris estándar */
+    padding: 8px 10px; /* Espaciado interno */
+    text-align: left;
+    min-width: 50px; /* Asegura un ancho mínimo para las celdas pequeñas */
+    vertical-align: top;
+}
+
+/* Encabezados de Columna (A, B, C...) en thead */
+thead th {
+    background-color: #e9ecef; /* Color claro para la cabecera superior */
+    color: #333;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px;
+}
+
+/* La esquina superior izquierda (vacía) */
+thead tr :first-child {
+    border: none; /* Quitar borde de la esquina vacía si es necesario, aunque lo dejamos para consistencia visual. */
+    background-color: transparent;
+}
+
+/* Columna de Números de Fila (1 a 20) en tbody */
+tbody th {
+    width: 50px; /* Ancho fijo para los números de fila */
+    text-align: center;
+    background-color: #f8f9fa; /* Fondo ligeramente diferente */
+    color: #6c757d;
+    font-weight: normal;
+}
+
+/* Estilo para las celdas de datos (A1 a J20) */
+td {
+    min-width: 80px; /* Un poco más ancho que la columna de números */
+    background-color: white;
+}
+
+/* Manejo del estado editable */
+[contenteditable="true"]:focus {
+    outline: 2px solid #a3c1ff; /* Resaltado azul suave al hacer foco */
+    background-color: #fffbe6; /* Fondo amarillo muy claro para indicar edición */
+    cursor: text;
+}
+
+/* Ajuste de borde para que la primera columna (números) no se vea cortada */
+tbody tr th {
+    border-right: 1px solid #ccc !important;
+}

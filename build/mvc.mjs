@@ -13,7 +13,11 @@
 //   problemasMvc   qué le falta a un script.js para seguir la estructura (para reintentar el borrador)
 //   ponerArranque  el arranque lo escribe el código, siempre al final (si un arreglo lo rompe, se repone)
 
-export const MVC_VERSION = "mvc v0.2";
+export const MVC_VERSION = "mvc v0.3";
+// v0.3 (13/11, réplicas v0.2: 5, 3, 3): las 3 apps escuchaban 'blur' (y 'change') en el <tbody> para "guardar al
+// terminar". blur no burbujea y change no existe en contenteditable: la app NUNCA guardaba (estado.B4 = "" después de
+// escribir =SUMA(A1:A3); con focusout sí). El juez decía "B4 muestra la fórmula" y Gemma agregaba cálculo a un dato que
+// nunca llegaba. La regla ahora nombra el evento (focusout / Enter) y el borrador rechaza blur/focus.
 // v0.2 (13/11, réplicas MVC: 8, 8, 3 contra 4, 11, 5 sin MVC; R4.1 FAIL en las 6): la fórmula se destruía MIENTRAS se
 // escribía. Las apps guardaban y redibujaban con cada tecla (evento input): render() reescribía la celda que se estaba
 // editando, el cursor saltaba al principio y "=B1+C1" quedaba "1C+1Bundefined" (probado en Chromium con la app final de
@@ -43,7 +47,7 @@ function render() {
 // ===== CONTROLES: conectar() se llama UNA sola vez. Cada evento: llama a la LÓGICA, después guardar() y render(). =====
 function conectar() {
   // completá (si render() vuelve a crear elementos, escuchá en un contenedor que no cambia y mirá event.target).
-  // Lo que el usuario escribe se guarda cuando TERMINA de editar (change, focusout o Enter), no con cada tecla (input).
+  // Lo que el usuario escribe se guarda cuando TERMINA de editar (focusout en el contenedor (blur y focus NO burbujean: escuchados en un contenedor no llegan nunca) o la tecla Enter (keydown); en celdas contenteditable no existe change), no con cada tecla (input).
 }
 `;
 
@@ -53,11 +57,11 @@ export const SYS_MVC = `script.js sigue un esqueleto fijo (te lo paso en el pedi
 - LÓGICA: funciones que cambian \`estado\` o calculan con él; no usan document.
 - DIBUJO: render() pone en la pantalla lo que dice \`estado\` (y lo que se calcula de él).
 - CONTROLES: conectar() engancha los eventos; cada evento llama a la lógica, después guardar() y render().
-- EDITAR: no redibujes el elemento que el usuario está editando (render() se saltea document.activeElement). Lo que escribe se guarda cuando TERMINA de editar (change, focusout o Enter), no con cada tecla (input). Si lo que se muestra no es lo que se escribió (un resultado, un formato), al entrar a editar mostrá lo que está guardado en \`estado\`.
+- EDITAR: no redibujes el elemento que el usuario está editando (render() se saltea document.activeElement). Lo que escribe se guarda cuando TERMINA de editar (focusout en el contenedor (blur y focus NO burbujean: escuchados en un contenedor no llegan nunca) o la tecla Enter (keydown); en celdas contenteditable no existe change), no con cada tecla (input). Si lo que se muestra no es lo que se escribió (un resultado, un formato), al entrar a editar mostrá lo que está guardado en \`estado\`.
 NO escribas el arranque (ni DOMContentLoaded, ni window.onload, ni llamadas a conectar()/render() sueltas al final): lo agrega el harness.`;
 
 /** Una línea para los pedidos de arreglo (ver y arreglo). */
-export const REGLA_MVC = `La app sigue esta estructura en script.js: DATOS (el objeto \`estado\`, cargar(), guardar()) → LÓGICA (funciones que cambian \`estado\`, sin tocar la página) → DIBUJO (render() arma la pantalla desde \`estado\`) → CONTROLES (conectar(): cada evento llama a la lógica, después guardar() y render()). Un dato nuevo va en \`estado\`; lo que se ve sale de render(); la página no guarda datos. No redibujes lo que el usuario está editando: guardá cuando termina (change, focusout o Enter), no con cada tecla (input). El ARRANQUE del final lo pone el harness: no lo toques.`;
+export const REGLA_MVC = `La app sigue esta estructura en script.js: DATOS (el objeto \`estado\`, cargar(), guardar()) → LÓGICA (funciones que cambian \`estado\`, sin tocar la página) → DIBUJO (render() arma la pantalla desde \`estado\`) → CONTROLES (conectar(): cada evento llama a la lógica, después guardar() y render()). Un dato nuevo va en \`estado\`; lo que se ve sale de render(); la página no guarda datos. No redibujes lo que el usuario está editando: guardá cuando termina (focusout en el contenedor (blur y focus NO burbujean: escuchados en un contenedor no llegan nunca) o la tecla Enter (keydown); en celdas contenteditable no existe change), no con cada tecla (input). El ARRANQUE del final lo pone el harness: no lo toques.`;
 
 const sinArranque = (js) => { const s = String(js || ""); const i = s.indexOf(MARCA_ARRANQUE); return i >= 0 ? s.slice(0, i) : s; };
 const sinComentarios = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "").split(/\r?\n/).map((l) => l.replace(/(^|[^:"'`])\/\/.*$/, "$1")).join("\n");
@@ -71,7 +75,10 @@ export function problemasMvc(js) {
   // llamadas sueltas a conectar()/arrancar() (fuera de su definición): conectar dos veces duplica cada evento
   if (/(^|[^\w.])(conectar|arrancar)\s*\(\s*\)\s*;?/m.test(s.replace(/function\s+(conectar|arrancar)\s*\(/g, ""))) out.push("no llames a conectar(): la llama una sola vez el arranque del harness");
   // v0.2: guardar y redibujar con cada tecla destruye lo que se está escribiendo (R4.1 en las 6 réplicas)
-  if (/addEventListener\(\s*['"]input['"]/.test(s) && /\brender\s*\(\s*\)/.test(s.replace(/function\s+render\s*\(/, ""))) out.push("conectar() escucha 'input' (cada tecla) y la app redibuja: eso pisa lo que el usuario está escribiendo. Guardá al terminar de editar (change, focusout o Enter) y que render() no toque document.activeElement");
+  if (/addEventListener\(\s*['"]input['"]/.test(s) && /\brender\s*\(\s*\)/.test(s.replace(/function\s+render\s*\(/, ""))) out.push("conectar() escucha 'input' (cada tecla) y la app redibuja: eso pisa lo que el usuario está escribiendo. Guardá al terminar de editar (focusout en el contenedor o Enter) y que render() no toque document.activeElement");
+  // v0.3: blur/focus no burbujean (en un contenedor no llegan nunca) y change no existe en contenteditable: no guardaba nada
+  const ev = [...new Set([...s.matchAll(/addEventListener\(\s*['"](blur|focus|change)['"]/g)].map((m) => m[1]))];
+  if (ev.some((e) => e !== "change")) out.push(`escuchás ${ev.map((e) => `'${e}'`).join(" y ")}: blur y focus no burbujean (escuchados en un contenedor no llegan nunca) y en celdas contenteditable no existe change. Para guardar al terminar de editar usá 'focusout' (y keydown de Enter)`);
   // LÓGICA sin página (solo si las marcas siguen ahí)
   const raw = sinArranque(js), i = raw.indexOf("===== LÓGICA"), j = raw.indexOf("===== DIBUJO");
   if (i >= 0 && j > i && /\bdocument\./.test(sinComentarios(raw.slice(raw.indexOf("\n", i), raw.lastIndexOf("\n", j))))) out.push("la sección LÓGICA usa document: lo de la página va en render() o en conectar()");

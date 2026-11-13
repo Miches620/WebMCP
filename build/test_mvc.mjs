@@ -11,7 +11,7 @@ import { syntaxOf } from "../harness/js_tools.mjs";
 let ok = 0, fail = 0;
 const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
 
-t("versión", MVC_VERSION === "mvc v0.2");
+t("versión", MVC_VERSION === "mvc v0.3");
 
 // ---------- el esqueleto ----------
 t("el esqueleto compila, tiene las 4 secciones y no tiene arranque", !syntaxOf(ESQUELETO_MVC) && ["DATOS", "LÓGICA", "DIBUJO", "CONTROLES"].every((x) => ESQUELETO_MVC.includes(`===== ${x}`)) && !ESQUELETO_MVC.includes(MARCA_ARRANQUE));
@@ -37,6 +37,25 @@ const conInput = bueno.replace("// completá (si render()", "document.getElement
 const conFocusout = conInput.replace('addEventListener("input"', 'addEventListener("focusout"');
 t("problemasMvc v0.2: escuchar 'input' y redibujar → lo dice; con focusout no", /cada tecla/.test(p(conInput)) && !/cada tecla/.test(p(conFocusout)), p(conInput));
 t("v0.2: la consigna del borrador y la regla de los arreglos dicen que no se redibuja lo que se está editando", /document\.activeElement/.test(SYS_MVC) && /no con cada tecla/.test(REGLA_MVC) && /no con cada tecla/.test(ESQUELETO_MVC));
+
+// v0.3: las 3 réplicas de v0.2 escuchaban 'blur' en el <tbody> (no burbujea: nunca guardaba nada)
+const conBlur = conInput.replace('addEventListener("input"', 'addEventListener("blur"');
+t("problemasMvc v0.3: 'blur' o 'focus' → lo dice y nombra focusout; 'focusout' no", /no burbujean.*focusout/.test(p(conBlur)) && /no burbujean/.test(p(conInput.replace('addEventListener("input"', 'addEventListener("focus"'))) && !/burbujean/.test(p(conFocusout)), p(conBlur));
+t("v0.3: la consigna, la regla y el esqueleto nombran focusout y avisan que blur no burbujea", [SYS_MVC, REGLA_MVC, ESQUELETO_MVC].every((x) => /focusout/.test(x) && /no burbujean/i.test(x) && !/change, focusout/.test(x)));
+{ // en Chromium: lo que hacía Gemma (blur en el contenedor) no guarda; focusout sí
+  const { chromium } = await import("playwright");
+  const br = await chromium.launch();
+  try {
+    const guarda = async (evento) => {
+      const pg = await br.newPage();
+      await pg.setContent(`<table><tbody id="tb"><tr><td contenteditable="true" id="A1"></td><td contenteditable="true" id="B1"></td></tr></tbody></table><script>var estado={};document.getElementById("tb").addEventListener("${evento}",(e)=>{estado[e.target.id]=e.target.textContent;});</script>`);
+      await pg.click("#A1"); await pg.keyboard.type("=SUMA(A1:A3)"); await pg.keyboard.press("Enter"); await pg.evaluate(() => document.activeElement?.blur?.());
+      const v = await pg.evaluate(() => estado.A1); await pg.close(); return v;
+    };
+    const [b, f] = [await guarda("blur"), await guarda("focusout")];
+    t("Chromium: 'blur' en el contenedor no guarda nada (lo de las réplicas v0.2); 'focusout' sí", b === undefined && /^=SUMA\(A1:A3\)/.test(f || ""), `blur=${JSON.stringify(b)} focusout=${JSON.stringify(f)}`);
+  } finally { await br.close(); }
+}
 
 // ---------- fijarArranque (en el ciclo) ----------
 const appMvc = { "index.html": "<div id=a></div>", "script.js": bueno };

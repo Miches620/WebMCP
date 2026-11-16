@@ -11,7 +11,7 @@ import { syntaxOf } from "../harness/js_tools.mjs";
 let ok = 0, fail = 0;
 const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
 
-t("versión", MVC_VERSION === "mvc v0.3");
+t("versión", MVC_VERSION === "mvc v0.4");
 
 // ---------- el esqueleto ----------
 t("el esqueleto compila, tiene las 4 secciones y no tiene arranque", !syntaxOf(ESQUELETO_MVC) && ["DATOS", "LÓGICA", "DIBUJO", "CONTROLES"].every((x) => ESQUELETO_MVC.includes(`===== ${x}`)) && !ESQUELETO_MVC.includes(MARCA_ARRANQUE));
@@ -56,6 +56,10 @@ t("v0.3: la consigna, la regla y el esqueleto nombran focusout y avisan que blur
     t("Chromium: 'blur' en el contenedor no guarda nada (lo de las réplicas v0.2); 'focusout' sí", b === undefined && /^=SUMA\(A1:A3\)/.test(f || ""), `blur=${JSON.stringify(b)} focusout=${JSON.stringify(f)}`);
   } finally { await br.close(); }
 }
+
+// v0.4: en las réplicas v0.3 se perdían las vueltas con "no hay un control para color/borrar/ocultar" y "rompió R9"
+t("v0.4: la consigna y la regla de los arreglos piden el control visible con el nombre de la acción", [SYS_MVC, REGLA_MVC].every((x) => /SE VEA/.test(x) && /nombre de la acción/.test(x) && /ningún control llama/.test(x)));
+t("v0.4: la regla de los arreglos pide no reescribir cargar/guardar/conectar enteros (R9 se rompía)", /no reescribas cargar\(\), guardar\(\) ni conectar\(\) enteros/.test(REGLA_MVC) && /`estado`/.test(REGLA_MVC));
 
 // ---------- fijarArranque (en el ciclo) ----------
 const appMvc = { "index.html": "<div id=a></div>", "script.js": bueno };

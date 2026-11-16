@@ -1,0 +1,72 @@
+/* Global reset/setup for the container */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    padding: 20px;
+}
+
+.spreadsheet-container {
+    max-width: 1200px; /* Limit overall width for readability */
+    margin: 0 auto;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    background-color: white;
+}
+
+/* Table structure styling */
+#spreadsheetTable {
+    width: 100%;
+    border-collapse: collapse; /* Essential for clean borders */
+    table-layout: fixed; /* Ensures columns maintain consistent width */
+}
+
+th, td {
+    padding: 8px 12px;
+    text-align: left;
+    border: 1px solid #ccc;
+    height: 30px; /* Standard height for rows */
+    min-width: 50px; /* Ensure cells are wide enough */
+}
+
+/* Styling the header (Column Letters A-J) */
+#spreadsheetTable thead tr {
+    background-color: #e8e8e8;
+    font-weight: bold;
+    border-bottom: 2px solid #aaa;
+}
+
+/* The corner cell (empty th in thead) - spans across row labels */
+thead th:first-child {
+    width: 40px; /* Give room for row labels */
+    text-align: center;
+    padding: 5px 0;
+    background-color: #ddd;
+}
+
+/* Styling the Column Letter Headers (A, B, C...) */
+#spreadsheetTable th:not(:first-child) {
+    width: calc(100% / 10); /* Distribute width evenly across A-J columns */
+    text-align: center;
+    padding: 8px 0;
+}
+
+/* Styling Row Labels (The numbers 1, 2, 3...) */
+.row-label {
+    width: 40px; /* Must match the width of the corner cell th */
+    background-color: #f9f9f9;
+    text-align: center;
+    padding: 8px 0;
+    font-weight: bold;
+    border-right: 1px solid #ccc;
+}
+
+/* Styling all data cells (A1, B2...) */
+tbody tr td {
+    background-color: white;
+    cursor: text; /* Indicates editable field */
+}
+
+/* Editable cell behavior improvement */
+[contenteditable="true"]:focus {
+    outline: 1px dashed #3498db;
+    background-color: #ecf0f1;
+}

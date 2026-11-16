@@ -1,0 +1,94 @@
+/* Global Reset and Styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    margin: 20px;
+}
+
+#spreadsheet-container {
+    overflow-x: auto; /* Allows scrolling if content exceeds viewport width */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ddd;
+}
+
+/* Table Structure */
+table {
+    width: auto; /* Let the content define the width initially */
+    border-collapse: collapse;
+    table-layout: fixed; /* Ensures columns maintain consistent widths */
+    min-width: 100%; /* Ensure minimum required width for all cells */
+}
+
+/* General Cell Styling (Applies to TH and TD) */
+th, td {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    text-align: center;
+    min-width: 60px; /* Ensures minimum width for readability */
+    vertical-align: top;
+}
+
+/* Header Row (Column Letters A-J) */
+.col-header {
+    background-color: #e3e3e3;
+    font-weight: bold;
+    text-transform: uppercase;
+    width: 5%; /* Allocates space for the column header letters */
+}
+
+/* Row Index Column (The first TH in each tbody row) */
+tbody th {
+    background-color: #f9f9f9;
+    font-weight: bold;
+    width: 30px; /* Fixed width for row numbers */
+    text-align: center;
+}
+
+/* Data Cells (The actual content cells A1, B1, etc.) */
+td {
+    background-color: white;
+    cursor: text; /* Indicates that the cell is editable */
+    height: 35px; /* Consistent row height */
+}
+
+/* Styling for the top-left empty corner TH */
+thead tr th:first-child {
+    background-color: #e3e3e3;
+    border-right: none; /* Optional: Makes it look less like a separate column */
+}
+
+/* Ensuring contenteditable cells maintain good appearance on focus/hover */
+td[contenteditable="true"]:focus {
+    outline: 1px dashed #aaa;
+    background-color: #fffbf0;
+}
+
+/* Specific styling for the row index numbers (TH in tbody) - makes them distinct from data content */
+tbody th:nth-child(1) {
+    width: 30px;
+}
+
+/* Adjusting widths to simulate A-J columns evenly spread across the remaining space */
+table > thead > tr > :not(:first-child):not(.col-header) {
+    width: auto; /* This column is handled by the row index TH, but we need to ensure consistency for A-J */
+}
+
+/* The structure requires 1 header cell (empty), 10 letter headers, and 1 row number column.
+   We must ensure the data cells span correctly across the remaining columns.
+*/
+tbody tr td {
+    /* Calculate width: Since there are 10 actual columns (A-J) in the body rows, 
+       they should share the available space equally after accounting for the row index column. */
+    width: calc(100% / 10);
+}
+
+/* Final refinement to ensure all cells look cohesive */
+tbody tr th {
+    border-bottom: none; /* The row number TH connects directly to data cells, so no bottom border on it */
+}
+
+/* Applying borders consistently around the whole structure (The table handles most of this via collapse) */
+table thead {
+    /* Ensures top header row has its own clear boundary */
+    border-bottom: 2px solid #ccc;
+}

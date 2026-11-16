@@ -13,7 +13,13 @@
 //   problemasMvc   qué le falta a un script.js para seguir la estructura (para reintentar el borrador)
 //   ponerArranque  el arranque lo escribe el código, siempre al final (si un arreglo lo rompe, se repone)
 
-export const MVC_VERSION = "mvc v0.4";
+export const MVC_VERSION = "mvc v0.5";
+// v0.5 (16/11, réplicas v0.4: 9, 5, 0): la regla del control visible SÍ funcionó donde llegó (s1: "🎨 Color", "🗑️ Borrar
+// Fila", "🧹 Vaciar Contenido" aparecieron), pero también estaba en la consigna del BORRADOR: cambió el pedido de la vuelta 0
+// y con eso cambió todo lo demás (s3 armó la grilla con <div> desde JS, 918 tokens de index.html, y quedó en 0 toda la
+// corrida). Con la misma semilla, un pedido igual da la misma respuesta; uno distinto, otra corrida entera. v0.5 deja el
+// borrador EXACTAMENTE como v0.3 y pone la regla nueva solo en los arreglos: la vuelta 1 tiene que dar lo mismo que v0.3
+// (5, 5, 5) y la diferencia que aparezca después es de la regla, no del azar del borrador.
 // v0.4 (15/11, réplicas v0.3: 7, 9, 8 contra 4, 11, 5 sin MVC; R4.1 PASS por primera vez en s2): la curva se aplanaba
 // desde la vuelta 3. Casi todas las vueltas perdidas eran "no hay un control para color/borrar/ocultar" (Gemma escribía
 // la función pero ningún botón la llamaba, aun con el aviso "OJO: escribiste la función nueva") o "rompió R9" (el arreglo
@@ -60,7 +66,7 @@ export const SYS_MVC = `script.js sigue un esqueleto fijo (te lo paso en el pedi
 - DATOS: todo lo que la app necesita recordar va en \`estado\` (por ejemplo, lo que escribió el usuario tal cual, no solo lo que se muestra).
 - LÓGICA: funciones que cambian \`estado\` o calculan con él; no usan document.
 - DIBUJO: render() pone en la pantalla lo que dice \`estado\` (y lo que se calcula de él).
-- CONTROLES: conectar() engancha los eventos; cada evento llama a la lógica, después guardar() y render(). Cada acción que pide el usuario (borrar, color, ocultar, vaciar…) necesita un control que SE VEA en la página con el nombre de la acción escrito (por ejemplo un botón "Borrar columna", "Color" u "Ocultar"), enganchado en conectar(); una función que ningún control llama no hace nada.
+- CONTROLES: conectar() engancha los eventos; cada evento llama a la lógica, después guardar() y render().
 - EDITAR: no redibujes el elemento que el usuario está editando (render() se saltea document.activeElement). Lo que escribe se guarda cuando TERMINA de editar (focusout en el contenedor (blur y focus NO burbujean: escuchados en un contenedor no llegan nunca) o la tecla Enter (keydown); en celdas contenteditable no existe change), no con cada tecla (input). Si lo que se muestra no es lo que se escribió (un resultado, un formato), al entrar a editar mostrá lo que está guardado en \`estado\`.
 NO escribas el arranque (ni DOMContentLoaded, ni window.onload, ni llamadas a conectar()/render() sueltas al final): lo agrega el harness.`;
 

@@ -11,7 +11,7 @@ import { syntaxOf } from "../harness/js_tools.mjs";
 let ok = 0, fail = 0;
 const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
 
-t("versión", MVC_VERSION === "mvc v0.4");
+t("versión", MVC_VERSION === "mvc v0.5");
 
 // ---------- el esqueleto ----------
 t("el esqueleto compila, tiene las 4 secciones y no tiene arranque", !syntaxOf(ESQUELETO_MVC) && ["DATOS", "LÓGICA", "DIBUJO", "CONTROLES"].every((x) => ESQUELETO_MVC.includes(`===== ${x}`)) && !ESQUELETO_MVC.includes(MARCA_ARRANQUE));
@@ -58,7 +58,8 @@ t("v0.3: la consigna, la regla y el esqueleto nombran focusout y avisan que blur
 }
 
 // v0.4: en las réplicas v0.3 se perdían las vueltas con "no hay un control para color/borrar/ocultar" y "rompió R9"
-t("v0.4: la consigna y la regla de los arreglos piden el control visible con el nombre de la acción", [SYS_MVC, REGLA_MVC].every((x) => /SE VEA/.test(x) && /nombre de la acción/.test(x) && /ningún control llama/.test(x)));
+t("v0.5: la regla de los arreglos pide el control visible con el nombre de la acción", /SE VEA/.test(REGLA_MVC) && /nombre de la acción/.test(REGLA_MVC) && /ningún control llama/.test(REGLA_MVC));
+t("v0.5: la consigna del borrador queda como en v0.3 (sin la regla del control visible: cambiaba la vuelta 0 entera)", !/SE VEA/.test(SYS_MVC) && !/ningún control llama/.test(SYS_MVC) && /- CONTROLES: conectar\(\) engancha los eventos; cada evento llama a la lógica, después guardar\(\) y render\(\)\.\r?\n/.test(SYS_MVC + "\n"));
 t("v0.4: la regla de los arreglos pide no reescribir cargar/guardar/conectar enteros (R9 se rompía)", /no reescribas cargar\(\), guardar\(\) ni conectar\(\) enteros/.test(REGLA_MVC) && /`estado`/.test(REGLA_MVC));
 
 // ---------- fijarArranque (en el ciclo) ----------

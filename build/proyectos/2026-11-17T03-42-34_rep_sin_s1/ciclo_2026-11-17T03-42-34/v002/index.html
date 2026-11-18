@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoja de Cálculo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h1>Mi Hoja de Cálculo</h1>
+    <!-- Color Picker Tool -->
+    <!-- Color Picker Tool -->
+    <div id="color-picker-container" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px;">
+        <strong>🎨 Herramienta de Color de Fondo</strong><br><label for="cell-background-color">Seleccionar color:</label>
+        <input type="color" id="cell-background-color" value="#ffffff">
+    </div>
+
+    <!-- Control Panel para Columnas -->
+    <div id="column-controls" style="margin-bottom: 15px; padding: 10px; border: 1px solid #eee; background-color: #f9f9f9;">
+        <strong>Selección de Columna:</strong>
+        <button class="action-btn" id="delete-column-btn" disabled>❌ Borrar Columna</button>
+        <button class="action-btn" id="clear-column-content-btn" disabled>🗑️ Limpiar Contenido Columna</button>
+        <button class="action-btn" id="color-fill-column-btn" disabled>🎨 Rellenar Color Columna</button>
+    </div>
+
+    <!-- La tabla principal que simulará el comportamiento de Excel -->
+    <table id="spreadsheet-grid">
+
+    <!-- La tabla principal que simulará el comportamiento de Excel -->
+    <table id="spreadsheet-grid">
+
+    <!-- La tabla principal que simulará el comportamiento de Excel -->
+    <table id="spreadsheet-grid">
+        <thead>
+            <!-- Fila de encabezado de columnas (A, B, C...) -->
+            <tr>
+            <tr class="header-row">
+                <th class="row-header-corner"></th> <!-- Esquina superior izquierda vacía/para título -->
+                <th data-col-index="0" data-column-letter="A" class="column-selector">A</th>
+                <th data-col-index="1" data-column-letter="B" class="column-selector">B</th>
+                <th data-col-index="2" data-column-letter="C" class="column-selector">C</th>
+                <th data-col-index="3" data-column-letter="D" class="column-selector">D</th>
+                <th data-col-index="4" data-column-letter="E" class="column-selector">E</th>
+                <th data-col-index="5" data-column-letter="F" class="column-selector">F</th>
+                <th data-col-index="6" data-column-letter="G" class="column-selector">G</th>
+                <th data-col-index="7" data-column-letter="H" class="column-selector">H</th>
+                <th data-col-index="8" data-column-letter="I" class="column-selector">I</th>
+                <th data-col-index="9" data-column-letter="J" class="column-selector">J</th>
+            </tr>
+                <th>A</th>
+                <th>B</th>
+                <th>C</th>
+                <th>D</th>
+                <th>E</th>
+                <th>F</th>
+                <th>G</th>
+                <th>H</th>
+                <th>I</th>
+                <th>J</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Filas 1 a 20 -->
+            <tr data-row="1">
+                <th class="row-header">1</th> <!-- Etiqueta de fila -->
+                <td contenteditable="true" data-cell="(A, 1)"></td>
+                <td contenteditable="true" data-cell="(B, 1)"></td>
+                <td contenteditable="true" data-cell="(C, 1)"></td>
+                <td contenteditable="true" data-cell="(D, 1)"></td>
+                <td contenteditable="true" data-cell="(E, 1)"></td>
+                <td contenteditable="true" data-cell="(F, 1)"></td>
+                <td contenteditable="true" data-cell="(G, 1)"></td>
+                <td contenteditable="true" data-cell="(H, 1)"></td>
+                <td contenteditable="true" data-cell="(I, 1)"></td>
+                <td contenteditable="true" data-cell="(J, 1)"></td>
+            </tr>
+            <tr data-row="2">
+                <th class="row-header">2</th>
+                <td contenteditable="true" data-cell="(A, 2)"></td>
+                <td contenteditable="true" data-cell="(B, 2)"></td>
+                <td contenteditable="true" data-cell="(C, 2)"></td>
+                <td contenteditable="true" data-cell="(D, 2)"></td>
+                <td contenteditable="true" data-cell="(E, 2)"></td>
+                <td contenteditable="true" data-cell="(F, 2)"></td>
+                <td contenteditable="true" data-cell="(G, 2)"></td>
+                <td contenteditable="true" data-cell="(H, 2)"></td>
+                <td contenteditable="true" data-cell="(I, 2)"></td>
+                <td contenteditable="true" data-cell="(J, 2)"></td>
+            </tr>
+            <tr data-row="3">
+                <th class="row-header">3</th>
+                <td contenteditable="true" data-cell="(A, 3)"></td>
+                <td contenteditable="true" data-cell="(B, 3)"></td>
+                <td contenteditable="true" data-cell="(C, 3)"></td>
+                <td contenteditable="true" data-cell="(D, 3)"></td>
+                <td contenteditable="true" data-cell="(E, 3)"></td>
+                <td contenteditable="true" data-cell="(F, 3)"></td>
+                <td contenteditable="true" data-cell="(G, 3)"></td>
+                <td contenteditable="true" data-cell="(H, 3)"></td>
+                <td contenteditable="true" data-cell="(I, 3)"></td>
+                <td contenteditable="true" data-cell="(J, 3)"></td>
+            </tr>
+            <tr data-row="4">
+                <th class="row-header">4</th>
+                <td contenteditable="true" data-cell="(A, 4)"></td>
+                <td contenteditable="true" data-cell="(B, 4)"></td>
+                <td contenteditable="true" data-cell="(C, 4)"></td>
+                <td contenteditable="true" data-cell="(D, 4)"></td>
+                <td contenteditable="true" data-cell="(E, 4)"></td>
+                <td contenteditable="true" data-cell="(F, 4)"></td>
+                <td contenteditable="true" data-cell="(G, 4)"></td>
+                <td contenteditable="true" data-cell="(H, 4)"></td>
+                <td contenteditable="true" data-cell="(I, 4)"></td>
+                <td contenteditable="true" data-cell="(J, 4)"></td>
+            </tr>
+            <tr data-row="5">
+                <th class="row-header">5</th>
+                <td contenteditable="true" data-cell="(A, 5)"></td>
+                <td contenteditable="true" data-cell="(B, 5)"></td>
+                <td contenteditable="true" data-cell="(C, 5)"></td>
+                <td contenteditable="true" data-cell="(D, 5)"></td>
+                <td contenteditable="true" data-cell="(E, 5)"></td>
+                <td contenteditable="true" data-cell="(F, 5)"></td>
+                <td contenteditable="true" data-cell="(G, 5)"></td>
+                <td contenteditable="true" data-cell="(H, 5)"></td>
+                <td contenteditable="true" data-cell="(I, 5)"></td>
+                <td contenteditable="true" data-cell="(J, 5)"></td>
+            </tr>
+            <tr data-row="6">
+                <th class="row-header">6</th>
+                <td contenteditable="true" data-cell="(A, 6)"></td>
+                <td contenteditable="true" data-cell="(B, 6)"></td>
+                <td contenteditable="true" data-cell="(C, 6)"></td>
+                <td contenteditable="true" data-cell="(D, 6)"></td>
+                <td contenteditable="true" data-cell="(E, 6)"></td>
+                <td contenteditable="true" data-cell="(F, 6)"></td>
+                <td contenteditable="true" data-cell="(G, 6)"></td>
+                <td contenteditable="true" data-cell="(H, 6)"></td>
+                <td contenteditable="true" data-cell="(I, 6)"></td>
+                <td contenteditable="true" data-cell="(J, 6)"></td>
+            </tr>
+            <tr data-row="7">
+                <th class="row-header">7</th>
+                <td contenteditable="true" data-cell="(A, 7)"></td>
+                <td contenteditable="true" data-cell="(B, 7)"></td>
+                <td contenteditable="true" data-cell="(C, 7)"></td>
+                <td contenteditable="true" data-cell="(D, 7)"></td>
+                <td contenteditable="true" data-cell="(E, 7)"></td>
+                <td contenteditable="true" data-cell="(F, 7)"></td>
+                <td contenteditable="true" data-cell="(G, 7)"></td>
+                <td contenteditable="true" data-cell="(H, 7)"></td>
+                <td contenteditable="true" data-cell="(I, 7)"></td>
+                <td contenteditable="true" data-cell="(J, 7)"></td>
+            </tr>
+            <tr data-row="8">
+                <th class="row-header">8</th>
+                <td contenteditable="true" data-cell="(A, 8)"></td>
+                <td contenteditable="true" data-cell="(B, 8)"></td>
+                <td contenteditable="true" data-cell="(C, 8)"></td>
+                <td contenteditable="true" data-cell="(D, 8)"></td>
+                <td contenteditable="true" data-cell="(E, 8)"></td>
+                <td contenteditable="true" data-cell="(F, 8)"></td>
+                <td contenteditable="true" data-cell="(G, 8)"></td>
+                <td contenteditable="true" data-cell="(H, 8)"></td>
+                <td contenteditable="true" data-cell="(I, 8)"></td>
+                <td contenteditable="true" data-cell="(J, 8)"></td>
+            </tr>
+            <tr data-row="9">
+                <th class="row-header">9</th>
+                <td contenteditable="true" data-cell="(A, 9)"></td>
+                <td contenteditable="true" data-cell="(B, 9)"></td>
+                <td contenteditable="true" data-cell="(C, 9)"></td>
+                <td contenteditable="true" data-cell="(D, 9)"></td>
+                <td contenteditable="true" data-cell="(E, 9)"></td>
+                <td contenteditable="true" data-cell="(F, 9)"></td>
+                <td contenteditable="true" data-cell="(G, 9)"></td>
+                <td contenteditable="true" data-cell="(H, 9)"></td>
+                <td contenteditable="true" data-cell="(I, 9)"></td>
+                <td contenteditable="true" data-cell="(J, 9)"></td>
+            </tr>
+            <tr data-row="10">
+                <th class="row-header">10</th>
+                <td contenteditable="true" data-cell="(A, 10)"></td>
+                <td contenteditable="true" data-cell="(B, 10)"></td>
+                <td contenteditable="true" data-cell="(C, 10)"></td>
+                <td contenteditable="true" data-cell="(D, 10)"></td>
+                <td contenteditable="true" data-cell="(E, 10)"></td>
+                <td contenteditable="true" data-cell="(F, 10)"></td>
+                <td contenteditable="true" data-cell="(G, 10)"></td>
+                <td contenteditable="true" data-cell="(H, 10)"></td>
+                <td contenteditable="true" data-cell="(I, 10)"></td>
+                <td contenteditable="true" data-cell="(J, 10)"></td>
+            </tr>
+            <tr data-row="11">
+                <th class="row-header">11</th>
+                <td contenteditable="true" data-cell="(A, 11)"></td>
+                <td contenteditable="true" data-cell="(B, 11)"></td>
+                <td contenteditable="true" data-cell="(C, 11)"></td>
+                <td contenteditable="true" data-cell="(D, 11)"></td>
+                <td contenteditable="true" data-cell="(E, 11)"></td>
+                <td contenteditable="true" data-cell="(F, 11)"></td>
+                <td contenteditable="true" data-cell="(G, 11)"></td>
+                <td contenteditable="true" data-cell="(H, 11)"></td>
+                <td contenteditable="true" data-cell="(I, 11)"></td>
+                <td contenteditable="true" data-cell="(J, 11)"></td>
+            </tr>
+            <tr data-row="12">
+                <th class="row-header">12</th>
+                <td contenteditable="true" data-cell="(A, 12)"></td>
+                <td contenteditable="true" data-cell="(B, 12)"></td>
+                <td contenteditable="true" data-cell="(C, 12)"></td>
+                <td contenteditable="true" data-cell="(D, 12)"></td>
+                <td contenteditable="true" data-cell="(E, 12)"></td>
+                <td contenteditable="true" data-cell="(F, 12)"></td>
+                <td contenteditable="true" data-cell="(G, 12)"></td>
+                <td contenteditable="true" data-cell="(H, 12)"></td>
+                <td contenteditable="true" data-cell="(I, 12)"></td>
+                <td contenteditable="true" data-cell="(J, 12)"></td>
+            </tr>
+            <tr data-row="13">
+                <th class="row-header">13</th>
+                <td contenteditable="true" data-cell="(A, 13)"></td>
+                <td contenteditable="true" data-cell="(B, 13)"></td>
+                <td contenteditable="true" data-cell="(C, 13)"></td>
+                <td contenteditable="true" data-cell="(D, 13)"></td>
+                <td contenteditable="true" data-cell="(E, 13)"></td>
+                <td contenteditable="true" data-cell="(F, 13)"></td>
+                <td contenteditable="true" data-cell="(G, 13)"></td>
+                <td contenteditable="true" data-cell="(H, 13)"></td>
+                <td contenteditable="true" data-cell="(I, 13)"></td>
+                <td contenteditable="true" data-cell="(J, 13)"></td>
+            </tr>
+            <tr data-row="14">
+                <th class="row-header">14</th>
+                <td contenteditable="true" data-cell="(A, 14)"></td>
+                <td contenteditable="true" data-cell="(B, 14)"></td>
+                <td contenteditable="true" data-cell="(C, 14)"></td>
+                <td contenteditable="true" data-cell="(D, 14)"></td>
+                <td contenteditable="true" data-cell="(E, 14)"></td>
+                <td contenteditable="true" data-cell="(F, 14)"></td>
+                <td contenteditable="true" data-cell="(G, 14)"></td>
+                <td contenteditable="true" data-cell="(H, 14)"></td>
+                <td contenteditable="true" data-cell="(I, 14)"></td>
+                <td contenteditable="true" data-cell="(J, 14)"></td>
+            </tr>
+            <tr data-row="15">
+                <th class="row-header">15</th>
+                <td contenteditable="true" data-cell="(A, 15)"></td>
+                <td contenteditable="true" data-cell="(B, 15)"></td>
+                <td contenteditable="true" data-cell="(C, 15)"></td>
+                <td contenteditable="true" data-cell="(D, 15)"></td>
+                <td contenteditable="true" data-cell="(E, 15)"></td>
+                <td contenteditable="true" data-cell="(F, 15)"></td>
+                <td contenteditable="true" data-cell="(G, 15)"></td>
+                <td contenteditable="true" data-cell="(H, 15)"></td>
+                <td contenteditable="true" data-cell="(I, 15)"></td>
+                <td contenteditable="true" data-cell="(J, 15)"></td>
+            </tr>
+            <tr data-row="16">
+                <th class="row-header">16</th>
+                <td contenteditable="true" data-cell="(A, 16)"></td>
+                <td contenteditable="true" data-cell="(B, 16)"></td>
+                <td contenteditable="true" data-cell="(C, 16)"></td>
+                <td contenteditable="true" data-cell="(D, 16)"></td>
+                <td contenteditable="true" data-cell="(E, 16)"></td>
+                <td contenteditable="true" data-cell="(F, 16)"></td>
+                <td contenteditable="true" data-cell="(G, 16)"></td>
+                <td contenteditable="true" data-cell="(H, 16)"></td>
+                <td contenteditable="true" data-cell="(I, 16)"></td>
+                <td contenteditable="true" data-cell="(J, 16)"></td>
+            </tr>
+            <tr data-row="17">
+                <th class="row-header">17</th>
+                <td contenteditable="true" data-cell="(A, 17)"></td>
+                <td contenteditable="true" data-cell="(B, 17)"></td>
+                <td contenteditable="true" data-cell="(C, 17)"></td>
+                <td contenteditable="true" data-cell="(D, 17)"></td>
+                <td contenteditable="true" data-cell="(E, 17)"></td>
+                <td contenteditable="true" data-cell="(F, 17)"></td>
+                <td contenteditable="true" data-cell="(G, 17)"></td>
+                <td contenteditable="true" data-cell="(H, 17)"></td>
+                <td contenteditable="true" data-cell="(I, 17)"></td>
+                <td contenteditable="true" data-cell="(J, 17)"></td>
+            </tr>
+            <tr data-row="18">
+                <th class="row-header">18</th>
+                <td contenteditable="true" data-cell="(A, 18)"></td>
+                <td contenteditable="true" data-cell="(B, 18)"></td>
+                <td contenteditable="true" data-cell="(C, 18)"></td>
+                <td contenteditable="true" data-cell="(D, 18)"></td>
+                <td contenteditable="true" data-cell="(E, 18)"></td>
+                <td contenteditable="true" data-cell="(F, 18)"></td>
+                <td contenteditable="true" data-cell="(G, 18)"></td>
+                <td contenteditable="true" data-cell="(H, 18)"></td>
+                <td contenteditable="true" data-cell="(I, 18)"></td>
+                <td contenteditable="true" data-cell="(J, 18)"></td>
+            </tr>
+            <tr data-row="19">
+                <th class="row-header">19</th>
+                <td contenteditable="true" data-cell="(A, 19)"></td>
+                <td contenteditable="true" data-cell="(B, 19)"></td>
+                <td contenteditable="true" data-cell="(C, 19)"></td>
+                <td contenteditable="true" data-cell="(D, 19)"></td>
+                <td contenteditable="true" data-cell="(E, 19)"></td>
+                <td contenteditable="true" data-cell="(F, 19)"></td>
+                <td contenteditable="true" data-cell="(G, 19)"></td>
+                <td contenteditable="true" data-cell="(H, 19)"></td>
+                <td contenteditable="true" data-cell="(I, 19)"></td>
+                <td contenteditable="true" data-cell="(J, 19)"></td>
+            </tr>
+            <tr data-row="20">
+                <th class="row-header">20</th>
+                <td contenteditable="true" data-cell="(A, 20)"></td>
+                <td contenteditable="true" data-cell="(B, 20)"></td>
+                <td contenteditable="true" data-cell="(C, 20)"></td>
+                <td contenteditable="true" data-cell="(D, 20)"></td>
+                <td contenteditable="true" data-cell="(E, 20)"></td>
+                <td contenteditable="true" data-cell="(F, 20)"></td>
+                <td contenteditable="true" data-cell="(G, 20)"></td>
+                <td contenteditable="true" data-cell="(H, 20)"></td>
+                <td contenteditable="true" data-cell="(I, 20)"></td>
+                <td contenteditable="true" data-cell="(J, 20)"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script src="script.js"></script>
+</body>
+</html>

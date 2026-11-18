@@ -283,9 +283,13 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     }
     // --mvc (11/11, rama mvc-borrador): script.js con la estructura DATOS → LÓGICA → DIBUJO → CONTROLES (build/mvc.mjs)
     const mvc = args.includes("--mvc");
+    // --grilla (17/11, rama grilla): la grilla la escribe el harness (build/grilla/nucleo.mjs); Gemma solo logica.js, acciones.json y styles.css
+    const grilla = args.includes("--grilla");
+    if (grilla && hay) console.log("[PROYECTO] --grilla: retoma de la app que ya tiene, pero con el núcleo del harness puesto (lo que no sea logica.js, acciones.json o styles.css se reemplaza)");
+    else if (grilla) console.log("[PROYECTO] --grilla: la vuelta 0 es el núcleo del harness (sin borrador de Gemma); Gemma escribe logica.js, acciones.json y styles.css");
     if (mvc) console.log("[PROYECTO] --mvc: el borrador de script.js parte del esqueleto DATOS → LÓGICA → DIBUJO → CONTROLES y los arreglos reciben la regla");
     if (deAPoco) console.log(`[PROYECTO] de a poco: borrador mínimo (${deAPoco.base} requisito/s)${rol ? ` con la persona Frontend Senior${conSkills ? " + sus Skills" : ""} ${rolArreglo ? "en TODAS las vueltas" : "solo en el borrador"}` : ""}, después de a una prueba`);
-    const { app } = await ciclo({ app: hay ? leerApp(appDir) : null, planilla, features: req.intentForge.refined_prompt.features, outDir, maxVueltas: Number(flag("--max-vueltas")) || (deAPoco ? 150 : 40), log: console.log, deAPoco, rol, rolArreglo, mvc });
+    const { app } = await ciclo({ app: hay ? leerApp(appDir) : null, planilla, features: req.intentForge.refined_prompt.features, outDir, maxVueltas: Number(flag("--max-vueltas")) || (deAPoco ? 150 : 40), log: console.log, deAPoco, rol, rolArreglo, mvc, grilla, titulo: req.titulo });
     mkdirSync(appDir, { recursive: true });
     for (const [f, s] of Object.entries(app)) writeFileSync(join(appDir, f), s);
     console.log(`[PROYECTO] la app quedó en ${appDir} (abrí index.html). Volver a correr "seguir" la retoma desde ahí.`);

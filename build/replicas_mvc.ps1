@@ -5,6 +5,7 @@
 # Uso, desde E:\Proyectos 2026\webmcp:
 #   powershell -ExecutionPolicy Bypass -File build\replicas_mvc.ps1
 #   powershell -ExecutionPolicy Bypass -File build\replicas_mvc.ps1 -Versiones mvc     (13/11: solo --mvc)
+#   powershell -ExecutionPolicy Bypass -File build\replicas_mvc.ps1 -Versiones grilla  (17/11, rama grilla: el núcleo del harness)
 # 13/11: con la misma semilla cada corrida da EXACTAMENTE lo mismo (sin MVC dio 4, 11, 5 tres veces: réplicas del Role,
 # 12/11 y 13/11). Si no cambió nada de lo de "sin", no hace falta volver a correrla: -Versiones mvc corre solo las nuevas.
 param([int]$Vueltas = 30, [double]$Temperatura = 0.7, [string]$Base = "build\proyectos\2026-11-10T00-22-03_hoja_limpia", [string[]]$Versiones = @("sin", "mvc"))
@@ -19,6 +20,7 @@ $lista = "build\replicas_mvc_$stamp.txt"
 $corridas = foreach ($s in 1..3) {
   @{ nombre = "rep_sin_s$s"; semilla = $s; flags = @() }           # como hoy (el Role solo en el borrador)
   @{ nombre = "rep_mvc_s$s"; semilla = $s; flags = @("--mvc") }
+  @{ nombre = "rep_grilla_s$s"; semilla = $s; flags = @("--grilla") }
 }
 $corridas = @($corridas | Where-Object { $Versiones -contains ($_.nombre -replace '^rep_(\w+?)_s\d+$', '$1') })
 function Anotar($texto) { $texto; Add-Content -Path $lista -Value $texto -Encoding UTF8 }

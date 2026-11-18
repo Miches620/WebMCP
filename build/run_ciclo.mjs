@@ -30,8 +30,12 @@ import { describirFila } from "../profiles/web/validation/planilla_palabras.mjs"
 import { REGLAS_VISUALES, REGLAS_MODERNAS } from "../profiles/web/validation/visual.mjs";
 import { modeloDe } from "../modelos.mjs";
 import { SYS_MVC, REGLA_MVC, problemasMvc, ponerArranque, fijarArranque, pedidoEsqueleto, MVC_VERSION } from "./mvc.mjs";
+import { GRILLA_VERSION, REGLA_GRILLA, dimsDe, appInicial, fijarGrilla, vista } from "./grilla/nucleo.mjs";
 
-export const CICLO_VERSION = "ciclo v0.8";
+export const CICLO_VERSION = "ciclo v0.9";
+// v0.9 (17/11, rama grilla): --grilla. El harness escribe la grilla (index.html, base.css, nucleo.js) y Gemma solo logica.js,
+// acciones.json y styles.css: no hay borrador de Gemma (la vuelta 0 es el núcleo), Gemma ve y cambia solo esos 3, y después de
+// cada cambio se vuelve a poner el núcleo (fijarGrilla). Los problemas de acciones.json van a Gemma como aviso.
 // v0.8 (11/11, rama mvc-borrador): --mvc. El borrador de script.js parte de un esqueleto DATOS → LÓGICA → DIBUJO → CONTROLES
 // (build/mvc.mjs); el arranque lo escribe el código y se repone si un arreglo lo rompe; los arreglos reciben la regla.
 // Sin --mvc, todo igual que v0.7.
@@ -280,7 +284,19 @@ export async function ciclo(o) {
   const call = o.call || llamarLM, log = o.log || (() => {}), juez = o.juez || juezReal(planilla, { log });
   // 10/11 (rama rol-en-vueltas, decisión de Miche): el Role también en las vueltas de arreglo. Hasta hoy el Senior solo
   // escribía el borrador (vuelta 0) y las 40-50 vueltas siguientes las hacía un "arreglador" sin rol.
-  const rolA = o.rolArreglo || "", mvc = !!o.mvc, regla = mvc ? `\n\n${REGLA_MVC}` : "";
+  const rolA = o.rolArreglo || "", mvc = !!o.mvc, grilla = !!o.grilla;
+  if (mvc && grilla) throw new Error("--mvc y --grilla no van juntos (con --grilla el script lo escribe el harness)");
+  const regla = mvc ? `\n\n${REGLA_MVC}` : grilla ? `\n\n${REGLA_GRILLA}` : "";
+  const dims = grilla ? dimsDe(planilla) : null, titulo = o.titulo || "Hoja";
+  if (grilla && !dims) throw new Error("--grilla necesita una planilla con la prueba de encabezados (columnas y filas de la grilla)");
+  // lo que ve Gemma (con --grilla, solo los 3 editables) y lo que se juzga (la app entera, con el núcleo puesto)
+  const deGemma = (a) => (grilla ? vista(a) : a);
+  const fijar = (r) => {
+    if (mvc) return { ...r, app: fijarArranque(r.app) };
+    if (!grilla) return r;
+    const f = fijarGrilla(r.app, { dims, titulo });
+    return { ...r, app: f.app, avisos: [...(r.avisos || []), ...f.problemas.map((p) => `acciones.json: ${p}`)] };
+  };
   const SYS_V = `${rolA ? `${rolA}\n\n` : ""}${SYS_VER}${regla}`, SYS_A = `${rolA ? `${rolA}\n\n` : ""}${SYS_ARREGLO}${regla}`;
   const maxIntentos = o.maxIntentos ?? 3, maxVueltas = o.maxVueltas ?? 40, contexto = o.contexto ?? CONTEXTO;
   const ctx = { planilla, features };
@@ -294,18 +310,23 @@ export async function ciclo(o) {
   const reqDe = (u) => (porFila ? filasDe(u)[0]?.r || u : u);
   let app = o.app ? { ...o.app } : null;
   let hechoBorrador = null;
+  if (!app && grilla) {
+    log(`[CICLO] vuelta 0: --grilla → el núcleo del harness (${dims.columnas.length} columnas × ${dims.filas.length} filas), sin llamar a Gemma; Gemma escribe logica.js, acciones.json y styles.css en las vueltas`);
+    app = appInicial({ dims, titulo });
+  }
   if (!app) {
     const base = deAPoco ? reqs.slice(0, deAPoco.base || 2) : null;
     log(`[CICLO] vuelta 0: no hay app de partida → Gemma escribe el borrador (index.html, styles.css, script.js)${base ? ` MÍNIMO: solo ${base.join(", ")}; lo demás se suma de a una prueba` : ""}${o.rol ? " · con Role" : ""}`);
     hechoBorrador = await borrador({ features, planilla, call, contexto, log, rol: o.rol || "", base, mvc });
     app = hechoBorrador.app;
   }
-  { const sep = separarArchivos(app); if (sep.cambios.length) { app = sep.app; sep.cambios.forEach((c) => log(`[CICLO] ${c}`)); } }
+  if (grilla) app = fijar({ app }).app;
+  else { const sep = separarArchivos(app); if (sep.cambios.length) { app = sep.app; sep.cambios.forEach((c) => log(`[CICLO] ${c}`)); } }
   if (mvc) app = fijarArranque(app);
   mkdirSync(outDir, { recursive: true });
   const foto = (n) => { const d = join(outDir, `v${String(n).padStart(3, "0")}`); mkdirSync(d, { recursive: true }); for (const [f, s] of Object.entries(app)) writeFileSync(join(d, f), s); return d; };
   foto(0);
-  const ev = { type: "EVIDENCE", kind: "ciclo", version: CICLO_VERSION, modelo: MODEL, contexto, rol: { borrador: !!o.rol, arreglo: !!rolA }, mvc: mvc ? MVC_VERSION : false, muestreo: MUESTREO, inicio: new Date().toISOString(), ...(hechoBorrador ? { borrador: hechoBorrador.pedidos } : { desde: "una app que ya existía" }), vueltas: [], curva: [] };
+  const ev = { type: "EVIDENCE", kind: "ciclo", version: CICLO_VERSION, modelo: MODEL, contexto, rol: { borrador: !!o.rol, arreglo: !!rolA }, mvc: mvc ? MVC_VERSION : false, grilla: grilla ? GRILLA_VERSION : false, muestreo: MUESTREO, inicio: new Date().toISOString(), ...(hechoBorrador ? { borrador: hechoBorrador.pedidos } : { desde: grilla && !o.app ? "el núcleo de la grilla (sin borrador)" : "una app que ya existía" }), vueltas: [], curva: [] };
   const guardar = () => writeFileSync(join(outDir, "ciclo.json"), JSON.stringify(ev, null, 2));
   const intentos = {}, ultimo = {};
   let pendientes = new Set(), segunda = false, version = 0;
@@ -325,7 +346,7 @@ export async function ciclo(o) {
     const pasaban = filas.filter((f) => est[f.id]?.result === "PASS" && !mias.includes(f));
     const vuelta = { vuelta: n, requisito: target, antes: Object.fromEntries(mias.map((f) => [f.id, est[f.id]?.result])) };
     // ---- pedido A: qué quiere ver ----
-    const mapa = mapaTexto(app);
+    const mapa = mapaTexto(deGemma(app));
     // 26/10 (M8/M9 ×12: Gemma sacaba la barra del encabezado y dejaba la letra blanca sobre fondo claro, 12 veces igual):
     // si el intento anterior arreglaba esto pero rompía otra cosa, se le pide el mismo cambio MÁS lo que lo deja andando
     const rompio = /^rompió lo que ya andaba/.test(ultimo[target] || "");
@@ -338,15 +359,15 @@ export async function ciclo(o) {
     const fijo = `${reqTexto(ctx, reqDe(target))}\n\n${consigna(ctx, mias)}\n\n${fallas(mias, est)}${previo}\n\nMapa de la app:\n${mapa}\n\nCódigo:\n`;
     // el código entra dejando lugar para pensar y responder (~4.500); la respuesta usa lo que sobre, hasta 6.000
     const presupuesto = contexto - 4500 - estTokens(SYS_A) - estTokens(fijo) - 200;
-    const codigo = armarCodigo(app, ver, lugaresDeError(mias.map((f) => est[f.id]?.detail)), Math.max(500, presupuesto));
+    const codigo = armarCodigo(deGemma(app), ver, lugaresDeError(mias.map((f) => est[f.id]?.detail)), Math.max(500, presupuesto));
     const userB = fijo + (codigo.texto || "(no hay código para mostrar: pedí funciones o archivos que existan)");
     // 02/11: hasta 7.500 si entra (con 6.000, 5 de 40 respuestas se cortaron pensando)
     const maxResp = Math.max(2500, Math.min(7500, contexto - estTokens(SYS_A + userB) - 300));
     const b = await call([{ role: "system", content: SYS_A }, { role: "user", content: userB }], maxResp, "arreglo");
     Object.assign(vuelta, { ver, codigo: codigo.piezas, codigo_fuera: codigo.fuera, tokens_pedido: { ver: estTokens(SYS_V + userA), arreglo: estTokens(SYS_A + userB) }, ms: { ver: a.ms, arreglo: b.ms }, usage: { ver: a.usage, arreglo: b.usage }, respuesta: b.content });
     let ap = { app, aplicados: [], problemas: [], bloques: [] }, veredicto;
-    try { ap = aplicar(app, b.content); if (mvc) ap = { ...ap, app: fijarArranque(ap.app) }; } catch (e) { ap.problemas = [`error del harness al aplicar: ${e.message}`]; vuelta.error_harness = e.stack?.slice(0, 600); }
-    vuelta.aplicados = ap.aplicados; vuelta.problemas = ap.problemas;
+    try { ap = fijar(aplicar(deGemma(app), b.content)); } catch (e) { ap.problemas = [`error del harness al aplicar: ${e.message}`]; vuelta.error_harness = e.stack?.slice(0, 600); }
+    vuelta.aplicados = ap.aplicados; vuelta.problemas = [...(ap.problemas || []), ...(ap.avisos || [])];
     const antesPts = mias.reduce((a, f) => a + puntaje(est[f.id]), 0);
     const antesOk = mias.filter((f) => est[f.id]?.result === "PASS");
     // juzga un candidato: ¿rompe algo que andaba? ¿suma puntos en este requisito?
@@ -371,8 +392,7 @@ export async function ciclo(o) {
       if (!mejor.ok && ap.bloques.length > 1) {
         const primero = mejor;
         for (const [i, bl] of ap.bloques.slice(0, 4).entries()) {
-          let uno = aplicarBloques(app, [bl]);
-          if (mvc) uno = { ...uno, app: fijarArranque(uno.app) };
+          const uno = fijar(aplicarBloques(deGemma(app), [bl]));
           if (!uno.aplicados.length) continue;
           const r = await evaluar(uno, uno.aplicados.join(", "), `c${i}`);
           vuelta.pruebas.push({ que: uno.aplicados.join(", "), ok: r.ok, pts: r.pts });

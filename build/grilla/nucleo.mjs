@@ -20,7 +20,9 @@
 // opcional; y una función por acción: f(estado, sel, valor) con sel = { tipo: "celda"|"columna"|"fila", id, celdas: [...] }.
 // Puede cambiar el estado o devolver uno nuevo.
 
-export const GRILLA_VERSION = "grilla v0.1";
+export const GRILLA_VERSION = "grilla v0.2";
+// v0.2 (17/11, paso 2): el ciclo con --grilla. Logica puede ser funciones sueltas (function pintar(...)) — el núcleo las busca
+// por su nombre — porque así el ciclo las ve en el mapa y Gemma las cambia de a una (### FUNCION:). fijarGrilla y REGLA_GRILLA.
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -82,7 +84,12 @@ export const NUCLEO_JS = `// nucleo.js — lo escribe el harness (modo --grilla)
   var tabla = document.getElementById("hoja");
   var COLS = Array.prototype.map.call(tabla.querySelectorAll("thead th[data-col]"), function (th) { return th.dataset.col; });
   var FILAS = Array.prototype.map.call(tabla.querySelectorAll("tbody tr[data-fila]"), function (tr) { return tr.dataset.fila; });
-  var L = function () { return typeof Logica === "object" && Logica ? Logica : {}; };
+  // las funciones de logica.js: en un objeto Logica o sueltas (function pintar(...) {...}); nunca una del navegador (close, print…)
+  function fn(n) {
+    if (typeof Logica === "object" && Logica && typeof Logica[n] === "function") return Logica[n];
+    var f = window[n];
+    return typeof f === "function" && !/\\[native code\\]/.test(Function.prototype.toString.call(f)) ? f : null;
+  }
   function vacio() { return { celdas: {}, ocultas: { columnas: [], filas: [] } }; }
   function sano(e) {
     e = e && typeof e === "object" && !Array.isArray(e) ? e : vacio();
@@ -102,9 +109,10 @@ export const NUCLEO_JS = `// nucleo.js — lo escribe el harness (modo --grilla)
   }
   function texto(id) { var c = H.estado.celdas[id]; return c && c.texto != null ? String(c.texto) : ""; }
   function valor(id) {
-    if (typeof L().valorDe !== "function") return texto(id);
-    try { var v = L().valorDe(H.estado, id); return v == null ? "" : String(v); }
-    catch (e) { console.error("Logica.valorDe(estado, \\"" + id + "\\") tiró un error: " + e.message); return "#ERROR"; }
+    var f = fn("valorDe");
+    if (!f) return texto(id);
+    try { var v = f(H.estado, id); return v == null ? "" : String(v); }
+    catch (e) { console.error("valorDe(estado, \\"" + id + "\\") (logica.js) tiró un error: " + e.message); return "#ERROR"; }
   }
   function dibujar() {
     var oc = H.estado.ocultas, sel = celdasDe(H.sel);
@@ -121,14 +129,14 @@ export const NUCLEO_JS = `// nucleo.js — lo escribe el harness (modo --grilla)
     tabla.querySelectorAll("tbody th.fila").forEach(function (th) { th.classList.toggle("seleccionada", !!H.sel && H.sel.tipo === "fila" && H.sel.id === th.parentElement.dataset.fila); });
   }
   function hacer(nombre, args) {
-    var f = L()[nombre];
-    if (typeof f !== "function") { console.error("Logica." + nombre + " no existe: la usa la barra (acciones.json) pero logica.js no la define"); return; }
+    var f = fn(nombre);
+    if (!f) { console.error("la función " + nombre + " no existe en logica.js: la usa la barra (acciones.json)"); return; }
     try { var r = f.apply(null, [H.estado].concat(args)); if (r && typeof r === "object") H.estado = r; }
-    catch (e) { console.error("Logica." + nombre + " tiró un error: " + e.message); }
+    catch (e) { console.error(nombre + " (logica.js) tiró un error: " + e.message); }
     H.estado = sano(H.estado); guardar(); dibujar();
   }
   function escribir(id, t) {
-    if (typeof L().escribir === "function") return hacer("escribir", [id, t]);
+    if (fn("escribir")) return hacer("escribir", [id, t]);
     H.estado.celdas[id] = Object.assign({}, H.estado.celdas[id] || {}, { texto: t });
     guardar(); dibujar();
   }
@@ -205,3 +213,41 @@ export function armarApp({ dims, titulo, logica = "const Logica = {};\n", accion
     "logica.js": logica,
   };
 }
+
+// ---------- el ciclo con --grilla ----------
+/** Los archivos que escribe Gemma; el resto (index.html, base.css, nucleo.js, acciones.js) lo pone el harness siempre. */
+export const EDITABLES = ["logica.js", "acciones.json", "styles.css"];
+
+export const LOGICA_INICIAL = `// logica.js — la lógica de la hoja. Funciones sueltas: el núcleo las encuentra por su nombre.
+// valorDe(estado, id): lo que muestra la celda id ("A1", "B2"…). Si el texto empieza con "=", acá se calcula.
+function valorDe(estado, id) {
+  const c = estado.celdas[id];
+  return c && c.texto != null ? String(c.texto) : "";
+}
+`;
+export const ESTILOS_INICIAL = "/* styles.css — el estilo de la app (base.css, del harness, ya hace que la grilla se vea como grilla) */\n";
+
+/** Lo que ve y cambia Gemma: solo los editables. */
+export const vista = (app) => Object.fromEntries(EDITABLES.filter((f) => app[f] != null).map((f) => [f, app[f]]));
+
+/** La app completa a partir de los editables (los protegidos se vuelven a poner siempre; acciones.js sale de acciones.json).
+ *  → { app, problemas } (problemas de acciones.json, para decírselos a Gemma). */
+export function fijarGrilla(editables, { dims, titulo }) {
+  if (!dims) throw new Error("--grilla necesita una planilla con la prueba de encabezados (columnas y filas de la grilla)");
+  const json = editables["acciones.json"] ?? "[]";
+  const { acciones, problemas } = leerAcciones(json);
+  return { app: { ...armarApp({ dims, titulo, logica: editables["logica.js"] ?? LOGICA_INICIAL, acciones, estilos: editables["styles.css"] ?? ESTILOS_INICIAL }), "acciones.json": json }, problemas };
+}
+
+/** La app de partida (vuelta 0) sin llamar al modelo: el núcleo hace escribir, encabezados y guardar. */
+export const appInicial = (opts) => fijarGrilla({ "logica.js": LOGICA_INICIAL, "acciones.json": "[]\n", "styles.css": ESTILOS_INICIAL }, opts).app;
+
+export const REGLA_GRILLA = `ESTA APP TIENE UN NÚCLEO que escribe el harness: index.html (la tabla, con una celda <td data-cell="A1"> por lugar), base.css y nucleo.js. NO los ves y NO se cambian. El núcleo ya hace: editar (un clic en la celda y se escribe; guarda al salir o con Enter), seleccionar (clic en una celda, en la letra de una columna o en el número de una fila), la barra de controles, dibujar y guardar/cargar (localStorage).
+Vos cambiás SOLO estos 3 archivos:
+1. logica.js — funciones sueltas (function nombre(...) { ... }), sin document ni nada de la página:
+   - valorDe(estado, id): lo que muestra la celda id ("A1"…). Si su texto empieza con "=", calculá la fórmula (con los valores de las otras celdas: llamá a valorDe para cada una).
+   - una función por cada acción de la barra: nombre(estado, sel, valor). sel = { tipo: "celda" | "columna" | "fila", id: "A1" | "A" | "3", celdas: ["A1", "A2", …] } (ya trae TODAS las celdas de lo seleccionado). valor = el color elegido, si la acción pide color. Cambiá estado (o devolvé uno nuevo).
+2. acciones.json — la barra, una entrada por acción: [{ "nombre": "texto del botón, con el verbo", "funcion": "nombreEnLogica", "pide": null }] ("pide": "color" si necesita un color). UNA acción por verbo, que sirva para celda, columna y fila (usá sel.celdas y sel.tipo).
+3. styles.css — el estilo.
+EL ESTADO (forma fija): { celdas: { "A1": { texto: "=B1+C1", color: "#ff0000" } }, ocultas: { columnas: ["B"], filas: ["3"] } }. El núcleo dibuja solo: cada celda muestra valorDe, su "color" es el fondo, y lo que está en "ocultas" no se ve.
+Para cambiar acciones.json o styles.css mandá ### ARCHIVO: con el archivo ENTERO; para logica.js, ### FUNCION: nombre (una función nueva va con ### FUNCION: nombre en logica.js).`;

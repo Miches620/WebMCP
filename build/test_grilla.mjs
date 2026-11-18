@@ -5,7 +5,7 @@ import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL, fileURLToPath } from "node:url";
-import { GRILLA_VERSION, dimsDe, armarIndex, armarApp, leerAcciones, accionesJs, funcionesPedidas, NUCLEO_JS, BASE_CSS, MAX_ACCIONES } from "./grilla/nucleo.mjs";
+import { GRILLA_VERSION, dimsDe, armarIndex, armarApp, leerAcciones, accionesJs, funcionesPedidas, NUCLEO_JS, BASE_CSS, MAX_ACCIONES, EDITABLES, vista, fijarGrilla, appInicial, LOGICA_INICIAL, REGLA_GRILLA } from "./grilla/nucleo.mjs";
 
 let ok = 0, fail = 0;
 const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
@@ -14,7 +14,7 @@ const PL = JSON.parse(readFileSync(join(here, "grilla", "referencia", "planilla_
 const LOGICA_REF = readFileSync(join(here, "grilla", "referencia", "logica.js"), "utf8");
 const ACC_REF = leerAcciones(readFileSync(join(here, "grilla", "referencia", "acciones.json"), "utf8"));
 
-t("versión", GRILLA_VERSION === "grilla v0.1");
+t("versión", GRILLA_VERSION === "grilla v0.2");
 
 // ---------- unidades ----------
 const dims = dimsDe(PL);
@@ -33,6 +33,19 @@ t("leerAcciones: la de referencia sin problemas; funcionesPedidas = valorDe + un
   const muchas = Array.from({ length: MAX_ACCIONES + 2 }, (_, i) => ({ nombre: `A${i}`, funcion: `f${i}` }));
   t(`leerAcciones: más de ${MAX_ACCIONES} → se cortan y lo dice`, leerAcciones(muchas).acciones.length === MAX_ACCIONES && /como mucho/.test(p(muchas)));
   t("accionesJs compila y define ACCIONES", (() => { try { return new Function(`${accionesJs(ACC_REF.acciones)}; return ACCIONES.length;`)() === 4; } catch { return false; } })());
+}
+
+// ---------- v0.2: lo que usa el ciclo con --grilla ----------
+{
+  const ini = appInicial({ dims, titulo: "Hoja" });
+  t("appInicial: la app completa sin llamar al modelo (núcleo + logica.js inicial con valorDe + barra vacía)", ["index.html", "base.css", "styles.css", "nucleo.js", "acciones.js", "logica.js", "acciones.json"].every((f) => typeof ini[f] === "string") && ini["logica.js"] === LOGICA_INICIAL && /function valorDe\(estado, id\)/.test(LOGICA_INICIAL) && /ACCIONES = \[\]/.test(ini["acciones.js"]));
+  t("vista: Gemma ve y cambia solo logica.js, acciones.json y styles.css", Object.keys(vista(ini)).sort().join() === [...EDITABLES].sort().join());
+  const tocada = { ...vista(ini), "acciones.json": '[{"nombre":"Ocultar","funcion":"ocultar","pide":null},{"nombre":"X","funcion":"no vale"}]' };
+  const f = fijarGrilla({ ...tocada, "index.html": "<p>roto</p>", "nucleo.js": "alert(1)" }, { dims, titulo: "Hoja" });
+  t("fijarGrilla: index.html y nucleo.js vuelven a ser los del harness aunque vengan cambiados; acciones.js sale de acciones.json (lo válido) y los problemas se devuelven", f.app["index.html"] === ini["index.html"] && f.app["nucleo.js"] === NUCLEO_JS && /"funcion": "ocultar"/.test(f.app["acciones.js"]) && !/no vale/.test(f.app["acciones.js"]) && f.problemas.length === 1 && f.app["acciones.json"] === tocada["acciones.json"]);
+  let tiro = ""; try { fijarGrilla(vista(ini), { dims: null }); } catch (e) { tiro = e.message; }
+  t("fijarGrilla sin columnas/filas → falla fuerte (no se inventa una grilla)", /prueba de encabezados/.test(tiro));
+  t("REGLA_GRILLA: dice qué archivos se cambian, la forma del estado, sel.celdas y cómo mandar cada cosa", /SOLO estos 3 archivos/.test(REGLA_GRILLA) && /sel = \{ tipo/.test(REGLA_GRILLA) && /ocultas: \{ columnas/.test(REGLA_GRILLA) && /### FUNCION: nombre en logica\.js/.test(REGLA_GRILLA));
 }
 
 // ---------- en Chromium (sin el juez): lo que hace el núcleo ----------
@@ -82,17 +95,42 @@ const td = (c) => `td[data-cell="${c}"]`;
   // una acción de la barra que Logica no define → error en la consola, que el juez le pasa a Gemma
   const { pg, errores } = await abrir(armarApp({ dims, logica: "const Logica = { valorDe: (e, id) => e.celdas[id]?.texto ?? '' };", acciones: [{ nombre: "Ocultar", funcion: "ocultar", pide: null }] }));
   await pg.click('thead th[data-col="A"]'); await pg.click('#barra button:has-text("Ocultar")');
-  t("Chromium: acción que logica.js no define → la consola lo dice con el nombre (sin romper la página)", errores.some((e) => /Logica\.ocultar no existe/.test(e)) && (await pg.isVisible(td("A1"))), errores.join(" | "));
+  t("Chromium: acción que logica.js no define → la consola lo dice con el nombre (sin romper la página)", errores.some((e) => /la función ocultar no existe en logica\.js/.test(e)) && (await pg.isVisible(td("A1"))), errores.join(" | "));
+  await pg.close();
+}
+{
+  // v0.2: funciones SUELTAS (como las escribe el ciclo); una que se llama como una del navegador no se usa
+  const { pg, errores } = await abrir(armarApp({ dims, logica: "function valorDe(e, id) { const t = e.celdas[id]?.texto ?? ''; return t === '=dos' ? '2' : t; }\nfunction ocultar(e, sel) { if (sel.tipo === 'columna') e.ocultas.columnas.push(sel.id); }", acciones: [{ nombre: "Ocultar", funcion: "ocultar", pide: null }, { nombre: "Imprimir", funcion: "print", pide: null }] }));
+  await pg.click(td("A1")); await pg.keyboard.type("=dos"); await pg.keyboard.press("Enter");
+  await pg.click('thead th[data-col="C"]'); await pg.click('#barra button:has-text("Ocultar")'); await pg.click('#barra button:has-text("Imprimir")');
+  t("Chromium: logica.js con funciones sueltas anda (valorDe y la acción); 'print' del navegador NO se toma por una de logica.js", (await pg.textContent(td("A1"))) === "2" && !(await pg.isVisible(td("C1"))) && errores.some((e) => /la función print no existe en logica\.js/.test(e)), errores.join(" | "));
   await pg.close();
 }
 {
   // logica.js que tira en valorDe → #ERROR en esa celda y el motivo en la consola, el resto anda
   const { pg, errores } = await abrir(armarApp({ dims, logica: "const Logica = { valorDe(e, id) { if (id === 'C3') throw new Error('se rompió'); return e.celdas[id]?.texto ?? ''; } };" }));
   await pg.click(td("A1")); await pg.keyboard.type("hola"); await pg.keyboard.press("Enter");
-  t("Chromium: valorDe que tira → esa celda dice #ERROR, la consola el motivo, y las demás andan", (await pg.textContent(td("C3"))) === "#ERROR" && (await pg.textContent(td("A1"))) === "hola" && errores.some((e) => /valorDe\(estado, "C3"\) tiró un error: se rompió/.test(e)));
+  t("Chromium: valorDe que tira → esa celda dice #ERROR, la consola el motivo, y las demás andan", (await pg.textContent(td("C3"))) === "#ERROR" && (await pg.textContent(td("A1"))) === "hola" && errores.some((e) => /valorDe\(estado, "C3"\) \(logica\.js\) tiró un error: se rompió/.test(e)));
   await pg.close();
 }
 await br.close();
+
+// ---------- v0.2: el ciclo con --grilla (juez de mentira: solo la plomería) ----------
+const { ciclo, CICLO_VERSION } = await import("./run_ciclo.mjs");
+const ARREGLO_REF = `### ARCHIVO: logica.js\n\`\`\`js\n${LOGICA_REF}\n\`\`\`\n\n### ARCHIVO: acciones.json\n\`\`\`json\n${JSON.stringify([...ACC_REF.acciones, { nombre: "Mal", funcion: "no vale" }])}\n\`\`\`\n\n### ARCHIVO: nucleo.js\n\`\`\`js\nalert("me meto")\n\`\`\``;
+{
+  const pedidos = [], juzgadas = [];
+  const call = async (m, max, tipo) => { pedidos.push({ tipo, sys: m[0].content, user: m[1].content }); return { content: tipo === "ver" ? '{"ver": ["logica.js", "nucleo.js"]}' : ARREGLO_REF, ms: 1 }; };
+  const juez = async (app, filas) => { juzgadas.push(app); const bien = /pintar/.test(app["acciones.js"]); return Object.fromEntries(filas.map((f) => [f.id, bien || ["R1", "R2"].includes(f.r) ? { result: "PASS", detail: "ok" } : { result: "FAIL", detail: `${f.id} falla` }])); };
+  const { ev, app } = await ciclo({ app: null, planilla: PL, features: ["hoja"], outDir: mkdtempSync(join(tmpdir(), "cg-")), call, juez, grilla: true, maxVueltas: 3, log: () => {} });
+  const v1 = ev.vueltas[0];
+  t("ciclo --grilla: versión ciclo v0.9, ev.grilla anotado y la vuelta 0 es el núcleo (Gemma no escribe borrador: el primer pedido es 'ver')", CICLO_VERSION === "ciclo v0.9" && ev.grilla === GRILLA_VERSION && /núcleo de la grilla/.test(ev.desde) && pedidos[0].tipo === "ver" && juzgadas[0]["nucleo.js"] === NUCLEO_JS);
+  t("ciclo --grilla: Gemma recibe la regla y un mapa con SOLO logica.js, acciones.json y styles.css (ni index.html ni nucleo.js); pedir nucleo.js no trae nada", pedidos.every((p) => /ESTA APP TIENE UN NÚCLEO/.test(p.sys)) && /logica\.js/.test(pedidos[0].user) && !/nucleo\.js|index\.html|base\.css/.test(pedidos[1].user.split("Código:")[0]) && v1.codigo.length === 1 && /logica\.js/.test(v1.codigo[0]), JSON.stringify(v1.codigo));
+  t("ciclo --grilla: lo que manda Gemma para nucleo.js no se aplica; logica.js y acciones.json sí; el núcleo sigue siendo el del harness y la barra sale de acciones.json", v1.aceptado && app["nucleo.js"] === NUCLEO_JS && app["logica.js"].trim() === LOGICA_REF.trim() && /"funcion": "pintar"/.test(app["acciones.js"]) && v1.problemas.some((x) => /nucleo\.js: no es un archivo/.test(x)), JSON.stringify(v1.problemas));
+  t("ciclo --grilla: el problema de acciones.json (una entrada mal) le llega a Gemma en los problemas de la vuelta", v1.problemas.some((x) => /^acciones\.json: /.test(x)), JSON.stringify(v1.problemas));
+  let tiro = ""; try { await ciclo({ app: null, planilla: PL, features: [], outDir: mkdtempSync(join(tmpdir(), "cg-")), call, juez, grilla: true, mvc: true, log: () => {} }); } catch (e) { tiro = e.message; }
+  t("ciclo: --mvc y --grilla juntos → error claro", /no van juntos/.test(tiro));
+}
 
 // ---------- con el juez real (la planilla de la hoja) ----------
 if (!process.argv.includes("--rapido")) {
@@ -102,6 +140,9 @@ if (!process.argv.includes("--rapido")) {
   const ref = await juzgar(armarApp({ dims, logica: LOGICA_REF, acciones: ACC_REF.acciones }), "ref");
   t(`juez real: núcleo + lógica de referencia → ${PL.filas.length}/${PL.filas.length} (la vara: si falla, el problema es del núcleo)`, pasan(ref).length === PL.filas.length, Object.entries(ref).filter(([, v]) => v.result !== "PASS").map(([k, v]) => `${k}: ${v.detail.slice(0, 160)}`).join(" | "));
   const vacia = await juzgar(armarApp({ dims }), "vacia");
+  // el ciclo entero con el juez real: arranca en el núcleo solo y, con la lógica de referencia como "respuesta de Gemma", llega a todo
+  const { ev } = await ciclo({ app: null, planilla: PL, features: ["hoja"], outDir: mkdtempSync(join(tmpdir(), "cgr-")), call: async (m, max, tipo) => ({ content: tipo === "ver" ? '{"ver": ["logica.js"]}' : ARREGLO_REF, ms: 1 }), grilla: true, maxVueltas: 2, log: () => {} });
+  t(`ciclo --grilla con el juez real: vuelta 1 = lo del núcleo solo (5/${PL.filas.length}); con la lógica de referencia, vuelta 2 = ${PL.filas.length}/${PL.filas.length}`, ev.curva[0].filas_pass === 5 && ev.curva.at(-1).filas_pass === PL.filas.length, JSON.stringify(ev.curva) + " " + ev.vueltas.map((v) => v.motivo?.slice(0, 200)).join(" | "));
   t("juez real: núcleo SIN lógica → solo pasa lo que hace el núcleo (escribir, encabezados, recargar: R1, R2, R9, R10, R17); fórmulas, color, borrar y ocultar NO (no regala nada)", pasan(vacia).join() === "R1.1,R2.1,R9.1,R10.1,R17.1", pasan(vacia).join());
 }
 

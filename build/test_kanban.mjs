@@ -1,5 +1,6 @@
 // test_kanban.mjs — el núcleo del tablero Kanban (build/kanban/nucleo.mjs), plan B en otra app, paso 1 (18/11).
-//   node build/test_kanban.mjs            (todo: unidades + Chromium + el juez real, ~2-3 min)
+//   node build/test_kanban.mjs            (todo: unidades + Chromium + el juez real, ~3-4 min)
+// La planilla: la del proyecto Kanban del 21/10 (38 pruebas), la misma de las réplicas.
 //   node build/test_kanban.mjs --rapido   (sin el juez real)
 import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -80,8 +81,8 @@ const contador = (pg, c) => pg.textContent(`${col(c)} .contador`);
   await pg.click("#confirmar-si");
   t("Chromium: 🗑️ pregunta (el texto de preguntaBorrar) y con Eliminar se borra", /seguro de borrar la tarjeta/.test(preg) && !(await titulos(pg, "Pendiente")).includes("Tres"));
   await pg.locator(tarjeta("Dos")).dragTo(pg.locator(col("Completa")));
-  await pg.hover(tarjeta("Dos")); await pg.click(`${tarjeta("Dos")} button.borrar`); await pg.click("#confirmar-si");
-  t("Chromium: una regla que devuelve un texto NO cambia nada y el texto se muestra (no se borra en Completa)", (await titulos(pg, "Completa")).join() === "Dos" && /no se pueden borrar/.test(await pg.textContent("#aviso")) && (await pg.isVisible("#aviso")));
+  await pg.hover(tarjeta("Dos")); await pg.click(`${tarjeta("Dos")} button.borrar`);
+  t("Chromium: preguntaBorrar sin texto → no pregunta; una regla que devuelve un texto NO cambia nada y el texto se muestra (no se borra en Completa)", !(await pg.isVisible("#confirmar-modal")) && (await titulos(pg, "Completa")).join() === "Dos" && /No se puede eliminar una tarjeta completada/.test(await pg.textContent("#aviso")) && (await pg.isVisible("#aviso")));
   await pg.reload();
   t("Chromium: recargar → sigue todo (localStorage)", (await titulos(pg, "Completa")).join() === "Dos" && (await titulos(pg, "Pendiente")).join() === "Uno bis");
   t("Chromium: con la lógica de referencia, sin errores en la consola", errores.length === 0, errores.join(" | "));
@@ -112,7 +113,26 @@ const contador = (pg, c) => pg.textContent(`${col(c)} .contador`);
 }
 await br.close();
 
-// ---------- con el juez real (la planilla del Kanban, p26) ----------
+// ---------- paso 2: el ciclo con --nucleo (juez de mentira: solo la plomería) ----------
+const { ciclo, elegirNucleo, CICLO_VERSION } = await import("./run_ciclo.mjs");
+const PL_HOJA = JSON.parse(readFileSync(join(here, "grilla", "referencia", "planilla_hoja.json"), "utf8"));
+t("elegirNucleo: hoja → grilla; Kanban → kanban; algo que no es ninguno → null; con nombre, ese", elegirNucleo(PL_HOJA) === "grilla" && elegirNucleo(PL) === "kanban" && elegirNucleo({ glosario: { item: "tarea" }, filas: [] }) === null && elegirNucleo(PL, "kanban") === "kanban");
+const bloque = (f, lang, txt) => `### ARCHIVO: ${f}\n\`\`\`${lang}\n${txt}\n\`\`\``;
+const ARREGLO_REF = [bloque("logica.js", "js", REF.logica), bloque("tablero.json", "json", REF.tablero), bloque("styles.css", "css", REF.estilos), bloque("nucleo.js", "js", 'alert("me meto")')].join("\n\n");
+{
+  const pedidos = [], juzgadas = [];
+  const call = async (m, max, tipo) => { pedidos.push({ tipo, sys: m[0].content, user: m[1].content }); return { content: tipo === "ver" ? '{"ver": ["logica.js", "tablero.json", "nucleo.js"]}' : ARREGLO_REF, ms: 1 }; };
+  const juez = async (app, filas) => { juzgadas.push(app); const bien = /function crear/.test(app["logica.js"]); return Object.fromEntries(filas.map((f) => [f.id, bien ? { result: "PASS", detail: "ok" } : { result: "FAIL", detail: `${f.id} falla` }])); };
+  const { ev, app } = await ciclo({ app: null, planilla: PL, features: ["kanban"], outDir: mkdtempSync(join(tmpdir(), "ck-")), call, juez, nucleo: "auto", maxVueltas: 3, log: () => {} });
+  const v1 = ev.vueltas[0];
+  t("ciclo --nucleo (auto → kanban): versión v1.0, ev.nucleo = kanban, vuelta 0 = el núcleo del tablero sin borrador (el primer pedido es 'ver')", CICLO_VERSION === "ciclo v1.0" && ev.nucleo === KANBAN_VERSION && ev.grilla === false && /núcleo del tablero/.test(ev.desde) && pedidos[0].tipo === "ver" && juzgadas[0]["nucleo.js"] === NUCLEO_JS);
+  t("ciclo --nucleo kanban: Gemma recibe la regla del tablero y un mapa sin index.html, nucleo.js, base.css ni tablero.js", pedidos.every((p) => /tablero\.json — \{ "columnas"/.test(p.sys)) && !/nucleo\.js|index\.html|base\.css|tablero\.js\b/.test(pedidos[1].user.split("Código:")[0]) && v1.codigo.every((c) => !/nucleo\.js/.test(c)), JSON.stringify(v1.codigo));
+  t("ciclo --nucleo kanban: se aplican logica.js, tablero.json y styles.css; lo de nucleo.js no; tablero.js sale de tablero.json", v1.aceptado && app["nucleo.js"] === NUCLEO_JS && app["logica.js"].trim() === REF.logica.trim() && /"En Curso"/.test(app["tablero.js"]) && v1.problemas.some((x) => /nucleo\.js: no es un archivo/.test(x)), JSON.stringify(v1.problemas));
+  let tiro = ""; try { await ciclo({ app: null, planilla: { glosario: { item: "tarea" }, filas: PL.filas.slice(0, 1) }, features: [], outDir: mkdtempSync(join(tmpdir(), "ck-")), call, juez, nucleo: "auto", log: () => {} }); } catch (e) { tiro = e.message; }
+  t("ciclo --nucleo con una planilla que no es grilla ni tablero → error claro", /ni de un tablero/.test(tiro), tiro);
+}
+
+// ---------- con el juez real (la planilla del proyecto Kanban, 21/10) ----------
 if (!process.argv.includes("--rapido")) {
   const { juezReal } = await import("./run_ciclo.mjs");
   const juzgar = (app, n) => juezReal(PL, { log: () => {} })(app, PL.filas, n, mkdtempSync(join(tmpdir(), `kj-${n}-`)));
@@ -121,6 +141,9 @@ if (!process.argv.includes("--rapido")) {
   t(`juez real: núcleo + referencia → ${PL.filas.length}/${PL.filas.length} (la vara: si falla, el problema es del núcleo)`, pasan(ref).length === PL.filas.length, Object.entries(ref).filter(([, v]) => v.result !== "PASS").map(([k, v]) => `${k}: ${v.detail.slice(0, 160)}`).join(" | "));
   const vacia = await juzgar(appInicial(), "vacia");
   t("juez real: núcleo solo (sin tablero.json ni reglas) → 0 (no regala nada)", pasan(vacia).length === 0, pasan(vacia).join());
+  // el ciclo entero con el juez real: arranca en el núcleo solo (0) y con la referencia como "respuesta de Gemma" llega a todo
+  const { ev } = await ciclo({ app: null, planilla: PL, features: ["kanban"], outDir: mkdtempSync(join(tmpdir(), "ckr-")), call: async (m, max, tipo) => ({ content: tipo === "ver" ? '{"ver": ["logica.js"]}' : ARREGLO_REF, ms: 1 }), nucleo: "kanban", maxVueltas: 2, log: () => {} });
+  t(`ciclo --nucleo kanban con el juez real: vuelta 1 = 0/${PL.filas.length}; con la referencia, vuelta 2 = ${PL.filas.length}/${PL.filas.length}`, ev.curva[0].filas_pass === 0 && ev.curva.at(-1).filas_pass === PL.filas.length, JSON.stringify(ev.curva));
   const solo = await juzgar(armarApp({ tablero: REF.tablero }), "solo");
   t("juez real: solo tablero.json (sin reglas ni estilo) → solo que estén las columnas y el botón de agregar en Pendiente (R2.1, R8.1, R8.2, R25.1)", pasan(solo).join() === "R2.1,R8.1,R8.2,R25.1", pasan(solo).join());
 }

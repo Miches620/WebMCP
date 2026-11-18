@@ -30,9 +30,28 @@ import { describirFila } from "../profiles/web/validation/planilla_palabras.mjs"
 import { REGLAS_VISUALES, REGLAS_MODERNAS } from "../profiles/web/validation/visual.mjs";
 import { modeloDe } from "../modelos.mjs";
 import { SYS_MVC, REGLA_MVC, problemasMvc, ponerArranque, fijarArranque, pedidoEsqueleto, MVC_VERSION } from "./mvc.mjs";
-import { GRILLA_VERSION, REGLA_GRILLA, dimsDe, appInicial, fijarGrilla, vista } from "./grilla/nucleo.mjs";
+import { GRILLA_VERSION, REGLA_GRILLA, dimsDe, appInicial, fijarGrilla, vista, EDITABLES as EDITABLES_GRILLA } from "./grilla/nucleo.mjs";
+import { KANBAN_VERSION, REGLA_KANBAN, appInicial as kanbanInicial, fijarKanban, vista as vistaKanban, EDITABLES as EDITABLES_KANBAN } from "./kanban/nucleo.mjs";
 
-export const CICLO_VERSION = "ciclo v0.9";
+/** v1.0: los núcleos que escribe el harness. "auto": la grilla si la planilla tiene la prueba de encabezados; si no, el
+ *  tablero si la planilla tiene ítems y grupos (glosario: tarjeta/columna). → null si no hay ninguno que sirva. */
+export function elegirNucleo(planilla, pedido = "auto") {
+  if (pedido === true || pedido === "auto") return dimsDe(planilla) ? "grilla" : planilla?.glosario?.item && planilla?.glosario?.grupo ? "kanban" : null;
+  return pedido;
+}
+export function armarNucleo(nombre, planilla, titulo) {
+  if (nombre === "grilla") {
+    const dims = dimsDe(planilla);
+    if (!dims) throw new Error("el núcleo de la grilla necesita una planilla con la prueba de encabezados (columnas y filas de la grilla)");
+    return { nombre, version: GRILLA_VERSION, regla: REGLA_GRILLA, editables: EDITABLES_GRILLA, vista, fijar: (ed) => fijarGrilla(ed, { dims, titulo: titulo || "Hoja" }), inicial: () => appInicial({ dims, titulo: titulo || "Hoja" }), como: `la grilla (${dims.columnas.length} columnas × ${dims.filas.length} filas)` };
+  }
+  if (nombre === "kanban") return { nombre, version: KANBAN_VERSION, regla: REGLA_KANBAN, editables: EDITABLES_KANBAN, vista: vistaKanban, fijar: (ed) => fijarKanban(ed, { titulo: titulo || "Tablero" }), inicial: () => kanbanInicial({ titulo: titulo || "Tablero" }), como: "el tablero (las columnas y los campos los escribe Gemma en tablero.json)" };
+  throw new Error(`no hay un núcleo "${nombre}" (hay: grilla, kanban); con --nucleo se elige solo según la planilla`);
+}
+
+export const CICLO_VERSION = "ciclo v1.0";
+// v1.0 (18/11, rama nucleo-kanban): --nucleo [grilla|kanban] (sin nombre: según la planilla). --grilla sigue siendo --nucleo grilla.
+// El tablero Kanban: Gemma escribe logica.js, tablero.json y styles.css; el resto lo pone el harness (build/kanban/nucleo.mjs).
 // v0.9 (17/11, rama grilla): --grilla. El harness escribe la grilla (index.html, base.css, nucleo.js) y Gemma solo logica.js,
 // acciones.json y styles.css: no hay borrador de Gemma (la vuelta 0 es el núcleo), Gemma ve y cambia solo esos 3, y después de
 // cada cambio se vuelve a poner el núcleo (fijarGrilla). Los problemas de acciones.json van a Gemma como aviso.
@@ -284,17 +303,19 @@ export async function ciclo(o) {
   const call = o.call || llamarLM, log = o.log || (() => {}), juez = o.juez || juezReal(planilla, { log });
   // 10/11 (rama rol-en-vueltas, decisión de Miche): el Role también en las vueltas de arreglo. Hasta hoy el Senior solo
   // escribía el borrador (vuelta 0) y las 40-50 vueltas siguientes las hacía un "arreglador" sin rol.
-  const rolA = o.rolArreglo || "", mvc = !!o.mvc, grilla = !!o.grilla;
-  if (mvc && grilla) throw new Error("--mvc y --grilla no van juntos (con --grilla el script lo escribe el harness)");
-  const regla = mvc ? `\n\n${REGLA_MVC}` : grilla ? `\n\n${REGLA_GRILLA}` : "";
-  const dims = grilla ? dimsDe(planilla) : null, titulo = o.titulo || "Hoja";
-  if (grilla && !dims) throw new Error("--grilla necesita una planilla con la prueba de encabezados (columnas y filas de la grilla)");
-  // lo que ve Gemma (con --grilla, solo los 3 editables) y lo que se juzga (la app entera, con el núcleo puesto)
-  const deGemma = (a) => (grilla ? vista(a) : a);
+  const rolA = o.rolArreglo || "", mvc = !!o.mvc;
+  const pedidoNucleo = o.nucleo || (o.grilla ? "grilla" : null);
+  if (mvc && pedidoNucleo) throw new Error("--mvc y --nucleo/--grilla no van juntos (con un núcleo el script lo escribe el harness)");
+  const nombreNucleo = pedidoNucleo ? elegirNucleo(planilla, pedidoNucleo) : null;
+  if (pedidoNucleo && !nombreNucleo) throw new Error("--nucleo: la planilla no es de una grilla (sin prueba de encabezados) ni de un tablero (sin ítems y grupos en el glosario); decí cuál con --nucleo grilla|kanban");
+  const nucleo = nombreNucleo ? armarNucleo(nombreNucleo, planilla, o.titulo) : null, grilla = nombreNucleo === "grilla";
+  const regla = mvc ? `\n\n${REGLA_MVC}` : nucleo ? `\n\n${nucleo.regla}` : "";
+  // lo que ve Gemma (con un núcleo, solo los 3 editables) y lo que se juzga (la app entera, con el núcleo puesto)
+  const deGemma = (a) => (nucleo ? nucleo.vista(a) : a);
   const fijar = (r) => {
     if (mvc) return { ...r, app: fijarArranque(r.app) };
-    if (!grilla) return r;
-    const f = fijarGrilla(r.app, { dims, titulo });
+    if (!nucleo) return r;
+    const f = nucleo.fijar(r.app);
     return { ...r, app: f.app, avisos: [...(r.avisos || []), ...f.problemas.map((p) => `acciones.json: ${p}`)] };
   };
   const SYS_V = `${rolA ? `${rolA}\n\n` : ""}${SYS_VER}${regla}`, SYS_A = `${rolA ? `${rolA}\n\n` : ""}${SYS_ARREGLO}${regla}`;
@@ -310,9 +331,9 @@ export async function ciclo(o) {
   const reqDe = (u) => (porFila ? filasDe(u)[0]?.r || u : u);
   let app = o.app ? { ...o.app } : null;
   let hechoBorrador = null;
-  if (!app && grilla) {
-    log(`[CICLO] vuelta 0: --grilla → el núcleo del harness (${dims.columnas.length} columnas × ${dims.filas.length} filas), sin llamar a Gemma; Gemma escribe logica.js, acciones.json y styles.css en las vueltas`);
-    app = appInicial({ dims, titulo });
+  if (!app && nucleo) {
+    log(`[CICLO] vuelta 0: núcleo "${nucleo.nombre}" → ${nucleo.como}, sin llamar a Gemma; Gemma escribe ${nucleo.editables.join(", ")} en las vueltas`);
+    app = nucleo.inicial();
   }
   if (!app) {
     const base = deAPoco ? reqs.slice(0, deAPoco.base || 2) : null;
@@ -320,13 +341,13 @@ export async function ciclo(o) {
     hechoBorrador = await borrador({ features, planilla, call, contexto, log, rol: o.rol || "", base, mvc });
     app = hechoBorrador.app;
   }
-  if (grilla) app = fijar({ app }).app;
+  if (nucleo) app = fijar({ app }).app;
   else { const sep = separarArchivos(app); if (sep.cambios.length) { app = sep.app; sep.cambios.forEach((c) => log(`[CICLO] ${c}`)); } }
   if (mvc) app = fijarArranque(app);
   mkdirSync(outDir, { recursive: true });
   const foto = (n) => { const d = join(outDir, `v${String(n).padStart(3, "0")}`); mkdirSync(d, { recursive: true }); for (const [f, s] of Object.entries(app)) writeFileSync(join(d, f), s); return d; };
   foto(0);
-  const ev = { type: "EVIDENCE", kind: "ciclo", version: CICLO_VERSION, modelo: MODEL, contexto, rol: { borrador: !!o.rol, arreglo: !!rolA }, mvc: mvc ? MVC_VERSION : false, grilla: grilla ? GRILLA_VERSION : false, muestreo: MUESTREO, inicio: new Date().toISOString(), ...(hechoBorrador ? { borrador: hechoBorrador.pedidos } : { desde: grilla && !o.app ? "el núcleo de la grilla (sin borrador)" : "una app que ya existía" }), vueltas: [], curva: [] };
+  const ev = { type: "EVIDENCE", kind: "ciclo", version: CICLO_VERSION, modelo: MODEL, contexto, rol: { borrador: !!o.rol, arreglo: !!rolA }, mvc: mvc ? MVC_VERSION : false, grilla: grilla ? GRILLA_VERSION : false, nucleo: nucleo ? nucleo.version : false, muestreo: MUESTREO, inicio: new Date().toISOString(), ...(hechoBorrador ? { borrador: hechoBorrador.pedidos } : { desde: nucleo && !o.app ? `el núcleo ${grilla ? "de la grilla" : "del tablero"} (sin borrador)` : "una app que ya existía" }), vueltas: [], curva: [] };
   const guardar = () => writeFileSync(join(outDir, "ciclo.json"), JSON.stringify(ev, null, 2));
   const intentos = {}, ultimo = {};
   let pendientes = new Set(), segunda = false, version = 0;

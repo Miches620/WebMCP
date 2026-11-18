@@ -6,9 +6,16 @@
 #   powershell -ExecutionPolicy Bypass -File build\replicas_mvc.ps1
 #   powershell -ExecutionPolicy Bypass -File build\replicas_mvc.ps1 -Versiones mvc     (13/11: solo --mvc)
 #   powershell -ExecutionPolicy Bypass -File build\replicas_mvc.ps1 -Versiones grilla  (17/11, rama grilla: el núcleo del harness)
+#   powershell -ExecutionPolicy Bypass -File build\replicas_mvc.ps1 -App kanban -Versiones sin,nucleo   (18/11: el tablero)
 # 13/11: con la misma semilla cada corrida da EXACTAMENTE lo mismo (sin MVC dio 4, 11, 5 tres veces: réplicas del Role,
 # 12/11 y 13/11). Si no cambió nada de lo de "sin", no hace falta volver a correrla: -Versiones mvc corre solo las nuevas.
-param([int]$Vueltas = 30, [double]$Temperatura = 0.7, [string]$Base = "build\proyectos\2026-11-10T00-22-03_hoja_limpia", [string[]]$Versiones = @("sin", "mvc"))
+param([int]$Vueltas = 30, [double]$Temperatura = 0.7, [string]$App = "hoja", [string]$Base = "", [string[]]$Versiones = @("sin", "mvc"))
+# 18/11: -App elige la base (el pedido y la planilla); -Base sigue sirviendo para otra carpeta
+$bases = @{ hoja = "build\proyectos\2026-11-10T00-22-03_hoja_limpia"; kanban = "build\proyectos\2026-10-21T02-07-38_kanban" }
+if (-not $Base) { $Base = $bases[$App] }
+if (-not $Base) { "no conozco la app '$App' (hay: $($bases.Keys -join ', '))"; exit 1 }
+# "sin,nucleo" llega como un solo texto si se escribe con coma desde cmd: se parte
+$Versiones = @($Versiones | ForEach-Object { $_ -split "," } | Where-Object { $_ })
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Set-Location (Split-Path $PSScriptRoot -Parent)
@@ -16,16 +23,17 @@ $env:CICLO_TEMPERATURA = "$Temperatura"
 Remove-Item Env:SPECIALIST_MODEL -ErrorAction SilentlyContinue   # el modelo sale de PUESTOS.md
 
 $stamp = Get-Date -Format "yyyy-MM-dd_HH-mm"
-$lista = "build\replicas_mvc_$stamp.txt"
+$lista = "build\replicas_$($App)_$stamp.txt"
 $corridas = foreach ($s in 1..3) {
   @{ nombre = "rep_sin_s$s"; semilla = $s; flags = @() }           # como hoy (el Role solo en el borrador)
   @{ nombre = "rep_mvc_s$s"; semilla = $s; flags = @("--mvc") }
   @{ nombre = "rep_grilla_s$s"; semilla = $s; flags = @("--grilla") }
+  @{ nombre = "rep_nucleo_s$s"; semilla = $s; flags = @("--nucleo") }
 }
 $corridas = @($corridas | Where-Object { $Versiones -contains ($_.nombre -replace '^rep_(\w+?)_s\d+$', '$1') })
 function Anotar($texto) { $texto; Add-Content -Path $lista -Value $texto -Encoding UTF8 }
 
-Anotar "== réplicas MVC ($($Versiones -join ', ')): $($corridas.Count) corridas, $Vueltas vueltas, temperatura $Temperatura, base $Base"
+Anotar "== réplicas $App ($($Versiones -join ', ')): $($corridas.Count) corridas, $Vueltas vueltas, temperatura $Temperatura, base $Base"
 foreach ($c in $corridas) {
   $env:CICLO_SEMILLA = "$($c.semilla)"
   $salida = & node build/proyecto.mjs copiar $Base $c.nombre 2>&1 | Out-String

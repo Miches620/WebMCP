@@ -20,7 +20,10 @@
 // opcional; y una función por acción: f(estado, sel, valor) con sel = { tipo: "celda"|"columna"|"fila", id, celdas: [...] }.
 // Puede cambiar el estado o devolver uno nuevo.
 
-export const GRILLA_VERSION = "grilla v0.2";
+export const GRILLA_VERSION = "grilla v0.3";
+// v0.3 (18/11, réplicas v0.2: 14/17 en las 3 semillas): las 3 que faltaban eran pintar, y en las 3 Gemma pintaba solo las celdas
+// que ya existían en estado.celdas (if (celdas[id]) …): A1 vacía no se pintaba nunca. Ahora TODAS las celdas existen siempre.
+// Y si acciones.json nombra una función que logica.js no define (s1: cambiarColorDeFondo vs cambiarColor), se avisa entero.
 // v0.2 (17/11, paso 2): el ciclo con --grilla. Logica puede ser funciones sueltas (function pintar(...)) — el núcleo las busca
 // por su nombre — porque así el ciclo las ve en el mapa y Gemma las cambia de a una (### FUNCION:). fijarGrilla y REGLA_GRILLA.
 
@@ -97,9 +100,16 @@ export const NUCLEO_JS = `// nucleo.js — lo escribe el harness (modo --grilla)
     if (!e.ocultas || typeof e.ocultas !== "object") e.ocultas = {};
     e.ocultas.columnas = Array.isArray(e.ocultas.columnas) ? e.ocultas.columnas.map(String) : [];
     e.ocultas.filas = Array.isArray(e.ocultas.filas) ? e.ocultas.filas.map(String) : [];
+    // v0.3: todas las celdas de la grilla existen siempre (las vacías con texto "" y color ""); una borrada vuelve vacía
+    COLS.forEach(function (c) { FILAS.forEach(function (f) {
+      var id = c + f, x = e.celdas[id];
+      if (!x || typeof x !== "object" || Array.isArray(x)) x = e.celdas[id] = {};
+      if (x.texto == null) x.texto = "";
+      if (x.color == null) x.color = "";
+    }); });
     return e;
   }
-  function cargar() { try { H.estado = sano(JSON.parse(localStorage.getItem(CLAVE))); } catch (e) { H.estado = vacio(); } }
+  function cargar() { try { H.estado = sano(JSON.parse(localStorage.getItem(CLAVE))); } catch (e) { H.estado = sano(vacio()); } }
   function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify(H.estado)); } catch (e) {} }
   function celdasDe(sel) {
     if (!sel) return [];
@@ -138,7 +148,7 @@ export const NUCLEO_JS = `// nucleo.js — lo escribe el harness (modo --grilla)
   function escribir(id, t) {
     if (fn("escribir")) return hacer("escribir", [id, t]);
     H.estado.celdas[id] = Object.assign({}, H.estado.celdas[id] || {}, { texto: t });
-    guardar(); dibujar();
+    H.estado = sano(H.estado); guardar(); dibujar();
   }
   function seleccion() { return H.sel ? { tipo: H.sel.tipo, id: H.sel.id, celdas: celdasDe(H.sel) } : null; }
   // ---- editar: al entrar se ve lo que se escribió (la fórmula); se guarda al salir o con Enter (focusout burbujea, blur no)
@@ -232,10 +242,24 @@ export const vista = (app) => Object.fromEntries(EDITABLES.filter((f) => app[f] 
 
 /** La app completa a partir de los editables (los protegidos se vuelven a poner siempre; acciones.js sale de acciones.json).
  *  → { app, problemas } (problemas de acciones.json, para decírselos a Gemma). */
+/** Las funciones que define logica.js: sueltas (function x(, const x = …) o métodos de un objeto (x(…) {, x: function). */
+export function funcionesDeLogica(js) {
+  const s = String(js || "").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+  const out = new Set();
+  for (const m of s.matchAll(/\bfunction\s+([A-Za-z_$][\w$]*)\s*\(/g)) out.add(m[1]);
+  for (const m of s.matchAll(/\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:function\b|\([^)]*\)\s*=>|[A-Za-z_$][\w$]*\s*=>)/g)) out.add(m[1]);
+  for (const m of s.matchAll(/^\s*(?:async\s+)?([A-Za-z_$][\w$]*)\s*\([^)]*\)\s*\{/gm)) if (!/^(if|for|while|switch|catch|function|return)$/.test(m[1])) out.add(m[1]);
+  for (const m of s.matchAll(/^\s*([A-Za-z_$][\w$]*)\s*:\s*(?:async\s*)?(?:function\b|\([^)]*\)\s*=>)/gm)) out.add(m[1]);
+  return [...out];
+}
+
 export function fijarGrilla(editables, { dims, titulo }) {
   if (!dims) throw new Error("--grilla necesita una planilla con la prueba de encabezados (columnas y filas de la grilla)");
   const json = editables["acciones.json"] ?? "[]";
   const { acciones, problemas } = leerAcciones(json);
+  // v0.3 (réplica s1): "funcion": "cambiarColorDeFondo" y en logica.js "function cambiarColor" → el botón no hacía nada
+  const hay = funcionesDeLogica(editables["logica.js"] ?? LOGICA_INICIAL);
+  for (const a of acciones) if (!hay.includes(a.funcion)) problemas.push(`la acción "${a.nombre}" usa la función ${a.funcion}, pero logica.js no define ninguna función con ese nombre (las de logica.js: ${hay.join(", ") || "ninguna"}). El botón no hace nada: cambiá "funcion" en acciones.json por el nombre que está en logica.js, o agregá la función a logica.js con ### FUNCION: ${a.funcion} en logica.js`);
   return { app: { ...armarApp({ dims, titulo, logica: editables["logica.js"] ?? LOGICA_INICIAL, acciones, estilos: editables["styles.css"] ?? ESTILOS_INICIAL }), "acciones.json": json }, problemas };
 }
 
@@ -249,5 +273,5 @@ Vos cambiás SOLO estos 3 archivos:
    - una función por cada acción de la barra: nombre(estado, sel, valor). sel = { tipo: "celda" | "columna" | "fila", id: "A1" | "A" | "3", celdas: ["A1", "A2", …] } (ya trae TODAS las celdas de lo seleccionado). valor = el color elegido, si la acción pide color. Cambiá estado (o devolvé uno nuevo).
 2. acciones.json — la barra, una entrada por acción: [{ "nombre": "texto del botón, con el verbo", "funcion": "nombreEnLogica", "pide": null }] ("pide": "color" si necesita un color). UNA acción por verbo, que sirva para celda, columna y fila (usá sel.celdas y sel.tipo).
 3. styles.css — el estilo.
-EL ESTADO (forma fija): { celdas: { "A1": { texto: "=B1+C1", color: "#ff0000" } }, ocultas: { columnas: ["B"], filas: ["3"] } }. El núcleo dibuja solo: cada celda muestra valorDe, su "color" es el fondo, y lo que está en "ocultas" no se ve.
+EL ESTADO (forma fija): { celdas: { "A1": { texto: "=B1+C1", color: "#ff0000" } }, ocultas: { columnas: ["B"], filas: ["3"] } }. TODAS las celdas de la grilla existen siempre en estado.celdas, también las vacías ({ texto: "", color: "" }): no preguntes si existen, cambiá su texto o su color. El núcleo dibuja solo: cada celda muestra valorDe, su "color" es el fondo, y lo que está en "ocultas" no se ve.
 Para cambiar acciones.json o styles.css mandá ### ARCHIVO: con el archivo ENTERO; para logica.js, ### FUNCION: nombre (una función nueva va con ### FUNCION: nombre en logica.js).`;

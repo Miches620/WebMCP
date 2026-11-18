@@ -5,7 +5,7 @@ import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL, fileURLToPath } from "node:url";
-import { GRILLA_VERSION, dimsDe, armarIndex, armarApp, leerAcciones, accionesJs, funcionesPedidas, NUCLEO_JS, BASE_CSS, MAX_ACCIONES, EDITABLES, vista, fijarGrilla, appInicial, LOGICA_INICIAL, REGLA_GRILLA } from "./grilla/nucleo.mjs";
+import { GRILLA_VERSION, dimsDe, armarIndex, armarApp, leerAcciones, accionesJs, funcionesPedidas, NUCLEO_JS, BASE_CSS, MAX_ACCIONES, EDITABLES, vista, fijarGrilla, appInicial, LOGICA_INICIAL, REGLA_GRILLA, funcionesDeLogica } from "./grilla/nucleo.mjs";
 
 let ok = 0, fail = 0;
 const t = (name, cond, info = "") => { if (cond) { ok++; console.log(`✓ ${name}`); } else { fail++; console.log(`✗ ${name} ${info}`); } };
@@ -14,7 +14,7 @@ const PL = JSON.parse(readFileSync(join(here, "grilla", "referencia", "planilla_
 const LOGICA_REF = readFileSync(join(here, "grilla", "referencia", "logica.js"), "utf8");
 const ACC_REF = leerAcciones(readFileSync(join(here, "grilla", "referencia", "acciones.json"), "utf8"));
 
-t("versión", GRILLA_VERSION === "grilla v0.2");
+t("versión", GRILLA_VERSION === "grilla v0.3");
 
 // ---------- unidades ----------
 const dims = dimsDe(PL);
@@ -42,10 +42,22 @@ t("leerAcciones: la de referencia sin problemas; funcionesPedidas = valorDe + un
   t("vista: Gemma ve y cambia solo logica.js, acciones.json y styles.css", Object.keys(vista(ini)).sort().join() === [...EDITABLES].sort().join());
   const tocada = { ...vista(ini), "acciones.json": '[{"nombre":"Ocultar","funcion":"ocultar","pide":null},{"nombre":"X","funcion":"no vale"}]' };
   const f = fijarGrilla({ ...tocada, "index.html": "<p>roto</p>", "nucleo.js": "alert(1)" }, { dims, titulo: "Hoja" });
-  t("fijarGrilla: index.html y nucleo.js vuelven a ser los del harness aunque vengan cambiados; acciones.js sale de acciones.json (lo válido) y los problemas se devuelven", f.app["index.html"] === ini["index.html"] && f.app["nucleo.js"] === NUCLEO_JS && /"funcion": "ocultar"/.test(f.app["acciones.js"]) && !/no vale/.test(f.app["acciones.js"]) && f.problemas.length === 1 && f.app["acciones.json"] === tocada["acciones.json"]);
+  t("fijarGrilla: index.html y nucleo.js vuelven a ser los del harness aunque vengan cambiados; acciones.js sale de acciones.json (lo válido) y los problemas se devuelven", f.app["index.html"] === ini["index.html"] && f.app["nucleo.js"] === NUCLEO_JS && /"funcion": "ocultar"/.test(f.app["acciones.js"]) && !/no vale/.test(f.app["acciones.js"]) && f.problemas.length === 2 && f.app["acciones.json"] === tocada["acciones.json"]);
   let tiro = ""; try { fijarGrilla(vista(ini), { dims: null }); } catch (e) { tiro = e.message; }
   t("fijarGrilla sin columnas/filas → falla fuerte (no se inventa una grilla)", /prueba de encabezados/.test(tiro));
   t("REGLA_GRILLA: dice qué archivos se cambian, la forma del estado, sel.celdas y cómo mandar cada cosa", /SOLO estos 3 archivos/.test(REGLA_GRILLA) && /sel = \{ tipo/.test(REGLA_GRILLA) && /ocultas: \{ columnas/.test(REGLA_GRILLA) && /### FUNCION: nombre en logica\.js/.test(REGLA_GRILLA));
+}
+
+// ---------- v0.3: lo que salió de las réplicas de v0.2 ----------
+const S1_LOGICA = readFileSync(join(here, "grilla", "fixtures", "rep_s1_logica.js"), "utf8");
+const S1_ACC = readFileSync(join(here, "grilla", "fixtures", "rep_s1_acciones.json"), "utf8");
+{
+  t("funcionesDeLogica: sueltas (réplica s1) y métodos de un objeto (la de referencia)", funcionesDeLogica(S1_LOGICA).join() === "valorDe,cambiarColor,borrarContenidoColumna,borrarColumna,borrarContenidoCelda,ocultarColumna,ocultarFila" && ["valorDe", "pintar", "vaciar", "borrar", "ocultar"].every((n) => funcionesDeLogica(LOGICA_REF).includes(n)));
+  const f = fijarGrilla({ "logica.js": S1_LOGICA, "acciones.json": S1_ACC, "styles.css": "" }, { dims, titulo: "Hoja" });
+  const faltan = f.problemas.filter((p) => /logica\.js no define/.test(p));
+  t("réplica s1: acciones.json nombra cambiarColorDeFondo y logica.js define cambiarColor → aviso entero, con las funciones que sí hay y qué hacer (también las otras 3 que no existen)", faltan.length === 4 && faltan.some((p) => /cambiarColorDeFondo.*las de logica\.js: valorDe, cambiarColor/.test(p) && /cambiá "funcion"/.test(p)), JSON.stringify(f.problemas));
+  t("la lógica de referencia no tiene avisos de funciones", fijarGrilla({ "logica.js": LOGICA_REF, "acciones.json": JSON.stringify(ACC_REF.acciones), "styles.css": "" }, { dims }).problemas.length === 0);
+  t("REGLA_GRILLA v0.3: dice que todas las celdas existen siempre, también las vacías", /TODAS las celdas de la grilla existen siempre/.test(REGLA_GRILLA));
 }
 
 // ---------- en Chromium (sin el juez): lo que hace el núcleo ----------
@@ -104,6 +116,20 @@ const td = (c) => `td[data-cell="${c}"]`;
   await pg.click(td("A1")); await pg.keyboard.type("=dos"); await pg.keyboard.press("Enter");
   await pg.click('thead th[data-col="C"]'); await pg.click('#barra button:has-text("Ocultar")'); await pg.click('#barra button:has-text("Imprimir")');
   t("Chromium: logica.js con funciones sueltas anda (valorDe y la acción); 'print' del navegador NO se toma por una de logica.js", (await pg.textContent(td("A1"))) === "2" && !(await pg.isVisible(td("C1"))) && errores.some((e) => /la función print no existe en logica\.js/.test(e)), errores.join(" | "));
+  await pg.close();
+}
+{
+  // v0.3: la pintura de las 3 réplicas (if (nuevoEstado.celdas[id]) … : solo las celdas que existen) pinta A1 VACÍA
+  const acc = JSON.parse(S1_ACC).map((a) => (a.funcion === "cambiarColorDeFondo" ? { ...a, funcion: "cambiarColor" } : a)).filter((a) => funcionesDeLogica(S1_LOGICA).includes(a.funcion));
+  const { pg, errores } = await abrir(armarApp({ dims, logica: S1_LOGICA, acciones: acc }));
+  const todas = await pg.evaluate(() => Object.keys(window.Hoja.estado.celdas).length);
+  await pg.click(td("A1"));
+  await pg.evaluate(() => { const i = document.querySelector("#barra input[type=color]"); i.value = "#ff0000"; i.dispatchEvent(new Event("change", { bubbles: true })); });
+  const fondo = await pg.$eval(td("A1"), (el) => getComputedStyle(el).backgroundColor);
+  await pg.click('thead th[data-col="C"]');
+  await pg.evaluate(() => { const i = document.querySelector("#barra input[type=color]"); i.value = "#00ff00"; i.dispatchEvent(new Event("change", { bubbles: true })); });
+  const fondoC = await pg.$eval(td("C7"), (el) => getComputedStyle(el).backgroundColor);
+  t("Chromium v0.3: las 200 celdas existen desde que carga; la pintura de la réplica s1 pinta A1 vacía y la columna C entera (con v0.2: nada)", todas === 200 && fondo === "rgb(255, 0, 0)" && fondoC === "rgb(0, 255, 0)", `${todas} ${fondo} ${fondoC} ${errores.join(" | ")}`);
   await pg.close();
 }
 {

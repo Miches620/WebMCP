@@ -20,7 +20,10 @@
 
 import { findMember, replaceMember, syntaxOf, blockEndLines } from "./js_tools.mjs";
 
-export const CAMBIOS_VERSION = "cambios v0.7";
+export const CAMBIOS_VERSION = "cambios v0.8";
+// v0.8 (19/11, réplicas del núcleo Kanban): "### CSS: <selector>" cambia UNA regla de la hoja de estilo (o la agrega si no
+// está). Gemma reescribía styles.css entero en cada intento y perdía lo que ya pasaba (el fondo, el scroll): 15 de 22
+// intentos fallidos de s2 y s3 fueron eso.
 // v0.2 (19/10, 1ª corrida real): Gemma mandó "### FUNCION: document.getElementById('card-form').addEventListener('submit', …"
 // para cambiar código suelto (fuera de funciones), y el nombre rompía la búsqueda. Ahora un nombre que no es un nombre
 // de función se busca como BLOQUE suelto por su primera línea.
@@ -127,13 +130,52 @@ export function resumirRepetido(html, minVeces = 3) {
   return out.join("\n");
 }
 const ARCHIVO_RE = /^[\w./-]+\.(html|css|js)$/i;
-/** Los bloques de la respuesta: [{ tipo: "funcion" | "archivo", nombre, en?, codigo }]. */
+/** Las reglas de primer nivel de una hoja de estilo: [{ selector, start, end }] (posiciones en el texto; end = después de "}"). */
+export function reglasCss(css) {
+  const s = String(css), out = [];
+  let i = 0, depth = 0, inicio = 0;
+  while (i < s.length) {
+    if (s.startsWith("/*", i)) { const j = s.indexOf("*/", i + 2); i = j < 0 ? s.length : j + 2; continue; }
+    const ch = s[i];
+    if (ch === '"' || ch === "'") { const j = s.indexOf(ch, i + 1); i = j < 0 ? s.length : j + 1; continue; }
+    if (ch === "{") { if (depth === 0) out.push({ selector: s.slice(inicio, i).replace(/\/\*[\s\S]*?\*\//g, "").trim(), start: inicio, abre: i }); depth++; }
+    else if (ch === "}") { depth--; if (depth === 0) { out.at(-1).end = i + 1; inicio = i + 1; } if (depth < 0) depth = 0; }
+    else if (ch === ";" && depth === 0) inicio = i + 1; // @import …;
+    i++;
+  }
+  return out.filter((x) => x.end).map((x) => ({ ...x, start: x.start + (s.slice(x.start, x.abre).match(/^(?:\s|\/\*[\s\S]*?\*\/)*/)[0].length) }));
+}
+export const normSelector = (x) => String(x).replace(/\s+/g, " ").replace(/\s*([,>+~])\s*/g, "$1").trim().toLowerCase();
+
+/** "### CSS: .columna" → reemplaza la regla con ese selector (o la agrega al final). → { css } o { error }. */
+export function ponerReglaCss(css, selector, codigo) {
+  let regla = String(codigo).trim();
+  if (!regla.includes("{")) regla = `${selector} {\n${regla.split("\n").map((l) => `  ${l.trim()}`).join("\n")}\n}`;
+  const nuevas = reglasCss(regla);
+  if (!nuevas.length) return { error: `la regla de "${selector}" no tiene la forma selector { … }` };
+  const quiero = normSelector(selector);
+  if (nuevas.length === 1 && normSelector(nuevas[0].selector) !== quiero) return { error: `el bloque dice "### CSS: ${selector}" pero la regla que mandaste es de "${nuevas[0].selector}"` };
+  let out = String(css), cambiadas = 0, agregadas = 0;
+  for (const n of nuevas) {
+    const texto = regla.slice(n.start, n.end);
+    const vieja = reglasCss(out).filter((x) => normSelector(x.selector) === normSelector(n.selector));
+    if (vieja.length) {
+      // la primera se reemplaza; si estaba repetida, las otras se sacan (si no, la de más abajo seguiría ganando)
+      for (const v of vieja.slice(1).reverse()) out = out.slice(0, v.start) + out.slice(v.end).replace(/^[ \t]*\n/, "");
+      out = out.slice(0, vieja[0].start) + texto + out.slice(vieja[0].end);
+      cambiadas++;
+    } else { out = `${out.replace(/\s+$/, "")}\n\n${texto}\n`; agregadas++; }
+  }
+  return { css: out, cambiadas, agregadas };
+}
+
+/** Los bloques de la respuesta: [{ tipo: "funcion" | "archivo" | "bloque" | "css", nombre, en?, codigo }]. */
 export function leerBloques(raw) {
   const out = [];
-  const re = /###\s*(FUNCI[OÓ]N|FUNCTION|BLOQUE|BLOCK|ARCHIVO|FILE)\s*:\s*(([^\s`]+)(?:\s+en\s+([^\s`]+))?[^\n]*)\n+```[\w-]*\n([\s\S]*?)```/gi;
+  const re = /###\s*(FUNCI[OÓ]N|FUNCTION|BLOQUE|BLOCK|ARCHIVO|FILE|CSS)\s*:\s*(([^\s`]+)(?:\s+en\s+([^\s`]+))?[^\n]*)\n+```[\w-]*\n([\s\S]*?)```/gi;
   let m;
   while ((m = re.exec(String(raw || "")))) {
-    const b = { at: m.index, tipo: /^arch|^file/i.test(m[1]) ? "archivo" : /^bloq/i.test(m[1]) ? "bloque" : "funcion", nombre: m[3].replace(/\(.*$/, "").replace(/\(\)$/, ""), primera: m[2].trim(), en: m[4] || null, codigo: m[5] };
+    const b = { at: m.index, tipo: /^arch|^file/i.test(m[1]) ? "archivo" : /^bloq/i.test(m[1]) ? "bloque" : /^css/i.test(m[1]) ? "css" : "funcion", nombre: m[3].replace(/\(.*$/, "").replace(/\(\)$/, ""), primera: m[2].trim(), en: m[4] || null, codigo: m[5] };
     // 02/11 (hoja, vuelta 1): "### BLOQUE: styles.css" con el archivo entero adentro → es un ARCHIVO, no código suelto
     if (b.tipo !== "archivo" && ARCHIVO_RE.test(b.primera)) Object.assign(b, { tipo: "archivo", nombre: b.primera, en: null });
     out.push(b);
@@ -165,6 +207,21 @@ export function aplicarBloques(app0, bloques) {
       if (b.codigo.trim().length < app[f].trim().length * 0.5) { problemas.push(`${f}: el archivo nuevo tiene menos de la mitad que el actual; si querías cambiar una parte, devolvé el archivo ENTERO`); continue; }
       app[f] = b.codigo;
       aplicados.push(`archivo ${f}`);
+      continue;
+    }
+    // v0.8: una regla de CSS (la reemplaza o la agrega) en styles.css, o en el .css que diga "en x.css"
+    if (b.tipo === "css") {
+      const en = b.primera.match(/\s+en\s+([\w./-]+\.css)\s*$/i);
+      const selector = b.primera.replace(/\s+en\s+[\w./-]+\.css\s*$/i, "").trim();
+      const cssFiles = Object.keys(app).filter((f) => f.endsWith(".css"));
+      const f = (en && cssFiles.find((k) => k === en[1] || k.endsWith("/" + en[1]))) || cssFiles.find((k) => /(^|\/)styles\.css$/.test(k)) || cssFiles[0];
+      if (!f) { problemas.push(`CSS ${selector}: la app no tiene un archivo .css`); continue; }
+      const r = ponerReglaCss(app[f], selector, b.codigo);
+      if (r.error) { problemas.push(`CSS ${selector}: ${r.error}`); continue; }
+      const e = cssRoto(r.css);
+      if (e) { problemas.push(`CSS ${selector}: ${f} quedaría roto (${e})`); continue; }
+      app[f] = r.css;
+      aplicados.push(`regla CSS ${selector} (${f}${r.agregadas ? ", nueva" : ""})`);
       continue;
     }
     // bloque suelto (o una "función" cuyo nombre no es un nombre): se busca por su primera línea

@@ -37,7 +37,16 @@
   function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify(K.estado)); } catch (e) {} }
   function buscar(id) { return K.estado.tarjetas.filter(function (t) { return t.id === id; })[0] || null; }
   function copia(x) { return JSON.parse(JSON.stringify(x)); }
-  function avisar(msj) { aviso.textContent = msj; aviso.hidden = !msj; }
+  // v0.2: lo que abre y cierra el núcleo (los formularios, el aviso) se muestra con un estilo que styles.css no puede pisar
+  // (en las réplicas, un ".modal { display: none }" de Gemma escondía el formulario y agregar dejaba de andar)
+  var FORZAR = { display: null, visibility: "visible", opacity: "1" };
+  function mostrar(e, si, display) {
+    e.hidden = !si;
+    Object.keys(FORZAR).forEach(function (k) {
+      if (si) e.style.setProperty(k, k === "display" ? display : FORZAR[k], "important"); else e.style.removeProperty(k);
+    });
+  }
+  function avisar(msj) { aviso.textContent = msj; mostrar(aviso, !!msj, "block"); }
 
   // una regla de logica.js: cambia estado (o devuelve uno nuevo); si devuelve un texto, es un aviso y no cambia nada
   function hacer(nombre, args, para) {
@@ -112,9 +121,9 @@
       } else { x = document.createElement(c.tipo === "largo" ? "textarea" : "input"); if (x.tagName === "INPUT") x.type = "text"; x.value = v == null ? "" : v; }
       fila(c.nombre, c.nombre, x);
     });
-    modal.hidden = false; ti.focus();
+    mostrar(modal, true, "flex"); ti.focus();
   }
-  function cerrarForm() { modal.hidden = true; editando = null; }
+  function cerrarForm() { mostrar(modal, false); editando = null; }
   form.addEventListener("submit", function (ev) {
     ev.preventDefault();
     var datos = { titulo: form.elements.titulo.value.trim(), campos: {} };
@@ -133,10 +142,10 @@
     var f = fn("preguntaBorrar"), q = null;
     if (f) { try { q = f(copia(t)); } catch (e) { console.error("preguntaBorrar (logica.js) tiró un error: " + e.message); } }
     if (!q) return hacer("borrar", [t.id], "borrar una tarjeta (el botón 🗑️)");
-    borrando = t.id; pregunta.textContent = String(q); confirma.hidden = false;
+    borrando = t.id; pregunta.textContent = String(q); mostrar(confirma, true, "flex");
   }
-  document.getElementById("confirmar-si").addEventListener("click", function () { var id = borrando; borrando = null; confirma.hidden = true; if (id) hacer("borrar", [id], "borrar una tarjeta (el botón 🗑️)"); });
-  document.getElementById("confirmar-no").addEventListener("click", function () { borrando = null; confirma.hidden = true; });
+  document.getElementById("confirmar-si").addEventListener("click", function () { var id = borrando; borrando = null; mostrar(confirma, false); if (id) hacer("borrar", [id], "borrar una tarjeta (el botón 🗑️)"); });
+  document.getElementById("confirmar-no").addEventListener("click", function () { borrando = null; mostrar(confirma, false); });
 
   raiz.addEventListener("click", function (ev) {
     var b = ev.target.closest && ev.target.closest("button"); if (!b) return;

@@ -20,7 +20,8 @@
 // opcional; y una función por acción: f(estado, sel, valor) con sel = { tipo: "celda"|"columna"|"fila", id, celdas: [...] }.
 // Puede cambiar el estado o devolver uno nuevo.
 
-export const GRILLA_VERSION = "grilla v0.3";
+export const GRILLA_VERSION = "grilla v0.4";
+// v0.4 (19/11): styles.css de a una regla (### CSS: selector), como en el tablero; acciones.json sigue entero.
 // v0.3 (18/11, réplicas v0.2: 14/17 en las 3 semillas): las 3 que faltaban eran pintar, y en las 3 Gemma pintaba solo las celdas
 // que ya existían en estado.celdas (if (celdas[id]) …): A1 vacía no se pintaba nunca. Ahora TODAS las celdas existen siempre.
 // Y si acciones.json nombra una función que logica.js no define (s1: cambiarColorDeFondo vs cambiarColor), se avisa entero.
@@ -274,4 +275,4 @@ Vos cambiás SOLO estos 3 archivos:
 2. acciones.json — la barra, una entrada por acción: [{ "nombre": "texto del botón, con el verbo", "funcion": "nombreEnLogica", "pide": null }] ("pide": "color" si necesita un color). UNA acción por verbo, que sirva para celda, columna y fila (usá sel.celdas y sel.tipo).
 3. styles.css — el estilo.
 EL ESTADO (forma fija): { celdas: { "A1": { texto: "=B1+C1", color: "#ff0000" } }, ocultas: { columnas: ["B"], filas: ["3"] } }. TODAS las celdas de la grilla existen siempre en estado.celdas, también las vacías ({ texto: "", color: "" }): no preguntes si existen, cambiá su texto o su color. El núcleo dibuja solo: cada celda muestra valorDe, su "color" es el fondo, y lo que está en "ocultas" no se ve.
-Para cambiar acciones.json o styles.css mandá ### ARCHIVO: con el archivo ENTERO; para logica.js, ### FUNCION: nombre (una función nueva va con ### FUNCION: nombre en logica.js).`;
+CÓMO MANDAR LOS CAMBIOS: acciones.json con ### ARCHIVO: acciones.json (entero). logica.js con ### FUNCION: nombre (una función nueva: ### FUNCION: nombre en logica.js). styles.css DE A UNA REGLA: ### CSS: td.seleccionada y adentro solo esa regla; si ya existe se reemplaza entera y si no, se agrega. NO mandes styles.css entero.`;

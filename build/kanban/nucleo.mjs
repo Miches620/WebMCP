@@ -4,7 +4,9 @@
 import { readFileSync } from "node:fs";
 import { funcionesDeLogica } from "../grilla/nucleo.mjs";
 
-export const KANBAN_VERSION = "kanban v0.1";
+export const KANBAN_VERSION = "kanban v0.2";
+// v0.2 (19/11, réplicas v0.1: 24, 19, 19 de 26; "sin" 13, 4, 15): los formularios y el aviso se muestran con estilo forzado
+// (styles.css no los puede esconder) y styles.css se cambia de a una regla (### CSS: selector).
 export const NUCLEO_JS = readFileSync(new URL("./nucleo.js", import.meta.url), "utf8");
 export const BASE_CSS = readFileSync(new URL("./base.css", import.meta.url), "utf8");
 export const MAX_COLUMNAS = 8, MAX_CAMPOS = 8;
@@ -125,4 +127,4 @@ Vos cambiás SOLO estos 3 archivos:
    Cada regla cambia estado (o devuelve uno nuevo). Si una regla NO deja hacer algo, devolvé un texto (el aviso que se muestra) y no cambies nada.
 3. styles.css — el estilo. Lo que hay: body, h1, #tablero, .columna (con .cabecera > h2 y .contador, .lista con las tarjetas, y button.agregar), .tarjeta (.manija, h3, .campo, .botones con button.editar y button.borrar), .modal .caja (los formularios), #aviso.
 EL ESTADO (forma fija): { tarjetas: [{ id: "t1", titulo: "…", columna: "A", creada: 1, campos: { … } }], siguiente: 2 }.
-Para cambiar tablero.json o styles.css mandá ### ARCHIVO: con el archivo ENTERO; para logica.js, ### FUNCION: nombre (una función nueva va con ### FUNCION: nombre en logica.js).`;
+CÓMO MANDAR LOS CAMBIOS: tablero.json con ### ARCHIVO: tablero.json (entero). logica.js con ### FUNCION: nombre (una función nueva: ### FUNCION: nombre en logica.js). styles.css DE A UNA REGLA: ### CSS: .columna y adentro solo esa regla (.columna { … }); si ya existe se reemplaza entera (poné todas sus propiedades) y si no, se agrega. NO mandes styles.css entero: se perdería lo que ya anda.`;

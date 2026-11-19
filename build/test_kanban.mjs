@@ -15,7 +15,7 @@ const R = (f) => readFileSync(join(here, "kanban", "referencia", f), "utf8");
 const PL = JSON.parse(R("planilla_kanban.json"));
 const REF = { logica: R("logica.js"), tablero: R("tablero.json"), estilos: R("styles.css") };
 
-t("versión", KANBAN_VERSION === "kanban v0.1");
+t("versión", KANBAN_VERSION === "kanban v0.2");
 
 // ---------- unidades ----------
 {
@@ -40,6 +40,18 @@ t("versión", KANBAN_VERSION === "kanban v0.1");
   t("fijarKanban: index.html y nucleo.js vuelven a ser los del harness; tablero.js sale de tablero.json; avisa las reglas que faltan (si ya hay alguna)", f.app["index.html"] === armarIndex() && f.app["nucleo.js"] === NUCLEO_JS && /"Hacer"/.test(f.app["tablero.js"]) && /no define editar, borrar, mover/.test(f.problemas.join()), JSON.stringify(f.problemas));
   t("fijarKanban: sin ninguna regla todavía no se avisa (al principio faltan todas: no es un error, es lo que hay que hacer)", fijarKanban(vista(ini)).problemas.length === 0 && fijarKanban(REF).problemas.length === 0);
   t("REGLA_KANBAN: los 3 archivos, la forma del estado, las 6 reglas, el aviso con un texto, y los nombres para el CSS", /SOLO estos 3 archivos/.test(REGLA_KANBAN) && FUNCIONES.every((f) => REGLA_KANBAN.includes(`${f}(`)) && /devolvé un texto/.test(REGLA_KANBAN) && /\.tarjeta \(\.manija/.test(REGLA_KANBAN) && /tarjetas: \[\{ id: "t1"/.test(REGLA_KANBAN));
+}
+
+// ---------- v0.2: ### CSS: (harness/cambios.mjs) ----------
+{
+  const { aplicar, reglasCss } = await import("../harness/cambios.mjs");
+  const css = "body { background: #102C54; }\n/* columnas */\n.columna { width: 300px; }\n@media (max-width: 600px) {\n  .columna { width: 100%; }\n}\n";
+  const r = aplicar({ "styles.css": css, "logica.js": "" }, "### CSS: .columna\n```css\n.columna { width: 248px; }\n```\n### CSS: .tarjeta\n```css\nheight: 250px;\n```\n### CSS: .x\n```css\n.y { color: red; }\n```");
+  const nuevo = r.app["styles.css"];
+  t("### CSS: reemplaza solo esa regla (el resto, los comentarios y la de @media quedan) y agrega la que no estaba (también con solo las propiedades)", /\.columna \{ width: 248px; \}/.test(nuevo) && !/width: 300px/.test(nuevo) && /#102C54/.test(nuevo) && /\/\* columnas \*\//.test(nuevo) && /width: 100%/.test(nuevo) && /\.tarjeta \{\n  height: 250px;\n\}/.test(nuevo) && r.aplicados.length === 2, nuevo + JSON.stringify(r.aplicados));
+  t("### CSS: con otro selector adentro → problema claro, no se aplica", r.problemas.length === 1 && /dice "### CSS: \.x" pero la regla que mandaste es de "\.y"/.test(r.problemas[0]), JSON.stringify(r.problemas));
+  t("reglasCss: las de primer nivel (la de @media es una sola)", reglasCss(css).map((x) => x.selector).join("|") === "body|.columna|@media (max-width: 600px)");
+  t("REGLA_KANBAN v0.2: styles.css de a una regla con ### CSS:, nunca entero", /### CSS: \.columna/.test(REGLA_KANBAN) && /NO mandes styles\.css entero/.test(REGLA_KANBAN));
 }
 
 // ---------- en Chromium (sin el juez): lo que hace el núcleo ----------
@@ -104,6 +116,19 @@ const contador = (pg, c) => pg.textContent(`${col(c)} .contador`);
   const { pg, errores } = await abrir(armarApp({ tablero: REF.tablero }));
   await agregar(pg, "A");
   t("Chromium: sin crear → no aparece la tarjeta y la consola dice 'la función crear no existe en logica.js: … el botón de agregar'", (await titulos(pg, "Pendiente")).length === 0 && errores.some((e) => /la función crear no existe en logica\.js: el núcleo la usa para crear una tarjeta \(el botón de agregar\)/.test(e)), errores.join(" | "));
+  await pg.close();
+}
+{
+  // v0.2: un styles.css que esconde los modales y el aviso (como el de las réplicas) no rompe agregar, borrar ni el aviso
+  const malo = REF.estilos + "\n.modal { display: none !important; opacity: 0; }\n#aviso { visibility: hidden; }\n";
+  const { pg, errores } = await abrir(armarApp({ ...REF, estilos: malo }));
+  await agregar(pg, "Visible");
+  await pg.hover(tarjeta("Visible")); await pg.click(`${tarjeta("Visible")} button.borrar`);
+  const preg = await pg.isVisible("#confirmar-si");
+  await pg.click("#confirmar-no");
+  await pg.locator(tarjeta("Visible")).dragTo(pg.locator(col("Completa")));
+  await pg.hover(tarjeta("Visible")); await pg.click(`${tarjeta("Visible")} button.borrar`);
+  t("Chromium v0.2: con '.modal { display: none !important }' en styles.css igual se agrega, se pregunta y el aviso se ve; cerrados no se ven", (await titulos(pg, "Completa")).join() === "Visible" && preg && (await pg.isVisible("#aviso")) && !(await pg.isVisible("#formulario-modal")) && !(await pg.isVisible("#confirmar-modal")), errores.join(" | "));
   await pg.close();
 }
 {

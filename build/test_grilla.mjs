@@ -14,7 +14,7 @@ const PL = JSON.parse(readFileSync(join(here, "grilla", "referencia", "planilla_
 const LOGICA_REF = readFileSync(join(here, "grilla", "referencia", "logica.js"), "utf8");
 const ACC_REF = leerAcciones(readFileSync(join(here, "grilla", "referencia", "acciones.json"), "utf8"));
 
-t("versión", GRILLA_VERSION === "grilla v0.3");
+t("versión", GRILLA_VERSION === "grilla v0.4");
 
 // ---------- unidades ----------
 const dims = dimsDe(PL);
@@ -45,7 +45,7 @@ t("leerAcciones: la de referencia sin problemas; funcionesPedidas = valorDe + un
   t("fijarGrilla: index.html y nucleo.js vuelven a ser los del harness aunque vengan cambiados; acciones.js sale de acciones.json (lo válido) y los problemas se devuelven", f.app["index.html"] === ini["index.html"] && f.app["nucleo.js"] === NUCLEO_JS && /"funcion": "ocultar"/.test(f.app["acciones.js"]) && !/no vale/.test(f.app["acciones.js"]) && f.problemas.length === 2 && f.app["acciones.json"] === tocada["acciones.json"]);
   let tiro = ""; try { fijarGrilla(vista(ini), { dims: null }); } catch (e) { tiro = e.message; }
   t("fijarGrilla sin columnas/filas → falla fuerte (no se inventa una grilla)", /prueba de encabezados/.test(tiro));
-  t("REGLA_GRILLA: dice qué archivos se cambian, la forma del estado, sel.celdas y cómo mandar cada cosa", /SOLO estos 3 archivos/.test(REGLA_GRILLA) && /sel = \{ tipo/.test(REGLA_GRILLA) && /ocultas: \{ columnas/.test(REGLA_GRILLA) && /### FUNCION: nombre en logica\.js/.test(REGLA_GRILLA));
+  t("REGLA_GRILLA: dice qué archivos se cambian, la forma del estado, sel.celdas y cómo mandar cada cosa", /SOLO estos 3 archivos/.test(REGLA_GRILLA) && /sel = \{ tipo/.test(REGLA_GRILLA) && /ocultas: \{ columnas/.test(REGLA_GRILLA) && /### FUNCION: nombre en logica\.js/.test(REGLA_GRILLA) && /### CSS: /.test(REGLA_GRILLA));
 }
 
 // ---------- v0.3: lo que salió de las réplicas de v0.2 ----------
